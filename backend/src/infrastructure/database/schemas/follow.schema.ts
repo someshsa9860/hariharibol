@@ -1,0 +1,1 @@
+export { followSchema } from './index';

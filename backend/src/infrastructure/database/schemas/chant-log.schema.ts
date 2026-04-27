@@ -1,0 +1,1 @@
+export { chantlogSchema } from './index';

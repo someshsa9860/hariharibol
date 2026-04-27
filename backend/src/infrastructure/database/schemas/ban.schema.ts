@@ -1,0 +1,1 @@
+export { BanSchema } from './index';

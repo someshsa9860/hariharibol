@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+.sidebar-active {
+  @apply border-l-4 border-primary bg-light;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-200 text-dark rounded-lg hover:bg-gray-300;
+}
+
+.input-field {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+.table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm;
+}

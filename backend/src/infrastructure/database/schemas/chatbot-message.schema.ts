@@ -1,0 +1,1 @@
+export { chatuotmessageSchema } from './index';

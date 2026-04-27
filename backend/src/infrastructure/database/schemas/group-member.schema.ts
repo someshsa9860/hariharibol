@@ -1,0 +1,1 @@
+export { groupmemuerSchema } from './index';

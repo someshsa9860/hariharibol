@@ -1,0 +1,1 @@
+export { translationSchema } from './index';

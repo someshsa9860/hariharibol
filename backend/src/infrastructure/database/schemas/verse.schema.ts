@@ -1,0 +1,1 @@
+export { verseSchema } from './index';

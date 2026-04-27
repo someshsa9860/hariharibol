@@ -1,0 +1,1 @@
+export { languageSchema } from './index';
