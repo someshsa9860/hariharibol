@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import * as redisStore from 'cache-manager-redis-store';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 
@@ -72,6 +73,8 @@ import { HealthController } from '@common/controllers/health.controller';
         },
       }),
     }),
+
+    ScheduleModule.forRoot(),
 
     // Infrastructure modules
     PrismaModule,

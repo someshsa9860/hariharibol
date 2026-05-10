@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 
 export interface NotificationData {
   userId?: string;
@@ -25,21 +26,28 @@ export interface FCMNotification {
 export class NotificationsService {
   private readonly logger = new Logger('NotificationsService');
   private fcmAdmin: any;
+  private resend: Resend | null = null;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
     this.initializeFCM();
+    this.initializeResend();
+  }
+
+  private initializeResend(): void {
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+      this.logger.log('Resend email client initialized');
+    } else {
+      this.logger.warn('RESEND_API_KEY not set — email notifications disabled');
+    }
   }
 
   private initializeFCM(): void {
     try {
-      // TODO: Initialize Firebase Admin SDK
-      // const admin = require('firebase-admin');
-      // const serviceAccount = require(this.configService.get('FCM_SERVICE_ACCOUNT_PATH'));
-      // admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-      // this.fcmAdmin = admin.messaging();
       this.logger.log('FCM initialized');
     } catch (error) {
       this.logger.warn('FCM initialization failed:', error.message);
@@ -89,13 +97,146 @@ export class NotificationsService {
 
   private async sendEmailNotification(email: string, data: NotificationData): Promise<boolean> {
     try {
-      // TODO: Implement email service integration (SendGrid, AWS SES, etc.)
-      this.logger.log(`Email notification would be sent to ${email}: ${data.title}`);
+      if (!this.resend) {
+        this.logger.warn(`Email skipped (Resend not configured): ${data.title}`);
+        return false;
+      }
+
+      const html = this.buildEmailHtml(data);
+      const from = this.configService.get<string>('EMAIL_FROM') || 'HariHariBol <noreply@hariharibol.com>';
+
+      const result = await this.resend.emails.send({
+        from,
+        to: email,
+        subject: data.title,
+        html,
+      });
+
+      if (result.error) {
+        this.logger.error(`Resend error for ${email}: ${result.error.message}`);
+        return false;
+      }
+
+      this.logger.log(`Email sent to ${email}: ${data.title} (id=${result.data?.id})`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send email notification:`, error);
+      this.logger.error(`Failed to send email to ${email}:`, error);
       return false;
     }
+  }
+
+  private buildEmailHtml(data: NotificationData): string {
+    const action = data.metadata?.action as string | undefined;
+
+    if (action === 'verse_of_day') {
+      return this.verseOfDayEmailTemplate(data);
+    }
+    if (action === 'ban') {
+      return this.banNotificationEmailTemplate(data);
+    }
+    if (action === 'welcome') {
+      return this.welcomeEmailTemplate(data);
+    }
+    return this.defaultEmailTemplate(data);
+  }
+
+  private verseOfDayEmailTemplate(data: NotificationData): string {
+    const verse = data.metadata?.verse as string | undefined;
+    const explanation = data.metadata?.explanation as string | undefined;
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>
+body{font-family:Georgia,serif;background:#fdf6ec;margin:0;padding:0}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header{background:#C75A1A;padding:32px;text-align:center;color:#fff}
+.header h1{margin:0;font-size:24px;letter-spacing:1px}
+.body{padding:32px;color:#333}
+.verse{background:#fdf6ec;border-left:4px solid #C75A1A;padding:16px;margin:16px 0;font-style:italic;font-size:16px}
+.footer{background:#f5f5f5;padding:16px;text-align:center;font-size:12px;color:#888}
+</style></head>
+<body>
+<div class="container">
+  <div class="header"><h1>🕉 Verse of the Day</h1></div>
+  <div class="body">
+    <h2 style="color:#C75A1A">${data.title}</h2>
+    <p>${data.message}</p>
+    ${verse ? `<div class="verse">${verse}</div>` : ''}
+    ${explanation ? `<p>${explanation}</p>` : ''}
+  </div>
+  <div class="footer">HariHariBol &bull; Your Daily Spiritual Companion</div>
+</div>
+</body></html>`;
+  }
+
+  private banNotificationEmailTemplate(data: NotificationData): string {
+    const reason = data.metadata?.reason as string | undefined;
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>
+body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:0}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header{background:#b71c1c;padding:32px;text-align:center;color:#fff}
+.header h1{margin:0;font-size:22px}
+.body{padding:32px;color:#333;line-height:1.6}
+.reason{background:#ffeaea;border-left:4px solid #b71c1c;padding:12px;margin:16px 0}
+.footer{background:#f5f5f5;padding:16px;text-align:center;font-size:12px;color:#888}
+</style></head>
+<body>
+<div class="container">
+  <div class="header"><h1>Account Notice</h1></div>
+  <div class="body">
+    <h2>${data.title}</h2>
+    <p>${data.message}</p>
+    ${reason ? `<div class="reason"><strong>Reason:</strong> ${reason}</div>` : ''}
+    <p>If you believe this is a mistake, please contact our support team.</p>
+  </div>
+  <div class="footer">HariHariBol Support</div>
+</div>
+</body></html>`;
+  }
+
+  private welcomeEmailTemplate(data: NotificationData): string {
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>
+body{font-family:Georgia,serif;background:#fdf6ec;margin:0;padding:0}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header{background:#C75A1A;padding:32px;text-align:center;color:#fff}
+.header h1{margin:0;font-size:26px}
+.body{padding:32px;color:#333;line-height:1.8}
+.cta{display:inline-block;background:#C75A1A;color:#fff;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;margin-top:16px}
+.footer{background:#f5f5f5;padding:16px;text-align:center;font-size:12px;color:#888}
+</style></head>
+<body>
+<div class="container">
+  <div class="header"><h1>🕉 Welcome to HariHariBol</h1></div>
+  <div class="body">
+    <h2>${data.title}</h2>
+    <p>${data.message}</p>
+    <p>Begin your spiritual journey with daily verses, mantras, and sacred wisdom from the Vedic tradition.</p>
+    <a class="cta" href="#">Explore Now</a>
+  </div>
+  <div class="footer">HariHariBol &bull; Spreading Vedic Wisdom</div>
+</div>
+</body></html>`;
+  }
+
+  private defaultEmailTemplate(data: NotificationData): string {
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>
+body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:0}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+h2{color:#C75A1A}
+.footer{margin-top:24px;font-size:12px;color:#888;text-align:center}
+</style></head>
+<body>
+<div class="container">
+  <h2>${data.title}</h2>
+  <p>${data.message}</p>
+  <div class="footer">HariHariBol</div>
+</div>
+</body></html>`;
   }
 
   private async sendPushNotification(userId: string, data: NotificationData): Promise<boolean> {
@@ -151,13 +292,33 @@ export class NotificationsService {
     });
   }
 
-  async notifyVerseOfDay(userId: string, verseName: string): Promise<boolean> {
+  async notifyVerseOfDay(userId: string, verseName: string, verse?: string, explanation?: string): Promise<boolean> {
     return this.sendNotification({
       userId,
-      type: 'push',
+      type: 'email',
       title: 'Verse of the Day',
       message: `New verse available: ${verseName}`,
-      metadata: { action: 'verse_of_day' },
+      metadata: { action: 'verse_of_day', verse, explanation },
+    });
+  }
+
+  async notifyUserBanned(userId: string, reason: string): Promise<boolean> {
+    return this.sendNotification({
+      userId,
+      type: 'email',
+      title: 'Your HariHariBol account has been suspended',
+      message: 'Your account has been suspended due to a violation of our community guidelines.',
+      metadata: { action: 'ban', reason },
+    });
+  }
+
+  async notifyWelcome(userId: string, name: string): Promise<boolean> {
+    return this.sendNotification({
+      userId,
+      type: 'email',
+      title: `Welcome, ${name}!`,
+      message: 'We are delighted to have you in our spiritual community.',
+      metadata: { action: 'welcome' },
     });
   }
 

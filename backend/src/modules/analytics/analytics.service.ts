@@ -3,14 +3,19 @@ import { PrismaService } from '@infrastructure/database/prisma.service';
 
 export interface AnalyticsMetrics {
   totalUsers: number;
+  activeUsers24h: number;
+  totalVerses: number;
+  totalChants: number;
+  topSampradayas: { id: string; name: string; followerCount: number }[];
+  topVerses: { id: string; verseId: string; favoriteCount: number }[];
+  userGrowth: { date: string; users: number }[];
+  // Legacy fields kept for backwards compatibility
   activeUsers: number;
   newUsersToday: number;
-  totalVerses: number;
   totalSampradayas: number;
   totalFollows: number;
   totalFavorites: number;
   averageSessionDuration: number;
-  chartData?: any;
 }
 
 @Injectable()
@@ -21,33 +26,68 @@ export class AnalyticsService {
 
   async getMetrics(period: 'day' | 'week' | 'month' = 'month'): Promise<AnalyticsMetrics> {
     try {
+      const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
       const [
         totalUsers,
-        activeUsers,
+        activeUsers24h,
         newUsersToday,
         totalVerses,
         totalSampradayas,
         totalFollows,
         totalFavorites,
+        totalChantsAgg,
+        topSampradayRows,
+        topVerseRows,
+        userGrowth,
       ] = await Promise.all([
         this.prisma.user.count(),
-        this.getActiveUsers(period),
+        this.prisma.user.count({ where: { lastActiveAt: { gte: cutoff24h } } }),
         this.getNewUsersToday(),
         this.prisma.verse.count(),
         this.prisma.sampraday.count(),
-        this.prisma.userFollowSampraday.count(),
-        this.prisma.userFavorite.count(),
+        this.prisma.follow.count(),
+        this.prisma.favorite.count(),
+        this.prisma.chantLog.aggregate({ _sum: { count: true } }),
+        this.prisma.sampraday.findMany({
+          orderBy: { followerCount: 'desc' },
+          take: 5,
+          select: { id: true, nameKey: true, followerCount: true },
+        }),
+        this.prisma.verse.findMany({
+          orderBy: { favorites: { _count: 'desc' } },
+          take: 5,
+          select: {
+            id: true,
+            verseId: true,
+            _count: { select: { favorites: true } },
+          },
+        }),
+        this.getUserGrowth(30),
       ]);
 
       return {
         totalUsers,
-        activeUsers,
+        activeUsers24h,
+        activeUsers: activeUsers24h,
         newUsersToday,
         totalVerses,
         totalSampradayas,
         totalFollows,
         totalFavorites,
-        averageSessionDuration: 0, // TODO: Calculate from session data
+        totalChants: totalChantsAgg._sum.count ?? 0,
+        topSampradayas: topSampradayRows.map((s) => ({
+          id: s.id,
+          name: s.nameKey,
+          followerCount: s.followerCount,
+        })),
+        topVerses: topVerseRows.map((v) => ({
+          id: v.id,
+          verseId: v.verseId,
+          favoriteCount: v._count.favorites,
+        })),
+        userGrowth,
+        averageSessionDuration: 0,
       };
     } catch (error) {
       this.logger.error(`Failed to fetch metrics:`, error);
@@ -55,9 +95,9 @@ export class AnalyticsService {
     }
   }
 
-  async getUserGrowth(days: number = 30): Promise<any[]> {
+  async getUserGrowth(days = 30): Promise<{ date: string; users: number }[]> {
     try {
-      const data: any[] = [];
+      const results: { date: string; users: number }[] = [];
       const today = new Date();
 
       for (let i = days - 1; i >= 0; i--) {
@@ -69,41 +109,34 @@ export class AnalyticsService {
         nextDate.setDate(nextDate.getDate() + 1);
 
         const count = await this.prisma.user.count({
-          where: {
-            createdAt: {
-              gte: date,
-              lt: nextDate,
-            },
-          },
+          where: { createdAt: { gte: date, lt: nextDate } },
         });
 
-        data.push({
-          date: date.toISOString().split('T')[0],
-          users: count,
-        });
+        results.push({ date: date.toISOString().split('T')[0], users: count });
       }
 
-      return data;
+      return results;
     } catch (error) {
-      this.logger.error(`Failed to fetch user growth data:`, error);
+      this.logger.error(`Failed to fetch user growth:`, error);
       return [];
     }
   }
 
   async getEngagementMetrics(): Promise<any> {
     try {
-      const [totalSessions, totalFavorites, totalFollows] = await Promise.all([
-        this.prisma.device.count(), // Assuming one session per device
-        this.prisma.userFavorite.count(),
-        this.prisma.userFollowSampraday.count(),
+      const [totalSessions, totalFavorites, totalFollows, totalUsers] = await Promise.all([
+        this.prisma.device.count(),
+        this.prisma.favorite.count(),
+        this.prisma.follow.count(),
+        this.prisma.user.count(),
       ]);
 
       return {
         totalSessions,
         totalFavorites,
         totalFollows,
-        averageFavoritesPerUser: totalFavorites > 0 ? (totalFavorites / await this.prisma.user.count()).toFixed(2) : 0,
-        averageFollowsPerUser: totalFollows > 0 ? (totalFollows / await this.prisma.user.count()).toFixed(2) : 0,
+        averageFavoritesPerUser: totalUsers > 0 ? (totalFavorites / totalUsers).toFixed(2) : 0,
+        averageFollowsPerUser: totalUsers > 0 ? (totalFollows / totalUsers).toFixed(2) : 0,
       };
     } catch (error) {
       this.logger.error(`Failed to fetch engagement metrics:`, error);
@@ -111,20 +144,12 @@ export class AnalyticsService {
     }
   }
 
-  async getTopContent(limit: number = 10): Promise<any[]> {
+  async getTopContent(limit = 10): Promise<any[]> {
     try {
       const topVerses = await this.prisma.verse.findMany({
         take: limit,
-        include: {
-          _count: {
-            select: { favorites: true },
-          },
-        },
-        orderBy: {
-          favorites: {
-            _count: 'desc',
-          },
-        },
+        include: { _count: { select: { favorites: true } } },
+        orderBy: { favorites: { _count: 'desc' } },
       });
 
       return topVerses.map((v) => ({
@@ -141,52 +166,19 @@ export class AnalyticsService {
 
   async getBannedUsersCount(): Promise<number> {
     try {
-      return await this.prisma.user.count({
-        where: { isBanned: true },
-      });
+      return await this.prisma.user.count({ where: { isBanned: true } });
     } catch (error) {
       this.logger.error(`Failed to fetch banned users count:`, error);
       return 0;
     }
   }
 
-  private async getActiveUsers(period: 'day' | 'week' | 'month'): Promise<number> {
-    const date = new Date();
-    switch (period) {
-      case 'day':
-        date.setDate(date.getDate() - 1);
-        break;
-      case 'week':
-        date.setDate(date.getDate() - 7);
-        break;
-      case 'month':
-        date.setDate(date.getDate() - 30);
-        break;
-    }
-
-    return await this.prisma.user.count({
-      where: {
-        lastActiveAt: {
-          gte: date,
-        },
-      },
-    });
-  }
-
   private async getNewUsersToday(): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    return await this.prisma.user.count({
-      where: {
-        createdAt: {
-          gte: today,
-          lt: tomorrow,
-        },
-      },
-    });
+    return this.prisma.user.count({ where: { createdAt: { gte: today, lt: tomorrow } } });
   }
 }

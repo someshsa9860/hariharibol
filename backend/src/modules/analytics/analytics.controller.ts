@@ -1,65 +1,41 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
-import { JwtGuard } from '../auth/guards/jwt.guard';
-import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 
-@Controller('api/v1/analytics')
+@Controller('api/v1/admin/analytics')
 @UseGuards(JwtGuard)
 export class AnalyticsController {
   constructor(private analyticsService: AnalyticsService) {}
 
   @Get('metrics')
   @HttpCode(HttpStatus.OK)
-  async getMetrics(
-    @CurrentUser() user: any,
-    @Query('period') period: 'day' | 'week' | 'month' = 'month',
-  ) {
-    // TODO: Verify admin role
-    const metrics = await this.analyticsService.getMetrics(period);
-    return metrics;
+  async getMetrics(@Query('period') period: 'day' | 'week' | 'month' = 'month') {
+    return this.analyticsService.getMetrics(period);
   }
 
   @Get('user-growth')
   @HttpCode(HttpStatus.OK)
-  async getUserGrowth(
-    @CurrentUser() user: any,
-    @Query('days') days?: number,
-  ) {
-    // TODO: Verify admin role
-    const data = await this.analyticsService.getUserGrowth(days || 30);
+  async getUserGrowth(@Query('days') days?: string) {
+    const data = await this.analyticsService.getUserGrowth(days ? parseInt(days, 10) : 30);
     return { data };
   }
 
   @Get('engagement')
   @HttpCode(HttpStatus.OK)
-  async getEngagementMetrics(@CurrentUser() user: any) {
-    // TODO: Verify admin role
-    const metrics = await this.analyticsService.getEngagementMetrics();
-    return metrics;
+  async getEngagementMetrics() {
+    return this.analyticsService.getEngagementMetrics();
   }
 
   @Get('top-content')
   @HttpCode(HttpStatus.OK)
-  async getTopContent(
-    @CurrentUser() user: any,
-    @Query('limit') limit?: number,
-  ) {
-    // TODO: Verify admin role
-    const content = await this.analyticsService.getTopContent(limit || 10);
-    return { data: content };
+  async getTopContent(@Query('limit') limit?: string) {
+    const data = await this.analyticsService.getTopContent(limit ? parseInt(limit, 10) : 10);
+    return { data };
   }
 
   @Get('banned-users')
   @HttpCode(HttpStatus.OK)
-  async getBannedUsersCount(@CurrentUser() user: any) {
-    // TODO: Verify admin role
+  async getBannedUsersCount() {
     const count = await this.analyticsService.getBannedUsersCount();
     return { count };
   }
