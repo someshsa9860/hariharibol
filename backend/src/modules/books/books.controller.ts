@@ -17,10 +17,33 @@ export class BooksController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async getAllBooks(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
   ) {
-    return this.booksService.getAllBooks(skip, take);
+    return this.booksService.getAllBooks(
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+    );
+  }
+
+  @Get('search')
+  @HttpCode(HttpStatus.OK)
+  async searchVerses(
+    @Query('q') query: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.booksService.searchVerses(
+      query || '',
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 20,
+    );
+  }
+
+  @Get('slug/:slug')
+  @HttpCode(HttpStatus.OK)
+  async getBookBySlug(@Param('slug') slug: string) {
+    return this.booksService.getBookBySlug(slug);
   }
 
   @Get(':id')
@@ -35,9 +58,26 @@ export class BooksController {
     return this.booksService.getChapters(bookId);
   }
 
-  @Get('slug/:slug')
+  @Get(':bookId/chapters/:chapterNumber')
   @HttpCode(HttpStatus.OK)
-  async getBookBySlug(@Param('slug') slug: string) {
-    return this.booksService.getBookBySlug(slug);
+  async getChapterByNumber(
+    @Param('bookId') bookId: string,
+    @Param('chapterNumber') chapterNumber: string,
+  ) {
+    return this.booksService.getChapterByNumber(bookId, parseInt(chapterNumber, 10));
+  }
+
+  @Get(':bookId/chapters/:chapterNumber/verses/:verseNumber')
+  @HttpCode(HttpStatus.OK)
+  async getVerseByNumber(
+    @Param('bookId') bookId: string,
+    @Param('chapterNumber') chapterNumber: string,
+    @Param('verseNumber') verseNumber: string,
+  ) {
+    return this.booksService.getVerseByNumber(
+      bookId,
+      parseInt(chapterNumber, 10),
+      parseInt(verseNumber, 10),
+    );
   }
 }

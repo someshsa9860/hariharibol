@@ -22,17 +22,28 @@ export class SampradayasController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async getAllSampradayas(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
   ) {
-    return this.sampradayasService.getAllSampradayas(skip, take);
+    return this.sampradayasService.getAllSampradayas(
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+    );
   }
 
-  @Get(':slug')
+  // Must appear before :idOrSlug to avoid shadowing
+  @Get('me/followed')
+  @UseGuards(JwtGuard)
+  @HttpCode(HttpStatus.OK)
+  async getFollowedSampradayas(@CurrentUser() user: any) {
+    return this.sampradayasService.getUserFollowedSampradayas(user.id);
+  }
+
+  @Get(':idOrSlug')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async getSampradayBySlug(@Param('slug') slug: string) {
-    return this.sampradayasService.getSampradayBySlug(slug);
+  async getSampraday(@Param('idOrSlug') idOrSlug: string) {
+    return this.sampradayasService.getSampraday(idOrSlug);
   }
 
   @Post(':id/follow')
@@ -53,12 +64,5 @@ export class SampradayasController {
     @Param('id') sampradayId: string,
   ) {
     return this.sampradayasService.unfollowSampraday(user.id, sampradayId);
-  }
-
-  @Get('me/followed')
-  @UseGuards(JwtGuard)
-  @HttpCode(HttpStatus.OK)
-  async getFollowedSampradayas(@CurrentUser() user: any) {
-    return this.sampradayasService.getUserFollowedSampradayas(user.id);
   }
 }

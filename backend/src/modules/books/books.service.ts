@@ -73,6 +73,58 @@ export class BooksService {
     return chapter;
   }
 
+  async getChapterByNumber(bookId: string, chapterNumber: number) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { bookId_number: { bookId, number: chapterNumber } },
+      include: {
+        book: true,
+        verses: { orderBy: { verseNumber: 'asc' } },
+        _count: { select: { verses: true } },
+      },
+    });
+
+    if (!chapter) throw new NotFoundException('Chapter not found');
+    return chapter;
+  }
+
+  async getVerseByNumber(bookId: string, chapterNumber: number, verseNumber: number) {
+    const verse = await this.prisma.verse.findFirst({
+      where: { bookId, chapterNumber, verseNumber },
+      include: {
+        book: true,
+        chapter: true,
+        narrations: { where: { isPublished: true }, take: 5 },
+      },
+    });
+
+    if (!verse) throw new NotFoundException('Verse not found');
+    return verse;
+  }
+
+  async searchVerses(query: string, skip = 0, take = 20) {
+    const where = query
+      ? {
+          OR: [
+            { sanskrit: { contains: query, mode: 'insensitive' as const } },
+            { transliteration: { contains: query, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [data, total] = await Promise.all([
+      this.prisma.verse.findMany({
+        where,
+        skip,
+        take,
+        include: { book: true, chapter: true },
+        orderBy: { chapterNumber: 'asc' },
+      }),
+      this.prisma.verse.count({ where }),
+    ]);
+
+    return { data, total, skip, take };
+  }
+
   // ── Admin: Book CRUD ─────────────────────────────────────────────────────
 
   async adminGetAllBooks(skip = 0, take = 50) {
@@ -171,13 +223,11 @@ export class BooksService {
   async adminCreateVerse(dto: CreateVerseDto) {
     await this._assertChapterExists(dto.chapterId);
 
-    const existing = await this.prisma.verse.findUnique({
+    const existing = await this.prisma.verse.findFirst({
       where: {
-        bookId_chapterNumber_verseNumber: {
-          bookId: dto.bookId,
-          chapterNumber: dto.chapterNumber,
-          verseNumber: dto.verseNumber,
-        },
+        bookId: dto.bookId,
+        chapterNumber: dto.chapterNumber,
+        verseNumber: dto.verseNumber,
       },
     });
     if (existing) throw new BadRequestException(`Verse ${dto.chapterNumber}.${dto.verseNumber} already exists`);

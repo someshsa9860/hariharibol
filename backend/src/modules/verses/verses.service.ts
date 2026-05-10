@@ -10,7 +10,7 @@ export class VersesService {
       where: { id: verseId },
       include: {
         narrations: { where: { isPublished: true }, take: 5 },
-        verseRelations: { include: { sampraday: true }, take: 3 },
+        sampradayLinks: { include: { sampraday: true }, take: 3 },
         book: true,
         chapter: true,
       },
@@ -31,17 +31,25 @@ export class VersesService {
         narrations: { where: { isPublished: true }, take: 3 },
         book: true,
         chapter: true,
-        verseRelations: { include: { sampraday: true } },
+        sampradayLinks: { include: { sampraday: true } },
       },
     });
 
     return verse || this.getRandomVerse();
   }
 
-  async getRandomVerse() {
+  async getRandomVerse(category?: string) {
+    const where = category
+      ? { categoryKeys: { has: category } }
+      : {};
+
+    const total = await this.prisma.verse.count({ where });
+    const skip = total > 0 ? Math.floor(Math.random() * total) : 0;
+
     const verses = await this.prisma.verse.findMany({
+      where,
       take: 1,
-      skip: Math.floor(Math.random() * 1000),
+      skip,
       include: {
         narrations: { where: { isPublished: true }, take: 3 },
         book: true,
@@ -50,6 +58,30 @@ export class VersesService {
     });
 
     return verses[0] || null;
+  }
+
+  async listVerses(skip = 0, take = 20, search?: string) {
+    const where = search
+      ? {
+          OR: [
+            { sanskrit: { contains: search, mode: 'insensitive' as const } },
+            { transliteration: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [data, total] = await Promise.all([
+      this.prisma.verse.findMany({
+        where,
+        skip,
+        take,
+        include: { book: true, chapter: true },
+        orderBy: [{ chapterNumber: 'asc' }, { verseNumber: 'asc' }],
+      }),
+      this.prisma.verse.count({ where }),
+    ]);
+
+    return { data, total, skip, take };
   }
 
   async getVersesByBook(bookId: string, skip?: number, take?: number) {

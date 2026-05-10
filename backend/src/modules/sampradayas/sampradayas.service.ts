@@ -31,24 +31,31 @@ export class SampradayasService {
   }
 
   async getSampradayBySlug(slug: string) {
-    const sampraday = await this.prisma.sampraday.findUnique({
-      where: { slug },
-      include: {
-        mantras: { where: { isPublic: true }, take: 10 },
-        verseRelations: {
-          include: { verse: true },
-          take: 10,
-        },
-        _count: {
-          select: { follows: true, mantras: true, verseRelations: true },
-        },
-      },
-    });
+    return this.getSampraday(slug);
+  }
 
-    if (!sampraday) {
-      throw new BadRequestException('Sampraday not found');
-    }
+  async getSampraday(idOrSlug: string) {
+    const isId = /^c[a-z0-9]{24,}$/.test(idOrSlug);
 
+    const sampraday = isId
+      ? await this.prisma.sampraday.findUnique({
+          where: { id: idOrSlug },
+          include: {
+            mantras: { where: { isPublic: true }, take: 10 },
+            verseLinks: { include: { verse: true }, take: 10 },
+            _count: { select: { follows: true, mantras: true, verseLinks: true } },
+          },
+        })
+      : await this.prisma.sampraday.findUnique({
+          where: { slug: idOrSlug },
+          include: {
+            mantras: { where: { isPublic: true }, take: 10 },
+            verseLinks: { include: { verse: true }, take: 10 },
+            _count: { select: { follows: true, mantras: true, verseLinks: true } },
+          },
+        });
+
+    if (!sampraday) throw new BadRequestException('Sampraday not found');
     return sampraday;
   }
 

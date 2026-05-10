@@ -14,22 +14,24 @@ import { Public } from '@common/decorators/public.decorator';
 export class VersesController {
   constructor(private versesService: VersesService) {}
 
-  @Get('day')
+  @Get()
   @HttpCode(HttpStatus.OK)
-  async getVerseOfDay() {
-    return this.versesService.getVerseOfDay();
+  async listVerses(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.versesService.listVerses(
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 20,
+      search,
+    );
   }
 
   @Get('random')
   @HttpCode(HttpStatus.OK)
-  async getRandomVerse() {
-    return this.versesService.getRandomVerse();
-  }
-
-  @Get('search')
-  @HttpCode(HttpStatus.OK)
-  async searchVerses(@Query('q') query: string, @Query('limit') limit = 10) {
-    return this.versesService.searchVerses(query, limit);
+  async getRandomVerse(@Query('category') category?: string) {
+    return this.versesService.getRandomVerse(category);
   }
 
   @Get(':id')
