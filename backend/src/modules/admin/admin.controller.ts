@@ -20,21 +20,20 @@ import { CreateSampradayDto, UpdateSampradayDto } from './dto/create-sampraday.d
 import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from './dto/book.dto';
 import { BooksService } from '../books/books.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
+import { AdminGuard } from '@common/guards/admin.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 
 @Controller('api/v1/admin')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, AdminGuard)
 export class AdminController {
   constructor(
     private adminService: AdminService,
     private booksService: BooksService,
   ) {}
 
-  // Dashboard
   @Get('dashboard')
   @HttpCode(HttpStatus.OK)
-  async getDashboard(@CurrentUser() user: any) {
-    // TODO: Verify admin role
+  async getDashboard() {
     return this.adminService.getDashboardStats();
   }
 

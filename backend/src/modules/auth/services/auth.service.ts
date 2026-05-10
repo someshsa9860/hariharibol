@@ -8,7 +8,6 @@ import { PrismaService } from '@infrastructure/database/prisma.service';
 import { TokenService } from './token.service';
 import { OAuthService } from './oauth.service';
 import { GoogleSignInDto, AppleSignInDto, AuthResponseDto, AdminLoginDto } from '../dto';
-import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -20,7 +19,6 @@ export class AuthService {
   ) {}
 
   async signInWithGoogle(dto: GoogleSignInDto): Promise<AuthResponseDto> {
-    // Verify Google token
     const googlePayload = await this.oauthService.verifyGoogleToken(dto.idToken);
 
     if (!googlePayload.email) {
@@ -46,10 +44,7 @@ export class AuthService {
   }
 
   async signInWithApple(dto: AppleSignInDto): Promise<AuthResponseDto> {
-    // Verify Apple token
-    const applePayload = await this.oauthService.verifyAppleToken(
-      dto.identityToken,
-    );
+    const applePayload = await this.oauthService.verifyAppleToken(dto.identityToken);
 
     if (!applePayload.email) {
       throw new BadRequestException(
@@ -75,23 +70,45 @@ export class AuthService {
     );
   }
 
-  async refreshToken(refreshToken: string) {
-    const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+  async refreshToken(token: string) {
+    const payload = await this.tokenService.verifyRefreshToken(token);
 
     if (!payload || !payload.id) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // Check if user still exists and is not banned
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.id },
-    });
+    // Invalidate the old token — prevents replay attacks
+    const valid = await this.tokenService.consumeRefreshToken(token);
+    if (!valid) {
+      throw new UnauthorizedException('Refresh token already used or expired');
+    }
 
+    if (payload.isAdmin) {
+      const admin = await this.prisma.adminUser.findUnique({ where: { id: payload.id } });
+      if (!admin || !admin.isActive) {
+        throw new UnauthorizedException('Admin account not found or inactive');
+      }
+
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.tokenService.generateTokens({
+          id: admin.id,
+          email: admin.email,
+          deviceId: 'admin-panel',
+          isAdmin: true,
+        });
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+        user: { id: admin.id, email: admin.email, name: admin.name, role: admin.role },
+      };
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.id } });
     if (!user || user.isBanned) {
       throw new UnauthorizedException('User not found or banned');
     }
 
-    // Generate new tokens
     const { accessToken, refreshToken: newRefreshToken } =
       await this.tokenService.generateTokens({
         id: user.id,
@@ -113,25 +130,25 @@ export class AuthService {
   }
 
   async logout(userId: string, deviceId: string) {
-    // Update device lastSeenAt
     await this.prisma.device.update({
       where: { deviceId },
       data: { lastSeenAt: new Date() },
     });
 
+    await this.tokenService.revokeAllUserTokens(userId);
+
     return { success: true };
   }
 
   async deleteAccount(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
-    // Soft delete by marking as banned
+    await this.tokenService.revokeAllUserTokens(userId);
+
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -141,13 +158,8 @@ export class AuthService {
       },
     });
 
-    // Also ban associated devices
     const devices = await this.prisma.device.findMany({
-      where: {
-        userIds: {
-          hasSome: [userId],
-        },
-      },
+      where: { userIds: { hasSome: [userId] } },
     });
 
     for (const device of devices) {
@@ -162,6 +174,32 @@ export class AuthService {
     }
 
     return { success: true };
+  }
+
+  async adminLogin(dto: AdminLoginDto) {
+    const admin = await this.prisma.adminUser.findUnique({ where: { email: dto.email } });
+
+    if (!admin || !admin.isActive) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const valid = await bcrypt.compare(dto.password, admin.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const { accessToken, refreshToken } = await this.tokenService.generateTokens({
+      id: admin.id,
+      email: admin.email,
+      deviceId: 'admin-panel',
+      isAdmin: true,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: admin.id, email: admin.email, name: admin.name, role: admin.role },
+    };
   }
 
   private async handleAuthFlow(
@@ -180,51 +218,27 @@ export class AuthService {
     fcmToken?: string,
     apnsToken?: string,
   ): Promise<AuthResponseDto> {
-    // Check if email is banned
     const emailBan = await this.prisma.ban.findFirst({
-      where: {
-        type: 'email',
-        value: profile.email,
-        isActive: true,
-      },
+      where: { type: 'email', value: profile.email, isActive: true },
     });
-
     if (emailBan) {
-      throw new UnauthorizedException(
-        `Email is banned: ${emailBan.reason || 'No reason provided'}`,
-      );
+      throw new UnauthorizedException(`Email is banned: ${emailBan.reason || 'No reason provided'}`);
     }
 
-    // Check if device is banned
     const deviceBan = await this.prisma.ban.findFirst({
-      where: {
-        type: 'device',
-        value: deviceId,
-        isActive: true,
-      },
+      where: { type: 'device', value: deviceId, isActive: true },
     });
-
     if (deviceBan) {
-      throw new UnauthorizedException(
-        `Device is banned: ${deviceBan.reason || 'No reason provided'}`,
-      );
+      throw new UnauthorizedException(`Device is banned: ${deviceBan.reason || 'No reason provided'}`);
     }
 
-    let user = await this.prisma.user.findUnique({
-      where: { email: profile.email },
-    });
+    let user = await this.prisma.user.findUnique({ where: { email: profile.email } });
 
     if (user) {
-      // Existing user
-      if (user.isBanned) {
-        throw new UnauthorizedException('User account is banned');
-      }
+      if (user.isBanned) throw new UnauthorizedException('User account is banned');
 
-      // Check if provider matches
       if (user.authProvider !== profile.authProvider) {
-        throw new ConflictException(
-          `Account already exists with ${user.authProvider} provider`,
-        );
+        throw new ConflictException(`Account already exists with ${user.authProvider} provider`);
       }
 
       user = await this.prisma.user.update({
@@ -235,7 +249,6 @@ export class AuthService {
         },
       });
     } else {
-      // New user
       user = await this.prisma.user.create({
         data: {
           email: profile.email,
@@ -248,65 +261,36 @@ export class AuthService {
       });
     }
 
-    // Handle device
-    let device = await this.prisma.device.findUnique({
-      where: { deviceId },
-    });
+    let device = await this.prisma.device.findUnique({ where: { deviceId } });
 
     if (device) {
-      // Existing device
       if (device.isBanned) {
-        throw new UnauthorizedException(
-          `Device is banned: ${device.bannedReason || 'No reason provided'}`,
-        );
+        throw new UnauthorizedException(`Device is banned: ${device.bannedReason || 'No reason provided'}`);
       }
 
-      // Add user to device if not already present
-      if (!device.userIds.includes(user.id)) {
-        device = await this.prisma.device.update({
-          where: { id: device.id },
-          data: {
-            userIds: [...device.userIds, user.id],
-            lastSeenAt: new Date(),
-            fcmToken: fcmToken || device.fcmToken,
-            apnsToken: apnsToken || device.apnsToken,
-            appVersion: appVersion || device.appVersion,
-          },
-        });
-      } else {
-        device = await this.prisma.device.update({
-          where: { id: device.id },
-          data: {
-            lastSeenAt: new Date(),
-            fcmToken: fcmToken || device.fcmToken,
-            apnsToken: apnsToken || device.apnsToken,
-            appVersion: appVersion || device.appVersion,
-          },
-        });
-      }
-    } else {
-      // New device
-      device = await this.prisma.device.create({
+      device = await this.prisma.device.update({
+        where: { id: device.id },
         data: {
-          deviceId,
-          deviceType,
-          deviceModel,
-          osVersion,
-          appVersion,
-          userIds: [user.id],
-          fcmToken,
-          apnsToken,
+          userIds: device.userIds.includes(user.id)
+            ? device.userIds
+            : [...device.userIds, user.id],
+          lastSeenAt: new Date(),
+          fcmToken: fcmToken || device.fcmToken,
+          apnsToken: apnsToken || device.apnsToken,
+          appVersion: appVersion || device.appVersion,
         },
+      });
+    } else {
+      device = await this.prisma.device.create({
+        data: { deviceId, deviceType, deviceModel, osVersion, appVersion, userIds: [user.id], fcmToken, apnsToken },
       });
     }
 
-    // Generate tokens
-    const { accessToken, refreshToken } =
-      await this.tokenService.generateTokens({
-        id: user.id,
-        email: user.email,
-        deviceId: device.deviceId,
-      });
+    const { accessToken, refreshToken } = await this.tokenService.generateTokens({
+      id: user.id,
+      email: user.email,
+      deviceId: device.deviceId,
+    });
 
     return {
       accessToken,
@@ -317,38 +301,6 @@ export class AuthService {
         name: user.name,
         avatarUrl: user.avatarUrl,
         languagePreference: user.languagePreference,
-      },
-    };
-  }
-
-  async adminLogin(dto: AdminLoginDto) {
-    const admin = await this.prisma.adminUser.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (!admin || !admin.isActive) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const valid = await bcrypt.compare(dto.password, admin.passwordHash);
-    if (!valid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const { accessToken, refreshToken } = await this.tokenService.generateTokens({
-      id: admin.id,
-      email: admin.email,
-      deviceId: 'admin-panel',
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role,
       },
     };
   }

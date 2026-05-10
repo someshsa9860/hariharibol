@@ -69,6 +69,21 @@ model Device {
   @@index([isBanned])
 }
 
+model RefreshToken {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  userId      String?
+  adminId     String?
+  deviceId    String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([adminId])
+}
+
 model GuruSignal {
   id                    String    @id @default(cuid())
   userId                String    @unique

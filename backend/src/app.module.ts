@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import * as redisStore from 'cache-manager-redis-store';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 
@@ -40,6 +41,15 @@ import { HealthController } from '@common/controllers/health.controller';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: () => [
+        { name: 'login', ttl: 60000, limit: 10 },
+        { name: 'refresh', ttl: 60000, limit: 3 },
+        { name: 'default', ttl: 60000, limit: 100 },
+      ],
     }),
     CacheModule.registerAsync({
       isGlobal: true,
@@ -97,6 +107,10 @@ import { HealthController } from '@common/controllers/health.controller';
     {
       provide: APP_GUARD,
       useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

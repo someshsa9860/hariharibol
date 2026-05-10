@@ -9,6 +9,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './services/auth.service';
 import {
   GoogleSignInDto,
@@ -25,7 +26,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  maxAge: 30 * 24 * 60 * 60 * 1000,
   path: '/',
 };
 
@@ -36,6 +37,7 @@ export class AuthController {
   @Post('admin/login')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 60000, limit: 10 } })
   async adminLogin(@Body() dto: AdminLoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.adminLogin(dto);
     res.cookie('admin_token', result.accessToken, COOKIE_OPTIONS);
@@ -53,6 +55,7 @@ export class AuthController {
   @Post('google')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 60000, limit: 10 } })
   async signInWithGoogle(@Body() dto: GoogleSignInDto): Promise<AuthResponseDto> {
     return this.authService.signInWithGoogle(dto);
   }
@@ -60,6 +63,7 @@ export class AuthController {
   @Post('apple')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 60000, limit: 10 } })
   async signInWithApple(@Body() dto: AppleSignInDto): Promise<AuthResponseDto> {
     return this.authService.signInWithApple(dto);
   }
@@ -67,6 +71,7 @@ export class AuthController {
   @Post('refresh')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @Throttle({ refresh: { ttl: 60000, limit: 3 } })
   async refreshToken(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto.refreshToken);
   }
