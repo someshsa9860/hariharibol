@@ -75,7 +75,7 @@ export class AdminService {
     });
   }
 
-  async getAllSampradayas(skip?: number, take?: number) {
+  async getAllSampradayas(skip = 0, take = 50) {
     const [sampradayas, total] = await Promise.all([
       this.prisma.sampraday.findMany({
         skip,
@@ -94,7 +94,7 @@ export class AdminService {
   }
 
   // User Management
-  async getAllUsers(skip?: number, take?: number) {
+  async getAllUsers(skip = 0, take = 50) {
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         skip,
@@ -206,17 +206,15 @@ export class AdminService {
   }
 
   // Moderation Queue
-  async getModerationQueue(status?: string, skip?: number, take?: number) {
+  async getModerationQueue(status?: string, skip = 0, take = 50) {
     const where: any = {};
 
     if (status === 'pending') {
-      where.isModerated = false;
+      where.status = 'pending';
     } else if (status === 'approved') {
-      where.isModerated = true;
-      where.isFlagged = false;
+      where.status = 'approved';
     } else if (status === 'rejected') {
-      where.isModerated = true;
-      where.isFlagged = true;
+      where.status = 'hidden';
     }
 
     const [messages, total] = await Promise.all([
@@ -239,21 +237,14 @@ export class AdminService {
   async approveMessage(messageId: string) {
     return this.prisma.message.update({
       where: { id: messageId },
-      data: {
-        isModerated: true,
-        isFlagged: false,
-      },
+      data: { status: 'approved' },
     });
   }
 
   async rejectMessage(messageId: string, reason: string) {
     return this.prisma.message.update({
       where: { id: messageId },
-      data: {
-        isModerated: true,
-        isFlagged: true,
-        flagReason: reason,
-      },
+      data: { status: 'hidden', hiddenReason: reason },
     });
   }
 

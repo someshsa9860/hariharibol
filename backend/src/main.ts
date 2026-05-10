@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { HttpExceptionFilter } from '@common/filters/http-exception.filter';
@@ -13,6 +14,7 @@ async function bootstrap() {
 
   // Middleware
   app.use(helmet());
+  app.use(cookieParser());
   app.enableCors({
     origin: configService.get<string>('ALLOWED_ORIGINS')?.split(',') || '*',
     credentials: true,

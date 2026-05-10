@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { QueueModule } from '@infrastructure/queue/queue.module';
@@ -91,5 +93,11 @@ import { HealthController } from '@common/controllers/health.controller';
     AnalyticsModule,
   ],
   controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -1,51 +1,46 @@
-# Build stage
+# ── Stage 1: build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-COPY prisma ./prisma
-
-# Install dependencies
 RUN npm ci
 
-# Copy source
-COPY src ./src
-COPY tsconfig.json nest-cli.json ./
+COPY .swcrc ./
+COPY src/ ./src/
+RUN node_modules/.bin/swc src -d dist --strip-leading-paths
 
-# Build
-RUN npm run build
-
-# Runtime stage
-FROM node:20-alpine
-
+# ── Stage 2: production ───────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install dumb-init to handle signals properly
-RUN apk add --no-cache dumb-init
+# Non-root user
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 --ingroup nodejs nodejs
 
-# Copy package files
+# Production deps (prisma is in dependencies so included here)
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Install production dependencies only
-RUN npm ci --only=production
-
-# Copy Prisma schema and migrations
-COPY prisma ./prisma
-
-# Copy built application from builder
+# Compiled output + prisma schema (for migrate deploy at startup)
 COPY --from=builder /app/dist ./dist
+COPY prisma/ ./prisma/
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
 
-# Expose port
-EXPOSE 3000
+# Local upload directory (used when STORAGE_PROVIDER=local)
+RUN mkdir -p uploads && chown -R nodejs:nodejs uploads
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+USER nodejs
 
-# Use dumb-init to handle signals
-ENTRYPOINT ["dumb-init", "--"]
+# APP_MODE controls which process starts:
+#   api    → REST API on PORT (default 3000)
+#   socket → Socket.IO on SOCKET_PORT (default 3001)
+#   worker → BullMQ workers (no HTTP port)
+ENV APP_MODE=api
 
-# Start application
-CMD ["node", "dist/main.js"]
+EXPOSE 3000 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT:-3000}/health 2>/dev/null || wget -qO- http://localhost:${SOCKET_PORT:-3001}/health 2>/dev/null || exit 1
+
+ENTRYPOINT ["./entrypoint.sh"]

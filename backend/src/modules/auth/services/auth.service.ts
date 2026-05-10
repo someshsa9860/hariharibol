@@ -7,8 +7,9 @@ import {
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { TokenService } from './token.service';
 import { OAuthService } from './oauth.service';
-import { GoogleSignInDto, AppleSignInDto, AuthResponseDto } from '../dto';
+import { GoogleSignInDto, AppleSignInDto, AuthResponseDto, AdminLoginDto } from '../dto';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -316,6 +317,38 @@ export class AuthService {
         name: user.name,
         avatarUrl: user.avatarUrl,
         languagePreference: user.languagePreference,
+      },
+    };
+  }
+
+  async adminLogin(dto: AdminLoginDto) {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!admin || !admin.isActive) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const valid = await bcrypt.compare(dto.password, admin.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const { accessToken, refreshToken } = await this.tokenService.generateTokens({
+      id: admin.id,
+      email: admin.email,
+      deviceId: 'admin-panel',
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
       },
     };
   }

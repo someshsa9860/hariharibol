@@ -17,13 +17,18 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminService } from './admin.service';
 import { CreateSampradayDto, UpdateSampradayDto } from './dto/create-sampraday.dto';
+import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from './dto/book.dto';
+import { BooksService } from '../books/books.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 
 @Controller('api/v1/admin')
 @UseGuards(JwtGuard)
 export class AdminController {
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private booksService: BooksService,
+  ) {}
 
   // Dashboard
   @Get('dashboard')
@@ -46,10 +51,13 @@ export class AdminController {
   @Get('sampradayas')
   @HttpCode(HttpStatus.OK)
   async getAllSampradayas(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
   ) {
-    return this.adminService.getAllSampradayas(skip, take);
+    return this.adminService.getAllSampradayas(
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 50,
+    );
   }
 
   @Patch('sampradayas/:id')
@@ -75,10 +83,13 @@ export class AdminController {
   @Get('users')
   @HttpCode(HttpStatus.OK)
   async getAllUsers(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
   ) {
-    return this.adminService.getAllUsers(skip, take);
+    return this.adminService.getAllUsers(
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 50,
+    );
   }
 
   @Post('users/:id/ban')
@@ -105,10 +116,14 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async getModerationQueue(
     @Query('status') status?: string,
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
   ) {
-    return this.adminService.getModerationQueue(status, skip, take);
+    return this.adminService.getModerationQueue(
+      status,
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 50,
+    );
   }
 
   @Post('moderation/messages/:id/approve')

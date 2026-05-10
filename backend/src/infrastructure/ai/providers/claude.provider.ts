@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 import { IAIProvider, AIMessage, AIResponse, AIStreamResponse } from '../ai-provider.interface';
 
 @Injectable()

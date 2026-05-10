@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { StorageProvider, UploadOptions, UploadResult } from '../storage.interface';
 import { defaultImageVariants } from '../storage.config';
 

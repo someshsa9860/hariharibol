@@ -1,22 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as AWS from 'aws-sdk';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { StorageProvider, UploadOptions, UploadResult } from '../storage.interface';
 import { defaultImageVariants } from '../storage.config';
+
+// Bucket has BlockPublicAcls=true — no ACL on uploads.
+// Files are private; use getSignedUrl() to serve them.
+const PRESIGNED_URL_TTL = 60 * 60; // 1 hour
 
 @Injectable()
 export class S3StorageProvider implements StorageProvider {
   private s3: AWS.S3;
   private bucket: string;
+  private region: string;
 
   constructor(private configService: ConfigService) {
-    this.bucket = this.configService.get('AWS_S3_BUCKET');
+    this.bucket = this.configService.get('S3_BUCKET');
+    this.region = this.configService.get('S3_REGION') || 'ap-south-1';
 
     this.s3 = new AWS.S3({
       accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID'),
       secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY'),
-      region: this.configService.get('AWS_REGION') || 'us-east-1',
+      region: this.region,
     });
   }
 
@@ -24,32 +30,25 @@ export class S3StorageProvider implements StorageProvider {
     const filename = this.sanitizeFilename(options.filename);
     const key = `${options.folder}/${filename}`;
 
-    // Upload original file
     await this.s3
       .putObject({
         Bucket: this.bucket,
         Key: key,
         Body: options.buffer,
         ContentType: options.mimetype,
-        ACL: 'public-read',
       })
       .promise();
 
     const result: UploadResult = {
-      url: `https://${this.bucket}.s3.amazonaws.com/${key}`,
+      url: this.getUrl(key),
       path: key,
       filename,
       size: options.buffer.length,
       mimetype: options.mimetype,
     };
 
-    // Generate image variants if requested
     if (options.generateVariants && this.isImage(options.mimetype)) {
-      result.variants = await this.generateImageVariants(
-        options.folder,
-        filename,
-        options.buffer,
-      );
+      result.variants = await this.generateImageVariants(options.folder, filename, options.buffer);
     }
 
     return result;
@@ -57,53 +56,44 @@ export class S3StorageProvider implements StorageProvider {
 
   async delete(filePath: string): Promise<void> {
     try {
-      await this.s3
-        .deleteObject({
-          Bucket: this.bucket,
-          Key: filePath,
-        })
-        .promise();
+      await this.s3.deleteObject({ Bucket: this.bucket, Key: filePath }).promise();
     } catch (err) {
-      console.error('Failed to delete file:', err);
+      console.error('S3 delete failed:', err);
     }
   }
 
   async deleteFolder(folderPath: string): Promise<void> {
     try {
       const objects = await this.s3
-        .listObjectsV2({
-          Bucket: this.bucket,
-          Prefix: folderPath,
-        })
+        .listObjectsV2({ Bucket: this.bucket, Prefix: folderPath })
         .promise();
 
-      if (!objects.Contents || objects.Contents.length === 0) return;
+      if (!objects.Contents?.length) return;
 
-      const deleteParams = {
-        Bucket: this.bucket,
-        Delete: {
-          Objects: objects.Contents.map((obj) => ({ Key: obj.Key })),
-        },
-      };
-
-      await this.s3.deleteObjects(deleteParams).promise();
+      await this.s3
+        .deleteObjects({
+          Bucket: this.bucket,
+          Delete: { Objects: objects.Contents.map((o) => ({ Key: o.Key })) },
+        })
+        .promise();
     } catch (err) {
-      console.error('Failed to delete folder:', err);
+      console.error('S3 deleteFolder failed:', err);
     }
   }
 
+  // Returns a presigned URL valid for 1 hour.
+  // Store the S3 key (path) in DB — generate fresh URLs at serve time.
   getUrl(filePath: string): string {
-    return `https://${this.bucket}.s3.amazonaws.com/${filePath}`;
+    return this.s3.getSignedUrl('getObject', {
+      Bucket: this.bucket,
+      Key: filePath,
+      Expires: PRESIGNED_URL_TTL,
+    });
   }
 
   async exists(filePath: string): Promise<boolean> {
     try {
-      await this.s3
-        .headObject({
-          Bucket: this.bucket,
-          Key: filePath,
-        })
-        .promise();
+      await this.s3.headObject({ Bucket: this.bucket, Key: filePath }).promise();
       return true;
     } catch {
       return false;
@@ -118,71 +108,33 @@ export class S3StorageProvider implements StorageProvider {
     const variants: Record<string, string> = {};
     const name = filename.substring(0, filename.lastIndexOf('.'));
 
-    try {
-      // Generate sm variant
-      const smBuffer = await sharp(buffer)
-        .resize(defaultImageVariants.sm.width, defaultImageVariants.sm.height, {
-          fit: 'cover',
-          position: 'center',
-        })
-        .webp({ quality: 80 })
-        .toBuffer();
+    const configs = [
+      { suffix: 'sm', ...defaultImageVariants.sm, quality: 80 },
+      { suffix: 'md', ...defaultImageVariants.md, quality: 85 },
+      { suffix: 'lg', ...defaultImageVariants.lg, quality: 90 },
+    ];
 
-      const smKey = `${folder}/${name}-sm.webp`;
-      await this.s3
-        .putObject({
-          Bucket: this.bucket,
-          Key: smKey,
-          Body: smBuffer,
-          ContentType: 'image/webp',
-          ACL: 'public-read',
-        })
-        .promise();
-      variants.sm = `${name}-sm.webp`;
+    for (const cfg of configs) {
+      try {
+        const resized = await sharp(buffer)
+          .resize(cfg.width, cfg.height, { fit: 'cover', position: 'center' })
+          .webp({ quality: cfg.quality })
+          .toBuffer();
 
-      // Generate md variant
-      const mdBuffer = await sharp(buffer)
-        .resize(defaultImageVariants.md.width, defaultImageVariants.md.height, {
-          fit: 'cover',
-          position: 'center',
-        })
-        .webp({ quality: 85 })
-        .toBuffer();
+        const variantKey = `${folder}/${name}-${cfg.suffix}.webp`;
+        await this.s3
+          .putObject({
+            Bucket: this.bucket,
+            Key: variantKey,
+            Body: resized,
+            ContentType: 'image/webp',
+          })
+          .promise();
 
-      const mdKey = `${folder}/${name}-md.webp`;
-      await this.s3
-        .putObject({
-          Bucket: this.bucket,
-          Key: mdKey,
-          Body: mdBuffer,
-          ContentType: 'image/webp',
-          ACL: 'public-read',
-        })
-        .promise();
-      variants.md = `${name}-md.webp`;
-
-      // Generate lg variant
-      const lgBuffer = await sharp(buffer)
-        .resize(defaultImageVariants.lg.width, defaultImageVariants.lg.height, {
-          fit: 'cover',
-          position: 'center',
-        })
-        .webp({ quality: 90 })
-        .toBuffer();
-
-      const lgKey = `${folder}/${name}-lg.webp`;
-      await this.s3
-        .putObject({
-          Bucket: this.bucket,
-          Key: lgKey,
-          Body: lgBuffer,
-          ContentType: 'image/webp',
-          ACL: 'public-read',
-        })
-        .promise();
-      variants.lg = `${name}-lg.webp`;
-    } catch (err) {
-      console.error('Failed to generate image variants:', err);
+        variants[cfg.suffix] = `${name}-${cfg.suffix}.webp`;
+      } catch (err) {
+        console.error(`Failed to generate ${cfg.suffix} variant:`, err);
+      }
     }
 
     return variants;
@@ -193,8 +145,6 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   private sanitizeFilename(filename: string): string {
-    return filename
-      .replace(/[^a-zA-Z0-9.-]/g, '_')
-      .toLowerCase();
+    return filename.replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
   }
 }

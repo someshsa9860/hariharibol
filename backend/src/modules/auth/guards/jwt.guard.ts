@@ -22,16 +22,12 @@ export class JwtGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (isPublic) {
-      return true;
-    }
+    if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractToken(request);
 
-    if (!token) {
-      throw new UnauthorizedException('No token provided');
-    }
+    if (!token) throw new UnauthorizedException('No token provided');
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
@@ -42,7 +38,12 @@ export class JwtGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractToken(request: Request): string | undefined {
+    // 1. httpOnly cookie (admin panel)
+    if (request.cookies?.admin_token) {
+      return request.cookies.admin_token;
+    }
+    // 2. Authorization: Bearer <token> (mobile app)
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }

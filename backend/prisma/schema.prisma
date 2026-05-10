@@ -34,11 +34,9 @@ model User {
   lastActiveAt          DateTime  @default(now())
 
   // Relations
-  devices               Device[]
   chantLogs             ChantLog[]
   favorites             Favorite[]
   chatSessions          ChatbotSession[]
-  chatMessages          ChatbotMessage[]
   groupMembers          GroupMember[]
   messages              Message[]
   bansCreated           Ban[] @relation("AdminBans")
@@ -145,97 +143,236 @@ model Sampraday {
   follows               Follow[]
   mantras               Mantra[]
   groups                Group[]
-  verseRelations        VerseRelation[]
+  translators           Translator[]
+  verseLinks            VerseSampradayLink[]
 
   @@index([slug])
   @@index([isPublished])
   @@index([displayOrder])
 }
 
+// ── Book: root sacred text (Bhagavat Gita, Srimad Bhagavatam, etc.) ──────────
 model Book {
   id                    String    @id @default(cuid())
-  slug                  String    @unique
-  titleKey              String
+  bookNumber            Int       @unique          // 1=BG, 2=SB, 3=Ramayana, etc. — universal cross-link key
+  slug                  String    @unique          // e.g. "bhagavat-gita", "srimad-bhagavatam"
+  titleKey              String                     // i18n key
   descriptionKey        String?
   coverImageUrl         String?
-  authorKey             String?
+  language              String    @default("sa") @db.VarChar(10) // source language (Sanskrit)
 
+  totalCantos           Int       @default(0)    // 0 for BG, 12 for SB
   totalChapters         Int       @default(0)
   totalVerses           Int       @default(0)
 
-  displayOrder          Int?
+  displayOrder          Int       @default(0)
   isPublished           Boolean   @default(false)
 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  // Relations
+  cantos                Canto[]
   chapters              Chapter[]
   verses                Verse[]
+  translators           BookTranslator[]   // translators who have worked on this book
 
   @@index([slug])
   @@index([isPublished])
+  @@index([displayOrder])
 }
 
-model Chapter {
+// ── Translator: an author/saint who translated or commented on a book ─────────
+// e.g. Srila Prabhupada, Dnyaneshwar Maharaj, Adi Shankaracharya
+model Translator {
   id                    String    @id @default(cuid())
-  bookId                String
-  number                Int
-  titleKey              String
-  summaryKey            String?
-  totalVerses           Int?
+  slug                  String    @unique          // e.g. "srila-prabhupada"
+  nameKey               String                     // i18n key for display name
+  bioKey                String?                    // i18n key for biography
+  imageUrl              String?
 
-  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  verses                Verse[]
+  sampradayId           String?                    // optional: belongs to a sampraday
+  sampraday             Sampraday? @relation(fields: [sampradayId], references: [id], onDelete: SetNull)
+
+  isPublished           Boolean   @default(true)
+  displayOrder          Int       @default(0)
 
   createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  bookLinks             BookTranslator[]
+  verseTranslations     VerseTranslation[]
+
+  @@index([slug])
+  @@index([sampradayId])
+  @@index([isPublished])
+}
+
+// ── BookTranslator: which translators have done which books ──────────────────
+// e.g. Prabhupada → Bhagavat Gita; Prabhupada → Srimad Bhagavatam
+model BookTranslator {
+  id                    String    @id @default(cuid())
+  bookId                String
+  translatorId          String
+  seriesName            String?                    // e.g. "Bhagavad-gita As It Is"
+  publishedYear         Int?
+  isDefault             Boolean   @default(false)  // primary/featured translation for this book
+
+  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  translator            Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, translatorId])
+  @@index([bookId])
+  @@index([translatorId])
+}
+
+// ── Canto: top-level division used by Srimad Bhagavatam (12 cantos)
+// Bhagavat Gita has no cantos — cantoId is optional on Chapter
+model Canto {
+  id                    String    @id @default(cuid())
+  bookId                String
+  number                Int                              // 1–12 for SB
+  titleKey              String
+  summaryKey            String?
+  totalChapters         Int       @default(0)
+  totalVerses           Int       @default(0)
+
+  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapters              Chapter[]
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([bookId, number])
   @@index([bookId])
 }
 
+// ── Chapter: a chapter within a book (or within a canto for SB) ──────────────
+model Chapter {
+  id                    String    @id @default(cuid())
+  bookId                String
+  cantoId               String?                          // null for BG, set for SB
+  cantoNumber           Int?                             // denormalised for easy querying
+  number                Int                              // chapter number within its canto (or book)
+  titleKey              String
+  summaryKey            String?
+  totalVerses           Int       @default(0)
+
+  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  canto                 Canto?    @relation(fields: [cantoId], references: [id], onDelete: Cascade)
+  verses                Verse[]
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // BG: unique by (bookId, number); SB: unique by (bookId, cantoNumber, number)
+  @@unique([bookId, cantoNumber, number])
+  @@index([bookId])
+  @@index([cantoId])
+}
+
+// ── Verse: canonical Sanskrit verse — translation-neutral source of truth ─────
 model Verse {
   id                    String    @id @default(cuid())
   bookId                String
+  bookNumber            Int                              // denormalised from Book for fast joins
   chapterId             String
+  cantoNumber           Int?                             // null for BG, set for SB
   chapterNumber         Int
   verseNumber           Int
+  verseNumberEnd        Int?      // for compound verses e.g. 13-14 → verseNumber=13, verseNumberEnd=14
+  verseId               String    @unique                // "1.2.47" for BG, "2.1.2.3" for SB — universal key
+  globalVerseNumber     Int?                             // 1–700 for BG, 1–18000 for SB across whole book
 
   sanskrit              String?   @db.Text
   transliteration       String?   @db.Text
-  wordMeanings          Json      @default("[]") // array of {word, meaningKey}
-  translationKey        String?
+  wordMeanings          Json      @default("[]") // [{word, meaning}] — language-neutral
 
-  categoryKeys          String[]  @default([])
+  categoryKeys          String[]  @default([])   // e.g. ["karma", "bhakti"]
   relatedDeityKeys      String[]  @default([])
-  audioUrl              String?
+  audioUrl              String?                  // canonical Sanskrit recitation
 
   isVerseOfDayEligible  Boolean   @default(false)
 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  // Relations
   book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter               Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  translations          VerseTranslation[]
+  crossReferences       VerseLink[]  @relation("SourceVerse")
+  linkedFrom            VerseLink[]  @relation("TargetVerse")
+  sampradayLinks        VerseSampradayLink[]
   narrations            Narration[]
-  favorites             Favorite[] @relation("VerseToFavorite")
-  verseRelations        VerseRelation[]
+  favorites             Favorite[]   @relation("VerseToFavorite")
   citations             Citation[]
   versesOfDay           VerseOfDay[]
 
-  @@unique([bookId, chapterNumber, verseNumber])
+  // BG: (bookId, chapterNumber, verseNumber); SB: (bookId, cantoNumber, chapterNumber, verseNumber)
+  @@unique([bookId, cantoNumber, chapterNumber, verseNumber])
+  @@index([verseId])
+  @@index([bookNumber])
   @@index([bookId])
+  @@index([chapterId])
+  @@index([cantoNumber])
+  @@index([globalVerseNumber])
   @@index([isVerseOfDayEligible])
 }
 
-model VerseRelation {
+// ── VerseTranslation: one translator's rendering of one verse in one language ─
+// e.g. Prabhupada's English translation of BG 2.47
+model VerseTranslation {
+  id                    String    @id @default(cuid())
+  verseId               String
+  translatorId          String
+  language              String    @db.VarChar(10) // "en", "hi", "mr", "sa" etc.
+
+  meaning               String    @db.Text         // the translated verse meaning
+  purport               String?   @db.Text         // extended commentary / explanation
+  audioUrl              String?                    // audio of this translation/purport
+
+  isPublished           Boolean   @default(false)
+  displayOrder          Int       @default(0)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  verse                 Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  translator            Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  @@unique([verseId, translatorId, language])
+  @@index([verseId])
+  @@index([translatorId])
+  @@index([language])
+  @@index([isPublished])
+}
+
+// ── VerseLink: cross-book verse connections ───────────────────────────────────
+// e.g. BG 10.20 ↔ SB 11.9.21 (same concept across texts)
+model VerseLink {
+  id                    String    @id @default(cuid())
+  sourceVerseId         String
+  targetVerseId         String
+  relationKey           String    @db.VarChar(100) // e.g. "same_concept", "expands_on", "quoted_in"
+  noteKey               String?                    // i18n key explaining the link
+
+  sourceVerse           Verse     @relation("SourceVerse", fields: [sourceVerseId], references: [id], onDelete: Cascade)
+  targetVerse           Verse     @relation("TargetVerse", fields: [targetVerseId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceVerseId, targetVerseId])
+  @@index([sourceVerseId])
+  @@index([targetVerseId])
+}
+
+// ── VerseSampradayLink: which sampraday emphasises this verse + preferred translator
+model VerseSampradayLink {
   id                    String    @id @default(cuid())
   verseId               String
   sampradayId           String
+  preferredTranslatorId String?   // sampraday's preferred translator for this verse
 
-  verse                 Verse     @relation(fields: [verseId], references: [id], onDelete: Cascade)
-  sampraday             Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
+  verse                 Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  sampraday             Sampraday  @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
 
   @@unique([verseId, sampradayId])
   @@index([verseId])
@@ -335,8 +472,8 @@ model Favorite {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Polymorphic relations (handled in code)
-  verse                 Verse?    @relation("VerseToFavorite", fields: [targetId], references: [id], onDelete: SetNull)
-  mantra                Mantra?   @relation("MantraToFavorite", fields: [targetId], references: [id], onDelete: SetNull)
+  verse                 Verse?    @relation("VerseToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_verseTargetId_fkey")
+  mantra                Mantra?   @relation("MantraToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_mantraTargetId_fkey")
 
   @@unique([userId, type, targetId])
   @@index([userId])
@@ -598,4 +735,17 @@ model FCMSubscription {
   @@unique([topicId, deviceToken])
   @@index([topicId])
   @@index([deviceId])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String
+  name         String?
+  role         String   @default("admin") @db.VarChar(50)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])
 }

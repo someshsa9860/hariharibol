@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { AIProviderService } from '@infrastructure/ai/ai-provider.service';
 import { StorageService } from '@infrastructure/storage/storage.service';
 import { AppSettingsService } from '@infrastructure/config/app-settings.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { ConfigService } from '@nestjs/config';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 export interface VerseOfDayConfig {
   aiProvider: 'gemini' | 'openai' | 'none';
@@ -130,6 +130,9 @@ export class VerseOfDayService {
 
       // Parse response to get verse ID (implement based on AI response format)
       const verses = await this.prisma.verse.findMany({ take: 100 });
+      if (!verses.length) {
+        throw new Error('No verses found in database');
+      }
       const randomVerse = verses[Math.floor(Math.random() * verses.length)];
 
       let imageUrl = null;
@@ -178,6 +181,9 @@ export class VerseOfDayService {
       let imageUrl = null;
 
       const verse = await this.prisma.verse.findUnique({ where: { id: verseId } });
+      if (!verse) {
+        throw new BadRequestException(`Verse ${verseId} not found`);
+      }
 
       if (config.generateImage) {
         imageUrl = await this.generateVerseImage(verse);
@@ -240,6 +246,9 @@ export class VerseOfDayService {
   private async getRandomVerse(): Promise<any> {
     try {
       const verseCount = await this.prisma.verse.count();
+      if (!verseCount) {
+        throw new Error('No verses found in database');
+      }
       const randomIndex = Math.floor(Math.random() * verseCount);
 
       const verse = await this.prisma.verse.findFirst({
