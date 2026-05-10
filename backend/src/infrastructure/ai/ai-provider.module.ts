@@ -29,6 +29,6 @@ import { AIProviderService } from './ai-provider.service';
       inject: [ConfigService, ClaudeProvider, OpenAIProvider, GeminiProvider],
     },
   ],
-  exports: ['AI_PROVIDER', AIProviderService],
+  exports: ['AI_PROVIDER', AIProviderService, GeminiProvider, OpenAIProvider],
 })
 export class AIProviderModule {}

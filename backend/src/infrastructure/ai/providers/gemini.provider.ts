@@ -6,7 +6,7 @@ import { IAIProvider, AIMessage, AIResponse, AIStreamResponse } from '../ai-prov
 export class GeminiProvider implements IAIProvider {
   private readonly logger = new Logger('GeminiProvider');
   private apiKey: string;
-  private model = 'gemini-1.5-pro';
+  private model = 'gemini-1.5-flash';
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(private configService: ConfigService) {
@@ -66,7 +66,7 @@ export class GeminiProvider implements IAIProvider {
       maxTokens?: number;
     },
   ): Promise<AIStreamResponse> {
-    const url = `${this.baseUrl}/${this.model}:streamGenerateContent?key=${this.apiKey}`;
+    const url = `${this.baseUrl}/${this.model}:streamGenerateContent?key=${this.apiKey}&alt=sse`;
 
     const requestBody = {
       contents: this.buildContents(messages, systemPrompt),

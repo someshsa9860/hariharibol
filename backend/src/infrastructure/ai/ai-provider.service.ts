@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IAIProvider } from './ai-provider.interface';
+import { IAIProvider, AIMessage } from './ai-provider.interface';
 
 @Injectable()
 export class AIProviderService {
@@ -13,16 +13,21 @@ export class AIProviderService {
 
   async generateText(
     prompt: string,
-    provider: 'gemini' | 'openai' | 'claude' = 'gemini',
+    systemPromptOrProvider: string | ('gemini' | 'openai' | 'claude') = 'gemini',
     options?: {
       temperature?: number;
       maxTokens?: number;
     },
   ): Promise<string> {
+    const systemPrompt =
+      typeof systemPromptOrProvider === 'string' &&
+      !['gemini', 'openai', 'claude'].includes(systemPromptOrProvider)
+        ? systemPromptOrProvider
+        : '';
     try {
       const response = await this.aiProvider.generateResponse(
         [{ role: 'user', content: prompt }],
-        '',
+        systemPrompt,
         {
           temperature: options?.temperature || 0.7,
           maxTokens: options?.maxTokens || 500,
@@ -45,6 +50,26 @@ export class AIProviderService {
     } catch (error) {
       this.logger.error(`Failed to generate text:`, error);
       throw error;
+    }
+  }
+
+  async *streamText(
+    messages: AIMessage[],
+    systemPrompt: string,
+    options?: { temperature?: number; maxTokens?: number },
+  ): AsyncGenerator<string> {
+    const response = await this.aiProvider.generateResponse(messages, systemPrompt, {
+      temperature: options?.temperature ?? 0.7,
+      maxTokens: options?.maxTokens ?? 1024,
+      stream: true,
+    });
+
+    if ('stream' in response) {
+      for await (const chunk of response.stream) {
+        yield chunk;
+      }
+    } else {
+      yield response.content;
     }
   }
 
