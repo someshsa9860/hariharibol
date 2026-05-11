@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, MessageSquare, Settings,
   LogOut, BookOpen, BarChart3, Sparkles, ChevronRight,
   Library, Mic2, Music, Languages, Globe2, Download, PenSquare,
-  ChevronDown,
+  ChevronDown, Ban, Bell, ClipboardList, AlertTriangle, UsersRound,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -51,11 +51,23 @@ const contentGroups: NavGroup[] = [
   },
 ];
 
+const moderationGroup: NavGroup = {
+  label: 'Moderation',
+  defaultOpen: false,
+  items: [
+    { href: '/moderation',          label: 'Queue',          icon: MessageSquare },
+    { href: '/moderation/groups',   label: 'Group Oversight', icon: UsersRound },
+    { href: '/moderation/strikes',  label: 'User Strikes',   icon: AlertTriangle },
+  ],
+};
+
 const bottomItems: NavItem[] = [
-  { href: '/languages',  label: 'Languages',  icon: Globe2 },
-  { href: '/users',      label: 'Users',      icon: Users },
-  { href: '/moderation', label: 'Moderation', icon: MessageSquare },
-  { href: '/settings',   label: 'Settings',   icon: Settings },
+  { href: '/languages',      label: 'Languages',      icon: Globe2 },
+  { href: '/users',          label: 'Users',          icon: Users },
+  { href: '/bans',           label: 'Bans',           icon: Ban },
+  { href: '/notifications',  label: 'Notifications',  icon: Bell },
+  { href: '/audit-log',      label: 'Audit Log',      icon: ClipboardList },
+  { href: '/settings',       label: 'Settings',       icon: Settings },
 ];
 
 function NavLink({ item, pathname, hovered, setHovered }: {
@@ -195,6 +207,9 @@ export default function Sidebar() {
         {contentGroups.map(group => (
           <CollapsibleGroup key={group.label} group={group} pathname={pathname} hovered={hovered} setHovered={setHovered} />
         ))}
+
+        {/* Moderation collapsible group */}
+        <CollapsibleGroup group={moderationGroup} pathname={pathname} hovered={hovered} setHovered={setHovered} />
 
         {/* Bottom flat items */}
         <div className="mt-2">
