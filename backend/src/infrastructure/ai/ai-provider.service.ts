@@ -102,50 +102,33 @@ export class AIProviderService {
       Aspect ratio: 1:1 (square).
       Avoid text in image.`;
 
-      // Use Gemini API via HTTP (since we don't have vertex AI SDK configured)
-      // This uses the REST endpoint for Gemini's vision capabilities
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: enhancedPrompt,
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.8,
-              topK: 40,
-              topP: 0.95,
-            },
+            instances: [{ prompt: enhancedPrompt }],
+            parameters: { sampleCount: 1, aspectRatio: '1:1' },
           }),
         },
       );
 
       if (!response.ok) {
         const error = await response.text();
-        this.logger.error(`Gemini API error: ${error}`);
-        throw new Error(`Gemini API error: ${response.status}`);
+        this.logger.error(`Imagen 3 API error: ${error}`);
+        throw new Error(`Imagen 3 API error: ${response.status}`);
       }
 
       const result = await response.json();
 
-      // Extract image from response
-      if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const imageUrl = this.extractImageUrl(result.candidates[0].content.parts[0].text);
-        if (imageUrl) {
-          return await this.downloadImage(imageUrl);
-        }
+      const b64 = result.predictions?.[0]?.bytesBase64Encoded;
+      if (!b64) {
+        this.logger.warn('Imagen 3 returned no image data; falling back to placeholder');
+        return this.getPlaceholderImage();
       }
 
-      // Fallback: Return a placeholder if image generation not available
-      return this.getPlaceholderImage();
+      return Buffer.from(b64, 'base64');
     } catch (error) {
       this.logger.error(`Gemini image generation failed:`, error);
       return this.getPlaceholderImage();
@@ -210,11 +193,6 @@ export class AIProviderService {
       this.logger.error(`Failed to download image:`, error);
       return this.getPlaceholderImage();
     }
-  }
-
-  private extractImageUrl(text: string): string | null {
-    const urlMatch = text.match(/https?:\/\/[^\s\)]+\.(jpg|jpeg|png|webp|gif)/i);
-    return urlMatch ? urlMatch[0] : null;
   }
 
   private getPlaceholderImage(): Buffer {
