@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GoogleSignInButton extends StatefulWidget {
-  final VoidCallback onPressed;
+  final Future<void> Function() onPressed;
 
   const GoogleSignInButton({
     super.key,

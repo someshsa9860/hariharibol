@@ -19,23 +19,46 @@ export class UsersService {
     return this.mapUserToResponseDto(user);
   }
 
-  async updateUser(
-    userId: string,
-    dto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  async updateUser(userId: string, dto: UpdateUserDto): Promise<UserResponseDto> {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
         ...(dto.name && { name: dto.name }),
         ...(dto.avatarUrl && { avatarUrl: dto.avatarUrl }),
-        ...(dto.languagePreference && {
-          languagePreference: dto.languagePreference,
-        }),
+        ...(dto.languagePreference && { languagePreference: dto.languagePreference }),
+        ...(dto.primarySampradayId !== undefined && { primarySampradayId: dto.primarySampradayId }),
         lastActiveAt: new Date(),
       },
     });
 
     return this.mapUserToResponseDto(updatedUser);
+  }
+
+  async completeOnboarding(userId: string, sampradayId: string): Promise<UserResponseDto> {
+    const sampraday = await this.prisma.sampraday.findUnique({ where: { id: sampradayId } });
+    if (!sampraday) throw new BadRequestException('Sampraday not found');
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: { primarySampradayId: sampradayId, onboardingCompleted: true, lastActiveAt: new Date() },
+      });
+
+      await tx.follow.upsert({
+        where: { userId_sampradayId: { userId, sampradayId } },
+        create: { userId, sampradayId },
+        update: {},
+      });
+
+      await tx.sampraday.update({
+        where: { id: sampradayId },
+        data: { followerCount: { increment: 1 } },
+      });
+
+      return updated;
+    });
+
+    return this.mapUserToResponseDto(user);
   }
 
   private mapUserToResponseDto(user: any): UserResponseDto {
@@ -45,6 +68,8 @@ export class UsersService {
       name: user.name,
       avatarUrl: user.avatarUrl,
       languagePreference: user.languagePreference,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+      primarySampradayId: user.primarySampradayId,
       isBanned: user.isBanned,
       bannedReason: user.bannedReason,
       createdAt: user.createdAt,

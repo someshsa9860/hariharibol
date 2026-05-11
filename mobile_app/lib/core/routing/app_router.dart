@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/onboarding_sampraday_page.dart';
 import '../../features/shell/presentation/pages/main_shell_page.dart';
 import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/sampradayas/presentation/pages/sampraday_detail_page.dart';
@@ -25,6 +26,11 @@ class AppRouter {
         path: '/login',
         builder: (context, state) => const LoginPage(),
       ),
+      // ── Onboarding ─────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingSampradayPage(),
+      ),
       // ── Shell (4-tab) ──────────────────────────────────────────────────────
       GoRoute(
         path: '/home',
@@ -46,8 +52,7 @@ class AppRouter {
       GoRoute(
         path: '/gurudev/session/:id',
         builder: (context, state) {
-          final extra =
-              (state.extra as Map<String, dynamic>?) ?? {};
+          final extra = (state.extra as Map<String, dynamic>?) ?? {};
           return ChatSessionPage(
             sessionId: state.pathParameters['id']!,
             initialPrompt: extra['initialPrompt'] as String?,
@@ -57,33 +62,26 @@ class AppRouter {
       // ── Verse Detail ───────────────────────────────────────────────────────
       GoRoute(
         path: '/verse/:id',
-        builder: (context, state) => VerseDetailPage(
-          verseId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) => VerseDetailPage(verseId: state.pathParameters['id']!),
       ),
       // ── Sampraday Detail ───────────────────────────────────────────────────
       GoRoute(
         path: '/sampraday/:id',
-        builder: (context, state) => SampradayDetailPage(
-          sampradayId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) => SampradayDetailPage(sampradayId: state.pathParameters['id']!),
       ),
-      // ── Chanting sub-routes (pushed over shell) ────────────────────────────
+      // ── Chanting sub-routes ────────────────────────────────────────────────
       GoRoute(
         path: '/chanting/history',
         builder: (context, state) => const ChantHistoryPage(),
       ),
       GoRoute(
         path: '/mantra/:id',
-        builder: (context, state) => MantraDetailPage(
-          mantraId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) => MantraDetailPage(mantraId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/chant/:mantraId',
         builder: (context, state) {
-          final extra =
-              (state.extra as Map<String, dynamic>?) ?? {};
+          final extra = (state.extra as Map<String, dynamic>?) ?? {};
           return ChantCounterPage(
             mantraId: state.pathParameters['mantraId']!,
             mantraName: extra['mantraName'] as String? ?? 'Mantra',
@@ -94,9 +92,7 @@ class AppRouter {
       // ── Group Chat ─────────────────────────────────────────────────────────
       GoRoute(
         path: '/group/:id',
-        builder: (context, state) => GroupChatPage(
-          groupId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) => GroupChatPage(groupId: state.pathParameters['id']!),
       ),
       // ── Profile & Settings ─────────────────────────────────────────────────
       GoRoute(

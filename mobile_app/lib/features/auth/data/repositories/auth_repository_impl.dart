@@ -17,14 +17,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> signInWithApple(
-    String identityToken,
-    String userIdentifier,
-  ) async {
-    final data = await _remoteDataSource.signInWithApple(
-      identityToken,
-      userIdentifier,
-    );
+  Future<AuthResult> signInWithApple(String identityToken, String userIdentifier) async {
+    final data = await _remoteDataSource.signInWithApple(identityToken, userIdentifier);
     return _handleAuthResponse(data);
   }
 
@@ -32,6 +26,26 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> refreshToken(String refreshToken) async {
     final data = await _remoteDataSource.refreshToken(refreshToken);
     return _handleAuthResponse(data);
+  }
+
+  @override
+  Future<AuthResult> completeOnboarding(String sampradayId) async {
+    final data = await _remoteDataSource.completeOnboarding(sampradayId);
+    final user = UserModel.fromJson(data);
+    final accessToken = await _secureStorage.read(key: 'access_token') ?? '';
+    final refreshToken = await _secureStorage.read(key: 'refresh_token') ?? '';
+    return AuthResult(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      user: user,
+      isNewUser: false,
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSampradayas() async {
+    final list = await _remoteDataSource.getSampradayas();
+    return list.cast<Map<String, dynamic>>();
   }
 
   @override
@@ -49,11 +63,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> _handleAuthResponse(Map<String, dynamic> data) async {
     final accessToken = data['accessToken'] as String;
     final refreshToken = data['refreshToken'] as String;
+    final isNewUser = data['isNewUser'] as bool? ?? false;
     final userJson = data['user'] as Map<String, dynamic>;
 
     final user = UserModel.fromJson(userJson);
 
-    // Store tokens securely
     await _secureStorage.write(key: 'access_token', value: accessToken);
     await _secureStorage.write(key: 'refresh_token', value: refreshToken);
 
@@ -61,6 +75,7 @@ class AuthRepositoryImpl implements AuthRepository {
       accessToken: accessToken,
       refreshToken: refreshToken,
       user: user,
+      isNewUser: isNewUser,
     );
   }
 }

@@ -7,13 +7,17 @@ class UserModel extends User {
     String? name,
     String? avatarUrl,
     required String languagePreference,
+    bool onboardingCompleted = false,
+    String? primarySampradayId,
   }) : super(
-    id: id,
-    email: email,
-    name: name,
-    avatarUrl: avatarUrl,
-    languagePreference: languagePreference,
-  );
+          id: id,
+          email: email,
+          name: name,
+          avatarUrl: avatarUrl,
+          languagePreference: languagePreference,
+          onboardingCompleted: onboardingCompleted,
+          primarySampradayId: primarySampradayId,
+        );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -22,6 +26,8 @@ class UserModel extends User {
       name: json['name'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       languagePreference: json['languagePreference'] as String? ?? 'en',
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+      primarySampradayId: json['primarySampradayId'] as String?,
     );
   }
 
@@ -32,6 +38,8 @@ class UserModel extends User {
       'name': name,
       'avatarUrl': avatarUrl,
       'languagePreference': languagePreference,
+      'onboardingCompleted': onboardingCompleted,
+      'primarySampradayId': primarySampradayId,
     };
   }
 }

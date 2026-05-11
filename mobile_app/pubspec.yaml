@@ -71,6 +71,12 @@ dependencies:
   just_audio: ^0.9.39
   audio_service: ^0.18.15
 
+  # Device info
+  device_info_plus: ^10.1.0
+
+  # Sharing
+  share_plus: ^10.1.2
+
   # Images
   cached_network_image: ^3.3.1
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../chatbot/presentation/pages/chatbot_page.dart';
 import '../../../chanting/presentation/pages/chanting_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../../../reading/presentation/pages/reading_page.dart';
 
 const _saffron = Color(0xFFFF7E00);
 const _textMid = Color(0xFF8B7D73);
@@ -22,7 +23,7 @@ class _MainShellPageState extends State<MainShellPage> {
     HomePage(),
     ChatbotPage(),
     ChantingPage(),
-    _ReadPage(),
+    ReadingPage(),
   ];
 
   @override
@@ -138,57 +139,6 @@ class _NavButton extends StatelessWidget {
                 color: isSelected ? _saffron : _textMid,
               ),
               child: Text(tab.label),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Read Tab (Books placeholder) ─────────────────────────────────────────────
-class _ReadPage extends StatelessWidget {
-  const _ReadPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF8EC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Row(
-          children: [
-            Text('📖', style: TextStyle(fontSize: 22)),
-            SizedBox(width: 8),
-            Text(
-              'Read',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1410),
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('📖', style: TextStyle(fontSize: 64)),
-            SizedBox(height: 16),
-            Text(
-              'Books & Verses',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1410),
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Coming soon',
-              style: TextStyle(color: Color(0xFF8B7D73)),
             ),
           ],
         ),

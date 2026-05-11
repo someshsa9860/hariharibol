@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -21,32 +22,34 @@ class _SplashPageState extends ConsumerState<SplashPage>
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-
     _animation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-
     _animationController.forward();
 
-    // Check authentication status after splash delay
-    Future.delayed(const Duration(seconds: 3), () {
-      _checkAuthStatus();
-    });
+    Future.delayed(const Duration(milliseconds: 2200), _checkAuthStatus);
   }
 
   void _checkAuthStatus() {
+    if (!mounted) return;
     final authState = ref.read(authStateProvider);
     authState.whenData((state) {
-      if (mounted) {
-        if (state.isAuthenticated) {
-          // Navigate to home
-          // context.go('/home');
+      if (!mounted) return;
+      if (state.isAuthenticated) {
+        if (state.needsOnboarding) {
+          context.go('/onboarding');
         } else {
-          // Navigate to login
-          // context.go('/login');
+          context.go('/home');
         }
+      } else {
+        context.go('/login');
       }
     });
+
+    // If loading or error, still go to login
+    if (authState.isLoading || authState.hasError) {
+      context.go('/login');
+    }
   }
 
   @override
@@ -58,14 +61,13 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: const Color(0xFF1A0A00),
       body: Center(
         child: FadeTransition(
           opacity: _animation,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Logo/Icon
               ScaleTransition(
                 scale: _animation,
                 child: Container(
@@ -74,24 +76,17 @@ class _SplashPageState extends ConsumerState<SplashPage>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [
-                        Colors.amber[400]!,
-                        Colors.orange[600]!,
-                      ],
+                      colors: [Colors.amber[400]!, Colors.orange[700]!],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                   ),
                   child: const Center(
-                    child: Text(
-                      '🙏',
-                      style: TextStyle(fontSize: 50),
-                    ),
+                    child: Text('🙏', style: TextStyle(fontSize: 50)),
                   ),
                 ),
               ),
               const SizedBox(height: 30),
-              // App Name
               Text(
                 'HariHariBol',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -100,7 +95,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     ),
               ),
               const SizedBox(height: 10),
-              // Tagline
               Text(
                 'Spiritual Wisdom at Your Fingertips',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -108,14 +102,11 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     ),
               ),
               const SizedBox(height: 50),
-              // Loading indicator
               SizedBox(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.amber[400]!,
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[400]!),
                   strokeWidth: 2,
                 ),
               ),

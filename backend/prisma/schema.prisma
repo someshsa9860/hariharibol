@@ -13,71 +13,77 @@ datasource db {
 // ============= Auth & Users =============
 
 model User {
-  id                    String    @id @default(cuid())
-  email                 String    @unique @db.VarChar(255)
-  emailVerified         Boolean   @default(true)
-  name                  String?
-  avatarUrl             String?
-  authProvider          String    @db.VarChar(50) // 'google', 'apple'
-  providerUserId        String    @unique
-  languagePreference    String    @default("en") @db.VarChar(10)
+  id                 String  @id @default(cuid())
+  email              String  @unique @db.VarChar(255)
+  emailVerified      Boolean @default(true)
+  name               String?
+  avatarUrl          String?
+  authProvider       String  @db.VarChar(50) // 'google', 'apple'
+  providerUserId     String  @unique
+  languagePreference String  @default("en") @db.VarChar(10)
 
-  followedSampradayas   Follow[]
-  preferredGuruSignal   GuruSignal?
+  // Onboarding
+  onboardingCompleted Boolean    @default(false)
+  primarySampradayId  String?
+  primarySampraday    Sampraday? @relation("UserPrimarySampraday", fields: [primarySampradayId], references: [id], onDelete: SetNull)
 
-  isBanned              Boolean   @default(false)
-  bannedReason          String?
-  bannedAt              DateTime?
+  followedSampradayas Follow[]
+  preferredGuruSignal GuruSignal?
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  lastActiveAt          DateTime  @default(now())
+  isBanned     Boolean   @default(false)
+  bannedReason String?
+  bannedAt     DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastActiveAt DateTime @default(now())
 
   // Relations
-  chantLogs             ChantLog[]
-  favorites             Favorite[]
-  chatSessions          ChatbotSession[]
-  groupMembers          GroupMember[]
-  messages              Message[]
-  bansCreated           Ban[] @relation("AdminBans")
-  auditLogs             AuditLog[]
+  chantLogs    ChantLog[]
+  favorites    Favorite[]
+  chatSessions ChatbotSession[]
+  groupMembers GroupMember[]
+  messages     Message[]
+  bansCreated  Ban[]            @relation("AdminBans")
+  auditLogs    AuditLog[]
 
   @@index([email])
   @@index([isBanned])
+  @@index([primarySampradayId])
 }
 
 model Device {
-  id                    String    @id @default(cuid())
-  deviceId              String    @unique
-  deviceType            String    @db.VarChar(20) // 'ios', 'android'
-  deviceModel           String?
-  osVersion            String?
-  appVersion           String?
+  id          String  @id @default(cuid())
+  deviceId    String  @unique
+  deviceType  String  @db.VarChar(20) // 'ios', 'android'
+  deviceModel String?
+  osVersion   String?
+  appVersion  String?
 
-  userIds               String[]  // array of User IDs
-  fcmToken              String?
-  apnsToken             String?
+  userIds   String[] // array of User IDs
+  fcmToken  String?
+  apnsToken String?
 
-  isBanned              Boolean   @default(false)
-  bannedReason          String?
-  bannedAt              DateTime?
+  isBanned     Boolean   @default(false)
+  bannedReason String?
+  bannedAt     DateTime?
 
-  firstSeenAt           DateTime  @default(now())
-  lastSeenAt            DateTime  @updatedAt
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
 
   @@index([deviceId])
   @@index([isBanned])
 }
 
 model RefreshToken {
-  id          String    @id @default(cuid())
-  tokenHash   String    @unique
-  userId      String?
-  adminId     String?
-  deviceId    String
-  expiresAt   DateTime
-  usedAt      DateTime?
-  createdAt   DateTime  @default(now())
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String?
+  adminId   String?
+  deviceId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([tokenHash])
   @@index([userId])
@@ -85,81 +91,82 @@ model RefreshToken {
 }
 
 model GuruSignal {
-  id                    String    @id @default(cuid())
-  userId                String    @unique
-  sampradayAffinity     Json      @default("{}")
-  deityAffinity         Json      @default("{}")
-  lastCalculated        DateTime?
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  sampradayAffinity Json      @default("{}")
+  deityAffinity     Json      @default("{}")
+  lastCalculated    DateTime?
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ============= Ban System =============
 
 model Ban {
-  id                    String    @id @default(cuid())
-  type                  String    @db.VarChar(20) // 'email', 'device'
-  value                 String    // email or device_id
-  reason                String
+  id     String @id @default(cuid())
+  type   String @db.VarChar(20) // 'email', 'device'
+  value  String // email or device_id
+  reason String
 
-  cascadedFromId        String?
-  cascadedFrom          Ban?      @relation("BanCascade", fields: [cascadedFromId], references: [id])
-  cascadedTo            Ban[]     @relation("BanCascade")
+  cascadedFromId String?
+  cascadedFrom   Ban?    @relation("BanCascade", fields: [cascadedFromId], references: [id])
+  cascadedTo     Ban[]   @relation("BanCascade")
 
-  cascadeChain          String[]  // array of Ban IDs
+  cascadeChain String[] // array of Ban IDs
 
-  triggeredBy           String    @db.VarChar(20) // 'ai', 'admin'
-  adminId               String?
-  admin                 User?     @relation("AdminBans", fields: [adminId], references: [id])
+  triggeredBy String  @db.VarChar(20) // 'ai', 'admin'
+  adminId     String?
+  admin       User?   @relation("AdminBans", fields: [adminId], references: [id])
 
-  evidenceMessageIds    String[]  // array of Message IDs
+  evidenceMessageIds String[] // array of Message IDs
 
-  isActive              Boolean   @default(true)
-  createdAt             DateTime  @default(now())
-  unbannedAt            DateTime?
-  unbannedBy            String?
-  unbanReason           String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  unbannedAt  DateTime?
+  unbannedBy  String?
+  unbanReason String?
 
+  @@unique([type, value], name: "unique_ban")
   @@index([type, value])
   @@index([isActive])
-  @@unique([type, value], name: "unique_ban")
 }
 
 // ============= Content Models =============
 
 model Sampraday {
-  id                    String    @id @default(cuid())
-  slug                  String    @unique
-  nameKey               String
-  descriptionKey        String?
-  shortDescriptionKey   String?
-  founderKey            String?
-  founderImageUrl       String?
-  primaryDeityKey       String?
-  primaryDeityImageUrl  String?
-  philosophyKey         String?
+  id                   String  @id @default(cuid())
+  slug                 String  @unique
+  nameKey              String
+  descriptionKey       String?
+  shortDescriptionKey  String?
+  founderKey           String?
+  founderImageUrl      String?
+  primaryDeityKey      String?
+  primaryDeityImageUrl String?
+  philosophyKey        String?
 
-  keyDisciples          Json      @default("[]") // array of {nameKey, descriptionKey, imageUrl}
-  heroImageUrl          String?
-  thumbnailUrl          String?
-  categoryKeys          String[]  @default([])
+  keyDisciples Json     @default("[]") // array of {nameKey, descriptionKey, imageUrl}
+  heroImageUrl String?
+  thumbnailUrl String?
+  categoryKeys String[] @default([])
 
-  foundingYear          Int?
-  regionKey             String?
+  foundingYear Int?
+  regionKey    String?
 
-  isPublished           Boolean   @default(false)
-  displayOrder          Int       @default(0)
-  followerCount         Int       @default(0)
+  isPublished   Boolean @default(false)
+  displayOrder  Int     @default(0)
+  followerCount Int     @default(0)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  follows               Follow[]
-  mantras               Mantra[]
-  groups                Group[]
-  translators           Translator[]
-  verseLinks            VerseSampradayLink[]
+  follows      Follow[]
+  mantras      Mantra[]
+  groups       Group[]
+  translators  Translator[]
+  verseLinks   VerseSampradayLink[]
+  primaryUsers User[]               @relation("UserPrimarySampraday")
 
   @@index([slug])
   @@index([isPublished])
@@ -168,28 +175,28 @@ model Sampraday {
 
 // ── Book: root sacred text (Bhagavat Gita, Srimad Bhagavatam, etc.) ──────────
 model Book {
-  id                    String    @id @default(cuid())
-  bookNumber            Int       @unique          // 1=BG, 2=SB, 3=Ramayana, etc. — universal cross-link key
-  slug                  String    @unique          // e.g. "bhagavat-gita", "srimad-bhagavatam"
-  titleKey              String                     // i18n key
-  descriptionKey        String?
-  coverImageUrl         String?
-  language              String    @default("sa") @db.VarChar(10) // source language (Sanskrit)
+  id             String  @id @default(cuid())
+  bookNumber     Int     @unique // 1=BG, 2=SB, 3=Ramayana, etc. — universal cross-link key
+  slug           String  @unique // e.g. "bhagavat-gita", "srimad-bhagavatam"
+  titleKey       String // i18n key
+  descriptionKey String?
+  coverImageUrl  String?
+  language       String  @default("sa") @db.VarChar(10) // source language (Sanskrit)
 
-  totalCantos           Int       @default(0)    // 0 for BG, 12 for SB
-  totalChapters         Int       @default(0)
-  totalVerses           Int       @default(0)
+  totalCantos   Int @default(0) // 0 for BG, 12 for SB
+  totalChapters Int @default(0)
+  totalVerses   Int @default(0)
 
-  displayOrder          Int       @default(0)
-  isPublished           Boolean   @default(false)
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  cantos                Canto[]
-  chapters              Chapter[]
-  verses                Verse[]
-  translators           BookTranslator[]   // translators who have worked on this book
+  cantos      Canto[]
+  chapters    Chapter[]
+  verses      Verse[]
+  translators BookTranslator[] // translators who have worked on this book
 
   @@index([slug])
   @@index([isPublished])
@@ -199,23 +206,23 @@ model Book {
 // ── Translator: an author/saint who translated or commented on a book ─────────
 // e.g. Srila Prabhupada, Dnyaneshwar Maharaj, Adi Shankaracharya
 model Translator {
-  id                    String    @id @default(cuid())
-  slug                  String    @unique          // e.g. "srila-prabhupada"
-  nameKey               String                     // i18n key for display name
-  bioKey                String?                    // i18n key for biography
-  imageUrl              String?
+  id       String  @id @default(cuid())
+  slug     String  @unique // e.g. "srila-prabhupada"
+  nameKey  String // i18n key for display name
+  bioKey   String? // i18n key for biography
+  imageUrl String?
 
-  sampradayId           String?                    // optional: belongs to a sampraday
-  sampraday             Sampraday? @relation(fields: [sampradayId], references: [id], onDelete: SetNull)
+  sampradayId String? // optional: belongs to a sampraday
+  sampraday   Sampraday? @relation(fields: [sampradayId], references: [id], onDelete: SetNull)
 
-  isPublished           Boolean   @default(true)
-  displayOrder          Int       @default(0)
+  isPublished  Boolean @default(true)
+  displayOrder Int     @default(0)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  bookLinks             BookTranslator[]
-  verseTranslations     VerseTranslation[]
+  bookLinks         BookTranslator[]
+  verseTranslations VerseTranslation[]
 
   @@index([slug])
   @@index([sampradayId])
@@ -225,15 +232,15 @@ model Translator {
 // ── BookTranslator: which translators have done which books ──────────────────
 // e.g. Prabhupada → Bhagavat Gita; Prabhupada → Srimad Bhagavatam
 model BookTranslator {
-  id                    String    @id @default(cuid())
-  bookId                String
-  translatorId          String
-  seriesName            String?                    // e.g. "Bhagavad-gita As It Is"
-  publishedYear         Int?
-  isDefault             Boolean   @default(false)  // primary/featured translation for this book
+  id            String  @id @default(cuid())
+  bookId        String
+  translatorId  String
+  seriesName    String? // e.g. "Bhagavad-gita As It Is"
+  publishedYear Int?
+  isDefault     Boolean @default(false) // primary/featured translation for this book
 
-  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  translator            Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+  book       Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  translator Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
 
   @@unique([bookId, translatorId])
   @@index([bookId])
@@ -243,19 +250,19 @@ model BookTranslator {
 // ── Canto: top-level division used by Srimad Bhagavatam (12 cantos)
 // Bhagavat Gita has no cantos — cantoId is optional on Chapter
 model Canto {
-  id                    String    @id @default(cuid())
-  bookId                String
-  number                Int                              // 1–12 for SB
-  titleKey              String
-  summaryKey            String?
-  totalChapters         Int       @default(0)
-  totalVerses           Int       @default(0)
+  id            String  @id @default(cuid())
+  bookId        String
+  number        Int // 1–12 for SB
+  titleKey      String
+  summaryKey    String?
+  totalChapters Int     @default(0)
+  totalVerses   Int     @default(0)
 
-  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  chapters              Chapter[]
+  book     Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([bookId, number])
   @@index([bookId])
@@ -263,21 +270,21 @@ model Canto {
 
 // ── Chapter: a chapter within a book (or within a canto for SB) ──────────────
 model Chapter {
-  id                    String    @id @default(cuid())
-  bookId                String
-  cantoId               String?                          // null for BG, set for SB
-  cantoNumber           Int?                             // denormalised for easy querying
-  number                Int                              // chapter number within its canto (or book)
-  titleKey              String
-  summaryKey            String?
-  totalVerses           Int       @default(0)
+  id          String  @id @default(cuid())
+  bookId      String
+  cantoId     String? // null for BG, set for SB
+  cantoNumber Int? // denormalised for easy querying
+  number      Int // chapter number within its canto (or book)
+  titleKey    String
+  summaryKey  String?
+  totalVerses Int     @default(0)
 
-  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  canto                 Canto?    @relation(fields: [cantoId], references: [id], onDelete: Cascade)
-  verses                Verse[]
+  book   Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  canto  Canto?  @relation(fields: [cantoId], references: [id], onDelete: Cascade)
+  verses Verse[]
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // BG: unique by (bookId, number); SB: unique by (bookId, cantoNumber, number)
   @@unique([bookId, cantoNumber, number])
@@ -287,41 +294,41 @@ model Chapter {
 
 // ── Verse: canonical Sanskrit verse — translation-neutral source of truth ─────
 model Verse {
-  id                    String    @id @default(cuid())
-  bookId                String
-  bookNumber            Int                              // denormalised from Book for fast joins
-  chapterId             String
-  cantoNumber           Int?                             // null for BG, set for SB
-  chapterNumber         Int
-  verseNumber           Int
-  verseNumberEnd        Int?      // for compound verses e.g. 13-14 → verseNumber=13, verseNumberEnd=14
-  verseId               String    @unique                // "1.2.47" for BG, "2.1.2.3" for SB — universal key
-  globalVerseNumber     Int?                             // 1–700 for BG, 1–18000 for SB across whole book
+  id                String @id @default(cuid())
+  bookId            String
+  bookNumber        Int // denormalised from Book for fast joins
+  chapterId         String
+  cantoNumber       Int? // null for BG, set for SB
+  chapterNumber     Int
+  verseNumber       Int
+  verseNumberEnd    Int? // for compound verses e.g. 13-14 → verseNumber=13, verseNumberEnd=14
+  verseId           String @unique // "1.2.47" for BG, "2.1.2.3" for SB — universal key
+  globalVerseNumber Int? // 1–700 for BG, 1–18000 for SB across whole book
 
-  sanskrit              String?   @db.Text
-  transliteration       String?   @db.Text
-  wordMeanings          Json      @default("[]") // [{word, meaning}] — language-neutral
+  sanskrit        String? @db.Text
+  transliteration String? @db.Text
+  wordMeanings    Json    @default("[]") // [{word, meaning}] — language-neutral
 
-  categoryKeys          String[]  @default([])   // e.g. ["karma", "bhakti"]
-  relatedDeityKeys      String[]  @default([])
-  audioUrl              String?                  // canonical Sanskrit recitation
+  categoryKeys     String[] @default([]) // e.g. ["karma", "bhakti"]
+  relatedDeityKeys String[] @default([])
+  audioUrl         String? // canonical Sanskrit recitation
 
-  isVerseOfDayEligible  Boolean   @default(false)
+  isVerseOfDayEligible Boolean @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  book                  Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  chapter               Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
-  translations          VerseTranslation[]
-  crossReferences       VerseLink[]  @relation("SourceVerse")
-  linkedFrom            VerseLink[]  @relation("TargetVerse")
-  sampradayLinks        VerseSampradayLink[]
-  narrations            Narration[]
-  favorites             Favorite[]   @relation("VerseToFavorite")
-  citations             Citation[]
-  versesOfDay           VerseOfDay[]
+  translations    VerseTranslation[]
+  crossReferences VerseLink[]          @relation("SourceVerse")
+  linkedFrom      VerseLink[]          @relation("TargetVerse")
+  sampradayLinks  VerseSampradayLink[]
+  narrations      Narration[]
+  favorites       Favorite[]           @relation("VerseToFavorite")
+  citations       Citation[]
+  versesOfDay     VerseOfDay[]
 
   // BG: (bookId, chapterNumber, verseNumber); SB: (bookId, cantoNumber, chapterNumber, verseNumber)
   @@unique([bookId, cantoNumber, chapterNumber, verseNumber])
@@ -337,23 +344,23 @@ model Verse {
 // ── VerseTranslation: one translator's rendering of one verse in one language ─
 // e.g. Prabhupada's English translation of BG 2.47
 model VerseTranslation {
-  id                    String    @id @default(cuid())
-  verseId               String
-  translatorId          String
-  language              String    @db.VarChar(10) // "en", "hi", "mr", "sa" etc.
+  id           String @id @default(cuid())
+  verseId      String
+  translatorId String
+  language     String @db.VarChar(10) // "en", "hi", "mr", "sa" etc.
 
-  meaning               String    @db.Text         // the translated verse meaning
-  purport               String?   @db.Text         // extended commentary / explanation
-  audioUrl              String?                    // audio of this translation/purport
+  meaning  String  @db.Text // the translated verse meaning
+  purport  String? @db.Text // extended commentary / explanation
+  audioUrl String? // audio of this translation/purport
 
-  isPublished           Boolean   @default(false)
-  displayOrder          Int       @default(0)
+  isPublished  Boolean @default(false)
+  displayOrder Int     @default(0)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  verse                 Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
-  translator            Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+  verse      Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  translator Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
 
   @@unique([verseId, translatorId, language])
   @@index([verseId])
@@ -365,14 +372,14 @@ model VerseTranslation {
 // ── VerseLink: cross-book verse connections ───────────────────────────────────
 // e.g. BG 10.20 ↔ SB 11.9.21 (same concept across texts)
 model VerseLink {
-  id                    String    @id @default(cuid())
-  sourceVerseId         String
-  targetVerseId         String
-  relationKey           String    @db.VarChar(100) // e.g. "same_concept", "expands_on", "quoted_in"
-  noteKey               String?                    // i18n key explaining the link
+  id            String  @id @default(cuid())
+  sourceVerseId String
+  targetVerseId String
+  relationKey   String  @db.VarChar(100) // e.g. "same_concept", "expands_on", "quoted_in"
+  noteKey       String? // i18n key explaining the link
 
-  sourceVerse           Verse     @relation("SourceVerse", fields: [sourceVerseId], references: [id], onDelete: Cascade)
-  targetVerse           Verse     @relation("TargetVerse", fields: [targetVerseId], references: [id], onDelete: Cascade)
+  sourceVerse Verse @relation("SourceVerse", fields: [sourceVerseId], references: [id], onDelete: Cascade)
+  targetVerse Verse @relation("TargetVerse", fields: [targetVerseId], references: [id], onDelete: Cascade)
 
   @@unique([sourceVerseId, targetVerseId])
   @@index([sourceVerseId])
@@ -381,13 +388,13 @@ model VerseLink {
 
 // ── VerseSampradayLink: which sampraday emphasises this verse + preferred translator
 model VerseSampradayLink {
-  id                    String    @id @default(cuid())
+  id                    String  @id @default(cuid())
   verseId               String
   sampradayId           String
-  preferredTranslatorId String?   // sampraday's preferred translator for this verse
+  preferredTranslatorId String? // sampraday's preferred translator for this verse
 
-  verse                 Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
-  sampraday             Sampraday  @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
+  verse     Verse     @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  sampraday Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
 
   @@unique([verseId, sampradayId])
   @@index([verseId])
@@ -395,50 +402,50 @@ model VerseSampradayLink {
 }
 
 model Narration {
-  id                    String    @id @default(cuid())
-  verseId               String
-  saintNameKey          String
-  saintImageUrl         String?
-  sourceKey             String?
-  sourceYear            Int?
-  narrationKey          String    @db.Text
-  sampradayId           String?
+  id            String  @id @default(cuid())
+  verseId       String
+  saintNameKey  String
+  saintImageUrl String?
+  sourceKey     String?
+  sourceYear    Int?
+  narrationKey  String  @db.Text
+  sampradayId   String?
 
-  displayOrder          Int       @default(0)
-  isPublished           Boolean   @default(false)
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  verse                 Verse     @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
 
   @@index([verseId])
   @@index([isPublished])
 }
 
 model Mantra {
-  id                    String    @id @default(cuid())
-  sampradayId           String
-  nameKey               String
-  sanskrit              String?   @db.Text
-  transliteration       String?
-  meaningKey            String?
-  significanceKey       String?
-  audioUrl              String?
+  id              String  @id @default(cuid())
+  sampradayId     String
+  nameKey         String
+  sanskrit        String? @db.Text
+  transliteration String?
+  meaningKey      String?
+  significanceKey String?
+  audioUrl        String?
 
-  isPublic              Boolean   @default(true)
-  recommendedCount      Int       @default(108)
-  category              String    @db.VarChar(50) @default("mahamantra") // mahamantra, beej, stotra, name, other
-  relatedDeityKey       String?
+  isPublic         Boolean @default(true)
+  recommendedCount Int     @default(108)
+  category         String  @default("mahamantra") @db.VarChar(50) // mahamantra, beej, stotra, name, other
+  relatedDeityKey  String?
 
-  displayOrder          Int?
+  displayOrder Int?
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  sampraday             Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
-  chantLogs             ChantLog[]
-  favorites             Favorite[] @relation("MantraToFavorite")
+  sampraday Sampraday  @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
+  chantLogs ChantLog[]
+  favorites Favorite[] @relation("MantraToFavorite")
 
   @@index([sampradayId])
   @@index([isPublic])
@@ -447,48 +454,48 @@ model Mantra {
 // ============= Translations & Languages =============
 
 model Translation {
-  id                    String    @id @default(cuid())
-  key                   String    @unique
-  namespace             String    @db.VarChar(50) // 'ui', 'content'
+  id        String @id @default(cuid())
+  key       String @unique
+  namespace String @db.VarChar(50) // 'ui', 'content'
 
-  translations          Json      @default("{}")
+  translations Json @default("{}")
   // JSON structure: { "en": { text, status, translatedBy, reviewedBy, updatedAt }, ... }
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([key])
   @@index([namespace])
 }
 
 model Language {
-  id                    String    @id @default(cuid())
-  code                  String    @unique @db.VarChar(10)
-  nameNative            String
-  nameEnglish           String
-  isRtl                 Boolean   @default(false)
-  isActive              Boolean   @default(true)
-  displayOrder          Int?
-  fallbackCode          String    @default("en") @db.VarChar(10)
+  id           String  @id @default(cuid())
+  code         String  @unique @db.VarChar(10)
+  nameNative   String
+  nameEnglish  String
+  isRtl        Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int?
+  fallbackCode String  @default("en") @db.VarChar(10)
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 // ============= User Engagement =============
 
 model Favorite {
-  id                    String    @id @default(cuid())
-  userId                String
-  type                  String    @db.VarChar(50) // 'verse', 'mantra', 'narration'
-  targetId              String    // verse_id, mantra_id, or narration_id
+  id       String @id @default(cuid())
+  userId   String
+  type     String @db.VarChar(50) // 'verse', 'mantra', 'narration'
+  targetId String // verse_id, mantra_id, or narration_id
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Polymorphic relations (handled in code)
-  verse                 Verse?    @relation("VerseToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_verseTargetId_fkey")
-  mantra                Mantra?   @relation("MantraToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_mantraTargetId_fkey")
+  verse  Verse?  @relation("VerseToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_verseTargetId_fkey")
+  mantra Mantra? @relation("MantraToFavorite", fields: [targetId], references: [id], onDelete: SetNull, map: "Favorite_mantraTargetId_fkey")
 
   @@unique([userId, type, targetId])
   @@index([userId])
@@ -496,32 +503,32 @@ model Favorite {
 }
 
 model Follow {
-  id                    String    @id @default(cuid())
-  userId                String
-  sampradayId           String
+  id          String @id @default(cuid())
+  userId      String
+  sampradayId String
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sampraday             Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sampraday Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
 
   @@unique([userId, sampradayId])
   @@index([userId])
 }
 
 model ChantLog {
-  id                    String    @id @default(cuid())
-  userId                String
-  mantraId              String
+  id       String @id @default(cuid())
+  userId   String
+  mantraId String
 
-  count                 Int       @default(0)
-  durationSeconds       Int?
-  date                  DateTime  @default(now()) @db.Date
+  count           Int      @default(0)
+  durationSeconds Int?
+  date            DateTime @default(now()) @db.Date
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mantra                Mantra    @relation(fields: [mantraId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mantra Mantra @relation(fields: [mantraId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -530,36 +537,36 @@ model ChantLog {
 // ============= Groups & Chat =============
 
 model Group {
-  id                    String    @id @default(cuid())
-  sampradayId           String
-  nameKey               String
-  descriptionKey        String?
+  id             String  @id @default(cuid())
+  sampradayId    String
+  nameKey        String
+  descriptionKey String?
 
-  memberCount           Int       @default(0)
-  isActive              Boolean   @default(true)
+  memberCount Int     @default(0)
+  isActive    Boolean @default(true)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  sampraday             Sampraday @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
-  members               GroupMember[]
-  messages              Message[]
+  sampraday Sampraday     @relation(fields: [sampradayId], references: [id], onDelete: Cascade)
+  members   GroupMember[]
+  messages  Message[]
 
   @@unique([sampradayId])
   @@index([sampradayId])
 }
 
 model GroupMember {
-  id                    String    @id @default(cuid())
-  groupId               String
-  userId                String
-  role                  String    @db.VarChar(50) @default("member") // member, moderator, admin
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+  role    String @default("member") @db.VarChar(50) // member, moderator, admin
 
-  joinedAt              DateTime  @default(now())
-  lastReadAt            DateTime?
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
 
-  group                 Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
   @@index([groupId])
@@ -567,26 +574,26 @@ model GroupMember {
 }
 
 model Message {
-  id                    String    @id @default(cuid())
-  groupId               String
-  userId                String
-  content               String    @db.Text
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+  content String @db.Text
 
-  status                String    @db.VarChar(50) @default("pending") // pending, approved, hidden
+  status String @default("pending") @db.VarChar(50) // pending, approved, hidden
 
   // Moderation
-  aiVerdict             String?   @db.VarChar(50) // safe, disrespectful, spam, off_topic
-  aiConfidence          Float?
-  aiReason              String?
-  reviewedByAdminId     String?
-  reviewedAt            DateTime?
+  aiVerdict         String?   @db.VarChar(50) // safe, disrespectful, spam, off_topic
+  aiConfidence      Float?
+  aiReason          String?
+  reviewedByAdminId String?
+  reviewedAt        DateTime?
 
-  hiddenReason          String?
+  hiddenReason String?
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  group                 Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([groupId])
   @@index([userId])
@@ -597,47 +604,47 @@ model Message {
 // ============= AI Chatbot =============
 
 model ChatbotSession {
-  id                    String    @id @default(cuid())
-  userId                String
-  title                 String?
-  guruPersonaUsed       String?
-  messageCount          Int       @default(0)
+  id              String  @id @default(cuid())
+  userId          String
+  title           String?
+  guruPersonaUsed String?
+  messageCount    Int     @default(0)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages              ChatbotMessage[]
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatbotMessage[]
 
   @@index([userId])
   @@index([createdAt])
 }
 
 model ChatbotMessage {
-  id                    String    @id @default(cuid())
-  sessionId             String
-  role                  String    @db.VarChar(50) // 'user', 'assistant'
-  content               String    @db.Text
+  id        String @id @default(cuid())
+  sessionId String
+  role      String @db.VarChar(50) // 'user', 'assistant'
+  content   String @db.Text
 
-  tokensUsed            Int?
+  tokensUsed Int?
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  session               ChatbotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  citations             Citation[]
+  session   ChatbotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  citations Citation[]
 
   @@index([sessionId])
   @@index([role])
 }
 
 model Citation {
-  id                    String    @id @default(cuid())
-  messageId             String
-  verseId               String
-  excerpt               String?   @db.Text
+  id        String  @id @default(cuid())
+  messageId String
+  verseId   String
+  excerpt   String? @db.Text
 
-  chatbotMessage        ChatbotMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  verse                 Verse     @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  chatbotMessage ChatbotMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  verse          Verse          @relation(fields: [verseId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
 }
@@ -645,18 +652,18 @@ model Citation {
 // ============= Admin & Monitoring =============
 
 model AuditLog {
-  id                    String    @id @default(cuid())
-  adminId               String
-  action                String    @db.VarChar(255)
-  entityType            String    @db.VarChar(100)
-  entityId              String?
+  id         String  @id @default(cuid())
+  adminId    String
+  action     String  @db.VarChar(255)
+  entityType String  @db.VarChar(100)
+  entityId   String?
 
-  changesBefore         Json?
-  changesAfter          Json?
+  changesBefore Json?
+  changesAfter  Json?
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  admin                 User      @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   @@index([adminId])
   @@index([action])
@@ -666,19 +673,19 @@ model AuditLog {
 // ============= Jobs Queue (for BullMQ) =============
 
 model QueueJob {
-  id                    String    @id @default(cuid())
-  jobType               String    @db.VarChar(100) // 'moderation', 'notification', 'affinity_calc'
-  jobData               Json
-  status                String    @db.VarChar(50) @default("pending") // pending, processing, completed, failed
+  id      String @id @default(cuid())
+  jobType String @db.VarChar(100) // 'moderation', 'notification', 'affinity_calc'
+  jobData Json
+  status  String @default("pending") @db.VarChar(50) // pending, processing, completed, failed
 
-  result                Json?
-  errorMessage          String?
+  result       Json?
+  errorMessage String?
 
-  attempts              Int       @default(0)
-  maxAttempts           Int       @default(3)
+  attempts    Int @default(0)
+  maxAttempts Int @default(3)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([jobType])
   @@index([status])
@@ -687,16 +694,16 @@ model QueueJob {
 // ============= App Settings =============
 
 model AppSettings {
-  id                    String    @id @default(cuid())
-  key                   String    @unique
-  value                 String    @db.Text
-  type                  String    @db.VarChar(50) @default("string") // string, number, boolean, json
-  description           String?
-  isEncrypted           Boolean   @default(false)
-  isPublic              Boolean   @default(false)
+  id          String  @id @default(cuid())
+  key         String  @unique
+  value       String  @db.Text
+  type        String  @default("string") @db.VarChar(50) // string, number, boolean, json
+  description String?
+  isEncrypted Boolean @default(false)
+  isPublic    Boolean @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([key])
 }
@@ -704,17 +711,17 @@ model AppSettings {
 // ============= Verse of Day =============
 
 model VerseOfDay {
-  id                    String    @id @default(cuid())
-  date                  DateTime
-  verseId               String
-  imageUrl              String?
-  explanation           String?   @db.Text
-  aiGenerated           Boolean   @default(false)
+  id          String   @id @default(cuid())
+  date        DateTime
+  verseId     String
+  imageUrl    String?
+  explanation String?  @db.Text
+  aiGenerated Boolean  @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  verse                 Verse     @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
 
   @@unique([date])
   @@index([verseId])
@@ -724,28 +731,28 @@ model VerseOfDay {
 // ============= FCM Topics =============
 
 model FCMTopic {
-  id                    String    @id @default(cuid())
-  name                  String    @unique
-  description           String?
-  subscriberCount       Int       @default(0)
+  id              String  @id @default(cuid())
+  name            String  @unique
+  description     String?
+  subscriberCount Int     @default(0)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  subscriptions         FCMSubscription[]
+  subscriptions FCMSubscription[]
 
   @@index([name])
 }
 
 model FCMSubscription {
-  id                    String    @id @default(cuid())
-  topicId               String
-  deviceToken           String
-  deviceId              String
+  id          String @id @default(cuid())
+  topicId     String
+  deviceToken String
+  deviceId    String
 
-  createdAt             DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  topic                 FCMTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topic FCMTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@unique([topicId, deviceToken])
   @@index([topicId])

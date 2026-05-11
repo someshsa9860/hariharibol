@@ -4,6 +4,8 @@ export class UserResponseDto {
   name?: string;
   avatarUrl?: string;
   languagePreference: string;
+  onboardingCompleted: boolean;
+  primarySampradayId?: string;
   isBanned: boolean;
   bannedReason?: string;
   createdAt: Date;

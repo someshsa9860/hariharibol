@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppleSignInButton extends StatefulWidget {
-  final VoidCallback onPressed;
+  final Future<void> Function() onPressed;
 
   const AppleSignInButton({
     super.key,

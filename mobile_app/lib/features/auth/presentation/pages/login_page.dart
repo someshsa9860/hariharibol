@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/google_sign_in_button.dart';
 import '../widgets/apple_sign_in_button.dart';
@@ -66,8 +67,11 @@ class LoginPage extends ConsumerWidget {
                     onPressed: () async {
                       try {
                         await ref.read(signInWithGoogleProvider.future);
-                        // Navigation will be handled by router
+                        if (!context.mounted) return;
+                        final s = ref.read(authStateProvider).valueOrNull;
+                        context.go(s?.needsOnboarding == true ? '/onboarding' : '/home');
                       } catch (e) {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Login failed: $e')),
                         );
@@ -79,8 +83,11 @@ class LoginPage extends ConsumerWidget {
                     onPressed: () async {
                       try {
                         await ref.read(signInWithAppleProvider.future);
-                        // Navigation will be handled by router
+                        if (!context.mounted) return;
+                        final s = ref.read(authStateProvider).valueOrNull;
+                        context.go(s?.needsOnboarding == true ? '/onboarding' : '/home');
                       } catch (e) {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Login failed: $e')),
                         );

@@ -233,6 +233,7 @@ export class AuthService {
     }
 
     let user = await this.prisma.user.findUnique({ where: { email: profile.email } });
+    let isNewUser = false;
 
     if (user) {
       if (user.isBanned) throw new UnauthorizedException('User account is banned');
@@ -249,6 +250,7 @@ export class AuthService {
         },
       });
     } else {
+      isNewUser = true;
       user = await this.prisma.user.create({
         data: {
           email: profile.email,
@@ -295,12 +297,15 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+      isNewUser,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         avatarUrl: user.avatarUrl,
         languagePreference: user.languagePreference,
+        onboardingCompleted: user.onboardingCompleted ?? false,
+        primarySampradayId: user.primarySampradayId ?? undefined,
       },
     };
   }

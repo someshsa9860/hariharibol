@@ -4,6 +4,8 @@ class User {
   final String? name;
   final String? avatarUrl;
   final String languagePreference;
+  final bool onboardingCompleted;
+  final String? primarySampradayId;
 
   const User({
     required this.id,
@@ -11,6 +13,8 @@ class User {
     this.name,
     this.avatarUrl,
     required this.languagePreference,
+    this.onboardingCompleted = false,
+    this.primarySampradayId,
   });
 
   User copyWith({
@@ -19,6 +23,8 @@ class User {
     String? name,
     String? avatarUrl,
     String? languagePreference,
+    bool? onboardingCompleted,
+    String? primarySampradayId,
   }) {
     return User(
       id: id ?? this.id,
@@ -26,6 +32,8 @@ class User {
       name: name ?? this.name,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       languagePreference: languagePreference ?? this.languagePreference,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      primarySampradayId: primarySampradayId ?? this.primarySampradayId,
     );
   }
 }
