@@ -39,13 +39,14 @@ model User {
   lastActiveAt DateTime @default(now())
 
   // Relations
-  chantLogs    ChantLog[]
-  favorites    Favorite[]
-  chatSessions ChatbotSession[]
-  groupMembers GroupMember[]
-  messages     Message[]
-  bansCreated  Ban[]            @relation("AdminBans")
-  auditLogs    AuditLog[]
+  chantLogs     ChantLog[]
+  favorites     Favorite[]
+  chatSessions  ChatbotSession[]
+  groupMembers  GroupMember[]
+  messages      Message[]
+  bansCreated   Ban[]            @relation("AdminBans")
+  auditLogs     AuditLog[]
+  notifications Notification[]
 
   @@index([email])
   @@index([isBanned])
@@ -770,4 +771,20 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 
   @@index([email])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String    @default("in-app") @db.VarChar(50)
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([isRead])
 }

@@ -191,6 +191,19 @@ h2{color:#C75A1A}
 
   private async storeInAppNotification(data: NotificationData): Promise<boolean> {
     try {
+      if (!data.userId) {
+        this.logger.warn('storeInAppNotification called without userId — skipped');
+        return false;
+      }
+      await this.prisma.notification.create({
+        data: {
+          userId: data.userId,
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          metadata: data.metadata ?? undefined,
+        },
+      });
       this.logger.log(`In-app notification stored for ${data.userId}: ${data.title}`);
       return true;
     } catch (error) {
@@ -200,11 +213,27 @@ h2{color:#C75A1A}
   }
 
   async getUserNotifications(userId: string, limit = 20, offset = 0): Promise<any[]> {
-    return [];
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
   }
 
   async markAsRead(notificationId: string): Promise<boolean> {
-    return true;
+    try {
+      const existing = await this.prisma.notification.findUnique({ where: { id: notificationId } });
+      if (!existing) return false;
+      await this.prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true, readAt: new Date() },
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to mark notification as read:`, error);
+      return false;
+    }
   }
 
   async subscribeToTopic(deviceToken: string, topic: string): Promise<boolean> {
