@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/settings_providers.dart';
 
 const _saffron = Color(0xFFFF7E00);
@@ -35,9 +36,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     setState(() => _isSavingName = true);
     try {
       final dio = ApiClient.createDio();
-      await dio.patch('/api/v1/users/profile', data: {'name': name});
+      await dio.patch('/api/v1/users/me', data: {'name': name});
       if (mounted) {
         setState(() => _isEditingName = false);
+        ref.invalidate(profileProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Name updated')),
         );

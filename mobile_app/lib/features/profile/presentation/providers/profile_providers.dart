@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../home/data/models/sampraday_model.dart';
 import '../../../home/data/models/verse_model.dart';
-
-final profileDioProvider = Provider((ref) => ApiClient.createDio());
+import '../../../home/presentation/providers/home_provider.dart';
 
 class ProfileData {
   final String id;
@@ -70,23 +68,60 @@ class ProfileData {
 }
 
 final profileProvider = FutureProvider<ProfileData>((ref) async {
-  final client = ref.watch(profileDioProvider);
-  final response = await client.get('/api/v1/users/profile');
-  final data = response.data['data'] ?? response.data;
-  return ProfileData.fromJson(data as Map<String, dynamic>);
+  final client = ref.watch(dioProvider);
+
+  final userResponse = await client.get('/api/v1/users/me');
+  final userData = userResponse.data['data'] ?? userResponse.data;
+  var profile = ProfileData.fromJson(userData as Map<String, dynamic>);
+
+  int totalChants = profile.totalChants;
+  int currentStreak = profile.currentStreak;
+  int favoritesCount = profile.favoritesCount;
+  int followedCount = profile.followedSampradayasCount;
+
+  try {
+    final r = await client.get('/api/v1/chanting/stats');
+    final d = r.data['data'] ?? r.data;
+    totalChants =
+        (d as Map<String, dynamic>)['totalChants'] as int? ?? totalChants;
+  } catch (_) {}
+
+  try {
+    final r = await client.get('/api/v1/chanting/streaks');
+    final d = r.data['data'] ?? r.data;
+    currentStreak =
+        (d as Map<String, dynamic>)['currentStreak'] as int? ?? currentStreak;
+  } catch (_) {}
+
+  try {
+    final r = await client
+        .get('/api/v1/favorites', queryParameters: {'take': 1});
+    favoritesCount = r.data['total'] as int? ?? favoritesCount;
+  } catch (_) {}
+
+  try {
+    final r = await client.get('/api/v1/sampradayas/me/followed');
+    final list = r.data['data'] ?? r.data;
+    if (list is List) followedCount = list.length;
+  } catch (_) {}
+
+  return profile.copyWith(
+    totalChants: totalChants,
+    currentStreak: currentStreak,
+    favoritesCount: favoritesCount,
+    followedSampradayasCount: followedCount,
+  );
 });
 
 final profileFollowedSampradayasProvider =
     FutureProvider<List<SampradayModel>>((ref) async {
-  final client = ref.watch(profileDioProvider);
+  final client = ref.watch(dioProvider);
   try {
-    final response =
-        await client.get('/api/v1/sampradayas/me/followed');
+    final response = await client.get('/api/v1/sampradayas/me/followed');
     final data = response.data['data'] ?? response.data;
     if (data is List) {
       return data
-          .map((e) =>
-              SampradayModel.fromJson(e as Map<String, dynamic>))
+          .map((e) => SampradayModel.fromJson(e as Map<String, dynamic>))
           .toList();
     }
   } catch (_) {}
@@ -95,10 +130,10 @@ final profileFollowedSampradayasProvider =
 
 final profileFavoriteVersesProvider =
     FutureProvider<List<VerseModel>>((ref) async {
-  final client = ref.watch(profileDioProvider);
+  final client = ref.watch(dioProvider);
   try {
-    final response = await client
-        .get('/api/v1/favorites', queryParameters: {'take': 6});
+    final response =
+        await client.get('/api/v1/favorites', queryParameters: {'take': 6});
     final data = response.data['data'] ?? response.data;
     if (data is List) {
       return data

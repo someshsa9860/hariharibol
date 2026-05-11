@@ -1,21 +1,21 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthInterceptor extends Interceptor {
+  final _storage = const FlutterSecureStorage();
+
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Add auth token to headers
-    // final token = await secureStorage.read(key: 'access_token');
-    // if (token != null) {
-    //   options.headers['Authorization'] = 'Bearer $token';
-    // }
-    super.onRequest(options, handler);
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    final token = await _storage.read(key: 'access_token');
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    handler.next(options);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      // Handle token refresh or logout
-    }
-    super.onError(err, handler);
+    handler.next(err);
   }
 }

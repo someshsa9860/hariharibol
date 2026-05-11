@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../config/app_config.dart';
+import 'interceptors/auth_interceptor.dart';
 
 class ApiClient {
   static Dio createDio() {
@@ -14,9 +15,7 @@ class ApiClient {
       ),
     );
 
-    // Add interceptors
-    // dio.interceptors.add(AuthInterceptor());
-    // dio.interceptors.add(LogInterceptor());
+    dio.interceptors.add(AuthInterceptor());
 
     return dio;
   }
