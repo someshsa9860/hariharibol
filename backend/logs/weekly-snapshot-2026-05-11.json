@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-05-11T00:00:00.000Z",
+  "snapshotDate": "2026-05-11",
+  "status": "unavailable",
+  "error": "Database unreachable: PostgreSQL not running at localhost:5432. No .env file present (only .env.example). Node modules not installed. Docker daemon not available.",
+  "databaseUrl": "postgresql://sanatan:***@localhost:5432/sanatan",
+  "metrics": {
+    "totalActiveUsers": null,
+    "newUsersLast7Days": null,
+    "activeUsersLast7Days": null,
+    "totalVerses": null,
+    "totalChantLogs": null,
+    "totalChatbotSessions": null
+  },
+  "queries": {
+    "totalActiveUsers": "SELECT COUNT(*) FROM \"User\" WHERE \"isBanned\" = false",
+    "newUsersLast7Days": "SELECT COUNT(*) FROM \"User\" WHERE \"createdAt\" > NOW() - INTERVAL '7 days'",
+    "activeUsersLast7Days": "SELECT COUNT(DISTINCT \"userId\") FROM \"ChantLog\" WHERE \"createdAt\" > NOW() - INTERVAL '7 days'",
+    "totalVerses": "SELECT COUNT(*) FROM \"Verse\"",
+    "totalChantLogs": "SELECT COUNT(*) FROM \"ChantLog\"",
+    "totalChatbotSessions": "SELECT COUNT(*) FROM \"ChatbotSession\""
+  }
+}
