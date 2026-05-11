@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Save, ArrowLeft, Upload, BookOpen, ChevronRight, Plus } from 'lucide-react';
+import { Save, ArrowLeft, Upload, BookOpen, ChevronRight } from 'lucide-react';
 
 interface Chapter {
   id: string;
@@ -283,7 +283,7 @@ export default function BookEditorPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {chapters.map((ch, i) => (
+                    {chapters.map((ch) => (
                       <tr key={ch.id} className="table-row">
                         <td className="table-cell">
                           <span className="font-semibold text-theme">Ch. {ch.number}</span>

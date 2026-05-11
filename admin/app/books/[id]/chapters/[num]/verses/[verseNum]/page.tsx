@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { ArrowLeft, Save, Plus, Trash2, BookOpen, ChevronRight, Mic2, Star } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, ChevronRight, Mic2, Star } from 'lucide-react';
 
 interface Translation {
   id?: string;
@@ -59,7 +59,6 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
 
 export default function VerseEditorPage() {
   const params = useParams();
-  const router = useRouter();
   const bookId = params.id as string;
   const chapterNum = params.num as string;
   const verseNum = params.verseNum as string;

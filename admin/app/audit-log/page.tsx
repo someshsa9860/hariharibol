@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { ClipboardList, Clock, ChevronDown, Search, Filter } from 'lucide-react';
+import { ClipboardList, Clock, ChevronDown, Search } from 'lucide-react';
 
 interface AuditEntry {
   id: string;

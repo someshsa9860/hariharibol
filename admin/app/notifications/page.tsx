@@ -3,71 +3,95 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Bell, Send, Clock, Users, Globe2, ChevronDown, CheckCircle, Eye } from 'lucide-react';
-
-const LANGUAGES = ['English', 'Hindi', 'Sanskrit', 'Tamil', 'Telugu', 'Bengali', 'Marathi'];
-const AUDIENCES = [
-  { key: 'all',          label: 'All Users',              desc: 'Broadcast to every user',           icon: Globe2 },
-  { key: 'verse-of-day', label: 'Verse of Day Subs',      desc: 'Users subscribed to daily verses',  icon: Bell },
-  { key: 'active',       label: 'Active Last 7 Days',     desc: 'Recently engaged users',             icon: Users },
-];
+import { Bell, Send, Clock, Users, Globe2, CheckCircle, Eye, AlertCircle, ChevronDown } from 'lucide-react';
 
 interface SentNotification {
   id: string;
   title: string;
   body: string;
-  audience: string;
+  topic: string;
   sentAt: string;
   recipientCount: number;
   status: 'sent' | 'scheduled' | 'failed';
 }
 
-const MOCK_SENT: SentNotification[] = [
-  { id: 'n1', title: 'Verse of the Day', body: 'Today\'s sacred verse from Bhagavad Gita Chapter 2 awaits you.', audience: 'verse-of-day', sentAt: new Date(Date.now()-3600000).toISOString(), recipientCount: 4821, status: 'sent' },
-  { id: 'n2', title: 'New Sampradaya Added', body: 'Explore the newly added Nimbarka Sampradaya tradition.', audience: 'all', sentAt: new Date(Date.now()-86400000).toISOString(), recipientCount: 12430, status: 'sent' },
-  { id: 'n3', title: 'Morning Mantra Reminder', body: 'Begin your day with the Gayatri Mantra.', audience: 'active', sentAt: new Date(Date.now()+3600000).toISOString(), recipientCount: 0, status: 'scheduled' },
-];
+interface Sampraday {
+  id: string;
+  slug: string;
+  nameKey: string;
+}
 
 export default function NotificationsPage() {
-  const [activeLang,  setActiveLang]  = useState('English');
-  const [audience,    setAudience]    = useState('all');
-  const [scheduleNow, setScheduleNow] = useState(true);
-  const [scheduleAt,  setScheduleAt]  = useState('');
-  const [form,        setForm]        = useState({ title: '', body: '', deepLink: '' });
-  const [sending,     setSending]     = useState(false);
-  const [sent,        setSent]        = useState(false);
-  const [history,     setHistory]     = useState<SentNotification[]>([]);
-  const [loadingHist, setLoadingHist] = useState(true);
+  const [topic,        setTopic]        = useState<string>('verse_of_day');
+  const [form,         setForm]         = useState({ title: '', body: '', deepLink: '' });
+  const [sending,      setSending]      = useState(false);
+  const [sent,         setSent]         = useState(false);
+  const [sendError,    setSendError]    = useState('');
+  const [history,      setHistory]      = useState<SentNotification[]>([]);
+  const [loadingHist,  setLoadingHist]  = useState(true);
+  const [sampradayas,  setSampradayas]  = useState<Sampraday[]>([]);
+  const [loadingSamp,  setLoadingSamp]  = useState(true);
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => {
+    fetchSampradayas();
+    fetchHistory();
+  }, []);
+
+  const fetchSampradayas = async () => {
+    setLoadingSamp(true);
+    try {
+      const r = await api.get('/sampradayas?take=100');
+      const list: Sampraday[] = Array.isArray(r.data)
+        ? r.data
+        : Array.isArray(r.data?.data)
+          ? r.data.data
+          : [];
+      setSampradayas(list);
+    } catch {
+      setSampradayas([]);
+    } finally {
+      setLoadingSamp(false);
+    }
+  };
 
   const fetchHistory = async () => {
     setLoadingHist(true);
     try {
       const r = await api.get('/admin/notifications/history');
-      setHistory(r.data || []);
-    } catch { setHistory(MOCK_SENT); }
-    finally { setLoadingHist(false); }
+      setHistory(Array.isArray(r.data) ? r.data : []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setLoadingHist(false);
+    }
   };
 
   const handleSend = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
     setSending(true);
+    setSendError('');
     try {
-      await api.post('/admin/notifications/send', {
-        title: form.title, body: form.body, deepLink: form.deepLink || undefined,
-        audience, language: activeLang,
-        scheduledAt: scheduleNow ? undefined : scheduleAt || undefined,
+      await api.post('/admin/notifications/broadcast', {
+        title: form.title,
+        body: form.body,
+        topic,
+        deepLink: form.deepLink || undefined,
       });
       setSent(true);
       setForm({ title: '', body: '', deepLink: '' });
       fetchHistory();
       setTimeout(() => setSent(false), 3000);
-    } catch { }
-    finally { setSending(false); }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to send notification';
+      setSendError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setSending(false);
+    }
   };
 
-  const selectedAudience = AUDIENCES.find(a => a.key === audience)!;
+  const audienceLabel = topic === 'verse_of_day'
+    ? 'All Users'
+    : sampradayas.find(s => `vod_${s.slug}` === topic)?.nameKey ?? topic;
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -94,105 +118,129 @@ export default function NotificationsPage() {
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <h2 className="text-sm font-bold text-theme mb-4">Compose Notification</h2>
 
-                {/* Language tabs */}
-                <div className="flex gap-1 p-1 rounded-xl mb-4 overflow-x-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-                  {LANGUAGES.map(lang => (
-                    <button key={lang} onClick={() => setActiveLang(lang)}
-                      className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                      style={{
-                        background: activeLang === lang ? 'rgba(251,191,36,0.15)' : 'transparent',
-                        border: activeLang === lang ? '1px solid rgba(251,191,36,0.3)' : '1px solid transparent',
-                        color: activeLang === lang ? '#fbbf24' : 'var(--muted)',
-                      }}>
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-
                 {/* Title */}
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>Title <span style={{ color: '#f87171' }}>*</span></label>
-                  <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Title <span style={{ color: '#f87171' }}>*</span>
+                  </label>
+                  <input
+                    value={form.title}
+                    onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="e.g. Verse of the Day"
                     className="input-field w-full"
-                    maxLength={65} />
+                    maxLength={65}
+                  />
                   <div className="text-right text-[10px] mt-1" style={{ color: 'var(--muted)' }}>{form.title.length}/65</div>
                 </div>
 
                 {/* Body */}
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>Body <span style={{ color: '#f87171' }}>*</span></label>
-                  <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Body <span style={{ color: '#f87171' }}>*</span>
+                  </label>
+                  <textarea
+                    value={form.body}
+                    onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Your notification message…"
                     rows={3}
                     className="input-field w-full resize-none"
-                    maxLength={200} />
+                    maxLength={200}
+                  />
                   <div className="text-right text-[10px] mt-1" style={{ color: 'var(--muted)' }}>{form.body.length}/200</div>
                 </div>
 
                 {/* Deep link */}
                 <div className="mb-5">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>Deep Link <span className="font-normal opacity-60">(optional)</span></label>
-                  <input value={form.deepLink} onChange={e => setForm(f => ({ ...f, deepLink: e.target.value }))}
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Deep Link <span className="font-normal opacity-60">(optional)</span>
+                  </label>
+                  <input
+                    value={form.deepLink}
+                    onChange={e => setForm(f => ({ ...f, deepLink: e.target.value }))}
                     placeholder="hhb://verse/123 or hhb://home"
-                    className="input-field w-full" />
+                    className="input-field w-full"
+                  />
                 </div>
 
-                {/* Audience */}
+                {/* Topic / Audience */}
                 <div className="mb-5">
-                  <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--muted)' }}>Audience</label>
-                  <div className="space-y-2">
-                    {AUDIENCES.map(a => {
-                      const Icon = a.icon;
-                      return (
-                        <button key={a.key} onClick={() => setAudience(a.key)}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
-                          style={{
-                            background: audience === a.key ? 'rgba(251,191,36,0.08)' : 'var(--bg)',
-                            border: audience === a.key ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
-                          }}>
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ background: audience === a.key ? 'rgba(251,191,36,0.15)' : 'var(--surface-2)' }}>
-                            <Icon size={14} style={{ color: audience === a.key ? '#fbbf24' : 'var(--muted)' }} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold" style={{ color: audience === a.key ? '#fbbf24' : 'var(--text)' }}>{a.label}</p>
-                            <p className="text-xs" style={{ color: 'var(--muted)' }}>{a.desc}</p>
-                          </div>
-                          <div className="ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                            style={{ borderColor: audience === a.key ? '#fbbf24' : 'var(--border)' }}>
-                            {audience === a.key && <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                  <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--muted)' }}>Audience (FCM Topic)</label>
 
-                {/* Schedule */}
-                <div className="mb-5">
-                  <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--muted)' }}>Schedule</label>
-                  <div className="flex gap-2">
-                    {[{ v: true, l: 'Send Now' }, { v: false, l: 'Schedule Later' }].map(({ v, l }) => (
-                      <button key={l} onClick={() => setScheduleNow(v)}
-                        className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-200"
+                  {/* All Users option */}
+                  <button
+                    onClick={() => setTopic('verse_of_day')}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2"
+                    style={{
+                      background: topic === 'verse_of_day' ? 'rgba(251,191,36,0.08)' : 'var(--bg)',
+                      border: topic === 'verse_of_day' ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
+                    }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: topic === 'verse_of_day' ? 'rgba(251,191,36,0.15)' : 'var(--surface-2)' }}>
+                      <Globe2 size={14} style={{ color: topic === 'verse_of_day' ? '#fbbf24' : 'var(--muted)' }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: topic === 'verse_of_day' ? '#fbbf24' : 'var(--text)' }}>All Users</p>
+                      <p className="text-xs" style={{ color: 'var(--muted)' }}>Broadcast to every subscriber (topic: verse_of_day)</p>
+                    </div>
+                    <div className="ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                      style={{ borderColor: topic === 'verse_of_day' ? '#fbbf24' : 'var(--border)' }}>
+                      {topic === 'verse_of_day' && <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />}
+                    </div>
+                  </button>
+
+                  {/* Per-sampraday selector */}
+                  {loadingSamp ? (
+                    <div className="skeleton h-12 rounded-xl" />
+                  ) : sampradayas.length > 0 && (
+                    <div className="relative">
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
                         style={{
-                          background: scheduleNow === v ? 'rgba(251,191,36,0.12)' : 'var(--bg)',
-                          border: scheduleNow === v ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
-                          color: scheduleNow === v ? '#fbbf24' : 'var(--muted)',
+                          background: topic !== 'verse_of_day' ? 'rgba(251,191,36,0.08)' : 'var(--bg)',
+                          border: topic !== 'verse_of_day' ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
                         }}>
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                  {!scheduleNow && (
-                    <input type="datetime-local" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)}
-                      className="input-field w-full mt-2" />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: topic !== 'verse_of_day' ? 'rgba(251,191,36,0.15)' : 'var(--surface-2)' }}>
+                          <Users size={14} style={{ color: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--muted)' }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold mb-0.5" style={{ color: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--text)' }}>
+                            Specific Sampraday
+                          </p>
+                          <div className="relative">
+                            <select
+                              value={topic !== 'verse_of_day' ? topic : ''}
+                              onChange={e => setTopic(e.target.value || 'verse_of_day')}
+                              className="w-full appearance-none text-xs pr-6 py-0.5 rounded-lg bg-transparent outline-none cursor-pointer"
+                              style={{ color: 'var(--muted)', border: 'none' }}>
+                              <option value="">— select a sampraday —</option>
+                              {sampradayas.map(s => (
+                                <option key={s.id} value={`vod_${s.slug}`}>{s.nameKey}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={11} className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--muted)' }} />
+                          </div>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                          style={{ borderColor: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--border)' }}>
+                          {topic !== 'verse_of_day' && <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
+                {/* Error */}
+                {sendError && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl mb-4 text-xs"
+                    style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+                    <AlertCircle size={13} />
+                    {sendError}
+                  </div>
+                )}
+
                 {/* Send button */}
-                <button onClick={handleSend}
+                <button
+                  onClick={handleSend}
                   disabled={sending || !form.title.trim() || !form.body.trim()}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-40"
                   style={{
@@ -207,7 +255,7 @@ export default function NotificationsPage() {
                     ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : sent
                       ? <><CheckCircle size={16} /> Sent!</>
-                      : <><Send size={16} /> {scheduleNow ? 'Send Now' : 'Schedule'}</>}
+                      : <><Send size={16} /> Send Now</>}
                 </button>
               </div>
             </div>
@@ -242,7 +290,7 @@ export default function NotificationsPage() {
                   </div>
                 </div>
                 <p className="text-[10px] mt-2 text-center" style={{ color: 'var(--muted)' }}>
-                  Sending to: <span style={{ color: '#fbbf24' }}>{selectedAudience.label}</span> · {activeLang}
+                  Sending to: <span style={{ color: '#fbbf24' }}>{audienceLabel}</span>
                 </p>
               </div>
 
@@ -252,33 +300,43 @@ export default function NotificationsPage() {
                   <Clock size={13} style={{ color: 'var(--muted)' }} />
                   <h3 className="text-xs font-bold text-theme">Recent Sends</h3>
                 </div>
-                {loadingHist
-                  ? <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton h-14 rounded-xl" />)}</div>
-                  : (
-                    <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-                      {history.map(n => (
-                        <div key={n.id} className="px-5 py-4">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="text-xs font-semibold text-theme leading-tight flex-1">{n.title}</p>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold flex-shrink-0"
-                              style={{
-                                color: n.status === 'sent' ? '#4ade80' : n.status === 'scheduled' ? '#fbbf24' : '#f87171',
-                                background: n.status === 'sent' ? 'rgba(74,222,128,0.1)' : n.status === 'scheduled' ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)',
-                              }}>
-                              {n.status.toUpperCase()}
-                            </span>
-                          </div>
-                          <p className="text-[11px] mb-2 line-clamp-1" style={{ color: 'var(--muted)' }}>{n.body}</p>
-                          <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--muted)' }}>
-                            <span className="flex items-center gap-1"><Clock size={9} /> {new Date(n.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                            {n.recipientCount > 0 && (
-                              <span className="flex items-center gap-1"><Users size={9} /> {n.recipientCount.toLocaleString()}</span>
-                            )}
-                          </div>
+                {loadingHist ? (
+                  <div className="p-4 space-y-3">
+                    {[1, 2, 3].map(i => <div key={i} className="skeleton h-14 rounded-xl" />)}
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="px-5 py-8 text-center">
+                    <Bell size={24} className="mx-auto mb-2 opacity-30" style={{ color: 'var(--muted)' }} />
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>No notifications sent yet</p>
+                  </div>
+                ) : (
+                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                    {history.map(n => (
+                      <div key={n.id} className="px-5 py-4">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p className="text-xs font-semibold text-theme leading-tight flex-1">{n.title}</p>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold flex-shrink-0"
+                            style={{
+                              color: n.status === 'sent' ? '#4ade80' : n.status === 'scheduled' ? '#fbbf24' : '#f87171',
+                              background: n.status === 'sent' ? 'rgba(74,222,128,0.1)' : n.status === 'scheduled' ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)',
+                            }}>
+                            {n.status.toUpperCase()}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <p className="text-[11px] mb-2 line-clamp-1" style={{ color: 'var(--muted)' }}>{n.body}</p>
+                        <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--muted)' }}>
+                          <span className="flex items-center gap-1">
+                            <Clock size={9} />
+                            {new Date(n.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {n.recipientCount > 0 && (
+                            <span className="flex items-center gap-1"><Users size={9} /> {n.recipientCount.toLocaleString()}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Plus, Trash2, Edit2, Search, BookOpen, X, Check, Upload, ChevronLeft, ChevronRight, FileJson } from 'lucide-react';
+import { Plus, Trash2, Edit2, Search, BookOpen, X, ChevronLeft, ChevronRight, FileJson } from 'lucide-react';
 
 interface Book {
   id: string;
