@@ -159,6 +159,13 @@ export default function ModerationPage() {
             ))}
           </div>
 
+          {error && (
+            <div className="px-4 py-3 rounded-xl text-sm font-medium"
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+              {error}
+            </div>
+          )}
+
           {loading ? (
             <div className="space-y-4">{[1, 2, 3].map(i => (
               <div key={i} className="skeleton h-36 rounded-2xl" />

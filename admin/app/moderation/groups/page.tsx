@@ -85,6 +85,12 @@ export default function GroupOversightPage() {
         </header>
 
         <div className="p-8 max-w-6xl mx-auto">
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium"
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+              {error}
+            </div>
+          )}
           <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
             <table className="w-full border-collapse">
               <thead>

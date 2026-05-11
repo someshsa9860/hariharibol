@@ -73,6 +73,13 @@ export default function StrikesPage() {
 
         <div className="p-8 max-w-5xl mx-auto">
 
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium"
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+              {error}
+            </div>
+          )}
+
           {/* Confirm dialog */}
           {confirm && (
             <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
