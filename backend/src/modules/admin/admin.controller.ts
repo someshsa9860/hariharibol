@@ -40,6 +40,26 @@ export class AdminController {
     return this.adminService.getDashboardStats();
   }
 
+  @Get('audit-log')
+  @HttpCode(HttpStatus.OK)
+  async getAuditLog(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('action') action?: string,
+    @Query('entityType') entityType?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getAuditLogs(
+      skip ? parseInt(skip, 10) : 0,
+      take ? parseInt(take, 10) : 50,
+      action || undefined,
+      entityType || undefined,
+      dateFrom || undefined,
+      dateTo || undefined,
+    );
+  }
+
   // Sampraday Management
   @Post('sampradayas')
   @HttpCode(HttpStatus.CREATED)

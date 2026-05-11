@@ -9,6 +9,10 @@ export interface AnalyticsMetrics {
   topSampradayas: { id: string; name: string; followerCount: number }[];
   topVerses: { id: string; verseId: string; favoriteCount: number }[];
   userGrowth: { date: string; users: number }[];
+  // Computed convenience fields
+  dau: number;
+  mau: number;
+  topVerse: string;
   // Legacy fields kept for backwards compatibility
   activeUsers: number;
   newUsersToday: number;
@@ -27,10 +31,12 @@ export class AnalyticsService {
   async getMetrics(period: 'day' | 'week' | 'month' = 'month'): Promise<AnalyticsMetrics> {
     try {
       const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const cutoff30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
       const [
         totalUsers,
         activeUsers24h,
+        mau,
         newUsersToday,
         totalVerses,
         totalSampradayas,
@@ -43,6 +49,7 @@ export class AnalyticsService {
       ] = await Promise.all([
         this.prisma.user.count(),
         this.prisma.user.count({ where: { lastActiveAt: { gte: cutoff24h } } }),
+        this.prisma.user.count({ where: { lastActiveAt: { gte: cutoff30d } } }),
         this.getNewUsersToday(),
         this.prisma.verse.count(),
         this.prisma.sampraday.count(),
@@ -66,10 +73,18 @@ export class AnalyticsService {
         this.getUserGrowth(30),
       ]);
 
+      const topVerseMapped = topVerseRows.map((v) => ({
+        id: v.id,
+        verseId: v.verseId,
+        favoriteCount: v._count.favorites,
+      }));
+
       return {
         totalUsers,
         activeUsers24h,
         activeUsers: activeUsers24h,
+        dau: activeUsers24h,
+        mau,
         newUsersToday,
         totalVerses,
         totalSampradayas,
@@ -81,17 +96,127 @@ export class AnalyticsService {
           name: s.nameKey,
           followerCount: s.followerCount,
         })),
-        topVerses: topVerseRows.map((v) => ({
-          id: v.id,
-          verseId: v.verseId,
-          favoriteCount: v._count.favorites,
-        })),
+        topVerses: topVerseMapped,
+        topVerse: topVerseMapped[0]?.verseId ?? '—',
         userGrowth,
         averageSessionDuration: 0,
       };
     } catch (error) {
       this.logger.error(`Failed to fetch metrics:`, error);
       throw error;
+    }
+  }
+
+  async getDau(days = 30): Promise<{ date: string; dau: number }[]> {
+    try {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      cutoff.setHours(0, 0, 0, 0);
+
+      const grouped = await this.prisma.chantLog.groupBy({
+        by: ['date'],
+        where: { date: { gte: cutoff } },
+        _count: { _all: true },
+        orderBy: { date: 'asc' },
+      });
+
+      const result: { date: string; dau: number }[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const found = grouped.find(
+          (g) => new Date(g.date).toISOString().split('T')[0] === dateStr,
+        );
+        result.push({ date: dateStr, dau: found ? found._count._all : 0 });
+      }
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to fetch DAU:`, error);
+      return [];
+    }
+  }
+
+  async getTopVerses(limit = 5): Promise<{ name: string; views: number }[]> {
+    try {
+      const verses = await this.prisma.verse.findMany({
+        take: limit,
+        orderBy: { favorites: { _count: 'desc' } },
+        select: { verseId: true, _count: { select: { favorites: true } } },
+      });
+      return verses.map((v) => ({ name: v.verseId, views: v._count.favorites }));
+    } catch (error) {
+      this.logger.error(`Failed to fetch top verses:`, error);
+      return [];
+    }
+  }
+
+  async getTopSampradayas(limit = 5): Promise<{ name: string; followers: number }[]> {
+    try {
+      const samps = await this.prisma.sampraday.findMany({
+        take: limit,
+        orderBy: { followerCount: 'desc' },
+        select: { nameKey: true, followerCount: true },
+      });
+      return samps.map((s) => ({ name: s.nameKey, followers: s.followerCount }));
+    } catch (error) {
+      this.logger.error(`Failed to fetch top sampradayas:`, error);
+      return [];
+    }
+  }
+
+  async getDailyChants(days = 14): Promise<{ date: string; chants: number }[]> {
+    try {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      cutoff.setHours(0, 0, 0, 0);
+
+      const grouped = await this.prisma.chantLog.groupBy({
+        by: ['date'],
+        where: { date: { gte: cutoff } },
+        _sum: { count: true },
+        orderBy: { date: 'asc' },
+      });
+
+      const result: { date: string; chants: number }[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const found = grouped.find(
+          (g) => new Date(g.date).toISOString().split('T')[0] === dateStr,
+        );
+        result.push({ date: dateStr, chants: found?._sum.count ?? 0 });
+      }
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to fetch daily chants:`, error);
+      return [];
+    }
+  }
+
+  async getTopMantras(limit = 5): Promise<{ name: string; chantCount: number }[]> {
+    try {
+      const grouped = await this.prisma.chantLog.groupBy({
+        by: ['mantraId'],
+        _sum: { count: true },
+        orderBy: { _sum: { count: 'desc' } },
+        take: limit,
+      });
+
+      const mantraIds = grouped.map((g) => g.mantraId);
+      const mantras = await this.prisma.mantra.findMany({
+        where: { id: { in: mantraIds } },
+        select: { id: true, nameKey: true },
+      });
+
+      return grouped.map((g) => ({
+        name: mantras.find((m) => m.id === g.mantraId)?.nameKey ?? g.mantraId,
+        chantCount: g._sum.count ?? 0,
+      }));
+    } catch (error) {
+      this.logger.error(`Failed to fetch top mantras:`, error);
+      return [];
     }
   }
 

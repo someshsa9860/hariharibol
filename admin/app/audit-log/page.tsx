@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { ClipboardList, Clock, ChevronDown, Search } from 'lucide-react';
+import { ClipboardList, Clock, ChevronDown, Search, AlertCircle } from 'lucide-react';
 
 interface AuditEntry {
   id: string;
@@ -16,15 +16,13 @@ interface AuditEntry {
   after?: Record<string, unknown>;
 }
 
-const MOCK_AUDIT: AuditEntry[] = [
-  { id: 'a1', admin: { email: 'admin@hhb.com' }, action: 'BAN_USER',        entityType: 'User',       entityId: 'u-abc123', timestamp: new Date(Date.now()-600000).toISOString(),   before: { status: 'active' }, after: { status: 'banned', reason: 'Repeated hate speech' } },
-  { id: 'a2', admin: { email: 'admin@hhb.com' }, action: 'APPROVE_MESSAGE', entityType: 'Message',    entityId: 'msg-def', timestamp: new Date(Date.now()-1800000).toISOString(),  before: { status: 'pending' }, after: { status: 'approved' } },
-  { id: 'a3', admin: { email: 'mod@hhb.com'   }, action: 'HIDE_MESSAGE',    entityType: 'Message',    entityId: 'msg-ghi', timestamp: new Date(Date.now()-3600000).toISOString(),  before: { isHidden: false }, after: { isHidden: true } },
-  { id: 'a4', admin: { email: 'admin@hhb.com' }, action: 'UPDATE_VERSE',    entityType: 'Verse',      entityId: 'v-jkl456', timestamp: new Date(Date.now()-7200000).toISOString(),  before: { text: 'Old text' }, after: { text: 'Updated Sanskrit text' } },
-  { id: 'a5', admin: { email: 'admin@hhb.com' }, action: 'LIFT_BAN',        entityType: 'Ban',        entityId: 'ban-mno', timestamp: new Date(Date.now()-86400000).toISOString(), before: { status: 'active' }, after: { status: 'lifted' } },
-  { id: 'a6', admin: { email: 'mod@hhb.com'   }, action: 'RESET_STRIKES',   entityType: 'User',       entityId: 'u-pqr789', timestamp: new Date(Date.now()-172800000).toISOString(),before: { strikeCount: 3 }, after: { strikeCount: 0 } },
-  { id: 'a7', admin: { email: 'admin@hhb.com' }, action: 'SEND_NOTIFICATION',entityType: 'Notification',entityId: 'notif-stu',timestamp: new Date(Date.now()-259200000).toISOString(),before: {}, after: { title: 'Verse of Day', audience: 'all' } },
+const ACTION_TYPES = [
+  'BAN_USER', 'LIFT_BAN', 'APPROVE_MESSAGE', 'HIDE_MESSAGE',
+  'ESCALATE_TO_BAN', 'UPDATE_VERSE', 'RESET_STRIKES',
+  'SEND_NOTIFICATION', 'CREATE_CONTENT', 'DELETE_CONTENT',
 ];
+
+const ENTITY_TYPES = ['User', 'Message', 'Verse', 'Ban', 'Notification', 'Mantra', 'Sampraday'];
 
 const ACTION_META: Record<string, { color: string; bg: string; border: string }> = {
   BAN_USER:          { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.25)' },
@@ -73,24 +71,64 @@ function DiffView({ before, after }: { before?: Record<string, unknown>; after?:
   );
 }
 
+const PAGE_SIZE = 50;
+
 export default function AuditLogPage() {
-  const [entries,   setEntries]   = useState<AuditEntry[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [search,    setSearch]    = useState('');
-  const [expanded,  setExpanded]  = useState<string | null>(null);
-  const [page,      setPage]      = useState(0);
-  const PAGE_SIZE = 20;
+  const [entries,      setEntries]      = useState<AuditEntry[]>([]);
+  const [total,        setTotal]        = useState(0);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState<string | null>(null);
+  const [search,       setSearch]       = useState('');
+  const [expanded,     setExpanded]     = useState<string | null>(null);
+  const [page,         setPage]         = useState(0);
+  const [filterAction,     setFilterAction]     = useState('');
+  const [filterEntityType, setFilterEntityType] = useState('');
+  const [filterDateFrom,   setFilterDateFrom]   = useState('');
+  const [filterDateTo,     setFilterDateTo]     = useState('');
 
-  useEffect(() => { fetchLog(); }, []);
-
-  const fetchLog = async () => {
+  const fetchLog = useCallback(async (currentPage: number) => {
     setLoading(true);
+    setError(null);
     try {
-      const r = await api.get('/admin/audit-log');
-      setEntries(r.data || []);
-    } catch { setEntries(MOCK_AUDIT); }
-    finally { setLoading(false); }
+      const params = new URLSearchParams({
+        skip: String(currentPage * PAGE_SIZE),
+        take: String(PAGE_SIZE),
+      });
+      if (filterAction)     params.set('action', filterAction);
+      if (filterEntityType) params.set('entityType', filterEntityType);
+      if (filterDateFrom)   params.set('dateFrom', filterDateFrom);
+      if (filterDateTo)     params.set('dateTo', filterDateTo);
+
+      const r = await api.get(`/admin/audit-log?${params.toString()}`);
+      setEntries(r.data?.data || []);
+      setTotal(r.data?.total ?? 0);
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'Failed to load audit log. Please try again.');
+      setEntries([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [filterAction, filterEntityType, filterDateFrom, filterDateTo]);
+
+  useEffect(() => {
+    fetchLog(page);
+  }, [fetchLog, page]);
+
+  const applyFilter = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
+    setPage(0);
   };
+
+  const clearFilters = () => {
+    setFilterAction('');
+    setFilterEntityType('');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setPage(0);
+  };
+
+  const hasFilters = filterAction || filterEntityType || filterDateFrom || filterDateTo;
 
   const filtered = entries.filter(e =>
     !search ||
@@ -100,8 +138,17 @@ export default function AuditLogPage() {
     e.entityId.toLowerCase().includes(search.toLowerCase())
   );
 
-  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  const selectStyle = {
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    color: 'var(--text)',
+    borderRadius: 10,
+    padding: '6px 10px',
+    fontSize: 12,
+    outline: 'none',
+  } as React.CSSProperties;
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -120,109 +167,159 @@ export default function AuditLogPage() {
               <p className="text-xs" style={{ color: 'var(--muted)' }}>All admin actions with change history</p>
             </div>
           </div>
-          {!loading && (
+          {!loading && !error && (
             <span className="px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', color: '#60a5fa' }}>
-              {filtered.length} entries
+              {total} entries
             </span>
           )}
         </header>
 
         <div className="p-8 max-w-6xl mx-auto space-y-5">
 
-          {/* Search bar */}
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-            <Search size={14} style={{ color: 'var(--muted)' }} />
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
-              placeholder="Search by admin, action, entity type or ID…"
-              className="flex-1 bg-transparent text-sm outline-none text-theme placeholder:text-[var(--muted)]" />
-            {search && (
-              <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'var(--muted)' }}>Clear</button>
-            )}
+          {/* Filter bar */}
+          <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="flex flex-wrap items-center gap-3">
+              <select value={filterAction} onChange={e => applyFilter(setFilterAction)(e.target.value)} style={selectStyle}>
+                <option value="">All actions</option>
+                {ACTION_TYPES.map(a => <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>)}
+              </select>
+              <select value={filterEntityType} onChange={e => applyFilter(setFilterEntityType)(e.target.value)} style={selectStyle}>
+                <option value="">All entity types</option>
+                {ENTITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={e => applyFilter(setFilterDateFrom)(e.target.value)}
+                style={{ ...selectStyle, colorScheme: 'dark' }}
+                placeholder="From"
+              />
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={e => applyFilter(setFilterDateTo)(e.target.value)}
+                style={{ ...selectStyle, colorScheme: 'dark' }}
+                placeholder="To"
+              />
+              {hasFilters && (
+                <button onClick={clearFilters}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Search */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+              <Search size={13} style={{ color: 'var(--muted)' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search by admin, action, entity type or ID…"
+                className="flex-1 bg-transparent text-sm outline-none text-theme placeholder:text-[var(--muted)]" />
+              {search && (
+                <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'var(--muted)' }}>Clear</button>
+              )}
+            </div>
           </div>
+
+          {/* Error state */}
+          {error && (
+            <div className="flex items-center gap-3 p-4 rounded-xl"
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)' }}>
+              <AlertCircle size={16} style={{ color: '#f87171', flexShrink: 0 }} />
+              <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>
+              <button onClick={() => fetchLog(page)} className="ml-auto px-3 py-1 rounded-lg text-xs font-semibold"
+                style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* Table */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['Admin', 'Action', 'Entity', 'Entity ID', 'Timestamp', ''].map(h => (
-                    <th key={h} className="px-5 py-3 text-left"
-                      style={{ color: 'var(--muted)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading
-                  ? [1, 2, 3, 4, 5].map(i => (
-                    <tr key={i}><td colSpan={6} className="px-5 py-3"><div className="skeleton h-7 rounded-lg" /></td></tr>
-                  ))
-                  : paged.length === 0
-                    ? (
-                      <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted)' }}>
-                        No entries match your search.
-                      </td></tr>
-                    )
-                    : paged.map((entry, i) => (
-                      <>
-                        <tr key={entry.id} className="cursor-pointer transition-all duration-150"
-                          style={{ borderBottom: expanded === entry.id ? 'none' : (i < paged.length - 1 ? '1px solid var(--border)' : 'none') }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                          onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                                style={{ background: 'rgba(199,90,26,0.15)', color: 'var(--accent)' }}>
-                                {entry.admin.email[0].toUpperCase()}
+          {!error && (
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    {['Admin', 'Action', 'Entity', 'Entity ID', 'Timestamp', ''].map(h => (
+                      <th key={h} className="px-5 py-3 text-left"
+                        style={{ color: 'var(--muted)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading
+                    ? [1, 2, 3, 4, 5].map(i => (
+                      <tr key={i}><td colSpan={6} className="px-5 py-3"><div className="skeleton h-7 rounded-lg" /></td></tr>
+                    ))
+                    : filtered.length === 0
+                      ? (
+                        <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted)' }}>
+                          {search ? 'No entries match your search.' : 'No audit log entries found.'}
+                        </td></tr>
+                      )
+                      : filtered.map((entry, i) => (
+                        <>
+                          <tr key={entry.id} className="cursor-pointer transition-all duration-150"
+                            style={{ borderBottom: expanded === entry.id ? 'none' : (i < filtered.length - 1 ? '1px solid var(--border)' : 'none') }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                            onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                                  style={{ background: 'rgba(199,90,26,0.15)', color: 'var(--accent)' }}>
+                                  {entry.admin.email[0].toUpperCase()}
+                                </div>
+                                <span className="text-xs text-theme">{entry.admin.email}</span>
                               </div>
-                              <span className="text-xs text-theme">{entry.admin.email}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4"><ActionBadge action={entry.action} /></td>
-                          <td className="px-5 py-4">
-                            <span className="text-xs px-2 py-0.5 rounded-md font-medium"
-                              style={{ background: 'rgba(96,165,250,0.08)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.15)' }}>
-                              {entry.entityType}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 font-mono text-xs" style={{ color: 'var(--muted)' }}>{entry.entityId}</td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
-                              <Clock size={10} />
-                              {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            {(entry.before || entry.after) && (
-                              <ChevronDown size={13} style={{
-                                color: 'var(--muted)',
-                                transform: expanded === entry.id ? 'rotate(180deg)' : 'none',
-                                transition: 'transform 0.2s',
-                              }} />
-                            )}
-                          </td>
-                        </tr>
-
-                        {/* Diff row */}
-                        {expanded === entry.id && (entry.before || entry.after) && (
-                          <tr key={`${entry.id}-diff`}
-                            style={{ borderBottom: i < paged.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                            <td colSpan={6} className="px-5 pb-4 pt-1">
-                              <DiffView before={entry.before} after={entry.after} />
+                            </td>
+                            <td className="px-5 py-4"><ActionBadge action={entry.action} /></td>
+                            <td className="px-5 py-4">
+                              <span className="text-xs px-2 py-0.5 rounded-md font-medium"
+                                style={{ background: 'rgba(96,165,250,0.08)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.15)' }}>
+                                {entry.entityType}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 font-mono text-xs" style={{ color: 'var(--muted)' }}>{entry.entityId}</td>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
+                                <Clock size={10} />
+                                {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-right">
+                              {(entry.before || entry.after) && (
+                                <ChevronDown size={13} style={{
+                                  color: 'var(--muted)',
+                                  transform: expanded === entry.id ? 'rotate(180deg)' : 'none',
+                                  transition: 'transform 0.2s',
+                                }} />
+                              )}
                             </td>
                           </tr>
-                        )}
-                      </>
-                    ))}
-              </tbody>
-            </table>
-          </div>
+
+                          {/* Diff row */}
+                          {expanded === entry.id && (entry.before || entry.after) && (
+                            <tr key={`${entry.id}-diff`}
+                              style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                              <td colSpan={6} className="px-5 pb-4 pt-1">
+                                <DiffView before={entry.before} after={entry.after} />
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!error && totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
                 className="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-40"

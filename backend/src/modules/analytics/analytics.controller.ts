@@ -13,6 +13,41 @@ export class AnalyticsController {
     return this.analyticsService.getMetrics(period);
   }
 
+  @Get('dau')
+  @HttpCode(HttpStatus.OK)
+  async getDau(@Query('days') days?: string) {
+    const data = await this.analyticsService.getDau(days ? parseInt(days, 10) : 30);
+    return { data };
+  }
+
+  @Get('top-verses')
+  @HttpCode(HttpStatus.OK)
+  async getTopVerses(@Query('limit') limit?: string) {
+    const data = await this.analyticsService.getTopVerses(limit ? parseInt(limit, 10) : 5);
+    return { data };
+  }
+
+  @Get('top-sampradayas')
+  @HttpCode(HttpStatus.OK)
+  async getTopSampradayas(@Query('limit') limit?: string) {
+    const data = await this.analyticsService.getTopSampradayas(limit ? parseInt(limit, 10) : 5);
+    return { data };
+  }
+
+  @Get('chants')
+  @HttpCode(HttpStatus.OK)
+  async getDailyChants(@Query('days') days?: string) {
+    const data = await this.analyticsService.getDailyChants(days ? parseInt(days, 10) : 14);
+    return { data };
+  }
+
+  @Get('top-mantras')
+  @HttpCode(HttpStatus.OK)
+  async getTopMantras(@Query('limit') limit?: string) {
+    const data = await this.analyticsService.getTopMantras(limit ? parseInt(limit, 10) : 5);
+    return { data };
+  }
+
   @Get('user-growth')
   @HttpCode(HttpStatus.OK)
   async getUserGrowth(@Query('days') days?: string) {

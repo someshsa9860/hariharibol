@@ -248,6 +248,53 @@ export class AdminService {
     });
   }
 
+  async getAuditLogs(
+    skip = 0,
+    take = 50,
+    action?: string,
+    entityType?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ) {
+    const where: any = {};
+    if (action) where.action = action;
+    if (entityType) where.entityType = entityType;
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    const [entries, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { admin: { select: { email: true } } },
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
+
+    return {
+      data: entries.map((e) => ({
+        id: e.id,
+        admin: { email: e.admin.email },
+        action: e.action,
+        entityType: e.entityType,
+        entityId: e.entityId ?? '',
+        timestamp: e.createdAt.toISOString(),
+        before: e.changesBefore as Record<string, unknown> | undefined,
+        after: e.changesAfter as Record<string, unknown> | undefined,
+      })),
+      total,
+    };
+  }
+
   // Verify admin user
   async verifyAdmin(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({

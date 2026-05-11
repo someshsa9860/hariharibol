@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
   BarChart3, TrendingUp, Users, Music, BookOpen,
-  Flame, Heart, Activity,
+  Flame, Heart, Activity, AlertCircle,
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
@@ -14,11 +14,16 @@ import {
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface AnalyticsMetrics {
-  dau: number; mau: number;
-  totalChants: number; topVerse: string;
-  totalUsers: number; newUsersToday: number;
-  totalVerses: number; totalSampradayas: number;
-  totalFavorites: number; totalFollows: number;
+  dau: number;
+  mau: number;
+  totalChants: number;
+  topVerse: string;
+  totalUsers: number;
+  newUsersToday: number;
+  totalVerses: number;
+  totalSampradayas: number;
+  totalFavorites: number;
+  totalFollows: number;
   averageSessionDuration: number;
 }
 interface DauPoint    { date: string; dau: number }
@@ -27,37 +32,10 @@ interface SampradBar  { name: string; followers: number }
 interface ChantBar    { date: string; chants: number }
 interface MantraRow   { name: string; chantCount: number }
 
-/* ─── Mock data ──────────────────────────────────────────────────────── */
-const MOCK_METRICS: AnalyticsMetrics = {
-  dau: 1243, mau: 18920, totalChants: 82450, topVerse: 'BG 2.47',
-  totalUsers: 18920, newUsersToday: 37, totalVerses: 512, totalSampradayas: 14,
-  totalFavorites: 4310, totalFollows: 7820, averageSessionDuration: 4.2,
-};
-const mkDau = (): DauPoint[] => Array.from({ length: 30 }, (_, i) => ({
-  date: new Date(Date.now() - (29 - i) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-  dau: 800 + Math.floor(Math.random() * 700),
-}));
-const MOCK_DAU: DauPoint[]   = mkDau();
-const MOCK_VERSES: VerseBar[] = [
-  { name: 'BG 2.47', views: 4120 }, { name: 'BG 18.66', views: 3080 },
-  { name: 'RV 1.1.1', views: 2430 }, { name: 'BG 9.22', views: 1890 }, { name: 'YS 1.2', views: 1340 },
-];
-const MOCK_SAMP: SampradBar[] = [
-  { name: 'Vaishnavism', followers: 5210 }, { name: 'Shaivism', followers: 3840 },
-  { name: 'Shaktism', followers: 2910 }, { name: 'Advaita', followers: 2140 }, { name: 'Nimbarka', followers: 980 },
-];
-const mkChants = (): ChantBar[] => Array.from({ length: 14 }, (_, i) => ({
-  date: new Date(Date.now() - (13 - i) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-  chants: 2000 + Math.floor(Math.random() * 4000),
-}));
-const MOCK_CHANTS: ChantBar[] = mkChants();
-const MOCK_MANTRAS: MantraRow[] = [
-  { name: 'Gayatri Mantra',     chantCount: 14230 },
-  { name: 'Om Namah Shivaya',   chantCount: 11840 },
-  { name: 'Hare Krishna Maha',  chantCount: 9710 },
-  { name: 'Mahamrityunjaya',    chantCount: 7320 },
-  { name: 'Shri Ram Jai Ram',   chantCount: 6150 },
-];
+/* ─── Date formatter for chart axes ─────────────────────────────────── */
+function fmtDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 /* ─── Custom tooltip ─────────────────────────────────────────────────── */
 function ChartTip({ active, payload, label }: any) {
@@ -84,6 +62,7 @@ export default function AnalyticsPage() {
   const [chants,   setChants]   = useState<ChantBar[]>([]);
   const [mantras,  setMantras]  = useState<MantraRow[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
   const [period,   setPeriod]   = useState<'day' | 'week' | 'month'>('month');
   const [tab,      setTab]      = useState<Tab>('Engagement');
 
@@ -91,6 +70,7 @@ export default function AnalyticsPage() {
 
   const fetchAll = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [m, d, v, s, c, mt] = await Promise.all([
         api.get(`/admin/analytics/metrics?period=${period}`),
@@ -100,20 +80,70 @@ export default function AnalyticsPage() {
         api.get('/admin/analytics/chants?days=14'),
         api.get('/admin/analytics/top-mantras'),
       ]);
-      setMetrics(m.data); setDauData(d.data?.data || []); setVerses(v.data?.data || []);
-      setSamp(s.data?.data || []); setChants(c.data?.data || []); setMantras(mt.data?.data || []);
-    } catch {
-      setMetrics(MOCK_METRICS); setDauData(MOCK_DAU); setVerses(MOCK_VERSES);
-      setSamp(MOCK_SAMP); setChants(MOCK_CHANTS); setMantras(MOCK_MANTRAS);
-    } finally { setLoading(false); }
+
+      setMetrics(m.data as AnalyticsMetrics);
+
+      setDauData(
+        (d.data?.data ?? []).map((p: { date: string; dau: number }) => ({
+          date: fmtDate(p.date),
+          dau: p.dau,
+        }))
+      );
+
+      setVerses(v.data?.data ?? []);
+      setSamp(s.data?.data ?? []);
+
+      setChants(
+        (c.data?.data ?? []).map((p: { date: string; chants: number }) => ({
+          date: fmtDate(p.date),
+          chants: p.chants,
+        }))
+      );
+
+      setMantras(mt.data?.data ?? []);
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'Failed to load analytics data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const statCards = metrics ? [
-    { icon: Activity,  label: 'DAU',         value: metrics.dau,         sub: 'Daily active users', color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
-    { icon: Users,     label: 'MAU',         value: metrics.mau,         sub: 'Monthly active users', color: '#a78bfa', glow: 'rgba(167,139,250,0.15)' },
-    { icon: Flame,     label: 'Total Chants',value: metrics.totalChants, sub: 'All time chanting logs', color: '#fb923c', glow: 'rgba(251,146,60,0.15)' },
-    { icon: BookOpen,  label: 'Top Verse',   value: metrics.topVerse,    sub: 'Most viewed today', color: '#fbbf24', glow: 'rgba(251,191,36,0.15)', isStr: true },
+    { icon: Activity,  label: 'DAU',          value: metrics.dau,         sub: 'Daily active users',    color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
+    { icon: Users,     label: 'MAU',          value: metrics.mau,         sub: 'Monthly active users',  color: '#a78bfa', glow: 'rgba(167,139,250,0.15)' },
+    { icon: Flame,     label: 'Total Chants', value: metrics.totalChants, sub: 'All time chanting logs', color: '#fb923c', glow: 'rgba(251,146,60,0.15)' },
+    { icon: BookOpen,  label: 'Top Verse',    value: metrics.topVerse,    sub: 'Most favorited verse',   color: '#fbbf24', glow: 'rgba(251,191,36,0.15)', isStr: true },
   ] : [];
+
+  if (error && !loading) {
+    return (
+      <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <header className="px-8 py-4 flex items-center gap-3 sticky top-0 z-10"
+            style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px)' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
+              <BarChart3 size={15} style={{ color: '#a78bfa' }} />
+            </div>
+            <h1 className="text-xl font-black text-theme">Analytics</h1>
+          </header>
+          <div className="p-8 flex flex-col items-center justify-center" style={{ minHeight: '60vh' }}>
+            <div className="flex flex-col items-center gap-4 p-8 rounded-2xl max-w-md w-full"
+              style={{ background: 'var(--surface)', border: '1px solid rgba(248,113,113,0.2)' }}>
+              <AlertCircle size={40} style={{ color: '#f87171' }} />
+              <p className="text-sm text-center" style={{ color: 'var(--muted)' }}>{error}</p>
+              <button onClick={fetchAll}
+                className="px-5 py-2 rounded-xl text-sm font-semibold"
+                style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa' }}>
+                Retry
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -204,19 +234,20 @@ export default function AnalyticsPage() {
               </div>
               {loading
                 ? <div className="skeleton h-64 rounded-xl" />
-                : (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={dauData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false}
-                        interval={4} />
-                      <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-                      <Tooltip content={<ChartTip />} />
-                      <Line type="monotone" dataKey="dau" name="DAU" stroke="#60a5fa" strokeWidth={2.5}
-                        dot={false} activeDot={{ r: 5, fill: '#60a5fa' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+                : dauData.length === 0
+                  ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No activity data available yet.</p>
+                  : (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <LineChart data={dauData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} interval={4} />
+                        <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                        <Tooltip content={<ChartTip />} />
+                        <Line type="monotone" dataKey="dau" name="DAU" stroke="#60a5fa" strokeWidth={2.5}
+                          dot={false} activeDot={{ r: 5, fill: '#60a5fa' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
             </div>
           )}
 
@@ -226,21 +257,23 @@ export default function AnalyticsPage() {
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <div className="flex items-center gap-2 mb-6">
                   <BookOpen size={14} style={{ color: '#fbbf24' }} />
-                  <h3 className="font-bold text-theme text-sm">Top Verses by Views</h3>
+                  <h3 className="font-bold text-theme text-sm">Top Verses by Favorites</h3>
                 </div>
                 {loading
                   ? <div className="skeleton h-52 rounded-xl" />
-                  : (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={verses} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                        <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={65} />
-                        <Tooltip content={<ChartTip />} />
-                        <Bar dataKey="views" name="Views" fill="#fbbf24" radius={[0, 6, 6, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
+                  : verses.length === 0
+                    ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No verse data available yet.</p>
+                    : (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={verses} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                          <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={65} />
+                          <Tooltip content={<ChartTip />} />
+                          <Bar dataKey="views" name="Favorites" fill="#fbbf24" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
               </div>
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <div className="flex items-center gap-2 mb-6">
@@ -249,17 +282,19 @@ export default function AnalyticsPage() {
                 </div>
                 {loading
                   ? <div className="skeleton h-52 rounded-xl" />
-                  : (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={samp} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                        <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
-                        <Tooltip content={<ChartTip />} />
-                        <Bar dataKey="followers" name="Followers" fill="#f87171" radius={[0, 6, 6, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
+                  : samp.length === 0
+                    ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No sampraday data available yet.</p>
+                    : (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={samp} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                          <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+                          <Tooltip content={<ChartTip />} />
+                          <Bar dataKey="followers" name="Followers" fill="#f87171" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
               </div>
             </div>
           )}
@@ -274,17 +309,19 @@ export default function AnalyticsPage() {
                 </div>
                 {loading
                   ? <div className="skeleton h-52 rounded-xl" />
-                  : (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={chants} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                        <XAxis dataKey="date" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={45} />
-                        <Tooltip content={<ChartTip />} />
-                        <Bar dataKey="chants" name="Chants" fill="#fb923c" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
+                  : chants.length === 0
+                    ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No chanting data available yet.</p>
+                    : (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={chants} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={45} />
+                          <Tooltip content={<ChartTip />} />
+                          <Bar dataKey="chants" name="Chants" fill="#fb923c" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
               </div>
 
               {/* Top mantras table */}
@@ -307,33 +344,36 @@ export default function AnalyticsPage() {
                   <tbody>
                     {loading
                       ? [1,2,3].map(i => <tr key={i}><td colSpan={4} className="px-5 py-4"><div className="skeleton h-7 rounded-lg" /></td></tr>)
-                      : mantras.map((m, i) => {
-                        const maxCount = mantras[0]?.chantCount || 1;
-                        const pct = ((m.chantCount / mantras.reduce((a, b) => a + b.chantCount, 0)) * 100).toFixed(1);
-                        return (
-                          <tr key={m.name} className="transition-all duration-150"
-                            style={{ borderBottom: i < mantras.length - 1 ? '1px solid var(--border)' : 'none' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                            <td className="px-5 py-4">
-                              <span className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold"
-                                style={{ background: i === 0 ? 'rgba(251,191,36,0.15)' : 'var(--bg)', color: i === 0 ? '#fbbf24' : 'var(--muted)', display: 'inline-flex' }}>
-                                {i + 1}
-                              </span>
-                            </td>
-                            <td className="px-5 py-4 text-sm font-semibold text-theme">{m.name}</td>
-                            <td className="px-5 py-4 text-sm font-bold" style={{ color: '#fb923c' }}>{m.chantCount.toLocaleString()}</td>
-                            <td className="px-5 py-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-24 h-1.5 rounded-full" style={{ background: 'var(--border)' }}>
-                                  <div className="h-1.5 rounded-full" style={{ width: `${(m.chantCount / maxCount) * 100}%`, background: '#a78bfa' }} />
+                      : mantras.length === 0
+                        ? <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>No mantra chanting data yet.</td></tr>
+                        : mantras.map((m, i) => {
+                          const maxCount = mantras[0]?.chantCount || 1;
+                          const totalCount = mantras.reduce((a, b) => a + b.chantCount, 0);
+                          const pct = totalCount > 0 ? ((m.chantCount / totalCount) * 100).toFixed(1) : '0.0';
+                          return (
+                            <tr key={m.name} className="transition-all duration-150"
+                              style={{ borderBottom: i < mantras.length - 1 ? '1px solid var(--border)' : 'none' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                              <td className="px-5 py-4">
+                                <span className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold"
+                                  style={{ background: i === 0 ? 'rgba(251,191,36,0.15)' : 'var(--bg)', color: i === 0 ? '#fbbf24' : 'var(--muted)', display: 'inline-flex' }}>
+                                  {i + 1}
+                                </span>
+                              </td>
+                              <td className="px-5 py-4 text-sm font-semibold text-theme">{m.name}</td>
+                              <td className="px-5 py-4 text-sm font-bold" style={{ color: '#fb923c' }}>{m.chantCount.toLocaleString()}</td>
+                              <td className="px-5 py-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-24 h-1.5 rounded-full" style={{ background: 'var(--border)' }}>
+                                    <div className="h-1.5 rounded-full" style={{ width: `${(m.chantCount / maxCount) * 100}%`, background: '#a78bfa' }} />
+                                  </div>
+                                  <span className="text-xs" style={{ color: 'var(--muted)' }}>{pct}%</span>
                                 </div>
-                                <span className="text-xs" style={{ color: 'var(--muted)' }}>{pct}%</span>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              </td>
+                            </tr>
+                          );
+                        })}
                   </tbody>
                 </table>
               </div>
