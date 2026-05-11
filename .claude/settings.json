@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\(service|controller\\)\\\\.ts$\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('name:', d.get\\('name'\\)\\); print\\('scripts:', json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/books/[id]/[chapter]\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/sampradayas/[id]\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/verse-of-day\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/mantras\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(auth\\)/login\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/components\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/lib\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/public/standalone\")",
+      "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/\\(shell\\)/home\" \\\\ *)",
+      "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/\\(shell\\)/books/[id]/[chapter]\")"
+    ],
+    "additionalDirectories": [
+      "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/(public)/books/[id]",
+      "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/(shell)/books/[id]",
+      "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/(shell)/books/[id]/[chapter]"
+    ]
+  }
+}
