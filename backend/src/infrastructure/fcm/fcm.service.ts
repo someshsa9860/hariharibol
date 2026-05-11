@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import * as admin from 'firebase-admin';
 
 export interface FCMMessage {
   topic?: string;
@@ -15,7 +16,6 @@ export interface FCMMessage {
 @Injectable()
 export class FCMService {
   private readonly logger = new Logger('FCMService');
-  private admin: any;
   private initialized = false;
 
   constructor(
@@ -27,47 +27,48 @@ export class FCMService {
 
   private initialize(): void {
     try {
-      // Firebase Admin SDK initialization
-      // TODO: Uncomment when Firebase is fully configured
-      /*
-      const admin = require('firebase-admin');
-      const serviceAccount = JSON.parse(
-        this.configService.get('FCM_SERVICE_ACCOUNT_JSON') ||
-        fs.readFileSync(this.configService.get('FCM_SERVICE_ACCOUNT_PATH')),
-      );
+      if (admin.apps.length > 0) {
+        this.initialized = true;
+        return;
+      }
 
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
+      const serviceAccountJson = this.configService.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON');
+      const projectId = this.configService.get<string>('FIREBASE_PROJECT_ID');
 
-      this.admin = admin.messaging();
-      this.initialized = true;
-      this.logger.log('FCM initialized successfully');
-      */
-
-      this.logger.log('FCM service ready (Firebase credentials pending)');
+      if (serviceAccountJson) {
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        this.initialized = true;
+        this.logger.log('FCM initialized with service account credentials');
+      } else if (projectId) {
+        admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId });
+        this.initialized = true;
+        this.logger.log('FCM initialized with application default credentials');
+      } else {
+        this.logger.warn('FCM configuration pending — set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_PROJECT_ID');
+      }
     } catch (error) {
-      this.logger.warn('FCM initialization incomplete:', error.message);
-      this.logger.warn('Configure FCM_SERVICE_ACCOUNT_JSON or FCM_SERVICE_ACCOUNT_PATH');
+      this.logger.warn('FCM initialization failed:', error.message);
     }
   }
 
   async sendToTopic(message: FCMMessage): Promise<boolean> {
     if (!this.initialized || !message.topic) {
-      this.logger.debug(`Topic notification queued: ${message.topic}`);
-      return true; // Queue for later when FCM is available
+      this.logger.debug(`Topic notification skipped (FCM not ready): ${message.topic}`);
+      return false;
     }
 
     try {
-      // TODO: Implement actual FCM send
-      // const response = await this.admin.send({
-      //   topic: message.topic,
-      //   notification: message.notification,
-      //   data: message.data,
-      // });
-      // this.logger.log(`Notification sent to topic ${message.topic}:`, response);
+      const fcmMessage: admin.messaging.Message = {
+        topic: message.topic,
+        notification: message.notification,
+        data: message.data,
+        android: { priority: 'high' },
+        apns: { payload: { aps: { sound: 'default' } } },
+      };
 
-      this.logger.log(`Notification sent to topic: ${message.topic}`);
+      const messageId = await admin.messaging().send(fcmMessage);
+      this.logger.log(`Notification sent to topic ${message.topic}: ${messageId}`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to send topic notification:`, error);
@@ -81,28 +82,28 @@ export class FCMService {
     }
 
     if (!this.initialized) {
-      this.logger.debug(`Notification queued for ${tokens.length} devices`);
-      return tokens.length;
+      this.logger.debug(`Device notification skipped (FCM not ready) for ${tokens.length} devices`);
+      return 0;
     }
 
     try {
-      // Send in batches of 500 (FCM limit)
       const batchSize = 500;
       let successCount = 0;
 
       for (let i = 0; i < tokens.length; i += batchSize) {
         const batch = tokens.slice(i, i + batchSize);
 
-        // TODO: Implement actual FCM send
-        // const response = await this.admin.sendMulticast({
-        //   tokens: batch,
-        //   notification: message.notification,
-        //   data: message.data,
-        // });
-        // successCount += response.successCount;
+        const multicast: admin.messaging.MulticastMessage = {
+          tokens: batch,
+          notification: message.notification,
+          data: message.data,
+          android: { priority: 'high' },
+          apns: { payload: { aps: { sound: 'default' } } },
+        };
 
-        this.logger.log(`Sent notification to ${batch.length} devices`);
-        successCount += batch.length;
+        const response = await admin.messaging().sendEachForMulticast(multicast);
+        successCount += response.successCount;
+        this.logger.log(`Sent to ${response.successCount}/${batch.length} devices in batch`);
       }
 
       return successCount;
@@ -118,15 +119,25 @@ export class FCMService {
     }
 
     try {
-      // Store subscription in database
-      const subscriptions = tokens.map((token) => ({
-        topicId: '', // Will be fetched from DB
-        deviceToken: token,
-        deviceId: this.extractDeviceId(token), // Placeholder
-      }));
+      if (this.initialized) {
+        await admin.messaging().subscribeToTopic(tokens, topic);
+      }
 
-      // TODO: Get actual topic ID from database
-      // Update once database is set up with FCMTopic model
+      const fcmTopic = await this.prisma.fcmTopic.findUnique({ where: { name: topic } });
+      if (!fcmTopic) {
+        this.logger.warn(`Topic not found in DB: ${topic}`);
+        return this.initialized;
+      }
+
+      await Promise.all(
+        tokens.map((deviceToken) =>
+          this.prisma.fcmSubscription.upsert({
+            where: { topicId_deviceToken: { topicId: fcmTopic.id, deviceToken } },
+            create: { topicId: fcmTopic.id, deviceToken, deviceId: deviceToken },
+            update: {},
+          }),
+        ),
+      );
 
       this.logger.log(`${tokens.length} devices subscribed to topic: ${topic}`);
       return true;
@@ -142,7 +153,17 @@ export class FCMService {
     }
 
     try {
-      // TODO: Remove from database subscriptions
+      if (this.initialized) {
+        await admin.messaging().unsubscribeFromTopic(tokens, topic);
+      }
+
+      const fcmTopic = await this.prisma.fcmTopic.findUnique({ where: { name: topic } });
+      if (fcmTopic) {
+        await this.prisma.fcmSubscription.deleteMany({
+          where: { topicId: fcmTopic.id, deviceToken: { in: tokens } },
+        });
+      }
+
       this.logger.log(`${tokens.length} devices unsubscribed from topic: ${topic}`);
       return true;
     } catch (error) {
@@ -225,12 +246,6 @@ export class FCMService {
     return defaultTopics;
   }
 
-  private extractDeviceId(token: string): string {
-    // Extract device identifier from FCM token
-    // This is a placeholder - actual implementation depends on your token format
-    return token.substring(0, 20); // First 20 chars as identifier
-  }
-
   isInitialized(): boolean {
     return this.initialized;
   }
@@ -243,7 +258,7 @@ export class FCMService {
       initialized: this.initialized,
       message: this.initialized
         ? 'FCM is ready'
-        : 'FCM configuration pending. Set FCM_SERVICE_ACCOUNT_JSON or FCM_SERVICE_ACCOUNT_PATH',
+        : 'FCM configuration pending. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_PROJECT_ID',
     };
   }
 }
