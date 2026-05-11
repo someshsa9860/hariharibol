@@ -21,10 +21,13 @@ import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, Creat
 import { BooksService } from '../books/books.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AdminGuard } from '@common/guards/admin.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { Roles } from '@common/decorators/roles.decorator';
 
 @Controller('api/v1/admin')
-@UseGuards(JwtGuard, AdminGuard)
+@UseGuards(JwtGuard, AdminGuard, RolesGuard)
+@Roles('admin', 'superadmin')
 export class AdminController {
   constructor(
     private adminService: AdminService,

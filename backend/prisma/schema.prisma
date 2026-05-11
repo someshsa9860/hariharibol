@@ -21,6 +21,7 @@ model User {
   authProvider       String  @db.VarChar(50) // 'google', 'apple'
   providerUserId     String  @unique
   languagePreference String  @default("en") @db.VarChar(10)
+  role               String  @default("user") @db.VarChar(50)
 
   // Onboarding
   onboardingCompleted Boolean    @default(false)

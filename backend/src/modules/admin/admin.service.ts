@@ -254,8 +254,7 @@ export class AdminService {
       where: { id: userId },
     });
 
-    // TODO: Add admin role checking when admin table is created
-    return !!user && !user.isBanned;
+    return !!user && !user.isBanned && (user.role === 'admin' || user.role === 'superadmin');
   }
 
   // File Upload Methods

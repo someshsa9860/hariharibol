@@ -17,6 +17,7 @@ export class TokenService {
     email: string;
     deviceId: string;
     isAdmin?: boolean;
+    role?: string;
   }) {
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),

@@ -95,6 +95,7 @@ export class AuthService {
           email: admin.email,
           deviceId: 'admin-panel',
           isAdmin: true,
+          role: admin.role,
         });
 
       return {
@@ -193,6 +194,7 @@ export class AuthService {
       email: admin.email,
       deviceId: 'admin-panel',
       isAdmin: true,
+      role: admin.role,
     });
 
     return {
