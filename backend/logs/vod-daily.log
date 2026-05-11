@@ -1,0 +1,10 @@
+[2026-05-11T04:30:43Z] VOD daily-generate check
+  Status   : SKIPPED
+  DB check : FAILED - PostgreSQL not reachable on localhost:5432
+  API check: FAILED - Backend not reachable on http://localhost:3000
+  Action   : No .env file found (only .env.example). Backend and database
+             are not running in this environment. Start the backend
+             (npm run dev inside backend/) and ensure PostgreSQL is up
+             before auto-generation can proceed.
+  Note     : When the backend is running, trigger generation with:
+             curl -s -X POST http://localhost:3000/api/v1/verses/of-day/admin/generate                -H 'Authorization: Bearer <ADMIN_JWT>'
