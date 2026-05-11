@@ -78,7 +78,20 @@ export class BooksService {
       where: { bookId_number: { bookId, number: chapterNumber } },
       include: {
         book: true,
-        verses: { orderBy: { verseNumber: 'asc' } },
+        verses: {
+          orderBy: { verseNumber: 'asc' },
+          include: {
+            translations: {
+              where: { isPublished: true },
+              orderBy: { displayOrder: 'asc' },
+              include: { translator: true },
+            },
+            narrations: {
+              where: { isPublished: true },
+              orderBy: { displayOrder: 'asc' },
+            },
+          },
+        },
         _count: { select: { verses: true } },
       },
     });

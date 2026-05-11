@@ -589,7 +589,16 @@ class _DnyaneshwariSection extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (ctx, i) => _DnyanChapterTile(chapter: i + 1),
+              (ctx, i) => _DnyanChapterTile(
+                chapter: i + 1,
+                bookId: booksAsync.whenOrNull(
+                  data: (books) {
+                    final dnyan =
+                        books.where((b) => b.category == 'DNYAN').toList();
+                    return dnyan.isNotEmpty ? dnyan.first.id : null;
+                  },
+                ),
+              ),
               childCount: 18,
             ),
           ),
@@ -642,7 +651,8 @@ class _DnyaneshwariSection extends ConsumerWidget {
 
 class _DnyanChapterTile extends StatelessWidget {
   final int chapter;
-  const _DnyanChapterTile({required this.chapter});
+  final String? bookId;
+  const _DnyanChapterTile({required this.chapter, this.bookId});
 
   static const _saffron = Color(0xFFC75A1A);
 
@@ -685,10 +695,13 @@ class _DnyanChapterTile extends StatelessWidget {
         subtitle: Text(name, style: const TextStyle(fontSize: 11, color: Color(0xFF8B7D73))),
         trailing: const Icon(Icons.chevron_right, color: Color(0xFF8B7D73), size: 20),
         onTap: () {
-          // Navigate to chapter — book lookup done by slug
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Opening Dnyaneshwari Chapter $chapter…')),
-          );
+          if (bookId != null) {
+            context.push('/book/$bookId/chapter/$chapter');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Dnyaneshwari not yet available')),
+            );
+          }
         },
       ),
     );

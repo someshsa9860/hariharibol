@@ -13,6 +13,8 @@ import '../../features/chatbot/presentation/pages/chat_session_page.dart';
 import '../../features/groups/presentation/pages/group_chat_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/reading/presentation/pages/book_detail_page.dart';
+import '../../features/reading/presentation/pages/chapter_reading_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -93,6 +95,19 @@ class AppRouter {
       GoRoute(
         path: '/group/:id',
         builder: (context, state) => GroupChatPage(groupId: state.pathParameters['id']!),
+      ),
+      // ── Book detail & Chapter reading ──────────────────────────────────────
+      GoRoute(
+        path: '/book/:id',
+        builder: (context, state) =>
+            BookDetailPage(bookId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/book/:bookId/chapter/:num',
+        builder: (context, state) => ChapterReadingPage(
+          bookId: state.pathParameters['bookId']!,
+          chapterNum: int.parse(state.pathParameters['num']!),
+        ),
       ),
       // ── Profile & Settings ─────────────────────────────────────────────────
       GoRoute(
