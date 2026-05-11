@@ -2,13 +2,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/shell/presentation/pages/main_shell_page.dart';
 import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/sampradayas/presentation/pages/sampraday_detail_page.dart';
-import '../../features/chanting/presentation/pages/chanting_page.dart';
 import '../../features/chanting/presentation/pages/mantra_detail_page.dart';
 import '../../features/chanting/presentation/pages/chant_counter_page.dart';
 import '../../features/chanting/presentation/pages/chant_history_page.dart';
+import '../../features/chatbot/presentation/pages/chat_session_page.dart';
+import '../../features/groups/presentation/pages/group_chat_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -22,27 +25,50 @@ class AppRouter {
         path: '/login',
         builder: (context, state) => const LoginPage(),
       ),
+      // ── Shell (4-tab) ──────────────────────────────────────────────────────
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const MainShellPage(initialIndex: 0),
       ),
+      GoRoute(
+        path: '/gurudev',
+        builder: (context, state) => const MainShellPage(initialIndex: 1),
+      ),
+      GoRoute(
+        path: '/chanting',
+        builder: (context, state) => const MainShellPage(initialIndex: 2),
+      ),
+      GoRoute(
+        path: '/read',
+        builder: (context, state) => const MainShellPage(initialIndex: 3),
+      ),
+      // ── Chat Session ───────────────────────────────────────────────────────
+      GoRoute(
+        path: '/gurudev/session/:id',
+        builder: (context, state) {
+          final extra =
+              (state.extra as Map<String, dynamic>?) ?? {};
+          return ChatSessionPage(
+            sessionId: state.pathParameters['id']!,
+            initialPrompt: extra['initialPrompt'] as String?,
+          );
+        },
+      ),
+      // ── Verse Detail ───────────────────────────────────────────────────────
       GoRoute(
         path: '/verse/:id',
         builder: (context, state) => VerseDetailPage(
           verseId: state.pathParameters['id']!,
         ),
       ),
+      // ── Sampraday Detail ───────────────────────────────────────────────────
       GoRoute(
         path: '/sampraday/:id',
         builder: (context, state) => SampradayDetailPage(
           sampradayId: state.pathParameters['id']!,
         ),
       ),
-      // ── Chanting ─────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/chanting',
-        builder: (context, state) => const ChantingPage(),
-      ),
+      // ── Chanting sub-routes (pushed over shell) ────────────────────────────
       GoRoute(
         path: '/chanting/history',
         builder: (context, state) => const ChantHistoryPage(),
@@ -64,6 +90,22 @@ class AppRouter {
             goal: extra['goal'] as int? ?? 108,
           );
         },
+      ),
+      // ── Group Chat ─────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/group/:id',
+        builder: (context, state) => GroupChatPage(
+          groupId: state.pathParameters['id']!,
+        ),
+      ),
+      // ── Profile & Settings ─────────────────────────────────────────────────
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsPage(),
       ),
     ],
   );
