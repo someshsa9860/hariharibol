@@ -34,32 +34,6 @@ const STATUS_FILTERS = [
   { key: 'escalated', label: 'Escalated', color: '#f87171' },
 ];
 
-const MOCK_MESSAGES: ModerationMessage[] = [
-  {
-    id: '1', content: 'This verse has no meaning and your interpretation is completely wrong!',
-    user: { id: 'u1', email: 'angry.user@example.com', name: 'Angry User' },
-    group: { id: 'g1', name: 'Bhagavad Gita Study', sampradaya: 'Vaishnavism' },
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    aiVerdict: 'DISRESPECTFUL', aiReason: 'Contains dismissive and offensive language toward spiritual teachings.', aiConfidence: 91,
-    status: 'pending',
-  },
-  {
-    id: '2', content: 'Buy cheap rudrakshas here!! Click link in bio for 50% OFF 🙏',
-    user: { id: 'u2', email: 'spammer@example.com', name: 'Spam Bot' },
-    group: { id: 'g2', name: 'Mantra Chanting Circle', sampradaya: 'Shaivism' },
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    aiVerdict: 'SPAM', aiReason: 'Promotional content with commercial links detected.', aiConfidence: 98,
-    status: 'pending',
-  },
-  {
-    id: '3', content: 'Could someone explain the deeper meaning of the Gayatri Mantra? I am just beginning my journey.',
-    user: { id: 'u3', email: 'seeker@example.com', name: 'New Seeker' },
-    group: { id: 'g1', name: 'Bhagavad Gita Study', sampradaya: 'Vaishnavism' },
-    createdAt: new Date(Date.now() - 1800000).toISOString(),
-    aiVerdict: 'SAFE', aiReason: 'Genuine spiritual inquiry with respectful tone.', aiConfidence: 99,
-    status: 'pending',
-  },
-];
 
 function VerdictBadge({ verdict }: { verdict?: string }) {
   if (!verdict) return null;
@@ -87,6 +61,7 @@ function ConfidencePip({ pct }: { pct: number }) {
 export default function ModerationPage() {
   const [messages,   setMessages]   = useState<ModerationMessage[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
   const [filter,     setFilter]     = useState('pending');
   const [actioningId,setActioningId]= useState<string | null>(null);
   const [expanded,   setExpanded]   = useState<string | null>(null);
@@ -95,18 +70,25 @@ export default function ModerationPage() {
 
   const fetchMessages = async () => {
     setLoading(true);
+    setError(null);
     try {
       const r = await api.get(`/admin/moderation/queue?status=${filter}`);
       setMessages(r.data || []);
-    } catch {
-      setMessages(MOCK_MESSAGES.filter(m => m.status === filter));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load moderation queue';
+      setError(msg);
+      setMessages([]);
     } finally { setLoading(false); }
   };
 
-  const act = async (id: string, endpoint: string, body?: object) => {
-    setActioningId(id);
-    try { await api.post(endpoint, body); fetchMessages(); }
-    catch { fetchMessages(); }
+  const act = async (msgId: string, userId: string, action: 'approve' | 'reject' | 'ban') => {
+    setActioningId(msgId);
+    try {
+      if (action === 'approve') await api.post(`/admin/moderation/${msgId}/approve`);
+      else if (action === 'reject') await api.post(`/admin/moderation/${msgId}/reject`);
+      else await api.post(`/admin/users/${userId}/ban`, { reason: 'Escalated from moderation queue' });
+      fetchMessages();
+    } catch { fetchMessages(); }
     finally { setActioningId(null); }
   };
 
@@ -181,6 +163,18 @@ export default function ModerationPage() {
             <div className="space-y-4">{[1, 2, 3].map(i => (
               <div key={i} className="skeleton h-36 rounded-2xl" />
             ))}</div>
+          ) : error ? (
+            <div className="py-16 text-center rounded-2xl"
+              style={{ background: 'var(--surface)', border: '1px solid rgba(248,113,113,0.3)' }}>
+              <ShieldAlert size={32} className="mx-auto mb-3" style={{ color: '#f87171' }} />
+              <p className="font-semibold text-theme mb-1">Failed to load queue</p>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>{error}</p>
+              <button onClick={fetchMessages}
+                className="px-4 py-2 rounded-xl text-xs font-semibold"
+                style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                Retry
+              </button>
+            </div>
           ) : messages.length === 0 ? (
             <div className="py-20 text-center rounded-2xl"
               style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
@@ -260,7 +254,7 @@ export default function ModerationPage() {
                   {/* Actions */}
                   {filter === 'pending' && (
                     <div className="px-5 pb-4 flex gap-2">
-                      <button onClick={() => act(msg.id, `/admin/moderation/messages/${msg.id}/approve`)}
+                      <button onClick={() => act(msg.id, msg.user.id, 'approve')}
                         disabled={actioningId === msg.id}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
                         style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }}
@@ -268,7 +262,7 @@ export default function ModerationPage() {
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(74,222,128,0.1)'; }}>
                         <CheckCircle size={13} /> Approve & Restore
                       </button>
-                      <button onClick={() => act(msg.id, `/admin/moderation/messages/${msg.id}/hide`)}
+                      <button onClick={() => act(msg.id, msg.user.id, 'reject')}
                         disabled={actioningId === msg.id}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
                         style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.2)', color: '#94a3b8' }}
@@ -276,7 +270,7 @@ export default function ModerationPage() {
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(148,163,184,0.1)'; }}>
                         <EyeOff size={13} /> Confirm Hide
                       </button>
-                      <button onClick={() => act(msg.id, `/admin/moderation/messages/${msg.id}/escalate`)}
+                      <button onClick={() => act(msg.id, msg.user.id, 'ban')}
                         disabled={actioningId === msg.id}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
                         style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}

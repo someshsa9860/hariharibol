@@ -14,16 +14,11 @@ interface StrikeUser {
   lastStrikeAt: string;
 }
 
-const MOCK_STRIKES: StrikeUser[] = [
-  { id: 'u1', name: 'Rajan Mehta',    email: 'rajan.m@example.com',    strikeCount: 3, lastReason: 'Repeated spam in multiple groups',        lastStrikeAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'u2', name: 'Priya Kapoor',   email: 'priya.k@example.com',    strikeCount: 1, lastReason: 'Disrespectful comment on verse commentary', lastStrikeAt: new Date(Date.now() - 172800000).toISOString() },
-  { id: 'u3', name: 'Anon User 452',  email: 'anon452@example.com',    strikeCount: 4, lastReason: 'Hate speech targeting sampradaya members',  lastStrikeAt: new Date(Date.now() - 43200000).toISOString() },
-  { id: 'u4', name: 'Vikram Singh',   email: 'v.singh@example.com',    strikeCount: 2, lastReason: 'Commercial promotion in spiritual group',   lastStrikeAt: new Date(Date.now() - 604800000).toISOString() },
-];
 
 export default function StrikesPage() {
   const [users,      setUsers]      = useState<StrikeUser[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
   const [actioningId,setActioningId]= useState<string | null>(null);
   const [confirm,    setConfirm]    = useState<{ id: string; action: 'ban' | 'reset' } | null>(null);
 
@@ -31,11 +26,15 @@ export default function StrikesPage() {
 
   const fetchStrikes = async () => {
     setLoading(true);
+    setError(null);
     try {
       const r = await api.get('/admin/moderation/strikes');
       setUsers(r.data || []);
-    } catch { setUsers(MOCK_STRIKES); }
-    finally { setLoading(false); }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load strike data';
+      setError(msg);
+      setUsers([]);
+    } finally { setLoading(false); }
   };
 
   const doAction = async (id: string, action: 'ban' | 'reset') => {
@@ -123,6 +122,21 @@ export default function StrikesPage() {
                   ? [1, 2, 3].map(i => (
                     <tr key={i}><td colSpan={6} className="px-5 py-4"><div className="skeleton h-8 rounded-lg" /></td></tr>
                   ))
+                  : error
+                  ? (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-12 text-center">
+                        <AlertTriangle size={28} className="mx-auto mb-2" style={{ color: '#f87171' }} />
+                        <p className="text-sm font-semibold text-theme mb-1">Failed to load strikes</p>
+                        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{error}</p>
+                        <button onClick={fetchStrikes}
+                          className="px-4 py-1.5 rounded-xl text-xs font-semibold"
+                          style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                          Retry
+                        </button>
+                      </td>
+                    </tr>
+                  )
                   : users.map((u, i) => (
                     <tr key={u.id} className="transition-all duration-150"
                       style={{ borderBottom: i < users.length - 1 ? '1px solid var(--border)' : 'none' }}

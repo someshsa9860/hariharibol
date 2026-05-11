@@ -15,13 +15,6 @@ interface GroupStats {
   flaggedUsers: number;
 }
 
-const MOCK_GROUPS: GroupStats[] = [
-  { id: 'g1', name: 'Bhagavad Gita Study', sampradaya: 'Vaishnavism',  memberCount: 1243, messages24h: 87,  hiddenRate: 23.4, flaggedUsers: 5 },
-  { id: 'g2', name: 'Mantra Chanting',     sampradaya: 'Shaivism',     memberCount: 876,  messages24h: 134, hiddenRate: 41.2, flaggedUsers: 11 },
-  { id: 'g3', name: 'Vedic Philosophy',    sampradaya: 'Advaita',      memberCount: 562,  messages24h: 29,  hiddenRate: 3.4,  flaggedUsers: 1 },
-  { id: 'g4', name: 'Devi Bhakti Circle',  sampradaya: 'Shaktism',     memberCount: 2108, messages24h: 312, hiddenRate: 12.8, flaggedUsers: 8 },
-  { id: 'g5', name: 'Hanuman Chalisa',     sampradaya: 'Vaishnavism',  memberCount: 3410, messages24h: 521, hiddenRate: 6.1,  flaggedUsers: 3 },
-];
 
 type SortKey = 'hiddenRate' | 'messages24h' | 'memberCount' | 'flaggedUsers';
 
@@ -34,6 +27,7 @@ function rateColor(rate: number) {
 export default function GroupOversightPage() {
   const [groups,  setGroups]  = useState<GroupStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('hiddenRate');
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -41,11 +35,14 @@ export default function GroupOversightPage() {
 
   const fetchGroups = async () => {
     setLoading(true);
+    setError(null);
     try {
       const r = await api.get('/admin/moderation/groups');
       setGroups(r.data || []);
-    } catch {
-      setGroups(MOCK_GROUPS);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load group data';
+      setError(msg);
+      setGroups([]);
     } finally { setLoading(false); }
   };
 
@@ -106,6 +103,21 @@ export default function GroupOversightPage() {
                   ? [1, 2, 3, 4, 5].map(i => (
                     <tr key={i}><td colSpan={7} className="px-5 py-4"><div className="skeleton h-8 rounded-lg" /></td></tr>
                   ))
+                  : error
+                  ? (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-12 text-center">
+                        <AlertTriangle size={28} className="mx-auto mb-2" style={{ color: '#f87171' }} />
+                        <p className="text-sm font-semibold text-theme mb-1">Failed to load groups</p>
+                        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{error}</p>
+                        <button onClick={fetchGroups}
+                          className="px-4 py-1.5 rounded-xl text-xs font-semibold"
+                          style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                          Retry
+                        </button>
+                      </td>
+                    </tr>
+                  )
                   : sorted.map((g, i) => (
                     <tr key={g.id} className="transition-all duration-150"
                       style={{ borderBottom: i < sorted.length - 1 ? '1px solid var(--border)' : 'none' }}
