@@ -1,0 +1,39 @@
+================================================================================
+PRISMA SCHEMA HEALTH REPORT
+Timestamp : 2026-05-11T00:00:00Z (UTC)
+Runner    : maintenance-agent / Claude Code
+================================================================================
+
+CHECK 1 — prisma validate
+  STATUS : PASS
+  NOTES  : Schema is structurally valid (Prisma CLI 5.22.0).
+           DATABASE_URL env var is not present in this environment, which
+           causes validate to fail with P1012 when run without a dummy URL.
+           The underlying schema syntax is correct — verified by running
+           `DATABASE_URL=postgresql://... prisma validate` which exits 0.
+  WARNINGS (non-fatal):
+    - onDelete: SetNull on a required field in two relations.
+      Recommendation: change to Restrict/Cascade or make the field optional.
+      Ref: https://pris.ly/d/postgres-set-null
+
+CHECK 2 — prisma format --check
+  STATUS : PASS
+  NOTES  : All schema files are formatted correctly. No changes applied.
+
+CHECK 3 — migration files integrity
+  STATUS : PASS
+  NOTES  : All 4 migration directories contain a migration.sql file.
+  MIGRATIONS FOUND:
+    [OK] 20260501091126_init/migration.sql
+    [OK] 20260501110603_add_admin_user/migration.sql
+    [OK] 20260511000001_add_user_sampraday_onboarding/migration.sql
+    [OK] 20260511042520_reinit/migration.sql
+
+================================================================================
+OVERALL RESULT : PASS (3/3 checks passed)
+RECOMMENDED ACTION:
+  - Consider making the SetNull-referenced fields optional in schema.prisma,
+    or change the onDelete action to Restrict/Cascade to resolve the warnings.
+  - Ensure DATABASE_URL is set in the deployment environment before running
+    prisma migrate deploy.
+================================================================================
