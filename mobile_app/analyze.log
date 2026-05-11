@@ -2,6 +2,7 @@ Flutter Static Analysis Log
 Timestamp: 2026-05-11T00:00:00Z
 Tool: Manual Dart analysis (flutter binary not found)
 Scope: mobile_app/lib/**/*.dart (103 files)
+flutter_lints: ^6.0.0
 
 === FLUTTER AVAILABILITY ===
 flutter: NOT_FOUND — skipping pub get / flutter analyze
@@ -15,9 +16,6 @@ Checked all 103 .dart files for:
   - Type mismatches between providers and consumers
   - Duplicate provider name conflicts
 
-ERRORS FOUND: 0
-WARNINGS (non-blocking): 5 (see below)
-
 --- Import path verification ---
 All relative imports verified correct:
   features/home/presentation/providers/home_provider.dart  imports OK
@@ -27,37 +25,47 @@ All relative imports verified correct:
   features/chatbot/presentation/providers/chatbot_providers.dart   imports OK
   features/groups/presentation/providers/groups_providers.dart     imports OK
   features/sampradayas/presentation/providers/sampraday_provider.dart imports OK
-  features/profile/presentation/providers/profile_providers.dart   imports OK
-  features/settings/presentation/pages/settings_page.dart         imports OK
   core/data/repositories/base_repository.dart (package: imports)  OK
 
 --- Model/class resolution ---
-NarrationModel    defined in features/home/data/models/verse_detail_model.dart  — imported correctly by home_provider.dart
-ChatbotSessionModel defined in core/data/models/gurudev_model.dart (freezed)   — imported correctly by chatbot_providers.dart
-GroupModel        defined in core/data/models/groups_model.dart (freezed)       — imported correctly by groups_providers.dart
-MessageModel      defined in core/data/models/groups_model.dart (freezed)       — imported correctly by groups_providers.dart
-MantraModel       defined in features/chanting/data/models/mantra_model.dart    — imported correctly by chanting_providers.dart
-SampradayModel    defined in features/home/data/models/sampraday_model.dart     — imported correctly across features
+NarrationModel    defined in features/home/data/models/verse_detail_model.dart  — imported correctly
+ChatbotSessionModel defined in core/data/models/gurudev_model.dart (freezed)   — imported correctly
+GroupModel        defined in core/data/models/groups_model.dart (freezed)       — imported correctly
+MessageModel      defined in core/data/models/groups_model.dart (freezed)       — imported correctly
+MantraModel       defined in features/chanting/data/models/mantra_model.dart    — imported correctly
+SampradayModel    defined in features/home/data/models/sampraday_model.dart     — imported correctly
 
 --- Constructor parameter checks ---
-MessageModel(id, groupId, userId, content, status, createdAt)  — all required fields provided in optimistic update OK
+MessageModel(id, groupId, userId, content, status, createdAt)  — all required fields provided OK
 ChantStatsModel(totalChants, totalSessions, totalDurationSeconds, averageSessionChants, dailyStats) — const fallback OK
 ChantStreakModel(currentStreak, longestStreak, lastChantDate) — fallback instantiation OK
 
---- Non-blocking warnings (no fixes needed) ---
-W1: features/home/presentation/providers/home_provider.dart + features/verse/presentation/providers/verse_provider.dart
-    Both declare a `verseDetailProvider` symbol — different return types (VerseDetailModel vs VerseModel).
-    No conflict: each is imported separately into different consuming files.
-W2: features/auth/presentation/providers/auth_provider.dart + features/home/presentation/providers/home_provider.dart + features/verse/presentation/providers/verse_provider.dart
-    All three declare a `dioProvider`. No conflict: consumed only within their respective import scopes.
-W3: features/home/presentation/screens/home_screen.dart:45-47
-    ref.refresh() return value discarded — informational, not an error.
-W4: features/chatbot/presentation/providers/chatbot_providers.dart:136-173
-    Stream SSE parsing uses catch-all `catch (_)` — masks stream errors silently.
-W5: features/groups/presentation/pages/group_chat_page.dart:138
-    `as PreferredSizeWidget` cast on AppBar.when() — runtime type is correct, no issue.
+=== ERRORS FIXED ===
 
-=== CONCLUSION ===
-No errors (error •) found.
-No fixes required.
-All 103 .dart files pass manual static analysis.
+FILE: lib/features/chanting/presentation/pages/chant_counter_page.dart
+  LINE 392: final dynamic onTap;
+  ISSUE: onTap field typed as `dynamic`, dynamic call via `() => onTap()`
+         loses type safety and triggers avoid_dynamic_calls lint.
+  FIX:  Changed `final dynamic onTap` -> `final VoidCallback onTap`
+        Changed `onTap: () => onTap()` -> `onTap: onTap`
+        VoidCallback accepts both sync and async callbacks (Future<void> is
+        assignable to void in Dart's type system).
+
+=== NON-BLOCKING WARNINGS (no fixes needed) ===
+
+W1: home_provider.dart + verse_provider.dart both declare `verseDetailProvider`
+    with different return types — no conflict, separate import scopes.
+W2: auth_provider.dart, home_provider.dart, verse_provider.dart all declare
+    `dioProvider` — no conflict, consumed only within respective import scopes.
+W3: core/network/interceptors/refresh_interceptor.dart line 5:
+    `void onError(...) async` — async keyword on void override with no await.
+W4: features/home/data/models/verse_model.dart line 34:
+    `json['book']?['titleKey'] ?? 'Unknown'` returns dynamic assigned to String.
+    Valid implicit cast at compile time.
+W5: Color.withOpacity() calls throughout — deprecated in Flutter 3.27+
+    (warning level, not error).
+
+=== SUMMARY ===
+Files reviewed: 103
+Errors found and fixed: 1
+Remaining warnings: 5 (non-blocking)

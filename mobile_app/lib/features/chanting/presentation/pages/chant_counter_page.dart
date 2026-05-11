@@ -389,7 +389,7 @@ class _ControlButton extends StatelessWidget {
   final String label;
   final Color color;
   final Color textColor;
-  final dynamic onTap;
+  final VoidCallback onTap;
 
   const _ControlButton({
     required this.icon,
@@ -402,7 +402,7 @@ class _ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(),
+      onTap: onTap,
       child: Container(
         height: 56,
         decoration: BoxDecoration(
