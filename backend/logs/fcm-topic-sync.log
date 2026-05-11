@@ -1,0 +1,14 @@
+[2026-05-11T05:01:19Z] FCM topic sync
+  Status        : SKIPPED
+  DB check      : FAILED - PostgreSQL not reachable on localhost:5432
+  .env file     : MISSING (only .env.example present)
+  Topics created: 0
+  Action        : Cannot query Sampraday table or insert FCMTopic rows.
+                  PostgreSQL is not running in this environment.
+                  When the DB is up, run:
+                    SELECT id, slug FROM "Sampraday" WHERE "isPublished" = true;
+                  Then for each slug insert:
+                    INSERT INTO "FCMTopic" (id, name, description, "subscriberCount", "createdAt", "updatedAt")
+                    VALUES (gen_random_uuid(), 'vod_{slug}', 'Verse of Day for {slug}', 0, NOW(), NOW())
+                    ON CONFLICT (name) DO NOTHING;
+                  Also ensure global topic 'verse_of_day' exists with the same statement.
