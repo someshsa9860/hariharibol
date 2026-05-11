@@ -58,7 +58,30 @@ export class BooksController {
     return this.booksService.getChapters(bookId);
   }
 
-  @Get(':bookId/chapters/:chapterNumber')
+  @Get(':bookId/chapters/:chapterId/verses')
+  @HttpCode(HttpStatus.OK)
+  async getVersesByChapterId(
+    @Param('bookId') _bookId: string,
+    @Param('chapterId') chapterId: string,
+    @Query('take') take?: string,
+  ) {
+    const chapter = await this.booksService.getChapter(chapterId);
+    const verses = take
+      ? chapter.verses.slice(0, parseInt(take, 10))
+      : chapter.verses;
+    return { data: verses, total: chapter.verses.length };
+  }
+
+  @Get(':bookId/chapters/:chapterId')
+  @HttpCode(HttpStatus.OK)
+  async getChapterById(
+    @Param('bookId') _bookId: string,
+    @Param('chapterId') chapterId: string,
+  ) {
+    return this.booksService.getChapter(chapterId);
+  }
+
+  @Get(':bookId/chapter-number/:chapterNumber')
   @HttpCode(HttpStatus.OK)
   async getChapterByNumber(
     @Param('bookId') bookId: string,
@@ -67,7 +90,7 @@ export class BooksController {
     return this.booksService.getChapterByNumber(bookId, parseInt(chapterNumber, 10));
   }
 
-  @Get(':bookId/chapters/:chapterNumber/verses/:verseNumber')
+  @Get(':bookId/chapter-number/:chapterNumber/verses/:verseNumber')
   @HttpCode(HttpStatus.OK)
   async getVerseByNumber(
     @Param('bookId') bookId: string,
