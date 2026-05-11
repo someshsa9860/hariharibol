@@ -132,28 +132,58 @@ export class VerseOfDayService {
 
       if (config.aiProvider === 'none') return this.getRandomVerse();
 
-      const prompt = `Select the most meaningful Vedic verse for today. Return only the verse ID and a brief explanation.`;
-      const aiResponse = await this.aiProvider.generateText(prompt, config.aiProvider, { maxTokens: 200 });
+      let candidates = await this.prisma.verse.findMany({
+        where: { isVerseOfDayEligible: true },
+        select: { id: true, verseId: true, sanskrit: true, transliteration: true, categoryKeys: true },
+        take: 50,
+      });
 
-      const verses = await this.prisma.verse.findMany({ take: 100 });
-      if (!verses.length) throw new Error('No verses found in database');
-
-      const randomVerse = verses[Math.floor(Math.random() * verses.length)];
-
-      let imageUrl: string | null = null;
-      if (config.generateImage) {
-        imageUrl = await this.generateVerseImage(randomVerse);
+      if (!candidates.length) {
+        candidates = await this.prisma.verse.findMany({
+          select: { id: true, verseId: true, sanskrit: true, transliteration: true, categoryKeys: true },
+          take: 50,
+        });
       }
+
+      if (!candidates.length) throw new Error('No verses found in database');
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dateStr = today.toISOString().split('T')[0];
+
+      const verseList = candidates
+        .map((v) => `${v.verseId}: ${(v.transliteration ?? v.sanskrit ?? '').substring(0, 60)}`)
+        .join('\n');
+
+      const selectionPrompt =
+        `Today is ${dateStr}. Select the single most spiritually meaningful verse for today from this list. ` +
+        `Return ONLY the verse ID (e.g. "1.2.47"), nothing else.\nVerses:\n${verseList}`;
+
+      const aiSelectedId = await this.aiProvider.generateText(selectionPrompt, config.aiProvider, { maxTokens: 50 });
+
+      let selectedVerse = candidates.find((v) => v.verseId === aiSelectedId.trim());
+
+      if (!selectedVerse) {
+        this.logger.warn(`AI returned unrecognised verseId "${aiSelectedId.trim()}", falling back to random`);
+        selectedVerse = candidates[Math.floor(Math.random() * candidates.length)];
+      }
+
+      const explanationPrompt = `Give a 2-3 sentence spiritual insight about this verse: ${selectedVerse.transliteration ?? selectedVerse.sanskrit}`;
+      const explanation = await this.aiProvider.generateText(explanationPrompt, config.aiProvider, { maxTokens: 150 });
+
+      const fullVerse = await this.prisma.verse.findUnique({ where: { id: selectedVerse.id } });
+
+      let imageUrl: string | null = null;
+      if (config.generateImage) {
+        imageUrl = await this.generateVerseImage(fullVerse);
+      }
 
       const verseOfDay = await this.prisma.verseOfDay.create({
-        data: { date: today, verseId: randomVerse.id, imageUrl, aiGenerated: true, explanation: aiResponse },
+        data: { date: today, verseId: selectedVerse.id, imageUrl, aiGenerated: true, explanation },
         include: { verse: true },
       });
 
-      await this.dispatchVerseOfDayNotifications(randomVerse);
+      await this.dispatchVerseOfDayNotifications(fullVerse);
       return verseOfDay;
     } catch (error) {
       this.logger.error(`Failed to generate verse of day:`, error);
