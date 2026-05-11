@@ -6,6 +6,7 @@ import { useAdminStore } from '@/lib/store';
 import {
   LayoutDashboard, Users, MessageSquare, Settings,
   LogOut, BookOpen, BarChart3, Sparkles, ChevronRight,
+  Library, Mic2, Music,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -14,6 +15,9 @@ const navItems = [
   { href: '/analytics',    label: 'Analytics',    icon: BarChart3 },
   { href: '/verse-of-day', label: 'Verse of Day', icon: Sparkles },
   { href: '/sampradayas',  label: 'Sampradayas',  icon: BookOpen },
+  { href: '/books',        label: 'Books',        icon: Library },
+  { href: '/narrations',   label: 'Narrations',   icon: Mic2 },
+  { href: '/mantras',      label: 'Mantras',      icon: Music },
   { href: '/users',        label: 'Users',        icon: Users },
   { href: '/moderation',   label: 'Moderation',   icon: MessageSquare },
   { href: '/settings',     label: 'Settings',     icon: Settings },
