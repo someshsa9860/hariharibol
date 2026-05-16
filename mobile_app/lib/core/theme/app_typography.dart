@@ -1,85 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTypography {
-  static const String fontFamily = 'Roboto'; // Or a devotional font
+  static TextTheme get textTheme => _build(Colors.black87);
+  static TextTheme get textThemeDark => _build(Colors.white);
 
-  static TextTheme textTheme = const TextTheme(
-    displayLarge: TextStyle(
-      fontSize: 32,
-      fontWeight: FontWeight.bold,
-      fontFamily: fontFamily,
-    ),
-    displayMedium: TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.bold,
-      fontFamily: fontFamily,
-    ),
-    displaySmall: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-      fontFamily: fontFamily,
-    ),
-    headlineLarge: TextStyle(
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-      fontFamily: fontFamily,
-    ),
-    headlineMedium: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      fontFamily: fontFamily,
-    ),
-    headlineSmall: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      fontFamily: fontFamily,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-    titleSmall: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-    bodyLarge: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.normal,
-      fontFamily: fontFamily,
-    ),
-    bodyMedium: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.normal,
-      fontFamily: fontFamily,
-    ),
-    bodySmall: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.normal,
-      fontFamily: fontFamily,
-    ),
-    labelLarge: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-    labelMedium: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-    labelSmall: TextStyle(
-      fontSize: 11,
-      fontWeight: FontWeight.w500,
-      fontFamily: fontFamily,
-    ),
-  );
-
-  static TextTheme textThemeDark = textTheme; // Same for now, can customize
+  static TextTheme _build(Color base) => TextTheme(
+        displayLarge: GoogleFonts.playfairDisplay(
+            fontSize: 32, fontWeight: FontWeight.bold, color: base),
+        displayMedium: GoogleFonts.playfairDisplay(
+            fontSize: 28, fontWeight: FontWeight.bold, color: base),
+        displaySmall: GoogleFonts.playfairDisplay(
+            fontSize: 24, fontWeight: FontWeight.bold, color: base),
+        headlineLarge: GoogleFonts.playfairDisplay(
+            fontSize: 22, fontWeight: FontWeight.w600, color: base),
+        headlineMedium: GoogleFonts.playfairDisplay(
+            fontSize: 20, fontWeight: FontWeight.w600, color: base),
+        headlineSmall: GoogleFonts.playfairDisplay(
+            fontSize: 18, fontWeight: FontWeight.w600, color: base),
+        titleLarge: GoogleFonts.inter(
+            fontSize: 16, fontWeight: FontWeight.w500, color: base),
+        titleMedium: GoogleFonts.inter(
+            fontSize: 14, fontWeight: FontWeight.w500, color: base),
+        titleSmall: GoogleFonts.inter(
+            fontSize: 12, fontWeight: FontWeight.w500, color: base),
+        bodyLarge: GoogleFonts.inter(fontSize: 16, color: base),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, color: base),
+        bodySmall: GoogleFonts.inter(fontSize: 12, color: base),
+        labelLarge: GoogleFonts.inter(
+            fontSize: 14, fontWeight: FontWeight.w500, color: base),
+        labelMedium: GoogleFonts.inter(
+            fontSize: 12, fontWeight: FontWeight.w500, color: base),
+        labelSmall: GoogleFonts.inter(
+            fontSize: 11, fontWeight: FontWeight.w500, color: base),
+      );
 }

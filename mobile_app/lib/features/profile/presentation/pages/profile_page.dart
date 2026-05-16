@@ -3,16 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/data/models/sampraday_model.dart';
 import '../../../home/data/models/verse_model.dart';
 import '../providers/profile_providers.dart';
-
-const _saffron = Color(0xFFFF7E00);
-const _krishnaBlue = Color(0xFF1A4D8F);
-const _cream = Color(0xFFFFF8EC);
-const _gold = Color(0xFFD4A04C);
-const _textDark = Color(0xFF1A1410);
-const _textMid = Color(0xFF8B7D73);
+import 'edit_profile_sheet.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -20,38 +16,39 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
-    final sampradayasAsync =
-        ref.watch(profileFollowedSampradayasProvider);
+    final sampradayasAsync = ref.watch(profileFollowedSampradayasProvider);
     final versesAsync = ref.watch(profileFavoriteVersesProvider);
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: AppColors.bgLight,
       body: profileAsync.when(
         loading: () => const _ProfileShimmer(),
         error: (_, __) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline,
-                  size: 48, color: Colors.red),
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 8),
               const Text('Failed to load profile'),
               TextButton(
                 onPressed: () => ref.invalidate(profileProvider),
                 child: const Text('Retry',
-                    style: TextStyle(color: _saffron)),
+                    style: TextStyle(color: AppColors.saffron)),
               ),
             ],
           ),
         ),
         data: (profile) => CustomScrollView(
           slivers: [
-            _ProfileAppBar(profile: profile),
+            _ProfileAppBar(
+              profile: profile,
+              onEditTap: () => _showEditSheet(context, ref, profile),
+            ),
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _StatsGrid(profile: profile),
+                  _StatsRow(profile: profile),
                   _FollowedSampradayasSection(
                     sampradayasAsync: sampradayasAsync,
                     onTap: (id) => context.push('/sampraday/$id'),
@@ -60,7 +57,8 @@ class ProfilePage extends ConsumerWidget {
                     versesAsync: versesAsync,
                     onTap: (id) => context.push('/verse/$id'),
                   ),
-                  const SizedBox(height: 32),
+                  _SignOutButton(),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
@@ -69,28 +67,43 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
   }
+
+  void _showEditSheet(
+      BuildContext context, WidgetRef ref, ProfileData profile) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditProfileSheet(
+        currentName: profile.name,
+        onSaved: () {
+          ref.invalidate(profileProvider);
+        },
+      ),
+    );
+  }
 }
 
 // ─── Profile AppBar ───────────────────────────────────────────────────────────
+
 class _ProfileAppBar extends StatelessWidget {
   final ProfileData profile;
-  const _ProfileAppBar({required this.profile});
+  final VoidCallback onEditTap;
+  const _ProfileAppBar({required this.profile, required this.onEditTap});
 
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 240,
+      expandedHeight: 316,
       pinned: true,
-      backgroundColor: _krishnaBlue,
+      backgroundColor: AppColors.maroon,
       leading: IconButton(
-        icon:
-            const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
         onPressed: () => context.pop(),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_rounded,
-              color: Colors.white),
+          icon: const Icon(Icons.settings_rounded, color: Colors.white),
           onPressed: () => context.push('/settings'),
           tooltip: 'Settings',
         ),
@@ -99,7 +112,7 @@ class _ProfileAppBar extends StatelessWidget {
         background: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_krishnaBlue, Color(0xFF0D3566)],
+              colors: [AppColors.maroon, AppColors.saffron],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -108,41 +121,44 @@ class _ProfileAppBar extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 16),
-                // Avatar
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: _gold, width: 3),
+                const SizedBox(height: 24),
+                // Avatar — 100px inner with 4px gold border = 108px total
+                Container(
+                  width: 108,
+                  height: 108,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.gold, width: 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
                       ),
-                      child: ClipOval(
-                        child: profile.avatarUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: profile.avatarUrl!,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) =>
-                                    Container(color: _gold.withOpacity(0.3)),
-                                errorWidget: (_, __, ___) =>
-                                    _DefaultAvatar(name: profile.name),
-                              )
-                            : _DefaultAvatar(name: profile.name),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: profile.avatarUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: profile.avatarUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) =>
+                                Container(color: AppColors.gold.withOpacity(0.3)),
+                            errorWidget: (_, __, ___) =>
+                                _DefaultAvatar(name: profile.name),
+                          )
+                        : _DefaultAvatar(name: profile.name),
+                  ),
                 ),
                 const SizedBox(height: 12),
+                // Name — Playfair Display
                 Text(
                   profile.name,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'Playfair Display',
                   ),
                 ),
                 if (profile.email != null) ...[
@@ -154,23 +170,33 @@ class _ProfileAppBar extends StatelessWidget {
                   ),
                 ],
                 if (profile.joinedAt != null) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Devotee since ${_formatJoinDate(profile.joinedAt!)}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                      ),
-                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Devotee since ${_joinDate(profile.joinedAt!)}',
+                    style: const TextStyle(
+                        color: Colors.white60, fontSize: 11),
                   ),
                 ],
+                const SizedBox(height: 14),
+                // Edit profile button
+                OutlinedButton.icon(
+                  onPressed: onEditTap,
+                  icon: const Icon(Icons.edit_outlined,
+                      size: 15, color: Colors.white),
+                  label: const Text(
+                    'Edit Profile',
+                    style: TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white70),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 7),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
               ],
             ),
           ),
@@ -179,12 +205,12 @@ class _ProfileAppBar extends StatelessWidget {
     );
   }
 
-  String _formatJoinDate(DateTime dt) {
-    const months = [
+  String _joinDate(DateTime dt) {
+    const m = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
-    return '${months[dt.month - 1]} ${dt.year}';
+    return '${m[dt.month - 1]} ${dt.year}';
   }
 }
 
@@ -195,129 +221,110 @@ class _DefaultAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _gold.withOpacity(0.3),
+      color: AppColors.gold.withOpacity(0.3),
       child: Center(
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : '?',
           style: const TextStyle(
-            color: Colors.white,
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
+              color: Colors.white,
+              fontSize: 38,
+              fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 }
 
-// ─── Stats Grid ───────────────────────────────────────────────────────────────
-class _StatsGrid extends StatelessWidget {
+// ─── Stats Row ────────────────────────────────────────────────────────────────
+
+class _StatsRow extends StatelessWidget {
   final ProfileData profile;
-  const _StatsGrid({required this.profile});
+  const _StatsRow({required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    final stats = [
-      _StatItem(
-          icon: '❤️',
-          label: 'Favorites',
-          value: profile.favoritesCount),
-      _StatItem(
-          icon: '📿',
-          label: 'Chants',
-          value: profile.totalChants),
-      _StatItem(
-          icon: '🔥',
-          label: 'Day Streak',
-          value: profile.currentStreak),
-      _StatItem(
-          icon: '🕉️',
-          label: 'Traditions',
-          value: profile.followedSampradayasCount),
-    ];
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: Row(
+        children: [
+          _StatCard(
+              label: 'Verses\nFavorited',
+              value: profile.favoritesCount),
+          const SizedBox(width: 10),
+          _StatCard(
+              label: 'Mantras\nChanted',
+              value: profile.totalChants),
+          const SizedBox(width: 10),
+          _StatCard(
+              label: 'Chanting\nStreak',
+              value: profile.currentStreak,
+              suffix: 'd'),
         ],
-      ),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 2.2,
-        ),
-        itemCount: stats.length,
-        itemBuilder: (_, i) => _StatCard(stat: stats[i]),
       ),
     );
   }
-}
-
-class _StatItem {
-  final String icon;
-  final String label;
-  final int value;
-  const _StatItem(
-      {required this.icon,
-      required this.label,
-      required this.value});
 }
 
 class _StatCard extends StatelessWidget {
-  final _StatItem stat;
-  const _StatCard({required this.stat});
+  final String label;
+  final int value;
+  final String? suffix;
+  const _StatCard(
+      {required this.label, required this.value, this.suffix});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _saffron.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Text(stat.icon, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                stat.value.toString(),
+    return Expanded(
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.sandstone.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: AppColors.sandstone.withOpacity(0.40)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            RichText(
+              text: TextSpan(
+                text: value.toString(),
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: _textDark,
+                  color: AppColors.gold,
                 ),
+                children: suffix != null
+                    ? [
+                        TextSpan(
+                          text: suffix,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500),
+                        )
+                      ]
+                    : [],
               ),
-              Text(
-                stat.label,
-                style: const TextStyle(
-                    fontSize: 11, color: _textMid),
-              ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textMuted,
+                  height: 1.3),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ─── Followed Sampradayas ─────────────────────────────────────────────────────
+
 class _FollowedSampradayasSection extends StatelessWidget {
   final AsyncValue<List<SampradayModel>> sampradayasAsync;
   final void Function(String) onTap;
@@ -338,20 +345,20 @@ class _FollowedSampradayasSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              padding:
+                  const EdgeInsets.fromLTRB(16, 22, 16, 10),
               child: Text(
                 'Your Traditions',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
                     ?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _textDark,
-                    ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark),
               ),
             ),
             SizedBox(
-              height: 48,
+              height: 46,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding:
@@ -365,10 +372,11 @@ class _FollowedSampradayasSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _krishnaBlue.withOpacity(0.08),
+                      color: AppColors.peacock.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: _krishnaBlue.withOpacity(0.2)),
+                          color:
+                              AppColors.peacock.withOpacity(0.30)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -380,7 +388,7 @@ class _FollowedSampradayasSection extends StatelessWidget {
                           list[i].name,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: _krishnaBlue,
+                            color: AppColors.peacock,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -398,6 +406,7 @@ class _FollowedSampradayasSection extends StatelessWidget {
 }
 
 // ─── Favorite Verses ──────────────────────────────────────────────────────────
+
 class _FavoriteVersesSection extends StatelessWidget {
   final AsyncValue<List<VerseModel>> versesAsync;
   final void Function(String) onTap;
@@ -414,11 +423,13 @@ class _FavoriteVersesSection extends StatelessWidget {
       error: (_, __) => const SizedBox.shrink(),
       data: (verses) {
         if (verses.isEmpty) return const SizedBox.shrink();
+        final shown = verses.take(3).toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              padding:
+                  const EdgeInsets.fromLTRB(16, 22, 16, 10),
               child: Row(
                 mainAxisAlignment:
                     MainAxisAlignment.spaceBetween,
@@ -429,15 +440,15 @@ class _FavoriteVersesSection extends StatelessWidget {
                         .textTheme
                         .titleMedium
                         ?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _textDark,
-                        ),
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark),
                   ),
                   TextButton(
                     onPressed: () {},
                     child: const Text('See All',
                         style: TextStyle(
-                            color: _saffron, fontSize: 13)),
+                            color: AppColors.saffron,
+                            fontSize: 13)),
                   ),
                 ],
               ),
@@ -447,10 +458,10 @@ class _FavoriteVersesSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               padding:
                   const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: verses.length,
+              itemCount: shown.length,
               itemBuilder: (_, i) => _VerseListTile(
-                verse: verses[i],
-                onTap: () => onTap(verses[i].id),
+                verse: shown[i],
+                onTap: () => onTap(shown[i].id),
               ),
             ),
           ],
@@ -463,9 +474,7 @@ class _FavoriteVersesSection extends StatelessWidget {
 class _VerseListTile extends StatelessWidget {
   final VerseModel verse;
   final VoidCallback onTap;
-
-  const _VerseListTile(
-      {required this.verse, required this.onTap});
+  const _VerseListTile({required this.verse, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -491,12 +500,12 @@ class _VerseListTile extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _saffron.withOpacity(0.1),
+                color: AppColors.saffron.withOpacity(0.10),
                 shape: BoxShape.circle,
               ),
               child: const Center(
                 child: Icon(Icons.favorite_rounded,
-                    color: _saffron, size: 18),
+                    color: AppColors.saffron, size: 18),
               ),
             ),
             const SizedBox(width: 12),
@@ -509,24 +518,25 @@ class _VerseListTile extends StatelessWidget {
                         ? verse.sanskrit
                         : 'Verse',
                     style: const TextStyle(
-                      fontSize: 13,
-                      color: _textDark,
-                      height: 1.4,
-                    ),
+                        fontSize: 13,
+                        color: AppColors.textDark,
+                        height: 1.4),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '${verse.bookTitle} ${verse.chapterNumber}:${verse.verseNumber}',
+                    '${verse.bookTitle} '
+                    '${verse.chapterNumber}:${verse.verseNumber}',
                     style: const TextStyle(
-                        fontSize: 11, color: _textMid),
+                        fontSize: 11,
+                        color: AppColors.textMuted),
                   ),
                 ],
               ),
             ),
             const Icon(Icons.chevron_right_rounded,
-                color: _textMid),
+                color: AppColors.textMuted),
           ],
         ),
       ),
@@ -534,7 +544,64 @@ class _VerseListTile extends StatelessWidget {
   }
 }
 
+// ─── Sign Out Button ──────────────────────────────────────────────────────────
+
+class _SignOutButton extends ConsumerWidget {
+  const _SignOutButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+      child: OutlinedButton.icon(
+        icon: const Icon(Icons.logout_rounded, color: AppColors.maroon),
+        label: const Text(
+          'Sign Out',
+          style: TextStyle(
+              color: AppColors.maroon, fontWeight: FontWeight.w600),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.maroon),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24)),
+          minimumSize: const Size(double.infinity, 0),
+        ),
+        onPressed: () => _confirm(context, ref),
+      ),
+    );
+  }
+
+  Future<void> _confirm(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sign Out',
+                style: TextStyle(color: AppColors.maroon)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && context.mounted) {
+      await ref.read(authStateProvider.notifier).logout();
+      if (context.mounted) context.go('/login');
+    }
+  }
+}
+
 // ─── Shimmer ──────────────────────────────────────────────────────────────────
+
 class _ProfileShimmer extends StatelessWidget {
   const _ProfileShimmer();
 
@@ -545,13 +612,30 @@ class _ProfileShimmer extends StatelessWidget {
       highlightColor: Colors.grey[50]!,
       child: Column(
         children: [
-          Container(
-            height: 240,
-            color: Colors.white,
+          Container(height: 316, color: Colors.white),
+          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: List.generate(
+                3,
+                (_) => Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin:
+                const EdgeInsets.symmetric(horizontal: 16),
             height: 140,
             decoration: BoxDecoration(
               color: Colors.white,

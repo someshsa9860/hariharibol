@@ -80,6 +80,15 @@ dependencies:
   # Images
   cached_network_image: ^3.3.1
 
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Device features
+  image_picker: ^1.1.2
+
+  # Package info
+  package_info_plus: ^8.0.0
+
   # Animations
   flutter_animate: ^4.5.0
 

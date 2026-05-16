@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 
 const _settingsBox = 'settings';
@@ -9,23 +10,24 @@ const _themeKey = 'themeMode';
 const _localeKey = 'locale';
 const _notifVerseKey = 'notifVerse';
 const _notifAnnouncKey = 'notifAnnounc';
+const _fontSizeKey = 'fontSize';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
 class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(_loadTheme());
+  ThemeNotifier() : super(_load());
 
-  static ThemeMode _loadTheme() {
+  static ThemeMode _load() {
     try {
-      final box = Hive.box(_settingsBox);
-      final stored = box.get(_themeKey, defaultValue: 'system') as String;
-      return _fromString(stored);
+      final s =
+          Hive.box(_settingsBox).get(_themeKey, defaultValue: 'system') as String;
+      return _parse(s);
     } catch (_) {
       return ThemeMode.system;
     }
   }
 
-  static ThemeMode _fromString(String s) {
+  static ThemeMode _parse(String s) {
     switch (s) {
       case 'light':
         return ThemeMode.light;
@@ -39,8 +41,7 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
   Future<void> setTheme(ThemeMode mode) async {
     state = mode;
     try {
-      final box = Hive.box(_settingsBox);
-      await box.put(_themeKey, mode.name);
+      await Hive.box(_settingsBox).put(_themeKey, mode.name);
     } catch (_) {}
   }
 }
@@ -49,14 +50,13 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 
 class LocaleNotifier extends StateNotifier<Locale> {
   final Ref _ref;
-  LocaleNotifier(this._ref) : super(_loadLocale());
+  LocaleNotifier(this._ref) : super(_load());
 
-  static Locale _loadLocale() {
+  static Locale _load() {
     try {
-      final box = Hive.box(_settingsBox);
-      final stored =
-          box.get(_localeKey, defaultValue: 'en') as String;
-      return Locale(stored);
+      final s =
+          Hive.box(_settingsBox).get(_localeKey, defaultValue: 'en') as String;
+      return Locale(s);
     } catch (_) {
       return const Locale('en');
     }
@@ -64,12 +64,9 @@ class LocaleNotifier extends StateNotifier<Locale> {
 
   Future<void> setLocale(Locale locale) async {
     state = locale;
-    // Persist locally
     try {
-      final box = Hive.box(_settingsBox);
-      await box.put(_localeKey, locale.languageCode);
+      await Hive.box(_settingsBox).put(_localeKey, locale.languageCode);
     } catch (_) {}
-    // Sync language preference to server
     try {
       final dio = _ref.read(dioProvider);
       await dio.patch(
@@ -101,34 +98,47 @@ class NotifPrefsNotifier extends StateNotifier<Map<String, bool>> {
   Future<void> toggle(String key) async {
     final updated = {...state, key: !(state[key] ?? true)};
     state = updated;
-    // Persist locally
     try {
-      final box = Hive.box(_settingsBox);
-      await box.put(
+      await Hive.box(_settingsBox).put(
         key == 'verse' ? _notifVerseKey : _notifAnnouncKey,
         updated[key],
       );
     } catch (_) {}
-    // Sync FCM topic subscription to server
-    await _syncTopicSubscription(key, updated[key] ?? true);
+    await _syncTopic(key, updated[key] ?? true);
   }
 
-  Future<void> _syncTopicSubscription(String key, bool subscribe) async {
+  Future<void> _syncTopic(String key, bool subscribe) async {
     try {
       const storage = FlutterSecureStorage();
-      final fcmToken = await storage.read(key: 'fcm_token');
-      if (fcmToken == null) return;
-
-      final topicName =
-          key == 'verse' ? 'verse-of-day' : 'announcements';
+      final token = await storage.read(key: 'fcm_token');
+      if (token == null) return;
+      final topic = key == 'verse' ? 'verse-of-day' : 'announcements';
       final endpoint = subscribe
           ? '/api/v1/notifications/topics/subscribe'
           : '/api/v1/notifications/topics/unsubscribe';
       final dio = _ref.read(dioProvider);
-      await dio.post(
-        endpoint,
-        data: {'topic': topicName, 'token': fcmToken},
-      );
+      await dio.post(endpoint, data: {'topic': topic, 'token': token});
+    } catch (_) {}
+  }
+}
+
+// ─── Font Size ────────────────────────────────────────────────────────────────
+
+class FontSizeNotifier extends StateNotifier<double> {
+  FontSizeNotifier() : super(_load());
+
+  static double _load() {
+    try {
+      final v = Hive.box(_settingsBox).get(_fontSizeKey);
+      if (v is num) return v.toDouble();
+    } catch (_) {}
+    return 1.0;
+  }
+
+  Future<void> setSize(double size) async {
+    state = size;
+    try {
+      await Hive.box(_settingsBox).put(_fontSizeKey, size);
     } catch (_) {}
   }
 }
@@ -137,18 +147,22 @@ class NotifPrefsNotifier extends StateNotifier<Map<String, bool>> {
 
 final themeProvider =
     StateNotifierProvider<ThemeNotifier, ThemeMode>(
-  (_) => ThemeNotifier(),
-);
+        (_) => ThemeNotifier());
 
 final localeProvider =
     StateNotifierProvider<LocaleNotifier, Locale>(
-  (ref) => LocaleNotifier(ref),
-);
+        (ref) => LocaleNotifier(ref));
 
 final notifPrefsProvider =
     StateNotifierProvider<NotifPrefsNotifier, Map<String, bool>>(
-  (ref) => NotifPrefsNotifier(ref),
-);
+        (ref) => NotifPrefsNotifier(ref));
+
+final fontSizeProvider =
+    StateNotifierProvider<FontSizeNotifier, double>(
+        (_) => FontSizeNotifier());
+
+final packageInfoProvider = FutureProvider<PackageInfo>(
+    (_) => PackageInfo.fromPlatform());
 
 Future<void> initSettingsBox() async {
   if (!Hive.isBoxOpen(_settingsBox)) {

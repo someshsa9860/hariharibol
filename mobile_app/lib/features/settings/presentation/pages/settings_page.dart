@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/settings_providers.dart';
 
-const _saffron = Color(0xFFFF7E00);
-const _krishnaBlue = Color(0xFF1A4D8F);
-const _cream = Color(0xFFFFF8EC);
-const _textDark = Color(0xFF1A1410);
-const _textMid = Color(0xFF8B7D73);
+const _saffron = AppColors.saffron;
+const _peacock = AppColors.peacock;
+const _textDark = AppColors.textDark;
+const _textMid = AppColors.textMuted;
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -56,11 +56,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _signOut() async {
-    final confirmed = await showDialog<bool>(
+    final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Sign Out'),
         content: const Text('Are you sure you want to sign out?'),
         actions: [
@@ -76,18 +76,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     );
-    if (confirmed == true && mounted) {
+    if (ok == true && mounted) {
       await ref.read(authStateProvider.notifier).logout();
       if (mounted) context.go('/login');
     }
   }
 
   Future<void> _deleteAccount() async {
-    final textController = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final textCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
+        builder: (ctx, setDlg) => AlertDialog(
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16)),
           title: const Text('Delete Account',
@@ -97,7 +97,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'This is permanent and cannot be undone. All your data will be erased.',
+                'This is permanent and cannot be undone. '
+                'All your data will be erased.',
                 style: TextStyle(height: 1.5),
               ),
               const SizedBox(height: 16),
@@ -105,13 +106,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextField(
-                controller: textController,
-                onChanged: (_) => setDlgState(() {}),
+                controller: textCtrl,
+                onChanged: (_) => setDlg(() {}),
                 decoration: InputDecoration(
                   hintText: 'DELETE',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 8),
                 ),
@@ -124,7 +124,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: textController.text == 'DELETE'
+              onPressed: textCtrl.text == 'DELETE'
                   ? () => Navigator.pop(ctx, true)
                   : null,
               child: const Text('Delete',
@@ -134,7 +134,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
       ),
     );
-    if (confirmed == true && mounted) {
+    if (ok == true && mounted) {
       await ref.read(authStateProvider.notifier).deleteAccount();
       if (mounted) context.go('/login');
     }
@@ -154,9 +154,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final themeMode = ref.watch(themeProvider);
     final notifPrefs = ref.watch(notifPrefsProvider);
+    final fontSize = ref.watch(fontSizeProvider);
+    final pkgInfo = ref.watch(packageInfoProvider);
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: AppColors.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
@@ -171,13 +173,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
       body: ListView(
         children: [
-          // ── Account ─────────────────────────────────────────────────────
+          // ── Account ──────────────────────────────────────────────────────
           const _SectionHeader(title: 'Account'),
           _SettingsCard(
             children: [
               _isEditingName
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      padding:
+                          const EdgeInsets.fromLTRB(16, 12, 16, 12),
                       child: Row(
                         children: [
                           Expanded(
@@ -188,8 +191,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               decoration: InputDecoration(
                                 labelText: 'Name',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                    borderRadius:
+                                        BorderRadius.circular(10)),
                                 contentPadding:
                                     const EdgeInsets.symmetric(
                                         horizontal: 12, vertical: 8),
@@ -202,9 +205,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: _saffron,
-                                  ),
+                                      strokeWidth: 2, color: _saffron),
                                 )
                               : IconButton(
                                   icon: const Icon(Icons.check_rounded,
@@ -251,7 +252,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ],
           ),
 
-          // ── Language ────────────────────────────────────────────────────
+          // ── Language ─────────────────────────────────────────────────────
           const _SectionHeader(title: 'Language'),
           _SettingsCard(
             children: [
@@ -262,14 +263,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ],
           ),
 
-          // ── Appearance ──────────────────────────────────────────────────
+          // ── Appearance ───────────────────────────────────────────────────
           const _SectionHeader(title: 'Appearance'),
           _SettingsCard(
             children: [
-              _ThemeSelector(
-                current: themeMode,
-                onSelect: (m) =>
-                    ref.read(themeProvider.notifier).setTheme(m),
+              _ToggleTile(
+                icon: themeMode == ThemeMode.dark
+                    ? Icons.dark_mode_rounded
+                    : Icons.light_mode_rounded,
+                title: 'Dark Mode',
+                subtitle: themeMode == ThemeMode.dark
+                    ? 'Dark theme enabled'
+                    : 'Light theme enabled',
+                value: themeMode == ThemeMode.dark,
+                onChanged: (on) => ref
+                    .read(themeProvider.notifier)
+                    .setTheme(on ? ThemeMode.dark : ThemeMode.light),
               ),
             ],
           ),
@@ -292,10 +301,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 title: 'Announcements',
                 subtitle: 'Community news and updates',
                 value: notifPrefs['announcements'] ?? true,
-                onChanged: (_) =>
-                    ref
-                        .read(notifPrefsProvider.notifier)
-                        .toggle('announcements'),
+                onChanged: (_) => ref
+                    .read(notifPrefsProvider.notifier)
+                    .toggle('announcements'),
+              ),
+            ],
+          ),
+
+          // ── Reading ──────────────────────────────────────────────────────
+          const _SectionHeader(title: 'Reading'),
+          _SettingsCard(
+            children: [
+              _FontSizeTile(
+                fontSize: fontSize,
+                onChanged: (v) =>
+                    ref.read(fontSizeProvider.notifier).setSize(v),
               ),
             ],
           ),
@@ -320,10 +340,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onTap: () {},
               ),
               const _Divider(),
-              const _SettingsTile(
-                icon: Icons.info_outline_rounded,
-                title: 'About HariHariBol',
-                subtitle: 'Version 1.0.0',
+              pkgInfo.when(
+                data: (info) => _SettingsTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About HariHariBol',
+                  subtitle: 'Version ${info.version} (${info.buildNumber})',
+                ),
+                loading: () => const _SettingsTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About HariHariBol',
+                  subtitle: 'Loading…',
+                ),
+                error: (_, __) => const _SettingsTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About HariHariBol',
+                  subtitle: 'Version 1.0.0',
+                ),
               ),
             ],
           ),
@@ -335,6 +367,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 }
 
 // ─── Section Header ───────────────────────────────────────────────────────────
+
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader({required this.title});
@@ -357,6 +390,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 // ─── Settings Card ────────────────────────────────────────────────────────────
+
 class _SettingsCard extends StatelessWidget {
   final List<Widget> children;
   const _SettingsCard({required this.children});
@@ -382,6 +416,7 @@ class _SettingsCard extends StatelessWidget {
 }
 
 // ─── Settings Tile ────────────────────────────────────────────────────────────
+
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -402,7 +437,8 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: titleColor ?? _krishnaBlue, size: 22),
+      leading: Icon(icon,
+          color: titleColor ?? _peacock, size: 22),
       title: Text(
         title,
         style: TextStyle(
@@ -413,11 +449,13 @@ class _SettingsTile extends StatelessWidget {
       ),
       subtitle: subtitle != null
           ? Text(subtitle!,
-              style: const TextStyle(color: _textMid, fontSize: 12))
+              style:
+                  const TextStyle(color: _textMid, fontSize: 12))
           : null,
       trailing: trailing ??
           (onTap != null
-              ? const Icon(Icons.chevron_right_rounded, color: _textMid)
+              ? const Icon(Icons.chevron_right_rounded,
+                  color: _textMid)
               : null),
       onTap: onTap,
     );
@@ -428,12 +466,12 @@ class _Divider extends StatelessWidget {
   const _Divider();
 
   @override
-  Widget build(BuildContext context) {
-    return const Divider(height: 1, indent: 56, endIndent: 16);
-  }
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, indent: 56, endIndent: 16);
 }
 
 // ─── Toggle Tile ──────────────────────────────────────────────────────────────
+
 class _ToggleTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -452,26 +490,110 @@ class _ToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: _krishnaBlue, size: 22),
+      leading: Icon(icon, color: _peacock, size: 22),
       title: Text(
         title,
         style: const TextStyle(
-            fontWeight: FontWeight.w500, color: _textDark, fontSize: 15),
+            fontWeight: FontWeight.w500,
+            color: _textDark,
+            fontSize: 15),
       ),
       subtitle: subtitle != null
           ? Text(subtitle!,
-              style: const TextStyle(color: _textMid, fontSize: 12))
+              style:
+                  const TextStyle(color: _textMid, fontSize: 12))
           : null,
       trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: _saffron,
+          value: value, onChanged: onChanged, activeColor: _saffron),
+    );
+  }
+}
+
+// ─── Font Size Tile ───────────────────────────────────────────────────────────
+
+class _FontSizeTile extends StatelessWidget {
+  final double fontSize;
+  final ValueChanged<double> onChanged;
+
+  const _FontSizeTile(
+      {required this.fontSize, required this.onChanged});
+
+  String get _label {
+    if (fontSize <= 0.88) return 'Small';
+    if (fontSize >= 1.12) return 'Large';
+    return 'Medium';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.format_size_rounded,
+                  color: _peacock, size: 22),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Font Size',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: _textDark,
+                          fontSize: 15),
+                    ),
+                    Text(
+                      _label,
+                      style: const TextStyle(
+                          color: _textMid, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: fontSize,
+            min: 0.85,
+            max: 1.15,
+            divisions: 2,
+            activeColor: _saffron,
+            inactiveColor: _saffron.withOpacity(0.2),
+            onChanged: (v) {
+              final snapped = v <= 0.925 ? 0.85 : v >= 1.075 ? 1.15 : 1.0;
+              onChanged(snapped);
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text('A',
+                    style:
+                        TextStyle(fontSize: 11, color: _textMid)),
+                Text('A',
+                    style:
+                        TextStyle(fontSize: 15, color: _textMid)),
+                Text('A',
+                    style:
+                        TextStyle(fontSize: 20, color: _textMid)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 // ─── Language Tile ────────────────────────────────────────────────────────────
+
 class _LanguageTile extends ConsumerWidget {
   final void Function(Locale) onSelect;
   const _LanguageTile({required this.onSelect});
@@ -484,6 +606,18 @@ class _LanguageTile extends ConsumerWidget {
     ('मराठी', 'mr'),
     ('தமிழ்', 'ta'),
     ('Français', 'fr'),
+    ('ગુજરાતી', 'gu'),
+    ('ಕನ್ನಡ', 'kn'),
+    ('മലയാളം', 'ml'),
+    ('ਪੰਜਾਬੀ', 'pa'),
+    ('Español', 'es'),
+    ('Deutsch', 'de'),
+    ('Português', 'pt'),
+    ('Русский', 'ru'),
+    ('العربية', 'ar'),
+    ('中文', 'zh'),
+    ('日本語', 'ja'),
+    ('한국어', 'ko'),
   ];
 
   @override
@@ -495,21 +629,24 @@ class _LanguageTile extends ConsumerWidget {
     ).$1;
 
     return ListTile(
-      leading: const Icon(Icons.language_rounded, color: _krishnaBlue),
+      leading:
+          const Icon(Icons.language_rounded, color: _peacock),
       title: const Text(
         'App Language',
         style: TextStyle(
-            fontWeight: FontWeight.w500, color: _textDark, fontSize: 15),
+            fontWeight: FontWeight.w500,
+            color: _textDark,
+            fontSize: 15),
       ),
       subtitle: Text(label,
           style: const TextStyle(color: _textMid, fontSize: 12)),
-      trailing:
-          const Icon(Icons.chevron_right_rounded, color: _textMid),
+      trailing: const Icon(Icons.chevron_right_rounded,
+          color: _textMid),
       onTap: () => showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(20))),
         builder: (_) => _LanguageSheet(
           current: current,
           languages: _languages,
@@ -539,97 +676,17 @@ class _LanguageSheet extends StatelessWidget {
         children: [
           const SizedBox(height: 12),
           const Text('Select Language',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           ...languages.map((l) => ListTile(
                 title: Text(l.$1),
                 trailing: l.$2 == current.languageCode
-                    ? const Icon(Icons.check_rounded, color: _saffron)
+                    ? const Icon(Icons.check_rounded,
+                        color: _saffron)
                     : null,
                 onTap: () {
                   onSelect(Locale(l.$2));
-                  Navigator.pop(context);
-                },
-              )),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Theme Selector ───────────────────────────────────────────────────────────
-class _ThemeSelector extends StatelessWidget {
-  final ThemeMode current;
-  final void Function(ThemeMode) onSelect;
-
-  const _ThemeSelector(
-      {required this.current, required this.onSelect});
-
-  String get _label {
-    switch (current) {
-      case ThemeMode.light:
-        return 'Light';
-      case ThemeMode.dark:
-        return 'Dark';
-      default:
-        return 'System default';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.palette_outlined, color: _krishnaBlue),
-      title: const Text(
-        'Theme',
-        style: TextStyle(
-            fontWeight: FontWeight.w500, color: _textDark, fontSize: 15),
-      ),
-      subtitle:
-          Text(_label, style: const TextStyle(color: _textMid, fontSize: 12)),
-      trailing:
-          const Icon(Icons.chevron_right_rounded, color: _textMid),
-      onTap: () => showModalBottomSheet(
-        context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (_) =>
-            _ThemeSheet(current: current, onSelect: onSelect),
-      ),
-    );
-  }
-}
-
-class _ThemeSheet extends StatelessWidget {
-  final ThemeMode current;
-  final void Function(ThemeMode) onSelect;
-
-  const _ThemeSheet({required this.current, required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    const modes = [
-      (ThemeMode.system, '📱 System default'),
-      (ThemeMode.light, '☀️ Light'),
-      (ThemeMode.dark, '🌙 Dark'),
-    ];
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          const Text('Choose Theme',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 8),
-          ...modes.map((m) => ListTile(
-                title: Text(m.$2),
-                trailing: m.$1 == current
-                    ? const Icon(Icons.check_rounded, color: _saffron)
-                    : null,
-                onTap: () {
-                  onSelect(m.$1);
                   Navigator.pop(context);
                 },
               )),

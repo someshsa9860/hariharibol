@@ -12,6 +12,7 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
+    final fontSize = ref.watch(fontSizeProvider);
 
     return MaterialApp.router(
       title: F.title,
@@ -20,8 +21,14 @@ class App extends ConsumerWidget {
       themeMode: themeMode,
       locale: locale,
       routerConfig: AppRouter.router,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(fontSize),
+        ),
+        child: child!,
+      ),
       localizationsDelegates: const [
-        // Add localization delegates
+        // Add localization delegates here as needed
       ],
       supportedLocales: const [
         Locale('en', ''),
@@ -31,6 +38,13 @@ class App extends ConsumerWidget {
         Locale('mr', ''),
         Locale('ta', ''),
         Locale('fr', ''),
+        Locale('gu', ''),
+        Locale('kn', ''),
+        Locale('ml', ''),
+        Locale('pa', ''),
+        Locale('es', ''),
+        Locale('de', ''),
+        Locale('pt', ''),
       ],
     );
   }
