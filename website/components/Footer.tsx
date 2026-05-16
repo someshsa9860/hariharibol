@@ -29,7 +29,7 @@ export default function Footer() {
                 { href: '/mantras',      label: 'Mantras' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm transition-colors hover:text-saffron-500" style={{ color: 'var(--muted)' }}>
+                  <Link href={l.href} className="text-sm transition-colors hover:text-[var(--saffron)]" style={{ color: 'var(--muted)' }}>
                     {l.label}
                   </Link>
                 </li>
@@ -46,7 +46,7 @@ export default function Footer() {
                 { href: '/app',    label: 'Open Web App' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm transition-colors hover:text-saffron-500" style={{ color: 'var(--muted)' }}>
+                  <Link href={l.href} className="text-sm transition-colors hover:text-[var(--saffron)]" style={{ color: 'var(--muted)' }}>
                     {l.label}
                   </Link>
                 </li>

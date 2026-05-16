@@ -18,6 +18,20 @@
   --accent:      #C75A1A;
   --accent-2:    #D4A055;
   --accent-glow: rgba(199,90,26,0.20);
+  --shadow-lg:        0 20px 40px rgba(0,0,0,0.15);
+  --saffron:          #FF6B00;
+  --saffron-light:    #FF8C33;
+  --maroon:           #7B1C1C;
+  --maroon-light:     #A52626;
+  --lotus:            #E8A0A0;
+  --peacock:          #006B6B;
+  --peacock-light:    #008B8B;
+  --sandstone:        #C4A882;
+  --forest:           #2D5A27;
+  --gradient-primary: linear-gradient(135deg, #FF6B00, #7B1C1C);
+  --gradient-gold:    linear-gradient(135deg, #D4A055, #C75A1A);
+  --gradient-sacred:  linear-gradient(135deg, #006B6B, #2D5A27);
+  --gradient-lotus:   linear-gradient(135deg, #E8A0A0, #7B1C1C);
 }
 
 .dark {
@@ -291,3 +305,14 @@
   0%,100% { opacity: 0.7; }
   50%     { opacity: 1; }
 }
+
+/* ─── Sacred utility classes ─────────────────────────────── */
+.gradient-text { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.gradient-text-gold { background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.glass { backdrop-filter: blur(12px); background: rgba(250,246,238,0.75); border: 1px solid var(--border); }
+.glass-dark { backdrop-filter: blur(12px); background: rgba(14,10,6,0.75); border: 1px solid var(--border); }
+.transition-smooth { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+.card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.sacred-border-l { border-left: 4px solid var(--saffron); }
+.sacred-border-t { border-top: 3px solid var(--saffron); }

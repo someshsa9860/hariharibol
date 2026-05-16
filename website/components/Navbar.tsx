@@ -59,6 +59,7 @@ export default function Navbar() {
               style={{
                 color: pathname === l.href ? 'var(--accent)' : 'var(--muted)',
                 background: pathname === l.href ? 'var(--surface-2)' : 'transparent',
+                borderBottom: pathname === l.href ? '2px solid var(--saffron)' : '2px solid transparent',
               }}
             >
               {l.label}
