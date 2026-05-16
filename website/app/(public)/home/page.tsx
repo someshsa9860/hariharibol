@@ -2,27 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Music2, Star, ChevronRight, Sparkles, Heart } from 'lucide-react';
+import { BookOpen, Globe, Users, Music2, ChevronRight, Sparkles } from 'lucide-react';
 import api from '@/lib/api';
-import BookCard from '@/components/BookCard';
-import SampradayaCard from '@/components/SampradayaCard';
-import VerseCard from '@/components/VerseCard';
 
 const SAMPLE_VOD = {
   id: 'sample',
   verseText: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥',
-  transliteration: 'karmaṇy-evādhikāras te mā phaleṣu kadācana\nmā karma-phala-hetur bhūr mā te saṅgo \'stv akarmaṇi',
-  translation: 'You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself the cause of the results of your activities, and never be attached to not doing your duty.',
+  transliteration: "karmaṇy-evādhikāras te mā phaleṣu kadācana\nmā karma-phala-hetur bhūr mā te saṅgo 'stv akarmaṇi",
+  translation:
+    'You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself the cause of the results of your activities, and never be attached to not doing your duty.',
   verseNumber: '2.47',
   bookName: 'Bhagavad Gita',
 };
 
-const FEATURES = [
-  { icon: <BookOpen size={22} />, title: 'Read Sacred Texts', desc: 'Bhagavad Gita, Srimad Bhagavatam, and more — verse by verse with meanings.' },
-  { icon: <Music2 size={22} />, title: 'Chant Mantras', desc: 'Sacred mantras with transliteration, meaning, and audio guidance.' },
-  { icon: <Star size={22} />, title: 'Daily Verse', desc: 'AI-curated Verse of the Day personalized to your spiritual journey.' },
-  { icon: <Heart size={22} />, title: 'Save & Revisit', desc: 'Bookmark your favourite verses and build a personal sacred library.' },
+const STATS = [
+  { Icon: BookOpen, value: '10,000+', label: 'Verses' },
+  { Icon: Globe,    value: '50+',     label: 'Languages' },
+  { Icon: Users,    value: '25+',     label: 'Sampradayas' },
+  { Icon: Music2,   value: '500+',    label: 'Mantras' },
 ];
+
+const BORDER_COLORS = ['#FF6B00', '#006B6B', '#7B1C1C', '#2D5A27'];
 
 export default function HomePage() {
   const [vod, setVod] = useState<typeof SAMPLE_VOD | null>(null);
@@ -38,194 +38,436 @@ export default function HomePage() {
     ]).finally(() => setLoading(false));
   }, []);
 
+  const displayVod = vod || SAMPLE_VOD;
+
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ background: 'var(--bg)' }}>
-        {/* Lotus SVG bg */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-          <svg width="700" height="700" viewBox="0 0 200 200" fill="none">
-            <g stroke="#C75A1A" strokeWidth="1" fill="none">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <g key={i} transform={`rotate(${i * 45} 100 100)`}>
-                  <ellipse cx="100" cy="50" rx="18" ry="55" />
-                </g>
-              ))}
-              <circle cx="100" cy="100" r="18" />
-              <circle cx="100" cy="100" r="45" />
-              <circle cx="100" cy="100" r="75" />
-            </g>
-          </svg>
+      <section
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #C75A1A 45%, #7B1C1C 100%)' }}
+      >
+        <style>{`
+          @keyframes radial-pulse {
+            0%, 100% { opacity: 0.25; transform: translate(-50%, -50%) scale(1); }
+            50%       { opacity: 0.50; transform: translate(-50%, -50%) scale(1.18); }
+          }
+          .hero-glow {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 640px;
+            height: 640px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,210,120,0.35) 0%, transparent 68%);
+            pointer-events: none;
+            animation: radial-pulse 5s ease-in-out infinite;
+          }
+          .hero-cta-primary:hover  { opacity: 0.9; transform: translateY(-2px); }
+          .hero-cta-outline:hover  { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+          .hero-cta-primary, .hero-cta-outline { transition: all 0.2s ease; }
+        `}</style>
+
+        {/* Animated radial glow */}
+        <div className="hero-glow" />
+
+        {/* Om symbol — top-right decorative */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '4rem',
+            right: '3rem',
+            fontFamily: "'Noto Sans Devanagari', serif",
+            fontSize: 'clamp(6rem, 12vw, 10rem)',
+            color: 'rgba(255,255,255,0.10)',
+            lineHeight: 1,
+            userSelect: 'none',
+            pointerEvents: 'none',
+          }}
+        >
+          ॐ
         </div>
 
-        <div className="container-site text-center relative z-10 pt-24 pb-20">
-          {/* Om symbol */}
-          <div
-            className="text-6xl mb-6 animate-float inline-block"
-            style={{ color: 'var(--accent)', fontFamily: 'Noto Sans Devanagari, serif' }}
-          >
-            ॐ
-          </div>
-
+        <div className="container-site relative z-10 text-center py-20 md:py-32">
           <h1
-            className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight"
-            style={{ fontFamily: 'Playfair Display, Georgia, serif', color: 'var(--text)' }}
+            className="text-5xl md:text-7xl font-black mb-5 leading-tight"
+            style={{ fontFamily: "'Noto Sans Devanagari', serif", color: '#fff' }}
           >
-            Discover the{' '}
-            <span className="gradient-text">Wisdom</span>
-            <br />of the Vedas
+            हरि हरि बोल
           </h1>
 
-          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto" style={{ color: 'var(--muted)', lineHeight: 1.8 }}>
-            Explore sacred verses, mantras, and teachings from the great spiritual traditions of India — in Sanskrit, transliteration, and your language.
+          <p
+            className="text-xl md:text-2xl mb-10 max-w-xl mx-auto"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}
+          >
+            Your gateway to Vedic wisdom
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link href="/books" className="btn-primary text-base px-8 py-4">
-              <BookOpen size={18} /> Start Reading
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/books"
+              className="hero-cta-primary inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-base"
+              style={{ background: '#fff', color: '#FF6B00', textDecoration: 'none' }}
+            >
+              <BookOpen size={18} /> Explore Sacred Texts
             </Link>
-            <Link href="/verse-of-day" className="btn-secondary text-base px-8 py-4">
-              <Sparkles size={18} /> Today&apos;s Verse
+            <Link
+              href="/verse-of-day"
+              className="hero-cta-outline inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-base"
+              style={{ border: '2px solid #fff', color: '#fff', textDecoration: 'none' }}
+            >
+              <Sparkles size={18} /> Verse of the Day
             </Link>
           </div>
+        </div>
 
-          {/* Stats strip */}
-          <div className="grid grid-cols-3 max-w-sm mx-auto gap-4">
-            {[['10,000+', 'Verses'], ['50+', 'Languages'], ['8', 'Traditions']].map(([n, l]) => (
-              <div key={l} className="text-center">
-                <div className="text-2xl font-black gradient-text">{n}</div>
-                <div className="text-xs" style={{ color: 'var(--muted)' }}>{l}</div>
+        {/* Scroll hint */}
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+          style={{ color: 'rgba(255,255,255,0.5)' }}
+        >
+          <ChevronRight size={22} className="rotate-90" />
+        </div>
+      </section>
+
+      {/* ── Stats Bar ── */}
+      <section style={{ background: '#111', padding: '1.75rem 0' }}>
+        <div className="container-site">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {STATS.map(({ Icon, value, label }) => (
+              <div key={label} className="flex items-center gap-3">
+                <Icon size={24} style={{ color: '#006B6B', flexShrink: 0 }} />
+                <div>
+                  <div style={{ color: '#fff', fontWeight: 800, fontSize: '1.25rem', lineHeight: 1.2 }}>{value}</div>
+                  <div style={{ color: '#aaa', fontSize: '0.78rem', marginTop: '2px' }}>{label}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" style={{ color: 'var(--muted)' }}>
-          <ChevronRight size={20} className="rotate-90" />
-        </div>
       </section>
 
-      {/* ── Verse of Day ── */}
-      <section className="py-20" style={{ background: 'var(--bg-2)' }}>
+      {/* ── Verse of the Day Spotlight ── */}
+      <section className="py-20" style={{ background: 'var(--bg)' }}>
         <div className="container-site">
           <div className="text-center mb-10">
             <div className="badge inline-block mb-3">
               <Sparkles size={12} className="inline mr-1" /> Verse of the Day
             </div>
-            <h2 className="text-3xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
+            <h2
+              className="text-3xl font-bold"
+              style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text)' }}
+            >
               Today&apos;s Sacred Teaching
             </h2>
           </div>
-          <div className="max-w-2xl mx-auto">
-            {vod && <VerseCard verse={vod} showFavorite />}
-          </div>
-          <div className="text-center mt-8">
-            <Link href="/verse-of-day" className="btn-ghost text-sm">
-              View history <ChevronRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* ── Features ── */}
-      <section className="py-20" style={{ background: 'var(--bg)' }}>
-        <div className="container-site">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
-              Your Spiritual Companion
-            </h2>
-            <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--muted)' }}>
-              Everything you need for Vedic study, chanting practice, and daily devotion.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="card p-6 text-center">
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: 'var(--surface-2)', color: 'var(--accent)' }}
+          <div
+            className="max-w-2xl mx-auto relative"
+            style={{
+              background: '#C4A882',
+              borderRadius: '20px',
+              padding: '2.5rem 2rem 2rem',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            }}
+          >
+            {/* Decorative large quote mark */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: '0.75rem',
+                left: '1.25rem',
+                fontFamily: 'Georgia, serif',
+                fontSize: '7rem',
+                lineHeight: 0.8,
+                color: '#FF6B00',
+                opacity: 0.75,
+                userSelect: 'none',
+                pointerEvents: 'none',
+              }}
+            >
+              &ldquo;
+            </div>
+
+            <div style={{ paddingTop: '2.5rem' }}>
+              {displayVod.verseNumber && (
+                <span
+                  className="badge inline-block mb-4"
+                  style={{ background: 'rgba(255,107,0,0.15)', borderColor: 'rgba(255,107,0,0.3)', color: '#7B1C1C' }}
                 >
-                  {f.icon}
-                </div>
-                <h3 className="font-bold mb-2" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, serif' }}>{f.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{f.desc}</p>
-              </div>
-            ))}
+                  {displayVod.bookName} {displayVod.verseNumber}
+                </span>
+              )}
+
+              <p
+                className="mb-4 whitespace-pre-line"
+                style={{ fontFamily: "'Noto Sans Devanagari', serif", fontSize: '1.2rem', lineHeight: 2, color: '#1A0A00' }}
+              >
+                {displayVod.verseText}
+              </p>
+
+              {displayVod.transliteration && (
+                <p
+                  className="mb-4 whitespace-pre-line"
+                  style={{ fontStyle: 'italic', color: '#4A2800', fontSize: '0.9rem', lineHeight: 1.9 }}
+                >
+                  {displayVod.transliteration}
+                </p>
+              )}
+
+              {displayVod.translation && (
+                <p className="mb-5" style={{ color: '#3A2000', fontSize: '1rem', lineHeight: 1.8 }}>
+                  {displayVod.translation}
+                </p>
+              )}
+
+              <Link
+                href="/verse-of-day"
+                style={{ color: '#FF6B00', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                Read More <ChevronRight size={16} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Books ── */}
+      {/* ── Sacred Texts ── */}
       <section className="py-20" style={{ background: 'var(--bg-2)' }}>
         <div className="container-site">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <h2 className="text-3xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
+              <h2
+                className="gradient-text text-3xl font-bold"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
                 Sacred Texts
               </h2>
-              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>Ancient wisdom in modern reading experience</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                Ancient wisdom in modern reading experience
+              </p>
             </div>
-            <Link href="/books" className="btn-ghost text-sm">View all <ChevronRight size={14} /></Link>
+            <Link href="/books" className="btn-ghost text-sm">
+              View all <ChevronRight size={14} />
+            </Link>
           </div>
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="card p-5 space-y-3">
-                  <div className="skeleton h-40 w-full" />
-                  <div className="skeleton h-4 w-3/4" />
-                  <div className="skeleton h-3 w-1/2" />
-                </div>
-              ))}
+
+          {/* Horizontal scroll on mobile, 3-col grid on md+ */}
+          <div className="overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:overflow-visible">
+            <div className="flex gap-5 md:grid md:grid-cols-3">
+              {loading
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="card p-5 space-y-3 min-w-[280px] md:min-w-0">
+                      <div className="skeleton h-40 w-full" />
+                      <div className="skeleton h-4 w-3/4" />
+                      <div className="skeleton h-3 w-1/2" />
+                    </div>
+                  ))
+                : books.length > 0
+                ? books.slice(0, 6).map((b: any, idx) => {
+                    const borderColor = BORDER_COLORS[idx % BORDER_COLORS.length];
+                    return (
+                      <Link
+                        key={b.id}
+                        href={`/books/${b.id}`}
+                        className="card-hover block p-5 group min-w-[280px] md:min-w-0"
+                        style={{ borderLeft: `4px solid ${borderColor}`, textDecoration: 'none' }}
+                      >
+                        <div
+                          className="w-full h-40 rounded-xl mb-4 flex items-center justify-center overflow-hidden"
+                          style={{ background: 'linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%)', border: '1px solid var(--border)' }}
+                        >
+                          {b.thumbnailUrl ? (
+                            <img
+                              src={b.thumbnailUrl}
+                              alt={b.title}
+                              className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <BookOpen size={40} style={{ color: borderColor, opacity: 0.55 }} />
+                          )}
+                        </div>
+                        <h3
+                          className="font-bold text-base mb-1 leading-tight"
+                          style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text)' }}
+                        >
+                          {b.title || 'Untitled'}
+                        </h3>
+                        {b.author && (
+                          <p className="text-xs mb-1 font-semibold" style={{ color: borderColor }}>
+                            {b.author}
+                          </p>
+                        )}
+                        {b.description && (
+                          <p className="text-xs leading-relaxed line-clamp-2 mt-1" style={{ color: 'var(--muted)' }}>
+                            {b.description}
+                          </p>
+                        )}
+                      </Link>
+                    );
+                  })
+                : (
+                  <div className="col-span-3 text-center py-16" style={{ color: 'var(--muted)' }}>
+                    <BookOpen size={40} className="mx-auto mb-3 opacity-30" />
+                    <p>Books will appear once the backend is running.</p>
+                  </div>
+                )}
             </div>
-          ) : books.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {books.slice(0, 6).map((b) => <BookCard key={b.id} book={b} />)}
-            </div>
-          ) : (
-            <div className="text-center py-16" style={{ color: 'var(--muted)' }}>
-              <BookOpen size={40} className="mx-auto mb-3 opacity-30" />
-              <p>Books will appear once the backend is running.</p>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
       {/* ── Sampradayas ── */}
-      {(sampradayas.length > 0 || loading) && (
-        <section className="py-20" style={{ background: 'var(--bg)' }}>
-          <div className="container-site">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
-                  Spiritual Traditions
-                </h2>
-                <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>Explore the great Vaishnava sampradayas</p>
-              </div>
-              <Link href="/sampradayas" className="btn-ghost text-sm">View all <ChevronRight size={14} /></Link>
+      <section className="py-20" style={{ background: 'var(--bg)' }}>
+        <div className="container-site">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2
+                className="text-3xl font-bold"
+                style={{ fontFamily: "'Playfair Display', serif", color: '#006B6B' }}
+              >
+                Spiritual Traditions
+              </h2>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                Explore the great Vaishnava sampradayas
+              </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sampradayas.slice(0, 6).map((s) => <SampradayaCard key={s.id} s={s} />)}
-            </div>
+            <Link href="/sampradayas" className="btn-ghost text-sm">
+              View all <ChevronRight size={14} />
+            </Link>
           </div>
-        </section>
-      )}
 
-      {/* ── CTA ── */}
-      <section className="py-20" style={{ background: 'var(--bg-2)' }}>
-        <div className="container-site text-center">
-          <div className="text-5xl mb-6" style={{ fontFamily: 'Noto Sans Devanagari, serif', color: 'var(--accent)' }}>
-            हरि हरि बोल
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="card overflow-hidden">
+                    <div className="skeleton h-36 w-full" />
+                    <div className="p-4 space-y-2">
+                      <div className="skeleton h-4 w-2/3" />
+                      <div className="skeleton h-3 w-full" />
+                    </div>
+                  </div>
+                ))
+              : sampradayas.slice(0, 6).map((s: any) => (
+                  <Link
+                    key={s.id}
+                    href={`/sampradayas/${s.id}`}
+                    className="card-hover block overflow-hidden group"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    {/* Image with gradient overlay */}
+                    <div
+                      className="w-full h-36 relative overflow-hidden"
+                      style={{ background: 'linear-gradient(135deg, #006B6B 0%, #003F3F 100%)' }}
+                    >
+                      {s.thumbnailUrl && (
+                        <img
+                          src={s.thumbnailUrl}
+                          alt={s.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      )}
+                      {/* Gradient overlay */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(to top, rgba(0,50,50,0.72) 0%, transparent 55%)',
+                        }}
+                      />
+                      {!s.thumbnailUrl && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '3rem',
+                            opacity: 0.4,
+                          }}
+                        >
+                          🪷
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <h3
+                        className="font-bold text-base mb-1"
+                        style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text)' }}
+                      >
+                        {s.name || s.slug || 'Sampraday'}
+                      </h3>
+                      {s.description && (
+                        <p className="text-xs leading-relaxed line-clamp-2 mb-2" style={{ color: 'var(--muted)' }}>
+                          {s.description}
+                        </p>
+                      )}
+                      {s.followerCount != null && (
+                        <div
+                          className="flex items-center gap-1 text-xs font-semibold mt-1"
+                          style={{ color: '#006B6B' }}
+                        >
+                          <Users size={12} /> {s.followerCount.toLocaleString()} followers
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
           </div>
-          <h2 className="text-3xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
+        </div>
+      </section>
+
+      {/* ── Footer CTA Banner ── */}
+      <section
+        style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #C75A1A 45%, #7B1C1C 100%)', padding: '4rem 0' }}
+      >
+        <div className="container-site text-center">
+          <div
+            style={{
+              fontFamily: "'Noto Sans Devanagari', serif",
+              fontSize: '2.5rem',
+              color: 'rgba(255,255,255,0.85)',
+              marginBottom: '1rem',
+            }}
+          >
+            हरे कृष्ण हरे राम
+          </div>
+          <h2
+            className="text-3xl font-bold mb-4"
+            style={{ fontFamily: "'Playfair Display', serif", color: '#fff' }}
+          >
             Begin Your Journey Today
           </h2>
-          <p className="text-base mb-8 max-w-md mx-auto" style={{ color: 'var(--muted)' }}>
+          <p
+            className="text-base mb-8 max-w-md mx-auto"
+            style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 1.8 }}
+          >
             Join thousands of devotees reading, chanting, and growing in spiritual wisdom every day.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login" className="btn-primary text-base px-8 py-4">Create Free Account</Link>
-            <Link href="/books" className="btn-secondary text-base px-8 py-4">Browse Books</Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-base"
+              style={{ background: '#fff', color: '#FF6B00', textDecoration: 'none', transition: 'opacity 0.2s ease' }}
+            >
+              Join Free Today
+            </Link>
+            <Link
+              href="/books"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-base"
+              style={{
+                border: '2px solid rgba(255,255,255,0.65)',
+                color: '#fff',
+                textDecoration: 'none',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              Browse Books
+            </Link>
           </div>
         </div>
       </section>
