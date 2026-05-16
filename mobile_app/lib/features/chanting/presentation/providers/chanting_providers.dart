@@ -269,3 +269,23 @@ final chantingFollowedSampradayIdsProvider =
   } catch (_) {}
   return {};
 });
+
+// ─── Weekly chant logs (last 7 for bar chart) ─────────────────────────────────
+
+final weeklyChantLogsProvider =
+    FutureProvider<List<ChantLogModel>>((ref) async {
+  final dio = ref.watch(dioProvider);
+  try {
+    final response = await dio.get(
+      '/api/v1/chanting/logs',
+      queryParameters: {'limit': '7'},
+    );
+    final data = response.data['data'] ?? response.data;
+    if (data is List) {
+      return data
+          .map((e) => ChantLogModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+  } catch (_) {}
+  return [];
+});

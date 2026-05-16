@@ -9,6 +9,7 @@ import '../../features/sampradayas/presentation/pages/sampraday_detail_page.dart
 import '../../features/chanting/presentation/pages/mantra_detail_page.dart';
 import '../../features/chanting/presentation/pages/chant_counter_page.dart';
 import '../../features/chanting/presentation/pages/chant_history_page.dart';
+import '../../features/mantras/presentation/pages/mantra_library_page.dart';
 import '../../features/chatbot/presentation/pages/chat_session_page.dart';
 import '../../features/groups/presentation/pages/group_chat_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -75,6 +76,10 @@ class AppRouter {
       GoRoute(
         path: '/chanting/history',
         builder: (context, state) => const ChantHistoryPage(),
+      ),
+      GoRoute(
+        path: '/mantras',
+        builder: (context, state) => const MantraLibraryPage(),
       ),
       GoRoute(
         path: '/mantra/:id',
