@@ -6,6 +6,13 @@ import { Search, BookOpen } from 'lucide-react';
 import api from '@/lib/api';
 import TopBar from '@/components/TopBar';
 
+const GRADIENTS = [
+  'linear-gradient(135deg, #C75A1A 0%, #8B2FC9 100%)',
+  'linear-gradient(135deg, #1A6BC7 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #C7891A 0%, #C72B1A 100%)',
+  'linear-gradient(135deg, #1AC77B 0%, #1A4FC7 100%)',
+];
+
 export default function AppBooksPage() {
   const [books, setBooks] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
@@ -28,52 +35,92 @@ export default function AppBooksPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <TopBar title="Sacred Texts" />
-      <div className="p-4 max-w-2xl mx-auto">
-        <div className="relative mb-5">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
-          <input className="input-field pl-9 text-sm" placeholder="Search books…" value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
 
+      {/* Sticky glass search bar */}
+      <div
+        className="sticky top-0 z-10 px-4 py-3"
+        style={{
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(15, 7, 3, 0.82)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div className="relative max-w-5xl mx-auto">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
+          <input
+            className="input-field pl-9 text-sm w-full"
+            placeholder="Search sacred texts…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="p-4 max-w-5xl mx-auto">
         {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="card flex gap-3 p-3">
-                <div className="skeleton w-14 h-20 rounded-lg flex-shrink-0" />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className="skeleton h-4 w-2/3" />
-                  <div className="skeleton h-3 w-1/2" />
-                  <div className="skeleton h-3 w-1/3" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'var(--surface)' }}>
+                <div className="h-40 w-full" style={{ background: 'var(--surface-2)' }} />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 rounded w-3/4" style={{ background: 'var(--surface-2)' }} />
+                  <div className="h-3 rounded w-1/2" style={{ background: 'var(--surface-2)' }} />
+                  <div className="h-3 rounded w-1/3" style={{ background: 'var(--surface-2)' }} />
                 </div>
               </div>
             ))}
           </div>
         ) : filtered.length > 0 ? (
-          <div className="space-y-3">
-            {filtered.map((b) => (
-              <Link key={b.id} href={`/books/${b.id}`} className="card-hover flex gap-3 p-3">
-                <div className="w-14 h-20 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--surface-2)' }}>
-                  {b.thumbnailUrl
-                    ? <img src={b.thumbnailUrl} alt={b.title} className="w-full h-full object-cover rounded-lg" />
-                    : <BookOpen size={20} style={{ color: 'var(--accent)', opacity: 0.5 }} />}
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm leading-tight mb-1" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, serif' }}>
-                    {b.title}
-                  </h3>
-                  {b.author && <p className="text-xs mb-1" style={{ color: 'var(--accent)' }}>{b.author}</p>}
-                  {b.description && <p className="text-xs line-clamp-2" style={{ color: 'var(--muted)' }}>{b.description}</p>}
-                  <div className="flex gap-2 mt-1 text-xs" style={{ color: 'var(--muted)' }}>
-                    {b.chapterCount != null && <span>{b.chapterCount} ch</span>}
-                    {b.verseCount != null && <span>{b.verseCount} verses</span>}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((b, idx) => (
+              <Link key={b.id} href={`/books/${b.id}`} className="block">
+                <div className="card-hover rounded-2xl overflow-hidden flex flex-col h-full" style={{ background: 'var(--surface)' }}>
+                  {/* Gradient / image cover */}
+                  <div
+                    className="h-40 w-full flex items-center justify-center relative overflow-hidden"
+                    style={{ background: b.thumbnailUrl ? undefined : GRADIENTS[idx % GRADIENTS.length] }}
+                  >
+                    {b.thumbnailUrl
+                      ? <img src={b.thumbnailUrl} alt={b.title} className="w-full h-full object-cover" />
+                      : <BookOpen size={40} style={{ color: 'rgba(255,255,255,0.55)' }} />}
+                  </div>
+
+                  {/* Card content */}
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3
+                      className="font-bold text-sm leading-snug mb-1"
+                      style={{ color: 'var(--text)', fontFamily: 'Playfair Display, serif' }}
+                    >
+                      {b.title}
+                    </h3>
+                    {b.author && (
+                      <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>{b.author}</p>
+                    )}
+                    {b.description && (
+                      <p className="text-xs line-clamp-2 flex-1 leading-relaxed" style={{ color: 'var(--muted)' }}>
+                        {b.description}
+                      </p>
+                    )}
+                    <div className="flex gap-3 mt-3 text-xs font-semibold flex-wrap">
+                      {b.chapterCount != null && (
+                        <span style={{ color: '#C75A1A' }}>{b.chapterCount} chapters</span>
+                      )}
+                      {b.verseCount != null && (
+                        <span style={{ color: '#0D9488' }}>{b.verseCount} verses</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20" style={{ color: 'var(--muted)' }}>
-            <BookOpen size={40} className="mx-auto mb-3 opacity-25" />
-            <p className="text-sm">{search ? 'No results.' : 'Backend not running — start it to see books.'}</p>
+          <div className="text-center py-24" style={{ color: 'var(--muted)' }}>
+            <div className="text-7xl mb-4 opacity-25 select-none" style={{ fontFamily: 'serif' }}>ॐ</div>
+            <p className="text-sm">
+              {search ? 'No results found.' : 'Backend not running — start it to see books.'}
+            </p>
           </div>
         )}
       </div>
