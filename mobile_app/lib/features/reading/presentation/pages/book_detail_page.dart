@@ -14,6 +14,7 @@ class _BookDetail {
   final String description;
   final int totalChapters;
   final int totalVerses;
+  final String? translatorName;
   final List<_ChapterSummary> chapters;
 
   _BookDetail({
@@ -23,6 +24,7 @@ class _BookDetail {
     required this.description,
     required this.totalChapters,
     required this.totalVerses,
+    this.translatorName,
     required this.chapters,
   });
 
@@ -30,6 +32,15 @@ class _BookDetail {
     final chaps = (j['chapters'] as List? ?? [])
         .map((c) => _ChapterSummary.fromJson(c as Map<String, dynamic>))
         .toList();
+
+    String? translatorName;
+    final translators = j['translators'] as List?;
+    if (translators != null && translators.isNotEmpty) {
+      final t = translators.first as Map<String, dynamic>;
+      translatorName = (t['nameKey'] ?? t['name'] ?? '').toString();
+      if (translatorName!.isEmpty) translatorName = null;
+    }
+
     return _BookDetail(
       id: j['id'] as String,
       title: (j['titleKey'] ?? j['title'] ?? 'Unknown').toString(),
@@ -38,6 +49,7 @@ class _BookDetail {
       totalChapters: j['totalChapters'] as int? ?? chaps.length,
       totalVerses:
           j['totalVerses'] as int? ?? (j['_count']?['verses'] as int? ?? 0),
+      translatorName: translatorName,
       chapters: chaps,
     );
   }
@@ -74,15 +86,21 @@ final _bookDetailProvider =
   return _BookDetail.fromJson(res.data as Map<String, dynamic>);
 });
 
+// ─── Palette ──────────────────────────────────────────────────────────────────
+
+const _saffron = Color(0xFFC75A1A);
+const _maroon = Color(0xFF7B1C1C);
+const _sandstone = Color(0xFFC4A882);
+const _gold = Color(0xFFD4A055);
+const _cream = Color(0xFFFFF8EC);
+const _dark = Color(0xFF1A1410);
+const _mid = Color(0xFF8B7D73);
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 class BookDetailPage extends ConsumerWidget {
   final String bookId;
   const BookDetailPage({super.key, required this.bookId});
-
-  static const _saffron = Color(0xFFC75A1A);
-  static const _cream = Color(0xFFFFF8EC);
-  static const _dark = Color(0xFF1A1410);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -91,8 +109,7 @@ class BookDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: _cream,
       body: async.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: _saffron)),
+        loading: () => const Center(child: CircularProgressIndicator(color: _saffron)),
         error: (e, _) => _buildError(context, ref),
         data: (book) => _buildContent(context, book),
       ),
@@ -131,22 +148,40 @@ class BookDetailPage extends ConsumerWidget {
   Widget _buildContent(BuildContext context, _BookDetail book) {
     return CustomScrollView(
       slivers: [
-        _buildAppBar(context, book),
-        SliverToBoxAdapter(child: _buildBookHeader(book)),
+        _buildHeroAppBar(context, book),
+        SliverToBoxAdapter(child: _buildAboutSection(book)),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-            child: Text(
-              'Chapters (${book.chapters.length})',
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: _dark),
+            child: Row(
+              children: [
+                Text(
+                  'Chapters',
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _dark),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _gold.withAlpha(40),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _gold.withAlpha(80)),
+                  ),
+                  child: Text(
+                    '${book.chapters.length}',
+                    style: const TextStyle(
+                        color: _gold, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (ctx, i) => _ChapterTile(
@@ -162,108 +197,191 @@ class BookDetailPage extends ConsumerWidget {
     );
   }
 
-  SliverAppBar _buildAppBar(BuildContext context, _BookDetail book) {
+  SliverAppBar _buildHeroAppBar(BuildContext context, _BookDetail book) {
     return SliverAppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
+      expandedHeight: 300,
       pinned: true,
+      backgroundColor: _maroon,
+      elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: _dark),
+        icon: Container(
+          decoration: BoxDecoration(
+            color: Colors.black26,
+            shape: BoxShape.circle,
+          ),
+          padding: const EdgeInsets.all(4),
+          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+        ),
         onPressed: () => context.pop(),
       ),
-      title: Text(
-        book.title,
-        style: const TextStyle(
-            color: _dark, fontWeight: FontWeight.bold, fontSize: 16),
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _buildBookHeader(_BookDetail book) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x0F000000), blurRadius: 8, offset: Offset(0, 3))
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: book.coverUrl != null
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Cover image or gradient placeholder
+            book.coverUrl != null
                 ? CachedNetworkImage(
                     imageUrl: book.coverUrl!,
-                    width: 90,
-                    height: 120,
                     fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => _coverPlaceholder(),
+                    errorWidget: (_, __, ___) => _coverGradient(),
                   )
-                : _coverPlaceholder(),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(book.title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: _dark)),
-                if (book.description.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                : _coverGradient(),
+            // Gradient overlay at bottom for text legibility
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black87],
+                  stops: [0.35, 1.0],
+                ),
+              ),
+            ),
+            // Title and translator over image
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    book.description,
+                    book.title,
                     style: const TextStyle(
-                        color: Color(0xFF8B7D73), fontSize: 13, height: 1.5),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (book.translatorName != null) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.person_rounded,
+                            color: Colors.white60, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          book.translatorName!,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (book.totalChapters > 0)
+                        _heroPill('${book.totalChapters} Chapters'),
+                      if (book.totalChapters > 0 && book.totalVerses > 0)
+                        const SizedBox(width: 8),
+                      if (book.totalVerses > 0)
+                        _heroPill('${book.totalVerses} Verses'),
+                    ],
                   ),
                 ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _statChip('${book.totalChapters} Chapters'),
-                    const SizedBox(width: 8),
-                    if (book.totalVerses > 0)
-                      _statChip('${book.totalVerses} Verses'),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _coverPlaceholder() => Container(
-        width: 90,
-        height: 120,
-        color: const Color(0xFFF5E6D3),
-        child: const Center(child: Text('📜', style: TextStyle(fontSize: 32))),
+  Widget _coverGradient() => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF7B1C1C), Color(0xFFC75A1A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: const Center(child: Text('📜', style: TextStyle(fontSize: 64))),
       );
 
-  Widget _statChip(String text) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+  Widget _heroPill(String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: _saffron.withAlpha(25),
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white.withAlpha(30),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white30),
         ),
         child: Text(text,
             style: const TextStyle(
-                color: _saffron,
-                fontSize: 11,
-                fontWeight: FontWeight.bold)),
+                color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
       );
+
+  Widget _buildAboutSection(_BookDetail book) {
+    if (book.description.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _sandstone.withAlpha(45),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _sandstone.withAlpha(100)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'About this Book',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: _maroon,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _ExpandableText(text: book.description),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Expandable description ───────────────────────────────────────────────────
+
+class _ExpandableText extends StatefulWidget {
+  final String text;
+  const _ExpandableText({required this.text});
+
+  @override
+  State<_ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<_ExpandableText> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLong = widget.text.length > 180;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.text,
+          style: const TextStyle(
+              color: _mid, fontSize: 14, height: 1.65),
+          maxLines: _expanded || !isLong ? null : 4,
+          overflow: _expanded || !isLong ? null : TextOverflow.ellipsis,
+        ),
+        if (isLong) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Text(
+              _expanded ? 'Show less' : 'Read more',
+              style: const TextStyle(
+                  color: _saffron, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 // ─── Chapter tile ─────────────────────────────────────────────────────────────
@@ -279,8 +397,6 @@ class _ChapterTile extends StatelessWidget {
     required this.totalChapters,
   });
 
-  static const _saffron = Color(0xFFC75A1A);
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -289,25 +405,24 @@ class _ChapterTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(
-              color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 2))
+          BoxShadow(color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 2))
         ],
       ),
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: _saffron.withAlpha(25),
+          width: 42,
+          height: 42,
+          decoration: const BoxDecoration(
+            color: _saffron,
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               '${chapter.number}',
               style: const TextStyle(
-                  color: _saffron,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 15),
             ),
@@ -317,16 +432,31 @@ class _ChapterTile extends StatelessWidget {
             style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: Color(0xFF1A1410))),
+                color: _dark)),
         subtitle: chapter.verseCount > 0
-            ? Text('${chapter.verseCount} verses',
-                style: const TextStyle(
-                    fontSize: 11, color: Color(0xFF8B7D73)))
+            ? Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _gold.withAlpha(30),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: _gold.withAlpha(80)),
+                    ),
+                    child: Text(
+                      '${chapter.verseCount} verses',
+                      style: const TextStyle(
+                          fontSize: 10,
+                          color: _gold,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              )
             : null,
-        trailing: const Icon(Icons.chevron_right,
-            color: Color(0xFF8B7D73), size: 20),
-        onTap: () =>
-            context.push('/book/$bookId/chapter/${chapter.number}'),
+        trailing: const Icon(Icons.chevron_right, color: _mid, size: 20),
+        onTap: () => context.push('/book/$bookId/chapter/${chapter.number}'),
       ),
     );
   }

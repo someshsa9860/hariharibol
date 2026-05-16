@@ -12,7 +12,9 @@ class _Book {
   final String? coverUrl;
   final String? description;
   final bool isFeatured;
-  final String? category; // 'SB', 'BG', 'other'
+  final String? category; // 'SB', 'BG', 'DNYAN', 'other'
+  final int chapterCount;
+  final String? translatorName;
 
   _Book({
     required this.id,
@@ -21,6 +23,8 @@ class _Book {
     this.description,
     this.isFeatured = false,
     this.category,
+    this.chapterCount = 0,
+    this.translatorName,
   });
 
   factory _Book.fromJson(Map<String, dynamic> j) => _Book(
@@ -30,6 +34,9 @@ class _Book {
         description: (j['descriptionKey'] ?? j['description'] ?? '').toString(),
         isFeatured: j['isFeatured'] as bool? ?? false,
         category: _detectCategory(j),
+        chapterCount: j['totalChapters'] as int? ??
+            (j['_count']?['chapters'] as int? ?? 0),
+        translatorName: _parseTranslator(j),
       );
 
   static String? _detectCategory(Map<String, dynamic> j) {
@@ -39,6 +46,16 @@ class _Book {
     if (slug.contains('gita') || title.contains('gita')) return 'BG';
     if (slug.contains('dnyaneshwar') || slug.contains('jnaneshwar') || title.contains('dnyaneshwari')) return 'DNYAN';
     return 'other';
+  }
+
+  static String? _parseTranslator(Map<String, dynamic> j) {
+    final list = j['translators'] as List?;
+    if (list != null && list.isNotEmpty) {
+      final t = list.first as Map<String, dynamic>;
+      final name = (t['nameKey'] ?? t['name'] ?? '').toString();
+      return name.isNotEmpty ? name : null;
+    }
+    return null;
   }
 }
 
@@ -195,7 +212,7 @@ class _ReadingPageState extends ConsumerState<ReadingPage> with SingleTickerProv
                       decoration: InputDecoration(
                         hintText: 'Search books, verses…',
                         hintStyle: const TextStyle(color: Color(0xFF8B7D73), fontSize: 14),
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF8B7D73), size: 20),
+                        prefixIcon: const Icon(Icons.search, color: _saffron, size: 20),
                         suffixIcon: filter.search.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.clear, size: 18),
@@ -312,26 +329,36 @@ class _BooksGrid extends ConsumerWidget {
         final rest = filtered.where((b) => !featured.contains(b)).toList();
         final ordered = [...featured, ...rest];
 
-        return CustomScrollView(
-          slivers: [
-            if (featured.isNotEmpty && category != null)
-              SliverToBoxAdapter(child: _FeaturedBanner(book: featured.first)),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) => _BookCard(book: ordered[i]),
-                  childCount: ordered.length,
-                ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 0.68,
+        return RefreshIndicator(
+          color: _saffron,
+          onRefresh: () async => ref.invalidate(_booksProvider),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              if (featured.isNotEmpty && category != null)
+                SliverToBoxAdapter(child: _FeaturedBanner(book: featured.first)),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverLayoutBuilder(
+                  builder: (ctx, constraints) {
+                    final cols = constraints.crossAxisExtent > 600 ? 3 : 2;
+                    return SliverGrid(
+                      delegate: SliverChildBuilderDelegate(
+                        (ctx, i) => _BookCard(book: ordered[i]),
+                        childCount: ordered.length,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        childAspectRatio: 0.68,
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -438,6 +465,9 @@ class _BookCard extends StatelessWidget {
   const _BookCard({required this.book});
 
   static const _saffron = Color(0xFFC75A1A);
+  static const _gold = Color(0xFFD4A055);
+  static const _dark = Color(0xFF1A1410);
+  static const _mid = Color(0xFF8B7D73);
 
   @override
   Widget build(BuildContext context) {
@@ -472,25 +502,53 @@ class _BookCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (book.category != null && book.category != 'other')
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _saffron.withAlpha(25),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          book.category!,
-                          style: const TextStyle(color: _saffron, fontSize: 9, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                    Row(
+                      children: [
+                        if (book.category != null && book.category != 'other') ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _saffron.withAlpha(25),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              book.category!,
+                              style: const TextStyle(color: _saffron, fontSize: 9, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        if (book.chapterCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _gold.withAlpha(30),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: _gold.withAlpha(80)),
+                            ),
+                            child: Text(
+                              '${book.chapterCount} ch',
+                              style: const TextStyle(color: _gold, fontSize: 9, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       book.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1A1410)),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _dark),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (book.translatorName != null && book.translatorName!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        book.translatorName!,
+                        style: const TextStyle(color: _mid, fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -502,7 +560,13 @@ class _BookCard extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-        color: const Color(0xFFF5E6D3),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF7B1C1C), Color(0xFFC75A1A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: const Center(child: Text('📜', style: TextStyle(fontSize: 36))),
       );
 }

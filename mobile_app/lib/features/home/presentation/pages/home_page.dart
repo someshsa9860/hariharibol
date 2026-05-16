@@ -9,6 +9,7 @@ import '../../../../features/auth/presentation/providers/auth_provider.dart'
 import '../../../../features/home/data/models/sampraday_model.dart';
 import '../../../../features/home/data/models/verse_model.dart';
 import '../../../../features/home/data/models/verse_detail_model.dart';
+import '../../../../features/reading/data/reading_progress_service.dart';
 import '../providers/home_provider.dart';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 children: [
                   _GreetingSection(userName: userName),
                   _QuickActionsRow(),
+                  _ContinueReadingSection(),
                   _VerseOfDaySection(onTap: _navigateToVerse),
                   const SizedBox(height: 8),
                   _FollowedSampradaySection(onTap: _navigateToSampraday),
@@ -271,6 +273,127 @@ class _QuickAction extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Continue Reading ─────────────────────────────────────────────────────────
+class _ContinueReadingSection extends ConsumerWidget {
+  const _ContinueReadingSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = ref.watch(readingProgressProvider);
+    if (progress == null) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: () => context.push(
+          '/book/${progress.bookId}/chapter/${progress.chapterNum}'),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: _maroon.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          border: Border.all(color: _maroon.withOpacity(0.12)),
+        ),
+        child: Row(
+          children: [
+            // Book cover thumbnail
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: progress.coverUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: progress.coverUrl!,
+                      width: 52,
+                      height: 68,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => _coverPlaceholder(),
+                    )
+                  : _coverPlaceholder(),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _maroon.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          '📖 Continue Reading',
+                          style: TextStyle(
+                            color: _maroon,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    progress.bookTitle,
+                    style: const TextStyle(
+                      color: _textDark,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    progress.chapterTitle.isNotEmpty
+                        ? 'Chapter ${progress.chapterNum}: ${progress.chapterTitle}'
+                        : 'Chapter ${progress.chapterNum}',
+                    style: const TextStyle(
+                        color: _textMid, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: _maroon.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_forward_rounded,
+                  color: _maroon, size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _coverPlaceholder() => Container(
+        width: 52,
+        height: 68,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF7B1C1C), Color(0xFFC75A1A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: const Center(child: Text('📜', style: TextStyle(fontSize: 22))),
+      );
 }
 
 // ─── Verse of Day ─────────────────────────────────────────────────────────────
