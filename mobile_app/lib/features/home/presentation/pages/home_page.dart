@@ -11,22 +11,18 @@ import '../../../../features/home/data/models/verse_model.dart';
 import '../../../../features/home/data/models/verse_detail_model.dart';
 import '../providers/home_provider.dart';
 
-// ─── Palette ─────────────────────────────────────────────────────────────────
-const _saffron = Color(0xFFFF7E00);
+// ─── Palette ──────────────────────────────────────────────────────────────────
+const _saffron = Color(0xFFFF6B00);
 const _saffronDeep = Color(0xFFD96100);
-const _krishnaBlue = Color(0xFF1A4D8F);
+const _maroon = Color(0xFF7B1C1C);
+const _peacock = Color(0xFF006B6B);
+const _sandstone = Color(0xFFC4A882);
+const _gold = Color(0xFFD4A055);
 const _cream = Color(0xFFFFF8EC);
-const _gold = Color(0xFFD4A04C);
-const _textDark = Color(0xFF1A1410);
-const _textMid = Color(0xFF8B7D73);
+const _textDark = Color(0xFF1C1209);
+const _textMid = Color(0xFF7A6050);
 
-const _categories = [
-  'Devotion',
-  'Knowledge',
-  'Surrender',
-  'Dharma',
-  'Stories',
-];
+const _categories = ['Devotion', 'Knowledge', 'Surrender', 'Dharma', 'Stories'];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 class HomePage extends ConsumerStatefulWidget {
@@ -43,6 +39,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     ref.invalidate(verseOfDayProvider);
     ref.invalidate(sampradayListProvider);
     ref.invalidate(followedSampradayListProvider);
+    ref.invalidate(randomVerseProvider);
     ref.invalidate(versesByCategoryProvider(_selectedCategory));
     ref.invalidate(todayWisdomProvider);
     await Future.wait([
@@ -73,20 +70,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _GreetingSection(userName: userName),
+                  _QuickActionsRow(),
                   _VerseOfDaySection(onTap: _navigateToVerse),
                   const SizedBox(height: 8),
+                  _FollowedSampradaySection(onTap: _navigateToSampraday),
                   _CategorySection(
                     selected: _selectedCategory,
-                    onSelect: (cat) =>
-                        setState(() => _selectedCategory = cat),
+                    onSelect: (cat) => setState(() => _selectedCategory = cat),
                   ),
                   _VersesByCategorySection(
                     category: _selectedCategory,
                     onTap: _navigateToVerse,
                   ),
-                  _FollowedSampradaySection(
-                    onTap: _navigateToSampraday,
-                  ),
+                  _RandomVerseSection(onTap: _navigateToVerse),
                   _TodayWisdomSection(),
                   _AllSampradaySection(onTap: _navigateToSampraday),
                   const SizedBox(height: 32),
@@ -111,14 +107,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             width: 32,
             height: 32,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [_saffron, _saffronDeep],
-              ),
+              gradient: LinearGradient(colors: [_saffron, _saffronDeep]),
               shape: BoxShape.circle,
             ),
             child: const Center(
-              child: Text('🕉️',
-                  style: TextStyle(fontSize: 16)),
+              child: Text('🕉️', style: TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(width: 8),
@@ -147,8 +140,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: CircleAvatar(
               radius: 16,
               backgroundColor: _saffron.withOpacity(0.15),
-              child: const Icon(Icons.person_rounded,
-                  size: 18, color: _saffron),
+              child: const Icon(Icons.person_rounded, size: 18, color: _saffron),
             ),
           ),
         ),
@@ -156,11 +148,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  void _navigateToVerse(String verseId) =>
-      context.push('/verse/$verseId');
-
-  void _navigateToSampraday(String sampradayId) =>
-      context.push('/sampraday/$sampradayId');
+  void _navigateToVerse(String verseId) => context.push('/verse/$verseId');
+  void _navigateToSampraday(String id) => context.push('/sampraday/$id');
 }
 
 // ─── Greeting ─────────────────────────────────────────────────────────────────
@@ -181,7 +170,7 @@ class _GreetingSection extends StatelessWidget {
           Text(
             greeting,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: _textDark,
+                  color: _saffron,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -199,14 +188,98 @@ class _GreetingSection extends StatelessWidget {
   }
 }
 
+// ─── Quick Actions Row ────────────────────────────────────────────────────────
+class _QuickActionsRow extends StatelessWidget {
+  const _QuickActionsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _QuickAction(
+            icon: Icons.self_improvement_rounded,
+            label: 'Chant',
+            color: _saffron,
+            onTap: () => context.push('/chanting'),
+          ),
+          _QuickAction(
+            icon: Icons.menu_book_rounded,
+            label: 'Read',
+            color: _maroon,
+            onTap: () => context.push('/read'),
+          ),
+          _QuickAction(
+            icon: Icons.spa_rounded,
+            label: 'Meditate',
+            color: _peacock,
+            onTap: () => context.push('/gurudev'),
+          ),
+          _QuickAction(
+            icon: Icons.favorite_rounded,
+            label: 'Favorites',
+            color: _gold,
+            onTap: () => context.push('/profile'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: _textDark,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Verse of Day ─────────────────────────────────────────────────────────────
 class _VerseOfDaySection extends ConsumerStatefulWidget {
   final void Function(String verseId) onTap;
   const _VerseOfDaySection({required this.onTap});
 
   @override
-  ConsumerState<_VerseOfDaySection> createState() =>
-      _VerseOfDaySectionState();
+  ConsumerState<_VerseOfDaySection> createState() => _VerseOfDaySectionState();
 }
 
 class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
@@ -216,7 +289,7 @@ class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
   Widget build(BuildContext context) {
     final async = ref.watch(verseOfDayProvider);
     return async.when(
-      loading: () => const _ShimmerCard(height: 240),
+      loading: () => const _ShimmerCard(height: 240, margin: 16),
       error: (_, __) => _ErrorCard(
         message: 'Could not load Verse of the Day',
         onRetry: () => ref.invalidate(verseOfDayProvider),
@@ -231,165 +304,125 @@ class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [_saffron, _saffronDeep],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: _sandstone.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _sandstone.withOpacity(0.45), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _saffron.withOpacity(0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+              color: _sandstone.withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Stack(
-          children: [
-            // Decorative circle
-            Positioned(
-              right: -24,
-              top: -24,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          '✨ Verse of the Day',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _saffron.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border:
+                          Border.all(color: _saffron.withOpacity(0.3)),
+                    ),
+                    child: const Text(
+                      '✨ Verse of the Day',
+                      style: TextStyle(
+                        color: _saffronDeep,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 14),
-                  // Sanskrit
-                  if (verse.sanskrit.isNotEmpty)
-                    Text(
-                      verse.sanskrit,
-                      style: const TextStyle(
-                        fontFamily: 'NotoSansDevanagari',
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        height: 1.7,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => setState(() => _isFav = !_isFav),
+                    child: Icon(
+                      _isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: _isFav ? Colors.red : _textMid,
+                      size: 20,
                     ),
-                  // Transliteration
-                  if (verse.transliteration != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      verse.transliteration!,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontStyle: FontStyle.italic,
-                        fontSize: 13,
-                        height: 1.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  // Translation
-                  if (verse.translation != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      verse.translation!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      // Source chip
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.white.withOpacity(0.3)),
-                        ),
-                        child: Text(
-                          '${verse.bookTitle} ${verse.chapterNumber}:${verse.verseNumber}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      // Favorite
-                      GestureDetector(
-                        onTap: () => setState(() => _isFav = !_isFav),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _isFav
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Share
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.share_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              if (verse.sanskrit.isNotEmpty)
+                Text(
+                  verse.sanskrit,
+                  style: const TextStyle(
+                    fontFamily: 'NotoSansDevanagari',
+                    fontSize: 18,
+                    color: _textDark,
+                    fontWeight: FontWeight.w600,
+                    height: 1.7,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (verse.translation != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  verse.translation!,
+                  style: const TextStyle(
+                    color: _textMid,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${verse.bookTitle} ${verse.chapterNumber}:${verse.verseNumber}',
+                      style: const TextStyle(
+                        color: _textMid,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => widget.onTap(verse.id),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _saffron,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Read More',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -598,7 +631,8 @@ class _VerseCardSmall extends StatelessWidget {
               ),
             const Spacer(),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: _saffron.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -678,16 +712,17 @@ class _SampradayChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _peacock.withOpacity(0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: _peacock.withOpacity(0.12),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -695,28 +730,12 @@ class _SampradayChip extends StatelessWidget {
                 CachedNetworkImage(
                   imageUrl: sampraday.thumbnailUrl!,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: _gold.withOpacity(0.2)),
-                  errorWidget: (_, __, ___) => Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [_gold, _saffronDeep],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
+                  placeholder: (_, __) =>
+                      Container(color: _peacock.withOpacity(0.1)),
+                  errorWidget: (_, __, ___) => _peacockGradient(),
                 )
               else
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [_gold, _saffronDeep],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-              // Gradient overlay
+                _peacockGradient(),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -724,7 +743,7 @@ class _SampradayChip extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.65),
+                      _peacock.withOpacity(0.80),
                     ],
                   ),
                 ),
@@ -745,6 +764,15 @@ class _SampradayChip extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${sampraday.followerCount} followers',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -754,10 +782,148 @@ class _SampradayChip extends StatelessWidget {
       ),
     );
   }
+
+  Widget _peacockGradient() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF008B8B), Color(0xFF006B6B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Random Verse Section ─────────────────────────────────────────────────────
+class _RandomVerseSection extends ConsumerWidget {
+  final void Function(String verseId) onTap;
+  const _RandomVerseSection({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(randomVerseProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Discover a Verse',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _textDark,
+                      ),
+                ),
+                GestureDetector(
+                  onTap: () => ref.invalidate(randomVerseProvider),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.shuffle_rounded, size: 14, color: _maroon),
+                      SizedBox(width: 4),
+                      Text(
+                        'Shuffle',
+                        style: TextStyle(
+                          color: _maroon,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          async.when(
+            loading: () => const _ShimmerCard(height: 140, margin: 16),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (verse) => GestureDetector(
+              onTap: () => onTap(verse.id),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: _maroon.withOpacity(0.35), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _maroon.withOpacity(0.10),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _maroon.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${verse.bookTitle} ${verse.chapterNumber}:${verse.verseNumber}',
+                        style: const TextStyle(
+                          color: _maroon,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (verse.sanskrit.isNotEmpty)
+                      Text(
+                        verse.sanskrit,
+                        style: const TextStyle(
+                          fontFamily: 'NotoSansDevanagari',
+                          fontSize: 16,
+                          color: _textDark,
+                          height: 1.7,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (verse.transliteration != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        verse.transliteration!,
+                        style: const TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 12,
+                          color: _textMid,
+                          height: 1.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Today's Wisdom ───────────────────────────────────────────────────────────
 class _TodayWisdomSection extends ConsumerWidget {
+  const _TodayWisdomSection();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(todayWisdomProvider);
@@ -782,11 +948,11 @@ class _TodayWisdomSection extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: _krishnaBlue,
+                  color: const Color(0xFF1A4D8F),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: _krishnaBlue.withOpacity(0.25),
+                      color: const Color(0xFF1A4D8F).withOpacity(0.25),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),
