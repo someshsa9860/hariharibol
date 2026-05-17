@@ -13,6 +13,7 @@ class App extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
     final fontSize = ref.watch(fontSizeProvider);
+    final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
       title: F.title,
@@ -20,7 +21,7 @@ class App extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       locale: locale,
-      routerConfig: AppRouter.router,
+      routerConfig: router,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(fontSize),

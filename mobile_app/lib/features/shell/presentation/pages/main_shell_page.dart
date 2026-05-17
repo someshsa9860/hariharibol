@@ -3,8 +3,7 @@ import '../../../chatbot/presentation/pages/chatbot_page.dart';
 import '../../../chanting/presentation/pages/chanting_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../reading/presentation/pages/reading_page.dart';
-import '../../../sampradayas/presentation/pages/sampradayas_page.dart';
-import '../../../groups/presentation/pages/groups_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 const _saffron = Color(0xFFFF7E00);
 const _textMid = Color(0xFF8B7D73);
@@ -23,10 +22,10 @@ class _MainShellPageState extends State<MainShellPage> {
 
   final List<Widget> _pages = const [
     HomePage(),
-    ChatbotPage(),
-    ChantingPage(),
-    ReadingPage(),
-    _CommunityPage(),
+    ReadingPage(),   // Books
+    ChantingPage(),  // Chant
+    ChatbotPage(),   // GuruDev
+    ProfilePage(),   // Profile
   ];
 
   @override
@@ -50,75 +49,8 @@ class _MainShellPageState extends State<MainShellPage> {
   }
 }
 
-// ─── Community Page (shell-embedded) ─────────────────────────────────────────
-// Uses a top segmented switcher; each child is a full scrollable page.
-class _CommunityPage extends StatefulWidget {
-  const _CommunityPage();
-
-  @override
-  State<_CommunityPage> createState() => _CommunityPageState();
-}
-
-class _CommunityPageState extends State<_CommunityPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tab;
-
-  @override
-  void initState() {
-    super.initState();
-    _tab = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Segmented tab switcher at the top (no AppBar)
-        SafeArea(
-          bottom: false,
-          child: Container(
-            color: Colors.white,
-            padding:
-                const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: TabBar(
-              controller: _tab,
-              indicator: BoxDecoration(
-                color: const Color(0xFF006B6B),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF8B7D73),
-              labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14),
-              tabs: const [
-                Tab(text: '🕉️  Traditions'),
-                Tab(text: '🏛️  Groups'),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tab,
-            children: const [
-              SampradayasPage(),
-              GroupsPage(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 // ─── Bottom Navigation ────────────────────────────────────────────────────────
+
 class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -126,11 +58,11 @@ class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.currentIndex, required this.onTap});
 
   static const _tabs = [
-    _TabItem(icon: '🏠', label: 'Home'),
-    _TabItem(icon: '💬', label: 'GuruDev'),
-    _TabItem(icon: '📿', label: 'Chanting'),
-    _TabItem(icon: '📖', label: 'Read'),
-    _TabItem(icon: '🕉️', label: 'Community'),
+    _TabItem(icon: Icons.home_rounded, label: 'Home'),
+    _TabItem(icon: Icons.menu_book_rounded, label: 'Books'),
+    _TabItem(icon: Icons.self_improvement_rounded, label: 'Chant'),
+    _TabItem(icon: Icons.auto_awesome_rounded, label: 'GuruDev'),
+    _TabItem(icon: Icons.person_rounded, label: 'Profile'),
   ];
 
   @override
@@ -140,16 +72,16 @@ class _BottomNav extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.10),
+            blurRadius: 16,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(
@@ -168,7 +100,7 @@ class _BottomNav extends StatelessWidget {
 }
 
 class _TabItem {
-  final String icon;
+  final IconData icon;
   final String label;
   const _TabItem({required this.icon, required this.label});
 }
@@ -192,25 +124,28 @@ class _NavButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: isSelected
             ? BoxDecoration(
-                color: _saffron.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                color: _saffron.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
               )
             : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(tab.icon, style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: 2),
+            Icon(
+              tab.icon,
+              size: 22,
+              color: isSelected ? _saffron : _textMid,
+            ),
+            const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected
-                    ? FontWeight.bold
-                    : FontWeight.normal,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w400,
                 color: isSelected ? _saffron : _textMid,
               ),
               child: Text(tab.label),

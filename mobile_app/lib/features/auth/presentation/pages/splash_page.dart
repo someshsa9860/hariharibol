@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
+
+const _maroon = Color(0xFF7B1C1C);
+const _saffron = Color(0xFFFF6B00);
+const _gold = Color(0xFFD4A055);
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -11,23 +16,34 @@ class SplashPage extends ConsumerStatefulWidget {
 }
 
 class _SplashPageState extends ConsumerState<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _progressController;
+  late Animation<double> _fadeAnim;
+  late Animation<double> _scaleAnim;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 2),
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    _fadeAnim =
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _scaleAnim = Tween<double>(begin: 0.72, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.elasticOut),
     );
-    _animationController.forward();
+    _fadeController.forward();
 
-    Future.delayed(const Duration(milliseconds: 2200), _checkAuthStatus);
+    _progressController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    );
+    _progressController.forward();
+
+    Future.delayed(const Duration(milliseconds: 2500), _checkAuthStatus);
   }
 
   void _checkAuthStatus() {
@@ -36,17 +52,11 @@ class _SplashPageState extends ConsumerState<SplashPage>
     authState.whenData((state) {
       if (!mounted) return;
       if (state.isAuthenticated) {
-        if (state.needsOnboarding) {
-          context.go('/onboarding');
-        } else {
-          context.go('/home');
-        }
+        context.go(state.needsOnboarding ? '/onboarding' : '/home');
       } else {
         context.go('/login');
       }
     });
-
-    // If loading or error, still go to login
     if (authState.isLoading || authState.hasError) {
       context.go('/login');
     }
@@ -54,65 +64,123 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A0A00),
-      body: Center(
-        child: FadeTransition(
-          opacity: _animation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ScaleTransition(
-                scale: _animation,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Colors.amber[400]!, Colors.orange[700]!],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: const Center(
-                    child: Text('🙏', style: TextStyle(fontSize: 50)),
-                  ),
-                ),
+      body: Stack(
+        children: [
+          // Full-screen maroon-to-saffron radial gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.15,
+                colors: [_maroon, Color(0xFFAA3500), _saffron],
+                stops: [0.0, 0.55, 1.0],
               ),
-              const SizedBox(height: 30),
-              Text(
-                'HariHariBol',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Spiritual Wisdom at Your Fingertips',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white70,
-                    ),
-              ),
-              const SizedBox(height: 50),
-              SizedBox(
-                width: 36,
-                height: 36,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[400]!),
-                  strokeWidth: 2,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          // Centered content
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Om symbol with gold glow
+                  ScaleTransition(
+                    scale: _scaleAnim,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: _gold.withOpacity(0.65),
+                            blurRadius: 48,
+                            spreadRadius: 14,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'ॐ', // ॐ
+                        style: TextStyle(
+                          fontSize: 80,
+                          color: _gold,
+                          fontWeight: FontWeight.bold,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.white30,
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // App name — Playfair Display bold 32sp
+                  Text(
+                    'HariHariBol',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Tagline — Inter italic 14sp
+                  Text(
+                    'Sacred Wisdom for Every Soul',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white.withOpacity(0.85),
+                      letterSpacing: 0.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom saffron progress bar animating left-to-right
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: AnimatedBuilder(
+              animation: _progressController,
+              builder: (context, _) {
+                final screenW = MediaQuery.of(context).size.width;
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    height: 3,
+                    width: screenW * _progressController.value,
+                    decoration: BoxDecoration(
+                      color: _gold,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _gold.withOpacity(0.55),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
