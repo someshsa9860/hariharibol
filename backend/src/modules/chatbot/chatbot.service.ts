@@ -17,6 +17,19 @@ import { CreateSessionDto } from './dto/create-session.dto';
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
 
+// Patterns that warrant a moderation redirect — checked on AI-generated output
+const MODERATION_PATTERNS = [
+  /\b(gambling|casino|bet(?:ting)?|lottery|poker|wager)\b/i,
+  /\b(murder|kill(?:ing)?|bomb(?:ing)?|terroris[mt]|weapon|assault|massacre)\b/i,
+  /\b(sex(?:ual)?|porn(?:ography)?|erotic|nude|genital|masturbat)/i,
+  /\b(idol[- ]?worship(?:per)?|polytheist(?:ic)?|pagan ritual|fake god|false religion|hinduism is wrong|hinduism is evil)\b/i,
+];
+
+const MODERATION_REDIRECT =
+  'I can only discuss dharma, scripture, and spiritual practice. May I help you with something spiritual?';
+
+type VerseRef = { type: 'BG' | 'SB'; numbers: number[] };
+
 @Injectable()
 export class ChatbotService {
   private readonly logger = new Logger('ChatbotService');
@@ -51,10 +64,30 @@ export class ChatbotService {
         messageCount: true,
         createdAt: true,
         updatedAt: true,
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { role: true, content: true, createdAt: true },
+        },
       },
     });
 
-    return { data: sessions, total: sessions.length };
+    const data = sessions.map(s => {
+      const last = s.messages[0];
+      const { messages, ...rest } = s;
+      return {
+        ...rest,
+        lastMessage: last
+          ? {
+              role: last.role,
+              preview: last.content.length > 120 ? last.content.substring(0, 117) + '...' : last.content,
+              createdAt: last.createdAt,
+            }
+          : null,
+      };
+    });
+
+    return { data, total: data.length };
   }
 
   async getSession(sessionId: string, userId: string) {
@@ -96,15 +129,21 @@ export class ChatbotService {
   async sendMessage(sessionId: string, userId: string, message: string, res: Response) {
     await this.enforceRateLimit(userId);
 
-    const session = await this.prisma.chatbotSession.findFirst({
-      where: { id: sessionId, userId },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'asc' },
-          take: 20,
+    const [session, user] = await Promise.all([
+      this.prisma.chatbotSession.findFirst({
+        where: { id: sessionId, userId },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'asc' },
+            take: 20,
+          },
         },
-      },
-    });
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { languagePreference: true },
+      }),
+    ]);
 
     if (!session) {
       throw new NotFoundException('Session not found');
@@ -118,8 +157,9 @@ export class ChatbotService {
       data: { sessionId, role: 'user', content: message },
     });
 
+    const languagePreference = user?.languagePreference ?? 'en';
     const relevantVerses = await this.fetchRelevantVerses(message, 3);
-    const systemPrompt = this.buildGuruDevSystemPrompt(relevantVerses);
+    const systemPrompt = this.buildGuruDevSystemPrompt(relevantVerses, languagePreference);
 
     const conversationHistory: AIMessage[] = [
       ...session.messages.map(m => ({
@@ -145,7 +185,26 @@ export class ChatbotService {
       return;
     }
 
-    const citedVerseIds = relevantVerses.map(v => v.id);
+    // Task B: moderate the generated response before persisting
+    const wasModerated = this.isResponseFlagged(fullResponse);
+    if (wasModerated) {
+      this.logger.warn(`Moderated chatbot response for session ${sessionId}. Original preview: "${fullResponse.substring(0, 100)}"`);
+      fullResponse = MODERATION_REDIRECT;
+      // Replace already-streamed chunks with the redirect via a correction event
+      res.write(`data: ${JSON.stringify({ type: 'moderated', content: MODERATION_REDIRECT })}\n\n`);
+    }
+
+    // Task C: extract explicitly mentioned verse references from AI response and look them up
+    const mentionedRefs = this.extractVerseReferences(fullResponse);
+    const mentionedVerses = await this.lookupCitedVerses(mentionedRefs);
+
+    // Merge context verses with explicitly mentioned ones, deduplicated by id
+    const allVerseMap = new Map<string, (typeof relevantVerses)[0]>();
+    for (const v of [...relevantVerses, ...mentionedVerses]) {
+      allVerseMap.set(v.id, v);
+    }
+    const allVerses = Array.from(allVerseMap.values());
+    const citedVerseIds = allVerses.map(v => v.id);
 
     const assistantMessage = await this.prisma.chatbotMessage.create({
       data: {
@@ -166,11 +225,19 @@ export class ChatbotService {
       },
     });
 
+    const citations = allVerses.map(v => ({
+      id: v.id,
+      verseId: v.verseId,
+      sanskrit: v.sanskrit,
+      transliteration: v.transliteration,
+      meaning: v.translations?.[0]?.meaning ?? null,
+    }));
+
     res.write(
       `data: ${JSON.stringify({
         type: 'done',
         messageId: assistantMessage.id,
-        citedVerseIds,
+        citations,
       })}\n\n`,
     );
     res.end();
@@ -242,10 +309,48 @@ export class ChatbotService {
     });
   }
 
-  private buildGuruDevSystemPrompt(verses: any[]): string {
+  // Task C: Extract "BG X.XX" and "SB X.X.XX" references from AI-generated text
+  private extractVerseReferences(text: string): VerseRef[] {
+    const refs: VerseRef[] = [];
+
+    for (const match of text.matchAll(/\bBG\s+(\d+)\.(\d+)\b/gi)) {
+      refs.push({ type: 'BG', numbers: [parseInt(match[1]), parseInt(match[2])] });
+    }
+
+    for (const match of text.matchAll(/\bSB\s+(\d+)\.(\d+)\.(\d+)\b/gi)) {
+      refs.push({ type: 'SB', numbers: [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])] });
+    }
+
+    return refs;
+  }
+
+  private async lookupCitedVerses(refs: VerseRef[]) {
+    if (refs.length === 0) return [];
+
+    const conditions = refs.map(ref => {
+      if (ref.type === 'BG') {
+        // BG has no canto; match chapter + verse
+        return { cantoNumber: null, chapterNumber: ref.numbers[0], verseNumber: ref.numbers[1] };
+      }
+      // SB: canto.chapter.verse
+      return { cantoNumber: ref.numbers[0], chapterNumber: ref.numbers[1], verseNumber: ref.numbers[2] };
+    });
+
+    return this.prisma.verse.findMany({
+      where: { OR: conditions },
+      include: { translations: { take: 1, where: { language: 'en' } } },
+    });
+  }
+
+  // Task B: simple regex guard on AI output — avoids a second LLM call for latency
+  private isResponseFlagged(text: string): boolean {
+    return MODERATION_PATTERNS.some(pattern => pattern.test(text));
+  }
+
+  private buildGuruDevSystemPrompt(verses: any[], languagePreference: string): string {
     const verseContext =
       verses.length > 0
-        ? `\n\nRelevant scripture context:\n${verses
+        ? `\n\nRelevant scripture context for this conversation:\n${verses
             .map(v => {
               const translation = v.translations?.[0];
               const meaning = translation?.meaning?.substring(0, 150) ?? '';
@@ -254,19 +359,34 @@ export class ChatbotService {
             .join('\n')}`
         : '';
 
-    return `You are GuruDev, a wise and compassionate spiritual guide on the HariHariBol platform.
-You have profound knowledge of Sanatan Dharma, Vedic philosophy, Sanskrit scriptures, and the paths of
-Bhakti, Karma, and Jnana Yoga. You are knowledgeable about the Bhagavad Gita, Srimad Bhagavatam,
-Upanishads, Vedas, and other sacred texts.
+    const languageInstruction =
+      languagePreference && languagePreference !== 'en'
+        ? `\n\nIMPORTANT: The devotee's preferred language is "${languagePreference}". Respond in that language whenever possible, but always include Sanskrit verse references in their original form.`
+        : '';
 
-Guidelines:
-- Speak with wisdom, compassion, and humility
-- Cite relevant verses by their verseId when appropriate
-- Encourage sincere spiritual practice suited to the seeker's level
-- Respect all sampradayas and spiritual traditions within Sanatan Dharma
-- Keep responses meaningful, focused, and spiritually nourishing
-- Avoid controversial political topics; focus on spiritual wisdom
-- If a question is outside the domain of spirituality, gently redirect${verseContext}`;
+    return `You are GuruDev — a kind, wise, and deeply devoted Vaishnava guru on the HariHariBol platform. \
+You speak with the warmth of a personal teacher who loves every soul and sees Krishna in all beings.
+
+IDENTITY & PERSONA:
+- You follow the Vaishnava (Bhakti Yoga) tradition rooted in the teachings of Srila Prabhupada, \
+  the Bhagavad Gita As It Is, and the Srimad Bhagavatam.
+- You address seekers as "dear devotee" or by their question context.
+- You close EVERY response with "Hare Krishna 🙏" or "Jai Shri Krishna 🙏".
+
+TEACHING GUIDELINES:
+- Always ground answers in Bhagavad Gita (cite as BG X.XX) or Srimad Bhagavatam (cite as SB X.X.XX).
+- Provide at minimum one scripture citation per response.
+- Explain verses with devotional insight — not dry academic analysis.
+- Honour all Vaishnava sampradayas (Gaudiya, Ramanuja, Madhva, Nimbarka, Vallabha) with equal respect.
+- Encourage sincere sadhana: chanting the Holy Name, hearing scripture, associating with devotees.
+- If asked about yoga paths, always bring the seeker back to Bhakti as the highest path (BG 18.65-66).
+
+BOUNDARIES:
+- Do NOT engage with questions about gambling, violence, sexual topics, or content that disrespects \
+  any Dharmic tradition.
+- Do NOT offer medical, legal, or financial advice.
+- If a question is off-topic, gently redirect: "Dear devotee, let us return to the river of devotion."
+- Never give purely academic or secular interpretations — all explanations must be devotional.${languageInstruction}${verseContext}`;
   }
 
   private deriveTitle(message: string): string {
