@@ -3,17 +3,19 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Globe2, Plus, X, Check, AlignRight } from 'lucide-react';
+import { Globe2, Plus, X, Check, AlignRight, Trash2, Edit2 } from 'lucide-react';
 
 interface Language {
   id: string;
   code: string;
-  nativeName: string;
-  englishName: string;
+  nameNative?: string;
+  nativeName?: string;
+  nameEnglish?: string;
+  englishName?: string;
   isRtl: boolean;
   isActive: boolean;
-  fallbackCode: string | null;
-  updatedAt: string;
+  fallbackCode?: string | null;
+  displayOrder?: number;
 }
 
 interface LangForm {
@@ -26,13 +28,13 @@ interface LangForm {
 }
 
 const EMPTY_FORM: LangForm = {
-  code: '', nativeName: '', englishName: '', isRtl: false, isActive: true, fallbackCode: '',
+  code: '', nativeName: '', englishName: '', isRtl: false, isActive: true, fallbackCode: 'en',
 };
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
-    <button type="button" onClick={() => onChange(!checked)}
-      className="w-10 h-5 rounded-full relative flex-shrink-0 transition-all duration-200"
+    <button type="button" onClick={() => !disabled && onChange(!checked)} disabled={disabled}
+      className="w-10 h-5 rounded-full relative flex-shrink-0 transition-all duration-200 disabled:opacity-50"
       style={{ background: checked ? '#4ade80' : 'var(--border-2)' }}>
       <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200"
         style={{ left: checked ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
@@ -44,44 +46,95 @@ function Skeleton() {
   return <div className="skeleton h-14 rounded-xl" />;
 }
 
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: 'var(--bg-2)', border: '1px solid var(--border-2)', boxShadow: '0 25px 80px rgba(0,0,0,0.6)' }}>
+        <div className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid var(--surface-2)', background: 'var(--surface)' }}>
+          <h2 className="font-bold text-theme text-sm">{title}</h2>
+          <button onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+            style={{ color: 'var(--muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--muted)'; }}>
+            <X size={15} />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function LanguagesPage() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editLang, setEditLang] = useState<Language | null>(null);
   const [form, setForm] = useState<LangForm>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Language | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => { fetchLanguages(); }, []);
 
   const fetchLanguages = async () => {
+    setLoading(true);
     try {
       const r = await api.get('/languages');
-      setLanguages(r.data || generateMockLanguages());
+      setLanguages(Array.isArray(r.data) ? r.data : r.data?.data || []);
     } catch {
-      setLanguages(generateMockLanguages());
+      setLanguages([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const openCreate = () => { setForm(EMPTY_FORM); setEditLang(null); setError(''); setShowModal(true); };
+  const openEdit = (l: Language) => {
+    setEditLang(l);
+    setForm({
+      code: l.code,
+      nativeName: l.nameNative ?? l.nativeName ?? '',
+      englishName: l.nameEnglish ?? l.englishName ?? '',
+      isRtl: l.isRtl,
+      isActive: l.isActive,
+      fallbackCode: l.fallbackCode ?? 'en',
+    });
+    setError('');
+    setShowModal(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError('');
     try {
-      await api.post('/languages', {
+      const payload = {
         code: form.code,
+        nameNative: form.nativeName,
+        nameEnglish: form.englishName,
         nativeName: form.nativeName,
         englishName: form.englishName,
         isRtl: form.isRtl,
         isActive: form.isActive,
-        fallbackCode: form.fallbackCode || null,
-      });
+        fallbackCode: form.fallbackCode || 'en',
+      };
+      if (editLang) {
+        await api.patch(`/languages/${editLang.id}`, payload);
+      } else {
+        await api.post('/languages', payload);
+      }
       setShowModal(false);
       setForm(EMPTY_FORM);
       fetchLanguages();
-    } catch (e) {
-      console.error('Failed to add language:', e);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to save language');
     } finally {
       setSubmitting(false);
     }
@@ -92,25 +145,24 @@ export default function LanguagesPage() {
     try {
       await api.patch(`/languages/${lang.id}`, { isActive: !lang.isActive });
       setLanguages(prev => prev.map(l => l.id === lang.id ? { ...l, isActive: !l.isActive } : l));
-    } catch {
-      console.error('Toggle failed');
-    } finally {
+    } catch { } finally {
       setTogglingId(null);
     }
   };
 
-  const field = (key: keyof LangForm) => ({
-    value: form[key] as string,
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm(p => ({ ...p, [key]: e.target.value })),
-  });
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try { await api.delete(`/languages/${id}`); fetchLanguages(); } catch { }
+    finally { setDeletingId(null); setConfirmDelete(null); }
+  };
+
+  const getNativeName = (l: Language) => l.nameNative ?? l.nativeName ?? '—';
+  const getEnglishName = (l: Language) => l.nameEnglish ?? l.englishName ?? '—';
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
       <Sidebar />
       <main className="flex-1 overflow-auto">
-
-        {/* Header */}
         <header className="px-8 py-4 flex items-center justify-between sticky top-0 z-10"
           style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px)' }}>
           <div className="flex items-center gap-3">
@@ -123,8 +175,7 @@ export default function LanguagesPage() {
               <p className="text-xs" style={{ color: 'var(--muted)' }}>Manage supported languages and locale settings</p>
             </div>
           </div>
-          <button
-            onClick={() => { setShowModal(true); setForm(EMPTY_FORM); }}
+          <button onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200"
             style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--bg)', boxShadow: '0 4px 15px var(--accent-glow)' }}>
             <Plus size={15} /> Add Language
@@ -132,8 +183,6 @@ export default function LanguagesPage() {
         </header>
 
         <div className="p-8 max-w-5xl mx-auto">
-
-          {/* Table */}
           <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <Globe2 size={14} style={{ color: '#60a5fa' }} />
@@ -148,6 +197,12 @@ export default function LanguagesPage() {
 
             {loading ? (
               <div className="p-5 space-y-3">{[1,2,3,4,5].map(i => <Skeleton key={i} />)}</div>
+            ) : languages.length === 0 ? (
+              <div className="py-16 text-center">
+                <Globe2 size={32} className="mx-auto mb-3" style={{ color: 'var(--muted)', opacity: 0.3 }} />
+                <p className="text-sm mb-1" style={{ color: 'var(--muted)' }}>No languages configured</p>
+                <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.6 }}>Add your first language to enable translations</p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -158,8 +213,8 @@ export default function LanguagesPage() {
                       <th className="table-header">English Name</th>
                       <th className="table-header">RTL</th>
                       <th className="table-header">Fallback</th>
-                      <th className="table-header">Last Updated</th>
                       <th className="table-header">Active</th>
+                      <th className="table-header">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -172,18 +227,16 @@ export default function LanguagesPage() {
                           </code>
                         </td>
                         <td className="table-cell">
-                          <span className="font-semibold text-theme">{lang.nativeName}</span>
+                          <span className="font-semibold text-theme">{getNativeName(lang)}</span>
                         </td>
                         <td className="table-cell">
-                          <span style={{ color: 'var(--muted)' }}>{lang.englishName}</span>
+                          <span style={{ color: 'var(--muted)' }}>{getEnglishName(lang)}</span>
                         </td>
                         <td className="table-cell">
                           {lang.isRtl ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="badge badge-amber">
-                                <AlignRight size={9} className="mr-1" /> RTL
-                              </span>
-                            </div>
+                            <span className="badge badge-amber">
+                              <AlignRight size={9} className="mr-1" /> RTL
+                            </span>
                           ) : (
                             <span className="text-xs" style={{ color: 'var(--muted)' }}>LTR</span>
                           )}
@@ -198,16 +251,25 @@ export default function LanguagesPage() {
                           )}
                         </td>
                         <td className="table-cell">
-                          <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                            {new Date(lang.updatedAt).toLocaleDateString()}
-                          </span>
-                        </td>
-                        <td className="table-cell">
                           {togglingId === lang.id ? (
                             <div className="w-4 h-4 rounded-full border-2 border-green-400 border-t-transparent animate-spin" />
                           ) : (
                             <Toggle checked={lang.isActive} onChange={() => handleToggleActive(lang)} />
                           )}
+                        </td>
+                        <td className="table-cell">
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => openEdit(lang)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                              style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa' }}>
+                              <Edit2 size={13} />
+                            </button>
+                            <button onClick={() => setConfirmDelete(lang)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)', color: '#f87171' }}>
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -218,123 +280,112 @@ export default function LanguagesPage() {
           </div>
         </div>
 
-        {/* Add Language Modal */}
+        {/* Add / Edit Language Modal */}
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
-            <div className="rounded-2xl w-full max-w-md animate-scale-in overflow-hidden"
-              style={{ background: 'var(--bg-2)', border: '1px solid rgba(255,107,43,0.2)', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
-
-              <div className="px-6 py-4 flex items-center justify-between"
-                style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,107,43,0.05)' }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-5 rounded-full" style={{ background: 'linear-gradient(var(--accent), var(--accent-2))' }} />
-                  <h2 className="font-bold text-theme">Add Language</h2>
+          <Modal title={editLang ? 'Edit Language' : 'Add Language'} onClose={() => setShowModal(false)}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+                    Language Code *
+                  </label>
+                  <input value={form.code} onChange={e => setForm(p => ({ ...p, code: e.target.value }))}
+                    type="text" placeholder="hi" maxLength={10} className="input-field" required
+                    disabled={!!editLang} />
                 </div>
-                <button onClick={() => setShowModal(false)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
-                  style={{ background: 'var(--border)', color: 'var(--muted)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--muted)'; }}>
-                  <X size={15} />
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+                    Fallback Code
+                  </label>
+                  <input value={form.fallbackCode} onChange={e => setForm(p => ({ ...p, fallbackCode: e.target.value }))}
+                    type="text" placeholder="en" maxLength={10} className="input-field" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+                  Native Name *
+                </label>
+                <input value={form.nativeName} onChange={e => setForm(p => ({ ...p, nativeName: e.target.value }))}
+                  type="text" placeholder="हिन्दी" className="input-field" required />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+                  English Name *
+                </label>
+                <input value={form.englishName} onChange={e => setForm(p => ({ ...p, englishName: e.target.value }))}
+                  type="text" placeholder="Hindi" className="input-field" required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" onClick={() => setForm(p => ({ ...p, isRtl: !p.isRtl }))}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
+                  style={{
+                    background: form.isRtl ? 'rgba(251,191,36,0.08)' : 'var(--surface)',
+                    border: `1px solid ${form.isRtl ? 'rgba(251,191,36,0.25)' : 'var(--border-2)'}`,
+                  }}>
+                  <Toggle checked={form.isRtl} onChange={v => setForm(p => ({ ...p, isRtl: v }))} />
+                  <span className="text-sm font-semibold" style={{ color: form.isRtl ? '#fbbf24' : 'var(--muted)' }}>RTL</span>
+                </button>
+
+                <button type="button" onClick={() => setForm(p => ({ ...p, isActive: !p.isActive }))}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
+                  style={{
+                    background: form.isActive ? 'rgba(74,222,128,0.08)' : 'var(--surface)',
+                    border: `1px solid ${form.isActive ? 'rgba(74,222,128,0.25)' : 'var(--border-2)'}`,
+                  }}>
+                  <Toggle checked={form.isActive} onChange={v => setForm(p => ({ ...p, isActive: v }))} />
+                  <span className="text-sm font-semibold" style={{ color: form.isActive ? '#4ade80' : 'var(--muted)' }}>Active</span>
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-                      Language Code *
-                    </label>
-                    <input {...field('code')} type="text" placeholder="hi" maxLength={10}
-                      className="input-field" required />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-                      Fallback Code
-                    </label>
-                    <input {...field('fallbackCode')} type="text" placeholder="en" maxLength={10}
-                      className="input-field" />
-                  </div>
-                </div>
+              {error && (
+                <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>
+                  {error}
+                </p>
+              )}
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-                    Native Name *
-                  </label>
-                  <input {...field('nativeName')} type="text" placeholder="हिन्दी" className="input-field" required />
-                </div>
+              <div className="flex gap-3 pt-1">
+                <button type="submit" disabled={submitting}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--bg)', boxShadow: '0 4px 15px var(--accent-glow)' }}>
+                  {submitting
+                    ? <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
+                    : <Check size={14} />}
+                  {submitting ? 'Saving…' : editLang ? 'Save Changes' : 'Add Language'}
+                </button>
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary px-5 py-2.5 text-sm">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </Modal>
+        )}
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-                    English Name *
-                  </label>
-                  <input {...field('englishName')} type="text" placeholder="Hindi" className="input-field" required />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {/* RTL toggle */}
-                  <button type="button" onClick={() => setForm(p => ({ ...p, isRtl: !p.isRtl }))}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
-                    style={{
-                      background: form.isRtl ? 'rgba(251,191,36,0.08)' : 'var(--surface)',
-                      border: `1px solid ${form.isRtl ? 'rgba(251,191,36,0.25)' : 'var(--border-2)'}`,
-                    }}>
-                    <Toggle checked={form.isRtl} onChange={v => setForm(p => ({ ...p, isRtl: v }))} />
-                    <span className="text-sm font-semibold" style={{ color: form.isRtl ? '#fbbf24' : 'var(--muted)' }}>RTL</span>
-                  </button>
-
-                  {/* Active toggle */}
-                  <button type="button" onClick={() => setForm(p => ({ ...p, isActive: !p.isActive }))}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
-                    style={{
-                      background: form.isActive ? 'rgba(74,222,128,0.08)' : 'var(--surface)',
-                      border: `1px solid ${form.isActive ? 'rgba(74,222,128,0.25)' : 'var(--border-2)'}`,
-                    }}>
-                    <Toggle checked={form.isActive} onChange={v => setForm(p => ({ ...p, isActive: v }))} />
-                    <span className="text-sm font-semibold" style={{ color: form.isActive ? '#4ade80' : 'var(--muted)' }}>Active</span>
-                  </button>
-                </div>
-
-                <div className="flex gap-3 pt-1">
-                  <button type="submit" disabled={submitting}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--bg)', boxShadow: '0 4px 15px var(--accent-glow)' }}>
-                    {submitting
-                      ? <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
-                      : <Check size={14} />
-                    }
-                    {submitting ? 'Adding…' : 'Add Language'}
-                  </button>
-                  <button type="button" onClick={() => setShowModal(false)} className="btn-secondary px-5 py-2.5 text-sm">
-                    Cancel
-                  </button>
-                </div>
-              </form>
+        {/* Delete confirmation */}
+        {confirmDelete && (
+          <Modal title="Delete Language" onClose={() => setConfirmDelete(null)}>
+            <div className="flex items-center gap-3 mb-4 p-3 rounded-xl" style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)' }}>
+              <code className="font-bold text-sm px-2 py-1 rounded-lg"
+                style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}>
+                {confirmDelete.code}
+              </code>
+              <span className="font-semibold text-theme text-sm">{getNativeName(confirmDelete)}</span>
             </div>
-          </div>
+            <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
+              Deleting this language may break translations that reference it. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(confirmDelete.id)} disabled={deletingId === confirmDelete.id}
+                className="btn-danger flex-1 disabled:opacity-50">
+                {deletingId === confirmDelete.id ? 'Deleting…' : 'Delete Language'}
+              </button>
+              <button onClick={() => setConfirmDelete(null)} className="btn-secondary flex-1">Cancel</button>
+            </div>
+          </Modal>
         )}
       </main>
     </div>
   );
-}
-
-function generateMockLanguages(): Language[] {
-  const langs = [
-    { code: 'en', nativeName: 'English', englishName: 'English', isRtl: false, isActive: true, fallbackCode: null },
-    { code: 'hi', nativeName: 'हिन्दी', englishName: 'Hindi', isRtl: false, isActive: true, fallbackCode: 'en' },
-    { code: 'sa', nativeName: 'संस्कृतम्', englishName: 'Sanskrit', isRtl: false, isActive: true, fallbackCode: 'en' },
-    { code: 'gu', nativeName: 'ગુજરાતી', englishName: 'Gujarati', isRtl: false, isActive: true, fallbackCode: 'hi' },
-    { code: 'mr', nativeName: 'मराठी', englishName: 'Marathi', isRtl: false, isActive: true, fallbackCode: 'hi' },
-    { code: 'te', nativeName: 'తెలుగు', englishName: 'Telugu', isRtl: false, isActive: true, fallbackCode: 'en' },
-    { code: 'ta', nativeName: 'தமிழ்', englishName: 'Tamil', isRtl: false, isActive: true, fallbackCode: 'en' },
-    { code: 'kn', nativeName: 'ಕನ್ನಡ', englishName: 'Kannada', isRtl: false, isActive: false, fallbackCode: 'en' },
-    { code: 'bn', nativeName: 'বাংলা', englishName: 'Bengali', isRtl: false, isActive: false, fallbackCode: 'en' },
-    { code: 'ar', nativeName: 'العربية', englishName: 'Arabic', isRtl: true, isActive: false, fallbackCode: 'en' },
-  ];
-  return langs.map((l, i) => ({
-    ...l,
-    id: `lang_${i + 1}`,
-    updatedAt: new Date(Date.now() - i * 86400000 * 3).toISOString(),
-  }));
 }
