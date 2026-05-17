@@ -25,19 +25,19 @@ interface NavGroup {
 
 const topItems: NavItem[] = [
   { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/analytics',    label: 'Analytics',    icon: BarChart3 },
   { href: '/verse-of-day', label: 'Verse of Day', icon: Sparkles },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
-const contentGroups: NavGroup[] = [
+const navGroups: NavGroup[] = [
   {
     label: 'Content',
     defaultOpen: true,
     items: [
-      { href: '/sampradayas', label: 'Sampradayas', icon: BookOpen },
       { href: '/books',       label: 'Books',        icon: Library },
-      { href: '/narrations',  label: 'Narrations',   icon: Mic2 },
       { href: '/mantras',     label: 'Mantras',      icon: Music },
+      { href: '/sampradayas', label: 'Sampradayas',  icon: BookOpen },
+      { href: '/narrations',  label: 'Narrations',   icon: Mic2 },
     ],
   },
   {
@@ -49,25 +49,33 @@ const contentGroups: NavGroup[] = [
       { href: '/translations/import-export', label: 'Import/Export', icon: Download },
     ],
   },
-];
-
-const moderationGroup: NavGroup = {
-  label: 'Moderation',
-  defaultOpen: false,
-  items: [
-    { href: '/moderation',          label: 'Queue',          icon: MessageSquare },
-    { href: '/moderation/groups',   label: 'Group Oversight', icon: UsersRound },
-    { href: '/moderation/strikes',  label: 'User Strikes',   icon: AlertTriangle },
-  ],
-};
-
-const bottomItems: NavItem[] = [
-  { href: '/languages',      label: 'Languages',      icon: Globe2 },
-  { href: '/users',          label: 'Users',          icon: Users },
-  { href: '/bans',           label: 'Bans',           icon: Ban },
-  { href: '/notifications',  label: 'Notifications',  icon: Bell },
-  { href: '/audit-log',      label: 'Audit Log',      icon: ClipboardList },
-  { href: '/settings',       label: 'Settings',       icon: Settings },
+  {
+    label: 'Users',
+    defaultOpen: false,
+    items: [
+      { href: '/users', label: 'Management', icon: Users },
+      { href: '/bans',  label: 'Bans',       icon: Ban },
+    ],
+  },
+  {
+    label: 'Moderation',
+    defaultOpen: false,
+    items: [
+      { href: '/moderation',          label: 'Queue',           icon: MessageSquare },
+      { href: '/moderation/groups',   label: 'Group Oversight', icon: UsersRound },
+      { href: '/moderation/strikes',  label: 'User Strikes',    icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'System',
+    defaultOpen: false,
+    items: [
+      { href: '/analytics',  label: 'Analytics',  icon: BarChart3 },
+      { href: '/languages',  label: 'Languages',  icon: Globe2 },
+      { href: '/audit-log',  label: 'Audit Log',  icon: ClipboardList },
+      { href: '/settings',   label: 'Settings',   icon: Settings },
+    ],
+  },
 ];
 
 function NavLink({ item, pathname, hovered, setHovered }: {
@@ -75,7 +83,8 @@ function NavLink({ item, pathname, hovered, setHovered }: {
   hovered: string | null; setHovered: (v: string | null) => void;
 }) {
   const Icon = item.icon;
-  const isActive = pathname === item.href || (item.href !== '/translations' && pathname.startsWith(item.href + '/'))
+  const isActive = pathname === item.href
+    || (item.href !== '/translations' && item.href.length > 1 && pathname.startsWith(item.href + '/'))
     || (item.href === '/translations' && (pathname === '/translations' || pathname === '/translations/'));
   const isHov = hovered === item.href;
 
@@ -93,13 +102,10 @@ function NavLink({ item, pathname, hovered, setHovered }: {
         border: isActive
           ? '1px solid color-mix(in srgb, var(--accent) 25%, transparent)'
           : '1px solid transparent',
+        borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
         fontWeight: isActive ? 700 : 600,
       }}
     >
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-          style={{ background: 'var(--accent)', boxShadow: '0 0 6px var(--accent)' }} />
-      )}
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
         style={{
           background: isActive
@@ -130,7 +136,7 @@ function CollapsibleGroup({ group, pathname, hovered, setHovered }: {
         style={{ color: 'var(--muted)', opacity: 0.7 }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}>
-        <span className="text-[9px] font-bold uppercase tracking-[0.2em] flex-1 text-left">{group.label}</span>
+        <span className="text-[9px] font-black uppercase tracking-[0.18em] flex-1 text-left">{group.label}</span>
         <ChevronDown size={11}
           style={{ transition: 'transform 0.2s', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
       </button>
@@ -181,9 +187,12 @@ export default function Sidebar() {
             <span className="font-black" style={{ fontFamily: 'serif', color: 'var(--bg)' }}>ॐ</span>
           </div>
           <div>
-            <p className="font-bold text-sm leading-tight" style={{ color: 'var(--text)' }}>HariHariBol</p>
-            <p className="text-[10px] font-medium tracking-[0.12em] uppercase mt-0.5" style={{ color: 'var(--muted)' }}>
-              Admin Console
+            <p className="font-bold text-sm leading-tight"
+              style={{ color: 'var(--text)', fontFamily: "'Playfair Display', Georgia, serif" }}>
+              HariHariBol Admin
+            </p>
+            <p className="text-[9px] font-semibold tracking-[0.14em] uppercase mt-0.5" style={{ color: 'var(--muted)' }}>
+              Control Panel
             </p>
           </div>
         </Link>
@@ -192,37 +201,17 @@ export default function Sidebar() {
       {/* ── Nav ── */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
 
-        {/* Top items */}
-        <p className="px-3 pt-1 pb-2 text-[9px] font-bold uppercase tracking-[0.2em]"
-          style={{ color: 'var(--muted)', opacity: 0.6 }}>
-          Navigation
-        </p>
+        {/* Top items — no label */}
         <div className="space-y-0.5 mb-1">
           {topItems.map(item => (
             <NavLink key={item.href} item={item} pathname={pathname} hovered={hovered} setHovered={setHovered} />
           ))}
         </div>
 
-        {/* Collapsible groups (Content, Translations) */}
-        {contentGroups.map(group => (
+        {/* Collapsible groups */}
+        {navGroups.map(group => (
           <CollapsibleGroup key={group.label} group={group} pathname={pathname} hovered={hovered} setHovered={setHovered} />
         ))}
-
-        {/* Moderation collapsible group */}
-        <CollapsibleGroup group={moderationGroup} pathname={pathname} hovered={hovered} setHovered={setHovered} />
-
-        {/* Bottom flat items */}
-        <div className="mt-2">
-          <p className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em]"
-            style={{ color: 'var(--muted)', opacity: 0.6 }}>
-            System
-          </p>
-          <div className="space-y-0.5">
-            {bottomItems.map(item => (
-              <NavLink key={item.href} item={item} pathname={pathname} hovered={hovered} setHovered={setHovered} />
-            ))}
-          </div>
-        </div>
       </nav>
 
       {/* ── User + Logout ── */}
@@ -239,9 +228,18 @@ export default function Sidebar() {
                 }}>
                 {admin.email?.[0]?.toUpperCase()}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>{admin.email}</p>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--accent)' }}>Administrator</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded"
+                    style={{
+                      background: 'color-mix(in srgb, var(--accent-2) 18%, transparent)',
+                      color: 'var(--accent-2)',
+                      border: '1px solid color-mix(in srgb, var(--accent-2) 28%, transparent)',
+                    }}>
+                    ADMIN
+                  </span>
+                </div>
               </div>
             </div>
           </div>

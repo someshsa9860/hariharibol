@@ -4,9 +4,15 @@ import { useEffect, useState, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
-  Users, Zap, AlertCircle, TrendingUp,
-  ArrowUpRight, Sparkles, Globe2, RefreshCw, Activity, BookOpen,
+  Users, AlertCircle, TrendingUp, ArrowUpRight, Sparkles,
+  Globe2, RefreshCw, Activity, BookOpen, Zap, Bell,
+  Music, CheckCircle, Ban, Send,
 } from 'lucide-react';
+
+const PEACOCK = '#0AC8E0';
+const SAFFRON = '#FF6B2B';
+const GOLD    = '#F5C842';
+const MAROON  = '#C0392B';
 
 interface DashboardStats {
   totalUsers: number;
@@ -15,6 +21,14 @@ interface DashboardStats {
   bannedUsers: number;
   recentUsers: Array<{ id: string; email: string; createdAt: string; isBanned: boolean; }>;
 }
+
+const ACTIVITY_FEED = [
+  { type: 'Verse Added',     badge: 'badge-amber',  icon: BookOpen, desc: 'Bhagavad Gita 4.7 selected as Verse of Day', time: '2m ago' },
+  { type: 'AI Generated',    badge: 'badge-blue',   icon: Sparkles, desc: 'Daily verse auto-generated via Gemini AI', time: '18m ago' },
+  { type: 'User Banned',     badge: 'badge-red',    icon: Ban,      desc: 'Account suspended for policy violation', time: '45m ago' },
+  { type: 'Broadcast Sent',  badge: 'badge-orange', icon: Send,     desc: 'FCM notification delivered to 1,240 devotees', time: '2h ago' },
+  { type: 'Content Updated', badge: 'badge-green',  icon: CheckCircle, desc: 'Sampradaya "Vaishnava" profile updated', time: '4h ago' },
+];
 
 function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number }) {
   const [displayed, setDisplayed] = useState(0);
@@ -45,15 +59,14 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, delay, iconColor }
   const [hov, setHov] = useState(false);
   return (
     <div
-      className="rounded-2xl p-5 transition-all duration-300 animate-slide-up relative overflow-hidden cursor-default"
+      className="rounded-2xl p-5 transition-all duration-300 animate-slide-up relative overflow-hidden cursor-default shadow-md"
       style={{
         animationDelay: `${delay}ms`,
         background: hov ? 'var(--surface-2)' : 'var(--surface)',
-        border: hov
-          ? `1px solid color-mix(in srgb, ${iconColor} 35%, transparent)`
-          : '1px solid var(--border)',
+        border: `1px solid ${hov ? `color-mix(in srgb, ${iconColor} 35%, transparent)` : 'var(--border)'}`,
+        borderLeft: `3px solid ${iconColor}`,
         transform: hov ? 'translateY(-2px)' : 'none',
-        boxShadow: hov ? `0 8px 28px color-mix(in srgb, ${iconColor} 18%, transparent)` : 'none',
+        boxShadow: hov ? `0 8px 28px color-mix(in srgb, ${iconColor} 18%, transparent)` : '0 2px 8px rgba(0,0,0,0.2)',
       }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
@@ -63,14 +76,20 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, delay, iconColor }
 
       <div className="relative z-10 flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--muted)' }}>{label}</p>
-          <p className="text-4xl font-black" style={{ color: 'var(--text)' }}>
+          <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: 'var(--muted)' }}>{label}</p>
+          <p className="text-4xl font-black" style={{ color: iconColor }}>
             <AnimatedNumber value={value} delay={delay + 200} />
           </p>
-          <div className="flex items-center gap-1 mt-2 text-xs font-semibold"
-            style={{ color: trendUp ? '#4ade80' : '#f87171' }}>
-            <TrendingUp size={11} style={{ transform: trendUp ? 'none' : 'scaleY(-1)' }} />
-            <span>{trend} this month</span>
+          <div className="flex items-center gap-1 mt-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+              style={{
+                background: trendUp ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+                color: trendUp ? '#4ade80' : '#f87171',
+                border: `1px solid ${trendUp ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}`,
+              }}>
+              <TrendingUp size={9} style={{ transform: trendUp ? 'none' : 'scaleY(-1)' }} />
+              {trend} this month
+            </span>
           </div>
         </div>
         <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300"
@@ -93,15 +112,16 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, delay, iconColor }
   );
 }
 
-function QuickAction({ icon: Icon, label, desc, href }: {
-  icon: any; label: string; desc: string; href: string;
+function QuickAction({ icon: Icon, label, desc, href, color }: {
+  icon: any; label: string; desc: string; href: string; color?: string;
 }) {
+  const c = color || 'var(--accent)';
   const [hov, setHov] = useState(false);
   return (
     <a href={href} className="flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200"
       style={{
-        background: hov ? 'var(--surface-2)' : 'var(--surface)',
-        border: hov ? '1px solid color-mix(in srgb, var(--accent) 30%, transparent)' : '1px solid var(--border)',
+        background: hov ? `color-mix(in srgb, ${c} 8%, var(--surface-2))` : 'var(--surface)',
+        border: hov ? `1px solid color-mix(in srgb, ${c} 30%, transparent)` : '1px solid var(--border)',
         textDecoration: 'none',
         transform: hov ? 'translateX(3px)' : 'none',
       }}
@@ -109,16 +129,16 @@ function QuickAction({ icon: Icon, label, desc, href }: {
       onMouseLeave={() => setHov(false)}>
       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
         style={{
-          background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-          border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+          background: `color-mix(in srgb, ${c} 14%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${c} 22%, transparent)`,
         }}>
-        <Icon size={15} style={{ color: 'var(--accent)' }} />
+        <Icon size={15} style={{ color: c }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{label}</p>
         <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>{desc}</p>
       </div>
-      <ArrowUpRight size={14} style={{ color: hov ? 'var(--accent)' : 'var(--muted)', transition: 'color 0.2s' }} />
+      <ArrowUpRight size={14} style={{ color: hov ? c : 'var(--muted)', transition: 'color 0.2s' }} />
     </a>
   );
 }
@@ -142,10 +162,10 @@ export default function DashboardPage() {
   useEffect(() => { setMounted(true); fetchData(); }, []);
 
   const statCards = stats ? [
-    { label: 'Total Users',   value: stats.totalUsers,       icon: Users,       iconColor: '#60a5fa', trend: '+12%', trendUp: true,  delay: 0 },
-    { label: 'Sampradayas',   value: stats.totalSampradayas, icon: Globe2,      iconColor: '#4ade80', trend: '+3%',  trendUp: true,  delay: 100 },
-    { label: 'Sacred Verses', value: stats.totalVerses,      icon: Sparkles,    iconColor: '#fbbf24', trend: '+8%',  trendUp: true,  delay: 200 },
-    { label: 'Banned Users',  value: stats.bannedUsers,      icon: AlertCircle, iconColor: '#f87171', trend: '-2%',  trendUp: false, delay: 300 },
+    { label: 'Total Users',   value: stats.totalUsers,       icon: Users,       iconColor: PEACOCK, trend: '+12%', trendUp: true,  delay: 0 },
+    { label: 'Sacred Verses', value: stats.totalVerses,      icon: BookOpen,    iconColor: SAFFRON, trend: '+8%',  trendUp: true,  delay: 100 },
+    { label: 'Sampradayas',   value: stats.totalSampradayas, icon: Globe2,      iconColor: GOLD,    trend: '+3%',  trendUp: true,  delay: 200 },
+    { label: 'Banned Users',  value: stats.bannedUsers,      icon: AlertCircle, iconColor: MAROON,  trend: '-2%',  trendUp: false, delay: 300 },
   ] : [];
 
   const now = new Date().toLocaleString('en-US', {
@@ -181,10 +201,10 @@ export default function DashboardPage() {
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
 
-          {/* Stat cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Stat cards — 4 in a row (2 on mobile) */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             {loading
-              ? [1,2,3,4].map(i => <Skeleton key={i} className="h-32" />)
+              ? [1,2,3,4].map(i => <Skeleton key={i} className="h-36" />)
               : statCards.map(c => <StatCard key={c.label} {...c} />)}
           </div>
 
@@ -196,11 +216,11 @@ export default function DashboardPage() {
               <div className="px-6 py-4 flex items-center justify-between"
                 style={{ borderBottom: '1px solid var(--border)' }}>
                 <div className="flex items-center gap-2.5">
-                  <Users size={15} style={{ color: '#60a5fa' }} />
+                  <Users size={15} style={{ color: PEACOCK }} />
                   <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Recent Users</span>
                   {stats?.recentUsers?.length ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                      style={{ background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' }}>
+                      style={{ background: `color-mix(in srgb, ${PEACOCK} 12%, transparent)`, color: PEACOCK, border: `1px solid color-mix(in srgb, ${PEACOCK} 20%, transparent)` }}>
                       {stats.recentUsers.length}
                     </span>
                   ) : null}
@@ -238,9 +258,9 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
                                 style={{
-                                  background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
-                                  border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
-                                  color: 'var(--accent)',
+                                  background: `color-mix(in srgb, ${PEACOCK} 18%, transparent)`,
+                                  border: `1px solid color-mix(in srgb, ${PEACOCK} 25%, transparent)`,
+                                  color: PEACOCK,
                                 }}>
                                 {user.email[0].toUpperCase()}
                               </div>
@@ -269,22 +289,23 @@ export default function DashboardPage() {
                 style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
                 <div className="px-5 py-4 flex items-center gap-2.5"
                   style={{ borderBottom: '1px solid var(--border)' }}>
-                  <Zap size={15} style={{ color: '#fbbf24' }} />
+                  <Zap size={15} style={{ color: GOLD }} />
                   <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Quick Actions</span>
                 </div>
                 <div className="p-3 space-y-1.5">
-                  <QuickAction icon={Sparkles} href="/verse-of-day" label="Generate Verse"  desc="AI-powered daily verse" />
-                  <QuickAction icon={Users}    href="/users"        label="Manage Users"    desc="View & moderate" />
-                  <QuickAction icon={BookOpen} href="/sampradayas"  label="Sampradayas"     desc="Manage traditions" />
+                  <QuickAction icon={BookOpen} href="/verse-of-day"                label="Add Verse"     desc="Select today's verse"      color={SAFFRON} />
+                  <QuickAction icon={Sparkles} href="/verse-of-day?action=generate" label="AI Generate"  desc="Generate verse with AI"     color={PEACOCK} />
+                  <QuickAction icon={Bell}     href="/notifications"               label="Broadcast"    desc="Send to all devotees"       color={GOLD} />
+                  <QuickAction icon={Users}    href="/users"                       label="Manage Users" desc="View & moderate accounts"   color={MAROON} />
                 </div>
 
-                {/* Mantra card */}
+                {/* Wisdom quote */}
                 <div className="mx-3 mb-3 mt-1 rounded-xl p-4"
                   style={{
-                    background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--accent) 18%, transparent)',
+                    background: `color-mix(in srgb, ${SAFFRON} 8%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${SAFFRON} 18%, transparent)`,
                   }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: SAFFRON }}>
                     Today's Wisdom
                   </p>
                   <p className="text-sm font-medium leading-relaxed gradient-text" style={{ fontFamily: 'serif' }}>
@@ -293,6 +314,43 @@ export default function DashboardPage() {
                   <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>May all beings be happy</p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="rounded-2xl overflow-hidden animate-slide-up"
+            style={{ animationDelay: '600ms', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="px-6 py-4 flex items-center justify-between"
+              style={{ borderBottom: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-2.5">
+                <Activity size={15} style={{ color: SAFFRON }} />
+                <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Recent Activity</span>
+              </div>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(74,222,128,0.08)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.18)' }}>
+                Live feed
+              </span>
+            </div>
+            <div>
+              {ACTIVITY_FEED.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="px-6 py-3.5 flex items-center gap-4 transition-colors"
+                    style={{ borderBottom: i < ACTIVITY_FEED.length - 1 ? '1px solid var(--border)' : 'none' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                      <Icon size={14} style={{ color: 'var(--muted)' }} />
+                    </div>
+                    <span className={`badge ${item.badge} flex-shrink-0`} style={{ minWidth: 100, justifyContent: 'center' }}>
+                      {item.type}
+                    </span>
+                    <span className="text-sm flex-1 min-w-0 truncate" style={{ color: 'var(--text-2)' }}>{item.desc}</span>
+                    <span className="text-xs flex-shrink-0" style={{ color: 'var(--muted)' }}>{item.time}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
