@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Music2, Star, MessageCircle, Users, LogOut, Sun, Moon } from 'lucide-react';
+import { Home, BookOpen, Music2, Star, MessageCircle, Users, LogOut, Sun, Moon, Settings } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 const NAV_ITEMS = [
@@ -201,6 +201,66 @@ export default function AppSidebar() {
             </Link>
           );
         })}
+
+        {/* Settings */}
+        <p
+          className="text-xs font-bold uppercase tracking-wider px-3 mb-2 mt-5"
+          style={{ color: 'var(--muted)' }}
+        >
+          Preferences
+        </p>
+        {(() => {
+          const href = '/settings';
+          const active = pathname === href;
+          return (
+            <Link
+              href={href}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: active ? 700 : 600,
+                color: active ? 'var(--saffron)' : 'var(--muted)',
+                background: active ? 'rgba(255,107,0,0.09)' : 'transparent',
+                borderLeft: active ? '3px solid var(--saffron)' : '3px solid transparent',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                marginBottom: 2,
+              }}
+              onMouseEnter={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'var(--surface-2)';
+                  e.currentTarget.style.color = 'var(--text)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted)';
+                }
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: 'var(--sandstone)',
+                  flexShrink: 0,
+                  opacity: active ? 1 : 0.45,
+                  transition: 'opacity 0.2s',
+                }}
+              />
+              <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                <Settings size={18} />
+              </span>
+              Settings
+            </Link>
+          );
+        })()}
       </nav>
 
       {/* Bottom section */}
