@@ -13,6 +13,22 @@ export class GroupsService {
 
   constructor(private prisma: PrismaService) {}
 
+  async createGroup(sampradayId: string, nameKey: string, descriptionKey?: string) {
+    const sampraday = await this.prisma.sampraday.findUnique({ where: { id: sampradayId } });
+    if (!sampraday) throw new NotFoundException('Sampraday not found');
+
+    const group = await this.prisma.group.create({
+      data: { sampradayId, nameKey, descriptionKey },
+      include: {
+        sampraday: { select: { id: true, slug: true, nameKey: true, thumbnailUrl: true } },
+        _count: { select: { members: true, messages: true } },
+      },
+    });
+
+    this.logger.log(`Group created: ${group.id} for sampraday ${sampradayId}`);
+    return group;
+  }
+
   async getGroups(sampradayId?: string, skip = 0, take = 20) {
     const where = {
       isActive: true,

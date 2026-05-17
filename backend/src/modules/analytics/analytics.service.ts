@@ -298,6 +298,82 @@ export class AnalyticsService {
     }
   }
 
+  async getPublicMetrics(): Promise<{
+    totalUsers: number;
+    activeToday: number;
+    totalVerses: number;
+    totalMantras: number;
+    totalSampradayas: number;
+    userGrowth: { date: string; users: number }[];
+  }> {
+    try {
+      const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const [totalUsers, activeToday, totalVerses, totalMantras, totalSampradayas, userGrowth] =
+        await Promise.all([
+          this.prisma.user.count(),
+          this.prisma.user.count({ where: { lastActiveAt: { gte: cutoff24h } } }),
+          this.prisma.verse.count(),
+          this.prisma.mantra.count(),
+          this.prisma.sampraday.count(),
+          this.getUserGrowth(30),
+        ]);
+
+      return { totalUsers, activeToday, totalVerses, totalMantras, totalSampradayas, userGrowth };
+    } catch (error) {
+      this.logger.error('Failed to fetch public metrics:', error);
+      throw error;
+    }
+  }
+
+  async getTopVersesDetailed(limit = 10): Promise<any[]> {
+    try {
+      const verses = await this.prisma.verse.findMany({
+        take: limit,
+        orderBy: { favorites: { _count: 'desc' } },
+        select: {
+          id: true,
+          verseId: true,
+          sanskrit: true,
+          transliteration: true,
+          chapterNumber: true,
+          verseNumber: true,
+          bookId: true,
+          _count: { select: { favorites: true } },
+        },
+      });
+
+      return verses.map((v) => ({
+        ...v,
+        favoriteCount: v._count.favorites,
+        _count: undefined,
+      }));
+    } catch (error) {
+      this.logger.error('Failed to fetch top verses detailed:', error);
+      return [];
+    }
+  }
+
+  async getFeatureUsage(): Promise<{
+    chanting_sessions: number;
+    chatbot_messages: number;
+    books_read: number;
+  }> {
+    try {
+      const cutoff30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+      const [chanting_sessions, chatbot_messages] = await Promise.all([
+        this.prisma.chantLog.count({ where: { createdAt: { gte: cutoff30d } } }),
+        this.prisma.chatbotMessage.count({ where: { createdAt: { gte: cutoff30d } } }),
+      ]);
+
+      return { chanting_sessions, chatbot_messages, books_read: 0 };
+    } catch (error) {
+      this.logger.error('Failed to fetch feature usage:', error);
+      return { chanting_sessions: 0, chatbot_messages: 0, books_read: 0 };
+    }
+  }
+
   private async getNewUsersToday(): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

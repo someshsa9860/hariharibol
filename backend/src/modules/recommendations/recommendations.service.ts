@@ -1,15 +1,63 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import { CacheService } from '@infrastructure/cache/cache.service';
+
+const RECOMMENDATIONS_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 @Injectable()
 export class RecommendationsService {
   private readonly logger = new Logger('RecommendationsService');
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheService: CacheService,
+  ) {}
 
   async getVerseRecommendations(userId: string, limit = 10): Promise<any[]> {
+    const cacheKey = `recommendations:verses:${userId}`;
+    return this.cacheService.getOrSet(
+      cacheKey,
+      () => this.fetchVerseRecommendations(userId, limit),
+      RECOMMENDATIONS_TTL_MS,
+    );
+  }
+
+  async getMantraRecommendations(userId: string, limit = 10): Promise<any[]> {
+    const cacheKey = `recommendations:mantras:${userId}`;
+    return this.cacheService.getOrSet(
+      cacheKey,
+      () => this.fetchMantraRecommendations(userId, limit),
+      RECOMMENDATIONS_TTL_MS,
+    );
+  }
+
+  async getVerseOfDayHistory(limit = 7): Promise<any[]> {
     try {
-      // Gather user signals in parallel
+      return await this.prisma.verseOfDay.findMany({
+        take: limit,
+        orderBy: { date: 'desc' },
+        include: {
+          verse: {
+            select: {
+              id: true,
+              verseId: true,
+              sanskrit: true,
+              transliteration: true,
+              chapterNumber: true,
+              verseNumber: true,
+              bookId: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      this.logger.error('Failed to fetch verse of day history:', error);
+      return [];
+    }
+  }
+
+  private async fetchVerseRecommendations(userId: string, limit: number): Promise<any[]> {
+    try {
       const [follows, favorites, guruSignal] = await Promise.all([
         this.prisma.follow.findMany({ where: { userId }, select: { sampradayId: true } }),
         this.prisma.favorite.findMany({
@@ -24,7 +72,6 @@ export class RecommendationsService {
       const followedSampradayIds = follows.map((f) => f.sampradayId);
       const favoritedVerseIds = favorites.map((f) => f.targetId);
 
-      // Step 1: verses linked to followed sampradayas, not already favorited
       let verses: any[] = [];
 
       if (followedSampradayIds.length > 0) {
@@ -58,7 +105,6 @@ export class RecommendationsService {
         }
       }
 
-      // Step 2: If not enough, fill with popular verses from user's favorite categories
       if (verses.length < limit && favoritedVerseIds.length > 0) {
         const favoriteVerses = await this.prisma.verse.findMany({
           where: { id: { in: favoritedVerseIds } },
@@ -104,7 +150,6 @@ export class RecommendationsService {
         }
       }
 
-      // Step 3: Fallback — globally popular verses
       if (verses.length < limit) {
         const excluded = new Set([...favoritedVerseIds, ...verses.map((v) => v.id)]);
         const popular = await this.prisma.verse.findMany({
@@ -133,6 +178,78 @@ export class RecommendationsService {
       }));
     } catch (error) {
       this.logger.error(`Failed to get verse recommendations for user=${userId}:`, error);
+      return [];
+    }
+  }
+
+  private async fetchMantraRecommendations(userId: string, limit: number): Promise<any[]> {
+    try {
+      const [follows, favorites] = await Promise.all([
+        this.prisma.follow.findMany({ where: { userId }, select: { sampradayId: true } }),
+        this.prisma.favorite.findMany({
+          where: { userId, type: 'mantra' },
+          select: { targetId: true },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        }),
+      ]);
+
+      const followedSampradayIds = follows.map((f) => f.sampradayId);
+      const favoritedMantraIds = favorites.map((f) => f.targetId);
+
+      let mantras: any[] = [];
+
+      // Step 1: mantras from followed sampradayas, not already favorited
+      if (followedSampradayIds.length > 0) {
+        mantras = await this.prisma.mantra.findMany({
+          where: {
+            sampradayId: { in: followedSampradayIds },
+            id: { notIn: favoritedMantraIds },
+            isPublic: true,
+          },
+          select: {
+            id: true,
+            nameKey: true,
+            sanskrit: true,
+            transliteration: true,
+            category: true,
+            sampradayId: true,
+            recommendedCount: true,
+            _count: { select: { favorites: true } },
+          },
+          orderBy: { recommendedCount: 'desc' },
+          take: limit,
+        });
+      }
+
+      // Step 2: globally popular mantras as fallback
+      if (mantras.length < limit) {
+        const excluded = new Set([...favoritedMantraIds, ...mantras.map((m) => m.id)]);
+        const popular = await this.prisma.mantra.findMany({
+          where: { id: { notIn: [...excluded] }, isPublic: true },
+          select: {
+            id: true,
+            nameKey: true,
+            sanskrit: true,
+            transliteration: true,
+            category: true,
+            sampradayId: true,
+            recommendedCount: true,
+            _count: { select: { favorites: true } },
+          },
+          orderBy: { favorites: { _count: 'desc' } },
+          take: limit - mantras.length,
+        });
+        mantras = [...mantras, ...popular];
+      }
+
+      return mantras.slice(0, limit).map((m) => ({
+        ...m,
+        favoriteCount: m._count?.favorites ?? 0,
+        _count: undefined,
+      }));
+    } catch (error) {
+      this.logger.error(`Failed to get mantra recommendations for user=${userId}:`, error);
       return [];
     }
   }

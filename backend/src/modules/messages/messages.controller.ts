@@ -1,7 +1,10 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service';
+import { JwtGuard } from '@modules/auth/guards/jwt.guard';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
 
 @Controller('api/v1/groups')
+@UseGuards(JwtGuard)
 export class MessagesController {
   constructor(private messagesService: MessagesService) {}
 
@@ -16,5 +19,14 @@ export class MessagesController {
       skip ? parseInt(skip) : 0,
       take ? parseInt(take) : 50,
     );
+  }
+
+  @Post(':groupId/messages')
+  sendMessage(
+    @Param('groupId') groupId: string,
+    @CurrentUser('sub') userId: string,
+    @Body('content') content: string,
+  ) {
+    return this.messagesService.createMessage(groupId, userId, content);
   }
 }

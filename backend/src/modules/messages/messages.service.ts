@@ -1,16 +1,36 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import { ModerationService } from '@modules/moderation/moderation.service';
 
 @Injectable()
 export class MessagesService {
   private readonly logger = new Logger(MessagesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private moderationService: ModerationService,
+  ) {}
 
   async createMessage(groupId: string, userId: string, content: string) {
+    const moderation = await this.moderationService.moderateContent(content);
+    const status = moderation.safe ? 'approved' : 'pending';
+
     const message = await this.prisma.message.create({
-      data: { groupId, userId, content, status: 'pending' },
+      data: {
+        groupId,
+        userId,
+        content,
+        status,
+        aiVerdict: moderation.verdict,
+        aiConfidence: moderation.confidence,
+        aiReason: moderation.reason,
+      },
+      include: {
+        user: { select: { id: true, name: true, avatarUrl: true } },
+      },
     });
+
+    this.logger.log(`Message created in group ${groupId} by user ${userId}, status=${status}`);
     return message;
   }
 

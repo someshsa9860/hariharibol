@@ -4,11 +4,15 @@ import {
   Post,
   Param,
   Query,
+  Body,
+  UseGuards,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
+import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 
 @Controller('api/v1/groups')
+@UseGuards(JwtGuard)
 export class GroupsController {
   constructor(private groupsService: GroupsService) {}
 
@@ -23,6 +27,15 @@ export class GroupsController {
       skip ? parseInt(skip) : 0,
       take ? parseInt(take) : 20,
     );
+  }
+
+  @Post()
+  createGroup(
+    @Body('sampradayId') sampradayId: string,
+    @Body('nameKey') nameKey: string,
+    @Body('descriptionKey') descriptionKey?: string,
+  ) {
+    return this.groupsService.createGroup(sampradayId, nameKey, descriptionKey);
   }
 
   @Get(':id')

@@ -2,6 +2,33 @@ import { Controller, Get, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs
 import { AnalyticsService } from './analytics.service';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 
+@Controller('api/v1/analytics')
+@UseGuards(JwtGuard)
+export class PublicAnalyticsController {
+  constructor(private analyticsService: AnalyticsService) {}
+
+  @Get('metrics')
+  @HttpCode(HttpStatus.OK)
+  getPublicMetrics() {
+    return this.analyticsService.getPublicMetrics();
+  }
+
+  @Get('top-verses')
+  @HttpCode(HttpStatus.OK)
+  async getTopVerses(@Query('limit') limit?: string) {
+    const data = await this.analyticsService.getTopVersesDetailed(
+      limit ? parseInt(limit, 10) : 10,
+    );
+    return { data };
+  }
+
+  @Get('feature-usage')
+  @HttpCode(HttpStatus.OK)
+  getFeatureUsage() {
+    return this.analyticsService.getFeatureUsage();
+  }
+}
+
 @Controller('api/v1/admin/analytics')
 @UseGuards(JwtGuard)
 export class AnalyticsController {
