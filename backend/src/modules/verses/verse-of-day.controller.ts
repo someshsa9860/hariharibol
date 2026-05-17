@@ -53,10 +53,10 @@ export class VerseOfDayController {
     return this.verseOfDayService.generateVerseOfDay();
   }
 
-  @Post('admin/generate-image/:verseId')
+  @Post('admin/generate-image')
   @UseGuards(JwtGuard, AdminGuard)
-  @HttpCode(HttpStatus.CREATED)
-  async generateImage(@Param('verseId') verseId: string) {
-    return this.verseOfDayService.selectVerseOfDay(verseId);
+  @HttpCode(HttpStatus.OK)
+  async regenerateImage() {
+    return this.verseOfDayService.regenerateImageForToday();
   }
 }

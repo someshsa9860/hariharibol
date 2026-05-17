@@ -224,14 +224,58 @@ export class VerseOfDayService {
 
   async generateVerseImage(verse: any): Promise<string | null> {
     try {
-      const prompt = `Create a beautiful spiritual image for this Vedic verse: "${verse.sanskrit || verse.transliteration}". Style: peaceful, meditative, gold and earth tones.`;
-      const imageBuffer = await this.aiProvider.generateImage(prompt, 'gemini');
-      const filename = `verse-${verse.id}-${Date.now()}.webp`;
-      const result = await this.storageService.uploadImage(imageBuffer, filename, 'public/verses-of-day', 'image/webp');
+      const config = await this.getConfig();
+      const imageProvider = config.aiProvider === 'none' ? 'gemini' : config.aiProvider;
+      const verseText = verse.transliteration || verse.sanskrit || '';
+      const prompt =
+        `A serene, spiritual artwork inspired by the Hindu verse: "${verseText}". ` +
+        `Style: traditional Indian miniature painting with golden accents, lotus flowers, divine light. ` +
+        `Colors: saffron, gold, deep blue. No text in image.`;
+
+      const imageBuffer = await this.aiProvider.generateImage(prompt, imageProvider);
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const folder = `public/verses-of-day/${dateStr}`;
+      const result = await this.storageService.uploadImage(imageBuffer, 'image.webp', folder, 'image/webp');
+
+      this.logger.log(`Verse image generated and uploaded: ${result.url}`);
       return result.url;
     } catch (error) {
-      this.logger.error(`Failed to generate verse image:`, error);
+      this.logger.error(`Failed to generate verse image for verse ${verse?.id}:`, error);
       return null;
+    }
+  }
+
+  async regenerateImageForToday(): Promise<{ imageUrl: string | null }> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const verseOfDay = await this.prisma.verseOfDay.findFirst({
+        where: { date: { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) } },
+        include: { verse: true },
+      });
+
+      if (!verseOfDay) {
+        throw new BadRequestException('No verse of day found for today');
+      }
+
+      const imageUrl = await this.generateVerseImage(verseOfDay.verse);
+
+      if (imageUrl) {
+        await this.prisma.verseOfDay.update({
+          where: { id: verseOfDay.id },
+          data: { imageUrl },
+        });
+        this.logger.log(`Regenerated image for today's verse of day: ${imageUrl}`);
+      } else {
+        this.logger.warn(`Image regeneration returned null for today's verse of day`);
+      }
+
+      return { imageUrl };
+    } catch (error) {
+      this.logger.error(`Failed to regenerate image for today's verse of day:`, error);
+      throw error;
     }
   }
 

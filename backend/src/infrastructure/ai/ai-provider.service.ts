@@ -1,5 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import OpenAI from 'openai';
 import { IAIProvider, AIMessage } from './ai-provider.interface';
 
 @Injectable()
@@ -97,18 +98,13 @@ export class AIProviderService {
         throw new Error('GEMINI_API_KEY not configured');
       }
 
-      const enhancedPrompt = `Create a beautiful, spiritual image for: "${prompt}".
-      Style: peaceful, meditative, gold and earth tones, intricate patterns, high quality, 4K.
-      Aspect ratio: 1:1 (square).
-      Avoid text in image.`;
-
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            instances: [{ prompt: enhancedPrompt }],
+            instances: [{ prompt }],
             parameters: { sampleCount: 1, aspectRatio: '1:1' },
           }),
         },
@@ -116,15 +112,15 @@ export class AIProviderService {
 
       if (!response.ok) {
         const error = await response.text();
-        this.logger.error(`Imagen 3 API error: ${error}`);
-        throw new Error(`Imagen 3 API error: ${response.status}`);
+        this.logger.error(`Imagen API error: ${error}`);
+        throw new Error(`Imagen API error: ${response.status}`);
       }
 
       const result = await response.json();
 
       const b64 = result.predictions?.[0]?.bytesBase64Encoded;
       if (!b64) {
-        this.logger.warn('Imagen 3 returned no image data; falling back to placeholder');
+        this.logger.warn('Imagen returned no image data; falling back to placeholder');
         return this.getPlaceholderImage();
       }
 
@@ -142,38 +138,23 @@ export class AIProviderService {
         throw new Error('OPENAI_API_KEY not configured');
       }
 
-      const enhancedPrompt = `Create a beautiful, spiritual image for: "${prompt}".
-      Style: peaceful, meditative, gold and earth tones, intricate patterns, high quality, 4K.
-      Aspect ratio: 1:1 (square).`;
-
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          prompt: enhancedPrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'hd',
-          model: 'dall-e-3',
-        }),
+      const openai = new OpenAI({ apiKey });
+      const response = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt,
+        n: 1,
+        size: '1024x1024',
+        quality: 'hd',
+        response_format: 'url',
       });
 
-      if (!response.ok) {
-        const error = await response.text();
-        this.logger.error(`OpenAI API error: ${error}`);
-        throw new Error(`OpenAI API error: ${response.status}`);
+      const url = response.data[0]?.url;
+      if (!url) {
+        this.logger.warn('DALL-E 3 returned no URL; falling back to placeholder');
+        return this.getPlaceholderImage();
       }
 
-      const result = await response.json();
-
-      if (result.data?.[0]?.url) {
-        return await this.downloadImage(result.data[0].url);
-      }
-
-      return this.getPlaceholderImage();
+      return await this.downloadImage(url);
     } catch (error) {
       this.logger.error(`OpenAI image generation failed:`, error);
       return this.getPlaceholderImage();
