@@ -5,14 +5,14 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
   BarChart3, TrendingUp, Users, Music, BookOpen,
-  Flame, Heart, Activity, AlertCircle,
+  Flame, Activity, AlertCircle, Download, Globe2, Clock,
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
 } from 'recharts';
 
-/* ─── Types ─────────────────────────────────────────────────────────── */
 interface AnalyticsMetrics {
   dau: number;
   mau: number;
@@ -26,33 +26,48 @@ interface AnalyticsMetrics {
   totalFollows: number;
   averageSessionDuration: number;
 }
-interface DauPoint    { date: string; dau: number }
-interface VerseBar    { name: string; views: number }
-interface SampradBar  { name: string; followers: number }
-interface ChantBar    { date: string; chants: number }
-interface MantraRow   { name: string; chantCount: number }
+interface DauPoint       { date: string; dau: number }
+interface VerseBar       { name: string; views: number }
+interface SampradBar     { name: string; followers: number }
+interface ChantBar       { date: string; chants: number }
+interface MantraRow      { name: string; chantCount: number }
+interface FeatureAdoption { feature: string; pct: number }
+interface LangDist       { name: string; value: number }
 
-/* ─── Date formatter for chart axes ─────────────────────────────────── */
 function fmtDate(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/* ─── Custom tooltip ─────────────────────────────────────────────────── */
+function formatDuration(secs: number): string {
+  if (!secs) return '—';
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
 function ChartTip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl px-3 py-2 text-xs" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
       <p className="font-semibold mb-1 text-theme">{label}</p>
-      {payload.map((p: any) => (
-        <p key={p.dataKey} style={{ color: p.color }}>{p.name}: <strong>{p.value?.toLocaleString()}</strong></p>
+      {payload.map((p: any, i: number) => (
+        <p key={p.name ?? i} style={{ color: p.color ?? p.fill }}>{p.name}: <strong>{p.value?.toLocaleString()}</strong></p>
       ))}
     </div>
   );
 }
 
+const PIE_COLORS = ['#C75A1A', '#f97316', '#fbbf24', '#4ade80', '#60a5fa', '#a78bfa', '#f87171', '#fb923c'];
+
 const TABS = ['Engagement', 'Content', 'Chanting'] as const;
 type Tab = typeof TABS[number];
-const PERIODS = [{ key: 'day', label: 'Today' }, { key: 'week', label: '7 Days' }, { key: 'month', label: '30 Days' }] as const;
+
+const PERIODS = [
+  { key: '7d',  label: '7d',  apiVal: 'week'    },
+  { key: '30d', label: '30d', apiVal: 'month'   },
+  { key: '90d', label: '90d', apiVal: 'quarter' },
+] as const;
+type Period = '7d' | '30d' | '90d';
 
 export default function AnalyticsPage() {
   const [metrics,  setMetrics]  = useState<AnalyticsMetrics | null>(null);
@@ -61,9 +76,11 @@ export default function AnalyticsPage() {
   const [samp,     setSamp]     = useState<SampradBar[]>([]);
   const [chants,   setChants]   = useState<ChantBar[]>([]);
   const [mantras,  setMantras]  = useState<MantraRow[]>([]);
+  const [features, setFeatures] = useState<FeatureAdoption[]>([]);
+  const [langDist, setLangDist] = useState<LangDist[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
-  const [period,   setPeriod]   = useState<'day' | 'week' | 'month'>('month');
+  const [period,   setPeriod]   = useState<Period>('30d');
   const [tab,      setTab]      = useState<Tab>('Engagement');
 
   useEffect(() => { fetchAll(); }, [period]);
@@ -71,36 +88,27 @@ export default function AnalyticsPage() {
   const fetchAll = async () => {
     setLoading(true);
     setError(null);
+    const apiVal = PERIODS.find(p => p.key === period)?.apiVal ?? 'month';
     try {
-      const [m, d, v, s, c, mt] = await Promise.all([
-        api.get(`/admin/analytics/metrics?period=${period}`),
-        api.get(`/admin/analytics/dau?days=30`),
+      const [m, d, v, s, c, mt, fa, ld] = await Promise.all([
+        api.get(`/admin/analytics/metrics?period=${apiVal}`),
+        api.get('/admin/analytics/dau?days=30'),
         api.get('/admin/analytics/top-verses'),
         api.get('/admin/analytics/top-sampradayas'),
         api.get('/admin/analytics/chants?days=14'),
         api.get('/admin/analytics/top-mantras'),
+        api.get('/admin/analytics/feature-adoption').catch(() => ({ data: null })),
+        api.get('/admin/analytics/language-distribution').catch(() => ({ data: null })),
       ]);
 
       setMetrics(m.data as AnalyticsMetrics);
-
-      setDauData(
-        (d.data?.data ?? []).map((p: { date: string; dau: number }) => ({
-          date: fmtDate(p.date),
-          dau: p.dau,
-        }))
-      );
-
+      setDauData((d.data?.data ?? []).map((p: any) => ({ date: fmtDate(p.date), dau: p.dau })));
       setVerses(v.data?.data ?? []);
       setSamp(s.data?.data ?? []);
-
-      setChants(
-        (c.data?.data ?? []).map((p: { date: string; chants: number }) => ({
-          date: fmtDate(p.date),
-          chants: p.chants,
-        }))
-      );
-
+      setChants((c.data?.data ?? []).map((p: any) => ({ date: fmtDate(p.date), chants: p.chants })));
       setMantras(mt.data?.data ?? []);
+      setFeatures(fa.data?.data ?? []);
+      setLangDist(ld.data?.data ?? []);
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Failed to load analytics data. Please try again.');
     } finally {
@@ -108,11 +116,42 @@ export default function AnalyticsPage() {
     }
   };
 
+  const exportCSV = () => {
+    if (!metrics) return;
+    const rows: (string | number)[][] = [
+      ['Metric', 'Value'],
+      ['DAU', metrics.dau],
+      ['MAU', metrics.mau],
+      ['Total Sessions', metrics.totalChants],
+      ['Avg Session Duration (s)', metrics.averageSessionDuration],
+      ['Total Users', metrics.totalUsers],
+      ['New Users Today', metrics.newUsersToday],
+      ['Total Verses', metrics.totalVerses],
+      ['Total Sampradayas', metrics.totalSampradayas],
+      ['Total Favorites', metrics.totalFavorites],
+      ['Total Follows', metrics.totalFollows],
+      [],
+      ['Top Verses', ''],
+      ['Name', 'Views'],
+      ...verses.map(v => [v.name, v.views]),
+    ];
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const statCards = metrics ? [
-    { icon: Activity,  label: 'DAU',          value: metrics.dau,         sub: 'Daily active users',    color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
-    { icon: Users,     label: 'MAU',          value: metrics.mau,         sub: 'Monthly active users',  color: '#a78bfa', glow: 'rgba(167,139,250,0.15)' },
-    { icon: Flame,     label: 'Total Chants', value: metrics.totalChants, sub: 'All time chanting logs', color: '#fb923c', glow: 'rgba(251,146,60,0.15)' },
-    { icon: BookOpen,  label: 'Top Verse',    value: metrics.topVerse,    sub: 'Most favorited verse',   color: '#fbbf24', glow: 'rgba(251,191,36,0.15)', isStr: true },
+    { icon: Activity,  label: 'DAU',            value: metrics.dau,                                    sub: 'Daily active users',    color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
+    { icon: Users,     label: 'MAU',            value: metrics.mau,                                    sub: 'Monthly active users',  color: '#a78bfa', glow: 'rgba(167,139,250,0.15)' },
+    { icon: BarChart3, label: 'Total Sessions', value: metrics.totalChants,                            sub: 'All-time app sessions', color: '#fb923c', glow: 'rgba(251,146,60,0.15)' },
+    { icon: Clock,     label: 'Avg Session',    value: formatDuration(metrics.averageSessionDuration), sub: 'Average session length', color: '#4ade80', glow: 'rgba(74,222,128,0.15)', isStr: true },
   ] : [];
 
   if (error && !loading) {
@@ -163,24 +202,35 @@ export default function AnalyticsPage() {
               <p className="text-xs" style={{ color: 'var(--muted)' }}>Platform performance &amp; engagement</p>
             </div>
           </div>
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--surface-2)' }}>
-            {PERIODS.map(p => (
-              <button key={p.key} onClick={() => setPeriod(p.key)}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                style={{
-                  background: period === p.key ? 'rgba(167,139,250,0.15)' : 'transparent',
-                  border: period === p.key ? '1px solid rgba(167,139,250,0.3)' : '1px solid transparent',
-                  color: period === p.key ? '#a78bfa' : 'var(--muted)',
-                }}>
-                {p.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportCSV}
+              disabled={!metrics || loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-40"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--muted)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
+              <Download size={12} /> Export CSV
+            </button>
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--surface-2)' }}>
+              {PERIODS.map(p => (
+                <button key={p.key} onClick={() => setPeriod(p.key)}
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                  style={{
+                    background: period === p.key ? 'rgba(167,139,250,0.15)' : 'transparent',
+                    border: period === p.key ? '1px solid rgba(167,139,250,0.3)' : '1px solid transparent',
+                    color: period === p.key ? '#a78bfa' : 'var(--muted)',
+                  }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
 
-          {/* Stat cards */}
+          {/* KPI cards */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             {loading
               ? [1, 2, 3, 4].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)
@@ -224,7 +274,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
 
-          {/* ── Engagement tab ── */}
+          {/* Engagement tab */}
           {tab === 'Engagement' && (
             <div className="rounded-2xl p-6 animate-slide-up"
               style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
@@ -251,33 +301,110 @@ export default function AnalyticsPage() {
             </div>
           )}
 
-          {/* ── Content tab ── */}
+          {/* Content tab */}
           {tab === 'Content' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up">
-              <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
-                <div className="flex items-center gap-2 mb-6">
+            <div className="space-y-6 animate-slide-up">
+
+              {/* Top Verses table */}
+              <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
+                <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
                   <BookOpen size={14} style={{ color: '#fbbf24' }} />
-                  <h3 className="font-bold text-theme text-sm">Top Verses by Favorites</h3>
+                  <h3 className="font-bold text-theme text-sm">Top Verses by Views</h3>
                 </div>
                 {loading
-                  ? <div className="skeleton h-52 rounded-xl" />
+                  ? <div className="p-5"><div className="skeleton h-40 rounded-xl" /></div>
                   : verses.length === 0
-                    ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No verse data available yet.</p>
+                    ? <p className="text-sm text-center py-12" style={{ color: 'var(--muted)' }}>No verse data available yet.</p>
                     : (
-                      <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={verses} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                          <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <YAxis type="category" dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={65} />
-                          <Tooltip content={<ChartTip />} />
-                          <Bar dataKey="views" name="Favorites" fill="#fbbf24" radius={[0, 6, 6, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                            {['#', 'Verse', 'Views'].map(h => (
+                              <th key={h} className="px-5 py-3 text-left"
+                                style={{ color: 'var(--muted)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {verses.map((v, i) => (
+                            <tr key={v.name} className="transition-colors duration-150"
+                              style={{ borderBottom: i < verses.length - 1 ? '1px solid var(--border)' : 'none' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                              <td className="px-5 py-4">
+                                <span className="w-7 h-7 rounded-lg inline-flex items-center justify-center text-xs font-bold"
+                                  style={{
+                                    background: i === 0 ? 'rgba(199,90,26,0.2)' : i === 1 ? 'rgba(199,90,26,0.12)' : 'rgba(199,90,26,0.07)',
+                                    color: '#C75A1A',
+                                    border: i < 3 ? '1px solid rgba(199,90,26,0.25)' : '1px solid transparent',
+                                  }}>
+                                  {i + 1}
+                                </span>
+                              </td>
+                              <td className="px-5 py-4 text-sm font-semibold text-theme">{v.name}</td>
+                              <td className="px-5 py-4 text-sm font-bold" style={{ color: '#fbbf24' }}>{v.views?.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     )}
               </div>
+
+              {/* Feature Adoption + Language Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Activity size={14} style={{ color: '#a78bfa' }} />
+                    <h3 className="font-bold text-theme text-sm">Feature Adoption</h3>
+                  </div>
+                  {loading
+                    ? <div className="skeleton h-52 rounded-xl" />
+                    : features.length === 0
+                      ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No adoption data available.</p>
+                      : (
+                        <ResponsiveContainer width="100%" height={220}>
+                          <BarChart data={features} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                            <XAxis dataKey="feature" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} width={38} unit="%" />
+                            <Tooltip content={<ChartTip />} />
+                            <Bar dataKey="pct" name="Adoption %" fill="#a78bfa" radius={[6, 6, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                </div>
+
+                <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Globe2 size={14} style={{ color: '#60a5fa' }} />
+                    <h3 className="font-bold text-theme text-sm">Language Distribution</h3>
+                  </div>
+                  {loading
+                    ? <div className="skeleton h-52 rounded-xl" />
+                    : langDist.length === 0
+                      ? <p className="text-sm text-center py-16" style={{ color: 'var(--muted)' }}>No language data available.</p>
+                      : (
+                        <ResponsiveContainer width="100%" height={220}>
+                          <PieChart>
+                            <Pie data={langDist} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                              dataKey="value" nameKey="name" paddingAngle={3}>
+                              {langDist.map((_, i) => (
+                                <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<ChartTip />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      )}
+                </div>
+              </div>
+
+              {/* Top Sampradayas */}
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <div className="flex items-center gap-2 mb-6">
-                  <Heart size={14} style={{ color: '#f87171' }} />
+                  <Users size={14} style={{ color: '#f87171' }} />
                   <h3 className="font-bold text-theme text-sm">Top Sampradayas by Followers</h3>
                 </div>
                 {loading
@@ -299,7 +426,7 @@ export default function AnalyticsPage() {
             </div>
           )}
 
-          {/* ── Chanting tab ── */}
+          {/* Chanting tab */}
           {tab === 'Chanting' && (
             <div className="space-y-6 animate-slide-up">
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
@@ -324,7 +451,6 @@ export default function AnalyticsPage() {
                     )}
               </div>
 
-              {/* Top mantras table */}
               <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
                   <Music size={14} style={{ color: '#a78bfa' }} />

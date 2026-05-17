@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Bell, Send, Clock, Users, Globe2, CheckCircle, Eye, AlertCircle, ChevronDown } from 'lucide-react';
+import { Bell, Send, Clock, Users, CheckCircle, Eye, AlertCircle } from 'lucide-react';
 
 interface SentNotification {
   id: string;
@@ -15,44 +15,27 @@ interface SentNotification {
   status: 'sent' | 'scheduled' | 'failed';
 }
 
-interface Sampraday {
-  id: string;
-  slug: string;
-  nameKey: string;
-}
+const TOPICS = [
+  { value: 'verse_of_day',   label: 'Verse of Day',   desc: 'All subscribed users' },
+  { value: 'announcements',  label: 'Announcements',  desc: 'General announcements channel' },
+];
+
+const STATUS_META = {
+  sent:      { color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+  scheduled: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
+  failed:    { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+};
 
 export default function NotificationsPage() {
-  const [topic,        setTopic]        = useState<string>('verse_of_day');
-  const [form,         setForm]         = useState({ title: '', body: '', deepLink: '' });
-  const [sending,      setSending]      = useState(false);
-  const [sent,         setSent]         = useState(false);
-  const [sendError,    setSendError]    = useState('');
-  const [history,      setHistory]      = useState<SentNotification[]>([]);
-  const [loadingHist,  setLoadingHist]  = useState(true);
-  const [sampradayas,  setSampradayas]  = useState<Sampraday[]>([]);
-  const [loadingSamp,  setLoadingSamp]  = useState(true);
+  const [topic,       setTopic]       = useState<string>('verse_of_day');
+  const [form,        setForm]        = useState({ title: '', body: '' });
+  const [sending,     setSending]     = useState(false);
+  const [sent,        setSent]        = useState(false);
+  const [sendError,   setSendError]   = useState('');
+  const [history,     setHistory]     = useState<SentNotification[]>([]);
+  const [loadingHist, setLoadingHist] = useState(true);
 
-  useEffect(() => {
-    fetchSampradayas();
-    fetchHistory();
-  }, []);
-
-  const fetchSampradayas = async () => {
-    setLoadingSamp(true);
-    try {
-      const r = await api.get('/sampradayas?take=100');
-      const list: Sampraday[] = Array.isArray(r.data)
-        ? r.data
-        : Array.isArray(r.data?.data)
-          ? r.data.data
-          : [];
-      setSampradayas(list);
-    } catch {
-      setSampradayas([]);
-    } finally {
-      setLoadingSamp(false);
-    }
-  };
+  useEffect(() => { fetchHistory(); }, []);
 
   const fetchHistory = async () => {
     setLoadingHist(true);
@@ -75,10 +58,9 @@ export default function NotificationsPage() {
         title: form.title,
         body: form.body,
         topic,
-        deepLink: form.deepLink || undefined,
       });
       setSent(true);
-      setForm({ title: '', body: '', deepLink: '' });
+      setForm({ title: '', body: '' });
       fetchHistory();
       setTimeout(() => setSent(false), 3000);
     } catch (err: any) {
@@ -89,9 +71,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const audienceLabel = topic === 'verse_of_day'
-    ? 'All Users'
-    : sampradayas.find(s => `vod_${s.slug}` === topic)?.nameKey ?? topic;
+  const selectedTopic = TOPICS.find(t => t.value === topic);
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -113,10 +93,37 @@ export default function NotificationsPage() {
         <div className="p-8 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-            {/* Compose panel (3 cols) */}
+            {/* Compose panel */}
             <div className="lg:col-span-3 space-y-5">
               <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
-                <h2 className="text-sm font-bold text-theme mb-4">Compose Notification</h2>
+                <h2 className="text-sm font-bold text-theme mb-5">Compose Notification</h2>
+
+                {/* Topic select */}
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Topic <span style={{ color: '#f87171' }}>*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={topic}
+                      onChange={e => setTopic(e.target.value)}
+                      className="w-full appearance-none px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer' }}>
+                      {TOPICS.map(t => (
+                        <option key={t.value} value={t.value}>{t.label} — {t.desc}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      style={{ color: '#fbbf24' }}>
+                      <Users size={13} />
+                    </div>
+                  </div>
+                  {selectedTopic && (
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--muted)' }}>
+                      FCM topic: <span className="font-mono" style={{ color: '#fbbf24' }}>{topic}</span>
+                    </p>
+                  )}
+                </div>
 
                 {/* Title */}
                 <div className="mb-4">
@@ -134,7 +141,7 @@ export default function NotificationsPage() {
                 </div>
 
                 {/* Body */}
-                <div className="mb-4">
+                <div className="mb-5">
                   <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
                     Body <span style={{ color: '#f87171' }}>*</span>
                   </label>
@@ -149,87 +156,6 @@ export default function NotificationsPage() {
                   <div className="text-right text-[10px] mt-1" style={{ color: 'var(--muted)' }}>{form.body.length}/200</div>
                 </div>
 
-                {/* Deep link */}
-                <div className="mb-5">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>
-                    Deep Link <span className="font-normal opacity-60">(optional)</span>
-                  </label>
-                  <input
-                    value={form.deepLink}
-                    onChange={e => setForm(f => ({ ...f, deepLink: e.target.value }))}
-                    placeholder="hhb://verse/123 or hhb://home"
-                    className="input-field w-full"
-                  />
-                </div>
-
-                {/* Topic / Audience */}
-                <div className="mb-5">
-                  <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--muted)' }}>Audience (FCM Topic)</label>
-
-                  {/* All Users option */}
-                  <button
-                    onClick={() => setTopic('verse_of_day')}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2"
-                    style={{
-                      background: topic === 'verse_of_day' ? 'rgba(251,191,36,0.08)' : 'var(--bg)',
-                      border: topic === 'verse_of_day' ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
-                    }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: topic === 'verse_of_day' ? 'rgba(251,191,36,0.15)' : 'var(--surface-2)' }}>
-                      <Globe2 size={14} style={{ color: topic === 'verse_of_day' ? '#fbbf24' : 'var(--muted)' }} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: topic === 'verse_of_day' ? '#fbbf24' : 'var(--text)' }}>All Users</p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>Broadcast to every subscriber (topic: verse_of_day)</p>
-                    </div>
-                    <div className="ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                      style={{ borderColor: topic === 'verse_of_day' ? '#fbbf24' : 'var(--border)' }}>
-                      {topic === 'verse_of_day' && <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />}
-                    </div>
-                  </button>
-
-                  {/* Per-sampraday selector */}
-                  {loadingSamp ? (
-                    <div className="skeleton h-12 rounded-xl" />
-                  ) : sampradayas.length > 0 && (
-                    <div className="relative">
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                        style={{
-                          background: topic !== 'verse_of_day' ? 'rgba(251,191,36,0.08)' : 'var(--bg)',
-                          border: topic !== 'verse_of_day' ? '1px solid rgba(251,191,36,0.3)' : '1px solid var(--border)',
-                        }}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ background: topic !== 'verse_of_day' ? 'rgba(251,191,36,0.15)' : 'var(--surface-2)' }}>
-                          <Users size={14} style={{ color: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--muted)' }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold mb-0.5" style={{ color: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--text)' }}>
-                            Specific Sampraday
-                          </p>
-                          <div className="relative">
-                            <select
-                              value={topic !== 'verse_of_day' ? topic : ''}
-                              onChange={e => setTopic(e.target.value || 'verse_of_day')}
-                              className="w-full appearance-none text-xs pr-6 py-0.5 rounded-lg bg-transparent outline-none cursor-pointer"
-                              style={{ color: 'var(--muted)', border: 'none' }}>
-                              <option value="">— select a sampraday —</option>
-                              {sampradayas.map(s => (
-                                <option key={s.id} value={`vod_${s.slug}`}>{s.nameKey}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={11} className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--muted)' }} />
-                          </div>
-                        </div>
-                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                          style={{ borderColor: topic !== 'verse_of_day' ? '#fbbf24' : 'var(--border)' }}>
-                          {topic !== 'verse_of_day' && <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Error */}
                 {sendError && (
                   <div className="flex items-center gap-2 px-4 py-3 rounded-xl mb-4 text-xs"
                     style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
@@ -238,7 +164,6 @@ export default function NotificationsPage() {
                   </div>
                 )}
 
-                {/* Send button */}
                 <button
                   onClick={handleSend}
                   disabled={sending || !form.title.trim() || !form.body.trim()}
@@ -260,7 +185,7 @@ export default function NotificationsPage() {
               </div>
             </div>
 
-            {/* Preview + History (2 cols) */}
+            {/* Preview + History */}
             <div className="lg:col-span-2 space-y-5">
 
               {/* Preview */}
@@ -290,19 +215,19 @@ export default function NotificationsPage() {
                   </div>
                 </div>
                 <p className="text-[10px] mt-2 text-center" style={{ color: 'var(--muted)' }}>
-                  Sending to: <span style={{ color: '#fbbf24' }}>{audienceLabel}</span>
+                  To: <span style={{ color: '#fbbf24' }}>{selectedTopic?.label ?? topic}</span>
                 </p>
               </div>
 
-              {/* Sent history */}
+              {/* History table */}
               <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
                 <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
                   <Clock size={13} style={{ color: 'var(--muted)' }} />
-                  <h3 className="text-xs font-bold text-theme">Recent Sends</h3>
+                  <h3 className="text-xs font-bold text-theme">Notification History</h3>
                 </div>
                 {loadingHist ? (
-                  <div className="p-4 space-y-3">
-                    {[1, 2, 3].map(i => <div key={i} className="skeleton h-14 rounded-xl" />)}
+                  <div className="p-4 space-y-2">
+                    {[1, 2, 3].map(i => <div key={i} className="skeleton h-8 rounded-lg" />)}
                   </div>
                 ) : history.length === 0 ? (
                   <div className="px-5 py-8 text-center">
@@ -310,31 +235,48 @@ export default function NotificationsPage() {
                     <p className="text-xs" style={{ color: 'var(--muted)' }}>No notifications sent yet</p>
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-                    {history.map(n => (
-                      <div key={n.id} className="px-5 py-4">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <p className="text-xs font-semibold text-theme leading-tight flex-1">{n.title}</p>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold flex-shrink-0"
-                            style={{
-                              color: n.status === 'sent' ? '#4ade80' : n.status === 'scheduled' ? '#fbbf24' : '#f87171',
-                              background: n.status === 'sent' ? 'rgba(74,222,128,0.1)' : n.status === 'scheduled' ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)',
-                            }}>
-                            {n.status.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-[11px] mb-2 line-clamp-1" style={{ color: 'var(--muted)' }}>{n.body}</p>
-                        <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--muted)' }}>
-                          <span className="flex items-center gap-1">
-                            <Clock size={9} />
-                            {new Date(n.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {n.recipientCount > 0 && (
-                            <span className="flex items-center gap-1"><Users size={9} /> {n.recipientCount.toLocaleString()}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-xs">
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                          {['Topic', 'Title', 'Sent At', 'Recipients'].map(h => (
+                            <th key={h} className="px-4 py-2.5 text-left"
+                              style={{ color: 'var(--muted)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((n, i) => {
+                          const sm = STATUS_META[n.status] ?? STATUS_META.sent;
+                          return (
+                            <tr key={n.id}
+                              style={{ borderBottom: i < history.length - 1 ? '1px solid var(--border)' : 'none' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                              <td className="px-4 py-3">
+                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap"
+                                  style={{ background: sm.bg, color: sm.color }}>
+                                  {n.topic?.replace(/_/g, '-') ?? '—'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-theme" style={{ maxWidth: 120 }}>
+                                <span className="line-clamp-1">{n.title}</span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
+                                {new Date(n.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </td>
+                              <td className="px-4 py-3" style={{ color: 'var(--muted)' }}>
+                                {n.recipientCount > 0
+                                  ? <span className="flex items-center gap-1"><Users size={10} /> {n.recipientCount.toLocaleString()}</span>
+                                  : '—'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

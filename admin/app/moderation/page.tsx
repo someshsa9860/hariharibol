@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
   CheckCircle, EyeOff, ShieldAlert, MessageSquare,
-  Clock, Filter, RefreshCw, ChevronDown,
+  Clock, Filter, RefreshCw, ChevronDown, Square, CheckSquare, X,
 } from 'lucide-react';
 
 interface ModerationMessage {
@@ -20,20 +20,33 @@ interface ModerationMessage {
   status: 'pending' | 'approved' | 'hidden' | 'escalated';
 }
 
+interface ConfirmState {
+  ids: string[];
+  userIds: string[];
+  action: 'approve' | 'reject' | 'ban';
+  label: string;
+}
+
 const VERDICT_META: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  SAFE:           { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.3)',  label: 'SAFE' },
-  DISRESPECTFUL:  { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)', label: 'DISRESPECTFUL' },
-  SPAM:           { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  border: 'rgba(251,191,36,0.3)',  label: 'SPAM' },
-  HATE_SPEECH:    { color: '#c084fc', bg: 'rgba(192,132,252,0.12)', border: 'rgba(192,132,252,0.3)', label: 'HATE SPEECH' },
+  SAFE:          { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.3)',  label: 'SAFE' },
+  DISRESPECTFUL: { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)', label: 'DISRESPECTFUL' },
+  SPAM:          { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  border: 'rgba(251,191,36,0.3)',  label: 'SPAM' },
+  HATE_SPEECH:   { color: '#c084fc', bg: 'rgba(192,132,252,0.12)', border: 'rgba(192,132,252,0.3)', label: 'HATE SPEECH' },
+};
+
+const STATUS_META: Record<string, { color: string; bg: string; label: string }> = {
+  pending:   { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  label: 'Pending' },
+  approved:  { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  label: 'Approved' },
+  hidden:    { color: '#f87171', bg: 'rgba(248,113,113,0.12)', label: 'Rejected' },
+  escalated: { color: '#f87171', bg: 'rgba(248,113,113,0.12)', label: 'Escalated' },
 };
 
 const STATUS_FILTERS = [
   { key: 'pending',   label: 'Pending',   color: '#fbbf24' },
   { key: 'approved',  label: 'Approved',  color: '#4ade80' },
-  { key: 'hidden',    label: 'Hidden',    color: '#94a3b8' },
+  { key: 'hidden',    label: 'Rejected',  color: '#f87171' },
   { key: 'escalated', label: 'Escalated', color: '#f87171' },
 ];
-
 
 function VerdictBadge({ verdict }: { verdict?: string }) {
   if (!verdict) return null;
@@ -41,6 +54,16 @@ function VerdictBadge({ verdict }: { verdict?: string }) {
   return (
     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
       style={{ color: meta.color, background: meta.bg, border: `1px solid ${meta.border}` }}>
+      {meta.label}
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const meta = STATUS_META[status] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)', label: status };
+  return (
+    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
+      style={{ color: meta.color, background: meta.bg }}>
       {meta.label}
     </span>
   );
@@ -59,14 +82,19 @@ function ConfidencePip({ pct }: { pct: number }) {
 }
 
 export default function ModerationPage() {
-  const [messages,   setMessages]   = useState<ModerationMessage[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState<string | null>(null);
-  const [filter,     setFilter]     = useState('pending');
-  const [actioningId,setActioningId]= useState<string | null>(null);
-  const [expanded,   setExpanded]   = useState<string | null>(null);
+  const [messages,    setMessages]    = useState<ModerationMessage[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState<string | null>(null);
+  const [filter,      setFilter]      = useState('pending');
+  const [actioningId, setActioningId] = useState<string | null>(null);
+  const [expanded,    setExpanded]    = useState<string | null>(null);
+  const [selected,    setSelected]    = useState<Set<string>>(new Set());
+  const [confirm,     setConfirm]     = useState<ConfirmState | null>(null);
 
-  useEffect(() => { fetchMessages(); }, [filter]);
+  useEffect(() => {
+    fetchMessages();
+    setSelected(new Set());
+  }, [filter]);
 
   const fetchMessages = async () => {
     setLoading(true);
@@ -81,17 +109,40 @@ export default function ModerationPage() {
     } finally { setLoading(false); }
   };
 
-  const act = async (msgId: string, userId: string, action: 'approve' | 'reject' | 'ban') => {
-    setActioningId(msgId);
+  const executeAction = async (state: ConfirmState) => {
+    setConfirm(null);
+    setActioningId(state.ids.length === 1 ? state.ids[0] : 'bulk');
     try {
-      if (action === 'approve') await api.post(`/admin/moderation/${msgId}/approve`);
-      else if (action === 'reject') await api.post(`/admin/moderation/${msgId}/reject`);
-      else await api.post(`/admin/users/${userId}/ban`, { reason: 'Escalated from moderation queue' });
+      await Promise.all(state.ids.map((id, i) => {
+        if (state.action === 'approve') return api.post(`/admin/moderation/${id}/approve`);
+        if (state.action === 'reject')  return api.post(`/admin/moderation/${id}/reject`);
+        return api.post(`/admin/users/${state.userIds[i]}/ban`, { reason: 'Escalated from moderation queue' });
+      }));
+      setSelected(new Set());
       fetchMessages();
     } catch { fetchMessages(); }
     finally { setActioningId(null); }
   };
 
+  const requestAction = (ids: string[], userIds: string[], action: 'approve' | 'reject' | 'ban') => {
+    const labels = { approve: 'Approve', reject: 'Reject', ban: 'Escalate to Ban' };
+    setConfirm({ ids, userIds, action, label: labels[action] });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === messages.length) setSelected(new Set());
+    else setSelected(new Set(messages.map(m => m.id)));
+  };
+
+  const selectedMessages = messages.filter(m => selected.has(m.id));
   const activeFilter = STATUS_FILTERS.find(f => f.key === filter)!;
 
   return (
@@ -143,7 +194,7 @@ export default function ModerationPage() {
             ))}
           </div>
 
-          {/* Quick-nav sub-pages */}
+          {/* Quick-nav */}
           <div className="flex gap-2">
             {[
               { href: '/moderation/groups', label: 'Group Oversight', icon: Filter },
@@ -158,6 +209,55 @@ export default function ModerationPage() {
               </a>
             ))}
           </div>
+
+          {/* Bulk action bar */}
+          {selected.size > 0 && filter === 'pending' && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl animate-slide-up"
+              style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.25)' }}>
+              <span className="text-xs font-semibold" style={{ color: '#a78bfa' }}>{selected.size} selected</span>
+              <div className="flex gap-2 ml-auto">
+                <button
+                  onClick={() => requestAction(
+                    selectedMessages.map(m => m.id),
+                    selectedMessages.map(m => m.user.id),
+                    'approve'
+                  )}
+                  disabled={!!actioningId}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                  style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }}>
+                  <CheckCircle size={12} /> Bulk Approve
+                </button>
+                <button
+                  onClick={() => requestAction(
+                    selectedMessages.map(m => m.id),
+                    selectedMessages.map(m => m.user.id),
+                    'reject'
+                  )}
+                  disabled={!!actioningId}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                  style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                  <EyeOff size={12} /> Bulk Reject
+                </button>
+                <button onClick={() => setSelected(new Set())}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'var(--surface-2)', color: 'var(--muted)' }}>
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Select-all row */}
+          {!loading && messages.length > 0 && filter === 'pending' && (
+            <div className="flex items-center gap-2 px-1">
+              <button onClick={toggleAll} className="flex items-center gap-2 text-xs" style={{ color: 'var(--muted)' }}>
+                {selected.size === messages.length
+                  ? <CheckSquare size={15} style={{ color: '#a78bfa' }} />
+                  : <Square size={15} />}
+                {selected.size === messages.length ? 'Deselect all' : 'Select all'}
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="px-4 py-3 rounded-xl text-sm font-medium"
@@ -193,12 +293,25 @@ export default function ModerationPage() {
             <div className="space-y-4">
               {messages.map((msg, i) => (
                 <div key={msg.id} className="rounded-2xl overflow-hidden transition-all duration-200 animate-slide-up"
-                  style={{ animationDelay: `${i * 60}ms`, background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
+                  style={{
+                    animationDelay: `${i * 60}ms`,
+                    background: 'var(--surface)',
+                    border: selected.has(msg.id)
+                      ? '1px solid rgba(167,139,250,0.4)'
+                      : '1px solid var(--surface-2)',
+                  }}>
 
                   {/* Card header */}
                   <div className="px-5 py-3.5 flex items-center justify-between"
                     style={{ borderBottom: '1px solid var(--border)' }}>
                     <div className="flex items-center gap-3">
+                      {filter === 'pending' && (
+                        <button onClick={() => toggleSelect(msg.id)} className="flex-shrink-0">
+                          {selected.has(msg.id)
+                            ? <CheckSquare size={16} style={{ color: '#a78bfa' }} />
+                            : <Square size={16} style={{ color: 'var(--muted)' }} />}
+                        </button>
+                      )}
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
                         style={{ background: 'linear-gradient(135deg,rgba(255,107,43,0.2),rgba(245,200,66,0.15))', color: 'var(--accent)', border: '1px solid rgba(255,107,43,0.2)' }}>
                         {(msg.user.name || msg.user.email)[0].toUpperCase()}
@@ -212,6 +325,7 @@ export default function ModerationPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <StatusBadge status={msg.status} />
                       <VerdictBadge verdict={msg.aiVerdict} />
                       <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
                         <Clock size={11} />
@@ -224,7 +338,6 @@ export default function ModerationPage() {
                   <div className="px-5 py-4">
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', opacity: 0.85 }}>{msg.content}</p>
 
-                    {/* AI analysis row */}
                     {(msg.aiReason || msg.aiConfidence) && (
                       <div className="mt-3 pt-3 flex items-start gap-3" style={{ borderTop: '1px solid var(--border)' }}>
                         <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -248,7 +361,6 @@ export default function ModerationPage() {
                       </div>
                     )}
 
-                    {/* Expanded meta */}
                     {expanded === msg.id && (
                       <div className="mt-3 px-3 py-2 rounded-xl text-xs space-y-1" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
                         <div className="flex gap-2"><span style={{ color: 'var(--muted)' }}>Message ID:</span><span className="font-mono text-theme">{msg.id}</span></div>
@@ -261,28 +373,31 @@ export default function ModerationPage() {
                   {/* Actions */}
                   {filter === 'pending' && (
                     <div className="px-5 pb-4 flex gap-2">
-                      <button onClick={() => act(msg.id, msg.user.id, 'approve')}
-                        disabled={actioningId === msg.id}
+                      <button
+                        onClick={() => requestAction([msg.id], [msg.user.id], 'approve')}
+                        disabled={!!actioningId}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
                         style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(74,222,128,0.2)'; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(74,222,128,0.1)'; }}>
-                        <CheckCircle size={13} /> Approve & Restore
+                        <CheckCircle size={13} /> Approve
                       </button>
-                      <button onClick={() => act(msg.id, msg.user.id, 'reject')}
-                        disabled={actioningId === msg.id}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
-                        style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.2)', color: '#94a3b8' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(148,163,184,0.2)'; }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(148,163,184,0.1)'; }}>
-                        <EyeOff size={13} /> Confirm Hide
-                      </button>
-                      <button onClick={() => act(msg.id, msg.user.id, 'ban')}
-                        disabled={actioningId === msg.id}
+                      <button
+                        onClick={() => requestAction([msg.id], [msg.user.id], 'reject')}
+                        disabled={!!actioningId}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
                         style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248,113,113,0.2)'; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248,113,113,0.1)'; }}>
+                        <EyeOff size={13} /> Reject
+                      </button>
+                      <button
+                        onClick={() => requestAction([msg.id], [msg.user.id], 'ban')}
+                        disabled={!!actioningId}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50"
+                        style={{ background: 'rgba(192,132,252,0.1)', border: '1px solid rgba(192,132,252,0.25)', color: '#c084fc' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(192,132,252,0.2)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(192,132,252,0.1)'; }}>
                         <ShieldAlert size={13} /> Escalate to Ban
                       </button>
                     </div>
@@ -293,6 +408,40 @@ export default function ModerationPage() {
           )}
         </div>
       </main>
+
+      {/* Confirmation modal */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.65)' }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirm(null); }}>
+          <div className="rounded-2xl p-6 max-w-sm w-full mx-4 animate-slide-up"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+            <h3 className="font-bold text-theme mb-2">Confirm: {confirm.label}</h3>
+            <p className="text-sm mb-5" style={{ color: 'var(--muted)' }}>
+              {confirm.ids.length === 1
+                ? `This will ${confirm.action} the selected message.`
+                : `This will ${confirm.action} ${confirm.ids.length} messages at once.`}
+              {' '}This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirm(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: 'var(--surface-2)', color: 'var(--muted)' }}>
+                Cancel
+              </button>
+              <button onClick={() => executeAction(confirm)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{
+                  background: confirm.action === 'approve' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)',
+                  border: confirm.action === 'approve' ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(248,113,113,0.3)',
+                  color: confirm.action === 'approve' ? '#4ade80' : '#f87171',
+                }}>
+                Confirm {confirm.label}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ interface AuditEntry {
   action: string;
   entityType: string;
   entityId: string;
+  description?: string;
   timestamp: string;
   before?: Record<string, unknown>;
   after?: Record<string, unknown>;
@@ -24,26 +25,51 @@ const ACTION_TYPES = [
 
 const ENTITY_TYPES = ['User', 'Message', 'Verse', 'Ban', 'Notification', 'Mantra', 'Sampraday'];
 
-const ACTION_META: Record<string, { color: string; bg: string; border: string }> = {
-  BAN_USER:          { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.25)' },
-  LIFT_BAN:          { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.25)' },
-  APPROVE_MESSAGE:   { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.25)' },
-  HIDE_MESSAGE:      { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)' },
-  ESCALATE_TO_BAN:   { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.25)' },
-  UPDATE_VERSE:      { color: '#60a5fa', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.25)' },
-  RESET_STRIKES:     { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  border: 'rgba(251,191,36,0.25)' },
-  SEND_NOTIFICATION: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  border: 'rgba(251,191,36,0.25)' },
-  CREATE_CONTENT:    { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.25)' },
-  DELETE_CONTENT:    { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.25)' },
+type ActionCategory = 'CREATE' | 'UPDATE' | 'DELETE';
+
+const CATEGORY_META: Record<ActionCategory, { color: string; bg: string; border: string }> = {
+  CREATE: { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.25)' },
+  UPDATE: { color: '#60a5fa', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.25)' },
+  DELETE: { color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.25)' },
 };
 
+function getActionCategory(action: string): ActionCategory {
+  const lower = action.toLowerCase();
+  if (lower.includes('create') || lower.includes('send') || lower.includes('lift')) return 'CREATE';
+  if (lower.includes('delete') || lower.includes('ban') || lower.includes('hide') || lower.includes('escalate')) return 'DELETE';
+  return 'UPDATE';
+}
+
+function getActionDescription(entry: AuditEntry): string {
+  if (entry.description) return entry.description;
+  const map: Record<string, string> = {
+    BAN_USER:          'User account suspended',
+    LIFT_BAN:          'Ban lifted on user',
+    APPROVE_MESSAGE:   'Message approved and restored',
+    HIDE_MESSAGE:      'Message hidden from view',
+    ESCALATE_TO_BAN:   'Escalated to account ban',
+    UPDATE_VERSE:      'Verse content updated',
+    RESET_STRIKES:     'User strike count reset',
+    SEND_NOTIFICATION: 'Push notification dispatched',
+    CREATE_CONTENT:    `${entry.entityType} created`,
+    DELETE_CONTENT:    `${entry.entityType} deleted`,
+  };
+  return map[entry.action] ?? entry.action.replace(/_/g, ' ').toLowerCase();
+}
+
 function ActionBadge({ action }: { action: string }) {
-  const m = ACTION_META[action] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)' };
+  const cat = getActionCategory(action);
+  const m = CATEGORY_META[cat];
   return (
-    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider whitespace-nowrap"
-      style={{ color: m.color, background: m.bg, border: `1px solid ${m.border}` }}>
-      {action.replace(/_/g, ' ')}
-    </span>
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider whitespace-nowrap"
+        style={{ color: m.color, background: m.bg, border: `1px solid ${m.border}` }}>
+        {cat}
+      </span>
+      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: 'var(--muted)' }}>
+        {action.replace(/_/g, ' ')}
+      </span>
+    </div>
   );
 }
 
@@ -73,14 +99,24 @@ function DiffView({ before, after }: { before?: Record<string, unknown>; after?:
 
 const PAGE_SIZE = 50;
 
+const selectStyle = {
+  background: 'var(--surface)',
+  border: '1px solid var(--border)',
+  color: 'var(--text)',
+  borderRadius: 10,
+  padding: '6px 10px',
+  fontSize: 12,
+  outline: 'none',
+} as React.CSSProperties;
+
 export default function AuditLogPage() {
-  const [entries,      setEntries]      = useState<AuditEntry[]>([]);
-  const [total,        setTotal]        = useState(0);
-  const [loading,      setLoading]      = useState(true);
-  const [error,        setError]        = useState<string | null>(null);
-  const [search,       setSearch]       = useState('');
-  const [expanded,     setExpanded]     = useState<string | null>(null);
-  const [page,         setPage]         = useState(0);
+  const [entries,          setEntries]          = useState<AuditEntry[]>([]);
+  const [total,            setTotal]            = useState(0);
+  const [loading,          setLoading]          = useState(true);
+  const [error,            setError]            = useState<string | null>(null);
+  const [search,           setSearch]           = useState('');
+  const [expanded,         setExpanded]         = useState<string | null>(null);
+  const [page,             setPage]             = useState(0);
   const [filterAction,     setFilterAction]     = useState('');
   const [filterEntityType, setFilterEntityType] = useState('');
   const [filterDateFrom,   setFilterDateFrom]   = useState('');
@@ -90,10 +126,7 @@ export default function AuditLogPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        skip: String(currentPage * PAGE_SIZE),
-        take: String(PAGE_SIZE),
-      });
+      const params = new URLSearchParams({ skip: String(currentPage * PAGE_SIZE), take: String(PAGE_SIZE) });
       if (filterAction)     params.set('action', filterAction);
       if (filterEntityType) params.set('entityType', filterEntityType);
       if (filterDateFrom)   params.set('dateFrom', filterDateFrom);
@@ -111,23 +144,10 @@ export default function AuditLogPage() {
     }
   }, [filterAction, filterEntityType, filterDateFrom, filterDateTo]);
 
-  useEffect(() => {
-    fetchLog(page);
-  }, [fetchLog, page]);
+  useEffect(() => { fetchLog(page); }, [fetchLog, page]);
 
-  const applyFilter = (setter: (v: string) => void) => (v: string) => {
-    setter(v);
-    setPage(0);
-  };
-
-  const clearFilters = () => {
-    setFilterAction('');
-    setFilterEntityType('');
-    setFilterDateFrom('');
-    setFilterDateTo('');
-    setPage(0);
-  };
-
+  const applyFilter = (setter: (v: string) => void) => (v: string) => { setter(v); setPage(0); };
+  const clearFilters = () => { setFilterAction(''); setFilterEntityType(''); setFilterDateFrom(''); setFilterDateTo(''); setPage(0); };
   const hasFilters = filterAction || filterEntityType || filterDateFrom || filterDateTo;
 
   const filtered = entries.filter(e =>
@@ -139,16 +159,6 @@ export default function AuditLogPage() {
   );
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-
-  const selectStyle = {
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    color: 'var(--text)',
-    borderRadius: 10,
-    padding: '6px 10px',
-    fontSize: 12,
-    outline: 'none',
-  } as React.CSSProperties;
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -170,7 +180,7 @@ export default function AuditLogPage() {
           {!loading && !error && (
             <span className="px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', color: '#60a5fa' }}>
-              {total} entries
+              {total.toLocaleString()} entries
             </span>
           )}
         </header>
@@ -188,42 +198,29 @@ export default function AuditLogPage() {
                 <option value="">All entity types</option>
                 {ENTITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
-              <input
-                type="date"
-                value={filterDateFrom}
+              <input type="date" value={filterDateFrom}
                 onChange={e => applyFilter(setFilterDateFrom)(e.target.value)}
-                style={{ ...selectStyle, colorScheme: 'dark' }}
-                placeholder="From"
-              />
-              <input
-                type="date"
-                value={filterDateTo}
+                style={{ ...selectStyle, colorScheme: 'dark' }} />
+              <input type="date" value={filterDateTo}
                 onChange={e => applyFilter(setFilterDateTo)(e.target.value)}
-                style={{ ...selectStyle, colorScheme: 'dark' }}
-                placeholder="To"
-              />
+                style={{ ...selectStyle, colorScheme: 'dark' }} />
               {hasFilters && (
                 <button onClick={clearFilters}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold"
                   style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
                   Clear filters
                 </button>
               )}
             </div>
-
-            {/* Search */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
               <Search size={13} style={{ color: 'var(--muted)' }} />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search by admin, action, entity type or ID…"
                 className="flex-1 bg-transparent text-sm outline-none text-theme placeholder:text-[var(--muted)]" />
-              {search && (
-                <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'var(--muted)' }}>Clear</button>
-              )}
+              {search && <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'var(--muted)' }}>Clear</button>}
             </div>
           </div>
 
-          {/* Error state */}
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-xl"
               style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)' }}>
@@ -236,14 +233,13 @@ export default function AuditLogPage() {
             </div>
           )}
 
-          {/* Table */}
           {!error && (
             <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--surface-2)' }}>
               <table className="w-full border-collapse">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Admin', 'Action', 'Entity', 'Entity ID', 'Timestamp', ''].map(h => (
-                      <th key={h} className="px-5 py-3 text-left"
+                    {['Timestamp', 'Admin', 'Action Type', 'Resource', 'Resource ID', 'Description', ''].map(h => (
+                      <th key={h} className="px-4 py-3 text-left"
                         style={{ color: 'var(--muted)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                         {h}
                       </th>
@@ -253,11 +249,11 @@ export default function AuditLogPage() {
                 <tbody>
                   {loading
                     ? [1, 2, 3, 4, 5].map(i => (
-                      <tr key={i}><td colSpan={6} className="px-5 py-3"><div className="skeleton h-7 rounded-lg" /></td></tr>
+                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="skeleton h-7 rounded-lg" /></td></tr>
                     ))
                     : filtered.length === 0
                       ? (
-                        <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted)' }}>
+                        <tr><td colSpan={7} className="py-16 text-center text-sm" style={{ color: 'var(--muted)' }}>
                           {search ? 'No entries match your search.' : 'No audit log entries found.'}
                         </td></tr>
                       )
@@ -268,7 +264,13 @@ export default function AuditLogPage() {
                             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                             onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}>
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
+                                <Clock size={10} />
+                                {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
                                   style={{ background: 'rgba(199,90,26,0.15)', color: 'var(--accent)' }}>
@@ -277,21 +279,18 @@ export default function AuditLogPage() {
                                 <span className="text-xs text-theme">{entry.admin.email}</span>
                               </div>
                             </td>
-                            <td className="px-5 py-4"><ActionBadge action={entry.action} /></td>
-                            <td className="px-5 py-4">
+                            <td className="px-4 py-3"><ActionBadge action={entry.action} /></td>
+                            <td className="px-4 py-3">
                               <span className="text-xs px-2 py-0.5 rounded-md font-medium"
                                 style={{ background: 'rgba(96,165,250,0.08)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.15)' }}>
                                 {entry.entityType}
                               </span>
                             </td>
-                            <td className="px-5 py-4 font-mono text-xs" style={{ color: 'var(--muted)' }}>{entry.entityId}</td>
-                            <td className="px-5 py-4">
-                              <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
-                                <Clock size={10} />
-                                {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </div>
+                            <td className="px-4 py-3 font-mono text-xs" style={{ color: 'var(--muted)' }}>{entry.entityId}</td>
+                            <td className="px-4 py-3 text-xs" style={{ color: 'var(--muted)', maxWidth: 200 }}>
+                              <span className="line-clamp-1">{getActionDescription(entry)}</span>
                             </td>
-                            <td className="px-5 py-4 text-right">
+                            <td className="px-4 py-3 text-right">
                               {(entry.before || entry.after) && (
                                 <ChevronDown size={13} style={{
                                   color: 'var(--muted)',
@@ -302,11 +301,10 @@ export default function AuditLogPage() {
                             </td>
                           </tr>
 
-                          {/* Diff row */}
                           {expanded === entry.id && (entry.before || entry.after) && (
                             <tr key={`${entry.id}-diff`}
                               style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                              <td colSpan={6} className="px-5 pb-4 pt-1">
+                              <td colSpan={7} className="px-4 pb-4 pt-1">
                                 <DiffView before={entry.before} after={entry.after} />
                               </td>
                             </tr>
@@ -318,7 +316,6 @@ export default function AuditLogPage() {
             </div>
           )}
 
-          {/* Pagination */}
           {!error && totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
