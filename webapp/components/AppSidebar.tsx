@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Music2, Star, MessageCircle, Users, LogOut, Sun, Moon, Settings } from 'lucide-react';
+import { Home, BookOpen, Music2, Star, MessageCircle, Users, Globe, LogOut, Sun, Moon, Settings } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 const NAV_ITEMS = [
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
 ];
 
 const COMMUNITY_ITEMS = [
+  { href: '/sampradayas', icon: <Globe size={18} />, label: 'Sampradayas', dot: 'var(--peacock)' },
   { href: '/groups', icon: <Users size={18} />, label: 'Groups', dot: 'var(--peacock)' },
 ];
 
