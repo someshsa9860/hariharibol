@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import AppSidebar from '@/components/AppSidebar';
 import BottomNav from '@/components/BottomNav';
 import { useAppStore } from '@/lib/store';
+import api from '@/lib/api';
 
 export default function ShellLayout({ children }: { children: React.ReactNode }) {
   const darkMode = useAppStore((s) => s.darkMode);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const sidebarOpen = useAppStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useAppStore((s) => s.setSidebarOpen);
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -16,9 +19,27 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
 
   // Prevent body scroll when mobile drawer is open
   useEffect(() => {
-    document.body.style.overflow = mobileSidebarOpen ? 'hidden' : '';
+    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [mobileSidebarOpen]);
+  }, [sidebarOpen]);
+
+  // Sync favorites from API on mount, merge with locally stored favorites
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const sync = async () => {
+      try {
+        const [vRes, mRes] = await Promise.all([
+          api.get<{ id: string }[]>('/users/me/favorites/verses').catch(() => ({ data: [] as { id: string }[] })),
+          api.get<{ id: string }[]>('/users/me/favorites/mantras').catch(() => ({ data: [] as { id: string }[] })),
+        ]);
+        const { favoriteVerseIds, favoriteMantraIds, toggleFavoriteVerse, toggleFavoriteMantra } =
+          useAppStore.getState();
+        vRes.data.forEach((v) => { if (!favoriteVerseIds.has(v.id)) toggleFavoriteVerse(v.id); });
+        mRes.data.forEach((m) => { if (!favoriteMantraIds.has(m.id)) toggleFavoriteMantra(m.id); });
+      } catch {}
+    };
+    sync();
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="app-shell">
@@ -28,14 +49,14 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
       {/* Mobile drawer backdrop */}
       <div
         className="md:hidden"
-        onClick={() => setMobileSidebarOpen(false)}
+        onClick={() => setSidebarOpen(false)}
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: 40,
           background: 'rgba(0,0,0,0.5)',
-          opacity: mobileSidebarOpen ? 1 : 0,
-          pointerEvents: mobileSidebarOpen ? 'auto' : 'none',
+          opacity: sidebarOpen ? 1 : 0,
+          pointerEvents: sidebarOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease',
         }}
       />
@@ -50,7 +71,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
           height: '100%',
           width: 260,
           zIndex: 50,
-          transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
@@ -65,7 +86,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
           style={{ height: 56, background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}
         >
           <button
-            onClick={() => setMobileSidebarOpen(true)}
+            onClick={() => setSidebarOpen(true)}
             aria-label="Open navigation"
             style={{
               display: 'flex',

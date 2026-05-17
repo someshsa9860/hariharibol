@@ -1,5 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import Toaster from '@/components/Toaster';
 
 export const metadata: Metadata = {
   title: {
@@ -38,7 +40,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <Toaster />
+      </body>
     </html>
   );
 }
