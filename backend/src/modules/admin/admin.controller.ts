@@ -24,10 +24,11 @@ import { AdminGuard } from '@common/guards/admin.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
+import { AdminRole } from './roles.enum';
 
 @Controller('api/v1/admin')
 @UseGuards(JwtGuard, AdminGuard, RolesGuard)
-@Roles('admin', 'superadmin')
+@Roles(AdminRole.ADMIN, AdminRole.SUPER_ADMIN)
 export class AdminController {
   constructor(
     private adminService: AdminService,
@@ -121,7 +122,7 @@ export class AdminController {
     @Param('id') userId: string,
     @Body() dto: { reason: string },
   ) {
-    return this.adminService.banUser(userId, dto.reason);
+    return this.adminService.banUser(user.id, userId, dto.reason);
   }
 
   @Post('users/:id/unban')
@@ -130,7 +131,7 @@ export class AdminController {
     @CurrentUser() user: any,
     @Param('id') userId: string,
   ) {
-    return this.adminService.unbanUser(userId);
+    return this.adminService.unbanUser(user.id, userId);
   }
 
   // Moderation Queue
@@ -149,22 +150,24 @@ export class AdminController {
   }
 
   @Post('moderation/messages/:id/approve')
+  @Roles(AdminRole.MODERATOR, AdminRole.ADMIN, AdminRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   async approveMessage(
     @CurrentUser() user: any,
     @Param('id') messageId: string,
   ) {
-    return this.adminService.approveMessage(messageId);
+    return this.adminService.approveMessage(user.id, messageId);
   }
 
   @Post('moderation/messages/:id/reject')
+  @Roles(AdminRole.MODERATOR, AdminRole.ADMIN, AdminRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   async rejectMessage(
     @CurrentUser() user: any,
     @Param('id') messageId: string,
     @Body() dto: { reason: string },
   ) {
-    return this.adminService.rejectMessage(messageId, dto.reason);
+    return this.adminService.rejectMessage(user.id, messageId, dto.reason);
   }
 
   // File Upload Endpoints
@@ -308,6 +311,7 @@ export class AdminController {
   }
 
   @Patch('settings')
+  @Roles(AdminRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   async updateSettings(@Body() dto: Record<string, string>) {
     return this.adminService.updateSettings(dto);

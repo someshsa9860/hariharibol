@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { StorageService } from '@infrastructure/storage/storage.service';
+import { AuditService } from '@infrastructure/audit/audit.service';
 import { CreateSampradayDto, UpdateSampradayDto } from './dto/create-sampraday.dto';
 import { folderStructure } from '@infrastructure/storage/storage.config';
 
@@ -9,6 +10,7 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private storageService: StorageService,
+    private auditService: AuditService,
   ) {}
 
   async getDashboardStats() {
@@ -117,7 +119,7 @@ export class AdminService {
     return { data: users, total };
   }
 
-  async banUser(userId: string, reason: string) {
+  async banUser(adminId: string, userId: string, reason: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -126,7 +128,8 @@ export class AdminService {
       throw new BadRequestException('User not found');
     }
 
-    // Ban user
+    const before = { isBanned: user.isBanned, bannedReason: user.bannedReason };
+
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -136,7 +139,6 @@ export class AdminService {
       },
     });
 
-    // Create ban record
     await this.prisma.ban.create({
       data: {
         type: 'email',
@@ -147,13 +149,8 @@ export class AdminService {
       },
     });
 
-    // Ban all associated devices
     const devices = await this.prisma.device.findMany({
-      where: {
-        userIds: {
-          hasSome: [userId],
-        },
-      },
+      where: { userIds: { hasSome: [userId] } },
     });
 
     for (const device of devices) {
@@ -167,10 +164,15 @@ export class AdminService {
       });
     }
 
+    await this.auditService.logAction(adminId, 'BAN', 'user', userId, reason, before, {
+      isBanned: true,
+      bannedReason: reason,
+    });
+
     return { success: true, message: 'User and associated devices banned' };
   }
 
-  async unbanUser(userId: string) {
+  async unbanUser(adminId: string, userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -179,27 +181,20 @@ export class AdminService {
       throw new BadRequestException('User not found');
     }
 
-    // Unban user
+    const before = { isBanned: user.isBanned, bannedReason: user.bannedReason };
+
     await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        isBanned: false,
-        bannedReason: null,
-        bannedAt: null,
-      },
+      data: { isBanned: false, bannedReason: null, bannedAt: null },
     });
 
-    // Remove ban record
     await this.prisma.ban.updateMany({
-      where: {
-        type: 'email',
-        value: user.email,
-        isActive: true,
-      },
-      data: {
-        isActive: false,
-        unbannedAt: new Date(),
-      },
+      where: { type: 'email', value: user.email, isActive: true },
+      data: { isActive: false, unbannedAt: new Date() },
+    });
+
+    await this.auditService.logAction(adminId, 'UNBAN', 'user', userId, undefined, before, {
+      isBanned: false,
     });
 
     return { success: true, message: 'User unbanned' };
@@ -234,18 +229,22 @@ export class AdminService {
     return { data: messages, total };
   }
 
-  async approveMessage(messageId: string) {
-    return this.prisma.message.update({
+  async approveMessage(adminId: string, messageId: string) {
+    const result = await this.prisma.message.update({
       where: { id: messageId },
       data: { status: 'approved' },
     });
+    await this.auditService.logAction(adminId, 'APPROVE', 'message', messageId);
+    return result;
   }
 
-  async rejectMessage(messageId: string, reason: string) {
-    return this.prisma.message.update({
+  async rejectMessage(adminId: string, messageId: string, reason: string) {
+    const result = await this.prisma.message.update({
       where: { id: messageId },
       data: { status: 'hidden', hiddenReason: reason },
     });
+    await this.auditService.logAction(adminId, 'REJECT', 'message', messageId, reason);
+    return result;
   }
 
   async getAuditLogs(
