@@ -6,6 +6,8 @@ import '../../features/auth/presentation/pages/onboarding_sampraday_page.dart';
 import '../../features/shell/presentation/pages/main_shell_page.dart';
 import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/sampradayas/presentation/pages/sampraday_detail_page.dart';
+import '../../features/sampradayas/presentation/pages/sampradayas_page.dart';
+import '../../features/groups/presentation/pages/groups_page.dart';
 import '../../features/chanting/presentation/pages/mantra_detail_page.dart';
 import '../../features/chanting/presentation/pages/chant_counter_page.dart';
 import '../../features/chanting/presentation/pages/chant_history_page.dart';
@@ -29,33 +31,74 @@ class AppRouter {
         path: '/login',
         builder: (context, state) => const LoginPage(),
       ),
-      // ── Onboarding ─────────────────────────────────────────────────────────
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingSampradayPage(),
       ),
-      // ── Shell (4-tab) ──────────────────────────────────────────────────────
+      // ── Shell tabs ─────────────────────────────────────────────────────────
       GoRoute(
         path: '/home',
-        builder: (context, state) => const MainShellPage(initialIndex: 0),
+        builder: (context, state) =>
+            const MainShellPage(initialIndex: 0),
       ),
       GoRoute(
         path: '/gurudev',
-        builder: (context, state) => const MainShellPage(initialIndex: 1),
+        builder: (context, state) =>
+            const MainShellPage(initialIndex: 1),
       ),
       GoRoute(
         path: '/chanting',
-        builder: (context, state) => const MainShellPage(initialIndex: 2),
+        builder: (context, state) =>
+            const MainShellPage(initialIndex: 2),
       ),
       GoRoute(
         path: '/read',
-        builder: (context, state) => const MainShellPage(initialIndex: 3),
+        builder: (context, state) =>
+            const MainShellPage(initialIndex: 3),
+      ),
+      GoRoute(
+        path: '/community',
+        builder: (context, state) =>
+            const MainShellPage(initialIndex: 4),
+      ),
+      // ── Sampradayas ────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/sampradayas',
+        builder: (context, state) => const SampradayasPage(),
+      ),
+      GoRoute(
+        path: '/sampradayas/:id',
+        builder: (context, state) => SampradayDetailPage(
+            sampradayId: state.pathParameters['id']!),
+      ),
+      // Keep legacy route for backwards compatibility
+      GoRoute(
+        path: '/sampraday/:id',
+        builder: (context, state) => SampradayDetailPage(
+            sampradayId: state.pathParameters['id']!),
+      ),
+      // ── Groups ─────────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/groups',
+        builder: (context, state) => const GroupsPage(),
+      ),
+      GoRoute(
+        path: '/groups/:id',
+        builder: (context, state) =>
+            GroupChatPage(groupId: state.pathParameters['id']!),
+      ),
+      // Keep legacy route
+      GoRoute(
+        path: '/group/:id',
+        builder: (context, state) =>
+            GroupChatPage(groupId: state.pathParameters['id']!),
       ),
       // ── Chat Session ───────────────────────────────────────────────────────
       GoRoute(
         path: '/gurudev/session/:id',
         builder: (context, state) {
-          final extra = (state.extra as Map<String, dynamic>?) ?? {};
+          final extra =
+              (state.extra as Map<String, dynamic>?) ?? {};
           return ChatSessionPage(
             sessionId: state.pathParameters['id']!,
             initialPrompt: extra['initialPrompt'] as String?,
@@ -65,14 +108,10 @@ class AppRouter {
       // ── Verse Detail ───────────────────────────────────────────────────────
       GoRoute(
         path: '/verse/:id',
-        builder: (context, state) => VerseDetailPage(verseId: state.pathParameters['id']!),
+        builder: (context, state) =>
+            VerseDetailPage(verseId: state.pathParameters['id']!),
       ),
-      // ── Sampraday Detail ───────────────────────────────────────────────────
-      GoRoute(
-        path: '/sampraday/:id',
-        builder: (context, state) => SampradayDetailPage(sampradayId: state.pathParameters['id']!),
-      ),
-      // ── Chanting sub-routes ────────────────────────────────────────────────
+      // ── Chanting ───────────────────────────────────────────────────────────
       GoRoute(
         path: '/chanting/history',
         builder: (context, state) => const ChantHistoryPage(),
@@ -83,25 +122,23 @@ class AppRouter {
       ),
       GoRoute(
         path: '/mantra/:id',
-        builder: (context, state) => MantraDetailPage(mantraId: state.pathParameters['id']!),
+        builder: (context, state) =>
+            MantraDetailPage(mantraId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/chant/:mantraId',
         builder: (context, state) {
-          final extra = (state.extra as Map<String, dynamic>?) ?? {};
+          final extra =
+              (state.extra as Map<String, dynamic>?) ?? {};
           return ChantCounterPage(
             mantraId: state.pathParameters['mantraId']!,
-            mantraName: extra['mantraName'] as String? ?? 'Mantra',
+            mantraName:
+                extra['mantraName'] as String? ?? 'Mantra',
             goal: extra['goal'] as int? ?? 108,
           );
         },
       ),
-      // ── Group Chat ─────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/group/:id',
-        builder: (context, state) => GroupChatPage(groupId: state.pathParameters['id']!),
-      ),
-      // ── Book detail & Chapter reading ──────────────────────────────────────
+      // ── Books ──────────────────────────────────────────────────────────────
       GoRoute(
         path: '/book/:id',
         builder: (context, state) =>
@@ -111,7 +148,8 @@ class AppRouter {
         path: '/book/:bookId/chapter/:num',
         builder: (context, state) => ChapterReadingPage(
           bookId: state.pathParameters['bookId']!,
-          chapterNum: int.parse(state.pathParameters['num']!),
+          chapterNum:
+              int.parse(state.pathParameters['num']!),
         ),
       ),
       // ── Profile & Settings ─────────────────────────────────────────────────

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,16 +28,25 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   io.Socket? _socket;
+  Timer? _pollTimer;
   String _currentUserId = '';
 
   @override
   void initState() {
     super.initState();
     _connectSocket();
+    // Poll every 30 seconds as fallback for non-real-time environments.
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => ref
+          .read(groupChatNotifierProvider(widget.groupId).notifier)
+          .refresh(),
+    );
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _socket?.emit('leave', {'groupId': widget.groupId});
     _socket?.disconnect();
     _textController.dispose();

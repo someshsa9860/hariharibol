@@ -3,22 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/data/models/groups_model.dart';
+import '../../../../features/home/data/models/verse_model.dart';
 import '../../data/models/sampraday_detail_model.dart';
 import '../providers/sampraday_provider.dart';
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
 const _saffron = Color(0xFFFF7E00);
 const _saffronDeep = Color(0xFFD96100);
-const _krishnaBlue = Color(0xFF1A4D8F);
+const _peacock = Color(0xFF006B6B);
 const _cream = Color(0xFFFFF8EC);
 const _gold = Color(0xFFD4A04C);
 const _textDark = Color(0xFF1A1410);
 const _textMid = Color(0xFF8B7D73);
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 class SampradayDetailPage extends ConsumerStatefulWidget {
   final String sampradayId;
-
   const SampradayDetailPage({super.key, required this.sampradayId});
 
   @override
@@ -26,13 +25,18 @@ class SampradayDetailPage extends ConsumerStatefulWidget {
       _SampradayDetailPageState();
 }
 
-class _SampradayDetailPageState extends ConsumerState<SampradayDetailPage> {
+class _SampradayDetailPageState extends ConsumerState<SampradayDetailPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
-    // Pre-populate follow state from cached detail once loaded
+    _tabController = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(sampradayDetailProvider(widget.sampradayId).future).then((d) {
+      ref
+          .read(sampradayDetailProvider(widget.sampradayId).future)
+          .then((d) {
         ref
             .read(sampradayFollowProvider(widget.sampradayId).notifier)
             .initialise(d.isFollowing);
@@ -41,143 +45,150 @@ class _SampradayDetailPageState extends ConsumerState<SampradayDetailPage> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final async = ref.watch(sampradayDetailProvider(widget.sampradayId));
+    final async =
+        ref.watch(sampradayDetailProvider(widget.sampradayId));
 
-    return Scaffold(
-      backgroundColor: _cream,
-      body: async.when(
-        loading: _buildLoading,
-        error: (err, _) => _buildError(),
-        data: _buildContent,
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Scaffold(
-      backgroundColor: _cream,
-      body: Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(_saffron),
+    return async.when(
+      loading: () => const Scaffold(
+        backgroundColor: _cream,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(_saffron),
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildError() {
-    return Scaffold(
-      backgroundColor: _cream,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: _textDark),
-          onPressed: () => context.pop(),
+      error: (_, __) => Scaffold(
+        backgroundColor: _cream,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded,
+                color: _textDark),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline,
+                  color: Colors.red, size: 48),
+              const SizedBox(height: 12),
+              const Text('Failed to load tradition',
+                  style: TextStyle(color: Colors.red)),
+              TextButton(
+                onPressed: () => ref.invalidate(
+                    sampradayDetailProvider(widget.sampradayId)),
+                child: const Text('Retry',
+                    style: TextStyle(color: _saffron)),
+              ),
+            ],
+          ),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 12),
-            const Text('Failed to load sampraday',
-                style: TextStyle(color: Colors.red, fontSize: 16)),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () =>
-                  ref.invalidate(sampradayDetailProvider(widget.sampradayId)),
-              child: const Text('Retry',
-                  style: TextStyle(color: _saffron)),
-            ),
-          ],
-        ),
-      ),
+      data: _buildContent,
     );
   }
 
   Widget _buildContent(SampradayDetailModel sampraday) {
     final isFollowing =
         ref.watch(sampradayFollowProvider(widget.sampradayId));
-
-    return Stack(
-      children: [
-        CustomScrollView(
-          slivers: [
-            _SampradayHeroAppBar(
-              sampraday: sampraday,
-              isFollowing: isFollowing,
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    // Name & description
-                    _HeaderSection(sampraday: sampraday),
-                    const SizedBox(height: 20),
-                    // Founder & philosophy
-                    _FounderPhilosophySection(sampraday: sampraday),
-                    // Disciples
-                    if (sampraday.disciples.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _DisciplesSection(disciples: sampraday.disciples),
-                    ],
-                    // Mantras
-                    if (sampraday.mantras.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _MantrasSection(
-                        mantras: sampraday.mantras,
-                        onTap: (id) => context.push('/mantra/$id'),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+    return Scaffold(
+      backgroundColor: _cream,
+      bottomNavigationBar: _FollowBar(
+        sampradayId: widget.sampradayId,
+        isFollowing: isFollowing,
+      ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, _) => [
+          _HeroAppBar(
+              sampraday: sampraday, isFollowing: isFollowing),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+                tabController: _tabController),
+          ),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _AboutTab(sampraday: sampraday),
+            _VersesTab(sampradayId: widget.sampradayId),
+            _GroupsTab(sampradayId: widget.sampradayId),
+            _MantrasTab(mantras: sampraday.mantras),
           ],
         ),
-        // Sticky follow/unfollow button
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: _FollowButton(
-            sampradayId: widget.sampradayId,
-            isFollowing: isFollowing,
-            followerCount: sampraday.followerCount,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
+// ─── Pinned Tab Bar ───────────────────────────────────────────────────────────
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabController tabController;
+  const _TabBarDelegate({required this.tabController});
+
+  @override
+  double get minExtent => 48;
+  @override
+  double get maxExtent => 48;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: tabController,
+        indicatorColor: _saffron,
+        labelColor: _saffron,
+        unselectedLabelColor: _textMid,
+        labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 13),
+        unselectedLabelStyle: const TextStyle(fontSize: 13),
+        tabs: const [
+          Tab(text: 'About'),
+          Tab(text: 'Verses'),
+          Tab(text: 'Groups'),
+          Tab(text: 'Mantras'),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_TabBarDelegate old) =>
+      old.tabController != tabController;
+}
+
 // ─── Hero App Bar ─────────────────────────────────────────────────────────────
-class _SampradayHeroAppBar extends StatelessWidget {
+class _HeroAppBar extends StatelessWidget {
   final SampradayDetailModel sampraday;
   final bool isFollowing;
-
-  const _SampradayHeroAppBar({
-    required this.sampraday,
-    required this.isFollowing,
-  });
+  const _HeroAppBar(
+      {required this.sampraday, required this.isFollowing});
 
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: 250,
       pinned: true,
-      backgroundColor: _krishnaBlue,
+      backgroundColor: _peacock,
       leading: Padding(
         padding: const EdgeInsets.all(8),
         child: CircleAvatar(
           backgroundColor: Colors.black38,
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_rounded,
+                color: Colors.white, size: 20),
             onPressed: () => context.pop(),
           ),
         ),
@@ -188,7 +199,8 @@ class _SampradayHeroAppBar extends StatelessWidget {
           child: CircleAvatar(
             backgroundColor: Colors.black38,
             child: IconButton(
-              icon: const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+              icon: const Icon(Icons.share_rounded,
+                  color: Colors.white, size: 20),
               onPressed: () {},
             ),
           ),
@@ -199,38 +211,26 @@ class _SampradayHeroAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Hero image
-            if (sampraday.heroImageUrl != null)
-              CachedNetworkImage(
-                imageUrl: sampraday.heroImageUrl!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [_krishnaBlue, _saffronDeep],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-                errorWidget: (_, __, ___) => _heroGradient(),
-              )
-            else
-              _heroGradient(),
-            // Dark overlay for readability
+            sampraday.heroImageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: sampraday.heroImageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => _heroGradient(),
+                    errorWidget: (_, __, ___) => _heroGradient(),
+                  )
+                : _heroGradient(),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.15),
+                    Colors.black.withOpacity(0.1),
                     Colors.black.withOpacity(0.65),
                   ],
                 ),
               ),
             ),
-            // Title at bottom of hero
             Positioned(
               left: 16,
               right: 16,
@@ -243,7 +243,7 @@ class _SampradayHeroAppBar extends StatelessWidget {
                     sampraday.name,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
                     ),
@@ -285,7 +285,8 @@ class _SampradayHeroAppBar extends StatelessWidget {
                             color: Colors.green.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: Colors.green.withOpacity(0.5)),
+                                color:
+                                    Colors.green.withOpacity(0.5)),
                           ),
                           child: const Text(
                             '✓ Following',
@@ -307,70 +308,72 @@ class _SampradayHeroAppBar extends StatelessWidget {
     );
   }
 
-  Widget _heroGradient() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_krishnaBlue, _saffronDeep],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _heroGradient() => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [_peacock, _saffronDeep],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
+      );
+}
+
+// ─── About Tab ────────────────────────────────────────────────────────────────
+class _AboutTab extends StatelessWidget {
+  final SampradayDetailModel sampraday;
+  const _AboutTab({required this.sampraday});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (sampraday.description != null)
+            Text(
+              sampraday.description!,
+              style: const TextStyle(
+                  color: _textDark, fontSize: 15, height: 1.7),
+            ),
+          if (sampraday.foundingRegion != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.location_on_rounded,
+                    color: _saffron, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  'Origin: ${sampraday.foundingRegion!}',
+                  style: const TextStyle(
+                      color: _textMid,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 20),
+          _FounderPhilosophyCard(sampraday: sampraday),
+          if (sampraday.disciples.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _DisciplesSection(disciples: sampraday.disciples),
+          ],
+        ],
       ),
     );
   }
 }
 
-// ─── Header Section ───────────────────────────────────────────────────────────
-class _HeaderSection extends StatelessWidget {
+class _FounderPhilosophyCard extends StatelessWidget {
   final SampradayDetailModel sampraday;
-  const _HeaderSection({required this.sampraday});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (sampraday.description != null)
-          Text(
-            sampraday.description!,
-            style: const TextStyle(
-              color: _textDark,
-              fontSize: 15,
-              height: 1.7,
-            ),
-          ),
-        if (sampraday.foundingRegion != null) ...[
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.location_on_rounded, color: _saffron, size: 16),
-              const SizedBox(width: 4),
-              Text(
-                'Origin: ${sampraday.foundingRegion!}',
-                style: const TextStyle(
-                  color: _textMid,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-// ─── Founder & Philosophy ─────────────────────────────────────────────────────
-class _FounderPhilosophySection extends StatelessWidget {
-  final SampradayDetailModel sampraday;
-  const _FounderPhilosophySection({required this.sampraday});
+  const _FounderPhilosophyCard({required this.sampraday});
 
   @override
   Widget build(BuildContext context) {
     final hasFounder = sampraday.founder != null;
     final hasPhilosophy = sampraday.philosophy != null;
-
     if (!hasFounder && !hasPhilosophy) return const SizedBox.shrink();
 
     return Container(
@@ -379,10 +382,9 @@ class _FounderPhilosophySection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -392,7 +394,6 @@ class _FounderPhilosophySection extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // Founder avatar
                   Container(
                     width: 56,
                     height: 56,
@@ -410,30 +411,25 @@ class _FounderPhilosophySection extends StatelessWidget {
                             ),
                           )
                         : const Center(
-                            child: Text('🧘', style: TextStyle(fontSize: 26))),
+                            child: Text('🧘',
+                                style: TextStyle(fontSize: 26))),
                   ),
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'FOUNDER',
-                        style: TextStyle(
-                          color: _textMid,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                        ),
-                      ),
+                      const Text('FOUNDER',
+                          style: TextStyle(
+                              color: _textMid,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1)),
                       const SizedBox(height: 2),
-                      Text(
-                        sampraday.founder!,
-                        style: const TextStyle(
-                          color: _textDark,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text(sampraday.founder!,
+                          style: const TextStyle(
+                              color: _textDark,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -456,26 +452,20 @@ class _FounderPhilosophySection extends StatelessWidget {
                       Icon(Icons.lightbulb_outline_rounded,
                           color: _gold, size: 16),
                       SizedBox(width: 6),
-                      Text(
-                        'PHILOSOPHY',
-                        style: TextStyle(
-                          color: _textMid,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                        ),
-                      ),
+                      Text('PHILOSOPHY',
+                          style: TextStyle(
+                              color: _textMid,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1)),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    sampraday.philosophy!,
-                    style: const TextStyle(
-                      color: _textDark,
-                      fontSize: 14,
-                      height: 1.65,
-                    ),
-                  ),
+                  Text(sampraday.philosophy!,
+                      style: const TextStyle(
+                          color: _textDark,
+                          fontSize: 14,
+                          height: 1.65)),
                 ],
               ),
             ),
@@ -485,7 +475,6 @@ class _FounderPhilosophySection extends StatelessWidget {
   }
 }
 
-// ─── Disciples ────────────────────────────────────────────────────────────────
 class _DisciplesSection extends StatelessWidget {
   final List<DiscipleModel> disciples;
   const _DisciplesSection({required this.disciples});
@@ -495,21 +484,21 @@ class _DisciplesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Key Disciples',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+        const Text('Key Disciples',
+            style: TextStyle(
                 color: _textDark,
-              ),
-        ),
+                fontWeight: FontWeight.bold,
+                fontSize: 16)),
         const SizedBox(height: 12),
         SizedBox(
           height: 110,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: disciples.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, i) => _DiscipleCard(disciple: disciples[i]),
+            separatorBuilder: (_, __) =>
+                const SizedBox(width: 12),
+            itemBuilder: (_, i) =>
+                _DiscipleChip(disciple: disciples[i]),
           ),
         ),
       ],
@@ -517,9 +506,9 @@ class _DisciplesSection extends StatelessWidget {
   }
 }
 
-class _DiscipleCard extends StatelessWidget {
+class _DiscipleChip extends StatelessWidget {
   final DiscipleModel disciple;
-  const _DiscipleCard({required this.disciple});
+  const _DiscipleChip({required this.disciple});
 
   @override
   Widget build(BuildContext context) {
@@ -530,10 +519,9 @@ class _DiscipleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2))
         ],
       ),
       child: Column(
@@ -544,19 +532,18 @@ class _DiscipleCard extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _krishnaBlue.withOpacity(0.08),
-              border:
-                  Border.all(color: _krishnaBlue.withOpacity(0.2), width: 2),
+              color: _peacock.withOpacity(0.08),
+              border: Border.all(
+                  color: _peacock.withOpacity(0.2), width: 2),
             ),
             child: disciple.imageUrl != null
                 ? ClipOval(
                     child: CachedNetworkImage(
-                      imageUrl: disciple.imageUrl!,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                        imageUrl: disciple.imageUrl!,
+                        fit: BoxFit.cover))
                 : const Center(
-                    child: Text('🧘', style: TextStyle(fontSize: 24))),
+                    child: Text('🧘',
+                        style: TextStyle(fontSize: 24))),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -565,11 +552,10 @@ class _DiscipleCard extends StatelessWidget {
               disciple.name,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: _textDark,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                height: 1.3,
-              ),
+                  color: _textDark,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  height: 1.3),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -580,112 +566,340 @@ class _DiscipleCard extends StatelessWidget {
   }
 }
 
-// ─── Mantras ─────────────────────────────────────────────────────────────────
-class _MantrasSection extends StatelessWidget {
-  final List<SampradayMantraModel> mantras;
-  final void Function(String id) onTap;
-
-  const _MantrasSection({required this.mantras, required this.onTap});
+// ─── Verses Tab ───────────────────────────────────────────────────────────────
+class _VersesTab extends ConsumerWidget {
+  final String sampradayId;
+  const _VersesTab({required this.sampradayId});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Sacred Mantras',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: _textDark,
-              ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(sampradayVersesProvider(sampradayId));
+    return async.when(
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+            valueColor:
+                AlwaysStoppedAnimation<Color>(_saffron)),
+      ),
+      error: (_, __) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline,
+                color: Colors.red, size: 40),
+            const SizedBox(height: 8),
+            const Text('Could not load verses',
+                style: TextStyle(color: _textMid)),
+            TextButton(
+              onPressed: () => ref
+                  .invalidate(sampradayVersesProvider(sampradayId)),
+              child: const Text('Retry',
+                  style: TextStyle(color: _saffron)),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        ...mantras.map((m) => _MantraListTile(mantra: m, onTap: onTap)),
-      ],
+      ),
+      data: (verses) {
+        if (verses.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('📜', style: TextStyle(fontSize: 48)),
+                SizedBox(height: 12),
+                Text('No verses linked to this tradition yet',
+                    style: TextStyle(color: _textMid)),
+              ],
+            ),
+          );
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: verses.length,
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: 12),
+          itemBuilder: (_, i) {
+            final v = verses[i];
+            return GestureDetector(
+              onTap: () => context.push('/verse/${v.id}'),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _saffron.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${v.bookTitle} ${v.chapterNumber}:${v.verseNumber}',
+                        style: const TextStyle(
+                            color: _saffronDeep,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (v.sanskrit.isNotEmpty)
+                      Text(
+                        v.sanskrit,
+                        style: const TextStyle(
+                            fontFamily: 'NotoSansDevanagari',
+                            fontSize: 15,
+                            color: _textDark,
+                            height: 1.6),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (v.translation != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        v.translation!,
+                        style: const TextStyle(
+                            color: _textMid,
+                            fontSize: 13,
+                            height: 1.5),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
 
-class _MantraListTile extends StatelessWidget {
-  final SampradayMantraModel mantra;
-  final void Function(String) onTap;
+// ─── Groups Tab ───────────────────────────────────────────────────────────────
+class _GroupsTab extends ConsumerWidget {
+  final String sampradayId;
+  const _GroupsTab({required this.sampradayId});
 
-  const _MantraListTile({required this.mantra, required this.onTap});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(sampradayGroupsProvider(sampradayId));
+    return async.when(
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+            valueColor:
+                AlwaysStoppedAnimation<Color>(_saffron)),
+      ),
+      error: (_, __) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline,
+                color: Colors.red, size: 40),
+            const SizedBox(height: 8),
+            const Text('Could not load groups',
+                style: TextStyle(color: _textMid)),
+            TextButton(
+              onPressed: () => ref
+                  .invalidate(sampradayGroupsProvider(sampradayId)),
+              child: const Text('Retry',
+                  style: TextStyle(color: _saffron)),
+            ),
+          ],
+        ),
+      ),
+      data: (groups) {
+        if (groups.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('🏛️', style: TextStyle(fontSize: 48)),
+                SizedBox(height: 12),
+                Text('No groups for this tradition yet',
+                    style: TextStyle(color: _textMid)),
+              ],
+            ),
+          );
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: groups.length,
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: 12),
+          itemBuilder: (_, i) {
+            final g = groups[i];
+            return GestureDetector(
+              onTap: () => context.push('/groups/${g.id}'),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: _peacock.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                          child: Text('🏛️',
+                              style: TextStyle(fontSize: 22))),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Text(g.name,
+                              style: const TextStyle(
+                                  color: _textDark,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14)),
+                          const SizedBox(height: 4),
+                          Text(g.description,
+                              style: const TextStyle(
+                                  color: _textMid, fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          Text('${g.memberCount} members',
+                              style: const TextStyle(
+                                  color: _textMid, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: _textMid),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ─── Mantras Tab ──────────────────────────────────────────────────────────────
+class _MantrasTab extends StatelessWidget {
+  final List<SampradayMantraModel> mantras;
+  const _MantrasTab({required this.mantras});
+
+  @override
+  Widget build(BuildContext context) {
+    if (mantras.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('📿', style: TextStyle(fontSize: 48)),
+            SizedBox(height: 12),
+            Text('No mantras for this tradition yet',
+                style: TextStyle(color: _textMid)),
+          ],
+        ),
+      );
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: mantras.length,
+      itemBuilder: (_, i) => _MantraGridCard(
+        mantra: mantras[i],
+        onTap: () => context.push('/mantra/${mantras[i].id}'),
+      ),
+    );
+  }
+}
+
+class _MantraGridCard extends StatelessWidget {
+  final SampradayMantraModel mantra;
+  final VoidCallback onTap;
+  const _MantraGridCard(
+      {required this.mantra, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(mantra.id),
+      onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2))
           ],
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                color: _saffron.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
+                  color: _saffron.withOpacity(0.1),
+                  shape: BoxShape.circle),
               child: const Center(
-                child: Text('📿', style: TextStyle(fontSize: 20)),
-              ),
+                  child: Text('📿',
+                      style: TextStyle(fontSize: 24))),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    mantra.name,
-                    style: const TextStyle(
-                      color: _textDark,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  if (mantra.sanskrit != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      mantra.sanskrit!,
-                      style: const TextStyle(
-                        fontFamily: 'NotoSansDevanagari',
-                        color: _textMid,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  if (mantra.meaning != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      mantra.meaning!,
-                      style: const TextStyle(
-                        color: _textMid,
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
+            const SizedBox(height: 10),
+            Text(
+              mantra.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: _textDark,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const Icon(Icons.chevron_right_rounded, color: _textMid),
+            if (mantra.sanskrit != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                mantra.sanskrit!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontFamily: 'NotoSansDevanagari',
+                    color: _textMid,
+                    fontSize: 11,
+                    height: 1.4),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ],
         ),
       ),
@@ -693,17 +907,12 @@ class _MantraListTile extends StatelessWidget {
   }
 }
 
-// ─── Follow Button ────────────────────────────────────────────────────────────
-class _FollowButton extends ConsumerWidget {
+// ─── Follow Bar ───────────────────────────────────────────────────────────────
+class _FollowBar extends ConsumerWidget {
   final String sampradayId;
   final bool isFollowing;
-  final int followerCount;
-
-  const _FollowButton({
-    required this.sampradayId,
-    required this.isFollowing,
-    required this.followerCount,
-  });
+  const _FollowBar(
+      {required this.sampradayId, required this.isFollowing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -714,10 +923,9 @@ class _FollowButton extends ConsumerWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(
@@ -725,7 +933,8 @@ class _FollowButton extends ConsumerWidget {
           Expanded(
             child: GestureDetector(
               onTap: () => ref
-                  .read(sampradayFollowProvider(sampradayId).notifier)
+                  .read(sampradayFollowProvider(sampradayId)
+                      .notifier)
                   .toggle(),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
@@ -740,10 +949,9 @@ class _FollowButton extends ConsumerWidget {
                       ? null
                       : [
                           BoxShadow(
-                            color: _saffron.withOpacity(0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
+                              color: _saffron.withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4))
                         ],
                 ),
                 child: Center(
@@ -754,14 +962,20 @@ class _FollowButton extends ConsumerWidget {
                         isFollowing
                             ? Icons.bookmark_rounded
                             : Icons.bookmark_border_rounded,
-                        color: isFollowing ? _saffron : Colors.white,
+                        color: isFollowing
+                            ? _saffron
+                            : Colors.white,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        isFollowing ? 'Following' : 'Follow Tradition',
+                        isFollowing
+                            ? 'Following'
+                            : 'Follow Tradition',
                         style: TextStyle(
-                          color: isFollowing ? _saffron : Colors.white,
+                          color: isFollowing
+                              ? _saffron
+                              : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -777,11 +991,13 @@ class _FollowButton extends ConsumerWidget {
             height: 52,
             width: 52,
             decoration: BoxDecoration(
-              color: _krishnaBlue.withOpacity(0.08),
+              color: _peacock.withOpacity(0.08),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _krishnaBlue.withOpacity(0.2)),
+              border:
+                  Border.all(color: _peacock.withOpacity(0.2)),
             ),
-            child: const Icon(Icons.share_rounded, color: _krishnaBlue),
+            child: const Icon(Icons.share_rounded,
+                color: _peacock),
           ),
         ],
       ),

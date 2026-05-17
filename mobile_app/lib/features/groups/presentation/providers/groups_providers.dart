@@ -18,6 +18,20 @@ final myGroupsProvider = FutureProvider<List<GroupModel>>((ref) async {
   return [];
 });
 
+final allGroupsProvider = FutureProvider<List<GroupModel>>((ref) async {
+  final client = ref.watch(groupsDioProvider);
+  try {
+    final response = await client.get('/api/v1/groups');
+    final data = response.data['data'] ?? response.data;
+    if (data is List) {
+      return data
+          .map((e) => GroupModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+  } catch (_) {}
+  return [];
+});
+
 final groupDetailProvider =
     FutureProvider.family<GroupModel, String>((ref, id) async {
   final client = ref.watch(groupsDioProvider);
@@ -25,6 +39,39 @@ final groupDetailProvider =
   final data = response.data['data'] ?? response.data;
   return GroupModel.fromJson(data as Map<String, dynamic>);
 });
+
+class GroupJoinSetNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void initialise(List<String> joinedIds) {
+    state = Set.from(joinedIds);
+  }
+
+  Future<void> toggle(String groupId) async {
+    final isJoined = state.contains(groupId);
+    state = isJoined
+        ? (Set.from(state)..remove(groupId))
+        : (Set.from(state)..add(groupId));
+    try {
+      final client = ApiClient.createDio();
+      if (!isJoined) {
+        await client.post('/api/v1/groups/$groupId/join');
+      } else {
+        await client.delete('/api/v1/groups/$groupId/leave');
+      }
+    } catch (_) {
+      state = isJoined
+          ? (Set.from(state)..add(groupId))
+          : (Set.from(state)..remove(groupId));
+    }
+  }
+}
+
+final groupJoinSetProvider =
+    NotifierProvider<GroupJoinSetNotifier, Set<String>>(
+  GroupJoinSetNotifier.new,
+);
 
 class GroupChatState {
   final List<MessageModel> messages;
@@ -68,19 +115,19 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
       final data = response.data['data'] ?? response.data;
       if (data is List) {
         final msgs = data
-            .map((e) =>
-                MessageModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => MessageModel.fromJson(e as Map<String, dynamic>))
             .toList();
         state = state.copyWith(messages: msgs);
       }
     } catch (_) {}
   }
 
+  Future<void> refresh() => _loadMessages();
+
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
     state = state.copyWith(isSending: true);
 
-    // Optimistic update with a temp message
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
     final tempMsg = MessageModel(
       id: tempId,
@@ -98,14 +145,11 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
         data: {'content': content.trim()},
       );
       final data = response.data['data'] ?? response.data;
-      final sent =
-          MessageModel.fromJson(data as Map<String, dynamic>);
-      final updated = state.messages
-          .map((m) => m.id == tempId ? sent : m)
-          .toList();
+      final sent = MessageModel.fromJson(data as Map<String, dynamic>);
+      final updated =
+          state.messages.map((m) => m.id == tempId ? sent : m).toList();
       state = state.copyWith(messages: updated, isSending: false);
     } catch (_) {
-      // Remove failed optimistic message
       final filtered =
           state.messages.where((m) => m.id != tempId).toList();
       state = state.copyWith(messages: filtered, isSending: false);
@@ -114,8 +158,8 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
 
   Future<void> reportMessage(String messageId) async {
     try {
-      await _client.post(
-          '/api/v1/groups/$groupId/messages/$messageId/report');
+      await _client
+          .post('/api/v1/groups/$groupId/messages/$messageId/report');
     } catch (_) {}
   }
 
