@@ -67,12 +67,16 @@ class ChatSessionState {
   final bool isStreaming;
   final String streamingText;
   final bool isLoading;
+  final String? error;
+  final String? failedContent;
 
   const ChatSessionState({
     this.messages = const [],
     this.isStreaming = false,
     this.streamingText = '',
     this.isLoading = true,
+    this.error,
+    this.failedContent,
   });
 
   ChatSessionState copyWith({
@@ -80,12 +84,18 @@ class ChatSessionState {
     bool? isStreaming,
     String? streamingText,
     bool? isLoading,
+    String? error,
+    String? failedContent,
+    bool clearError = false,
+    bool clearFailedContent = false,
   }) =>
       ChatSessionState(
         messages: messages ?? this.messages,
         isStreaming: isStreaming ?? this.isStreaming,
         streamingText: streamingText ?? this.streamingText,
         isLoading: isLoading ?? this.isLoading,
+        error: clearError ? null : (error ?? this.error),
+        failedContent: clearFailedContent ? null : (failedContent ?? this.failedContent),
       );
 }
 
@@ -124,13 +134,44 @@ class ChatSessionNotifier extends StateNotifier<ChatSessionState> {
       messages: [...state.messages, userMsg],
       isStreaming: true,
       streamingText: '',
+      clearError: true,
+      clearFailedContent: true,
     );
 
     try {
       await _streamResponse(trimmed);
     } catch (_) {
-      await _sendRegular(trimmed);
+      try {
+        await _sendRegular(trimmed);
+      } catch (e) {
+        state = state.copyWith(
+          isStreaming: false,
+          streamingText: '',
+          error: 'Failed to get a response. Tap retry to try again.',
+          failedContent: trimmed,
+        );
+      }
     }
+  }
+
+  Future<void> retryLastMessage() async {
+    final content = state.failedContent;
+    if (content == null) return;
+    // Remove the failed user message before retrying
+    final msgs = [...state.messages];
+    if (msgs.isNotEmpty && msgs.last.role == 'user') {
+      msgs.removeLast();
+    }
+    state = state.copyWith(
+      messages: msgs,
+      clearError: true,
+      clearFailedContent: true,
+    );
+    await sendMessage(content);
+  }
+
+  void clearConversation() {
+    state = const ChatSessionState(isLoading: false);
   }
 
   Future<void> _streamResponse(String content) async {

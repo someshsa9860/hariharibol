@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/data/models/gurudev_model.dart';
 import '../providers/chatbot_providers.dart';
 
-const _saffron = Color(0xFFFF7E00);
-const _krishnaBlue = Color(0xFF1A4D8F);
-const _cream = Color(0xFFFFF8EC);
-const _textDark = Color(0xFF1A1410);
-const _textMid = Color(0xFF8B7D73);
+const _saffron = Color(0xFFFF6B00);
+const _peacock = Color(0xFF006B6B);
+const _peacockDark = Color(0xFF004F4F);
+const _bgLight = Color(0xFFFAF6EE);
+const _textDark = Color(0xFF1C1209);
+const _textMid = Color(0xFF7A6050);
 
 class ChatbotPage extends ConsumerStatefulWidget {
   const ChatbotPage({super.key});
@@ -51,7 +53,7 @@ class _ChatbotPageState extends ConsumerState<ChatbotPage> {
     final prompts = ref.watch(suggestedPromptsProvider);
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: _bgLight,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(context),
@@ -145,30 +147,35 @@ class _ChatbotPageState extends ConsumerState<ChatbotPage> {
 
   SliverAppBar _buildAppBar(BuildContext context) {
     return SliverAppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: _peacock,
       elevation: 0,
       floating: true,
       snap: true,
-      title: Row(
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        child: const Center(
+          child: Text('🕉️', style: TextStyle(fontSize: 18)),
+        ),
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _GuruAvatar(size: 32),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'GuruDev',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _textDark,
-                    ),
-              ),
-              const Text(
-                'Your AI spiritual guide',
-                style: TextStyle(fontSize: 11, color: _textMid),
-              ),
-            ],
+          Text(
+            'GuruDev',
+            style: GoogleFonts.playfairDisplay(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          const Text(
+            'Your AI spiritual guide',
+            style: TextStyle(fontSize: 11, color: Colors.white70),
           ),
         ],
       ),
@@ -190,14 +197,14 @@ class _GuruHeader extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_krishnaBlue, Color(0xFF0D3566)],
+          colors: [_peacock, _peacockDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: _krishnaBlue.withOpacity(0.35),
+            color: _peacock.withOpacity(0.35),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -291,14 +298,14 @@ class _GuruAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const LinearGradient(
-          colors: [_krishnaBlue, Color(0xFF0D3566)],
+          colors: [_peacock, _peacockDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: showGlow
             ? [
                 BoxShadow(
-                  color: _krishnaBlue.withOpacity(0.5),
+                  color: _peacock.withOpacity(0.5),
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),
@@ -359,7 +366,7 @@ class _SuggestedPromptsRow extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: _krishnaBlue.withOpacity(0.2)),
+                      color: _peacock.withOpacity(0.2)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -372,7 +379,7 @@ class _SuggestedPromptsRow extends StatelessWidget {
                   prompts[i],
                   style: const TextStyle(
                     fontSize: 12,
-                    color: _krishnaBlue,
+                    color: _peacock,
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -434,7 +441,7 @@ class _SessionTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: _krishnaBlue.withOpacity(0.1),
+                  color: _peacock.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
