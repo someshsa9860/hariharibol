@@ -299,4 +299,17 @@ export class AdminController {
   ) {
     return this.adminService.deleteFolder(dto.folderPath);
   }
+
+  // App Settings
+  @Get('settings')
+  @HttpCode(HttpStatus.OK)
+  async getSettings() {
+    return this.adminService.getSettings();
+  }
+
+  @Patch('settings')
+  @HttpCode(HttpStatus.OK)
+  async updateSettings(@Body() dto: Record<string, string>) {
+    return this.adminService.updateSettings(dto);
+  }
 }

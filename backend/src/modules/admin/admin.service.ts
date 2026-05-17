@@ -344,4 +344,23 @@ export class AdminService {
     await this.storageService.deleteFolder(folderPath);
     return { success: true, message: 'Folder deleted successfully' };
   }
+
+  // App Settings Management
+  async getSettings(): Promise<Record<string, string>> {
+    const settings = await this.prisma.appSettings.findMany();
+    return Object.fromEntries(settings.map((s) => [s.key, s.value]));
+  }
+
+  async updateSettings(updates: Record<string, string>): Promise<Record<string, string>> {
+    await Promise.all(
+      Object.entries(updates).map(([key, value]) =>
+        this.prisma.appSettings.upsert({
+          where: { key },
+          create: { key, value },
+          update: { value },
+        }),
+      ),
+    );
+    return this.getSettings();
+  }
 }

@@ -4,6 +4,7 @@ import { AIProviderService } from '@infrastructure/ai/ai-provider.service';
 import { StorageService } from '@infrastructure/storage/storage.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AppSettingsService } from './app-settings.service';
 
 export interface VerseOfDayConfig {
   aiProvider: 'gemini' | 'openai' | 'none';
@@ -29,22 +30,17 @@ export class VerseOfDayService {
     private storageService: StorageService,
     private cacheService: CacheService,
     private notifications: NotificationsService,
+    private appSettings: AppSettingsService,
   ) {}
 
   // ── Config via AppSettings table ─────────────────────────────────────────
 
   async getConfig(): Promise<VerseOfDayConfig> {
     try {
-      const settings = await this.prisma.appSettings.findMany({
-        where: { key: { in: Object.values(SETTINGS_KEYS) } },
-      });
-
-      const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
-
       return {
-        aiProvider: (map[SETTINGS_KEYS.AI_PROVIDER] || 'gemini') as 'gemini' | 'openai' | 'none',
-        autoGenerate: map[SETTINGS_KEYS.AUTO_GENERATE] === 'true',
-        generateImage: map[SETTINGS_KEYS.GENERATE_IMAGE] === 'true',
+        aiProvider: (await this.appSettings.get(SETTINGS_KEYS.AI_PROVIDER, 'gemini')) as 'gemini' | 'openai' | 'none',
+        autoGenerate: (await this.appSettings.get(SETTINGS_KEYS.AUTO_GENERATE, 'false')) === 'true',
+        generateImage: (await this.appSettings.get(SETTINGS_KEYS.GENERATE_IMAGE, 'false')) === 'true',
       };
     } catch (error) {
       this.logger.error(`Failed to get config:`, error);
@@ -54,34 +50,43 @@ export class VerseOfDayService {
 
   async updateConfig(config: Partial<VerseOfDayConfig>): Promise<VerseOfDayConfig> {
     try {
-      const updates: { key: string; value: string; description: string }[] = [];
+      const ops: Promise<void>[] = [];
+      if (config.aiProvider !== undefined)
+        ops.push(this.appSettings.set(SETTINGS_KEYS.AI_PROVIDER, config.aiProvider));
+      if (config.autoGenerate !== undefined)
+        ops.push(this.appSettings.set(SETTINGS_KEYS.AUTO_GENERATE, String(config.autoGenerate)));
+      if (config.generateImage !== undefined)
+        ops.push(this.appSettings.set(SETTINGS_KEYS.GENERATE_IMAGE, String(config.generateImage)));
 
-      if (config.aiProvider !== undefined) {
-        updates.push({ key: SETTINGS_KEYS.AI_PROVIDER, value: config.aiProvider, description: 'VoD AI provider' });
-      }
-      if (config.autoGenerate !== undefined) {
-        updates.push({ key: SETTINGS_KEYS.AUTO_GENERATE, value: String(config.autoGenerate), description: 'VoD auto-generate' });
-      }
-      if (config.generateImage !== undefined) {
-        updates.push({ key: SETTINGS_KEYS.GENERATE_IMAGE, value: String(config.generateImage), description: 'VoD generate image' });
-      }
-
-      await Promise.all(
-        updates.map((u) =>
-          this.prisma.appSettings.upsert({
-            where: { key: u.key },
-            create: { key: u.key, value: u.value, description: u.description },
-            update: { value: u.value },
-          }),
-        ),
-      );
-
+      await Promise.all(ops);
       this.logger.log('VoD config updated');
       return this.getConfig();
     } catch (error) {
       this.logger.error(`Failed to update config:`, error);
       throw error;
     }
+  }
+
+  // ── Scheduler entry point ─────────────────────────────────────────────────
+
+  async autoGenerateForToday(): Promise<any> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await this.prisma.verseOfDay.findFirst({
+      where: { date: { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) } },
+    });
+
+    if (existing) {
+      this.logger.log('Verse of day already set for today, skipping generation');
+      return existing;
+    }
+
+    const config = await this.getConfig();
+    if (config.autoGenerate && config.aiProvider !== 'none') {
+      return this.generateVerseOfDay();
+    }
+    return this.getRandomVerse();
   }
 
   // ── Today's verse ─────────────────────────────────────────────────────────

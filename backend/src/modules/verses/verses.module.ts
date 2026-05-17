@@ -8,6 +8,7 @@ import { VersesService } from './verses.service';
 import { VerseOfDayController } from './verse-of-day.controller';
 import { VerseOfDayService } from './verse-of-day.service';
 import { VerseOfDayScheduler } from './verse-of-day.scheduler';
+import { AppSettingsService } from './app-settings.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { PaginationService } from '@common/services/pagination.service';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
@@ -15,7 +16,7 @@ import { NotificationsModule } from '@modules/notifications/notifications.module
 @Module({
   imports: [PrismaModule, AIProviderModule, StorageModule, CacheModule.register(), NotificationsModule],
   controllers: [VersesController, VerseOfDayController],
-  providers: [VersesService, VerseOfDayService, VerseOfDayScheduler, CacheService, PaginationService],
-  exports: [VersesService, VerseOfDayService, CacheService, PaginationService],
+  providers: [VersesService, VerseOfDayService, VerseOfDayScheduler, AppSettingsService, CacheService, PaginationService],
+  exports: [VersesService, VerseOfDayService, AppSettingsService, CacheService, PaginationService],
 })
 export class VersesModule {}
