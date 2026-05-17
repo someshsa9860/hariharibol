@@ -315,11 +315,13 @@ export class VerseOfDayService {
       });
 
       await Promise.allSettled([
+        // Global 'verse-of-day' topic — subscribed via user notification preferences
+        this.notifications.broadcastVerseOfDay(verse),
         // Per-sampraday topics (e.g. vod_gaudiya-vaishnava)
         ...sampradayas.map((s) =>
           this.notifications.broadcastVerseOfDayToSampraday(s.slug, title, body, verse.id),
         ),
-        // Global fallback topic for users without a sampraday
+        // Legacy global fallback topic
         this.notifications.broadcastVerseOfDayGlobal(title, body, verse.id),
       ]);
 

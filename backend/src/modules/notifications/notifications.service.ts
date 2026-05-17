@@ -236,7 +236,7 @@ h2{color:#C75A1A}
     }
   }
 
-  async subscribeToTopic(deviceToken: string, topic: string): Promise<boolean> {
+  async subscribeToTopic(deviceToken: string, topic: string, deviceId = ''): Promise<boolean> {
     try {
       if (!this.fcmInitialized) {
         this.logger.warn('FCM not initialized — topic subscription skipped');
@@ -244,6 +244,19 @@ h2{color:#C75A1A}
       }
 
       await admin.messaging().subscribeToTopic([deviceToken], topic);
+
+      const fcmTopic = await this.prisma.fCMTopic.upsert({
+        where: { name: topic },
+        create: { name: topic, subscriberCount: 1 },
+        update: { subscriberCount: { increment: 1 } },
+      });
+
+      await this.prisma.fCMSubscription.upsert({
+        where: { topicId_deviceToken: { topicId: fcmTopic.id, deviceToken } },
+        create: { topicId: fcmTopic.id, deviceToken, deviceId },
+        update: {},
+      });
+
       this.logger.log(`Device subscribed to topic: ${topic}`);
       return true;
     } catch (error) {
@@ -256,12 +269,28 @@ h2{color:#C75A1A}
     try {
       if (!this.fcmInitialized) return false;
       await admin.messaging().unsubscribeFromTopic([deviceToken], topic);
+
+      const fcmTopic = await this.prisma.fCMTopic.findUnique({ where: { name: topic } });
+      if (fcmTopic) {
+        await this.prisma.fCMSubscription.deleteMany({
+          where: { topicId: fcmTopic.id, deviceToken },
+        });
+        await this.prisma.fCMTopic.update({
+          where: { id: fcmTopic.id },
+          data: { subscriberCount: { decrement: 1 } },
+        });
+      }
+
       this.logger.log(`Device unsubscribed from topic: ${topic}`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to unsubscribe from topic:`, error);
       return false;
     }
+  }
+
+  async getAvailableTopics(): Promise<any[]> {
+    return this.prisma.fCMTopic.findMany({ orderBy: { name: 'asc' } });
   }
 
   async sendTopicNotification(topic: string, data: NotificationData): Promise<boolean> {
@@ -291,6 +320,24 @@ h2{color:#C75A1A}
   }
 
   // ── Convenience helpers ───────────────────────────────────────────────────
+
+  async broadcastVerseOfDay(verse: {
+    id: string;
+    verseId?: string | null;
+    transliteration?: string | null;
+    sanskrit?: string | null;
+  }): Promise<boolean> {
+    const title = '🙏 Verse of the Day';
+    const raw = verse.transliteration ?? verse.sanskrit ?? '';
+    const body = raw.length > 80 ? raw.substring(0, 80) + '…' : raw || 'A new sacred verse awaits you.';
+    return this.sendTopicNotification('verse-of-day', {
+      topic: 'verse-of-day',
+      type: 'push',
+      title,
+      message: body,
+      metadata: { action: 'verse_of_day', verseId: verse.id },
+    });
+  }
 
   async notifyUserFollowSampraday(userId: string, sampradayName: string): Promise<boolean> {
     return this.sendNotification({
