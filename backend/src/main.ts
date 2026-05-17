@@ -17,7 +17,23 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.useWebSocketAdapter(new IoAdapter(app));
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'"],
+          imgSrc: ["'self'", 'data:'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameSrc: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
+      },
+    }),
+  );
   app.use(compression());
   app.use(cookieParser());
   app.enableCors({

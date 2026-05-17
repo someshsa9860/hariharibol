@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { VerseOfDayService } from './verse-of-day.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AdminGuard } from '@common/guards/admin.guard';
@@ -48,6 +49,7 @@ export class VerseOfDayController {
 
   @Post('admin/generate')
   @UseGuards(JwtGuard, AdminGuard)
+  @Throttle({ aiGeneration: { ttl: 3600000, limit: 5 } })
   @HttpCode(HttpStatus.CREATED)
   async generateVerse() {
     return this.verseOfDayService.generateVerseOfDay();

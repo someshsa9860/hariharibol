@@ -48,7 +48,9 @@ import { HealthController } from '@common/controllers/health.controller';
       inject: [ConfigService],
       useFactory: () => [
         { name: 'login', ttl: 60000, limit: 10 },
-        { name: 'refresh', ttl: 60000, limit: 3 },
+        { name: 'refresh', ttl: 60000, limit: 30 },
+        { name: 'chatbot', ttl: 3600000, limit: 20 },
+        { name: 'aiGeneration', ttl: 3600000, limit: 5 },
         { name: 'default', ttl: 60000, limit: 100 },
       ],
     }),

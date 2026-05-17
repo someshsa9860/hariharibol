@@ -12,9 +12,9 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageValidationPipe, AudioValidationPipe } from '@common/pipes/file-validation.pipe';
 import { AdminService } from './admin.service';
 import { CreateSampradayDto, UpdateSampradayDto } from './dto/create-sampraday.dto';
 import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from './dto/book.dto';
@@ -177,11 +177,8 @@ export class AdminController {
   async uploadSampradayImage(
     @CurrentUser() user: any,
     @Param('id') sampradayId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadSampradayImage(
       sampradayId,
       file.buffer,
@@ -196,11 +193,8 @@ export class AdminController {
   async uploadBookImage(
     @CurrentUser() user: any,
     @Param('id') bookId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadBookImage(
       bookId,
       file.buffer,
@@ -215,11 +209,8 @@ export class AdminController {
   async uploadVerseImage(
     @CurrentUser() user: any,
     @Param('id') verseId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadVerseImage(
       verseId,
       file.buffer,
@@ -234,11 +225,8 @@ export class AdminController {
   async uploadMantraImage(
     @CurrentUser() user: any,
     @Param('id') mantraId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadMantraImage(
       mantraId,
       file.buffer,
@@ -253,11 +241,8 @@ export class AdminController {
   async uploadNarrationAudio(
     @CurrentUser() user: any,
     @Param('id') narrationId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new AudioValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadNarrationAudio(
       narrationId,
       file.buffer,
@@ -272,11 +257,8 @@ export class AdminController {
   async uploadUserProfileImage(
     @CurrentUser() user: any,
     @Param('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
     return this.adminService.uploadUserProfileImage(
       userId,
       file.buffer,

@@ -11,6 +11,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { ChatbotService } from './chatbot.service';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
@@ -45,6 +46,7 @@ export class ChatbotController {
   }
 
   @Post('sessions/:id/messages')
+  @Throttle({ chatbot: { ttl: 3600000, limit: 20 } })
   async sendMessage(
     @CurrentUser() user: any,
     @Param('id') sessionId: string,
