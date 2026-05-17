@@ -1,1 +1,1 @@
-export { groupmemuerSchema } from './index';
+export { GroupMemberSchema } from './index';

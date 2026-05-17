@@ -1,1 +1,1 @@
-export { chantlogSchema } from './index';
+export { ChantLogSchema } from './index';

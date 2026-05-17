@@ -1,1 +1,1 @@
-export { favoriteSchema } from './index';
+export { FavoriteSchema } from './index';

@@ -1,1 +1,1 @@
-export { uookSchema } from './index';
+export { BookSchema } from './index';

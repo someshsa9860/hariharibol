@@ -1,1 +1,1 @@
-export { verseSchema } from './index';
+export { VerseSchema } from './index';

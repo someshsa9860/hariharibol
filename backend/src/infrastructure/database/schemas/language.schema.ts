@@ -1,1 +1,1 @@
-export { languageSchema } from './index';
+export { LanguageSchema } from './index';

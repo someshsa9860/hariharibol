@@ -1,1 +1,1 @@
-export { mantraSchema } from './index';
+export { MantraSchema } from './index';

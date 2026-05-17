@@ -1,1 +1,1 @@
-export { narrationSchema } from './index';
+export { NarrationSchema } from './index';

@@ -1,1 +1,1 @@
-export { chapterSchema } from './index';
+export { ChapterSchema } from './index';

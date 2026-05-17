@@ -1,1 +1,1 @@
-export { followSchema } from './index';
+export { FollowSchema } from './index';

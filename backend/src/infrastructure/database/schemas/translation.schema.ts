@@ -1,1 +1,1 @@
-export { translationSchema } from './index';
+export { TranslationSchema } from './index';

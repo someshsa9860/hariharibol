@@ -1,1 +1,1 @@
-export { messageSchema } from './index';
+export { MessageSchema } from './index';

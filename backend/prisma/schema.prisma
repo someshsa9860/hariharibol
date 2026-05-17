@@ -53,6 +53,7 @@ model User {
   notifications Notification[]
 
   @@index([email])
+  @@index([createdAt])
   @@index([isBanned])
   @@index([primarySampradayId])
 }
@@ -102,6 +103,9 @@ model GuruSignal {
   deityAffinity     Json      @default("{}")
   lastCalculated    DateTime?
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -121,12 +125,13 @@ model Ban {
 
   triggeredBy String  @db.VarChar(20) // 'ai', 'admin'
   adminId     String?
-  admin       User?   @relation("AdminBans", fields: [adminId], references: [id])
+  admin       User?   @relation("AdminBans", fields: [adminId], references: [id], onDelete: SetNull)
 
   evidenceMessageIds String[] // array of Message IDs
 
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   unbannedAt  DateTime?
   unbannedBy  String?
   unbanReason String?
@@ -344,6 +349,7 @@ model Verse {
   @@index([cantoNumber])
   @@index([globalVerseNumber])
   @@index([isVerseOfDayEligible])
+  @@index([createdAt])
 }
 
 // ── VerseTranslation: one translator's rendering of one verse in one language ─
@@ -369,6 +375,7 @@ model VerseTranslation {
 
   @@unique([verseId, translatorId, language])
   @@index([verseId])
+  @@index([verseId, language])
   @@index([translatorId])
   @@index([language])
   @@index([isPublished])
@@ -537,6 +544,7 @@ model ChantLog {
 
   @@index([userId])
   @@index([date])
+  @@index([createdAt])
 }
 
 // ============= Groups & Chat =============
