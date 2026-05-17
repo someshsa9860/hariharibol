@@ -22,6 +22,8 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/reading/presentation/pages/book_detail_page.dart';
 import '../../features/reading/presentation/pages/chapter_reading_page.dart';
 import '../../features/search/presentation/pages/search_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/favorites/presentation/pages/favorites_page.dart';
 
 // ─── Auth Redirect Notifier ───────────────────────────────────────────────────
 
@@ -238,6 +240,18 @@ final _routes = <RouteBase>[
   GoRoute(
     path: '/settings',
     builder: (context, state) => const SettingsPage(),
+  ),
+
+  // ── Notifications ─────────────────────────────────────────────────────────────
+  GoRoute(
+    path: '/notifications',
+    builder: (context, state) => const NotificationsPage(),
+  ),
+
+  // ── Favorites ─────────────────────────────────────────────────────────────────
+  GoRoute(
+    path: '/favorites',
+    builder: (context, state) => const FavoritesPage(),
   ),
 
 ];

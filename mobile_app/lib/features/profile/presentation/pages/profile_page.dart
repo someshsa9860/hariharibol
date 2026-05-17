@@ -49,6 +49,7 @@ class ProfilePage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _StatsRow(profile: profile),
+                  _QuickActions(),
                   _FollowedSampradayasSection(
                     sampradayasAsync: sampradayasAsync,
                     onTap: (id) => context.push('/sampraday/$id'),
@@ -444,7 +445,7 @@ class _FavoriteVersesSection extends StatelessWidget {
                             color: AppColors.textDark),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () => context.push('/favorites'),
                     child: const Text('See All',
                         style: TextStyle(
                             color: AppColors.saffron,
@@ -538,6 +539,82 @@ class _VerseListTile extends StatelessWidget {
             const Icon(Icons.chevron_right_rounded,
                 color: AppColors.textMuted),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Quick Actions ────────────────────────────────────────────────────────────
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: Row(
+        children: [
+          _ActionButton(
+            icon: Icons.favorite_rounded,
+            label: 'Favorites',
+            color: AppColors.saffron,
+            onTap: () => context.push('/favorites'),
+          ),
+          const SizedBox(width: 12),
+          _ActionButton(
+            icon: Icons.notifications_rounded,
+            label: 'Notifications',
+            color: AppColors.peacock,
+            onTap: () => context.push('/notifications'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.25)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
+              ),
+            ],
+          ),
         ),
       ),
     );

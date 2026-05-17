@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../chatbot/presentation/pages/chatbot_page.dart';
 import '../../../chanting/presentation/pages/chanting_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../reading/presentation/pages/reading_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../notifications/presentation/providers/notifications_providers.dart';
 
 const _saffron = Color(0xFFFF7E00);
 const _textMid = Color(0xFF8B7D73);
@@ -51,7 +53,7 @@ class _MainShellPageState extends State<MainShellPage> {
 
 // ─── Bottom Navigation ────────────────────────────────────────────────────────
 
-class _BottomNav extends StatelessWidget {
+class _BottomNav extends ConsumerWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -66,7 +68,8 @@ class _BottomNav extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -89,6 +92,8 @@ class _BottomNav extends StatelessWidget {
               (i) => _NavButton(
                 tab: _tabs[i],
                 isSelected: i == currentIndex,
+                // Show unread badge count on the Profile tab (index 4)
+                badgeCount: i == 4 ? unreadCount : 0,
                 onTap: () => onTap(i),
               ),
             ),
@@ -108,12 +113,14 @@ class _TabItem {
 class _NavButton extends StatelessWidget {
   final _TabItem tab;
   final bool isSelected;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _NavButton({
     required this.tab,
     required this.isSelected,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   @override
@@ -134,10 +141,36 @@ class _NavButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              tab.icon,
-              size: 22,
-              color: isSelected ? _saffron : _textMid,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  tab.icon,
+                  size: 22,
+                  color: isSelected ? _saffron : _textMid,
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    top: -4,
+                    right: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _saffron,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
