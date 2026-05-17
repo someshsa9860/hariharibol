@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -213,7 +214,10 @@ class _SampradayasPageState extends ConsumerState<SampradayasPage> {
                 onFollowToggle: () => ref
                     .read(sampradayaFollowSetProvider.notifier)
                     .toggle(list[i].id),
-              ),
+              )
+                  .animate(delay: Duration(milliseconds: 60 * i.clamp(0, 7)))
+                  .fadeIn(duration: 350.ms)
+                  .slideY(begin: 0.08, end: 0, duration: 350.ms, curve: Curves.easeOut),
               childCount: list.length,
             ),
           ),
@@ -227,9 +231,9 @@ class _SampradayasPageState extends ConsumerState<SampradayasPage> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (_, __) => Shimmer.fromColors(
-            baseColor: Colors.grey[200]!,
-            highlightColor: Colors.grey[50]!,
+          (_, i) => Shimmer.fromColors(
+            baseColor: const Color(0xFFEEE5D8),
+            highlightColor: const Color(0xFFFAF6EE),
             child: Container(
               height: 200,
               margin: const EdgeInsets.only(bottom: 16),
@@ -238,7 +242,8 @@ class _SampradayasPageState extends ConsumerState<SampradayasPage> {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-          ),
+          ).animate(delay: Duration(milliseconds: 80 * i))
+              .fadeIn(duration: 200.ms),
           childCount: 4,
         ),
       ),

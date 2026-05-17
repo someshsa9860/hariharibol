@@ -46,7 +46,7 @@ class _ChantingPageState extends ConsumerState<ChantingPage>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _tapCtrl, curve: Curves.easeOut),
     );
     _rippleCtrl = AnimationController(

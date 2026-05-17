@@ -25,6 +25,45 @@ import '../../features/search/presentation/pages/search_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/favorites/presentation/pages/favorites_page.dart';
 
+// ─── Page transition helpers ──────────────────────────────────────────────────
+
+CustomTransitionPage<void> _slideFromRight({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final slide = Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOutCubic));
+      return SlideTransition(
+        position: slide,
+        child: FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeIn),
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 280),
+  );
+}
+
+CustomTransitionPage<void> _fadeTransition({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(opacity: animation, child: child),
+    transitionDuration: const Duration(milliseconds: 250),
+  );
+}
+
 // ─── Auth Redirect Notifier ───────────────────────────────────────────────────
 
 class _RouterNotifier extends ChangeNotifier {
@@ -77,15 +116,18 @@ final routerProvider = Provider<GoRouter>((ref) {
 final _routes = <RouteBase>[
   GoRoute(
     path: '/splash',
-    builder: (context, state) => const SplashPage(),
+    pageBuilder: (context, state) =>
+        _fadeTransition(state: state, child: const SplashPage()),
   ),
   GoRoute(
     path: '/login',
-    builder: (context, state) => const LoginPage(),
+    pageBuilder: (context, state) =>
+        _fadeTransition(state: state, child: const LoginPage()),
   ),
   GoRoute(
     path: '/onboarding',
-    builder: (context, state) => const OnboardingSampradayPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const OnboardingSampradayPage()),
   ),
 
   // ── Shell tabs ───────────────────────────────────────────────────────────────
@@ -122,56 +164,71 @@ final _routes = <RouteBase>[
   // ── Verse of Day ─────────────────────────────────────────────────────────────
   GoRoute(
     path: '/verse-of-day',
-    builder: (context, state) => const VerseOfDayPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const VerseOfDayPage()),
   ),
 
   // ── Search ───────────────────────────────────────────────────────────────────
   GoRoute(
     path: '/search',
-    builder: (context, state) => const SearchPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const SearchPage()),
   ),
 
   // ── Sampradayas ──────────────────────────────────────────────────────────────
   GoRoute(
     path: '/sampradayas',
-    builder: (context, state) => const SampradayasPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const SampradayasPage()),
   ),
   GoRoute(
     path: '/sampradayas/:id',
-    builder: (context, state) =>
-        SampradayDetailPage(sampradayId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: SampradayDetailPage(sampradayId: state.pathParameters['id']!),
+    ),
   ),
   // Legacy singular form
   GoRoute(
     path: '/sampraday/:id',
-    builder: (context, state) =>
-        SampradayDetailPage(sampradayId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: SampradayDetailPage(sampradayId: state.pathParameters['id']!),
+    ),
   ),
 
   // ── Groups ───────────────────────────────────────────────────────────────────
   GoRoute(
     path: '/groups',
-    builder: (context, state) => const GroupsPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const GroupsPage()),
   ),
   GoRoute(
     path: '/groups/:id',
-    builder: (context, state) =>
-        GroupChatPage(groupId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: GroupChatPage(groupId: state.pathParameters['id']!),
+    ),
   ),
   GoRoute(
     path: '/group/:id',
-    builder: (context, state) =>
-        GroupChatPage(groupId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: GroupChatPage(groupId: state.pathParameters['id']!),
+    ),
   ),
 
   // ── GuruDev chat session ──────────────────────────────────────────────────────
   GoRoute(
     path: '/gurudev/session/:id',
-    builder: (context, state) {
+    pageBuilder: (context, state) {
       final extra = (state.extra as Map<String, dynamic>?) ?? {};
-      return ChatSessionPage(
-        sessionId: state.pathParameters['id']!,
-        initialPrompt: extra['initialPrompt'] as String?,
+      return _slideFromRight(
+        state: state,
+        child: ChatSessionPage(
+          sessionId: state.pathParameters['id']!,
+          initialPrompt: extra['initialPrompt'] as String?,
+        ),
       );
     },
   ),
@@ -179,32 +236,41 @@ final _routes = <RouteBase>[
   // ── Verse Detail ─────────────────────────────────────────────────────────────
   GoRoute(
     path: '/verse/:id',
-    builder: (context, state) =>
-        VerseDetailPage(verseId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: VerseDetailPage(verseId: state.pathParameters['id']!),
+    ),
   ),
 
   // ── Chanting ─────────────────────────────────────────────────────────────────
   GoRoute(
     path: '/chanting/history',
-    builder: (context, state) => const ChantHistoryPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const ChantHistoryPage()),
   ),
   GoRoute(
     path: '/mantras',
-    builder: (context, state) => const MantraLibraryPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const MantraLibraryPage()),
   ),
   GoRoute(
     path: '/mantra/:id',
-    builder: (context, state) =>
-        MantraDetailPage(mantraId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: MantraDetailPage(mantraId: state.pathParameters['id']!),
+    ),
   ),
   GoRoute(
     path: '/chant/:mantraId',
-    builder: (context, state) {
+    pageBuilder: (context, state) {
       final extra = (state.extra as Map<String, dynamic>?) ?? {};
-      return ChantCounterPage(
-        mantraId: state.pathParameters['mantraId']!,
-        mantraName: extra['mantraName'] as String? ?? 'Mantra',
-        goal: extra['goal'] as int? ?? 108,
+      return _slideFromRight(
+        state: state,
+        child: ChantCounterPage(
+          mantraId: state.pathParameters['mantraId']!,
+          mantraName: extra['mantraName'] as String? ?? 'Mantra',
+          goal: extra['goal'] as int? ?? 108,
+        ),
       );
     },
   ),
@@ -212,47 +278,58 @@ final _routes = <RouteBase>[
   // ── Books ─────────────────────────────────────────────────────────────────────
   GoRoute(
     path: '/books/:id',
-    builder: (context, state) =>
-        BookDetailPage(bookId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: BookDetailPage(bookId: state.pathParameters['id']!),
+    ),
   ),
   GoRoute(
     path: '/books/:bookId/chapters/:chapterNum',
-    builder: (context, state) => ChapterReadingPage(
-      bookId: state.pathParameters['bookId']!,
-      chapterNum: int.parse(state.pathParameters['chapterNum']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: ChapterReadingPage(
+        bookId: state.pathParameters['bookId']!,
+        chapterNum: int.parse(state.pathParameters['chapterNum']!),
+      ),
     ),
   ),
   // Legacy singular paths
   GoRoute(
     path: '/book/:id',
-    builder: (context, state) =>
-        BookDetailPage(bookId: state.pathParameters['id']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: BookDetailPage(bookId: state.pathParameters['id']!),
+    ),
   ),
   GoRoute(
     path: '/book/:bookId/chapter/:num',
-    builder: (context, state) => ChapterReadingPage(
-      bookId: state.pathParameters['bookId']!,
-      chapterNum: int.parse(state.pathParameters['num']!),
+    pageBuilder: (context, state) => _slideFromRight(
+      state: state,
+      child: ChapterReadingPage(
+        bookId: state.pathParameters['bookId']!,
+        chapterNum: int.parse(state.pathParameters['num']!),
+      ),
     ),
   ),
 
   // ── Profile & Settings ────────────────────────────────────────────────────────
   GoRoute(
     path: '/settings',
-    builder: (context, state) => const SettingsPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const SettingsPage()),
   ),
 
   // ── Notifications ─────────────────────────────────────────────────────────────
   GoRoute(
     path: '/notifications',
-    builder: (context, state) => const NotificationsPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const NotificationsPage()),
   ),
 
   // ── Favorites ─────────────────────────────────────────────────────────────────
   GoRoute(
     path: '/favorites',
-    builder: (context, state) => const FavoritesPage(),
+    pageBuilder: (context, state) =>
+        _slideFromRight(state: state, child: const FavoritesPage()),
   ),
-
 ];
-

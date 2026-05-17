@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../features/chanting/data/models/mantra_model.dart';
 import '../../../../features/home/presentation/providers/home_provider.dart';
+import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/empty_state.dart';
 import '../providers/mantra_providers.dart';
 
 // ─── Sacred Palette ───────────────────────────────────────────────────────────
@@ -96,25 +100,27 @@ class _MantraLibraryPageState extends ConsumerState<MantraLibraryPage> {
               // Mantra list
               Expanded(
                 child: filteredAsync.when(
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(
-                      color: _saffron,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  error: (e, _) => _ErrorView(
+                  loading: () => _MantrasShimmerList(),
+                  error: (e, _) => ErrorStateWidget(
+                    message: 'Could not load mantras',
                     onRetry: () => ref.invalidate(mantrasListProvider),
                   ),
                   data: (mantras) => mantras.isEmpty
-                      ? const _EmptyView()
+                      ? const EmptyStateWidget(
+                          message: 'No mantras found',
+                          subMessage: 'Try a different search or category',
+                          symbol: '🔔',
+                        )
                       : ListView.builder(
                           padding: EdgeInsets.only(
                             top: 4,
                             bottom: audioState.hasTrack ? 120 : 24,
                           ),
                           itemCount: mantras.length,
-                          itemBuilder: (ctx, i) =>
-                              _MantraCard(mantra: mantras[i]),
+                          itemBuilder: (ctx, i) => _MantraCard(mantra: mantras[i])
+                              .animate(delay: Duration(milliseconds: 50 * i.clamp(0, 8)))
+                              .fadeIn(duration: 300.ms)
+                              .slideX(begin: 0.1, end: 0, duration: 300.ms, curve: Curves.easeOut),
                         ),
                 ),
               ),
@@ -231,13 +237,43 @@ class _CategoryChips extends StatelessWidget {
 }
 
 // ─── Mantra Card ──────────────────────────────────────────────────────────────
-class _MantraCard extends ConsumerWidget {
+class _MantraCard extends ConsumerStatefulWidget {
   final MantraModel mantra;
 
   const _MantraCard({required this.mantra});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MantraCard> createState() => _MantraCardState();
+}
+
+class _MantraCardState extends ConsumerState<_MantraCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _favCtrl;
+  late final Animation<double> _favScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _favCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _favScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _favCtrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _favCtrl.dispose();
+    super.dispose();
+  }
+
+  MantraModel get mantra => widget.mantra;
+
+  @override
+  Widget build(BuildContext context) {
     final audioState = ref.watch(mantraAudioProvider);
     final favoriteIds = ref.watch(mantraFavoriteIdsProvider);
     final isPlaying =
@@ -364,16 +400,21 @@ class _MantraCard extends ConsumerWidget {
                         ),
                       ),
                     const SizedBox(width: 8),
-                    // Favorite button
-                    GestureDetector(
-                      onTap: () =>
-                          _toggleFavorite(ref, isFavorite),
-                      child: Icon(
-                        isFavorite
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: isFavorite ? _saffron : _textMid,
-                        size: 22,
+                    // Favorite button with bounce animation
+                    ScaleTransition(
+                      scale: _favScale,
+                      child: GestureDetector(
+                        onTap: () {
+                          _favCtrl.forward(from: 0);
+                          _toggleFavorite(ref, isFavorite);
+                        },
+                        child: Icon(
+                          isFavorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: isFavorite ? _saffron : _textMid,
+                          size: 22,
+                        ),
                       ),
                     ),
                   ],
@@ -608,49 +649,26 @@ class _WaveformBarsState extends State<_WaveformBars>
   }
 }
 
-// ─── Error + Empty states ─────────────────────────────────────────────────────
-class _ErrorView extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.onRetry});
-
+// ─── Shimmer loading list ─────────────────────────────────────────────────────
+class _MantrasShimmerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.cloud_off_rounded, color: _textMid, size: 48),
-          const SizedBox(height: 12),
-          const Text('Could not load mantras',
-              style: TextStyle(color: _textMid)),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry', style: TextStyle(color: _saffron)),
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemCount: 9,
+      itemBuilder: (_, __) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Shimmer.fromColors(
+          baseColor: const Color(0xFFEEE5D8),
+          highlightColor: const Color(0xFFFAF6EE),
+          child: Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('🔍', style: TextStyle(fontSize: 48)),
-          SizedBox(height: 12),
-          Text(
-            'No mantras found',
-            style: TextStyle(color: _textMid, fontSize: 16),
-          ),
-        ],
+        ),
       ),
     );
   }

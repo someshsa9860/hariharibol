@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/chanting/data/models/mantra_model.dart';
@@ -89,8 +90,7 @@ class _VersesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final versesAsync = ref.watch(favoriteVersesProvider);
     return versesAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.saffron)),
+      loading: () => _FavShimmerList(count: 5),
       error: (_, __) => const _ListError(),
       data: (verses) {
         if (verses.isEmpty) {
@@ -214,8 +214,7 @@ class _MantrasTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mantrasAsync = ref.watch(favoriteMantrasProvider);
     return mantrasAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.saffron)),
+      loading: () => _FavShimmerList(count: 5),
       error: (_, __) => const _ListError(),
       data: (mantras) {
         if (mantras.isEmpty) {
@@ -350,8 +349,7 @@ class _NarrationsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final narrAsync = ref.watch(favoriteNarrationsProvider);
     return narrAsync.when(
-      loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.saffron)),
+      loading: () => _FavShimmerList(count: 4),
       error: (_, __) => const _ListError(),
       data: (narrations) {
         if (narrations.isEmpty) {
@@ -432,6 +430,33 @@ class _NarrationCard extends StatelessWidget {
             const Icon(Icons.play_circle_outline_rounded,
                 color: AppColors.saffron, size: 26),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Shimmer loading list ─────────────────────────────────────────────────────
+
+class _FavShimmerList extends StatelessWidget {
+  final int count;
+  const _FavShimmerList({this.count = 5});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      itemCount: count,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: const Color(0xFFEEE5D8),
+        highlightColor: const Color(0xFFFAF6EE),
+        child: Container(
+          height: 72,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }

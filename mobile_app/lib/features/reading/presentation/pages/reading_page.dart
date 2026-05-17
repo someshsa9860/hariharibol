@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
+
+import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/empty_state.dart';
 
 // ─── Models ──────────────────────────────────────────────────────────────────
 
@@ -298,19 +302,10 @@ class _BooksGrid extends ConsumerWidget {
     final filter = ref.watch(_filterProvider);
 
     return booksAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: _saffron)),
-      error: (e, _) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Could not load books', style: TextStyle(color: Colors.black54)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => ref.invalidate(_booksProvider),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      loading: () => _BooksShimmerGrid(),
+      error: (e, _) => ErrorStateWidget(
+        message: 'Could not load books',
+        onRetry: () => ref.invalidate(_booksProvider),
       ),
       data: (books) {
         var filtered = books.where((b) {
@@ -321,7 +316,11 @@ class _BooksGrid extends ConsumerWidget {
         }).toList();
 
         if (filtered.isEmpty) {
-          return const Center(child: Text('No books found', style: TextStyle(color: Color(0xFF8B7D73))));
+          return const EmptyStateWidget(
+            message: 'No books found',
+            subMessage: 'Try a different search or category',
+            symbol: '📚',
+          );
         }
 
         // Featured books first for SB/BG
@@ -809,6 +808,36 @@ class _SmallBookCard extends StatelessWidget {
   }
 
   Widget _ph() => Container(color: const Color(0xFFF5E6D3), child: const Center(child: Text('📜', style: TextStyle(fontSize: 28))));
+}
+
+// ─── Books shimmer loading grid ───────────────────────────────────────────────
+
+class _BooksShimmerGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.68,
+      ),
+      itemCount: 6,
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: const Color(0xFFEEE5D8),
+        highlightColor: const Color(0xFFFAF6EE),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─── Filter bottom sheet ──────────────────────────────────────────────────────
