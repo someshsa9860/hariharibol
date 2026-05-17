@@ -1,33 +1,44 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import { CacheService } from '@infrastructure/cache/cache.service';
+
+const TTL_5MIN = 5 * 60 * 1000;
 
 @Injectable()
 export class SampradayasService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheService: CacheService,
+  ) {}
 
   async getAllSampradayas(skip?: number, take?: number) {
-    const [sampradayas, total] = await Promise.all([
-      this.prisma.sampraday.findMany({
-        where: { isPublished: true },
-        skip,
-        take,
-        orderBy: { displayOrder: 'asc' },
-        include: {
-          follows: true,
-          _count: {
-            select: { follows: true, mantras: true },
-          },
-        },
-      }),
-      this.prisma.sampraday.count({ where: { isPublished: true } }),
-    ]);
+    const cacheKey = CacheService.buildSampradaysListKey(skip || 0, take || 0);
+    return this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const [sampradayas, total] = await Promise.all([
+          this.prisma.sampraday.findMany({
+            where: { isPublished: true },
+            skip,
+            take,
+            orderBy: { displayOrder: 'asc' },
+            include: {
+              follows: true,
+              _count: {
+                select: { follows: true, mantras: true },
+              },
+            },
+          }),
+          this.prisma.sampraday.count({ where: { isPublished: true } }),
+        ]);
+        return { data: sampradayas, total, skip: skip || 0, take: take || total };
+      },
+      TTL_5MIN,
+    );
+  }
 
-    return {
-      data: sampradayas,
-      total,
-      skip: skip || 0,
-      take: take || total,
-    };
+  async invalidateSampradayasListCache(): Promise<void> {
+    await this.cacheService.delPattern('sampradayas:list');
   }
 
   async getSampradayBySlug(slug: string) {

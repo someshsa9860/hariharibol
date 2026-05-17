@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
+import { CacheService } from '@infrastructure/cache/cache.service';
 import { BooksController } from './books.controller';
 import { BooksService } from './books.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CacheModule.register()],
   controllers: [BooksController],
-  providers: [BooksService],
-  exports: [BooksService],
+  providers: [BooksService, CacheService],
+  exports: [BooksService, CacheService],
 })
 export class BooksModule {}

@@ -1,28 +1,41 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import { CacheService } from '@infrastructure/cache/cache.service';
 import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from '../admin/dto/book.dto';
+
+const TTL_10MIN = 10 * 60 * 1000;
+const BOOKS_LIST_PATTERN = 'books:list';
 
 @Injectable()
 export class BooksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheService: CacheService,
+  ) {}
 
   // ── Public read methods ──────────────────────────────────────────────────
 
   async getAllBooks(skip?: number, take?: number) {
-    const [books, total] = await Promise.all([
-      this.prisma.book.findMany({
-        where: { isPublished: true },
-        skip,
-        take,
-        include: {
-          _count: { select: { chapters: true, verses: true } },
-        },
-        orderBy: { displayOrder: 'asc' },
-      }),
-      this.prisma.book.count({ where: { isPublished: true } }),
-    ]);
-
-    return { data: books, total, skip: skip || 0, take: take || total };
+    const cacheKey = `books:list:${skip || 0}:${take || 0}`;
+    return this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const [books, total] = await Promise.all([
+          this.prisma.book.findMany({
+            where: { isPublished: true },
+            skip,
+            take,
+            include: {
+              _count: { select: { chapters: true, verses: true } },
+            },
+            orderBy: { displayOrder: 'asc' },
+          }),
+          this.prisma.book.count({ where: { isPublished: true } }),
+        ]);
+        return { data: books, total, skip: skip || 0, take: take || total };
+      },
+      TTL_10MIN,
+    );
   }
 
   async getBookById(bookId: string) {
@@ -158,7 +171,7 @@ export class BooksService {
     const existing = await this.prisma.book.findUnique({ where: { slug: dto.slug } });
     if (existing) throw new BadRequestException('A book with this slug already exists');
 
-    return this.prisma.book.create({
+    const book = await this.prisma.book.create({
       data: {
         slug: dto.slug,
         titleKey: dto.titleKey,
@@ -171,16 +184,22 @@ export class BooksService {
         isPublished: dto.isPublished || false,
       },
     });
+    await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    return book;
   }
 
   async adminUpdateBook(bookId: string, dto: UpdateBookDto) {
     await this._assertBookExists(bookId);
-    return this.prisma.book.update({ where: { id: bookId }, data: dto });
+    const book = await this.prisma.book.update({ where: { id: bookId }, data: dto });
+    await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    return book;
   }
 
   async adminDeleteBook(bookId: string) {
     await this._assertBookExists(bookId);
-    return this.prisma.book.delete({ where: { id: bookId } });
+    const book = await this.prisma.book.delete({ where: { id: bookId } });
+    await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    return book;
   }
 
   // ── Admin: Chapter CRUD ──────────────────────────────────────────────────

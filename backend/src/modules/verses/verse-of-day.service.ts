@@ -91,15 +91,17 @@ export class VerseOfDayService {
 
   // ── Today's verse ─────────────────────────────────────────────────────────
 
+  private get todayCacheKey(): string {
+    return 'vod:today';
+  }
+
   async getTodayVerse(): Promise<any> {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dateKey = today.toISOString().split('T')[0];
-
       return await this.cacheService.getOrSet(
-        CacheService.buildVerseOfDayKey(dateKey),
+        this.todayCacheKey,
         async () => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
           let verseOfDay = await this.prisma.verseOfDay.findFirst({
             where: {
               date: { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) },
@@ -121,7 +123,7 @@ export class VerseOfDayService {
 
           return verseOfDay;
         },
-        24 * 60 * 60 * 1000,
+        60 * 60 * 1000,
       );
     } catch (error) {
       this.logger.error(`Failed to get today's verse:`, error);
@@ -188,6 +190,7 @@ export class VerseOfDayService {
         include: { verse: true },
       });
 
+      await this.cacheService.del(this.todayCacheKey);
       await this.dispatchVerseOfDayNotifications(fullVerse);
       return verseOfDay;
     } catch (error) {
@@ -219,6 +222,7 @@ export class VerseOfDayService {
         include: { verse: true },
       });
 
+      await this.cacheService.del(this.todayCacheKey);
       await this.dispatchVerseOfDayNotifications(verse);
       return verseOfDay;
     } catch (error) {
