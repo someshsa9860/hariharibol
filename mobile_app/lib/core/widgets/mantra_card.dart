@@ -79,9 +79,9 @@ class _MantraCardState extends State<MantraCard>
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _sandstone.withOpacity(0.12),
+          color: _sandstone.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _sandstone.withOpacity(0.35)),
+          border: Border.all(color: _sandstone.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
@@ -104,9 +104,9 @@ class _MantraCardState extends State<MantraCard>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _peacock.withOpacity(0.1),
+                        color: _peacock.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _peacock.withOpacity(0.3)),
+                        border: Border.all(color: _peacock.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         _deityLabel!,
@@ -143,7 +143,7 @@ class _MantraCardState extends State<MantraCard>
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
-                      color: _gold.withOpacity(0.15),
+                      color: _gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -174,7 +174,7 @@ class _MantraCardState extends State<MantraCard>
                           decoration: BoxDecoration(
                             color: widget.isPlaying
                                 ? _peacock
-                                : _peacock.withOpacity(0.15),
+                                : _peacock.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

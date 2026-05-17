@@ -19,7 +19,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: AppBar(
           title: title,
           actions: actions,
-          backgroundColor: Colors.white.withOpacity(0.1),
+          backgroundColor: Colors.white.withValues(alpha: 0.1),
           elevation: 0,
           foregroundColor: Colors.white,
         ),

@@ -75,7 +75,7 @@ class _BottomNav extends ConsumerWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.10),
+            color: Colors.black.withValues(alpha: 0.10),
             blurRadius: 16,
             offset: const Offset(0, -3),
           ),
@@ -134,7 +134,7 @@ class _NavButton extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: isSelected
             ? BoxDecoration(
-                color: _saffron.withOpacity(0.12),
+                color: _saffron.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               )
             : null,

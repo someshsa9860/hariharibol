@@ -162,7 +162,7 @@ class _ChantCounterPageState extends ConsumerState<ChantCounterPage>
                   child: Text(
                     'Tap anywhere to chant',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       fontSize: 13,
                     ),
                   ),
@@ -222,7 +222,7 @@ class _TopBar extends StatelessWidget {
                   Text(
                     '$malas mala${malas > 1 ? 's' : ''} completed',
                     style: TextStyle(
-                      color: _gold.withOpacity(0.8),
+                      color: _gold.withValues(alpha: 0.8),
                       fontSize: 11,
                     ),
                   ),
@@ -258,7 +258,7 @@ class _CountDisplay extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Row(
@@ -285,7 +285,7 @@ class _CountDisplay extends StatelessWidget {
         Text(
           '${count % 108} / $goal',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
             fontSize: 16,
           ),
         ),
@@ -490,8 +490,8 @@ class _MalaPainter extends CustomPainter {
           markerRadius,
           Paint()
             ..color = filled == 0
-                ? Colors.white.withOpacity(0.12)
-                : _gold.withOpacity(0.9)
+                ? Colors.white.withValues(alpha: 0.12)
+                : _gold.withValues(alpha: 0.9)
             ..style = PaintingStyle.fill,
         );
       } else if (isFilled) {
@@ -501,7 +501,7 @@ class _MalaPainter extends CustomPainter {
           beadRadius,
           Paint()
             ..color = isPaused
-                ? _saffron.withOpacity(0.5)
+                ? _saffron.withValues(alpha: 0.5)
                 : _saffron
             ..style = PaintingStyle.fill,
         );
@@ -511,7 +511,7 @@ class _MalaPainter extends CustomPainter {
             pos,
             beadRadius + 2,
             Paint()
-              ..color = _saffron.withOpacity(0.18)
+              ..color = _saffron.withValues(alpha: 0.18)
               ..style = PaintingStyle.fill,
           );
         }
@@ -521,14 +521,14 @@ class _MalaPainter extends CustomPainter {
           pos,
           beadRadius,
           Paint()
-            ..color = Colors.white.withOpacity(0.1)
+            ..color = Colors.white.withValues(alpha: 0.1)
             ..style = PaintingStyle.fill,
         );
         canvas.drawCircle(
           pos,
           beadRadius,
           Paint()
-            ..color = Colors.white.withOpacity(0.15)
+            ..color = Colors.white.withValues(alpha: 0.15)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1,
         );
@@ -540,7 +540,7 @@ class _MalaPainter extends CustomPainter {
       center,
       ringRadius,
       Paint()
-        ..color = Colors.white.withOpacity(0.06)
+        ..color = Colors.white.withValues(alpha: 0.06)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5,
     );

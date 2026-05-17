@@ -292,7 +292,7 @@ class _AudioPlayerWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -321,7 +321,7 @@ class _AudioPlayerWidget extends StatelessWidget {
                       horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isLooping
-                        ? _saffron.withOpacity(0.15)
+                        ? _saffron.withValues(alpha: 0.15)
                         : Colors.grey[100],
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -374,7 +374,7 @@ class _AudioPlayerWidget extends StatelessWidget {
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: _saffron,
-                            inactiveTrackColor: _saffron.withOpacity(0.2),
+                            inactiveTrackColor: _saffron.withValues(alpha: 0.2),
                             thumbColor: _saffron,
                             thumbShape: const RoundSliderThumbShape(
                                 enabledThumbRadius: 7),
@@ -437,7 +437,7 @@ class _AudioPlayerWidget extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _saffron.withOpacity(0.4),
+                          color: _saffron.withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -489,7 +489,7 @@ class _CollapsibleSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -509,7 +509,7 @@ class _CollapsibleSection extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: _gold.withOpacity(0.15),
+                      color: _gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -577,7 +577,7 @@ class _StartChantingBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -599,7 +599,7 @@ class _StartChantingBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: _saffron.withOpacity(0.45),
+                color: _saffron.withValues(alpha: 0.45),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),

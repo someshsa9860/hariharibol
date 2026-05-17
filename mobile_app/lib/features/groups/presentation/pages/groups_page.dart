@@ -229,7 +229,7 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
                   Text(
                     'Join spiritual communities & share wisdom',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                   ),
@@ -299,10 +299,10 @@ class _MyGroupChip extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border:
-              Border.all(color: _peacock.withOpacity(0.3)),
+              Border.all(color: _peacock.withValues(alpha: 0.3)),
           boxShadow: [
             BoxShadow(
-              color: _peacock.withOpacity(0.1),
+              color: _peacock.withValues(alpha: 0.1),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -316,7 +316,7 @@ class _MyGroupChip extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _peacock.withOpacity(0.1),
+                color: _peacock.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -367,7 +367,7 @@ class _GroupCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -379,7 +379,7 @@ class _GroupCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: _peacock.withOpacity(0.1),
+                color: _peacock.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Center(

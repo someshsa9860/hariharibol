@@ -208,7 +208,7 @@ class _SearchBar extends StatelessWidget {
       decoration: InputDecoration(
         hintText: 'Search verses, mantras…',
         hintStyle:
-            GoogleFonts.inter(fontSize: 15, color: _textMuted.withOpacity(0.7)),
+            GoogleFonts.inter(fontSize: 15, color: _textMuted.withValues(alpha: 0.7)),
         border: InputBorder.none,
         suffixIcon: ListenableBuilder(
           listenable: controller,
@@ -248,7 +248,7 @@ class _RecentSearches extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_rounded, size: 56, color: _saffron.withOpacity(0.4)),
+            Icon(Icons.search_rounded, size: 56, color: _saffron.withValues(alpha: 0.4)),
             const SizedBox(height: 14),
             Text(
               'Search for verses or mantras',
@@ -450,7 +450,7 @@ class _ResultCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             border:
-                Border.all(color: const Color(0xFFE8D8C0).withOpacity(0.8)),
+                Border.all(color: const Color(0xFFE8D8C0).withValues(alpha: 0.8)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -493,7 +493,7 @@ class _EmptyResult extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.search_off_rounded,
-              size: 48, color: _saffron.withOpacity(0.35)),
+              size: 48, color: _saffron.withValues(alpha: 0.35)),
           const SizedBox(height: 12),
           Text(label,
               style: GoogleFonts.inter(fontSize: 14, color: _textMuted),

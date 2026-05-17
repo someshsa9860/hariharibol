@@ -252,7 +252,7 @@ class _ChantingPageState extends ConsumerState<ChantingPage>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: _saffron.withOpacity(0.08),
+            color: _saffron.withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -308,7 +308,7 @@ class _ChantingPageState extends ConsumerState<ChantingPage>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _saffron
-                          .withOpacity(0.12 * (1 - _rippleAnim.value)),
+                          .withValues(alpha: 0.12 * (1 - _rippleAnim.value)),
                     ),
                   ),
                 ),
@@ -326,7 +326,7 @@ class _ChantingPageState extends ConsumerState<ChantingPage>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _saffron.withOpacity(0.45),
+                          color: _saffron.withValues(alpha: 0.45),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -401,7 +401,7 @@ class _JapaRingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = _sandstone.withOpacity(0.25)
+        ..color = _sandstone.withValues(alpha: 0.25)
         ..style = PaintingStyle.stroke
         ..strokeWidth = _strokeWidth,
     );
@@ -470,7 +470,7 @@ class _TodayStatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -551,7 +551,7 @@ class _VerticalDivider extends StatelessWidget {
     return Container(
       width: 1,
       height: 40,
-      color: _sandstone.withOpacity(0.3),
+      color: _sandstone.withValues(alpha: 0.3),
     );
   }
 }
@@ -582,7 +582,7 @@ class _WeeklyChartCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -607,7 +607,7 @@ class _WeeklyChartCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _maroon.withOpacity(0.1),
+                    color: _maroon.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -630,7 +630,7 @@ class _WeeklyChartCard extends StatelessWidget {
               _LegendDot(color: _saffron, label: 'Partial'),
               const SizedBox(width: 12),
               _LegendDot(
-                  color: _sandstone.withOpacity(0.4), label: 'No chants'),
+                  color: _sandstone.withValues(alpha: 0.4), label: 'No chants'),
             ],
           ),
           const SizedBox(height: 12),
@@ -714,7 +714,7 @@ class _BarChart extends StatelessWidget {
 
           final Color barColor;
           if (count == 0) {
-            barColor = _sandstone.withOpacity(0.35);
+            barColor = _sandstone.withValues(alpha: 0.35);
           } else if (count >= target) {
             barColor = _gold;
           } else {
@@ -734,7 +734,7 @@ class _BarChart extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                   border: isToday
                       ? Border.all(
-                          color: _saffron.withOpacity(0.5), width: 1.5)
+                          color: _saffron.withValues(alpha: 0.5), width: 1.5)
                       : null,
                 ),
               ),

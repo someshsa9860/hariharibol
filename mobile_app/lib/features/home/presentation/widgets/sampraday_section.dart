@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/models/sampraday_model.dart';
 
 class SampradaySection extends StatelessWidget {
@@ -64,7 +65,7 @@ class SampradaySection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -75,9 +76,16 @@ class SampradaySection extends StatelessWidget {
                   children: [
                     // Background image or placeholder
                     if (sampraday.thumbnailUrl != null)
-                      Image.network(
-                        sampraday.thumbnailUrl!,
+                      CachedNetworkImage(
+                        imageUrl: sampraday.thumbnailUrl!,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: const Color(0xFFF5ECD7),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: const Color(0xFFC4A882),
+                          child: const Icon(Icons.temple_hindu, color: Colors.white54),
+                        ),
                       )
                     else
                       Container(
@@ -98,7 +106,7 @@ class SampradaySection extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.6),
+                            Colors.black.withValues(alpha: 0.6),
                           ],
                         ),
                       ),

@@ -404,7 +404,7 @@ class _SettingsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -563,7 +563,7 @@ class _FontSizeTile extends StatelessWidget {
             max: 1.15,
             divisions: 2,
             activeColor: _saffron,
-            inactiveColor: _saffron.withOpacity(0.2),
+            inactiveColor: _saffron.withValues(alpha: 0.2),
             onChanged: (v) {
               final snapped = v <= 0.925 ? 0.85 : v >= 1.075 ? 1.15 : 1.0;
               onChanged(snapped);

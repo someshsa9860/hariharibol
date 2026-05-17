@@ -39,7 +39,7 @@ class SacredGradientButton extends StatelessWidget {
           boxShadow: onPressed != null
               ? [
                   BoxShadow(
-                    color: const Color(0xFFFF6B00).withOpacity(0.35),
+                    color: const Color(0xFFFF6B00).withValues(alpha: 0.35),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

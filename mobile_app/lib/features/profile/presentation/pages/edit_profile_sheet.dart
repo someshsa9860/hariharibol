@@ -172,7 +172,7 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                         shape: BoxShape.circle,
                         border:
                             Border.all(color: AppColors.gold, width: 3),
-                        color: AppColors.sandstone.withOpacity(0.2),
+                        color: AppColors.sandstone.withValues(alpha: 0.2),
                       ),
                       child: ClipOval(
                         child: _avatarBytes != null
@@ -261,7 +261,7 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24)),
                   disabledBackgroundColor:
-                      AppColors.saffron.withOpacity(0.5),
+                      AppColors.saffron.withValues(alpha: 0.5),
                 ),
                 child: _saving
                     ? const SizedBox(

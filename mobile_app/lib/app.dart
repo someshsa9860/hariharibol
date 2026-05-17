@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/config/flavors.dart';
 import 'core/routing/app_router.dart';
@@ -44,7 +45,11 @@ class _AppState extends ConsumerState<App> {
         ),
         child: child!,
       ),
-      localizationsDelegates: const [],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: const [
         Locale('en', ''),
         Locale('hi', ''),
@@ -60,6 +65,7 @@ class _AppState extends ConsumerState<App> {
         Locale('es', ''),
         Locale('de', ''),
         Locale('pt', ''),
+        Locale('sa', ''),
       ],
     );
   }

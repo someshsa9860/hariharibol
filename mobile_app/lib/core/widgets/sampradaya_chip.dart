@@ -23,10 +23,10 @@ class SampradayaChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? _peacock : _peacock.withOpacity(0.1),
+          color: isSelected ? _peacock : _peacock.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? _peacock : _peacock.withOpacity(0.35),
+            color: isSelected ? _peacock : _peacock.withValues(alpha: 0.35),
             width: 1.2,
           ),
         ),

@@ -28,7 +28,7 @@ class AppTheme {
           centerTitle: true,
         ),
         cardTheme: CardTheme(
-          color: AppColors.sandstone.withOpacity(0.18),
+          color: AppColors.sandstone.withValues(alpha: 0.18),
           elevation: 0,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -60,7 +60,7 @@ class AppTheme {
               s.contains(WidgetState.selected) ? AppColors.saffron : null),
           trackColor: WidgetStateProperty.resolveWith((s) => s
                   .contains(WidgetState.selected)
-              ? AppColors.saffron.withOpacity(0.45)
+              ? AppColors.saffron.withValues(alpha: 0.45)
               : null),
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -98,7 +98,7 @@ class AppTheme {
           centerTitle: true,
         ),
         cardTheme: CardTheme(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           elevation: 0,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -132,7 +132,7 @@ class AppTheme {
                   : null),
           trackColor: WidgetStateProperty.resolveWith((s) => s
                   .contains(WidgetState.selected)
-              ? AppColors.saffronLight.withOpacity(0.45)
+              ? AppColors.saffronLight.withValues(alpha: 0.45)
               : null),
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -143,7 +143,7 @@ class AppTheme {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.06),
+          fillColor: Colors.white.withValues(alpha: 0.06),
         ),
         dividerTheme:
             const DividerThemeData(color: Colors.white12, thickness: 1),

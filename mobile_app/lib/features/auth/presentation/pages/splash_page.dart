@@ -100,7 +100,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: _gold.withOpacity(0.65),
+                            color: _gold.withValues(alpha: 0.65),
                             blurRadius: 48,
                             spreadRadius: 14,
                           ),
@@ -143,7 +143,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontStyle: FontStyle.italic,
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                       letterSpacing: 0.25,
                     ),
                   ),
@@ -170,7 +170,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                       color: _gold,
                       boxShadow: [
                         BoxShadow(
-                          color: _gold.withOpacity(0.55),
+                          color: _gold.withValues(alpha: 0.55),
                           blurRadius: 6,
                         ),
                       ],

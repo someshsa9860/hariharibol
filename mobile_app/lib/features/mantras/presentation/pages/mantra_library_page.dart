@@ -216,7 +216,7 @@ class _CategoryChips extends StatelessWidget {
                 border: Border.all(
                   color: isSelected
                       ? _peacock
-                      : _sandstone.withOpacity(0.4),
+                      : _sandstone.withValues(alpha: 0.4),
                   width: 1.2,
                 ),
               ),
@@ -286,9 +286,9 @@ class _MantraCardState extends ConsumerState<_MantraCard>
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _sandstone.withOpacity(0.12),
+          color: _sandstone.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _sandstone.withOpacity(0.35), width: 1),
+          border: Border.all(color: _sandstone.withValues(alpha: 0.35), width: 1),
         ),
         child: Row(
           children: [
@@ -350,7 +350,7 @@ class _MantraCardState extends ConsumerState<_MantraCard>
                         horizontal: 7, vertical: 3),
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
-                      color: _gold.withOpacity(0.15),
+                      color: _gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -385,7 +385,7 @@ class _MantraCardState extends ConsumerState<_MantraCard>
                           decoration: BoxDecoration(
                             color: audioState.mantraId == mantra.id
                                 ? _peacock
-                                : _peacock.withOpacity(0.15),
+                                : _peacock.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -480,7 +480,7 @@ class _MiniPlayer extends ConsumerWidget {
         color: _peacock,
         boxShadow: [
           BoxShadow(
-            color: _peacock.withOpacity(0.4),
+            color: _peacock.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -538,7 +538,7 @@ class _MiniPlayer extends ConsumerWidget {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: Colors.white,
-              inactiveTrackColor: Colors.white.withOpacity(0.3),
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
               thumbColor: Colors.white,
               thumbShape:
                   const RoundSliderThumbShape(enabledThumbRadius: 5),

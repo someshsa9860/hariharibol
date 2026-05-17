@@ -132,7 +132,7 @@ class _ProfileAppBar extends StatelessWidget {
                     border: Border.all(color: AppColors.gold, width: 4),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -144,7 +144,7 @@ class _ProfileAppBar extends StatelessWidget {
                             imageUrl: profile.avatarUrl!,
                             fit: BoxFit.cover,
                             placeholder: (_, __) =>
-                                Container(color: AppColors.gold.withOpacity(0.3)),
+                                Container(color: AppColors.gold.withValues(alpha: 0.3)),
                             errorWidget: (_, __, ___) =>
                                 _DefaultAvatar(name: profile.name),
                           )
@@ -222,7 +222,7 @@ class _DefaultAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.gold.withOpacity(0.3),
+      color: AppColors.gold.withValues(alpha: 0.3),
       child: Center(
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : '?',
@@ -280,10 +280,10 @@ class _StatCard extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.sandstone.withOpacity(0.18),
+          color: AppColors.sandstone.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: AppColors.sandstone.withOpacity(0.40)),
+              color: AppColors.sandstone.withValues(alpha: 0.40)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -373,11 +373,11 @@ class _FollowedSampradayasSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.peacock.withOpacity(0.08),
+                      color: AppColors.peacock.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                           color:
-                              AppColors.peacock.withOpacity(0.30)),
+                              AppColors.peacock.withValues(alpha: 0.30)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -489,7 +489,7 @@ class _VerseListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -501,7 +501,7 @@ class _VerseListTile extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.saffron.withOpacity(0.10),
+                color: AppColors.saffron.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -597,9 +597,9 @@ class _ActionButton extends StatelessWidget {
           padding:
               const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withOpacity(0.25)),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -290,7 +290,7 @@ class _GroupAppBar extends StatelessWidget implements PreferredSizeWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(
               horizontal: 16, vertical: 4),
-          color: _krishnaBlue.withOpacity(0.06),
+          color: _krishnaBlue.withValues(alpha: 0.06),
           child: Text(
             group.description,
             style: const TextStyle(
@@ -455,7 +455,7 @@ class _MessageTile extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -520,7 +520,7 @@ class _UserAvatar extends StatelessWidget {
         colors.length;
     return CircleAvatar(
       radius: 16,
-      backgroundColor: colors[colorIndex].withOpacity(0.15),
+      backgroundColor: colors[colorIndex].withValues(alpha: 0.15),
       child: Text(
         userId.isNotEmpty ? userId[0].toUpperCase() : '?',
         style: TextStyle(
@@ -550,10 +550,10 @@ class _GlassInputBar extends StatelessWidget {
     return ClipRect(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.85),
+          color: Colors.white.withValues(alpha: 0.85),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, -2),
             ),
@@ -571,7 +571,7 @@ class _GlassInputBar extends StatelessWidget {
                       color: _cream,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
+                          color: Colors.grey.withValues(alpha: 0.2)),
                     ),
                     child: TextField(
                       controller: controller,
@@ -598,7 +598,7 @@ class _GlassInputBar extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       color: isSending
-                          ? _saffron.withOpacity(0.4)
+                          ? _saffron.withValues(alpha: 0.4)
                           : _saffron,
                       shape: BoxShape.circle,
                     ),

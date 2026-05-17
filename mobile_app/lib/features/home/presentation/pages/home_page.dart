@@ -141,7 +141,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             onTap: () => context.push('/profile'),
             child: CircleAvatar(
               radius: 16,
-              backgroundColor: _saffron.withOpacity(0.15),
+              backgroundColor: _saffron.withValues(alpha: 0.15),
               child: const Icon(Icons.person_rounded, size: 18, color: _saffron),
             ),
           ),
@@ -255,7 +255,7 @@ class _QuickAction extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 26),
@@ -295,12 +295,12 @@ class _ContinueReadingSection extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: _maroon.withOpacity(0.08),
+              color: _maroon.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
           ],
-          border: Border.all(color: _maroon.withOpacity(0.12)),
+          border: Border.all(color: _maroon.withValues(alpha: 0.12)),
         ),
         child: Row(
           children: [
@@ -328,7 +328,7 @@ class _ContinueReadingSection extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: _maroon.withOpacity(0.1),
+                          color: _maroon.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
@@ -370,7 +370,7 @@ class _ContinueReadingSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _maroon.withOpacity(0.1),
+                color: _maroon.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.arrow_forward_rounded,
@@ -427,12 +427,12 @@ class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         decoration: BoxDecoration(
-          color: _sandstone.withOpacity(0.15),
+          color: _sandstone.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _sandstone.withOpacity(0.45), width: 1.5),
+          border: Border.all(color: _sandstone.withValues(alpha: 0.45), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _sandstone.withOpacity(0.25),
+              color: _sandstone.withValues(alpha: 0.25),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -449,10 +449,10 @@ class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _saffron.withOpacity(0.12),
+                      color: _saffron.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       border:
-                          Border.all(color: _saffron.withOpacity(0.3)),
+                          Border.all(color: _saffron.withValues(alpha: 0.3)),
                     ),
                     child: const Text(
                       '✨ Verse of the Day',
@@ -510,7 +510,7 @@ class _VerseOfDaySectionState extends ConsumerState<_VerseOfDaySection> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -604,8 +604,8 @@ class _CategorySection extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: isSelected
-                            ? _saffron.withOpacity(0.3)
-                            : Colors.black.withOpacity(0.06),
+                            ? _saffron.withValues(alpha: 0.3)
+                            : Colors.black.withValues(alpha: 0.06),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -731,7 +731,7 @@ class _VerseCardSmall extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -757,7 +757,7 @@ class _VerseCardSmall extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: _saffron.withOpacity(0.1),
+                color: _saffron.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -835,10 +835,10 @@ class _SampradayChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _peacock.withOpacity(0.3), width: 1.5),
+          border: Border.all(color: _peacock.withValues(alpha: 0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _peacock.withOpacity(0.12),
+              color: _peacock.withValues(alpha: 0.12),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -854,7 +854,7 @@ class _SampradayChip extends StatelessWidget {
                   imageUrl: sampraday.thumbnailUrl!,
                   fit: BoxFit.cover,
                   placeholder: (_, __) =>
-                      Container(color: _peacock.withOpacity(0.1)),
+                      Container(color: _peacock.withValues(alpha: 0.1)),
                   errorWidget: (_, __, ___) => _peacockGradient(),
                 )
               else
@@ -866,7 +866,7 @@ class _SampradayChip extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      _peacock.withOpacity(0.80),
+                      _peacock.withValues(alpha: 0.80),
                     ],
                   ),
                 ),
@@ -891,7 +891,7 @@ class _SampradayChip extends StatelessWidget {
                     Text(
                       '${sampraday.followerCount} followers',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 9,
                         fontWeight: FontWeight.w500,
                       ),
@@ -976,10 +976,10 @@ class _RandomVerseSection extends ConsumerWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: _maroon.withOpacity(0.35), width: 1.5),
+                      color: _maroon.withValues(alpha: 0.35), width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: _maroon.withOpacity(0.10),
+                      color: _maroon.withValues(alpha: 0.10),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -992,7 +992,7 @@ class _RandomVerseSection extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: _maroon.withOpacity(0.08),
+                        color: _maroon.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1075,7 +1075,7 @@ class _TodayWisdomSection extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1A4D8F).withOpacity(0.25),
+                      color: const Color(0xFF1A4D8F).withValues(alpha: 0.25),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),
@@ -1195,7 +1195,7 @@ class _SampradayCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -1211,7 +1211,7 @@ class _SampradayCard extends StatelessWidget {
                   imageUrl: sampraday.thumbnailUrl!,
                   fit: BoxFit.cover,
                   placeholder: (_, __) =>
-                      Container(color: _gold.withOpacity(0.2)),
+                      Container(color: _gold.withValues(alpha: 0.2)),
                   errorWidget: (_, __, ___) => _gradientPlaceholder(),
                 )
               else
@@ -1223,7 +1223,7 @@ class _SampradayCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                     ],
                   ),
                 ),

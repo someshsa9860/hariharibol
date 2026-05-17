@@ -316,7 +316,7 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: gradient.first.withOpacity(0.3),
+            color: gradient.first.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -386,7 +386,7 @@ class _HeatmapCalendar extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -463,9 +463,9 @@ class _HeatmapCalendar extends StatelessWidget {
   }
 
   static Color _heatColor(double intensity) {
-    if (intensity <= 0) return Colors.grey.withOpacity(0.15);
-    if (intensity < 0.33) return _saffron.withOpacity(0.3);
-    if (intensity < 0.66) return _saffron.withOpacity(0.6);
+    if (intensity <= 0) return Colors.grey.withValues(alpha: 0.15);
+    if (intensity < 0.33) return _saffron.withValues(alpha: 0.3);
+    if (intensity < 0.66) return _saffron.withValues(alpha: 0.6);
     return _saffronDeep;
   }
 }
@@ -540,7 +540,7 @@ class _LogTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -615,7 +615,7 @@ class _LogTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: _saffron.withOpacity(0.1),
+              color: _saffron.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

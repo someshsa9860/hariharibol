@@ -138,7 +138,7 @@ class _ChatSessionPageState extends ConsumerState<ChatSessionPage> {
         child: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: const Center(
@@ -218,7 +218,7 @@ class _DisclaimerBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: _peacock.withOpacity(0.08),
+      color: _peacock.withValues(alpha: 0.08),
       child: Row(
         children: [
           const Icon(Icons.info_outline_rounded, size: 16, color: _peacock),
@@ -281,10 +281,10 @@ class _WelcomeState extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: _peacock.withOpacity(0.1),
+                            color: _peacock.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: _peacock.withOpacity(0.35)),
+                                color: _peacock.withValues(alpha: 0.35)),
                           ),
                           child: Text(
                             s,
@@ -419,7 +419,7 @@ class _MessageBubble extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -455,10 +455,10 @@ class _MessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border:
-                            Border.all(color: Colors.red.withOpacity(0.3)),
+                            Border.all(color: Colors.red.withValues(alpha: 0.3)),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -506,8 +506,8 @@ class _LotusAvatar extends StatelessWidget {
       height: 32,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _peacock.withOpacity(0.15),
-        border: Border.all(color: _peacock.withOpacity(0.3), width: 1),
+        color: _peacock.withValues(alpha: 0.15),
+        border: Border.all(color: _peacock.withValues(alpha: 0.3), width: 1),
       ),
       child: const Center(
         child: Text('🪷', style: TextStyle(fontSize: 14)),
@@ -530,9 +530,9 @@ class _CitationChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: _peacock.withOpacity(0.1),
+          color: _peacock.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _peacock.withOpacity(0.3)),
+          border: Border.all(color: _peacock.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -590,7 +590,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             padding: const EdgeInsets.symmetric(
                 horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: _sandstone.withOpacity(0.6),
+              color: _sandstone.withValues(alpha: 0.6),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(18),
                 topRight: Radius.circular(18),
@@ -599,7 +599,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -637,7 +637,7 @@ class _Dot extends StatelessWidget {
       height: 7,
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
-        color: _peacock.withOpacity(opacity),
+        color: _peacock.withValues(alpha: opacity),
         shape: BoxShape.circle,
       ),
     );
@@ -670,9 +670,9 @@ class _FollowUpChips extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _peacock.withOpacity(0.08),
+                      color: _peacock.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _peacock.withOpacity(0.25)),
+                      border: Border.all(color: _peacock.withValues(alpha: 0.25)),
                     ),
                     child: Text(
                       s,
@@ -706,7 +706,7 @@ class _InputBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, -2),
           ),
@@ -732,9 +732,9 @@ class _InputBar extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _peacock.withOpacity(0.1),
+                    color: _peacock.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
-                    border: Border.all(color: _peacock.withOpacity(0.2)),
+                    border: Border.all(color: _peacock.withValues(alpha: 0.2)),
                   ),
                   child: const Icon(
                     Icons.mic_rounded,
@@ -747,9 +747,9 @@ class _InputBar extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _sandstone.withOpacity(0.18),
+                    color: _sandstone.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: _sandstone.withOpacity(0.45)),
+                    border: Border.all(color: _sandstone.withValues(alpha: 0.45)),
                   ),
                   child: TextField(
                     controller: controller,
@@ -778,7 +778,7 @@ class _InputBar extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color:
-                        isStreaming ? _saffron.withOpacity(0.4) : _saffron,
+                        isStreaming ? _saffron.withValues(alpha: 0.4) : _saffron,
                     shape: BoxShape.circle,
                   ),
                   child: isStreaming

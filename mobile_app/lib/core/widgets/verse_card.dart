@@ -66,12 +66,12 @@ class _VerseCardState extends State<VerseCard>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _sandstone.withOpacity(0.12),
+          color: _sandstone.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _sandstone.withOpacity(0.35)),
+          border: Border.all(color: _sandstone.withValues(alpha: 0.35)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -85,7 +85,7 @@ class _VerseCardState extends State<VerseCard>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: _saffron.withOpacity(0.1),
+                    color: _saffron.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

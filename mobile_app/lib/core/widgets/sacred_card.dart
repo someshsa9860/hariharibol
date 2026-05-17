@@ -26,19 +26,19 @@ class SacredCard extends StatelessWidget {
     final card = Container(
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.sandstone.withOpacity(0.15),
+        color: backgroundColor ?? AppColors.sandstone.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(borderRadius),
         border: hasSaffronBorder
             ? Border(
                 left: BorderSide(color: AppColors.saffron, width: 3),
-                top: BorderSide(color: AppColors.sandstone.withOpacity(0.25)),
-                right: BorderSide(color: AppColors.sandstone.withOpacity(0.25)),
-                bottom: BorderSide(color: AppColors.sandstone.withOpacity(0.25)),
+                top: BorderSide(color: AppColors.sandstone.withValues(alpha: 0.25)),
+                right: BorderSide(color: AppColors.sandstone.withValues(alpha: 0.25)),
+                bottom: BorderSide(color: AppColors.sandstone.withValues(alpha: 0.25)),
               )
-            : Border.all(color: AppColors.sandstone.withOpacity(0.3)),
+            : Border.all(color: AppColors.sandstone.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

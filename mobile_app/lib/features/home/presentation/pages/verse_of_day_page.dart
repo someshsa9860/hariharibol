@@ -39,7 +39,7 @@ class VerseOfDayPage extends ConsumerWidget {
               'ॐ',
               style: TextStyle(
                 fontSize: 72,
-                color: AppColors.saffron.withOpacity(0.7),
+                color: AppColors.saffron.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 20),

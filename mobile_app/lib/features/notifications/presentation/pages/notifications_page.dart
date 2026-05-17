@@ -119,16 +119,16 @@ class _NotificationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification.isRead
               ? Colors.white
-              : AppColors.saffron.withOpacity(0.06),
+              : AppColors.saffron.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: notification.isRead
                 ? Colors.transparent
-                : AppColors.saffron.withOpacity(0.25),
+                : AppColors.saffron.withValues(alpha: 0.25),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -221,7 +221,7 @@ class _TypeIcon extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -267,7 +267,7 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.notifications_none_rounded,
             size: 64,
-            color: AppColors.textMuted.withOpacity(0.5),
+            color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(

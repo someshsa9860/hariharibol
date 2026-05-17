@@ -154,7 +154,7 @@ class _ChatbotPageState extends ConsumerState<ChatbotPage> {
       leading: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
         child: const Center(
@@ -204,7 +204,7 @@ class _GuruHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: _peacock.withOpacity(0.35),
+            color: _peacock.withValues(alpha: 0.35),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -305,14 +305,14 @@ class _GuruAvatar extends StatelessWidget {
         boxShadow: showGlow
             ? [
                 BoxShadow(
-                  color: _peacock.withOpacity(0.5),
+                  color: _peacock.withValues(alpha: 0.5),
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),
               ]
             : null,
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -366,10 +366,10 @@ class _SuggestedPromptsRow extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: _peacock.withOpacity(0.2)),
+                      color: _peacock.withValues(alpha: 0.2)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -429,7 +429,7 @@ class _SessionTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -441,7 +441,7 @@ class _SessionTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: _peacock.withOpacity(0.1),
+                  color: _peacock.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(

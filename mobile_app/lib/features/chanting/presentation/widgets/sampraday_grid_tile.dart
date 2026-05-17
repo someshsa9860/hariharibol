@@ -28,7 +28,7 @@ class SampradayGridTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -49,7 +49,7 @@ class SampradayGridTile extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.72),
+                      Colors.black.withValues(alpha: 0.72),
                     ],
                     stops: const [0.45, 1.0],
                   ),

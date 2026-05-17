@@ -225,8 +225,8 @@ class _HeroAppBar extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.65),
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.65),
                   ],
                 ),
               ),
@@ -282,11 +282,11 @@ class _HeroAppBar extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.3),
+                            color: Colors.green.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                                 color:
-                                    Colors.green.withOpacity(0.5)),
+                                    Colors.green.withValues(alpha: 0.5)),
                           ),
                           child: const Text(
                             '✓ Following',
@@ -382,7 +382,7 @@ class _FounderPhilosophyCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2)),
         ],
@@ -399,9 +399,9 @@ class _FounderPhilosophyCard extends StatelessWidget {
                     height: 56,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _saffron.withOpacity(0.1),
+                      color: _saffron.withValues(alpha: 0.1),
                       border: Border.all(
-                          color: _gold.withOpacity(0.5), width: 2),
+                          color: _gold.withValues(alpha: 0.5), width: 2),
                     ),
                     child: sampraday.founderImageUrl != null
                         ? ClipOval(
@@ -519,7 +519,7 @@ class _DiscipleChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2))
         ],
@@ -532,9 +532,9 @@ class _DiscipleChip extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _peacock.withOpacity(0.08),
+              color: _peacock.withValues(alpha: 0.08),
               border: Border.all(
-                  color: _peacock.withOpacity(0.2), width: 2),
+                  color: _peacock.withValues(alpha: 0.2), width: 2),
             ),
             child: disciple.imageUrl != null
                 ? ClipOval(
@@ -628,7 +628,7 @@ class _VersesTab extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 6,
                         offset: const Offset(0, 2)),
                   ],
@@ -640,7 +640,7 @@ class _VersesTab extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: _saffron.withOpacity(0.1),
+                        color: _saffron.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -748,7 +748,7 @@ class _GroupsTab extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 6,
                         offset: const Offset(0, 2)),
                   ],
@@ -759,7 +759,7 @@ class _GroupsTab extends ConsumerWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: _peacock.withOpacity(0.1),
+                        color: _peacock.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
@@ -857,7 +857,7 @@ class _MantraGridCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2))
           ],
@@ -869,7 +869,7 @@ class _MantraGridCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                  color: _saffron.withOpacity(0.1),
+                  color: _saffron.withValues(alpha: 0.1),
                   shape: BoxShape.circle),
               child: const Center(
                   child: Text('📿',
@@ -923,7 +923,7 @@ class _FollowBar extends ConsumerWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 16,
               offset: const Offset(0, -4)),
         ],
@@ -949,7 +949,7 @@ class _FollowBar extends ConsumerWidget {
                       ? null
                       : [
                           BoxShadow(
-                              color: _saffron.withOpacity(0.4),
+                              color: _saffron.withValues(alpha: 0.4),
                               blurRadius: 12,
                               offset: const Offset(0, 4))
                         ],
@@ -991,10 +991,10 @@ class _FollowBar extends ConsumerWidget {
             height: 52,
             width: 52,
             decoration: BoxDecoration(
-              color: _peacock.withOpacity(0.08),
+              color: _peacock.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
               border:
-                  Border.all(color: _peacock.withOpacity(0.2)),
+                  Border.all(color: _peacock.withValues(alpha: 0.2)),
             ),
             child: const Icon(Icons.share_rounded,
                 color: _peacock),

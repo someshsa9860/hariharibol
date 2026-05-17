@@ -147,10 +147,10 @@ class _VerseCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.sandstone.withOpacity(0.12),
+          color: AppColors.sandstone.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: AppColors.sandstone.withOpacity(0.35)),
+              color: AppColors.sandstone.withValues(alpha: 0.35)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +175,7 @@ class _VerseCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.peacock.withOpacity(0.10),
+                      color: AppColors.peacock.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -270,7 +270,7 @@ class _MantraCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -282,7 +282,7 @@ class _MantraCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.maroon.withOpacity(0.08),
+                color: AppColors.maroon.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -385,7 +385,7 @@ class _NarrationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -397,7 +397,7 @@ class _NarrationCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.peacock.withOpacity(0.10),
+              color: AppColors.peacock.withValues(alpha: 0.10),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.headphones_rounded,
@@ -485,7 +485,7 @@ class _EmptyTab extends StatelessWidget {
           children: [
             Icon(icon,
                 size: 64,
-                color: AppColors.textMuted.withOpacity(0.4)),
+                color: AppColors.textMuted.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text(
               message,

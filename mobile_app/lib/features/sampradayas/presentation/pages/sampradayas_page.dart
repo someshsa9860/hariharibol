@@ -139,7 +139,7 @@ class _SampradayasPageState extends ConsumerState<SampradayasPage> {
                   Text(
                     'Explore and follow sacred lineages',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                   ),
@@ -264,7 +264,7 @@ class _FilterControl extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: _peacock.withOpacity(0.1),
+        color: _peacock.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -348,7 +348,7 @@ class _SampradayCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.12),
+              color: Colors.black.withValues(alpha: 0.12),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -374,8 +374,8 @@ class _SampradayCard extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.05),
-                      Colors.black.withOpacity(0.75),
+                      Colors.black.withValues(alpha: 0.05),
+                      Colors.black.withValues(alpha: 0.75),
                     ],
                   ),
                 ),
@@ -393,7 +393,7 @@ class _SampradayCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
-                          color: _gold.withOpacity(0.9),
+                          color: _gold.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -441,7 +441,7 @@ class _SampradayCard extends StatelessWidget {
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: isFollowing
-                                  ? Colors.white.withOpacity(0.2)
+                                  ? Colors.white.withValues(alpha: 0.2)
                                   : _saffron,
                               borderRadius:
                                   BorderRadius.circular(20),

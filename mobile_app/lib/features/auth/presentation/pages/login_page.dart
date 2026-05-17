@@ -122,9 +122,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: _errorRed.withOpacity(0.08),
+                          color: _errorRed.withValues(alpha: 0.08),
                           border: Border.all(
-                              color: _errorRed.withOpacity(0.35), width: 1),
+                              color: _errorRed.withValues(alpha: 0.35), width: 1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -196,7 +196,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: _textMuted.withOpacity(0.75),
+                          color: _textMuted.withValues(alpha: 0.75),
                           height: 1.55,
                         ),
                       ),
