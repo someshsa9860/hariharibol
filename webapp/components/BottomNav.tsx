@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Star, Music2, MessageCircle } from 'lucide-react';
+import { Home, BookOpen, Users, Music2, MessageCircle } from 'lucide-react';
 
 const TABS = [
-  { href: '/home',         icon: <Home size={20} />,          label: 'Home' },
-  { href: '/books',        icon: <BookOpen size={20} />,      label: 'Read' },
-  { href: '/verse-of-day', icon: <Star size={20} />,          label: 'Daily' },
-  { href: '/mantras',      icon: <Music2 size={20} />,        label: 'Mantras' },
-  { href: '/gurudev',      icon: <MessageCircle size={20} />, label: 'GuruDev' },
+  { href: '/home',    icon: <Home size={20} />,          label: 'Home' },
+  { href: '/books',   icon: <BookOpen size={20} />,      label: 'Read' },
+  { href: '/groups',  icon: <Users size={20} />,         label: 'Community' },
+  { href: '/mantras', icon: <Music2 size={20} />,        label: 'Mantras' },
+  { href: '/gurudev', icon: <MessageCircle size={20} />, label: 'GuruDev' },
 ];
 
 export default function BottomNav() {

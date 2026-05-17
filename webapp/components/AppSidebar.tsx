@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Music2, Star, MessageCircle, LogOut, Sun, Moon } from 'lucide-react';
+import { Home, BookOpen, Music2, Star, MessageCircle, Users, LogOut, Sun, Moon } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 const NAV_ITEMS = [
@@ -17,6 +17,10 @@ const NAV_ITEMS = [
   },
   { href: '/verse-of-day', icon: <Star size={18} />,          label: 'Verse of Day', dot: 'var(--maroon)' },
   { href: '/gurudev',      icon: <MessageCircle size={18} />, label: 'GuruDev',      dot: 'var(--lotus)' },
+];
+
+const COMMUNITY_ITEMS = [
+  { href: '/groups', icon: <Users size={18} />, label: 'Groups', dot: 'var(--peacock)' },
 ];
 
 export default function AppSidebar() {
@@ -124,6 +128,63 @@ export default function AppSidebar() {
               }}
             >
               {/* Accent color dot */}
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: l.dot,
+                  flexShrink: 0,
+                  opacity: active ? 1 : 0.45,
+                  transition: 'opacity 0.2s',
+                }}
+              />
+              <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{l.icon}</span>
+              {l.label}
+            </Link>
+          );
+        })}
+
+        <p
+          className="text-xs font-bold uppercase tracking-wider px-3 mb-2 mt-5"
+          style={{ color: 'var(--muted)' }}
+        >
+          Community
+        </p>
+        {COMMUNITY_ITEMS.map((l) => {
+          const active = pathname === l.href || pathname.startsWith(l.href + '/');
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: active ? 700 : 600,
+                color: active ? 'var(--peacock)' : 'var(--muted)',
+                background: active ? 'rgba(0,107,107,0.10)' : 'transparent',
+                borderLeft: active ? '3px solid var(--peacock)' : '3px solid transparent',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                marginBottom: 2,
+              }}
+              onMouseEnter={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'var(--surface-2)';
+                  e.currentTarget.style.color = 'var(--text)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted)';
+                }
+              }}
+            >
               <span
                 style={{
                   width: 7,
