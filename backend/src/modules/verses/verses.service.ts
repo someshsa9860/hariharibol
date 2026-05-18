@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 
 @Injectable()
@@ -9,6 +9,11 @@ export class VersesService {
     const verse = await this.prisma.verse.findUnique({
       where: { id: verseId },
       include: {
+        translations: {
+          where: { isPublished: true },
+          orderBy: { displayOrder: 'asc' },
+          include: { translator: true },
+        },
         narrations: { where: { isPublished: true }, take: 5 },
         sampradayLinks: { include: { sampraday: true }, take: 3 },
         book: true,
@@ -17,10 +22,41 @@ export class VersesService {
     });
 
     if (!verse) {
-      throw new BadRequestException('Verse not found');
+      throw new NotFoundException('Verse not found');
     }
 
     return verse;
+  }
+
+  async getVerseNarrations(verseId: string) {
+    const verse = await this.prisma.verse.findUnique({ where: { id: verseId }, select: { id: true } });
+    if (!verse) throw new NotFoundException('Verse not found');
+
+    const narrations = await this.prisma.narration.findMany({
+      where: { verseId, isPublished: true },
+      orderBy: { displayOrder: 'asc' },
+    });
+
+    return { data: narrations, total: narrations.length };
+  }
+
+  async toggleFavorite(userId: string, verseId: string) {
+    const verse = await this.prisma.verse.findUnique({ where: { id: verseId }, select: { id: true } });
+    if (!verse) throw new NotFoundException('Verse not found');
+
+    const existing = await this.prisma.favorite.findFirst({
+      where: { userId, type: 'verse', targetId: verseId },
+    });
+
+    if (existing) {
+      await this.prisma.favorite.delete({ where: { id: existing.id } });
+      return { favorited: false };
+    }
+
+    await this.prisma.favorite.create({
+      data: { userId, type: 'verse', targetId: verseId },
+    });
+    return { favorited: true };
   }
 
   async getVerseOfDay() {
@@ -28,6 +64,11 @@ export class VersesService {
       where: { isVerseOfDayEligible: true },
       orderBy: { createdAt: 'desc' },
       include: {
+        translations: {
+          where: { isPublished: true },
+          orderBy: { displayOrder: 'asc' },
+          include: { translator: true },
+        },
         narrations: { where: { isPublished: true }, take: 3 },
         book: true,
         chapter: true,
@@ -51,6 +92,11 @@ export class VersesService {
       take: 1,
       skip,
       include: {
+        translations: {
+          where: { isPublished: true },
+          orderBy: { displayOrder: 'asc' },
+          include: { translator: true },
+        },
         narrations: { where: { isPublished: true }, take: 3 },
         book: true,
         chapter: true,
@@ -107,7 +153,15 @@ export class VersesService {
   async getVersesByChapter(chapterId: string) {
     return this.prisma.verse.findMany({
       where: { chapterId },
-      include: { chapter: true, narrations: { take: 2 } },
+      include: {
+        translations: {
+          where: { isPublished: true },
+          orderBy: { displayOrder: 'asc' },
+          include: { translator: true },
+        },
+        narrations: { where: { isPublished: true }, take: 2 },
+        chapter: true,
+      },
       orderBy: { verseNumber: 'asc' },
     });
   }
@@ -116,18 +170,8 @@ export class VersesService {
     return this.prisma.verse.findMany({
       where: {
         OR: [
-          {
-            transliteration: {
-              contains: query,
-              mode: 'insensitive',
-            },
-          },
-          {
-            sanskrit: {
-              contains: query,
-              mode: 'insensitive',
-            },
-          },
+          { transliteration: { contains: query, mode: 'insensitive' } },
+          { sanskrit: { contains: query, mode: 'insensitive' } },
         ],
       },
       include: { book: true, chapter: true },

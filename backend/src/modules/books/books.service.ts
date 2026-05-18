@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
+import { StorageService } from '@infrastructure/storage/storage.service';
+import { folderStructure } from '@infrastructure/storage/storage.config';
 import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from '../admin/dto/book.dto';
 
 const TTL_10MIN = 10 * 60 * 1000;
@@ -13,26 +15,38 @@ export class BooksService {
   constructor(
     private prisma: PrismaService,
     private cacheService: CacheService,
+    private storageService: StorageService,
   ) {}
 
   // ── Public read methods ──────────────────────────────────────────────────
 
-  async getAllBooks(skip?: number, take?: number) {
-    const cacheKey = `books:list:${skip || 0}:${take || 0}`;
+  async getAllBooks(skip?: number, take?: number, search?: string) {
+    const cacheKey = `books:list:${skip || 0}:${take || 0}:${search || ''}`;
     return this.cacheService.getOrSet(
       cacheKey,
       async () => {
+        const where = search
+          ? {
+              isPublished: true,
+              OR: [
+                { slug: { contains: search, mode: 'insensitive' as const } },
+                { titleKey: { contains: search, mode: 'insensitive' as const } },
+              ],
+            }
+          : { isPublished: true };
+
         const [books, total] = await Promise.all([
           this.prisma.book.findMany({
-            where: { isPublished: true },
+            where,
             skip,
             take,
             include: {
+              translators: { include: { translator: true } },
               _count: { select: { chapters: true, verses: true } },
             },
             orderBy: { displayOrder: 'asc' },
           }),
-          this.prisma.book.count({ where: { isPublished: true } }),
+          this.prisma.book.count({ where }),
         ]);
         return { data: books, total, skip: skip || 0, take: take || total };
       },
@@ -44,12 +58,14 @@ export class BooksService {
     const book = await this.prisma.book.findUnique({
       where: { id: bookId },
       include: {
+        translators: { include: { translator: true } },
         chapters: { orderBy: { number: 'asc' } },
+        cantos: { orderBy: { number: 'asc' } },
         _count: { select: { chapters: true, verses: true } },
       },
     });
 
-    if (!book) throw new BadRequestException('Book not found');
+    if (!book) throw new NotFoundException('Book not found');
     return book;
   }
 
@@ -57,21 +73,42 @@ export class BooksService {
     const book = await this.prisma.book.findUnique({
       where: { slug },
       include: {
+        translators: { include: { translator: true } },
         chapters: { orderBy: { number: 'asc' } },
+        cantos: { orderBy: { number: 'asc' } },
         _count: { select: { chapters: true, verses: true } },
       },
     });
 
-    if (!book) throw new BadRequestException('Book not found');
+    if (!book) throw new NotFoundException('Book not found');
     return book;
   }
 
-  async getChapters(bookId: string) {
-    return this.prisma.chapter.findMany({
-      where: { bookId },
-      orderBy: { number: 'asc' },
-      include: { _count: { select: { verses: true } } },
-    });
+  async getCantos(bookId: string) {
+    await this._assertBookExists(bookId);
+    const [cantos, total] = await Promise.all([
+      this.prisma.canto.findMany({
+        where: { bookId },
+        orderBy: { number: 'asc' },
+        include: { _count: { select: { chapters: true } } },
+      }),
+      this.prisma.canto.count({ where: { bookId } }),
+    ]);
+    return { data: cantos, total };
+  }
+
+  async getChapters(bookId: string, skip?: number, take?: number) {
+    const [chapters, total] = await Promise.all([
+      this.prisma.chapter.findMany({
+        where: { bookId },
+        skip,
+        take,
+        orderBy: { number: 'asc' },
+        include: { _count: { select: { verses: true } } },
+      }),
+      this.prisma.chapter.count({ where: { bookId } }),
+    ]);
+    return { data: chapters, total, skip: skip || 0, take: take || total };
   }
 
   async getChapter(chapterId: string) {
@@ -79,18 +116,27 @@ export class BooksService {
       where: { id: chapterId },
       include: {
         book: true,
-        verses: { orderBy: { verseNumber: 'asc' } },
+        verses: {
+          orderBy: { verseNumber: 'asc' },
+          include: {
+            translations: {
+              where: { isPublished: true },
+              orderBy: { displayOrder: 'asc' },
+              include: { translator: true },
+            },
+          },
+        },
         _count: { select: { verses: true } },
       },
     });
 
-    if (!chapter) throw new BadRequestException('Chapter not found');
+    if (!chapter) throw new NotFoundException('Chapter not found');
     return chapter;
   }
 
   async getChapterByNumber(bookId: string, chapterNumber: number) {
-    const chapter = await this.prisma.chapter.findUnique({
-      where: { bookId_number: { bookId, number: chapterNumber } },
+    const chapter = await this.prisma.chapter.findFirst({
+      where: { bookId, number: chapterNumber },
       include: {
         book: true,
         verses: {
@@ -115,12 +161,46 @@ export class BooksService {
     return chapter;
   }
 
+  async getChapterVersesByNumber(bookId: string, chapterNumber: number, skip = 0, take = 50) {
+    const chapter = await this.prisma.chapter.findFirst({
+      where: { bookId, number: chapterNumber },
+      select: { id: true, _count: { select: { verses: true } } },
+    });
+
+    if (!chapter) throw new NotFoundException('Chapter not found');
+
+    const [verses, total] = await Promise.all([
+      this.prisma.verse.findMany({
+        where: { chapterId: chapter.id },
+        skip,
+        take,
+        orderBy: { verseNumber: 'asc' },
+        include: {
+          translations: {
+            where: { isPublished: true },
+            orderBy: { displayOrder: 'asc' },
+            include: { translator: true },
+          },
+          narrations: { where: { isPublished: true }, take: 3 },
+        },
+      }),
+      this.prisma.verse.count({ where: { chapterId: chapter.id } }),
+    ]);
+
+    return { data: verses, total, skip, take };
+  }
+
   async getVerseByNumber(bookId: string, chapterNumber: number, verseNumber: number) {
     const verse = await this.prisma.verse.findFirst({
       where: { bookId, chapterNumber, verseNumber },
       include: {
         book: true,
         chapter: true,
+        translations: {
+          where: { isPublished: true },
+          orderBy: { displayOrder: 'asc' },
+          include: { translator: true },
+        },
         narrations: { where: { isPublished: true }, take: 5 },
       },
     });
@@ -153,6 +233,18 @@ export class BooksService {
     return { data, total, skip, take };
   }
 
+  async uploadBookCover(bookId: string, buffer: Buffer, filename: string, mimetype: string) {
+    await this._assertBookExists(bookId);
+    const folder = folderStructure.book(bookId);
+    const result = await this.storageService.uploadImage(buffer, filename, folder, mimetype);
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { coverImageUrl: result.url },
+    });
+    this.logger.log(`Book cover uploaded: ${bookId}`);
+    return result;
+  }
+
   // ── Admin: Book CRUD ─────────────────────────────────────────────────────
 
   async adminGetAllBooks(skip = 0, take = 50) {
@@ -160,7 +252,10 @@ export class BooksService {
       this.prisma.book.findMany({
         skip,
         take,
-        include: { _count: { select: { chapters: true, verses: true } } },
+        include: {
+          translators: { include: { translator: true } },
+          _count: { select: { chapters: true, verses: true } },
+        },
         orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
       }),
       this.prisma.book.count(),
@@ -221,8 +316,8 @@ export class BooksService {
   async adminCreateChapter(dto: CreateChapterDto) {
     await this._assertBookExists(dto.bookId);
 
-    const existing = await this.prisma.chapter.findUnique({
-      where: { bookId_number: { bookId: dto.bookId, number: dto.number } },
+    const existing = await this.prisma.chapter.findFirst({
+      where: { bookId: dto.bookId, number: dto.number },
     });
     if (existing) throw new BadRequestException(`Chapter ${dto.number} already exists in this book`);
 
