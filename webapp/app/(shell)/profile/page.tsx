@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Edit3, BookOpen, Music, Heart, Star } from 'lucide-react';
 import api from '@/lib/api';
 import TopBar from '@/components/TopBar';
@@ -74,8 +75,8 @@ export default function ProfilePage() {
         }}>
           {/* Avatar with gold ring */}
           {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt={displayName} style={{
-              width: 90, height: 90, borderRadius: '50%', objectFit: 'cover',
+            <Image src={user.avatarUrl} alt={displayName} width={90} height={90} style={{
+              borderRadius: '50%', objectFit: 'cover',
               border: '4px solid #D4A055', boxShadow: '0 0 0 6px rgba(212,160,85,0.28)',
             }} />
           ) : (

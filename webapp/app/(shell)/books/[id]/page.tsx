@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, BookOpen, Home } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -58,7 +59,7 @@ export default function AppBookDetailPage() {
       {/* Hero */}
       <div className="relative w-full overflow-hidden" style={{ height: 280 }}>
         {book?.thumbnailUrl
-          ? <img src={book.thumbnailUrl} alt={book?.title} className="absolute inset-0 w-full h-full object-cover" />
+          ? <Image src={book.thumbnailUrl} alt={book?.title ?? ''} fill className="object-cover" />
           : <div className="absolute inset-0" style={{ background: GRADIENTS[heroIdx] }} />
         }
         {/* Gradient overlay */}

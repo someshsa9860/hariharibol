@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Users, Heart, Home, ChevronRight } from 'lucide-react';
 import api from '@/lib/api';
 import BookCard from '@/components/BookCard';
@@ -51,7 +52,7 @@ export default function SampradayaDetailPage() {
         style={{ background: s.heroImageUrl ? undefined : 'linear-gradient(135deg, #7B1C1C, #FF6B00)' }}
       >
         {s.heroImageUrl && (
-          <img src={s.heroImageUrl} alt={s.name} className="absolute inset-0 w-full h-full object-cover" />
+          <Image src={s.heroImageUrl} alt={s.name ?? ''} fill className="object-cover" />
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }} />
         <div className="container-site relative z-10 pb-8">

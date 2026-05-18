@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, BookOpen } from 'lucide-react';
 import api from '@/lib/api';
 import TopBar from '@/components/TopBar';
@@ -82,7 +83,7 @@ export default function AppBooksPage() {
                     style={{ background: b.thumbnailUrl ? undefined : GRADIENTS[idx % GRADIENTS.length] }}
                   >
                     {b.thumbnailUrl
-                      ? <img src={b.thumbnailUrl} alt={b.title} className="w-full h-full object-cover" />
+                      ? <Image src={b.thumbnailUrl} alt={b.title} fill className="object-cover" />
                       : <BookOpen size={40} style={{ color: 'rgba(255,255,255,0.55)' }} />}
                   </div>
 

@@ -1,5 +1,28 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Inter, Playfair_Display, Noto_Sans_Devanagari } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '900'],
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-noto',
+  display: 'swap',
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hariharibol.com';
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
@@ -49,22 +72,9 @@ const darkModeScript = `(function(){try{var s=JSON.parse(localStorage.getItem('h
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${playfair.variable} ${notoDevanagari.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <style>{`
-          :root {
-            --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            --font-playfair: 'Playfair Display', Georgia, serif;
-            --font-noto: 'Noto Sans Devanagari', serif;
-          }
-        `}</style>
       </head>
       <body>{children}</body>
     </html>

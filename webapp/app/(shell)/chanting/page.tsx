@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import TopBar from '@/components/TopBar';
@@ -36,7 +36,7 @@ export default function ChantingPage() {
   const malas = Math.floor(chantCount / MALA_SIZE);
   const beads = chantCount % MALA_SIZE;
   const progress = Math.min((chantCount / target) * 100, 100);
-  const dashOffset = CIRC * (1 - progress / 100);
+  const dashOffset = useMemo(() => CIRC * (1 - progress / 100), [progress]);
 
   useEffect(() => {
     api.get('/chanting/logs?take=10')

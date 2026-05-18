@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, BookOpen, LayoutGrid, List } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -40,7 +41,7 @@ function BookCard({ book, index, view }: { book: any; index: number; view: 'grid
           style={{ background: gradient }}
         >
           {book.thumbnailUrl ? (
-            <img src={book.thumbnailUrl} alt={book.title} className="w-full h-full object-cover rounded-xl" />
+            <Image src={book.thumbnailUrl} alt={book.title} fill className="object-cover rounded-xl" />
           ) : (
             <BookOpen size={24} className="text-white/70" />
           )}
@@ -79,7 +80,7 @@ function BookCard({ book, index, view }: { book: any; index: number; view: 'grid
         style={{ background: gradient }}
       >
         {book.thumbnailUrl ? (
-          <img src={book.thumbnailUrl} alt={book.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <Image src={book.thumbnailUrl} alt={book.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <BookOpen size={40} className="text-white/60" />
         )}
