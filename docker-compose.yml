@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-sanatan}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sanatan_dev_password}
+      POSTGRES_DB: ${DB_NAME:-sanatan}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-sanatan}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # ── Application Services ──────────────────────────────────────────────────────
+
+  # NestJS REST API  →  http://localhost:3001
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3000'
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_MODE: api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # Next.js Web App (user-facing PWA)  →  http://localhost:3002
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    ports:
+      - '3002:3000'
+    env_file:
+      - ./webapp/.env
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # Next.js Marketing Website  →  http://localhost:3003
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    ports:
+      - '3003:3000'
+    env_file:
+      - ./website/.env
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # Next.js Admin Panel  →  http://localhost:3000
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3009'
+    env_file:
+      - ./admin/.env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # ── Optional: DB Management ───────────────────────────────────────────────────
+  # Enable with: docker compose --profile tools up
+  # Access at: http://localhost:5050  (email: admin@hariharibol.com  pw: admin)
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    profiles:
+      - tools
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@hariharibol.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+  # ── Optional: Reverse Proxy ───────────────────────────────────────────────────
+  # Enable with: docker compose --profile proxy up
+  # Requires ./nginx/nginx.conf and (for HTTPS) ./nginx/certs/
+
+  nginx:
+    image: nginx:alpine
+    profiles:
+      - proxy
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - webapp
+      - website
+      - admin
+    restart: unless-stopped
+    networks:
+      - hariharibol
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_uploads:
+  pgadmin_data:
+
+networks:
+  hariharibol:
+    driver: bridge
+    name: hariharibol-network

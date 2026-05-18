@@ -11,15 +11,19 @@ build/
 
 # Environment — NEVER commit secrets
 .env
+*.env
 .env.local
 .env.*.local
 **/.env
 **/.env.local
+**/*.env
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # OS
 .DS_Store
@@ -31,3 +35,33 @@ Thumbs.db
 
 # Prisma local env
 prisma/.env
+
+# Uploaded user files
+uploads/
+**/uploads/
+
+# Python (data pipeline)
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+mobile_app/.dart_tool/
+mobile_app/build/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.swp
+*.swo
+.cache/
