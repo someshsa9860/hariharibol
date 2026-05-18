@@ -91,7 +91,7 @@ export default function HomePage() {
 
         <div className="container-site relative z-10 text-center py-20 md:py-32">
           <h1
-            className="text-5xl md:text-7xl font-black mb-5 leading-tight"
+            className="text-4xl sm:text-5xl md:text-7xl font-black mb-5 leading-tight"
             style={{ fontFamily: "'Noto Sans Devanagari', serif", color: '#fff' }}
           >
             हरि हरि बोल
@@ -134,7 +134,7 @@ export default function HomePage() {
       {/* ── Stats Bar ── */}
       <section style={{ background: '#111', padding: '1.75rem 0' }}>
         <div className="container-site">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {STATS.map(({ Icon, value, label }) => (
               <div key={label} className="flex items-center gap-3">
                 <Icon size={24} style={{ color: '#006B6B', flexShrink: 0 }} />
@@ -149,7 +149,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Verse of the Day Spotlight ── */}
-      <section className="py-20" style={{ background: 'var(--bg)' }}>
+      <section className="py-10 md:py-20" style={{ background: 'var(--bg)' }}>
         <div className="container-site">
           <div className="text-center mb-10">
             <div className="badge inline-block mb-3">
@@ -235,9 +235,9 @@ export default function HomePage() {
       </section>
 
       {/* ── Sacred Texts ── */}
-      <section className="py-20" style={{ background: 'var(--bg-2)' }}>
+      <section className="py-10 md:py-20" style={{ background: 'var(--bg-2)' }}>
         <div className="container-site">
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
             <div>
               <h2
                 className="gradient-text text-3xl font-bold"
@@ -320,9 +320,9 @@ export default function HomePage() {
       </section>
 
       {/* ── Sampradayas ── */}
-      <section className="py-20" style={{ background: 'var(--bg)' }}>
+      <section className="py-10 md:py-20" style={{ background: 'var(--bg)' }}>
         <div className="container-site">
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
             <div>
               <h2
                 className="text-3xl font-bold"

@@ -68,10 +68,9 @@ export default function BookDetailPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* ── Hero with gradient ── */}
       <div
+        className="py-10 md:py-16"
         style={{
           background: 'linear-gradient(135deg, #2D1B00 0%, #7B3A10 60%, #C75A1A 100%)',
-          paddingTop: '4rem',
-          paddingBottom: '4rem',
         }}
       >
         <div className="container-site">
@@ -87,7 +86,7 @@ export default function BookDetailPage() {
           <div className="flex flex-col md:flex-row gap-8 items-start">
             {/* Cover image */}
             <div
-              className="w-36 h-48 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden"
+              className="w-36 h-48 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden mx-auto md:mx-0"
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.2)',
@@ -108,7 +107,7 @@ export default function BookDetailPage() {
             {/* Meta */}
             <div className="flex-1">
               <h1
-                className="text-4xl md:text-5xl font-black mb-3 leading-tight"
+                className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 leading-tight"
                 style={{ fontFamily: 'Playfair Display, serif', color: '#fff' }}
               >
                 {book.title}

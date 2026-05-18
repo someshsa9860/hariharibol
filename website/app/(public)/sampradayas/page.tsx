@@ -88,11 +88,11 @@ export default function SampradayasPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* Hero */}
       <div
-        className="py-20"
+        className="py-10 md:py-20"
         style={{ background: 'linear-gradient(135deg, #7B1C1C 0%, #A52626 40%, #FF6B00 100%)' }}
       >
         <div className="container-site text-center">
-          <h1 className="text-4xl font-black mb-3 text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
             Spiritual Traditions
           </h1>
           <p className="text-base text-white/80">

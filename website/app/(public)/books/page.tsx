@@ -147,9 +147,9 @@ export default function BooksPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* Hero */}
-      <div className="py-16" style={{ background: '#C4A882' }}>
+      <div className="py-10 md:py-16" style={{ background: '#C4A882' }}>
         <div className="container-site text-center">
-          <h1 className="text-4xl font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#1A1410' }}>
+          <h1 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#1A1410' }}>
             Sacred Texts
           </h1>
           <p className="text-base mb-8" style={{ color: 'rgba(26,20,16,0.6)' }}>

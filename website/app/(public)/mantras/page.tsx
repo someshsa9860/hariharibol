@@ -159,11 +159,8 @@ export default function MantrasPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* ── Hero ── */}
       <div
-        style={{
-          background: 'linear-gradient(135deg, #006B6B 0%, #2D5A27 100%)',
-          paddingTop: '4rem',
-          paddingBottom: '4rem',
-        }}
+        className="py-10 md:py-16"
+        style={{ background: 'linear-gradient(135deg, #006B6B 0%, #2D5A27 100%)' }}
       >
         <div className="container-site text-center">
           {/* Om symbol */}
@@ -183,7 +180,7 @@ export default function MantrasPage() {
             ॐ
           </div>
           <h1
-            className="text-4xl font-black mb-3"
+            className="text-3xl sm:text-4xl font-black mb-3"
             style={{ fontFamily: 'Playfair Display, serif', color: '#fff' }}
           >
             Sacred Mantras

@@ -93,7 +93,7 @@ function ShareRow({ verse }: { verse: any }) {
 function TodayVerseCard({ verse }: { verse: any }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-8"
+      className="relative overflow-hidden rounded-2xl p-5 sm:p-8"
       style={{
         background: 'linear-gradient(135deg, #C4A882 0%, #D4B896 100%)',
         boxShadow: '0 20px 60px rgba(196,168,130,0.35)',
@@ -194,14 +194,14 @@ export default function VerseOfDayPage() {
       {/* ── Header ── */}
       <div
         style={{ background: 'var(--bg-2)', borderBottom: '1px solid var(--border)' }}
-        className="py-16"
+        className="py-10 md:py-16"
       >
         <div className="container-site text-center">
           <div className="badge inline-flex items-center gap-1 mb-4">
             <Sparkles size={12} /> Daily Verse
           </div>
           <h1
-            className="text-4xl font-black mb-3"
+            className="text-3xl sm:text-4xl font-black mb-3"
             style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}
           >
             Verse of the Day
