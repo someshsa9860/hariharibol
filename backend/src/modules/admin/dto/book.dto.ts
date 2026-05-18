@@ -10,6 +10,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 class WordMeaningDto {
@@ -23,45 +24,54 @@ class WordMeaningDto {
 }
 
 export class CreateBookDto {
+  @ApiProperty({ example: 'bhagavad-gita', maxLength: 100 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   slug: string;
 
+  @ApiProperty({ example: 'book.bhagavad_gita.title', maxLength: 200 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
   titleKey: string;
 
+  @ApiPropertyOptional({ example: 'book.bhagavad_gita.description', maxLength: 500 })
   @IsString()
   @IsOptional()
   @MaxLength(500)
   descriptionKey?: string;
 
+  @ApiPropertyOptional({ example: 'book.bhagavad_gita.author', maxLength: 200 })
   @IsString()
   @IsOptional()
   @MaxLength(200)
   authorKey?: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/cover.jpg' })
   @IsUrl()
   @IsOptional()
   coverImageUrl?: string;
 
+  @ApiPropertyOptional({ example: 18, minimum: 0 })
   @IsInt()
   @IsOptional()
   @Min(0)
   totalChapters?: number;
 
+  @ApiPropertyOptional({ example: 700, minimum: 0 })
   @IsInt()
   @IsOptional()
   @Min(0)
   totalVerses?: number;
 
+  @ApiPropertyOptional({ example: 1, minimum: 0 })
   @IsInt()
   @IsOptional()
   @Min(0)
   displayOrder?: number;
 
+  @ApiPropertyOptional({ example: true })
   @IsBoolean()
   @IsOptional()
   isPublished?: boolean;

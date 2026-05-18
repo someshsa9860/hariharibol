@@ -11,12 +11,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { MantrasService } from './mantras.service';
 import { CreateMantraDto, UpdateMantraDto } from './dto/mantra.dto';
 import { Public } from '@common/decorators/public.decorator';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AdminGuard } from '@common/guards/admin.guard';
 
+@ApiTags('mantras')
 @Controller('api/v1/mantras')
 export class MantrasController {
   constructor(private mantrasService: MantrasService) {}
@@ -45,6 +47,7 @@ export class MantrasController {
 
   @Post()
   @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
   async createMantra(@Body() dto: CreateMantraDto) {
     return this.mantrasService.createMantra(dto);
@@ -52,6 +55,7 @@ export class MantrasController {
 
   @Patch(':id')
   @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   async updateMantra(@Param('id') id: string, @Body() dto: UpdateMantraDto) {
     return this.mantrasService.updateMantra(id, dto);
@@ -59,6 +63,7 @@ export class MantrasController {
 
   @Delete(':id')
   @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   async deleteMantra(@Param('id') id: string) {
     return this.mantrasService.deleteMantra(id);

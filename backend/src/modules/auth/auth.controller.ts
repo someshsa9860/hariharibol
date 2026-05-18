@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Res,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './services/auth.service';
@@ -30,6 +31,7 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
+@ApiTags('auth')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -78,6 +80,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentUser() user: any) {
     return this.authService.logout(user.id, user.deviceId);
@@ -85,6 +88,7 @@ export class AuthController {
 
   @Delete('account')
   @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   async deleteAccount(@CurrentUser() user: any) {
     return this.authService.deleteAccount(user.id);

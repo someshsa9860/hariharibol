@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageValidationPipe, AudioValidationPipe } from '@common/pipes/file-validation.pipe';
 import { AdminService } from './admin.service';
@@ -26,6 +27,8 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
 import { AdminRole } from './roles.enum';
 
+@ApiTags('admin')
+@ApiBearerAuth()
 @Controller('api/v1/admin')
 @UseGuards(JwtGuard, AdminGuard, RolesGuard)
 @Roles(AdminRole.ADMIN, AdminRole.SUPER_ADMIN)

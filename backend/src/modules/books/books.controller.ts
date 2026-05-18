@@ -6,9 +6,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { BooksService } from './books.service';
 import { Public } from '@common/decorators/public.decorator';
 
+@ApiTags('books')
 @Controller('api/v1/books')
 @Public()
 export class BooksController {
