@@ -33,7 +33,7 @@ export default function AppBookDetailPage() {
       if (chList.length > 0) {
         setOpenCanto(String(chList[0].cantoNumber || chList[0].part || '1'));
       }
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return (

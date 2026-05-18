@@ -185,7 +185,7 @@ export default function VerseOfDayPage() {
         setToday(tRes.data?.verse || tRes.data);
         setHistory(hRes.data?.history || hRes.data || []);
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

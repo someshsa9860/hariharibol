@@ -23,7 +23,7 @@ export default function BookDetailPage() {
         const cData = cRes.data?.data || cRes.data || [];
         setChapters(Array.isArray(cData) ? cData : []);
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
 

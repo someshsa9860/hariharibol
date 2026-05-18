@@ -1,6 +1,6 @@
 # HariHariBol — Feature Status
 
-Last updated: 2026-05-18 (Job 40 integration audit)
+Last updated: 2026-05-18 (Job 41 production readiness)
 
 Legend: ✅ Implemented · 🔄 Partial / in-progress · ❌ Not started
 
@@ -189,12 +189,11 @@ Legend: ✅ Implemented · 🔄 Partial / in-progress · ❌ Not started
 
 ---
 
-## Pending High-Priority Work
+## Pending / Out-of-Scope Work
 
-1. **Email SMTP integration** — provider (SendGrid / Resend / SES) not wired
-2. **Scheduled verse-of-day generation** — cron/Bull job not created
-3. **Admin RBAC** — role hierarchy (SuperAdmin/Admin/Moderator) not enforced
-4. **Health check endpoint** — `GET /health` missing
-5. **Mobile chanting/favorites/groups screens** — not built
-6. **Database seeding** — no seed scripts for sample data
-7. **Google/Apple OAuth client IDs** — need real credentials configured
+1. **Email SMTP integration** — stub in place; real provider (SendGrid / Resend / SES) not wired
+2. **Admin RBAC full enforcement** — schema + guard scaffold exists; role-based route locks not wired
+3. **Mobile chanting/favorites/groups screens** — not built (Flutter)
+4. **Database seeding scripts** — no sample-data seed; `prisma/seed.ts` exists for admin user only
+5. **CI/CD pipeline** — Docker Compose + Nginx ready; cloud CI config not created
+6. **Google/Apple OAuth client IDs** — env-var driven; need real credentials configured per deployment

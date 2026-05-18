@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -16,6 +16,9 @@ import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
+
+  app.enableShutdownHooks();
 
   app.useWebSocketAdapter(new IoAdapter(app));
   app.use(
@@ -76,7 +79,7 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
-  console.log(`✅ Application running on http://localhost:${port}`);
+  logger.log(`Application running on port ${port}`);
 }
 
 bootstrap();

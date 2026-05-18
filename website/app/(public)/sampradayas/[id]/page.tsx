@@ -22,7 +22,7 @@ export default function SampradayaDetailPage() {
     ]).then(([sRes, bRes]) => {
       setS(sRes.data?.sampraday || sRes.data);
       setBooks(bRes.data?.data || bRes.data || []);
-    }).catch(console.error)
+    }).catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
 

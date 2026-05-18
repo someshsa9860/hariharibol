@@ -85,7 +85,7 @@ export default function ReadingPage() {
         setChapterInfo(cRes.data?.chapter || cRes.data);
         setAllChapters(allRes.data?.data || allRes.data || []);
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [id, chapter]);
 
