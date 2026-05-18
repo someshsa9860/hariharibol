@@ -8,10 +8,12 @@ interface AppStore {
   user: User | null;
   token: string | null;
   accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   setUser: (u: User | null) => void;
   setToken: (t: string | null) => void;
-  login: (user: User, token: string) => void;
+  setRefreshToken: (t: string | null) => void;
+  login: (user: User, accessToken: string, refreshToken?: string) => void;
   logout: () => void;
 
   // UI slice
@@ -44,11 +46,15 @@ export const useAppStore = create<AppStore>()(
       user: null,
       token: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       setUser: (user) => set((s) => ({ user, isAuthenticated: !!user && !!s.token })),
       setToken: (token) => set((s) => ({ token, accessToken: token, isAuthenticated: !!s.user && !!token })),
-      login: (user, token) => set({ user, token, accessToken: token, isAuthenticated: true }),
-      logout: () => set({ user: null, token: null, accessToken: null, isAuthenticated: false, chantCount: 0 }),
+      setRefreshToken: (refreshToken) => set({ refreshToken }),
+      login: (user, accessToken, refreshToken = null) =>
+        set({ user, token: accessToken, accessToken, refreshToken, isAuthenticated: true }),
+      logout: () =>
+        set({ user: null, token: null, accessToken: null, refreshToken: null, isAuthenticated: false, chantCount: 0 }),
 
       // UI slice
       darkMode: false,
@@ -87,6 +93,7 @@ export const useAppStore = create<AppStore>()(
       partialize: (s) => ({
         user: s.user,
         token: s.token,
+        refreshToken: s.refreshToken,
         darkMode: s.darkMode,
         theme: s.theme,
         fontSize: s.fontSize,
@@ -98,6 +105,7 @@ export const useAppStore = create<AppStore>()(
         ...current,
         ...persisted,
         accessToken: persisted.token ?? null,
+        refreshToken: persisted.refreshToken ?? null,
         isAuthenticated: !!(persisted.user && persisted.token),
         // Deserialize arrays back to Sets on rehydration
         favoriteVerseIds: new Set<string>(persisted.favoriteVerseIds ?? []),

@@ -30,7 +30,7 @@ function LotusPattern() {
 
 export default function AppLoginPage() {
   const router = useRouter();
-  const { setUser, setToken } = useAppStore();
+  const { login } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,9 +38,8 @@ export default function AppLoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/auth/google/mobile', { idToken: 'GOOGLE_OAUTH_TOKEN' });
-      setUser(res.data.user);
-      setToken(res.data.accessToken);
+      const res = await api.post('/auth/google', { idToken: 'GOOGLE_OAUTH_TOKEN' });
+      login(res.data.user, res.data.accessToken, res.data.refreshToken);
       router.push('/home');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Login failed.');

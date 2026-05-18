@@ -69,15 +69,37 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(`${API_BASE}/auth/refresh`, {}, { withCredentials: true });
+        let storedRefreshToken: string | null = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('hhb-app-store');
+            if (raw) storedRefreshToken = JSON.parse(raw)?.state?.refreshToken ?? null;
+          } catch {}
+        }
+
+        if (!storedRefreshToken) {
+          drainQueue(null);
+          if (typeof window !== 'undefined') window.location.href = '/login';
+          return Promise.reject(err);
+        }
+
+        const { data } = await axios.post(
+          `${API_BASE}/auth/refresh`,
+          { refreshToken: storedRefreshToken },
+          { withCredentials: true },
+        );
         const newToken: string | undefined = data?.accessToken;
+        const newRefreshToken: string | undefined = data?.refreshToken;
 
         if (newToken && typeof window !== 'undefined') {
           try {
             const raw = localStorage.getItem('hhb-app-store');
             if (raw) {
               const parsed = JSON.parse(raw);
-              if (parsed.state) parsed.state.token = newToken;
+              if (parsed.state) {
+                parsed.state.token = newToken;
+                if (newRefreshToken) parsed.state.refreshToken = newRefreshToken;
+              }
               localStorage.setItem('hhb-app-store', JSON.stringify(parsed));
             }
           } catch {}
