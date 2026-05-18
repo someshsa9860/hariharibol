@@ -25,8 +25,8 @@ export class AuditService {
           action,
           entityType: resourceType,
           entityId: resourceId,
-          changesBefore: before ?? undefined,
-          changesAfter: after ?? undefined,
+          changesBefore: (before ?? undefined) as any,
+          changesAfter: (after ?? undefined) as any,
         },
       });
     } catch (error) {

@@ -85,7 +85,7 @@ export class AdminService {
         orderBy: { displayOrder: 'asc' },
         include: {
           _count: {
-            select: { follows: true, mantras: true, verseRelations: true },
+            select: { follows: true, mantras: true, verseLinks: true },
           },
         },
       }),
@@ -220,7 +220,7 @@ export class AdminService {
         orderBy: { createdAt: 'desc' },
         include: {
           user: { select: { email: true, name: true } },
-          group: { select: { id: true, name: true } },
+          group: { select: { id: true, nameKey: true } },
         },
       }),
       this.prisma.message.count({ where }),

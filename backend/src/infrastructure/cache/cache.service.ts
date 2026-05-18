@@ -41,7 +41,7 @@ export class CacheService {
 
   async delPattern(pattern: string): Promise<void> {
     try {
-      const keys = await this.cacheManager.store.getKeys();
+      const keys = await (this.cacheManager.store as any).getKeys?.() ?? [];
       const matching = keys.filter((key) => key.includes(pattern));
 
       for (const key of matching) {

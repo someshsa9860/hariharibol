@@ -130,7 +130,7 @@ export class ClaudeProvider implements IAIProvider {
   }
 
   async getTokenCount(text: string): Promise<number> {
-    const response = await this.client.messages.countTokens({
+    const response = await (this.client.messages as any).countTokens({
       model: this.model,
       messages: [{ role: 'user', content: text }],
     });

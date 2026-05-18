@@ -6,7 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
   Languages, Search, Check, X, ChevronLeft, ChevronRight,
-  Edit2, ExternalLink,
+  Pencil, ExternalLink,
 } from 'lucide-react';
 
 interface Translation {
@@ -91,7 +91,7 @@ function InlineEdit({ value, onSave }: { value: string; onSave: (v: string) => P
       <span className="text-sm flex-1 min-w-0 leading-relaxed" style={{ color: 'var(--text)' }}>
         {value || <span style={{ color: 'var(--muted)', fontStyle: 'italic' }}>—</span>}
       </span>
-      <Edit2 size={11} className="flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+      <Pencil size={11} className="flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ color: 'var(--muted)' }} />
     </button>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { PenSquare, Check, ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
+import { SquarePen, Check, ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -120,7 +120,7 @@ function WorkspaceInner() {
           <div className="flex items-center gap-3 mr-auto">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
               style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
-              <PenSquare size={15} style={{ color: '#a78bfa' }} />
+              <SquarePen size={15} style={{ color: '#a78bfa' }} />
             </div>
             <div>
               <h1 className="text-xl font-black text-theme">Translation Workspace</h1>

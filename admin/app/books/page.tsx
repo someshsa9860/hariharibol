@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Plus, Trash2, Edit2, Search, BookOpen, X, ChevronLeft, ChevronRight, Upload, Check, Filter } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, BookOpen, X, ChevronLeft, ChevronRight, Upload, Check, Filter } from 'lucide-react';
 
 interface Book {
   id: string;
@@ -281,7 +281,7 @@ export default function BooksPage() {
                               <button onClick={() => openEdit(b)}
                                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                                 style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa' }}>
-                                <Edit2 size={13} />
+                                <Pencil size={13} />
                               </button>
                               <button onClick={() => setConfirmDelete(b)}
                                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"

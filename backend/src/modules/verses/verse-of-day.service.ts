@@ -108,7 +108,7 @@ export class VerseOfDayService {
             },
             include: {
               verse: {
-                select: { id: true, sanskrit: true, transliteration: true, meaning: true, audioUrl: true },
+                select: { id: true, sanskrit: true, transliteration: true, wordMeanings: true, audioUrl: true },
               },
             },
           });

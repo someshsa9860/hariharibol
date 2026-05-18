@@ -3,7 +3,7 @@
     "target": "ES2021",
     "module": "commonjs",
     "lib": ["ES2021", "DOM"],
-    "types": ["node"],
+    "types": ["node", "multer"],
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
@@ -17,7 +17,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
@@ -29,5 +29,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "test", "src/infrastructure/database/schemas"]
 }

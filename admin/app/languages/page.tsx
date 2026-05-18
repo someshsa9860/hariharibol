@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Globe2, Plus, X, Check, AlignRight, Trash2, Edit2 } from 'lucide-react';
+import { Globe2, Plus, X, Check, AlignRight, Trash2, Pencil } from 'lucide-react';
 
 interface Language {
   id: string;
@@ -262,7 +262,7 @@ export default function LanguagesPage() {
                             <button onClick={() => openEdit(lang)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                               style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa' }}>
-                              <Edit2 size={13} />
+                              <Pencil size={13} />
                             </button>
                             <button onClick={() => setConfirmDelete(lang)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"

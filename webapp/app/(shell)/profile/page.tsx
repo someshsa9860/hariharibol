@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit3, BookOpen, Music, Heart, Star } from 'lucide-react';
+import { Pencil, BookOpen, Music, Heart, Star } from 'lucide-react';
 import api from '@/lib/api';
 import TopBar from '@/components/TopBar';
 import { useAppStore } from '@/lib/store';
@@ -109,7 +109,7 @@ export default function ProfilePage() {
             color: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
             backdropFilter: 'blur(8px)', transition: 'background 0.15s',
           }}>
-            <Edit3 size={14} /> Edit Profile
+            <Pencil size={14} /> Edit Profile
           </button>
         </div>
 

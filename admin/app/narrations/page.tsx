@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
-import { Plus, Search, Edit2, Trash2, Mic2, ChevronLeft, ChevronRight, X, Check, Upload } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Mic2, ChevronLeft, ChevronRight, X, Check, Upload } from 'lucide-react';
 
 interface Narration {
   id: string;
@@ -288,7 +288,7 @@ export default function NarrationsPage() {
                             <button onClick={() => openEdit(n)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center"
                               style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa' }}>
-                              <Edit2 size={13} />
+                              <Pencil size={13} />
                             </button>
                             <button onClick={() => setConfirmDelete(n)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center"

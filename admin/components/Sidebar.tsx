@@ -6,7 +6,7 @@ import { useAdminStore } from '@/lib/store';
 import {
   LayoutDashboard, Users, MessageSquare, Settings,
   LogOut, BookOpen, BarChart3, Sparkles, ChevronRight,
-  Library, Mic2, Music, Languages, Globe2, Download, PenSquare,
+  Library, Mic2, Music, Languages, Globe2, Download, SquarePen,
   ChevronDown, Ban, Bell, ClipboardList, AlertTriangle, UsersRound,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -45,7 +45,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { href: '/translations',               label: 'Dashboard',    icon: Languages },
-      { href: '/translations/workspace',     label: 'Workspace',    icon: PenSquare },
+      { href: '/translations/workspace',     label: 'Workspace',    icon: SquarePen },
       { href: '/translations/import-export', label: 'Import/Export', icon: Download },
     ],
   },

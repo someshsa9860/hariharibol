@@ -123,7 +123,7 @@ export class FCMService {
         await admin.messaging().subscribeToTopic(tokens, topic);
       }
 
-      const fcmTopic = await this.prisma.fcmTopic.findUnique({ where: { name: topic } });
+      const fcmTopic = await this.prisma.fCMTopic.findUnique({ where: { name: topic } });
       if (!fcmTopic) {
         this.logger.warn(`Topic not found in DB: ${topic}`);
         return this.initialized;
@@ -131,7 +131,7 @@ export class FCMService {
 
       await Promise.all(
         tokens.map((deviceToken) =>
-          this.prisma.fcmSubscription.upsert({
+          this.prisma.fCMSubscription.upsert({
             where: { topicId_deviceToken: { topicId: fcmTopic.id, deviceToken } },
             create: { topicId: fcmTopic.id, deviceToken, deviceId: deviceToken },
             update: {},
@@ -157,9 +157,9 @@ export class FCMService {
         await admin.messaging().unsubscribeFromTopic(tokens, topic);
       }
 
-      const fcmTopic = await this.prisma.fcmTopic.findUnique({ where: { name: topic } });
+      const fcmTopic = await this.prisma.fCMTopic.findUnique({ where: { name: topic } });
       if (fcmTopic) {
-        await this.prisma.fcmSubscription.deleteMany({
+        await this.prisma.fCMSubscription.deleteMany({
           where: { topicId: fcmTopic.id, deviceToken: { in: tokens } },
         });
       }
@@ -174,7 +174,7 @@ export class FCMService {
 
   async createTopic(name: string, description?: string): Promise<boolean> {
     try {
-      const existing = await this.prisma.fcmTopic.findUnique({
+      const existing = await this.prisma.fCMTopic.findUnique({
         where: { name },
       });
 
@@ -183,7 +183,7 @@ export class FCMService {
         return false;
       }
 
-      await this.prisma.fcmTopic.create({
+      await this.prisma.fCMTopic.create({
         data: {
           name,
           description,
@@ -200,7 +200,7 @@ export class FCMService {
 
   async deleteTopic(name: string): Promise<boolean> {
     try {
-      await this.prisma.fcmTopic.delete({
+      await this.prisma.fCMTopic.delete({
         where: { name },
       });
 
@@ -214,7 +214,7 @@ export class FCMService {
 
   async getTopicSubscriberCount(topicName: string): Promise<number> {
     try {
-      const topic = await this.prisma.fcmTopic.findUnique({
+      const topic = await this.prisma.fCMTopic.findUnique({
         where: { name: topicName },
         include: {
           subscriptions: {
@@ -234,7 +234,7 @@ export class FCMService {
     const defaultTopics = ['verse-of-day', 'announcements', 'reminders'];
 
     for (const topic of defaultTopics) {
-      const exists = await this.prisma.fcmTopic.findUnique({
+      const exists = await this.prisma.fCMTopic.findUnique({
         where: { name: topic },
       });
 

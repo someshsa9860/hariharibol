@@ -273,13 +273,13 @@ export class BooksService {
         slug: dto.slug,
         titleKey: dto.titleKey,
         descriptionKey: dto.descriptionKey,
-        authorKey: dto.authorKey,
         coverImageUrl: dto.coverImageUrl,
         totalChapters: dto.totalChapters || 0,
         totalVerses: dto.totalVerses || 0,
         displayOrder: dto.displayOrder || 0,
         isPublished: dto.isPublished || false,
-      },
+        bookNumber: (dto as any).bookNumber ?? 0,
+      } as any,
     });
     await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
     this.logger.log(`Book created: ${book.id} (${book.slug})`);
@@ -372,20 +372,19 @@ export class BooksService {
         verseNumber: dto.verseNumber,
         sanskrit: dto.sanskrit,
         transliteration: dto.transliteration,
-        wordMeanings: dto.wordMeanings || [],
-        translationKey: dto.translationKey,
+        wordMeanings: (dto.wordMeanings || []) as any,
         categoryKeys: dto.categoryKeys || [],
         relatedDeityKeys: dto.relatedDeityKeys || [],
         audioUrl: dto.audioUrl,
         isVerseOfDayEligible: dto.isVerseOfDayEligible || false,
-      },
+      } as any,
     });
   }
 
   async adminUpdateVerse(verseId: string, dto: UpdateVerseDto) {
     const verse = await this.prisma.verse.findUnique({ where: { id: verseId } });
     if (!verse) throw new NotFoundException('Verse not found');
-    return this.prisma.verse.update({ where: { id: verseId }, data: dto });
+    return this.prisma.verse.update({ where: { id: verseId }, data: { ...dto, wordMeanings: dto.wordMeanings as any } });
   }
 
   async adminDeleteVerse(verseId: string) {

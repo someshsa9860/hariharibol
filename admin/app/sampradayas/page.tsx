@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import api from '@/lib/api';
 import {
-  Plus, Trash2, Edit2, Upload, BookOpen, X, Check,
+  Plus, Trash2, Pencil, Upload, BookOpen, X, Check,
   Globe2, Users, LayoutGrid,
 } from 'lucide-react';
 
@@ -356,7 +356,7 @@ export default function SampradayasPage() {
                               style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa' }}
                               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(96,165,250,0.18)'; }}
                               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(96,165,250,0.08)'; }}>
-                              <Edit2 size={13} />
+                              <Pencil size={13} />
                             </button>
                             <button onClick={() => setConfirmDelete(s)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
