@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { CreateMantraDto, UpdateMantraDto } from './dto/mantra.dto';
@@ -8,6 +8,8 @@ const MANTRAS_LIST_PATTERN = 'mantras:list';
 
 @Injectable()
 export class MantrasService {
+  private readonly logger = new Logger(MantrasService.name);
+
   constructor(
     private prisma: PrismaService,
     private cacheService: CacheService,
@@ -51,6 +53,7 @@ export class MantrasService {
   async createMantra(dto: CreateMantraDto) {
     const mantra = await this.prisma.mantra.create({ data: dto });
     await this.cacheService.delPattern(MANTRAS_LIST_PATTERN);
+    this.logger.log(`Mantra created: ${mantra.id}`);
     return mantra;
   }
 
@@ -58,6 +61,7 @@ export class MantrasService {
     await this._assertExists(id);
     const mantra = await this.prisma.mantra.update({ where: { id }, data: dto });
     await this.cacheService.delPattern(MANTRAS_LIST_PATTERN);
+    this.logger.log(`Mantra updated: ${id}`);
     return mantra;
   }
 
@@ -65,6 +69,7 @@ export class MantrasService {
     await this._assertExists(id);
     await this.prisma.mantra.delete({ where: { id } });
     await this.cacheService.delPattern(MANTRAS_LIST_PATTERN);
+    this.logger.log(`Mantra deleted: ${id}`);
     return { success: true };
   }
 

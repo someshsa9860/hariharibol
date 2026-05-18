@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 
@@ -6,6 +6,8 @@ const TTL_5MIN = 5 * 60 * 1000;
 
 @Injectable()
 export class SampradayasService {
+  private readonly logger = new Logger(SampradayasService.name);
+
   constructor(
     private prisma: PrismaService,
     private cacheService: CacheService,
@@ -86,16 +88,12 @@ export class SampradayasService {
       },
     });
 
-    // Update follower count
     await this.prisma.sampraday.update({
       where: { id: sampradayId },
-      data: {
-        followerCount: {
-          increment: 1,
-        },
-      },
+      data: { followerCount: { increment: 1 } },
     });
 
+    this.logger.log(`User ${userId} followed sampraday ${sampradayId}`);
     return follow;
   }
 
@@ -108,20 +106,14 @@ export class SampradayasService {
       throw new BadRequestException('Not following this sampraday');
     }
 
-    await this.prisma.follow.delete({
-      where: { id: follow.id },
-    });
+    await this.prisma.follow.delete({ where: { id: follow.id } });
 
-    // Update follower count
     await this.prisma.sampraday.update({
       where: { id: sampradayId },
-      data: {
-        followerCount: {
-          decrement: 1,
-        },
-      },
+      data: { followerCount: { decrement: 1 } },
     });
 
+    this.logger.log(`User ${userId} unfollowed sampraday ${sampradayId}`);
     return { success: true };
   }
 

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CacheService } from '@infrastructure/cache/cache.service';
 import { CreateBookDto, UpdateBookDto, CreateChapterDto, UpdateChapterDto, CreateVerseDto, UpdateVerseDto } from '../admin/dto/book.dto';
@@ -8,6 +8,8 @@ const BOOKS_LIST_PATTERN = 'books:list';
 
 @Injectable()
 export class BooksService {
+  private readonly logger = new Logger(BooksService.name);
+
   constructor(
     private prisma: PrismaService,
     private cacheService: CacheService,
@@ -185,6 +187,7 @@ export class BooksService {
       },
     });
     await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    this.logger.log(`Book created: ${book.id} (${book.slug})`);
     return book;
   }
 
@@ -192,6 +195,7 @@ export class BooksService {
     await this._assertBookExists(bookId);
     const book = await this.prisma.book.update({ where: { id: bookId }, data: dto });
     await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    this.logger.log(`Book updated: ${bookId}`);
     return book;
   }
 
@@ -199,6 +203,7 @@ export class BooksService {
     await this._assertBookExists(bookId);
     const book = await this.prisma.book.delete({ where: { id: bookId } });
     await this.cacheService.delPattern(BOOKS_LIST_PATTERN);
+    this.logger.log(`Book deleted: ${bookId}`);
     return book;
   }
 

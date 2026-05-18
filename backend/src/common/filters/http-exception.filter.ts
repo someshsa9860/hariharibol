@@ -8,28 +8,42 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-@Catch(HttpException)
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger('HttpExceptionFilter');
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse() as any;
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    this.logger.error(
-      `${request.method} ${request.path}`,
-      exceptionResponse.message || exception.message,
-    );
+    let status: number;
+    let message: string | string[];
+    let error: string;
+
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse() as any;
+      message = exceptionResponse.message || exception.message;
+      error = exceptionResponse.error || HttpStatus[status];
+      this.logger.warn(`${request.method} ${request.path} → ${status}: ${JSON.stringify(message)}`);
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'Internal server error';
+      error = 'InternalServerError';
+      this.logger.error(
+        `Unhandled exception on ${request.method} ${request.path}`,
+        exception instanceof Error && !isProduction ? exception.stack : String(exception),
+      );
+    }
 
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.path,
-      message: exceptionResponse.message || exception.message,
-      error: exceptionResponse.error || HttpStatus[status],
+      message,
+      error,
     });
   }
 }

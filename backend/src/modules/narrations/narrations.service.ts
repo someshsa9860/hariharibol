@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CreateNarrationDto, UpdateNarrationDto } from './dto/narration.dto';
 
 @Injectable()
 export class NarrationsService {
+  private readonly logger = new Logger(NarrationsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async getNarrations(verseId?: string, skip = 0, take = 20) {
@@ -37,17 +39,22 @@ export class NarrationsService {
   }
 
   async createNarration(dto: CreateNarrationDto) {
-    return this.prisma.narration.create({ data: dto });
+    const narration = await this.prisma.narration.create({ data: dto });
+    this.logger.log(`Narration created: ${narration.id} for verse ${dto.verseId}`);
+    return narration;
   }
 
   async updateNarration(id: string, dto: UpdateNarrationDto) {
     await this._assertExists(id);
-    return this.prisma.narration.update({ where: { id }, data: dto });
+    const narration = await this.prisma.narration.update({ where: { id }, data: dto });
+    this.logger.log(`Narration updated: ${id}`);
+    return narration;
   }
 
   async deleteNarration(id: string) {
     await this._assertExists(id);
     await this.prisma.narration.delete({ where: { id } });
+    this.logger.log(`Narration deleted: ${id}`);
     return { success: true };
   }
 

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Param, Query, Body, UseGuards } from '@nestjs/co
 import { MessagesService } from './messages.service';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 @Controller('api/v1/groups')
 @UseGuards(JwtGuard)
@@ -25,8 +26,8 @@ export class MessagesController {
   sendMessage(
     @Param('groupId') groupId: string,
     @CurrentUser('sub') userId: string,
-    @Body('content') content: string,
+    @Body() dto: CreateMessageDto,
   ) {
-    return this.messagesService.createMessage(groupId, userId, content);
+    return this.messagesService.createMessage(groupId, userId, dto.content);
   }
 }

@@ -10,6 +10,7 @@ import {
 import { GroupsService } from './groups.service';
 import { JwtGuard } from '@modules/auth/guards/jwt.guard';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { CreateGroupDto } from './dto/create-group.dto';
 
 @Controller('api/v1/groups')
 @UseGuards(JwtGuard)
@@ -30,12 +31,8 @@ export class GroupsController {
   }
 
   @Post()
-  createGroup(
-    @Body('sampradayId') sampradayId: string,
-    @Body('nameKey') nameKey: string,
-    @Body('descriptionKey') descriptionKey?: string,
-  ) {
-    return this.groupsService.createGroup(sampradayId, nameKey, descriptionKey);
+  createGroup(@Body() dto: CreateGroupDto) {
+    return this.groupsService.createGroup(dto.sampradayId, dto.nameKey, dto.descriptionKey);
   }
 
   @Get(':id')
