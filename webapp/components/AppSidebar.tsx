@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Music2, Star, MessageCircle, Users, Globe, LogOut, Sun, Moon, Settings } from 'lucide-react';
+import { Home, BookOpen, Music2, Star, MessageCircle, Users, Globe, LogOut, Sun, Moon, Settings, Search } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 const NAV_ITEMS = [
   { href: '/home',         icon: <Home size={18} />,          label: 'Home',         dot: 'var(--saffron)' },
+  { href: '/search',       icon: <Search size={18} />,        label: 'Search',       dot: 'var(--sandstone)' },
   { href: '/books',        icon: <BookOpen size={18} />,      label: 'Read',         dot: 'var(--peacock)' },
   { href: '/mantras',      icon: <Music2 size={18} />,        label: 'Mantras',      dot: 'var(--accent-2)' },
   {

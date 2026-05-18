@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Menu, Sun, Moon, Search, Bell, User } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
@@ -11,7 +11,7 @@ interface Props {
 
 export default function TopBar({ title, onMenuToggle }: Props) {
   const { darkMode, toggleDark, user } = useAppStore();
-  const [searchOpen, setSearchOpen] = useState(false);
+  const router = useRouter();
 
   const initials = user?.displayName
     ? user.displayName
@@ -28,49 +28,24 @@ export default function TopBar({ title, onMenuToggle }: Props) {
         <Menu size={18} />
       </button>
 
-      {/* Title or search input */}
-      {searchOpen ? (
-        <div style={{ flex: 1, position: 'relative' }}>
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--muted)',
-              pointerEvents: 'none',
-            }}
-          />
-          <input
-            autoFocus
-            placeholder="Search verses, books, mantras…"
-            onBlur={() => setSearchOpen(false)}
-            className="input-field"
-            style={{ paddingLeft: 32, height: 36 }}
-          />
-        </div>
-      ) : (
-        <>
-          {title && (
-            <h1
-              className="font-bold text-base"
-              style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)', flex: 1 }}
-            >
-              {title}
-            </h1>
-          )}
-          <div style={{ flex: 1 }} />
-        </>
-      )}
+      {/* Title */}
+      <>
+        {title && (
+          <h1
+            className="font-bold text-base"
+            style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)', flex: 1 }}
+          >
+            {title}
+          </h1>
+        )}
+        <div style={{ flex: 1 }} />
+      </>
 
       {/* Action icons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        {!searchOpen && (
-          <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2" title="Search">
-            <Search size={16} />
-          </button>
-        )}
+        <button onClick={() => router.push('/search')} className="btn-ghost p-2" title="Search (⌘K)">
+          <Search size={16} />
+        </button>
 
         {/* Notification bell with dot indicator */}
         <button className="btn-ghost p-2" style={{ position: 'relative' }} title="Notifications">

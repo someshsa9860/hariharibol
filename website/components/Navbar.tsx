@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Sun, Moon, BookOpen } from 'lucide-react';
+import { Menu, X, Sun, Moon, BookOpen, Search } from 'lucide-react';
 import { useSiteStore } from '@/lib/store';
 
 const NAV_LINKS = [
@@ -69,6 +69,9 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <Link href="/search" className="btn-ghost p-2 rounded-xl" aria-label="Search" title="Search (⌘K)">
+            <Search size={18} />
+          </Link>
           <button onClick={toggleDark} className="btn-ghost p-2 rounded-xl" aria-label="Toggle theme">
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
@@ -100,6 +103,15 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              href="/search"
+              onClick={() => setMenuOpen(false)}
+              className="px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"
+              style={{ color: pathname === '/search' ? 'var(--accent)' : 'var(--text)' }}
+            >
+              <Search size={15} />
+              Search
+            </Link>
           </div>
         </div>
       )}
