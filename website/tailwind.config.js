@@ -36,8 +36,8 @@ module.exports = {
         warmGray:  '#6B5744',
       },
       fontFamily: {
-        serif:   ['Georgia', 'Playfair Display', 'serif'],
-        sans:    ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        serif:   ['Playfair Display', 'Georgia', 'serif'],
+        sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         devanagari: ['Noto Sans Devanagari', 'serif'],
       },
       backgroundImage: {

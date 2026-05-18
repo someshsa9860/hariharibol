@@ -120,6 +120,7 @@ export default function AppHomePage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 88 }}>
       {/* Time-based Greeting Banner */}
       <div
+        className="animate-fade-in"
         style={{
           background: tc.gradient,
           padding: '32px 24px 40px',
@@ -299,11 +300,12 @@ export default function AppHomePage() {
                       padding: '6px 10px',
                       color: bookmarked ? 'var(--accent)' : 'var(--muted)',
                     }}
+                    aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
                     title="Bookmark"
                   >
                     <Bookmark size={16} fill={bookmarked ? 'currentColor' : 'none'} />
                   </button>
-                  <button className="btn-ghost" style={{ padding: '6px 10px' }} title="Share">
+                  <button className="btn-ghost" style={{ padding: '6px 10px' }} aria-label="Share verse" title="Share">
                     <Share2 size={16} />
                   </button>
                 </div>

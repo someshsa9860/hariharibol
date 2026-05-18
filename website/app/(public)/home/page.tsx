@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Globe, Users, Music2, ChevronRight, Sparkles } from 'lucide-react';
 import api from '@/lib/api';
@@ -29,6 +29,8 @@ export default function HomePage() {
   const [books, setBooks] = useState<any[]>([]);
   const [sampradayas, setSampradayas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -36,6 +38,17 @@ export default function HomePage() {
       api.get('/books?take=6').then(r => setBooks(r.data?.data || r.data || [])).catch(() => setBooks([])),
       api.get('/sampradayas?take=6').then(r => setSampradayas(r.data?.data || r.data || [])).catch(() => setSampradayas([])),
     ]).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const el = statsRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setStatsVisible(true); obs.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   const displayVod = vod || SAMPLE_VOD;
@@ -74,6 +87,7 @@ export default function HomePage() {
         {/* Om symbol — top-right decorative */}
         <div
           aria-hidden="true"
+          className="animate-float"
           style={{
             position: 'absolute',
             top: '4rem',
@@ -89,7 +103,7 @@ export default function HomePage() {
           ॐ
         </div>
 
-        <div className="container-site relative z-10 text-center py-20 md:py-32">
+        <div className="container-site relative z-10 text-center py-20 md:py-32 animate-fade-in">
           <h1
             className="text-4xl sm:text-5xl md:text-7xl font-black mb-5 leading-tight"
             style={{ fontFamily: "'Noto Sans Devanagari', serif", color: '#fff' }}
@@ -134,9 +148,16 @@ export default function HomePage() {
       {/* ── Stats Bar ── */}
       <section style={{ background: '#111', padding: '1.75rem 0' }}>
         <div className="container-site">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {STATS.map(({ Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-3">
+          <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {STATS.map(({ Icon, value, label }, idx) => (
+              <div
+                key={label}
+                className="flex items-center gap-3"
+                style={{
+                  opacity: statsVisible ? undefined : 0,
+                  animation: statsVisible ? `fadeIn 0.5s ease-out ${idx * 0.1}s forwards` : undefined,
+                }}
+              >
                 <Icon size={24} style={{ color: '#006B6B', flexShrink: 0 }} />
                 <div>
                   <div style={{ color: '#fff', fontWeight: 800, fontSize: '1.25rem', lineHeight: 1.2 }}>{value}</div>

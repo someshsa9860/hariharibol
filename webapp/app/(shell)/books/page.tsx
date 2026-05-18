@@ -52,6 +52,7 @@ export default function AppBooksPage() {
           <input
             className="input-field pl-9 text-sm w-full"
             placeholder="Search sacred texts…"
+            aria-label="Search sacred texts"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />

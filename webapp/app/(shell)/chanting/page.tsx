@@ -69,6 +69,7 @@ export default function ChantingPage() {
             value={mantra.key}
             onChange={e => setMantra(MANTRAS.find(m => m.key === e.target.value) || MANTRAS[0])}
             className="input-field w-full text-sm"
+            aria-label="Select mantra"
             style={{ color: 'var(--text)' }}
           >
             {MANTRAS.map(m => (
@@ -105,7 +106,8 @@ export default function ChantingPage() {
             <div className="absolute inset-0 flex items-center justify-center">
               <button
                 onClick={handleTap}
-                className="relative flex flex-col items-center justify-center rounded-full active:scale-95 transition-transform select-none"
+                aria-label="Tap to count chant"
+                className={`relative flex flex-col items-center justify-center rounded-full active:scale-95 transition-transform select-none${ripple ? ' animate-pulse-glow' : ''}`}
                 style={{
                   width: INNER_D,
                   height: INNER_D,

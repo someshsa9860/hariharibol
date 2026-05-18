@@ -65,6 +65,7 @@ function GoldInput({ value, onChange, onSend }: { value: string; onChange: (v: s
   const [focused, setFocused] = useState(false);
   return (
     <input
+      aria-label="Ask GuruDev a spiritual question"
       style={{
         flex: 1, padding: '10px 18px', borderRadius: 24,
         border: `1.5px solid ${focused ? '#D4A055' : 'var(--border-2)'}`,
@@ -280,7 +281,7 @@ export default function GuruDevChat() {
         )}
         <div style={{ display: 'flex', gap: 8, maxWidth: 680, margin: '0 auto', alignItems: 'center' }}>
           <GoldInput value={input} onChange={setInput} onSend={send} />
-          <button onClick={() => send()} disabled={!input.trim() || loading} style={{
+          <button onClick={() => send()} disabled={!input.trim() || loading} aria-label="Send message" style={{
             width: 44, height: 44, borderRadius: '50%', border: 'none',
             cursor: !input.trim() || loading ? 'not-allowed' : 'pointer',
             background: input.trim() && !loading ? '#FF6B00' : 'var(--border)',

@@ -202,6 +202,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search verses, mantras, books..."
+            aria-label="Search verses, mantras, books"
             className="input-field"
             style={{ paddingLeft: 48, paddingRight: query ? 44 : 16, height: 54, fontSize: 16 }}
           />

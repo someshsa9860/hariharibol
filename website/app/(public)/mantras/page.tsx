@@ -202,6 +202,7 @@ export default function MantrasPage() {
                 color: '#fff',
               }}
               placeholder="Search mantras..."
+              aria-label="Search mantras"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

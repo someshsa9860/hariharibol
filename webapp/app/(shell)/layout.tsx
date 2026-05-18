@@ -79,7 +79,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Main content area */}
-      <div className="app-main pb-16 md:pb-0">
+      <div role="main" className="app-main pb-16 md:pb-0">
         {/* Mobile topbar with hamburger — hidden on desktop */}
         <div
           className="md:hidden sticky top-0 z-30 flex items-center gap-3 px-4"

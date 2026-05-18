@@ -9,7 +9,7 @@ import { useAppStore } from '@/lib/store';
 
 const FONT_SIZE_MAP: Record<string, string> = { sm: '1rem', md: '1.25rem', lg: '1.5rem' };
 
-function VerseBlock({ verse }: { verse: any }) {
+function VerseBlock({ verse, index = 0 }: { verse: any; index?: number }) {
   const [favorited, setFavorited] = useState(false);
   const fontSize = useAppStore((s) => s.fontSize);
   const sanskritSize = FONT_SIZE_MAP[fontSize] || '1.25rem';
@@ -26,7 +26,11 @@ function VerseBlock({ verse }: { verse: any }) {
   };
 
   return (
-    <div className="verse-card mb-6 animate-slide-up" id={`v-${verse.id}`}>
+    <div
+      className="verse-card mb-6 animate-fade-in"
+      id={`v-${verse.id}`}
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
       {/* Verse number + action buttons */}
       <div className="flex items-center justify-between mb-4">
         <span
@@ -268,7 +272,7 @@ export default function AppReadingPage() {
         ) : (
           verses.map((v, idx) => (
             <div key={v.id}>
-              <VerseBlock verse={v} />
+              <VerseBlock verse={v} index={idx} />
               {/* Thin saffron verse separator */}
               {idx < verses.length - 1 && (
                 <div

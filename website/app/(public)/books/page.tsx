@@ -166,6 +166,7 @@ export default function BooksPage() {
                 color: '#1A1410',
               }}
               placeholder="Search books, authors..."
+              aria-label="Search books and authors"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
