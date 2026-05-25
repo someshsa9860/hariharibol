@@ -33,20 +33,16 @@ export default function Navbar() {
     <header
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? 'var(--bg)' : 'transparent',
+        background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
         borderBottom: scrolled ? '1px solid var(--border)' : 'none',
-        backdropFilter: scrolled ? 'blur(16px)' : 'none',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
       }}
     >
       <div className="container-site flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl" style={{ color: 'var(--accent)', fontFamily: 'Playfair Display, Georgia, serif' }}>
-          <svg width="28" height="28" viewBox="0 0 200 200" fill="none">
-            <path d="M100 160c-80 0-140-60-140-130 45 0 80 25 90 60M100 160c80 0 140-60 140-130-45 0-80 25-90 60" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
-            <path d="M100 160c-55-12-100-60-100-140 35 12 68 48 78 90M100 160c55-12 100-60 100-140-35 12-68 48-78 90" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
-            <ellipse cx="100" cy="170" rx="160" ry="28" stroke="currentColor" strokeWidth="6"/>
-          </svg>
-          HariHariBol
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, Georgia, serif' }}>
+          ह
+          <span style={{ color: 'var(--accent)' }}>HariHariBol</span>
         </Link>
 
         {/* Desktop nav */}
@@ -55,11 +51,10 @@ export default function Navbar() {
             <Link
               key={l.href}
               href={l.href}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
               style={{
-                color: pathname === l.href ? 'var(--accent)' : 'var(--muted)',
-                background: pathname === l.href ? 'var(--surface-2)' : 'transparent',
-                borderBottom: pathname === l.href ? '2px solid var(--saffron)' : '2px solid transparent',
+                color: pathname === l.href ? 'var(--accent)' : 'var(--text)',
+                background: pathname === l.href ? 'var(--surface)' : 'transparent',
               }}
             >
               {l.label}

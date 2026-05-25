@@ -7,10 +7,10 @@ import { Search, BookOpen, LayoutGrid, List } from 'lucide-react';
 import api from '@/lib/api';
 
 const COVER_GRADIENTS = [
-  'linear-gradient(135deg, #FF6B00, #7B1C1C)',
-  'linear-gradient(135deg, #006B6B, #2D5A27)',
-  'linear-gradient(135deg, #D4A055, #FF6B00)',
-  'linear-gradient(135deg, #7B1C1C, #E8A0A0)',
+  'linear-gradient(135deg, #6366F1, #8B5CF6)',
+  'linear-gradient(135deg, #06B6D4, #0891B2)',
+  'linear-gradient(135deg, #8B5CF6, #D946EF)',
+  'linear-gradient(135deg, #EC4899, #F43F5E)',
 ];
 
 function SkeletonBookCard() {
@@ -51,19 +51,19 @@ function BookCard({ book, index, view }: { book: any; index: number; view: 'grid
             {book.title || 'Untitled'}
           </h3>
           {book.author && (
-            <p className="text-xs font-semibold mb-2" style={{ color: '#FF6B00' }}>{book.author}</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--accent)' }}>{book.author}</p>
           )}
           {book.description && (
             <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted)' }}>{book.description}</p>
           )}
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
             {book.chapterCount != null && (
-              <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ background: '#006B6B' }}>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
                 {book.chapterCount} ch
               </span>
             )}
             {book.verseCount != null && (
-              <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ background: '#006B6B' }}>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
                 {book.verseCount} verses
               </span>
             )}
@@ -90,19 +90,19 @@ function BookCard({ book, index, view }: { book: any; index: number; view: 'grid
           {book.title || 'Untitled'}
         </h3>
         {book.author && (
-          <p className="text-xs mb-2 font-semibold" style={{ color: '#FF6B00' }}>{book.author}</p>
+          <p className="text-xs mb-2 font-semibold" style={{ color: 'var(--accent)' }}>{book.author}</p>
         )}
         {book.description && (
           <p className="text-xs leading-relaxed line-clamp-2 mb-3" style={{ color: 'var(--muted)' }}>{book.description}</p>
         )}
         <div className="flex items-center gap-2 flex-wrap">
           {book.chapterCount != null && (
-            <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ background: '#006B6B' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
               {book.chapterCount} chapters
             </span>
           )}
           {book.verseCount != null && (
-            <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ background: '#006B6B' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
               {book.verseCount} verses
             </span>
           )}
@@ -148,24 +148,19 @@ export default function BooksPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* Hero */}
-      <div className="py-10 md:py-16" style={{ background: '#C4A882' }}>
+      <div className="py-12 md:py-20" style={{ background: 'var(--bg-2)' }}>
         <div className="container-site text-center">
-          <h1 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#1A1410' }}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
             Sacred Texts
           </h1>
-          <p className="text-base mb-8" style={{ color: 'rgba(26,20,16,0.6)' }}>
-            Vedic scriptures with Sanskrit, transliteration, translation, and commentary
+          <p className="text-lg mb-10" style={{ color: 'var(--text-2)', maxWidth: '500px', margin: '0 auto' }}>
+            Explore Vedic scriptures with Sanskrit, transliteration, translation, and commentary
           </p>
-          <div className="relative max-w-md mx-auto">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(26,20,16,0.45)' }} />
+          <div className="relative max-w-lg mx-auto">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
             <input
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none border"
-              style={{
-                background: 'rgba(255,255,255,0.55)',
-                borderColor: 'rgba(26,20,16,0.2)',
-                color: '#1A1410',
-              }}
-              placeholder="Search books, authors..."
+              className="input-field pl-12 pr-4 py-3 text-base"
+              placeholder="Search books or authors..."
               aria-label="Search books and authors"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

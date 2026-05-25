@@ -93,10 +93,10 @@ function ShareRow({ verse }: { verse: any }) {
 function TodayVerseCard({ verse }: { verse: any }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-5 sm:p-8"
+      className="relative overflow-hidden rounded-xl p-8 sm:p-10 card"
       style={{
-        background: 'linear-gradient(135deg, #C4A882 0%, #D4B896 100%)',
-        boxShadow: '0 20px 60px rgba(196,168,130,0.35)',
+        background: 'linear-gradient(135deg, var(--bg-2) 0%, var(--bg) 100%)',
+        border: '1px solid var(--border)',
       }}
     >
       {/* Decorative quote mark */}
@@ -140,7 +140,7 @@ function TodayVerseCard({ verse }: { verse: any }) {
 
       {/* Transliteration */}
       {verse.transliteration && (
-        <p className="italic mb-4 text-base" style={{ color: 'rgba(60,30,10,0.7)', lineHeight: 1.7 }}>
+        <p className="italic mb-6 text-base" style={{ color: 'var(--text-2)', lineHeight: 1.7 }}>
           {verse.transliteration}
         </p>
       )}
@@ -149,7 +149,7 @@ function TodayVerseCard({ verse }: { verse: any }) {
       {(verse.translation || verse.meaning) && (
         <p
           className="text-base leading-relaxed"
-          style={{ fontFamily: 'inherit', color: '#2a1a0a' }}
+          style={{ color: 'var(--text)' }}
         >
           {verse.translation || verse.meaning}
         </p>
@@ -193,20 +193,20 @@ export default function VerseOfDayPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* ── Header ── */}
       <div
-        style={{ background: 'var(--bg-2)', borderBottom: '1px solid var(--border)' }}
-        className="py-10 md:py-16"
+        style={{ background: 'var(--bg-2)' }}
+        className="py-12 md:py-20"
       >
         <div className="container-site text-center">
           <div className="badge inline-flex items-center gap-1 mb-4">
             <Sparkles size={12} /> Daily Verse
           </div>
           <h1
-            className="text-3xl sm:text-4xl font-black mb-3"
+            className="text-4xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}
           >
             Verse of the Day
           </h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          <p className="text-base" style={{ color: 'var(--text-2)' }}>
             {format(new Date(), 'MMMM d, yyyy')}
           </p>
         </div>

@@ -15,10 +15,10 @@ function SkeletonSampradayaCard() {
 
 function SampradayaCard({ s }: { s: any }) {
   return (
-    <Link href={`/sampradayas/${s.id}`} className="card-hover block overflow-hidden rounded-2xl group relative">
+    <Link href={`/sampradayas/${s.id}`} className="card-hover block overflow-hidden rounded-xl group">
       <div
-        className="w-full h-52 flex items-center justify-center relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #7B1C1C, #FF6B00)' }}
+        className="w-full h-56 flex items-center justify-center relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #6366F1, #818CF8)' }}
       >
         {(s.thumbnailUrl || s.heroImageUrl) ? (
           <img
@@ -27,32 +27,26 @@ function SampradayaCard({ s }: { s: any }) {
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="text-5xl opacity-40 select-none">🪷</span>
+          <span className="text-6xl opacity-30 select-none">ॐ</span>
         )}
-        {/* Hover gradient overlay */}
-        <div
-          className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-          style={{ background: 'linear-gradient(to top, rgba(123,28,28,0.7), transparent)' }}
-        />
-        {/* Base gradient for legible text */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
-        {/* Follower badge */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)' }} />
+
         {s.followerCount != null && (
           <div
-            className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-            style={{ background: '#D4A055', color: '#1A1410' }}
+            className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+            style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)' }}
           >
-            <Users size={10} />
+            <Users size={12} />
             {s.followerCount.toLocaleString()}
           </div>
         )}
-        {/* Tradition name and description overlaid */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-          <h3 className="font-bold text-xl leading-tight text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
-            {s.name || s.slug || 'Sampraday'}
+
+        <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+          <h3 className="font-bold text-lg leading-tight text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
+            {s.name || s.slug || 'Tradition'}
           </h3>
           {s.description && (
-            <p className="text-xs text-white/70 mt-1 line-clamp-2">{s.description}</p>
+            <p className="text-sm text-white/80 mt-2 line-clamp-2">{s.description}</p>
           )}
         </div>
       </div>
@@ -87,15 +81,12 @@ export default function SampradayasPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
       {/* Hero */}
-      <div
-        className="py-10 md:py-20"
-        style={{ background: 'linear-gradient(135deg, #7B1C1C 0%, #A52626 40%, #FF6B00 100%)' }}
-      >
+      <div className="py-12 md:py-20" style={{ background: 'var(--bg-2)' }}>
         <div className="container-site text-center">
-          <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text)' }}>
             Spiritual Traditions
           </h1>
-          <p className="text-base text-white/80">
+          <p className="text-lg" style={{ color: 'var(--text-2)' }}>
             Explore the great Vaishnava sampradayas and their sacred lineages
           </p>
         </div>
