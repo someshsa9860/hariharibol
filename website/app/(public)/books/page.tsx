@@ -92,11 +92,14 @@ export default function BooksPage() {
               fontWeight: 700,
               color: 'var(--text)',
               textAlign: 'center',
-              marginBottom: '3rem',
+              marginBottom: '1rem',
             }}
           >
             Featured Sacred Texts
           </h2>
+          <p style={{ textAlign: 'center', color: 'var(--text-2)', marginBottom: '3rem', fontSize: '0.95rem' }}>
+            Explore our collection powered by Callvcal Technology
+          </p>
           <div
             style={{
               display: 'grid',

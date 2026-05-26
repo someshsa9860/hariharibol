@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="container-site flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, Georgia, serif' }}>
-          <span style={{ color: 'var(--accent)' }}>HariHariBol</span>
+          <span style={{ color: 'var(--accent)' }}>Hariharibol</span>
         </Link>
 
         {/* Desktop nav */}

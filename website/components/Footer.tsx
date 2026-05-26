@@ -10,11 +10,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="text-2xl font-bold mb-4" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, serif' }}>
-              <span style={{ color: 'var(--accent)' }}>HariHariBol</span>
+            <div className="mb-4">
+              <div className="text-2xl font-bold mb-2" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, serif' }}>
+                <span style={{ color: 'var(--accent)' }}>Hariharibol</span>
+              </div>
+              <p className="text-xs font-semibold tracking-widest" style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                BY CALLVCAL TECHNOLOGY PVT LTD
+              </p>
             </div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-2)' }}>
-              Your gateway to sacred Vedic wisdom, authentic spiritual teachings, and personalized spiritual guidance from the world's oldest wisdom traditions.
+              A comprehensive platform by Callvcal Technology for sacred Vedic wisdom, authentic spiritual teachings, and AI-powered guidance from the world's oldest wisdom traditions.
             </p>
             <div className="flex gap-4">
               <a href="mailto:contact@hariharibol.com" className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--accent)' }}>
