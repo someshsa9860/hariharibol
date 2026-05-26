@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display, Noto_Sans_Devanagari } from 'next/font/google';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import Toaster from '@/components/Toaster';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -67,8 +69,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Reads persisted Zustand store key 'hhb-site-store' and applies .dark before hydration to prevent flash.
-const darkModeScript = `(function(){try{var s=JSON.parse(localStorage.getItem('hhb-site-store')||'{}');if(s&&s.state&&s.state.darkMode)document.documentElement.classList.add('dark');}catch(e){}})();`;
+// Reads persisted Zustand store key 'hhb-app-store' and applies .dark before hydration to prevent flash.
+const darkModeScript = `(function(){try{var s=JSON.parse(localStorage.getItem('hhb-app-store')||'{}');if(s&&s.state&&s.state.darkMode)document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -76,7 +78,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <Toaster />
+      </body>
     </html>
   );
 }

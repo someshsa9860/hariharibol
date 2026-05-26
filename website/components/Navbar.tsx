@@ -41,7 +41,6 @@ export default function Navbar() {
       <div className="container-site flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight" style={{ color: 'var(--text)', fontFamily: 'Playfair Display, Georgia, serif' }}>
-          ह
           <span style={{ color: 'var(--accent)' }}>HariHariBol</span>
         </Link>
 
@@ -71,11 +70,13 @@ export default function Navbar() {
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           {user ? (
-            <Link href="/app" className="btn-primary text-sm py-2 px-4 hidden sm:inline-flex">
-              <BookOpen size={15} /> Open App
+            <Link href="/app/home" className="btn-primary text-sm py-2 px-4 hidden sm:inline-flex">
+              <BookOpen size={15} /> App
             </Link>
           ) : (
-            <Link href="/login" className="btn-primary text-sm py-2 px-4 hidden sm:inline-flex">Get Started</Link>
+            <Link href="/login" className="btn-primary text-sm py-2 px-4 hidden sm:inline-flex">
+              Join
+            </Link>
           )}
           <button className="md:hidden btn-ghost p-2" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={20} /> : <Menu size={20} />}

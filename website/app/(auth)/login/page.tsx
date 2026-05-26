@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { useSiteStore } from '@/lib/store';
+import { useAppStore } from '@/lib/store';
 
 function LotusPattern() {
   return (
@@ -31,8 +31,7 @@ function LotusPattern() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const setUser = useSiteStore((s) => s.setUser);
-  const setToken = useSiteStore((s) => s.setToken);
+  const { login } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,10 +39,9 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/auth/google/mobile', { idToken: 'GOOGLE_OAUTH_TOKEN' });
-      setUser(res.data.user);
-      setToken(res.data.accessToken);
-      router.push('/home');
+      const res = await api.post('/auth/google', { idToken: 'GOOGLE_OAUTH_TOKEN' });
+      login(res.data.user, res.data.accessToken, res.data.refreshToken);
+      router.push('/app/app/home');
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -193,7 +191,7 @@ export default function LoginPage() {
 
           <div className="text-center">
             <Link
-              href="/home"
+              href="/app/home"
               className="text-sm transition-colors"
               style={{ color: 'var(--muted)' }}
             >

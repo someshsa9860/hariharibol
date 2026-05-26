@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, BookOpen, X, Clock } from 'lucide-react';
+import { Search, BookOpen, Music2, Bookmark, X, Clock } from 'lucide-react';
 import api from '@/lib/api';
+import { useAppStore } from '@/lib/store';
 
 const BOOK_GRADIENTS = [
   'linear-gradient(135deg, #FF6B00, #D4A055)',
@@ -56,6 +57,7 @@ function SkeletonCard() {
 }
 
 export default function SearchPage() {
+  const { user } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -66,10 +68,11 @@ export default function SearchPage() {
   const [mantras, setMantras] = useState<MantraResult[]>([]);
   const [books, setBooks] = useState<BookResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('hhb_recent_searches_site');
+      const saved = localStorage.getItem('hhb_recent_searches');
       if (saved) setRecentSearches(JSON.parse(saved));
     } catch {}
     inputRef.current?.focus();
@@ -91,7 +94,7 @@ export default function SearchPage() {
     setRecentSearches((prev) => {
       const updated = [q, ...prev.filter((s) => s !== q)].slice(0, 8);
       try {
-        localStorage.setItem('hhb_recent_searches_site', JSON.stringify(updated));
+        localStorage.setItem('hhb_recent_searches', JSON.stringify(updated));
       } catch {}
       return updated;
     });
@@ -138,9 +141,18 @@ export default function SearchPage() {
     setRecentSearches((prev) => {
       const updated = prev.filter((r) => r !== s);
       try {
-        localStorage.setItem('hhb_recent_searches_site', JSON.stringify(updated));
+        localStorage.setItem('hhb_recent_searches', JSON.stringify(updated));
       } catch {}
       return updated;
+    });
+  };
+
+  const toggleFav = (id: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
   };
 
@@ -149,48 +161,33 @@ export default function SearchPage() {
   const tabCounts: Record<Tab, number> = { verses: verses.length, mantras: mantras.length, books: books.length };
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingTop: 80 }}>
-      {/* Hero search header */}
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 88 }}>
+      {/* Search header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(199,90,26,0.07), rgba(0,107,107,0.05))',
+          background: 'linear-gradient(135deg, rgba(199,90,26,0.08), rgba(0,107,107,0.06))',
           borderBottom: '1px solid var(--border)',
-          padding: '48px 24px 32px',
-          textAlign: 'center',
+          padding: '24px 20px 20px',
         }}
       >
-        <p
-          style={{
-            fontFamily: 'Noto Sans Devanagari, serif',
-            fontSize: '1.5rem',
-            color: 'var(--saffron)',
-            marginBottom: 8,
-            opacity: 0.8,
-          }}
-        >
-          ॐ
-        </p>
         <h1
           style={{
             fontFamily: 'Playfair Display, serif',
-            fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
+            fontSize: '1.4rem',
             fontWeight: 700,
             color: 'var(--text)',
-            marginBottom: 8,
+            marginBottom: 16,
           }}
         >
-          Search Sacred Texts
+          Search
         </h1>
-        <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
-          Explore thousands of verses, mantras, and books from the Vedic tradition
-        </p>
 
-        <div style={{ position: 'relative', maxWidth: 600, margin: '0 auto' }}>
+        <div style={{ position: 'relative', maxWidth: 640 }}>
           <Search
-            size={20}
+            size={18}
             style={{
               position: 'absolute',
-              left: 16,
+              left: 14,
               top: '50%',
               transform: 'translateY(-50%)',
               color: 'var(--saffron)',
@@ -204,14 +201,14 @@ export default function SearchPage() {
             placeholder="Search verses, mantras, books..."
             aria-label="Search verses, mantras, books"
             className="input-field"
-            style={{ paddingLeft: 48, paddingRight: query ? 44 : 16, height: 54, fontSize: 16 }}
+            style={{ paddingLeft: 44, paddingRight: query ? 40 : 14, height: 48, fontSize: 15 }}
           />
           {query && (
             <button
               onClick={clearQuery}
               style={{
                 position: 'absolute',
-                right: 12,
+                right: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 padding: 4,
@@ -224,12 +221,12 @@ export default function SearchPage() {
                 alignItems: 'center',
               }}
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           )}
         </div>
 
-        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
           <kbd
             style={{
               background: 'var(--surface-2)',
@@ -255,7 +252,7 @@ export default function SearchPage() {
           >
             Ctrl+K
           </kbd>{' '}
-          to focus from anywhere
+          to focus search from anywhere
         </p>
       </div>
 
@@ -265,12 +262,11 @@ export default function SearchPage() {
           style={{
             display: 'flex',
             gap: 6,
-            padding: '12px 24px',
+            padding: '12px 20px',
             borderBottom: '1px solid var(--border)',
             background: 'var(--bg)',
             overflowX: 'auto',
             scrollbarWidth: 'none',
-            justifyContent: 'center',
           }}
         >
           {(['verses', 'mantras', 'books'] as Tab[]).map((tab) => {
@@ -283,7 +279,7 @@ export default function SearchPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  padding: '7px 16px',
+                  padding: '7px 14px',
                   borderRadius: 20,
                   border: active ? '2px solid var(--saffron)' : '2px solid var(--border)',
                   background: active ? 'rgba(255,107,0,0.09)' : 'transparent',
@@ -293,6 +289,7 @@ export default function SearchPage() {
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -316,7 +313,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      <div className="container-site py-8" style={{ maxWidth: 720 }}>
+      <div className="p-5 max-w-2xl mx-auto">
         {/* Recent searches */}
         {!searched && recentSearches.length > 0 && (
           <div>
@@ -369,49 +366,43 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Empty landing */}
+        {/* Empty landing state */}
         {!searched && recentSearches.length === 0 && (
-          <div style={{ textAlign: 'center', paddingTop: 48 }}>
+          <div style={{ textAlign: 'center', paddingTop: 64 }}>
             <div
               style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'rgba(199,90,26,0.10)',
                 display: 'flex',
-                gap: 32,
+                alignItems: 'center',
                 justifyContent: 'center',
-                flexWrap: 'wrap',
-                marginTop: 16,
+                margin: '0 auto 16px',
               }}
             >
-              {[
-                { label: 'Bhagavad Gita', sub: '700 verses' },
-                { label: 'Om Namah Shivaya', sub: 'Shiva mantra' },
-                { label: 'Upanishads', sub: '108 texts' },
-              ].map((hint) => (
-                <button
-                  key={hint.label}
-                  onClick={() => handleQueryChange(hint.label)}
-                  style={{
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 12,
-                    padding: '10px 18px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(199,90,26,0.08)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
-                >
-                  <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>
-                    {hint.label}
-                  </p>
-                  <p style={{ fontSize: 11, color: 'var(--muted)' }}>{hint.sub}</p>
-                </button>
-              ))}
+              <Search size={28} style={{ color: 'var(--saffron)' }} />
             </div>
+            <p
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                color: 'var(--text)',
+                marginBottom: 6,
+              }}
+            >
+              Search the Sacred Texts
+            </p>
+            <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.6 }}>
+              Find verses, mantras, and books from
+              <br />
+              the Vedic tradition
+            </p>
           </div>
         )}
 
-        {/* Loading */}
+        {/* Loading skeletons */}
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <SkeletonCard />
@@ -446,7 +437,7 @@ export default function SearchPage() {
               No results for &ldquo;{query}&rdquo;
             </p>
             <p style={{ color: 'var(--muted)', fontSize: 13 }}>
-              Try a different search term or explore our categories
+              Try a different search term or browse the categories
             </p>
           </div>
         )}
@@ -454,9 +445,9 @@ export default function SearchPage() {
         {/* Results */}
         {!loading && hasResults && (
           <>
-            {/* Verses */}
+            {/* Verses tab */}
             {activeTab === 'verses' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {verses.length === 0 ? (
                   <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 14 }}>
                     No verse results for &ldquo;{query}&rdquo;
@@ -465,28 +456,19 @@ export default function SearchPage() {
                   verses.map((v) => (
                     <Link key={v.id} href={`/books`} style={{ textDecoration: 'none' }}>
                       <div
+                        className="card-hover"
                         style={{
                           background: 'linear-gradient(135deg, rgba(196,168,130,0.09), rgba(196,168,130,0.15))',
                           border: '1px solid rgba(196,168,130,0.3)',
-                          borderRadius: 16,
-                          padding: '1.25rem',
-                          transition: 'transform 0.15s, box-shadow 0.15s',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = '';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '';
+                          borderRadius: 14,
+                          padding: '1rem',
                         }}
                       >
                         {v.verseText && (
                           <p
                             style={{
                               fontFamily: 'Noto Sans Devanagari, serif',
-                              fontSize: '1rem',
+                              fontSize: '0.95rem',
                               lineHeight: 1.9,
                               color: 'var(--text)',
                               marginBottom: 8,
@@ -504,40 +486,52 @@ export default function SearchPage() {
                             style={{
                               fontStyle: 'italic',
                               color: 'var(--muted)',
-                              fontSize: 13,
-                              marginBottom: 10,
+                              fontSize: 12,
+                              marginBottom: 8,
                               lineHeight: 1.6,
                             }}
                           >
                             {v.transliteration.split('\n')[0]}
                           </p>
                         )}
-                        {v.translation && (
-                          <p
+                        <div
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                        >
+                          <span
+                            className="badge"
                             style={{
-                              color: 'var(--text-2)',
-                              fontSize: 13,
-                              lineHeight: 1.7,
-                              marginBottom: 10,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
+                              background: 'rgba(196,168,130,0.2)',
+                              color: 'var(--accent-2)',
+                              borderColor: 'rgba(196,168,130,0.4)',
                             }}
                           >
-                            {v.translation}
-                          </p>
-                        )}
-                        <span
-                          className="badge"
-                          style={{
-                            background: 'rgba(196,168,130,0.2)',
-                            color: 'var(--accent-2)',
-                            borderColor: 'rgba(196,168,130,0.4)',
-                          }}
-                        >
-                          {v.bookName} {v.verseNumber}
-                        </span>
+                            {v.bookName} {v.verseNumber}
+                          </span>
+                          {user && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleFav(v.id);
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 6,
+                                borderRadius: 8,
+                                color: favorites.has(v.id) ? 'var(--saffron)' : 'var(--muted)',
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}
+                              title={favorites.has(v.id) ? 'Remove bookmark' : 'Bookmark'}
+                            >
+                              <Bookmark
+                                size={15}
+                                fill={favorites.has(v.id) ? 'currentColor' : 'none'}
+                              />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </Link>
                   ))
@@ -545,9 +539,9 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Mantras */}
+            {/* Mantras tab */}
             {activeTab === 'mantras' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {mantras.length === 0 ? (
                   <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 14 }}>
                     No mantra results for &ldquo;{query}&rdquo;
@@ -556,21 +550,12 @@ export default function SearchPage() {
                   mantras.map((m) => (
                     <Link key={m.id} href={`/mantras`} style={{ textDecoration: 'none' }}>
                       <div
+                        className="card-hover"
                         style={{
                           background: 'linear-gradient(135deg, rgba(0,107,107,0.06), rgba(45,90,39,0.09))',
                           border: '1px solid rgba(0,107,107,0.2)',
-                          borderRadius: 16,
-                          padding: '1.25rem',
-                          transition: 'transform 0.15s, box-shadow 0.15s',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = '';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '';
+                          borderRadius: 14,
+                          padding: '1rem',
                         }}
                       >
                         <div
@@ -585,7 +570,7 @@ export default function SearchPage() {
                             style={{
                               fontFamily: 'Playfair Display, serif',
                               fontWeight: 700,
-                              fontSize: '1.05rem',
+                              fontSize: '1rem',
                               color: 'var(--text)',
                             }}
                           >
@@ -628,9 +613,9 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Books */}
+            {/* Books tab */}
             {activeTab === 'books' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {books.length === 0 ? (
                   <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 14 }}>
                     No book results for &ldquo;{query}&rdquo;
@@ -639,31 +624,14 @@ export default function SearchPage() {
                   books.map((b, i) => (
                     <Link key={b.id} href={`/books/${b.id}`} style={{ textDecoration: 'none' }}>
                       <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 16,
-                          borderRadius: 16,
-                          padding: '1.25rem',
-                          border: '1px solid var(--border)',
-                          background: 'var(--surface)',
-                          transition: 'transform 0.15s, box-shadow 0.15s',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.transform = '';
-                          (e.currentTarget as HTMLDivElement).style.boxShadow = '';
-                        }}
+                        className="card-hover"
+                        style={{ display: 'flex', alignItems: 'center', gap: 14, borderRadius: 14, padding: '1rem' }}
                       >
                         <div
                           style={{
-                            width: 56,
-                            height: 72,
-                            borderRadius: 10,
+                            width: 52,
+                            height: 68,
+                            borderRadius: 8,
                             flexShrink: 0,
                             background: BOOK_GRADIENTS[i % BOOK_GRADIENTS.length],
                             display: 'flex',
@@ -671,14 +639,14 @@ export default function SearchPage() {
                             justifyContent: 'center',
                           }}
                         >
-                          <BookOpen size={22} style={{ color: '#fff' }} />
+                          <BookOpen size={20} style={{ color: '#fff' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p
                             style={{
                               fontFamily: 'Playfair Display, serif',
                               fontWeight: 700,
-                              fontSize: '1rem',
+                              fontSize: '0.95rem',
                               color: 'var(--text)',
                               marginBottom: 4,
                             }}
@@ -686,7 +654,7 @@ export default function SearchPage() {
                             {b.title}
                           </p>
                           {b.author && (
-                            <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 6 }}>
+                            <p style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 4 }}>
                               {b.author}
                             </p>
                           )}
