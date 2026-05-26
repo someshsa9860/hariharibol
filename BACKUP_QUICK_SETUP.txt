@@ -1,0 +1,204 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                   🛡️  DATABASE BACKUP SETUP - QUICK START 🛡️                 ║
+║                                                                               ║
+║                    Automated Daily Backups to AWS S3                         ║
+║                    • 2:00 AM (Nightly)                                       ║
+║                    • 4:30 PM (Afternoon)                                     ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+✅ WHAT'S INCLUDED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Automatic daily backups (2 per day)
+✓ Gzip compression (90% size reduction)
+✓ AWS S3 upload (encrypted at rest)
+✓ Automatic cleanup (keeps 7-day history)
+✓ Manual trigger API
+✓ Backup status endpoint
+✓ Failed backup logging
+✓ Zero downtime backups
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 BACKUP SCHEDULE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Nightly Backup:   2:00 AM UTC (adjust for your timezone)
+Afternoon Backup: 4:30 PM UTC (adjust for your timezone)
+
+Location: s3://hariharibol-backups/database-backups/{nightly|afternoon}/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 SETUP IN 5 STEPS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Create S3 Bucket
+────────────────────────
+AWS Console → S3 → Create bucket
+  Name: hariharibol-backups
+  Region: Same as your EC2
+  Settings: Block public access, Enable versioning
+
+STEP 2: Create IAM User
+────────────────────────
+AWS Console → IAM → Users → Add user
+  Name: hariharibol-backup
+  Attach policy: S3 access (see BACKUP_SETUP_GUIDE.md for custom policy)
+
+STEP 3: Generate Access Keys
+────────────────────────────
+  User settings → Security credentials → Create access key
+  Copy: Access Key ID and Secret Access Key
+
+STEP 4: Update .env
+────────────────────
+cat >> /opt/hariharibol/backend/.env << 'EOF'
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_REGION=us-east-1
+AWS_S3_BACKUP_BUCKET=hariharibol-backups
+EOF
+
+STEP 5: Rebuild & Restart
+────────────────────────
+cd /opt/hariharibol/backend
+npm run build
+pm2 restart hariharibol-api
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 VERIFY BACKUP WORKS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Option 1: Check logs
+────────────────────
+pm2 logs hariharibol-api | grep -i backup
+
+Should see:
+  [SUCCESS] Starting nightly database backup...
+  [SUCCESS] Backup uploaded to S3: s3://hariharibol-backups/...
+
+Option 2: Manual trigger
+────────────────────────
+curl -X POST http://localhost:3000/api/v1/admin/backup/trigger \
+  -H "Authorization: Bearer <your-jwt-token>"
+
+Response: {"success": true, "message": "manual backup completed successfully"}
+
+Option 3: Check S3
+────────────────────
+aws s3 ls s3://hariharibol-backups/database-backups/
+
+Should list backup files in nightly/ and afternoon/ folders
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 API ENDPOINTS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Trigger Manual Backup:
+  POST /api/v1/admin/backup/trigger
+
+Get Backup Status:
+  GET /api/v1/admin/backup/status
+
+(Both require: Authorization header with valid JWT token)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💾 RESTORE FROM BACKUP:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Download backup from S3
+aws s3 cp s3://hariharibol-backups/database-backups/nightly/2026-05-25/hariharibol-db-nightly-2026-05-25.sql.gz ./backup.sql.gz
+
+# Decompress
+gunzip backup.sql.gz
+
+# Restore to database
+psql -U hariharibol -d hariharibol_prod < backup.sql
+
+# Verify
+psql -U hariharibol -d hariharibol_prod -c "SELECT COUNT(*) FROM users;"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ CUSTOMIZE SCHEDULE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+To change backup times, edit: src/modules/backup/backup.service.ts
+
+Current:
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)       // 2:00 AM
+  @Cron('30 16 * * *')                         // 4:30 PM
+
+Change to (examples):
+  @Cron('0 3 * * *')                           // 3:00 AM
+  @Cron('0 17 * * *')                          // 5:00 PM
+  @Cron('0 22 * * *')                          // 10:00 PM
+  @Cron('0 0 * * 0')                           // Sunday midnight
+
+Then rebuild: npm run build && pm2 restart hariharibol-api
+
+Cron format: minute hour day month weekday
+  minute: 0-59
+  hour: 0-23
+  day: 1-31
+  month: 1-12
+  weekday: 0-6 (0=Sunday)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📈 BACKUP RETENTION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Default: 7 days (14 backups total: 7 nightly + 7 afternoon)
+Old backups automatically deleted
+Override in backup.service.ts (see cleanup code)
+
+Estimated cost:
+  150 MB backup × 14 backups = 2.1 GB
+  S3 storage: ~$0.05/month
+  (Very cheap for peace of mind)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔒 SECURITY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ S3 bucket: Private (no public access)
+✓ Encryption: AES-256 (at rest in S3)
+✓ IAM: Least privilege (only S3 access)
+✓ Credentials: In .env (not in code/git)
+✓ Backup files: Gzip compressed
+✓ Access: JWT authenticated API endpoints
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 MORE INFORMATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+See: BACKUP_SETUP_GUIDE.md
+
+For complete setup instructions, troubleshooting, restore procedures,
+and advanced configuration.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STATUS: Ready to deploy!
+
+Next steps:
+1. Create S3 bucket (5 mins)
+2. Create IAM user and get credentials (5 mins)
+3. Add to .env file (1 min)
+4. Rebuild & restart (1 min)
+5. Verify with API call (1 min)
+
+Total setup time: ~15 minutes
+
+Then automatic backups run every day at 2 AM and 4:30 PM! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -34,6 +34,7 @@ import { ChatbotModule } from '@modules/chatbot/chatbot.module';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { AnalyticsModule } from '@modules/analytics/analytics.module';
+import { BackupModule } from '@modules/backup/backup.module';
 
 import { HealthController } from '@common/controllers/health.controller';
 
@@ -106,6 +107,7 @@ import { HealthController } from '@common/controllers/health.controller';
     NotificationsModule,
     AdminModule,
     AnalyticsModule,
+    BackupModule,
   ],
   controllers: [HealthController],
   providers: [

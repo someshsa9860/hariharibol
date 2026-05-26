@@ -10,9 +10,10 @@ export class OpenAIProvider implements IAIProvider {
   private model = 'gpt-4o';
 
   constructor(private configService: ConfigService) {
-    this.client = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-    });
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    if (apiKey && apiKey !== 'placeholder') {
+      this.client = new OpenAI({ apiKey });
+    }
   }
 
   async generateResponse(

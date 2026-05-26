@@ -5,12 +5,27 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('name:', d.get\\('name'\\)\\); print\\('scripts:', json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
       "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/books/[id]/[chapter]\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/sampradayas/[id]\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/verse-of-day\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(public\\)/mantras\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/\\(auth\\)/login\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/components\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/lib\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/public/standalone\")",
       "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/\\(shell\\)/home\" \\\\ *)",
-      "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/\\(shell\\)/books/[id]/[chapter]\")"
+      "Bash(mkdir -p \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/\\(shell\\)/books/[id]/[chapter]\")",
+      "WebFetch(domain:aws.amazon.com)",
+      "Bash(ssh HariHariBol_AWS \"echo 'Connected to HariHariBol EC2 instance'; uname -a\")",
+      "Bash(ssh-keyscan -H ec2-13-206-188-46.ap-south-1.compute.amazonaws.com)",
+      "Bash(ssh HariHariBol_AWS \"echo 'Connected to HariHariBol EC2!'; uname -a; whoami\")",
+      "Bash(ssh HariHariBol_AWS \"sudo apt update && sudo apt upgrade -y\")",
+      "Bash(ssh HariHariBol_AWS \"curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs && node --version && npm --version\")",
+      "Bash(ssh HariHariBol_AWS \"sudo apt install -y postgresql postgresql-contrib && sudo systemctl start postgresql && sudo systemctl enable postgresql && sudo systemctl status postgresql --no-pager\")",
+      "Bash(ssh HariHariBol_AWS *)",
+      "Bash(scp -i /Users/teja/.ssh/hariharibol.pem \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/tsconfig.json\" ubuntu@ec2-13-206-188-46.ap-south-1.compute.amazonaws.com:/home/ubuntu/hariharibol/webapp/tsconfig.json)",
+      "Bash(rsync -avz -e \"ssh -i /Users/teja/.ssh/hariharibol.pem\" \"/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/backend/dist/\" ubuntu@ec2-13-206-188-46.ap-south-1.compute.amazonaws.com:/home/ubuntu/hariharibol/backend/dist/)",
+      "Bash(timeout 10 wget -q -O /tmp/homepage.html http://localhost:3003/home)",
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "Bash(rm -rf .next)"
     ],
     "additionalDirectories": [
       "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/(public)/books/[id]",
       "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/(shell)/books/[id]",
-      "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/(shell)/books/[id]/[chapter]"
+      "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/webapp/app/(shell)/books/[id]/[chapter]",
+      "/Users/teja/.ssh"
     ]
   }
 }
