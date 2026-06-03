@@ -1,0 +1,129 @@
+name: Deploy Website to AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hariharibol-website
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd website
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hariharibol-website
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Deploy to EC2
+        env:
+          AWS_EC2_IP: ec2-13-206-188-46.ap-south-1.compute.amazonaws.com
+          AWS_EC2_USER: ubuntu
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hariharibol-website
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Get EC2 instance public IP
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=hariharibol_aws" \
+            --query 'Reservations[0].Instances[0].InstanceId' \
+            --output text)
+
+          INSTANCE_IP=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          echo "Deploying to EC2 instance: $INSTANCE_IP"
+
+          # Create deployment script
+          cat > /tmp/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          # Login to ECR
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          # Pull latest image
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Stop old container
+          docker stop hariharibol-web || true
+          docker rm hariharibol-web || true
+
+          # Run new container
+          docker run -d \
+            --name hariharibol-web \
+            --restart always \
+            -p 3000:3000 \
+            -e NODE_ENV=production \
+            -e NEXT_TELEMETRY_DISABLED=1 \
+            $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Wait for container to be healthy
+          sleep 5
+
+          # Verify deployment
+          docker ps | grep hariharibol-web
+          curl -s http://localhost:3000/home | head -c 100
+
+          echo "Deployment successful!"
+          EOF
+
+          # Copy and execute script on EC2
+          aws ssm send-command \
+            --instance-ids $INSTANCE_ID \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=['bash -c \"$(cat /tmp/deploy.sh)\"']" \
+            --region ap-south-1
+
+      - name: Verify deployment
+        env:
+          AWS_EC2_IP: ec2-13-206-188-46.ap-south-1.compute.amazonaws.com
+        run: |
+          sleep 30
+          curl -s -f http://$AWS_EC2_IP:3000/home | head -c 100 || echo "Verification in progress..."
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Website:** [http://ec2-13-206-188-46.ap-south-1.compute.amazonaws.com:3000](http://ec2-13-206-188-46.ap-south-1.compute.amazonaws.com:3000)" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** hariharibol-website:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ap-south-1" >> $GITHUB_STEP_SUMMARY
+          echo "**Container:** hariharibol-web" >> $GITHUB_STEP_SUMMARY
