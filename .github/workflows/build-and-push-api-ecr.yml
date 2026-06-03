@@ -1,17 +1,18 @@
-name: Build and Push Docker Image to ECR
+name: Build and Push API Docker Image to ECR
 
 on:
   push:
     branches:
-      - website
+      - api
     paths:
-      - 'website/**'
-      - '.github/workflows/build-and-push-ecr.yml'
+      - 'api/**'
+      - 'src/**'
+      - '.github/workflows/build-and-push-api-ecr.yml'
   workflow_dispatch:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: hariharibol-website
+  ECR_REPOSITORY: hariharibol-api
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -39,7 +40,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          cd website
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
@@ -56,7 +56,7 @@ jobs:
       - name: Deployment summary
         if: success()
         run: |
-          echo "## ✨ Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "## ✨ API Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
@@ -71,7 +71,7 @@ jobs:
       - name: Build failed notification
         if: failure()
         run: |
-          echo "## ❌ Docker Build or Push Failed" >> $GITHUB_STEP_SUMMARY
+          echo "## ❌ API Docker Build or Push Failed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
           exit 1
