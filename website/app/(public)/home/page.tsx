@@ -60,7 +60,7 @@ export default function PublicHome() {
           alignItems: 'center',
           justifyContent: 'center',
           background: 'linear-gradient(135deg, #FF6B00 0%, #D4A055 50%, #C75A1A 100%)',
-          padding: '2rem',
+          padding: 'clamp(1.5rem, 5vw, 2rem)',
           textAlign: 'center',
           gap: '2rem',
           position: 'relative',
@@ -68,26 +68,6 @@ export default function PublicHome() {
         }}
       >
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              paddingBottom: '1rem',
-              marginBottom: '1rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.9)',
-              }}
-            >
-              by Callvcal Technology Pvt Ltd
-            </h2>
-          </div>
-
           <h1
             style={{
               fontFamily: 'Playfair Display, Georgia, serif',
@@ -104,9 +84,9 @@ export default function PublicHome() {
 
           <p
             style={{
-              fontSize: 'clamp(1.1rem, 2vw, 1.3rem)',
+              fontSize: 'clamp(1rem, 2vw, 1.3rem)',
               color: 'rgba(255,255,255,0.95)',
-              maxWidth: '700px',
+              maxWidth: '90%',
               margin: '0 auto 2rem',
               lineHeight: 1.7,
               textShadow: '0 2px 10px rgba(0,0,0,0.15)',
@@ -118,18 +98,20 @@ export default function PublicHome() {
           <div
             style={{
               display: 'flex',
-              gap: '1.5rem',
+              gap: '1rem',
               justifyContent: 'center',
               flexWrap: 'wrap',
               marginBottom: '2rem',
+              width: '100%',
+              padding: '0 1rem',
             }}
           >
             <Link
               href="/login"
               className="btn-primary"
               style={{
-                fontSize: '1.05rem',
-                padding: '14px 40px',
+                fontSize: 'clamp(0.95rem, 2vw, 1.05rem)',
+                padding: 'clamp(10px, 2vw, 14px) clamp(24px, 4vw, 40px)',
                 background: 'white',
                 color: '#FF6B00',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
@@ -141,8 +123,8 @@ export default function PublicHome() {
               href="#features"
               className="btn-secondary"
               style={{
-                fontSize: '1.05rem',
-                padding: '14px 40px',
+                fontSize: 'clamp(0.95rem, 2vw, 1.05rem)',
+                padding: 'clamp(10px, 2vw, 14px) clamp(24px, 4vw, 40px)',
                 background: 'rgba(255,255,255,0.15)',
                 color: 'white',
                 border: '2px solid white',
@@ -159,13 +141,13 @@ export default function PublicHome() {
       </section>
 
       {/* Stats Section */}
-      <section style={{ background: 'var(--bg)', padding: '3rem 2rem' }}>
+      <section style={{ background: 'var(--bg)', padding: 'clamp(2rem, 4vw, 3rem) 2rem' }}>
         <div className="container-site">
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: 'clamp(1.5rem, 3vw, 2rem)',
               textAlign: 'center',
             }}
           >
@@ -274,9 +256,9 @@ export default function PublicHome() {
       </section>
 
       {/* Benefits Section */}
-      <section style={{ background: 'var(--bg)', padding: '4rem 2rem' }}>
+      <section style={{ background: 'var(--bg)', padding: 'clamp(2rem, 5vw, 4rem) 2rem' }}>
         <div className="container-site">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '4rem', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(2rem, 5vw, 4rem)', alignItems: 'start' }}>
             <div>
               <h2
                 style={{
@@ -355,7 +337,7 @@ export default function PublicHome() {
       </section>
 
       {/* How It Works */}
-      <section style={{ background: 'var(--bg-2)', padding: '4rem 2rem' }}>
+      <section style={{ background: 'var(--bg-2)', padding: 'clamp(2rem, 5vw, 4rem) 2rem' }}>
         <div className="container-site">
           <h2
             style={{
@@ -364,7 +346,7 @@ export default function PublicHome() {
               fontWeight: 900,
               color: 'var(--text)',
               textAlign: 'center',
-              marginBottom: '3rem',
+              marginBottom: 'clamp(2rem, 4vw, 3rem)',
             }}
           >
             How It Works
@@ -373,8 +355,8 @@ export default function PublicHome() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: 'clamp(1.5rem, 3vw, 2rem)',
             }}
           >
             {[
@@ -414,7 +396,7 @@ export default function PublicHome() {
       </section>
 
       {/* Testimonial/Trust Section */}
-      <section style={{ background: 'var(--bg)', padding: '4rem 2rem' }}>
+      <section style={{ background: 'var(--bg)', padding: 'clamp(2rem, 5vw, 4rem) 2rem' }}>
         <div className="container-site" style={{ textAlign: 'center' }}>
           <h2
             style={{
@@ -422,7 +404,7 @@ export default function PublicHome() {
               fontSize: 'clamp(2rem, 5vw, 3rem)',
               fontWeight: 900,
               color: 'var(--text)',
-              marginBottom: '3rem',
+              marginBottom: 'clamp(2rem, 4vw, 3rem)',
             }}
           >
             Trusted by Spiritual Seekers Worldwide
@@ -431,9 +413,9 @@ export default function PublicHome() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '2rem',
-              marginBottom: '3rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: 'clamp(1.5rem, 3vw, 2rem)',
+              marginBottom: 'clamp(2rem, 4vw, 3rem)',
             }}
           >
             {[
@@ -452,17 +434,17 @@ export default function PublicHome() {
             ))}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap', marginTop: '3rem', fontSize: '0.95rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 3vw, 3rem)', flexWrap: 'wrap', marginTop: 'clamp(2rem, 4vw, 3rem)', fontSize: 'clamp(0.85rem, 2vw, 0.95rem)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)' }}>
-              <Shield size={20} style={{ color: 'var(--accent)' }} />
+              <Shield size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
               <span>Secure & Private</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)' }}>
-              <Zap size={20} style={{ color: 'var(--accent)' }} />
+              <Zap size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
               <span>Fast Loading</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)' }}>
-              <Users size={20} style={{ color: 'var(--accent)' }} />
+              <Users size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
               <span>Community Driven</span>
             </div>
           </div>
@@ -473,7 +455,7 @@ export default function PublicHome() {
       <section
         style={{
           background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)',
-          padding: '5rem 2rem',
+          padding: 'clamp(3rem, 5vw, 5rem) 2rem',
           textAlign: 'center',
           color: 'white',
         }}
@@ -481,7 +463,7 @@ export default function PublicHome() {
         <h2
           style={{
             fontFamily: 'Playfair Display, Georgia, serif',
-            fontSize: 'clamp(2rem, 5vw, 3rem)',
+            fontSize: 'clamp(1.8rem, 5vw, 3rem)',
             fontWeight: 900,
             marginBottom: '1.5rem',
           }}
@@ -490,14 +472,14 @@ export default function PublicHome() {
         </h2>
         <p
           style={{
-            fontSize: '1.2rem',
+            fontSize: 'clamp(1rem, 2vw, 1.2rem)',
             marginBottom: '2.5rem',
             maxWidth: '600px',
             margin: '0 auto 2.5rem',
             opacity: 0.95,
           }}
         >
-          Join thousands of seekers and unlock the wisdom of the ages with Hariharibol by Callvcal Technology
+          Join thousands of seekers and unlock the wisdom of the ages with Hariharibol
         </p>
         <Link
           href="/login"
@@ -505,14 +487,38 @@ export default function PublicHome() {
           style={{
             background: 'white',
             color: 'var(--accent)',
-            fontSize: '1.1rem',
-            padding: '16px 48px',
+            fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
+            padding: 'clamp(12px, 3vw, 16px) clamp(24px, 5vw, 48px)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
           }}
         >
           Start Free Today <ArrowRight size={20} />
         </Link>
       </section>
+
+      {/* Company Attribution Footer Bar */}
+      <footer
+        style={{
+          background: 'var(--bg-2)',
+          padding: '1rem 2rem',
+          textAlign: 'center',
+          borderTop: '1px solid var(--border)',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '0.85rem',
+            color: 'var(--muted)',
+            margin: 0,
+          }}
+        >
+          Hariharibol — Empowering spiritual growth through authentic Vedic wisdom
+          <br style={{ display: 'none' }} />
+          <span style={{ display: 'inline-block', marginTop: '0.25rem' }}>
+            A platform by <span style={{ fontWeight: 600, color: 'var(--text)' }}>Callvcal Technology Pvt Ltd</span>
+          </span>
+        </p>
+      </footer>
     </div>
   );
 }
