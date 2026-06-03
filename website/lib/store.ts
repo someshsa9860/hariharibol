@@ -18,7 +18,7 @@ interface AppStore {
   setUser: (u: User | null) => void;
   setToken: (t: string | null) => void;
   setRefreshToken: (t: string | null) => void;
-  login: (user: User, accessToken: string, refreshToken?: string) => void;
+  login: (user: User, accessToken: string, refreshToken?: string | null) => void;
   logout: () => void;
 
   // UI slice
@@ -56,7 +56,7 @@ export const useAppStore = create<AppStore>()(
       setUser: (user) => set((s) => ({ user, isAuthenticated: !!user && !!s.token })),
       setToken: (token) => set((s) => ({ token, accessToken: token, isAuthenticated: !!s.user && !!token })),
       setRefreshToken: (refreshToken) => set({ refreshToken }),
-      login: (user, accessToken, refreshToken = null as string | null) =>
+      login: (user, accessToken, refreshToken = null) =>
         set({ user, token: accessToken, accessToken, refreshToken, isAuthenticated: true }),
       logout: () =>
         set({ user: null, token: null, accessToken: null, refreshToken: null, isAuthenticated: false, chantCount: 0 }),

@@ -196,7 +196,7 @@ export default function MantrasPage() {
           <h2 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: '2rem', marginBottom: '1.5rem' }}>
             Start Chanting Today
           </h2>
-          <p style={{ fontSize: '1.1rem', marginBottom: '2rem', maxValue: '600px', opacity: 0.95 }}>
+          <p style={{ fontSize: '1.1rem', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem', opacity: 0.95 }}>
             Experience the transformative power of sacred mantras. Let the divine vibrations guide you on your spiritual journey.
           </p>
           <Link href="/app/mantras" className="btn-primary" style={{ background: 'white', color: 'var(--accent)', fontSize: '1rem' }}>
