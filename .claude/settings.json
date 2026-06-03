@@ -19,7 +19,8 @@
       "Bash(timeout 10 wget -q -O /tmp/homepage.html http://localhost:3003/home)",
       "Bash(node -e ' *)",
       "Bash(npm run *)",
-      "Bash(rm -rf .next)"
+      "Bash(rm -rf .next)",
+      "Bash(ssh -i ~/.ssh/hariharibol.pem ubuntu@ec2-13-206-188-46.ap-south-1.compute.amazonaws.com \"echo 'Connected to HariHariBol AWS!' && uname -a\")"
     ],
     "additionalDirectories": [
       "/Users/SSS/Jay Jay Ram Krishna Hari/app/hariharibol/website/app/(public)/books/[id]",
