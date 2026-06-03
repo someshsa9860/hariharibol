@@ -15,9 +15,20 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { darkMode, toggleDark, user } = useSiteStore();
+  const store = useSiteStore();
+  const { toggleDark } = store;
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Persisted store values only become correct after client hydration.
+  // Use server-safe defaults until mounted to avoid a hydration mismatch.
+  const darkMode = mounted ? store.darkMode : false;
+  const user = mounted ? store.user : null;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
