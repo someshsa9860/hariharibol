@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Sparkles, BookOpen, Music2, Heart, Brain, Users, Shield, Zap, ArrowRight, CheckCircle } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
 
 const CORE_FEATURES = [
   {
@@ -49,6 +51,13 @@ const STATS = [
 ];
 
 export default function PublicHome() {
+  const { darkMode } = useAppStore();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(darkMode);
+  }, [darkMode]);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -59,12 +68,15 @@ export default function PublicHome() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #FF6B00 0%, #D4A055 50%, #C75A1A 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #001F3F 100%)'
+            : 'linear-gradient(135deg, #FF6B00 0%, #D4A055 50%, #C75A1A 100%)',
           padding: 'clamp(1.5rem, 5vw, 2rem)',
           textAlign: 'center',
           gap: '2rem',
           position: 'relative',
           overflow: 'hidden',
+          transition: 'background 0.3s ease',
         }}
       >
         <div style={{ position: 'relative', zIndex: 2 }}>
@@ -73,10 +85,12 @@ export default function PublicHome() {
               fontFamily: 'Playfair Display, Georgia, serif',
               fontSize: 'clamp(2.5rem, 7vw, 4.5rem)',
               fontWeight: 900,
-              color: 'white',
+              color: isDark ? '#F1F5F9' : 'white',
               marginBottom: '1.5rem',
               lineHeight: 1.1,
-              textShadow: '0 4px 20px rgba(0,0,0,0.2)',
+              textShadow: isDark
+                ? '0 4px 20px rgba(0,0,0,0.4)'
+                : '0 4px 20px rgba(0,0,0,0.2)',
             }}
           >
             Hariharibol
@@ -85,11 +99,13 @@ export default function PublicHome() {
           <p
             style={{
               fontSize: 'clamp(1rem, 2vw, 1.3rem)',
-              color: 'rgba(255,255,255,0.95)',
+              color: isDark ? 'rgba(241, 245, 249, 0.9)' : 'rgba(255,255,255,0.95)',
               maxWidth: '90%',
               margin: '0 auto 2rem',
               lineHeight: 1.7,
-              textShadow: '0 2px 10px rgba(0,0,0,0.15)',
+              textShadow: isDark
+                ? '0 2px 10px rgba(0,0,0,0.3)'
+                : '0 2px 10px rgba(0,0,0,0.15)',
             }}
           >
             Your gateway to authentic Vedic wisdom, sacred mantras, and spiritual guidance powered by AI
@@ -112,9 +128,11 @@ export default function PublicHome() {
               style={{
                 fontSize: 'clamp(0.95rem, 2vw, 1.05rem)',
                 padding: 'clamp(10px, 2vw, 14px) clamp(24px, 4vw, 40px)',
-                background: 'white',
-                color: '#FF6B00',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                background: isDark ? '#FF9933' : 'white',
+                color: isDark ? 'white' : '#FF6B00',
+                boxShadow: isDark
+                  ? '0 10px 30px rgba(255, 153, 51, 0.4)'
+                  : '0 10px 30px rgba(0,0,0,0.2)',
               }}
             >
               Start Free <ArrowRight size={18} />
@@ -125,16 +143,19 @@ export default function PublicHome() {
               style={{
                 fontSize: 'clamp(0.95rem, 2vw, 1.05rem)',
                 padding: 'clamp(10px, 2vw, 14px) clamp(24px, 4vw, 40px)',
-                background: 'rgba(255,255,255,0.15)',
-                color: 'white',
-                border: '2px solid white',
+                background: isDark ? 'rgba(255, 153, 51, 0.2)' : 'rgba(255,255,255,0.15)',
+                color: isDark ? '#FFB366' : 'white',
+                border: isDark ? '2px solid #FFB366' : '2px solid white',
               }}
             >
               Explore More
             </Link>
           </div>
 
-          <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)' }}>
+          <p style={{
+            fontSize: '0.95rem',
+            color: isDark ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.8)',
+          }}>
             ✨ Join 500K+ spiritual seekers worldwide
           </p>
         </div>
