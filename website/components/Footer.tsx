@@ -44,7 +44,7 @@ export default function Footer() {
                 { href: '/mantras',      label: 'Mantras' },
                 { href: '/search',       label: 'Search' },
               ].map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link href={l.href} className="text-sm transition-colors duration-200 hover:font-semibold" style={{ color: 'var(--text-2)' }}>
                     {l.label}
                   </Link>
@@ -64,7 +64,7 @@ export default function Footer() {
                 { href: '#',          label: 'Web App' },
                 { href: '#',          label: 'API Docs' },
               ].map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link href={l.href} className="text-sm transition-colors duration-200 hover:font-semibold" style={{ color: 'var(--text-2)' }}>
                     {l.label}
                   </Link>
@@ -84,7 +84,7 @@ export default function Footer() {
                 { href: '#', label: 'FAQ' },
                 { href: '#', label: 'Support' },
               ].map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link href={l.href} className="text-sm transition-colors duration-200 hover:font-semibold" style={{ color: 'var(--text-2)' }}>
                     {l.label}
                   </Link>
