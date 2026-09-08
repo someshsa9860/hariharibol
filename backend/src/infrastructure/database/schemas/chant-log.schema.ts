@@ -1,1 +1,0 @@
-export { ChantLogSchema } from './index';

@@ -1,1 +1,0 @@
-export { ChapterSchema } from './index';

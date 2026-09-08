@@ -65,3 +65,12 @@ coverage/
 *.swp
 *.swo
 .cache/
+
+# Firebase config (contains API keys; regenerate from Firebase console)
+**/google-services.json
+**/GoogleService-Info.plist
+**/firebase_options.dart
+
+# Android signing
+**/key.jks
+**/key.properties

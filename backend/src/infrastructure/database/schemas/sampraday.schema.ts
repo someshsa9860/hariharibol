@@ -1,1 +1,0 @@
-export { SampradayaSchema } from './index';

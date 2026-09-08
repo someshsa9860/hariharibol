@@ -1,1 +1,0 @@
-export { MantraSchema } from './index';
