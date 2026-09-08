@@ -44,16 +44,25 @@ Bloc or Riverpod — **one of them, chosen once, used everywhere.** See _Decisio
 
 ## Offline storage
 
-Offline support uses a standard, actively maintained local database.
+**Drift.** SQLite with a type-safe Dart API, actively maintained, and the default recommendation for new Flutter apps in 2026.
 
-⚠️ **Realm is not an option.** MongoDB deprecated the Atlas Device SDKs — including the Realm Flutter SDK — in September 2024, with support ending September 2025. It receives no further development. Do not start on it.
+Why it fits here:
+- Our content is relational — books → cantos → chapters → verses, plus translations and mantras. That is SQL's home ground.
+- Type-safe queries catch mistakes at compile time instead of runtime.
+- Reactive `Stream` queries drive the UI directly, so offline reads and live updates use one mechanism.
+- FTS5 gives real full-text search for verse lookup, without bolting on a search library.
 
-Viable choices are listed under _Decisions needed_.
+**Do not use:**
+- **Realm** — MongoDB deprecated the Atlas Device SDKs in September 2024; support ended September 2025.
+- **Isar** — development has stalled; treat as legacy.
+- **Original `hive`** — effectively unmaintained. Use `hive_ce` (the community fork) where key-value storage is wanted.
+
+ObjectBox is the only other serious option, and is worth revisiting **only** if we later need built-in device sync — which we do not, since the backend owns sync.
 
 ## Session and tokens
 
 - **One session singleton class** owns both tokens. Nothing else reads or writes them.
-- Tokens are persisted with **Hive**.
+- Tokens are persisted with **`flutter_secure_storage`** (iOS Keychain / Android Keystore) — they are credentials, so they belong in platform secure storage rather than a plain database file. Non-sensitive session state (last user, preferences, cached flags) uses **`hive_ce`**.
 - **Refresh token: 1 year**, re-issued every time it is used.
 - **Access token: 7 days**, rotated **silently** in the background — the user must never see an auth interruption, a re-login prompt, or a failed request caused by rotation.
 - Requests that fail on an expired access token are retried transparently after refresh.
@@ -77,8 +86,6 @@ Viable choices are listed under _Decisions needed_.
 ## Decisions needed
 
 - **State management** — Bloc or Riverpod. Riverpod suits this structure well (compile-safe, less boilerplate, easy to test); Bloc is more prescriptive and better if you want strict event/state discipline across a team.
-- **Offline database** — replacing Realm. Best candidates: **Drift** (SQLite, actively maintained, excellent tooling, relational queries) or **ObjectBox** (NoSQL, very fast, actively maintained). Isar is largely stalled. Given verses/books/chapters are relational content, Drift is the stronger fit.
-- **Hive version** — the original `hive` package is effectively unmaintained; `hive_ce` (community edition) is the maintained fork and the one to use for session storage.
 - **Access token lifetime** — 7 days is long for an access token (typical is minutes to hours). It means a stolen token stays valid for a week and cannot be easily revoked. The 1-year rotating refresh token already delivers the "never asked to log in again" experience, so a shorter access token costs nothing in UX. Worth reconsidering.
 
 ## Notes carried over
