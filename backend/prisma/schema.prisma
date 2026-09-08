@@ -59,6 +59,18 @@ enum ChantSource {
   MANUAL // entered afterwards, chanted on physical beads
 }
 
+enum SlokaSource {
+  MANUAL // picked by an admin
+  RULE // picked by the personalisation rules
+  AI // generated
+}
+
+enum IssueCategory {
+  VIKARA // the six inner enemies: kama, krodha, lobha, moha, mada, matsarya
+  PRACTICE // sadhana difficulties: missed chanting time, unmet round target
+  OTHER
+}
+
 enum TaskStatus {
   PENDING
   DONE
@@ -93,6 +105,11 @@ model User {
   mantraLanguage  String @default("sa") @db.VarChar(10)
   readingLanguage String @default("en") @db.VarChar(10)
 
+  // Decides when this user's day starts and when scheduled jobs may reach them.
+  // Lives here rather than on SadhanaProfile because that row is optional, and
+  // the sloka cron needs a timezone for every user.
+  timezone String @default("Asia/Kolkata") @db.VarChar(64)
+
   roleId String
   role   Role   @relation(fields: [roleId], references: [id])
 
@@ -111,6 +128,8 @@ model User {
   sadhanaDays    SadhanaDay[]
   chantSessions  ChantSession[]
   sadhanaTasks   SadhanaTask[]
+  dailySlokas    UserDailySloka[]
+  issues         UserIssue[]
 
   @@index([roleId])
   @@index([isBanned])
@@ -343,16 +362,26 @@ model Verse {
   audioPath String?
   tags      String[] @default([])
 
+  // Curated pool for "Sloka for You". Only Bhagavad Gita and Srimad Bhagavatam
+  // verses (bookNumber 1 and 2) are ever eligible — short works are never used
+  // as a daily sloka — and within those, a verse is opted in deliberately.
+  isSlokaEligible Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   book         Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter      Chapter?           @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   translations VerseTranslation[]
+  explanations VerseExplanation[]
+  dailySlokas  DailySloka[]
+  userSlokas   UserDailySloka[]
+  issueLinks   VerseIssue[]
 
   @@index([bookId])
   @@index([chapterId])
   @@index([bookNumber])
+  @@index([isSlokaEligible])
   @@index([bookId, cantoNumber, chapterNumber, verseNumber])
 }
 
@@ -428,6 +457,164 @@ model VerseTranslation {
   @@index([verseId, languageCode])
   @@index([translatorId])
   @@index([isPublished])
+}
+
+// A short editorial or generated explanation of a verse, written once per
+// language and reused by every user who is shown that verse.
+//
+// Deliberately NOT stored in VerseTranslation: that table holds acharya
+// commentary, and app-written or AI text must never be able to surface as if an
+// acharya had said it.
+model VerseExplanation {
+  id String @id @default(cuid())
+
+  verseId      String
+  languageCode String @db.VarChar(10)
+
+  text String @db.Text
+
+  source      SlokaSource @default(AI)
+  isPublished Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@unique([verseId, languageCode])
+  @@index([isPublished])
+}
+
+// ============================================================================
+// Issues — what a user is struggling with, and which slokas answer it
+// ============================================================================
+
+// Seeded with the six vikaras (kama, krodha, lobha, moha, mada, matsarya) and
+// the practice difficulties a user can report — missing their chanting time,
+// falling short of their round target.
+model Issue {
+  id String @id @default(cuid())
+
+  slug        String        @unique @db.VarChar(100) // "krodha", "missed-rounds"
+  name        String
+  nameI18n    Json?
+  description String?       @db.Text
+  category    IssueCategory
+
+  imagePath String? // S3 object key
+
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verseLinks VerseIssue[]
+  reports    UserIssue[]
+  userSlokas UserDailySloka[]
+
+  @@index([category])
+  @@index([isPublished])
+}
+
+// Which slokas speak to which struggle. This is the table the personalisation
+// reads: a user reports krodha, and the picker draws from verses linked here.
+// `weight` breaks ties so the most directly relevant verse wins.
+model VerseIssue {
+  verseId String
+  issueId String
+
+  weight Int @default(0)
+
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@id([verseId, issueId])
+  @@index([issueId, weight])
+}
+
+// A user saying what they are struggling with today. Kept as an append-only log
+// rather than a current-mood column, so the productivity report can show which
+// vikara recurs and whether it eases over time.
+model UserIssue {
+  id String @id @default(cuid())
+
+  userId       String
+  issueId      String
+  sadhanaDayId String? // the day it was reported against, when there is one
+
+  intensity Int? // 1–5, how strongly it is felt
+  note      String? @db.Text
+
+  reportedAt DateTime @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  day   SadhanaDay? @relation(fields: [sadhanaDayId], references: [id], onDelete: SetNull)
+
+  @@index([userId, reportedAt])
+  @@index([issueId])
+  @@index([sadhanaDayId])
+}
+
+// ============================================================================
+// Sloka for You — the daily sloka, global and personalised
+// ============================================================================
+
+// The global sloka: one per date, the same for everyone.
+model DailySloka {
+  id String @id @default(cuid())
+
+  date    DateTime @unique @db.Date
+  verseId String
+
+  source    SlokaSource @default(MANUAL)
+  imagePath String? // generated artwork, S3 object key
+
+  isPublished Boolean   @default(false)
+  sentAt      DateTime? // set when the cron job has pushed it out
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@index([verseId])
+}
+
+// One user's own sloka for one date, chosen for them rather than shared.
+//
+// A row is written by the nightly cron before it is delivered, so `notifiedAt`
+// and `seenAt` distinguish "picked" from "pushed" from "actually read" — the
+// three states a delivery job needs to avoid double-sending.
+model UserDailySloka {
+  id String @id @default(cuid())
+
+  userId  String
+  date    DateTime @db.Date
+  verseId String
+
+  source SlokaSource @default(RULE)
+
+  // The struggle this sloka was chosen to answer, and a human-readable note the
+  // app can show as "because you mentioned krodha". Null when the pick was not
+  // issue-driven — a fallback or an admin override.
+  issueId String?
+  reason  String?
+
+  notifiedAt DateTime?
+  seenAt     DateTime?
+
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verse Verse  @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  issue Issue? @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([date, notifiedAt]) // the cron sweeps one date's undelivered batch
+  @@index([verseId])
 }
 
 // ============================================================================
@@ -595,11 +782,7 @@ model SadhanaProfile {
   userId String @unique
 
   dailyRoundTarget Int     @default(16)
-  reminderTime     String? @db.VarChar(5) // "04:30", local to `timezone`
-
-  // Decides where one sadhana day ends and the next begins. Without it a user
-  // chanting at 1am would have it land on the wrong day.
-  timezone String @default("Asia/Kolkata") @db.VarChar(64)
+  reminderTime     String? @db.VarChar(5) // "04:30", local to User.timezone
 
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -630,6 +813,7 @@ model SadhanaDay {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   chantSessions ChantSession[]
   tasks         SadhanaTask[]
+  issues        UserIssue[]
 
   @@unique([userId, date])
   @@index([userId, date])
