@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> — <%= appName %></title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1><%= title %></h1>
+    <p class="muted">Last updated <%= updatedAt %></p>
+
+    <h2>What we collect</h2>
+    <p class="meaning">
+      Your name, email address and profile picture, as supplied by Google or Apple when you
+      sign in. We never see or store a password, because there isn't one.
+    </p>
+    <p class="meaning">
+      Your practice record: chanting rounds, daily targets, tasks, the struggles you report,
+      and which verses you read. This is what the app is for, and it is what makes the
+      personalised sloka possible.
+    </p>
+    <p class="meaning">
+      Device information — model, operating system, app version and a push token — so
+      notifications reach the right device.
+    </p>
+
+    <h2>What we do with it</h2>
+    <p class="meaning">
+      We use it to run the app: to keep your practice record, to choose a verse for you, and
+      to send the notifications you have asked for. Once a week we recompute what the app has
+      learned about your preferences from your own activity.
+    </p>
+    <p class="meaning">
+      We do not sell your data, and we do not share it with advertisers.
+    </p>
+
+    <h2>What you report about yourself</h2>
+    <p class="meaning">
+      The struggles you record are private to your account. They are used to choose verses
+      for you and to build your own report. They are never shown to anyone else, and they are
+      not used to target advertising.
+    </p>
+
+    <h2>AI</h2>
+    <p class="meaning">
+      The app uses AI to help write notes about verses and to connect verses to the struggles
+      people report. That work happens in advance, over the scriptures themselves. Your
+      personal practice record is not sent to an AI provider.
+    </p>
+
+    <h2>Deleting your account</h2>
+    <p class="meaning">
+      You can delete your account from inside the app, under Settings. It is a real deletion:
+      your practice history, favourites and notifications go with it, and it cannot be undone.
+      See <a href="<%= webBaseUrl %>/account-deletion">account deletion</a>.
+    </p>
+
+    <h2>Payments</h2>
+    <p class="meaning">
+      Subscriptions and donations are processed by Google, Apple or Razorpay. We never see or
+      store your card details. We keep a record of the amount, the currency and the date.
+    </p>
+
+    <h2>Contact</h2>
+    <p class="meaning">
+      Questions about any of this: <a href="mailto:privacy@hariharibol.com">privacy@hariharibol.com</a>
+    </p>
+
+    <footer class="muted"><p><%= appName %> &middot; <%= year %></p></footer>
+  </div>
+</body>
+</html>

@@ -9,30 +9,51 @@ backend/
 ├── server.js              # entry point — boots the HTTP server, nothing else
 ├── app.js                 # the express app — mounts every routes/ dir + middleware
 ├── config/                # one file per concern: cors.js, cron.js, redis.js, database.js …
-├── middleware/            # auth middleware — every request passes through it
+├── middleware/            # auth, attestation, rate limits, errors
 ├── routes/
 │   ├── app/               # mobile app endpoints
 │   ├── web/               # website endpoints
-│   └── admin/             # admin panel endpoints
+│   ├── admin/             # admin panel endpoints
+│   └── webhook/           # provider callbacks — signature-authenticated
 ├── controllers/
 │   ├── app/               # mirrors routes/ exactly, file for file
 │   ├── web/
-│   └── admin/
+│   ├── admin/
+│   └── webhook/
 ├── services/              # shared infra only
 │   ├── ai/                # provider-agnostic AI: index.js, gemini.js, openai.js
+│   ├── payments/          # google.js, apple.js, razorpay.js, index.js (the ledger)
 │   ├── s3.js              # uploads + presigned URLs (bucket is private)
-│   ├── fcm.js
-│   ├── otp.js
-│   ├── websocket.js
-│   └── auth.js
+│   ├── auth.js            # tokens, google/apple verification, permission cache
+│   ├── entitlement.js     # who is Premium, and why
+│   ├── fcm.js  notify.js  otp.js  mailer.js  websocket.js
+│   ├── setting.js         # AppSetting reads, encrypted secrets
+│   └── audit.js
+├── utils/                 # small stateless helpers
+│   ├── router.js          # documented routes + auth guard + validation
+│   ├── present.js         # language resolution + media signing for responses
+│   ├── crud.js            # the reference-data CRUD builder
+│   └── date.js  language.js  errors.js  respond.js  pagination.js
 ├── views/                 # email templates + server-rendered pages
+├── docs/                  # OpenAPI built from the route registry; served by Scalar
 ├── jobs/                  # BullMQ queues and processors (Redis-backed)
 ├── worker/                # background job runner — own Docker container
 ├── websocket/             # realtime server — own Docker container
 ├── deeplink/              # deeplink handling — own Docker container
 └── prisma/
-    └── schema.prisma      # model format
+    ├── schema.prisma      # model format
+    └── seed/              # roles, languages, issues, deities, gurus, plan, settings
 ```
+
+**Two directories that were not in the original list**, and why:
+
+- `utils/` — stateless helpers with no I/O. `services/` is for shared
+  infrastructure that talks to something (S3, Firebase, a provider); `utils/` is
+  for code that does not. Keeping response shaping and date handling out of
+  `services/` is what stops that directory turning into a junk drawer.
+- `routes/webhook/` — Razorpay, Google and Apple are not the app, the web or the
+  admin panel. They authenticate by signature rather than a token, and filing
+  them under one of the three would put a route where nobody would look.
 
 ## Rules
 
@@ -44,7 +65,18 @@ backend/
 
 4. **No service layer for controllers.** Controllers hold their own logic and talk to Prisma directly. `services/` is reserved for shared infrastructure that several controllers use — FCM, OTP, websocket, auth. Do not create a `userService` to wrap a `userController`.
 
-5. **All requests pass through auth middleware.** Public endpoints opt out explicitly; the default is authenticated.
+5. **All requests pass through auth middleware.** Public endpoints opt out
+   explicitly; the default is authenticated.
+
+   The work is split in two, and the split matters. `middleware/auth.js`
+   establishes *who is asking* and hangs it on `req.auth` — it never refuses
+   anything. `utils/router.js` is what refuses, requiring a signed-in user for
+   every route that does not say `public: true`. That is why a public endpoint
+   can still personalise for a caller who happens to be signed in, and why
+   forgetting to guard a route is not possible.
+
+   Validated input lands on `req.valid` (`.body`, `.query`, `.params`).
+   Controllers never read `req.body` directly.
 
 6. **Config lives in `config/`**, one file per concern (cors, crons, redis, database …). No configuration inline in `app.js` or in controllers.
 
@@ -55,7 +87,17 @@ backend/
 
 8. **`worker/`, `websocket/`, and `deeplink/` each get their own Docker container**, separate from the API container.
 
-9. **Every endpoint is documented.** API docs are a requirement, not an afterthought, and they must look good — a browsable, well-presented reference, not a raw dump.
+9. **Every endpoint is documented**, and it is not possible to skip. Routes are
+   registered through `utils/router.js`, which takes the documentation as an
+   argument alongside the handler and **throws at boot** if a route has no
+   `summary`. The same object carries the access rules and the validation
+   schemas, so the docs cannot drift from the behaviour — there is no separate
+   spec file to forget to update.
+
+   `docs/openapi.js` reads that registry; **Scalar** renders it at `/docs`.
+   Chosen over Swagger UI because it looks considerably better and has a working
+   request panel, and a reference nobody enjoys opening is a reference nobody
+   reads.
 
 10. **`views/` holds email templates and server-rendered pages** — OTP and notification emails, deeplink landing pages, legal/policy pages. Anything the server renders as HTML rather than returns as JSON.
 
@@ -104,12 +146,26 @@ feature to free unless there is a decision otherwise.
 
 | Free | Premium |
 |---|---|
-| All books, verses, mantras and translations | Mood-driven sloka: reporting an issue and getting a sloka chosen for it |
+| All books, verses, mantras and translations | Mood-driven sloka: reporting a struggle and getting a verse chosen for it |
 | Chanting, sadhana targets, tasks, reports | |
 | The global sloka of the day | |
+| A personal daily sloka, drawn from the eligible pool | The same slot, but *chosen from what you reported* |
 
 The paid feature is the one with a per-user AI cost behind it, so spend follows
 revenue rather than running ahead of it.
+
+**Free readers get a monthly quota** (`sloka.mood.free_quota_per_month`,
+default 3) before the paywall applies. Gating the feature completely would mean
+most people never experience the one thing that makes Premium worth buying. The
+quota counts *days*, not requests — one personal sloka exists per person per
+date, so someone working out what is really bothering them can re-report without
+being charged for changing their mind.
+
+**Everything that picks a verse must respect the same line.** Both
+`GET /sloka/mine` and the nightly build job only use `UserIssue` when the reader
+is Premium; a free reader gets a verse from the eligible pool. Without that,
+reporting a struggle to the free endpoint and reading the personal sloka the
+next morning would be the paid feature through an unlocked side door.
 
 **Premium is earned two ways**, and they are worth equal access:
 
@@ -137,7 +193,19 @@ An unauthenticated account-creation request must be provably from **our own clie
 
 A code-build-graph package should be wired up and re-run periodically so the structure stays navigable. *(Not currently installed — needs setting up; confirm which package is meant.)*
 
+## Resolved
+
+- **API docs tool — Scalar.** Served at `/docs` from a spec built out of the
+  route registry. See rule 9.
+- **Attestation — Firebase App Check.** `middleware/attestation.js`, applied to
+  sign-in and device registration: Play Integrity on Android, App Attest on iOS,
+  reCAPTCHA on web. Firebase was already in the project for push, so it added no
+  new vendor. Controlled by `APP_CHECK_ENABLED`, which is off by default outside
+  production so a local client can be pointed at the API without a Firebase
+  project — turning it off *in* production is a decision someone has to make in
+  the environment, and it logs a warning every boot.
+
 ## Open questions
 
-- **API docs tool** — Scalar and Redoc both produce good-looking docs from an OpenAPI spec; Swagger UI is plainer. Pick one before the first endpoint ships.
-- **Attestation mechanism** — Firebase App Check fits well since Firebase is already in use (Play Integrity on Android, App Attest on iOS, reCAPTCHA on web). Alternative is a signed-request HMAC scheme.
+- **`code-build-graph`** — still not installed, and no package by that name was
+  found on npm. Confirm which tool is meant.

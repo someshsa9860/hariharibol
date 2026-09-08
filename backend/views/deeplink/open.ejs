@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> — HariHariBol</title>
+  <link rel="canonical" href="<%= canonicalUrl %>">
+
+  <%# The reason this page is rendered server-side rather than being a redirect:
+      a link pasted into WhatsApp should preview the verse, not the app name. %>
+  <meta property="og:title" content="<%= title %>">
+  <meta property="og:description" content="<%= description %>">
+  <meta property="og:url" content="<%= canonicalUrl %>">
+  <meta property="og:type" content="article">
+  <% if (imageUrl) { %><meta property="og:image" content="<%= imageUrl %>"><% } %>
+  <meta name="twitter:card" content="<%= imageUrl ? 'summary_large_image' : 'summary' %>">
+
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1><%= title %></h1>
+
+    <% if (sanskrit) { %><div class="sanskrit"><%= sanskrit %></div><% } %>
+    <% if (meaning) { %><p class="meaning"><%= meaning %></p><% } %>
+
+    <div class="card">
+      <p style="margin-top:0"><strong>Open in HariHariBol</strong></p>
+      <a class="btn" href="<%= appUrl %>" id="open">Open the app</a>
+      <a class="btn secondary" href="<%= androidUrl %>">Get it on Android</a>
+      <a class="btn secondary" href="<%= iosUrl %>">Get it on iOS</a>
+    </div>
+
+    <p class="muted">
+      <a href="<%= webUrl %>">Read it on the web</a>
+    </p>
+
+    <footer class="muted">
+      <p>HariHariBol</p>
+    </footer>
+  </div>
+
+  <script>
+    // Try the app immediately. If it is installed the OS takes over and this
+    // page is never seen; if it is not, nothing happens and the store buttons
+    // above are already on screen.
+    //
+    // No timer-based redirect to the store: on iOS that fires while the app is
+    // opening and sends people to the App Store they did not need.
+    (function () {
+      var appUrl = <%- JSON.stringify(appUrl) %>;
+      if (document.visibilityState === 'visible') window.location.href = appUrl;
+    })();
+  </script>
+</body>
+</html>

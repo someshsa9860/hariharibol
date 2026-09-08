@@ -1,0 +1,86 @@
+# Local development stack.
+#
+# Four application containers from one image, plus Postgres and Redis. Rule 8:
+# the worker, the websocket server and the deeplink service each get their own
+# container, separate from the API.
+
+name: hariharibol
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hariharibol
+    ports: ['5432:5432']
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    # Jobs and rate-limit counters live here. appendonly so a restart does not
+    # drop a queue mid-run.
+    command: redis-server --appendonly yes
+    ports: ['6379:6379']
+    volumes: ['redisdata:/data']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    command: node server.js
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hariharibol
+      REDIS_URL: redis://redis:6379
+    ports: ['4000:4000']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: .
+    command: node worker/index.js
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hariharibol
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    # Exactly one. The worker registers the repeatable schedules on boot, and
+    # while BullMQ would de-duplicate them, one process owning the schedule is
+    # far easier to reason about.
+    deploy:
+      replicas: 1
+
+  websocket:
+    build: .
+    command: node websocket/index.js
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hariharibol
+      REDIS_URL: redis://redis:6379
+    ports: ['4001:4001']
+    depends_on:
+      redis: { condition: service_healthy }
+
+  deeplink:
+    build: .
+    command: node deeplink/index.js
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hariharibol
+    ports: ['4002:4002']
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,42 @@
+<%# Shared styles. Inlined rather than served as a static file: these pages are
+    rendered by three different containers, and a stylesheet URL is one more
+    thing that can 404 on the day an app store reviewer opens the page. %>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #fdfdfd;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; }
+  .muted { color: #6b6b6b; font-size: .9rem; }
+  .sanskrit { font-size: 1.25rem; line-height: 2; margin: 1.5rem 0; white-space: pre-line; }
+  .meaning { font-size: 1rem; color: #333; }
+  .btn {
+    display: inline-block; padding: .8rem 1.5rem; border-radius: 8px;
+    background: #1a1a1a; color: #fff; text-decoration: none; font-weight: 600;
+    margin: .35rem .35rem .35rem 0;
+  }
+  .btn.secondary { background: transparent; color: #1a1a1a; border: 1px solid #d4d4d4; }
+  .card { border: 1px solid #e8e8e8; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; background: #fff; }
+  .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 2rem;
+          letter-spacing: .4rem; font-weight: 700; }
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #ececec; }
+  a { color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #101010; color: #ededed; }
+    .card { background: #181818; border-color: #262626; }
+    .meaning { color: #cfcfcf; }
+    .muted { color: #9a9a9a; }
+    .btn { background: #ededed; color: #101010; }
+    .btn.secondary { color: #ededed; border-color: #333; }
+    a { color: #ededed; }
+    footer { border-color: #262626; }
+  }
+</style>

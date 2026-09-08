@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> — <%= appName %></title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1><%= title %></h1>
+    <p class="muted">Last updated <%= updatedAt %></p>
+
+    <h2>Using the app</h2>
+    <p class="meaning">
+      HariHariBol is offered for personal devotional use. You need an account, created through
+      Google or Apple sign-in, and you are responsible for what happens under it.
+    </p>
+
+    <h2>What is free</h2>
+    <p class="meaning">
+      The books, verses, translations, mantras, chanting, sadhana tracking and the daily
+      sloka are free. Premium adds the mood-driven sloka — reporting what you are struggling
+      with and receiving a verse chosen for it.
+    </p>
+
+    <h2>Premium and donations</h2>
+    <p class="meaning">
+      Premium is a monthly subscription. It is also granted permanently to anyone who donates
+      any amount, through Google Play, Apple or Razorpay.
+    </p>
+    <p class="meaning">
+      Subscriptions renew automatically until cancelled. Cancel through the store you bought
+      it from; access continues to the end of the period you have already paid for. Refunds
+      are handled by the store under its own policy.
+    </p>
+
+    <h2>Content</h2>
+    <p class="meaning">
+      Scripture, translations and commentary are reproduced from their sources and remain the
+      property of their respective authors and publishers. They are provided for personal
+      devotional study, not for redistribution.
+    </p>
+
+    <h2>Explanations written by the app</h2>
+    <p class="meaning">
+      Some short notes in the app are written by us or generated with AI assistance. These are
+      always presented separately from acharya commentary and are never attributed to any
+      teacher. If something reads as though it were, that is a bug — please report it.
+    </p>
+
+    <h2>Ending an account</h2>
+    <p class="meaning">
+      You can delete your account at any time from within the app. We may suspend an account
+      that is used to abuse the service or other users.
+    </p>
+
+    <h2>Contact</h2>
+    <p class="meaning">
+      <a href="mailto:support@hariharibol.com">support@hariharibol.com</a>
+    </p>
+
+    <footer class="muted"><p><%= appName %> &middot; <%= year %></p></footer>
+  </div>
+</body>
+</html>

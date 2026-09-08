@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> — <%= appName %></title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1><%= title %></h1>
+    <p class="muted">Last updated <%= updatedAt %></p>
+
+    <p class="meaning">
+      Both app stores require this page to exist at a stable address, so it is served by the
+      API rather than the website.
+    </p>
+
+    <h2>From inside the app</h2>
+    <div class="card">
+      <p class="meaning" style="margin-top:0">
+        Open <strong>Settings</strong>, then <strong>Account</strong>, then
+        <strong>Delete account</strong>. You will be asked to confirm once.
+      </p>
+    </div>
+
+    <h2>What is deleted</h2>
+    <p class="meaning">
+      Your profile, your chanting and sadhana history, your tasks, the struggles you reported,
+      your favourites, your reading progress, your notifications and your devices. This is
+      immediate and cannot be undone.
+    </p>
+
+    <h2>What is kept</h2>
+    <p class="meaning">
+      Records of payments, without your profile attached, for as long as tax and accounting
+      rules require. Nothing in them identifies you to anyone reading the app.
+    </p>
+
+    <h2>If you cannot reach the app</h2>
+    <p class="meaning">
+      Email <a href="mailto:support@hariharibol.com">support@hariharibol.com</a> from the
+      address on the account and we will delete it for you.
+    </p>
+
+    <footer class="muted"><p><%= appName %> &middot; <%= year %></p></footer>
+  </div>
+</body>
+</html>
