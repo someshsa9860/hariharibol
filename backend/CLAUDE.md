@@ -18,7 +18,13 @@ backend/
 │   ├── app/               # mirrors routes/ exactly, file for file
 │   ├── web/
 │   └── admin/
-├── services/              # shared infra only: fcm.js, otp.js, websocket.js, auth.js …
+├── services/              # shared infra only
+│   ├── ai/                # provider-agnostic AI: index.js, gemini.js, openai.js
+│   ├── s3.js              # uploads + presigned URLs (bucket is private)
+│   ├── fcm.js
+│   ├── otp.js
+│   ├── websocket.js
+│   └── auth.js
 ├── views/                 # email templates + server-rendered pages
 ├── jobs/                  # BullMQ queues and processors (Redis-backed)
 ├── worker/                # background job runner — own Docker container
@@ -42,7 +48,10 @@ backend/
 
 6. **Config lives in `config/`**, one file per concern (cors, crons, redis, database …). No configuration inline in `app.js` or in controllers.
 
-7. **Jobs use BullMQ on Redis.** Queue definitions and processors live in `jobs/`; the `worker/` container runs them.
+7. **Jobs use BullMQ on Redis.** Queue definitions and processors live in `jobs/`; the `worker/` container runs them. Scheduled work:
+   - **daily** — build the global and per-user slokas, then push them, respecting each user's `timezone`
+   - **weekly** — rebuild `UserPreferenceProfile` from the week's activity
+   - **on demand** — the AI batch passes that fill `VerseIssue` and `VerseExplanation`
 
 8. **`worker/`, `websocket/`, and `deeplink/` each get their own Docker container**, separate from the API container.
 
@@ -55,6 +64,38 @@ backend/
 - **One auth service**, one users table. Admins and normal users are the same record type, separated by a `role` column.
 - A single person can be both a normal user and an admin. Admin surfaces are reachable **only** if their role/permissions grant it.
 - Use **standard roles**; the permission set is derived from this project's actual content and actions.
+
+## AI
+
+Gemini is the provider we use. It is not the provider the code knows about.
+
+- Everything goes through `services/ai/` behind one interface. Callers ask for a
+  completion; they never learn which provider answered. Swapping Gemini for
+  something else must touch only `services/ai/`.
+- Provider and model come from `AppSetting` (`ai.provider`, `ai.model.text`), so
+  they change without a deploy. API keys are secrets — encrypted, never returned.
+- Every call is written to `AiUsageLog` with tokens and cost. An AI feature whose
+  spend cannot be attributed to an operation does not ship.
+
+### Cost rule: AI never runs on the request path
+
+Generating per user per day does not survive contact with scale — 10,000 users is
+10,000 calls every morning, for content that is largely the same. So the work is
+done **once, ahead of time**, and serving is a database query:
+
+| Work | When | Cost at serve time |
+|---|---|---|
+| Map verses → issues (`VerseIssue` weights) | One batch pass over BG + SB, re-run when the taxonomy changes | none |
+| Verse explanations (`VerseExplanation`) | Once per verse per language, reused by every user | none |
+| Sloka image | Once per `DailySloka` | none |
+| Picking a user's sloka | Weighted query over `VerseIssue` × `UserPreferenceProfile` | none |
+
+A user reporting krodha gets a sloka through an indexed lookup, not a model call.
+The AI spend is bounded by the size of the corpus, not by how many users we have.
+
+For the bulk passes: use batch mode where the provider offers it (roughly half
+price), the cheapest model that does the job, and embeddings rather than chat
+completions for anything that is really similarity matching. Cache in Redis.
 
 ## Client attestation on signup
 

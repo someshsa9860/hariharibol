@@ -78,6 +78,11 @@ enum TaskStatus {
   SKIPPED
 }
 
+enum AiProvider {
+  GEMINI
+  OPENAI
+}
+
 // ============================================================================
 // Auth & access
 // ============================================================================
@@ -130,6 +135,7 @@ model User {
   sadhanaTasks   SadhanaTask[]
   dailySlokas    UserDailySloka[]
   issues         UserIssue[]
+  preferences    UserPreferenceProfile?
 
   @@index([roleId])
   @@index([isBanned])
@@ -557,6 +563,40 @@ model UserIssue {
   @@index([sadhanaDayId])
 }
 
+// What the system has learned about one user, rebuilt weekly by a cron job from
+// their own activity: issues reported, slokas opened, chanting consistency.
+//
+// Entirely derived — every field can be recomputed from UserIssue, SadhanaDay
+// and UserDailySloka. Nothing here is a source of truth, so it is safe to wipe
+// and regenerate when the scoring changes.
+model UserPreferenceProfile {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  // Weighted scores rather than a single winner, so the picker can vary the
+  // sloka instead of returning the same theme every day.
+  //   issueScores { "krodha": 0.8, "moha": 0.3 }
+  //   topicScores { "bhakti": 0.6, "karma": 0.2 }
+  issueScores Json @default("{}")
+  topicScores Json @default("{}")
+
+  preferredBookNumber   Int?
+  preferredTranslatorId String?
+
+  bestDeliveryHour Int? // 0–23 in the user's own timezone, from when they actually open
+  avgRoundsPerDay  Float?
+  chantConsistency Float? // 0–1 across the window
+
+  windowStart DateTime @db.Date
+  windowEnd   DateTime @db.Date
+  computedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([computedAt])
+}
+
 // ============================================================================
 // Sloka for You — the daily sloka, global and personalised
 // ============================================================================
@@ -615,6 +655,59 @@ model UserDailySloka {
   @@index([userId, date])
   @@index([date, notifiedAt]) // the cron sweeps one date's undelivered batch
   @@index([verseId])
+}
+
+// ============================================================================
+// System — settings and AI usage
+// ============================================================================
+
+// Runtime configuration an admin can change without a deploy: active AI
+// provider, model names, feature flags. Anything static belongs in config/
+// files instead — this table is only for what must change at runtime.
+//
+// Secrets are stored encrypted and never returned to any client.
+model AppSetting {
+  key String @id @db.VarChar(100) // "ai.provider", "ai.model.text", "sloka.cron.hour"
+
+  value       String  @db.Text
+  isSecret    Boolean @default(false)
+  description String?
+
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+}
+
+// One row per AI call. Exists so spend is visible per operation — without it
+// there is no way to tell which job is costing money or when a prompt change
+// made it worse.
+model AiUsageLog {
+  id String @id @default(cuid())
+
+  provider AiProvider
+  model    String     @db.VarChar(100)
+
+  // What the call was for: "verse.issue-map", "verse.explanation", "sloka.image".
+  operation String @db.VarChar(50)
+
+  // What it was generating for, when it targets one row.
+  targetType String? @db.VarChar(50)
+  targetId   String?
+
+  inputTokens  Int @default(0)
+  outputTokens Int @default(0)
+
+  // Whole millionths of a USD. An integer because floating point silently
+  // drifts once these are summed over hundreds of thousands of calls.
+  costMicros Int @default(0)
+
+  succeeded    Boolean @default(true)
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  @@index([operation, createdAt])
+  @@index([provider, createdAt])
+  @@index([targetType, targetId])
 }
 
 // ============================================================================
