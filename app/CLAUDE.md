@@ -19,7 +19,7 @@ app/lib/
 │   ├── theme/                   # colors, typography, spacing, padding — the single source
 │   ├── constants/               # everything else that would otherwise be hardcoded
 │   ├── navigation/              # go_router config + navigation singleton + loading handler
-│   └── session/                 # session singleton (Hive-backed)
+│   └── session/                 # session singleton — owns tokens
 ├── models/                      # every model lives here
 ├── views/
 │   ├── auth/                    # login_view.dart …
