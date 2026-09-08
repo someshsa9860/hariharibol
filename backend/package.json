@@ -20,7 +20,8 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed/index.js",
     "docs:export": "node docs/export.js",
-    "graph": "node scripts/code-graph.js"
+    "graph": "node scripts/code-graph.js",
+    "test:auth": "node scripts/auth-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

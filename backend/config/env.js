@@ -5,6 +5,9 @@
 // Booting with a bad config fails immediately and loudly. A missing secret that
 // only shows up on the first payment webhook is far more expensive.
 
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import 'dotenv/config';
 import { z } from 'zod';
 
@@ -13,6 +16,17 @@ const csv = (value) =>
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean);
+
+// `z.coerce.boolean()` is Boolean(value), and Boolean('false') is true — every
+// flag set to "false" in a .env file would read as on. This reads the word.
+const flag = (fallback) =>
+  z
+    .string()
+    .optional()
+    .transform((value) => {
+      if (value === undefined || value.trim() === '') return fallback;
+      return !['false', '0', 'no', 'off'].includes(value.trim().toLowerCase());
+    });
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -31,7 +45,12 @@ const schema = z.object({
   GOOGLE_CLIENT_IDS: z.string().default(''),
   APPLE_BUNDLE_IDS: z.string().default(''),
 
-  APP_CHECK_ENABLED: z.coerce.boolean().default(false),
+  APP_CHECK_ENABLED: flag(false),
+  // Path to the Firebase service account JSON — see secrets/README.md. Either
+  // absolute, or relative to the backend directory. Takes precedence over the
+  // three FIREBASE_* fields below, which remain for hosts where mounting a
+  // file is more trouble than setting variables.
+  GOOGLE_SERVICE_ACCOUNT_PATH: z.string().optional(),
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
@@ -66,7 +85,7 @@ const schema = z.object({
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 
-  DOCS_ENABLED: z.coerce.boolean().default(true),
+  DOCS_ENABLED: flag(true),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -84,6 +103,11 @@ const env = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
+  // Resolved against the backend directory so the .env can hold the short,
+  // obvious `secrets/…json` rather than a path that only works from one cwd.
+  googleServiceAccountPath: parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH
+    ? resolve(dirname(fileURLToPath(import.meta.url)), '..', parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH)
+    : null,
   // Multi-line PEM keys survive .env only as escaped newlines.
   firebasePrivateKey: (parsed.data.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
   applePrivateKey: (parsed.data.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),

@@ -1,0 +1,66 @@
+name: hariharibol
+description: "HariHariBol — Vedic verses, mantras and daily sadhana."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State — one solution, everywhere.
+  flutter_riverpod: ^3.3.2
+
+  # Routing.
+  go_router: ^17.5.0
+
+  # Network.
+  dio: ^5.11.1
+
+  # Storage. Drift for content (relational, searchable, offline),
+  # hive_ce for small key-value state, secure storage for tokens.
+  drift: ^2.34.4
+  drift_flutter: ^0.3.1
+  hive_ce: ^2.19.3
+  hive_ce_flutter: ^2.3.4
+  flutter_secure_storage: ^11.0.0
+
+  # Sign-in.
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
+
+  # Firebase — push, analytics, and App Check (the client attestation the
+  # backend requires before it will create an account).
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  firebase_analytics: ^12.5.0
+  firebase_app_check: ^0.4.7
+
+  # Device facts the API wants on every request.
+  package_info_plus: ^10.2.1
+  device_info_plus: ^13.2.0
+  flutter_timezone: ^5.1.0
+
+  # Media.
+  cached_network_image: ^3.4.1
+  just_audio: ^0.10.6
+
+  intl: ^0.20.2
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.1
+  drift_dev: ^2.34.6
+
+flutter:
+  uses-material-design: true
+  generate: true

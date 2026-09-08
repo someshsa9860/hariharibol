@@ -1,0 +1,87 @@
+{
+  "@@locale": "en",
+
+  "appName": "HariHariBol",
+  "@appName": { "description": "The application name." },
+
+  "actionRetry": "Try again",
+  "actionCancel": "Cancel",
+  "actionOk": "OK",
+  "actionDone": "Done",
+  "actionSave": "Save",
+  "actionViewAll": "View all",
+  "actionSignOut": "Sign out",
+  "actionDeleteAccount": "Delete account",
+  "actionContinue": "Continue",
+
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorNetwork": "No connection. Check your internet and try again.",
+  "errorTimeout": "That took too long. Please try again.",
+  "errorSessionExpired": "Your session has ended. Please sign in again.",
+  "errorEmptyTitle": "Nothing here yet",
+
+  "signInTitle": "Welcome",
+  "signInSubtitle": "Read, chant and keep your daily practice in one place.",
+  "signInWithGoogle": "Continue with Google",
+  "signInWithApple": "Continue with Apple",
+  "signInCancelled": "Sign-in was cancelled.",
+  "signInFailed": "We could not sign you in. Please try again.",
+  "signInLegal": "By continuing you agree to our Terms and Privacy Policy.",
+
+  "tabHome": "Home",
+  "tabSadhana": "Sadhana",
+  "tabLibrary": "Library",
+  "tabProfile": "Profile",
+
+  "homeGreeting": "Hare Kṛṣṇa",
+  "homeGreetingNamed": "Hare Kṛṣṇa, {name}",
+  "@homeGreetingNamed": {
+    "description": "The dashboard greeting. The devotional greeting is the point, so it is not swapped for a time-of-day one.",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "homeMoodPrompt": "How are you today?",
+  "homeVerseOfTheDay": "Verse of the day",
+  "homeSlokaForYou": "For you today",
+  "homeTodaysSadhana": "Today's sadhana",
+  "homeContinueReading": "Continue reading",
+  "homeBooks": "Books",
+  "homeMantras": "Mantras",
+  "homeStartYourDay": "Set today's target",
+
+  "bookChapterCount": "{count, plural, =1{1 chapter} other{{count} chapters}}",
+  "@bookChapterCount": { "placeholders": { "count": { "type": "int" } } },
+  "bookVerseCount": "{count, plural, =1{1 verse} other{{count} verses}}",
+  "@bookVerseCount": { "placeholders": { "count": { "type": "int" } } },
+
+  "labelCanto": "Canto {number}",
+  "@labelCanto": { "placeholders": { "number": { "type": "int" } } },
+  "labelChapter": "Chapter {number}",
+  "@labelChapter": { "placeholders": { "number": { "type": "int" } } },
+  "labelVerse": "Verse {number}",
+  "@labelVerse": { "placeholders": { "number": { "type": "int" } } },
+
+  "sadhanaRoundsProgress": "{done} of {target} rounds",
+  "@sadhanaRoundsProgress": {
+    "placeholders": { "done": { "type": "int" }, "target": { "type": "int" } }
+  },
+  "sadhanaTasksProgress": "{done} of {total} tasks done",
+  "@sadhanaTasksProgress": {
+    "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "sadhanaStreak": "{days, plural, =0{No streak yet} =1{1 day streak} other{{days} day streak}}",
+  "@sadhanaStreak": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+
+  "profileSignedInAs": "Signed in as {email}",
+  "@profileSignedInAs": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "profilePremium": "Premium",
+  "profileFree": "Free",
+  "signOutConfirm": "You will need to sign in again to reach your practice history.",
+  "deleteAccountTitle": "Delete your account?",
+  "deleteAccountBody": "This removes your practice history, favourites and notifications. It cannot be undone.",
+
+  "comingSoon": "Coming soon"
+}

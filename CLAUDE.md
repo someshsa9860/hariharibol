@@ -35,4 +35,8 @@ Each part carries its own rules file. Read the relevant one before writing code 
 
 ## Status
 
-Skeleton only. Rules are being defined per part before any code is written.
+| Part | Where it is |
+|---|---|
+| `backend/` | Built. 43-model Prisma schema, app/web/admin/webhook routes, worker, websocket, deeplink, docs. Migrated and seeded locally; `npm run test:auth` walks the session lifecycle end to end. |
+| `app/` | Foundation built. Sign-in (Google/Apple), session and silent token rotation, theme, l10n, router, dashboard fed by `/api/app/home`. Firebase and release signing are wired for `com.sss.ramkrishnahari` — see [app/CLAUDE.md](app/CLAUDE.md). Sadhana and library tabs are routed and empty. |
+| `admin/` | Not started. Rules not yet defined. |
