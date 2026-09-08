@@ -1,0 +1,698 @@
+// HariHariBol — database schema
+//
+// Two halves:
+//   1. Auth & access — users, roles, permissions, devices, refresh tokens
+//   2. Content       — books, cantos, chapters, verses, translators, translations
+//
+// Scope note: Vaishnav only for now. Every content row carries a `sampradaya`
+// field so other sampradayas can be added later without a migration that has to
+// guess what existing rows belong to.
+//
+// Media (audio, images) is stored in a private S3 bucket. These columns hold the
+// object key, never a URL — links are presigned at response time.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum AuthProvider {
+  GOOGLE
+  APPLE
+}
+
+// What kind of work a Book row is. SCRIPTURE has chapters (and cantos for SB);
+// everything else is short-form and hangs its verses directly off the book.
+enum ContentType {
+  SCRIPTURE
+  STOTRA
+  AARTI
+  PRAYER
+  POEM
+  TEXT
+}
+
+enum VerseType {
+  SHLOKA // metered Sanskrit verse
+  PROSE // prose passage
+  LINE // a line of an aarti, bhajan or poem
+  REFRAIN // repeated chorus line
+  MANTRA // chanted mantra
+}
+
+enum TranslationType {
+  TRANSLATION // plain rendering of the verse
+  COMMENTARY // purport / explanation
+  POETIC_EXPANSION // e.g. Dnyaneshwari's ovis expanding a BG verse
+}
+
+enum ChantSource {
+  IN_APP // counted bead by bead inside the app
+  MANUAL // entered afterwards, chanted on physical beads
+}
+
+enum TaskStatus {
+  PENDING
+  DONE
+  MOVED // pushed to a later day; a successor row carries it forward
+  SKIPPED
+}
+
+// ============================================================================
+// Auth & access
+// ============================================================================
+
+// One table for everyone. An admin is a User whose Role carries admin
+// permissions — there is no separate admin account type.
+model User {
+  id String @id @default(cuid())
+
+  email          String       @unique @db.VarChar(255)
+  name           String?
+  avatarUrl      String?
+  authProvider   AuthProvider
+  providerUserId String       @unique
+
+  // Three independent language choices. They may all differ, or all match —
+  // nothing is derived from another.
+  //   appLanguage     — UI chrome. Most users pick English.
+  //   mantraLanguage  — the script a mantra is displayed in (sa/hi/mr/en/native).
+  //   readingLanguage — what they read and listen to content in.
+  //
+  // Resolving mantra text: mantraLanguage → readingLanguage → appLanguage → "en".
+  // Resolving verse translations: readingLanguage → appLanguage → "en".
+  appLanguage     String @default("en") @db.VarChar(10)
+  mantraLanguage  String @default("sa") @db.VarChar(10)
+  readingLanguage String @default("en") @db.VarChar(10)
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  isBanned     Boolean   @default(false)
+  bannedReason String?
+  bannedAt     DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastActiveAt DateTime @default(now())
+
+  devices       Device[]
+  refreshTokens RefreshToken[]
+
+  sadhanaProfile SadhanaProfile?
+  sadhanaDays    SadhanaDay[]
+  chantSessions  ChantSession[]
+  sadhanaTasks   SadhanaTask[]
+
+  @@index([roleId])
+  @@index([isBanned])
+  @@index([createdAt])
+}
+
+// Standard roles seeded as system rows: user, moderator, admin, super_admin.
+model Role {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(50)
+  name        String
+  description String?
+  isSystem    Boolean @default(false) // system roles cannot be deleted from admin
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+// Permission slugs follow "<resource>.<action>", e.g. "book.publish",
+// "verse.write", "user.ban", "role.manage".
+model Permission {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(100)
+  name        String
+  description String?
+  group       String  @db.VarChar(50) // "content" | "users" | "system" — for grouping the admin UI
+
+  createdAt DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@index([group])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model Device {
+  id String @id @default(cuid())
+
+  deviceId    String  @unique // client-generated stable id
+  platform    String  @db.VarChar(20) // "ios" | "android" | "web"
+  deviceModel String?
+  osVersion   String?
+  appVersion  String?
+
+  fcmToken String?
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  isBanned     Boolean   @default(false)
+  bannedReason String?
+  bannedAt     DateTime?
+
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isBanned])
+}
+
+// Refresh tokens live a year and are replaced on every use. Only the hash is
+// stored; `rotatedAt` marks the row as spent so replay can be detected.
+model RefreshToken {
+  id String @id @default(cuid())
+
+  tokenHash String  @unique
+  userId    String
+  deviceId  String?
+
+  expiresAt DateTime
+  rotatedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// Content
+// ============================================================================
+
+// A Book is any complete work — a full scripture like Srimad Bhagavatam, or a
+// single aarti. `type` decides the shape: SCRIPTURE uses chapters (and cantos
+// for SB), everything else hangs verses straight off the book.
+model Book {
+  id String @id @default(cuid())
+
+  // First segment of every verseId beneath this book. 1=BG, 2=SB.
+  // Already baked into the scraped S3 content — do not renumber.
+  bookNumber Int         @unique
+  slug       String      @unique
+  type       ContentType
+
+  title           String
+  titleI18n       Json? // { "hi": "…", "mr": "…" } — falls back to `title`
+  description     String? @db.Text
+  descriptionI18n Json?
+
+  sourceLanguage String  @default("sa") @db.VarChar(10)
+  sampradaya     String  @default("vaishnav") @db.VarChar(50)
+  deityId        String? // stotras and aartis are usually addressed to one deity
+
+  coverImagePath String?
+  audioPath      String? // full recitation, for short works sung end to end
+
+  totalCantos   Int @default(0)
+  totalChapters Int @default(0)
+  totalVerses   Int @default(0)
+
+  tags String[] @default([]) // deity and theme tags, e.g. ["krishna", "bhakti"]
+
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deity Deity? @relation(fields: [deityId], references: [id], onDelete: SetNull)
+
+  cantos      Canto[]
+  chapters    Chapter[]
+  verses      Verse[]
+  translators BookTranslator[]
+
+  @@index([type])
+  @@index([sampradaya])
+  @@index([deityId])
+  @@index([isPublished])
+  @@index([displayOrder])
+}
+
+// Only Srimad Bhagavatam uses cantos (12 of them). BG has none.
+model Canto {
+  id String @id @default(cuid())
+
+  bookId String
+  number Int
+
+  title       String
+  titleI18n   Json?
+  summary     String? @db.Text
+  summaryI18n Json?
+
+  totalChapters Int @default(0)
+  totalVerses   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book     Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
+
+  @@unique([bookId, number])
+  @@index([bookId])
+}
+
+model Chapter {
+  id String @id @default(cuid())
+
+  bookId      String
+  cantoId     String? // null for BG
+  cantoNumber Int? // denormalised so chapter lists don't need the canto join
+  number      Int
+
+  title       String
+  titleI18n   Json?
+  summary     String? @db.Text
+  summaryI18n Json?
+
+  totalVerses Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book   Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  canto  Canto?  @relation(fields: [cantoId], references: [id], onDelete: Cascade)
+  verses Verse[]
+
+  @@unique([bookId, cantoNumber, number])
+  @@index([bookId])
+  @@index([cantoId])
+}
+
+// The canonical source text, translation-neutral. Renderings by particular
+// translators live in VerseTranslation.
+model Verse {
+  id String @id @default(cuid())
+
+  // Human-readable universal key, dot-separated, matching the scraped content:
+  //   BG    "1.{chapter}.{verse}"            → "1.2.47"
+  //   SB    "2.{canto}.{chapter}.{verse}"    → "2.10.1.5"
+  //   short "{bookNumber}.{verse}"           → "7.12"
+  // This is the uniqueness guarantee for a verse — the positional columns below
+  // are for querying and ordering, and are nullable for short works.
+  verseId String @unique
+
+  bookId        String
+  bookNumber    Int // denormalised from Book, keeps verseId parsing joinless
+  cantoNumber   Int? // null unless the book has cantos
+  chapterId     String? // null for short works
+  chapterNumber Int?
+
+  verseNumber    Int
+  verseNumberEnd Int? // compound verses: 13-14 → verseNumber 13, verseNumberEnd 14
+
+  type VerseType @default(SHLOKA)
+
+  sanskrit        String? @db.Text
+  transliteration String? @db.Text
+  wordMeanings    Json    @default("[]") // [{ word, meaning }] — language-neutral
+
+  audioPath String?
+  tags      String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book         Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter      Chapter?           @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  translations VerseTranslation[]
+
+  @@index([bookId])
+  @@index([chapterId])
+  @@index([bookNumber])
+  @@index([bookId, cantoNumber, chapterNumber, verseNumber])
+}
+
+// An acharya, saint or scholar whose rendering we carry.
+// Devotional commentators only — no academic or non-devotee commentary.
+model Translator {
+  id String @id @default(cuid())
+
+  slug       String  @unique @db.VarChar(100) // "prabhupada", "ramanujacharya"
+  name       String
+  nameI18n   Json?
+  bio        String? @db.Text
+  imagePath  String?
+  sampradaya String  @default("vaishnav") @db.VarChar(50)
+
+  isPublished  Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookLinks    BookTranslator[]
+  translations VerseTranslation[]
+
+  @@index([sampradaya])
+  @@index([isPublished])
+}
+
+model BookTranslator {
+  bookId       String
+  translatorId String
+
+  seriesName    String? // e.g. "Bhagavad-gita As It Is"
+  publishedYear Int?
+  isDefault     Boolean @default(false) // the translation shown unless the user picks another
+
+  book       Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  translator Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, translatorId])
+  @@index([translatorId])
+}
+
+// One translator's rendering of one verse in one language.
+model VerseTranslation {
+  id String @id @default(cuid())
+
+  verseId      String
+  translatorId String
+  languageCode String @db.VarChar(10)
+
+  type TranslationType @default(TRANSLATION)
+
+  meaning String  @db.Text
+  purport String? @db.Text
+
+  // Where this came from in the translator's own work — e.g. Dnyaneshwari
+  // ovis "141-143" mapped onto a single BG verse.
+  sourceRef String? @db.VarChar(50)
+
+  audioPath String?
+
+  isPublished  Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse      Verse      @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  translator Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  @@unique([verseId, translatorId, languageCode, type])
+  @@index([verseId, languageCode])
+  @@index([translatorId])
+  @@index([isPublished])
+}
+
+// ============================================================================
+// Reference data — seeded, then managed from admin
+// ============================================================================
+
+// Deities content can be attributed to or filtered by. Seeded with the Vaishnav
+// set (Krishna, Vishnu, Rama, Narasimha, Radha …) and extended from admin.
+model Deity {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(100)
+  name        String
+  nameI18n    Json? // { "hi": "…", "mr": "…" } — falls back to `name`
+  description String? @db.Text
+
+  imagePath String? // S3 object key
+
+  sampradaya   String  @default("vaishnav") @db.VarChar(50)
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mantras Mantra[]
+  books   Book[]
+
+  @@index([sampradaya])
+  @@index([isPublished])
+}
+
+// Gurus and acharyas a mantra or practice comes through. Seeded with the
+// Vaishnav parampara and extended from admin.
+//
+// Overlaps with Translator by design: the same person can appear in both when
+// they are both a guru and the author of a translation. Kept separate because
+// the two are used for different things — Translator carries a rendering of a
+// text, Guru carries spiritual lineage.
+model Guru {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(100)
+  name        String
+  nameI18n    Json?
+  description String? @db.Text
+
+  imagePath String? // S3 object key
+
+  sampradaya   String  @default("vaishnav") @db.VarChar(50)
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mantras Mantra[]
+
+  @@index([sampradaya])
+  @@index([isPublished])
+}
+
+// ============================================================================
+// Mantras
+// ============================================================================
+
+// A mantra's canonical form. Every language rendering — English included —
+// lives in MantraTranslation, so no single language is baked into the base row
+// and adding a new one never touches this table.
+model Mantra {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(100)
+  name        String // canonical name, e.g. "Hare Krishna Mahamantra"
+  description String? @db.Text
+
+  deityId String? // whom the mantra invokes
+  guruId  String? // the guru or acharya this mantra comes through
+
+  // Devanagari source and its Roman transliteration. Kept here as the
+  // last-resort fallback when a user's three language choices all miss.
+  sanskrit        String  @db.Text
+  transliteration String? @db.Text
+
+  category   String   @db.VarChar(50) // "mahamantra" | "beej" | "name" | "gayatri" …
+  sampradaya String   @default("vaishnav") @db.VarChar(50)
+  tags       String[] @default([])
+
+  // S3 object key, not a URL — the bucket is private and links are presigned at
+  // response time, so a stored URL would expire. Required before publishing.
+  audioPath String?
+
+  // Roughly how long one recitation takes. Drives the in-app chant pacing and
+  // the round-duration estimate, so it must hold even when audio hasn't loaded.
+  durationMs Int?
+
+  // Mantras are counted two different ways in practice, so both are kept and
+  // either may be null: japa mantras in rounds of 108 beads (mahamantra: 16
+  // rounds), others in plain repetitions (gayatri: 3, 11 or 108 times).
+  standardRounds Int?
+  standardCount  Int?
+
+  isPublished  Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deity Deity? @relation(fields: [deityId], references: [id], onDelete: SetNull)
+  guru  Guru?  @relation(fields: [guruId], references: [id], onDelete: SetNull)
+
+  translations  MantraTranslation[]
+  chantSessions ChantSession[]
+
+  @@index([category])
+  @@index([sampradaya])
+  @@index([deityId])
+  @@index([guruId])
+  @@index([isPublished])
+}
+
+// One language's rendering of a mantra. Carries both the mantra written in that
+// script and what it means, because the two are selected by different user
+// preferences:
+//   `text`    ← chosen by the user's mantraLanguage
+//   `meaning` ← chosen by the user's readingLanguage
+// A response therefore may combine two different rows of this table.
+model MantraTranslation {
+  id String @id @default(cuid())
+
+  mantraId     String
+  languageCode String @db.VarChar(10) // "sa", "hi", "mr", "en", …
+
+  name        String? // localised name of the mantra
+  description String? @db.Text
+  text        String  @db.Text // the mantra itself, in this language's script
+
+  meaning String? @db.Text
+  purport String? @db.Text
+
+  // This language's own recitation. Falls back to Mantra.audioPath when absent.
+  audioPath  String?
+  durationMs Int?
+
+  isPublished Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mantra Mantra @relation(fields: [mantraId], references: [id], onDelete: Cascade)
+
+  @@unique([mantraId, languageCode])
+  @@index([mantraId, languageCode])
+  @@index([isPublished])
+}
+
+// ============================================================================
+// Sadhana — daily practice, chanting and tasks
+// ============================================================================
+
+// Standing preferences used to prefill each new day.
+model SadhanaProfile {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  dailyRoundTarget Int     @default(16)
+  reminderTime     String? @db.VarChar(5) // "04:30", local to `timezone`
+
+  // Decides where one sadhana day ends and the next begins. Without it a user
+  // chanting at 1am would have it land on the wrong day.
+  timezone String @default("Asia/Kolkata") @db.VarChar(64)
+
+  startedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// One row per user per calendar date — the anchor every report is built from.
+// The count columns are rollups of the child rows, kept here so a year of
+// history can be charted without aggregating sessions and tasks each time.
+model SadhanaDay {
+  id String @id @default(cuid())
+
+  userId String
+  date   DateTime @db.Date // the user's local date, resolved via SadhanaProfile.timezone
+
+  roundTarget     Int @default(0)
+  roundsCompleted Int @default(0)
+
+  tasksTotal Int @default(0)
+  tasksDone  Int @default(0)
+
+  note String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chantSessions ChantSession[]
+  tasks         SadhanaTask[]
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+// Either a live in-app japa session or a round count entered after the fact.
+// Both land here so totals never have to be assembled from two places.
+model ChantSession {
+  id String @id @default(cuid())
+
+  userId       String
+  sadhanaDayId String
+  mantraId     String?
+
+  source ChantSource @default(IN_APP)
+
+  rounds Int @default(0)
+  beads  Int @default(0) // beads into the round in progress; 108 completes a round
+
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  createdAt DateTime @default(now())
+
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day    SadhanaDay @relation(fields: [sadhanaDayId], references: [id], onDelete: Cascade)
+  mantra Mantra?    @relation(fields: [mantraId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([sadhanaDayId])
+}
+
+// A task on one day's list.
+//
+// Moving a task to another day does not edit this row. It is marked MOVED and a
+// fresh row is created on the target day pointing back through `movedFromId`,
+// so each day keeps an honest record of what was actually planned and finished
+// — otherwise a repeatedly deferred task would silently rewrite past days.
+model SadhanaTask {
+  id String @id @default(cuid())
+
+  userId       String
+  sadhanaDayId String
+
+  title String
+  note  String?
+
+  status       TaskStatus @default(PENDING)
+  displayOrder Int        @default(0)
+  doneAt       DateTime?
+
+  movedFromId String?      @unique
+  movedFrom   SadhanaTask? @relation("TaskMove", fields: [movedFromId], references: [id], onDelete: SetNull)
+  movedTo     SadhanaTask? @relation("TaskMove")
+  deferCount  Int          @default(0) // times carried forward, copied on each move
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day  SadhanaDay @relation(fields: [sadhanaDayId], references: [id], onDelete: Cascade)
+
+  @@index([sadhanaDayId])
+  @@index([userId, status])
+}
