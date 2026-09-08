@@ -97,6 +97,38 @@ For the bulk passes: use batch mode where the provider offers it (roughly half
 price), the cheapest model that does the job, and embeddings rather than chat
 completions for anything that is really similarity matching. Cache in Redis.
 
+## Subscriptions, donations and entitlement
+
+**The app is free.** Paywalling is the exception, not the model — default any new
+feature to free unless there is a decision otherwise.
+
+| Free | Premium |
+|---|---|
+| All books, verses, mantras and translations | Mood-driven sloka: reporting an issue and getting a sloka chosen for it |
+| Chanting, sadhana targets, tasks, reports | |
+| The global sloka of the day | |
+
+The paid feature is the one with a per-user AI cost behind it, so spend follows
+revenue rather than running ahead of it.
+
+**Premium is earned two ways**, and they are worth equal access:
+
+- an **active subscription** — one monthly plan, named "Premium"
+- **any donation, of any amount**, through Google Play, Apple or Razorpay. A
+  donor keeps premium permanently: `premiumUntil` stays null.
+
+`User.isPremium` is a cache, owned by the payment webhooks and the daily job, and
+rebuildable from `Subscription` and `Payment` at any time. Read entitlement from
+it; never scatter subscription logic through controllers.
+
+**Payments are one ledger.** Subscriptions and donations both land in `Payment`,
+separated by `purpose`. They arrive the same way and reconcile the same way, so
+splitting them would mean maintaining two of everything.
+
+`(provider, externalId)` is unique on both `Payment` and `Subscription` because
+every provider retries webhooks — without that constraint a retry credits the
+user twice. Store money as integer minor units (paise, cents); floats drift.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.

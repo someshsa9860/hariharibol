@@ -83,6 +83,33 @@ enum AiProvider {
   OPENAI
 }
 
+enum PaymentProvider {
+  GOOGLE_PLAY
+  APPLE_APP_STORE
+  RAZORPAY
+}
+
+enum PaymentPurpose {
+  SUBSCRIPTION
+  DONATION
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum SubscriptionStatus {
+  IN_TRIAL
+  ACTIVE
+  GRACE // renewal failed; still entitled while the provider retries
+  CANCELLED // will not renew, but entitled until currentPeriodEnd
+  EXPIRED
+  REFUNDED
+}
+
 // ============================================================================
 // Auth & access
 // ============================================================================
@@ -118,6 +145,17 @@ model User {
   roleId String
   role   Role   @relation(fields: [roleId], references: [id])
 
+  // Entitlement, cached here because it is checked on ordinary requests and a
+  // join per request is not worth it. Derived — the payment webhooks and the
+  // daily job own it, and it can always be rebuilt from Subscription + Payment.
+  //
+  // Earned two ways: an active subscription, or any donation of any amount.
+  // `premiumUntil` null while isPremium is true means it never lapses, which is
+  // how donors are held — they gave once and keep access.
+  isPremium    Boolean   @default(false)
+  premiumSince DateTime?
+  premiumUntil DateTime?
+
   isBanned     Boolean   @default(false)
   bannedReason String?
   bannedAt     DateTime?
@@ -136,6 +174,8 @@ model User {
   dailySlokas    UserDailySloka[]
   issues         UserIssue[]
   preferences    UserPreferenceProfile?
+  subscriptions  Subscription[]
+  payments       Payment[]
 
   @@index([roleId])
   @@index([isBanned])
@@ -655,6 +695,113 @@ model UserDailySloka {
   @@index([userId, date])
   @@index([date, notifiedAt]) // the cron sweeps one date's undelivered batch
   @@index([verseId])
+}
+
+// ============================================================================
+// Money — subscriptions and donations
+// ============================================================================
+
+// One row today: the monthly "Premium" plan. A table rather than constants
+// because the three stores each issue their own product id, and because a
+// subscription must keep pointing at the price it was actually sold at when
+// that price later changes.
+model SubscriptionPlan {
+  id String @id @default(cuid())
+
+  slug        String  @unique @db.VarChar(50) // "premium-monthly"
+  name        String // "Premium"
+  description String? @db.Text
+
+  googleProductId String?
+  appleProductId  String?
+  razorpayPlanId  String?
+
+  // Smallest currency unit — paise for INR, cents for USD. Never a float:
+  // money in floating point drifts once it is summed.
+  priceMinor Int
+  currency   String @db.VarChar(3)
+  periodDays Int    @default(30)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id String @id @default(cuid())
+
+  userId String
+  planId String
+
+  provider   PaymentProvider
+  externalId String? // the provider's own subscription id
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  startedAt        DateTime  @default(now())
+  currentPeriodEnd DateTime
+  cancelledAt      DateTime?
+  autoRenew        Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@unique([provider, externalId])
+  @@index([userId, status])
+  @@index([currentPeriodEnd])
+}
+
+// Every money event, subscription renewals and donations alike. One ledger
+// because both arrive as provider webhooks, both need the same reconciliation,
+// and separating them would mean maintaining two of everything.
+//
+// `(provider, externalId)` is unique: provider webhooks retry, and without that
+// constraint a retry credits the user twice.
+model Payment {
+  id String @id @default(cuid())
+
+  userId         String
+  subscriptionId String? // set when purpose is SUBSCRIPTION
+
+  provider   PaymentProvider
+  purpose    PaymentPurpose
+  externalId String // provider's transaction/order id
+
+  amountMinor Int // smallest currency unit
+  currency    String @db.VarChar(3)
+
+  status PaymentStatus @default(PENDING)
+
+  // Donation-only: what the donor wanted to say, and whether to name them.
+  message     String? @db.Text
+  isAnonymous Boolean @default(false)
+
+  paidAt     DateTime?
+  refundedAt DateTime?
+
+  // The provider's raw webhook body, kept for disputes and for replaying a
+  // payment that failed to process on our side.
+  providerPayload Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalId])
+  @@index([userId, purpose])
+  @@index([status, createdAt])
+  @@index([purpose, paidAt])
 }
 
 // ============================================================================
