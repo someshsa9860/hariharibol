@@ -5,14 +5,14 @@
 // whose own local hour has come round — one job that did both would either send
 // everyone their sloka at 3am somewhere, or hold a connection open for a day.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const notify = require('../../services/notify');
-const settings = require('../../services/setting');
-const websocket = require('../../services/websocket');
-const slokaController = require('../../controllers/app/sloka');
-const { localDateString, localHour, toDateColumn, shiftDays } = require('../../utils/date');
-const { SETTING_KEYS } = require('../../config/constants');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import * as notify from '../../services/notify.js';
+import * as settings from '../../services/setting.js';
+import * as websocket from '../../services/websocket.js';
+import * as slokaController from '../../controllers/app/sloka.js';
+import { localDateString, localHour, toDateColumn, shiftDays } from '../../utils/date.js';
+import { SETTING_KEYS } from '../../config/constants.js';
 
 const BATCH_SIZE = 500;
 
@@ -196,7 +196,7 @@ async function deliver() {
   return { sent };
 }
 
-module.exports = async function slokaProcessor(job) {
+export default async function slokaProcessor(job) {
   switch (job.name) {
     case 'sloka.build': {
       // Tomorrow in the timezone most users are in; per-user dates are worked
@@ -213,7 +213,6 @@ module.exports = async function slokaProcessor(job) {
     default:
       throw new Error(`Unknown sloka job: ${job.name}`);
   }
-};
+}
 
-module.exports.buildGlobal = buildGlobal;
-module.exports.deliver = deliver;
+export { buildGlobal, deliver };

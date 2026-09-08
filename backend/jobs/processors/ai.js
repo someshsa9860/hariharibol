@@ -15,10 +15,10 @@
 //     month's cap is reached, so a prompt change that triples token use shows
 //     up as a halted job rather than an invoice.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const ai = require('../../services/ai');
-const { SLOKA_ELIGIBLE_BOOK_NUMBERS } = require('../../config/constants');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import * as ai from '../../services/ai/index.js';
+import { SLOKA_ELIGIBLE_BOOK_NUMBERS } from '../../config/constants.js';
 
 const ISSUE_MAP_SYSTEM = `You are helping a Vaishnav devotional app connect verses to the
 struggles its users report. You will be given one verse from the Bhagavad Gita or Srimad
@@ -217,7 +217,7 @@ async function explanations(job) {
   return { written, languageCode };
 }
 
-module.exports = async function aiProcessor(job) {
+export default async function aiProcessor(job) {
   switch (job.name) {
     case 'issue-map':
       return issueMap(job);

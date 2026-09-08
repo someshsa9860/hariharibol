@@ -17,16 +17,16 @@
 // indexed query, not a model call. That is what keeps the cost of this feature
 // bounded by the size of the corpus rather than by the number of users.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const s3 = require('../../services/s3');
-const settings = require('../../services/setting');
-const { ok, created } = require('../../utils/respond');
-const { notFound, paymentRequired } = require('../../utils/errors');
-const { localDateString, toDateColumn, shiftDays } = require('../../utils/date');
-const { SETTING_KEYS, SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE } = require('../../config/constants');
-const { redis } = require('../../config/redis');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import * as s3 from '../../services/s3.js';
+import * as settings from '../../services/setting.js';
+import { ok, created } from '../../utils/respond.js';
+import { notFound, paymentRequired } from '../../utils/errors.js';
+import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
+import { SETTING_KEYS, SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE } from '../../config/constants.js';
+import { redis } from '../../config/redis.js';
 
 // How far back to look when avoiding repeats. Long enough that a sloka does not
 // come round again while it is still familiar, short enough that a small
@@ -110,7 +110,7 @@ async function pickAnyEligibleVerse(excludeVerseIds) {
  * The global sloka. Public and free — the same verse for everyone, cached
  * because every user asks for it within the same few hours.
  */
-exports.today = async (req, res) => {
+export const today = async (req, res) => {
   const user = req.auth.user;
   const date = req.valid.query.date || localDateString(user?.timezone || 'Asia/Kolkata');
 
@@ -156,7 +156,7 @@ exports.today = async (req, res) => {
  * spot if the job has not reached them — a new account should not see an empty
  * screen until tomorrow.
  */
-exports.mine = async (req, res) => {
+export const mine = async (req, res) => {
   const user = req.auth.user;
   const date = req.valid.query.date || localDateString(user.timezone);
   const readingChain = language.readingChain(user);
@@ -232,7 +232,7 @@ exports.mine = async (req, res) => {
  * A free monthly quota is allowed through first. Gating it completely would
  * mean most people never see the thing that makes the app worth paying for.
  */
-exports.mood = async (req, res) => {
+export const mood = async (req, res) => {
   const user = req.auth.user;
   const { issueSlug, intensity, note } = req.valid.body;
   const date = localDateString(user.timezone);
@@ -315,7 +315,7 @@ exports.mood = async (req, res) => {
 };
 
 /** POST /api/app/sloka/:id/seen — marks a personal sloka as read. */
-exports.markSeen = async (req, res) => {
+export const markSeen = async (req, res) => {
   const updated = await prisma.userDailySloka.updateMany({
     where: { id: req.valid.params.id, userId: req.auth.user.id, seenAt: null },
     data: { seenAt: new Date() },
@@ -324,7 +324,7 @@ exports.markSeen = async (req, res) => {
 };
 
 /** GET /api/app/sloka/history — the slokas this user has been given. */
-exports.history = async (req, res) => {
+export const history = async (req, res) => {
   const user = req.auth.user;
   const readingChain = language.readingChain(user);
 
@@ -353,6 +353,5 @@ exports.history = async (req, res) => {
   );
 };
 
-module.exports.pickVerseForIssue = pickVerseForIssue;
-module.exports.pickAnyEligibleVerse = pickAnyEligibleVerse;
-module.exports.recentVerseIds = recentVerseIds;
+// Shared with the nightly sloka job, which picks the same way this does.
+export { pickVerseForIssue, pickAnyEligibleVerse, recentVerseIds };

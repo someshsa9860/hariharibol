@@ -1,5 +1,5 @@
-const { createRouter } = require('../../utils/router');
-const controller = require('../../controllers/app/home');
+import { createRouter } from '../../utils/router.js';
+import * as controller from '../../controllers/app/home.js';
 
 const router = createRouter({
   tag: 'Home',
@@ -24,4 +24,4 @@ router.get(
   controller.home
 );
 
-module.exports = router;
+export default router;

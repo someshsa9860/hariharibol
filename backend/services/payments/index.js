@@ -7,16 +7,15 @@
 // user twice. It is a unique index in the schema and an upsert here; neither
 // alone is enough, because two retries can race.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const entitlement = require('../entitlement');
-const notify = require('../notify');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import * as entitlement from '../entitlement.js';
+import * as notify from '../notify.js';
+import * as google from './google.js';
+import * as apple from './apple.js';
+import * as razorpay from './razorpay.js';
 
-const providers = {
-  GOOGLE_PLAY: require('./google'),
-  APPLE_APP_STORE: require('./apple'),
-  RAZORPAY: require('./razorpay'),
-};
+const providers = { GOOGLE_PLAY: google, APPLE_APP_STORE: apple, RAZORPAY: razorpay };
 
 // Records money moving, then recomputes what the user is entitled to. The
 // second half is the point — a Payment row that does not refresh entitlement is
@@ -122,4 +121,4 @@ async function thankDonor(userId, amountMinor, currency) {
   });
 }
 
-module.exports = { providers, recordPayment, upsertSubscription, markRefunded, thankDonor };
+export { providers, recordPayment, upsertSubscription, markRefunded, thankDonor };

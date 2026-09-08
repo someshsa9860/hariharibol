@@ -4,8 +4,8 @@
 // Plain fetch rather than the vendor SDK: the surface we use is two endpoints,
 // and an SDK here would be a dependency to keep current for no benefit.
 
-const env = require('../../config/env');
-const { AppError } = require('../../utils/errors');
+import env from '../../config/env.js';
+import { AppError } from '../../utils/errors.js';
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -64,4 +64,8 @@ async function complete({ model, system, prompt, json = false, maxTokens = 1024,
   };
 }
 
-module.exports = { name: 'GEMINI', complete, costMicros, PRICING, defaultModel: env.GEMINI_MODEL };
+// The shape services/ai/index.js expects of every provider: a name for the
+// usage log, a completion call, a cost function and a default model.
+export const name = 'GEMINI';
+export const defaultModel = env.GEMINI_MODEL;
+export { complete, costMicros, PRICING };

@@ -6,10 +6,17 @@
 // and an undocumented endpoint cannot exist in the first place (the router
 // throws if a route is registered without a summary).
 
-const { zodToJsonSchema } = require('zod-to-json-schema');
-const { registry } = require('../utils/router');
-const env = require('../config/env');
-const pkg = require('../package.json');
+import fs from 'node:fs';
+import path from 'node:path';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import { registry } from '../utils/router.js';
+import env from '../config/env.js';
+
+// Read rather than imported: a JSON import would need an import attribute,
+// and the version is the only field wanted.
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(import.meta.dirname, '..', 'package.json'), 'utf8')
+);
 
 // Express writes `:id`; OpenAPI wants `{id}`.
 const toOpenApiPath = (path) => path.replace(/:([A-Za-z0-9_]+)/g, '{$1}');
@@ -195,4 +202,4 @@ function build() {
   };
 }
 
-module.exports = { build };
+export { build };

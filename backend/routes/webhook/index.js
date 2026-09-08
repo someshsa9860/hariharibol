@@ -5,9 +5,14 @@
 // signature rather than by a bearer token. Filing them under one of the three
 // platforms would put a route in a directory nobody would think to look in.
 
-const express = require('express');
-const { mount } = require('../../utils/router');
+import express from 'express';
 
-const routers = [require('./payment')];
+import { mount } from '../../utils/router.js';
 
-module.exports = mount(express.Router(), '/api/webhooks', routers);
+import paymentRoutes from './payment.js';
+
+const routers = [
+  paymentRoutes,
+];
+
+export default mount(express.Router(), '/api/webhooks', routers);

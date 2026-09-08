@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/app/mantra');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/app/mantra.js';
 
 const router = createRouter({
   tag: 'Mantras',
@@ -57,4 +57,4 @@ router.get(
   controller.get
 );
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/web/content');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/web/content.js';
 
 const router = createRouter({
   tag: 'Website content',
@@ -96,4 +96,4 @@ router.get(
   controller.sitemap
 );
 
-module.exports = router;
+export default router;

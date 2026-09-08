@@ -1,7 +1,7 @@
 // The mobile app sends no Origin header, so a missing origin is allowed. Browser
 // callers must be on the list — the admin panel and the website.
 
-const env = require('./env');
+import env from './env.js';
 
 const allowed = new Set(
   [
@@ -12,7 +12,7 @@ const allowed = new Set(
   ].filter(Boolean)
 );
 
-module.exports = {
+export default {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
     if (allowed.has(origin)) return callback(null, true);

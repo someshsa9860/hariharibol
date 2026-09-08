@@ -8,7 +8,7 @@
 // The order is the user's stated intent, so it is applied here rather than
 // re-derived in each controller.
 
-const { DEFAULT_LANGUAGE, SOURCE_LANGUAGE } = require('../config/constants');
+import { DEFAULT_LANGUAGE, SOURCE_LANGUAGE } from '../config/constants.js';
 
 const dedupe = (codes) => [...new Set(codes.filter(Boolean))];
 
@@ -69,4 +69,4 @@ function fromHeader(header) {
   return first.split('-')[0].toLowerCase();
 }
 
-module.exports = { mantraChain, readingChain, appChain, pick, localised, fromHeader };
+export { mantraChain, readingChain, appChain, pick, localised, fromHeader };

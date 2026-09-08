@@ -6,20 +6,21 @@
 //
 //   npm run docs:export
 
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-// Loading the route groups is what populates the registry.
-require('../routes/app');
-require('../routes/web');
-require('../routes/admin');
-require('../routes/webhook');
+// Imported for their side effect: loading a route group is what registers
+// its routes, and the registry is what the spec is built from.
+import '../routes/app/index.js';
+import '../routes/web/index.js';
+import '../routes/admin/index.js';
+import '../routes/webhook/index.js';
 
-const { build } = require('./openapi');
-const { registry } = require('../utils/router');
+import { build } from './openapi.js';
+import { registry } from '../utils/router.js';
 
 const spec = build();
-const target = path.join(__dirname, 'openapi.json');
+const target = path.join(import.meta.dirname, 'openapi.json');
 
 fs.writeFileSync(target, `${JSON.stringify(spec, null, 2)}\n`);
 

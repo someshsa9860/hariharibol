@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/app/sloka');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/app/sloka.js';
 
 const router = createRouter({
   tag: 'Sloka for You',
@@ -94,4 +94,4 @@ router.get(
   controller.history
 );
 
-module.exports = router;
+export default router;

@@ -11,13 +11,13 @@
 // takes. The cuid primary key is an implementation detail and never appears in
 // a URL.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const s3 = require('../../services/s3');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import * as s3 from '../../services/s3.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound } from '../../utils/errors.js';
 
 /**
  * GET /api/app/verses
@@ -25,7 +25,7 @@ const { notFound } = require('../../utils/errors');
  * /books/:slug/chapters/:number instead — this is for browsing by tag and for
  * anything that spans chapters.
  */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { bookNumber, canto, chapter, tag } = req.valid.query;
   const readingChain = language.readingChain(req.auth.user);
 
@@ -53,7 +53,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/app/verses/:verseId */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const readingChain = language.readingChain(req.auth.user);
 
   const verse = await prisma.verse.findUnique({
@@ -84,7 +84,7 @@ exports.get = async (req, res) => {
  * acharyas side by side. The single resolved translation on the verse itself
  * covers the ordinary case.
  */
-exports.translations = async (req, res) => {
+export const translations = async (req, res) => {
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
     select: { id: true },
@@ -126,7 +126,7 @@ exports.translations = async (req, res) => {
  * A saint's telling of the story around a verse, usually with audio. Distinct
  * from a purport: narrative, not commentary on the text.
  */
-exports.narrations = async (req, res) => {
+export const narrations = async (req, res) => {
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
     select: { id: true },
@@ -164,7 +164,7 @@ exports.narrations = async (req, res) => {
  * link is stored one way round because "expands on" does not read the same in
  * reverse, so only outgoing links are followed here.
  */
-exports.related = async (req, res) => {
+export const related = async (req, res) => {
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
     select: { id: true },

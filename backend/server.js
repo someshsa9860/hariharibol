@@ -2,11 +2,11 @@
 // and the background work runs in its own containers (worker/, websocket/,
 // deeplink/).
 
-const app = require('./app');
-const env = require('./config/env');
-const logger = require('./config/logger');
-const { connectDatabase, disconnectDatabase } = require('./config/database');
-const { closeQueues } = require('./jobs');
+import app from './app.js';
+import env from './config/env.js';
+import logger from './config/logger.js';
+import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { closeQueues } from './jobs/index.js';
 
 let server;
 

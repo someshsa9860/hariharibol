@@ -14,10 +14,10 @@
 // Offering the Razorpay path inside the iOS build risks rejection — the app
 // should show the store flow on iOS and keep Razorpay for Android and the web.
 
-const { prisma } = require('../../config/database');
-const payments = require('../../services/payments');
-const { ok, created } = require('../../utils/respond');
-const { badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as payments from '../../services/payments/index.js';
+import { ok, created } from '../../utils/respond.js';
+import { badRequest } from '../../utils/errors.js';
 
 // A floor, so the ledger does not fill with 1-rupee rows that cost more in
 // payment fees than they bring in.
@@ -28,7 +28,7 @@ const MIN_AMOUNT_MINOR = 1000; // ₹10
  * Opens an order. Nothing is credited here — the order is only an intent, and
  * the money has not moved yet.
  */
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   const user = req.auth.user;
   const { amountMinor, currency, message, isAnonymous } = req.valid.body;
 
@@ -67,7 +67,7 @@ exports.createOrder = async (req, res) => {
  * order, which is enough to grant access immediately; the webhook confirms it
  * again server to server, and the upsert makes the second write harmless.
  */
-exports.verifyOrder = async (req, res) => {
+export const verifyOrder = async (req, res) => {
   const user = req.auth.user;
   const { orderId, paymentId, signature } = req.valid.body;
 
@@ -101,7 +101,7 @@ exports.verifyOrder = async (req, res) => {
  * POST /api/app/donations/store
  * A one-off donation product bought through Google Play or the App Store.
  */
-exports.storeDonation = async (req, res) => {
+export const storeDonation = async (req, res) => {
   const user = req.auth.user;
   const { provider, productId, purchaseToken, transactionId, amountMinor, currency } =
     req.valid.body;
@@ -141,7 +141,7 @@ exports.storeDonation = async (req, res) => {
 };
 
 /** GET /api/app/donations/mine — this user's own giving history. */
-exports.mine = async (req, res) => {
+export const mine = async (req, res) => {
   const donations = await prisma.payment.findMany({
     where: { userId: req.auth.user.id, purpose: 'DONATION' },
     orderBy: { createdAt: 'desc' },

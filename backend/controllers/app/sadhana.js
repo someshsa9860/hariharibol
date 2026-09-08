@@ -13,18 +13,12 @@
 // a year of history can be charted without aggregating sessions and tasks every
 // time, and `recountDay` is the only thing allowed to write them.
 
-const { prisma } = require('../../config/database');
-const { ok, created } = require('../../utils/respond');
-const { notFound, badRequest, forbidden } = require('../../utils/errors');
-const {
-  localDateString,
-  toDateColumn,
-  shiftDays,
-  dateRange,
-  isValidDateString,
-} = require('../../utils/date');
-const { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET } = require('../../config/constants');
-const websocket = require('../../services/websocket');
+import { prisma } from '../../config/database.js';
+import { ok, created } from '../../utils/respond.js';
+import { notFound, badRequest, forbidden } from '../../utils/errors.js';
+import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString } from '../../utils/date.js';
+import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET } from '../../config/constants.js';
+import * as websocket from '../../services/websocket.js';
 
 /**
  * The day row for a user's local date, created on first touch.
@@ -103,7 +97,7 @@ async function currentStreak(userId, timezone) {
  * The whole practice screen in one call: the day, its tasks, its sessions, the
  * standing target and the current streak.
  */
-exports.today = async (req, res) => {
+export const today = async (req, res) => {
   const user = req.auth.user;
   const date = req.valid.query.date || localDateString(user.timezone);
   const day = await ensureDay(user, date);
@@ -141,7 +135,7 @@ exports.today = async (req, res) => {
 };
 
 /** PATCH /api/app/sadhana/today — today's target and note, without touching the standing one. */
-exports.updateDay = async (req, res) => {
+export const updateDay = async (req, res) => {
   const user = req.auth.user;
   const { date, roundTarget, note } = req.valid.body;
   const day = await ensureDay(user, date);
@@ -159,7 +153,7 @@ exports.updateDay = async (req, res) => {
  * Rounds chanted on physical beads, entered afterwards. The common case for
  * anyone who does not want a phone in their hand while chanting.
  */
-exports.logManualRounds = async (req, res) => {
+export const logManualRounds = async (req, res) => {
   const user = req.auth.user;
   const { date, rounds, mantraId, durationSeconds } = req.valid.body;
   const day = await ensureDay(user, date);
@@ -191,7 +185,7 @@ exports.logManualRounds = async (req, res) => {
  * Opens a live in-app session. Progress is written as it goes rather than only
  * at the end, so closing the app mid-round does not lose the count.
  */
-exports.startSession = async (req, res) => {
+export const startSession = async (req, res) => {
   const user = req.auth.user;
   const { mantraId } = req.valid.body;
   const day = await ensureDay(user);
@@ -214,7 +208,7 @@ exports.startSession = async (req, res) => {
  * Bead and round progress, and the close. Counts only ever move forward — a
  * dropped request that arrives late must not roll the total backwards.
  */
-exports.updateSession = async (req, res) => {
+export const updateSession = async (req, res) => {
   const user = req.auth.user;
   const { id } = req.valid.params;
   const { rounds, beads, finish } = req.valid.body;
@@ -246,7 +240,7 @@ exports.updateSession = async (req, res) => {
 };
 
 /** GET /api/app/sadhana/days — history for a date range, for the calendar view. */
-exports.days = async (req, res) => {
+export const days = async (req, res) => {
   const user = req.auth.user;
   const to = req.valid.query.to || localDateString(user.timezone);
   const from = req.valid.query.from || shiftDays(to, -30);
@@ -265,7 +259,7 @@ exports.days = async (req, res) => {
  * empty ones — a chart with gaps silently closed over is a chart that lies
  * about consistency.
  */
-exports.report = async (req, res) => {
+export const report = async (req, res) => {
   const user = req.auth.user;
   const to = req.valid.query.to || localDateString(user.timezone);
   const from = req.valid.query.from || shiftDays(to, -29);
@@ -343,6 +337,6 @@ exports.report = async (req, res) => {
   });
 };
 
-module.exports.ensureDay = ensureDay;
-module.exports.recountDay = recountDay;
-module.exports.currentStreak = currentStreak;
+// Shared with the task controller and the home screen — a helper between
+// two controllers, not a service layer around them.
+export { ensureDay, recountDay, currentStreak };

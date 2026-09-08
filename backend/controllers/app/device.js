@@ -4,17 +4,17 @@
 // fresh install can receive the sloka-of-the-day broadcast, and how an abusive
 // installation can be blocked even after it creates a new account.
 
-const { prisma } = require('../../config/database');
-const fcm = require('../../services/fcm');
-const { ok } = require('../../utils/respond');
-const { notFound } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as fcm from '../../services/fcm.js';
+import { ok } from '../../utils/respond.js';
+import { notFound } from '../../utils/errors.js';
 
 /**
  * POST /api/app/devices
  * Registers or updates this installation. Called on launch, and again whenever
  * the FCM token is rotated by the OS.
  */
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
   const body = req.valid.body;
   const deviceId = body.deviceId || req.deviceId;
   const userId = req.auth.user?.id || null;
@@ -48,7 +48,7 @@ exports.register = async (req, res) => {
 };
 
 /** PATCH /api/app/devices/fcm-token — the OS rotated the token. */
-exports.updateToken = async (req, res) => {
+export const updateToken = async (req, res) => {
   const { fcmToken } = req.valid.body;
   const deviceId = req.valid.body.deviceId || req.deviceId;
 
@@ -62,7 +62,7 @@ exports.updateToken = async (req, res) => {
 };
 
 /** GET /api/app/devices/topics — broadcast topics and whether this device is on them. */
-exports.topics = async (req, res) => {
+export const topics = async (req, res) => {
   const deviceId = req.query.deviceId || req.deviceId;
 
   const [topics, device] = await Promise.all([
@@ -89,7 +89,7 @@ exports.topics = async (req, res) => {
 };
 
 /** POST /api/app/devices/topics/:key — subscribe this device to a topic. */
-exports.subscribe = async (req, res) => {
+export const subscribe = async (req, res) => {
   const { key } = req.valid.params;
   const deviceId = req.valid.body.deviceId || req.deviceId;
 
@@ -101,7 +101,7 @@ exports.subscribe = async (req, res) => {
 };
 
 /** DELETE /api/app/devices/topics/:key */
-exports.unsubscribe = async (req, res) => {
+export const unsubscribe = async (req, res) => {
   const { key } = req.valid.params;
   const deviceId = req.query.deviceId || req.deviceId;
 

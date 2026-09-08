@@ -11,17 +11,17 @@
 //            and replaced on every use — `rotatedAt` marks a row spent, which
 //            is what makes replay detectable.
 
-const crypto = require('node:crypto');
-const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
-const { createRemoteJWKSet, jwtVerify } = require('jose');
+import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const env = require('../config/env');
-const logger = require('../config/logger');
-const { prisma } = require('../config/database');
-const { redis } = require('../config/redis');
-const { CACHE, ROLES } = require('../config/constants');
-const { unauthorized, badRequest } = require('../utils/errors');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
+import { prisma } from '../config/database.js';
+import { redis } from '../config/redis.js';
+import { CACHE, ROLES } from '../config/constants.js';
+import { unauthorized, badRequest } from '../utils/errors.js';
 
 const googleClient = new OAuth2Client();
 const appleKeys = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/keys'));
@@ -242,7 +242,7 @@ async function invalidateRole(roleId) {
   await redis.del(users.map((u) => CACHE.userAuth(u.id))).catch(() => null);
 }
 
-module.exports = {
+export {
   signAccessToken,
   verifyAccessToken,
   issueSession,

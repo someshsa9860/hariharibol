@@ -1,5 +1,5 @@
-const { createRouter } = require('../../utils/router');
-const controller = require('../../controllers/app/reference');
+import { createRouter } from '../../utils/router.js';
+import * as controller from '../../controllers/app/reference.js';
 
 const router = createRouter({
   tag: 'Reference',
@@ -66,4 +66,4 @@ router.get(
   controller.translators
 );
 
-module.exports = router;
+export default router;

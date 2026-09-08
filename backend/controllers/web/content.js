@@ -9,14 +9,14 @@
 // Everything here is anonymous and English-first — there is no signed-in reader
 // to resolve languages against.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const s3 = require('../../services/s3');
-const { ok } = require('../../utils/respond');
-const { notFound } = require('../../utils/errors');
-const { paginate } = require('../../utils/pagination');
-const { localDateString, toDateColumn } = require('../../utils/date');
-const env = require('../../config/env');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as s3 from '../../services/s3.js';
+import { ok } from '../../utils/respond.js';
+import { notFound } from '../../utils/errors.js';
+import { paginate } from '../../utils/pagination.js';
+import { localDateString, toDateColumn } from '../../utils/date.js';
+import env from '../../config/env.js';
 
 // The website has no session, so the language comes from the URL or the
 // Accept-Language header. Shaped as a user object because that is what
@@ -27,7 +27,7 @@ function visitor(req) {
 }
 
 /** GET /api/web/books */
-exports.books = async (req, res) => {
+export const books = async (req, res) => {
   const reader = visitor(req);
 
   const { items, page } = await paginate(prisma.book, {
@@ -41,7 +41,7 @@ exports.books = async (req, res) => {
 };
 
 /** GET /api/web/books/:slug — the book with its full chapter list, for the index page. */
-exports.book = async (req, res) => {
+export const book = async (req, res) => {
   const reader = visitor(req);
 
   const book = await prisma.book.findFirst({
@@ -69,7 +69,7 @@ exports.book = async (req, res) => {
  * the canonical one for that verse, so it carries everything rather than the
  * one rendering the app would pick.
  */
-exports.verse = async (req, res) => {
+export const verse = async (req, res) => {
   const reader = visitor(req);
 
   const verse = await prisma.verse.findUnique({
@@ -119,7 +119,7 @@ exports.verse = async (req, res) => {
 };
 
 /** GET /api/web/sloka/today — the shareable sloka of the day. */
-exports.slokaOfTheDay = async (req, res) => {
+export const slokaOfTheDay = async (req, res) => {
   const reader = visitor(req);
   const date = req.valid.query.date || localDateString('Asia/Kolkata');
 
@@ -155,7 +155,7 @@ exports.slokaOfTheDay = async (req, res) => {
  * builds the XML, and shipping the whole corpus through here would be a very
  * large response for something a crawler reads occasionally.
  */
-exports.sitemap = async (req, res) => {
+export const sitemap = async (req, res) => {
   const [books, verses, mantras] = await Promise.all([
     prisma.book.findMany({
       where: { isPublished: true },

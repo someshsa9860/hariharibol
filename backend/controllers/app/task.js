@@ -8,11 +8,11 @@
 // happened. `deferCount` carries across, so the report can say honestly that
 // something has been avoided five times.
 
-const { prisma } = require('../../config/database');
-const sadhana = require('./sadhana');
-const { ok, created, noContent } = require('../../utils/respond');
-const { notFound, forbidden, badRequest } = require('../../utils/errors');
-const { localDateString, shiftDays, isValidDateString } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import * as sadhana from './sadhana.js';
+import { ok, created, noContent } from '../../utils/respond.js';
+import { notFound, forbidden, badRequest } from '../../utils/errors.js';
+import { localDateString, shiftDays, isValidDateString } from '../../utils/date.js';
 
 async function ownedTask(id, userId) {
   const task = await prisma.sadhanaTask.findUnique({ where: { id }, include: { day: true } });
@@ -22,7 +22,7 @@ async function ownedTask(id, userId) {
 }
 
 /** GET /api/app/sadhana/tasks */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const user = req.auth.user;
   const date = req.valid.query.date || localDateString(user.timezone);
   const day = await sadhana.ensureDay(user, date);
@@ -36,7 +36,7 @@ exports.list = async (req, res) => {
 };
 
 /** POST /api/app/sadhana/tasks */
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const user = req.auth.user;
   const { title, note, date } = req.valid.body;
   const day = await sadhana.ensureDay(user, date);
@@ -64,7 +64,7 @@ exports.create = async (req, res) => {
 };
 
 /** PATCH /api/app/sadhana/tasks/:id — title, note, order, and done/undone. */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const user = req.auth.user;
   const { title, note, status, displayOrder } = req.valid.body;
   const task = await ownedTask(req.valid.params.id, user.id);
@@ -93,7 +93,7 @@ exports.update = async (req, res) => {
  * an honest record: this one shows a task that was planned and not finished,
  * and the target day gets a fresh task that knows how long it has been carried.
  */
-exports.move = async (req, res) => {
+export const move = async (req, res) => {
   const user = req.auth.user;
   const task = await ownedTask(req.valid.params.id, user.id);
 
@@ -128,7 +128,7 @@ exports.move = async (req, res) => {
 };
 
 /** DELETE /api/app/sadhana/tasks/:id */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const user = req.auth.user;
   const task = await ownedTask(req.valid.params.id, user.id);
 
@@ -143,7 +143,7 @@ exports.remove = async (req, res) => {
  * What keeps coming back. Tasks with the highest defer count, which is usually
  * the most useful thing the practice report has to say.
  */
-exports.carried = async (req, res) => {
+export const carried = async (req, res) => {
   const tasks = await prisma.sadhanaTask.findMany({
     where: { userId: req.auth.user.id, status: 'PENDING', deferCount: { gt: 0 } },
     orderBy: [{ deferCount: 'desc' }, { createdAt: 'asc' }],

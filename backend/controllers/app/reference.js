@@ -4,10 +4,10 @@
 // language or a deity is a data change rather than an app release. The app
 // should read these rather than hardcoding anything.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const s3 = require('../../services/s3');
-const { ok } = require('../../utils/respond');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as s3 from '../../services/s3.js';
+import { ok } from '../../utils/respond.js';
 
 /**
  * GET /api/app/reference/languages
@@ -15,7 +15,7 @@ const { ok } = require('../../utils/respond');
  * a mantra language and not an app language, so the settings screen can grey
  * out what does not apply instead of accepting it and being refused later.
  */
-exports.languages = async (req, res) => {
+export const languages = async (req, res) => {
   const languages = await prisma.language.findMany({
     where: { isActive: true },
     orderBy: [{ displayOrder: 'asc' }, { englishName: 'asc' }],
@@ -34,7 +34,7 @@ exports.languages = async (req, res) => {
 };
 
 /** GET /api/app/reference/deities */
-exports.deities = async (req, res) => {
+export const deities = async (req, res) => {
   const deities = await prisma.deity.findMany({
     where: { isPublished: true },
     orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
@@ -43,7 +43,7 @@ exports.deities = async (req, res) => {
 };
 
 /** GET /api/app/reference/gurus */
-exports.gurus = async (req, res) => {
+export const gurus = async (req, res) => {
   const gurus = await prisma.guru.findMany({
     where: { isPublished: true },
     orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
@@ -57,7 +57,7 @@ exports.gurus = async (req, res) => {
  * only — the content rule for this project is that no academic or non-devotee
  * commentary is published, and it is enforced by what gets seeded here.
  */
-exports.translators = async (req, res) => {
+export const translators = async (req, res) => {
   const translators = await prisma.translator.findMany({
     where: { isPublished: true },
     orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],

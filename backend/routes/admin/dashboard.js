@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/admin/dashboard');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/dashboard.js';
 
 const router = createRouter({
   tag: 'Admin · Dashboard',
@@ -47,4 +47,4 @@ router.get(
   controller.signups
 );
 
-module.exports = router;
+export default router;

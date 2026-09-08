@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/webhook/payment');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/webhook/payment.js';
 
 const router = createRouter({
   tag: 'Webhooks',
@@ -72,4 +72,4 @@ router.post(
   controller.refreshEntitlement
 );
 
-module.exports = router;
+export default router;

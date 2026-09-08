@@ -9,10 +9,10 @@
 // to be linked in the Play Console — that is a one-time console step, not
 // something code can do.
 
-const { JWT } = require('google-auth-library');
-const env = require('../../config/env');
-const logger = require('../../config/logger');
-const { AppError, badRequest } = require('../../utils/errors');
+import { JWT } from 'google-auth-library';
+import env from '../../config/env.js';
+import logger from '../../config/logger.js';
+import { AppError, badRequest } from '../../utils/errors.js';
 
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const BASE = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
@@ -96,4 +96,5 @@ async function verifySubscription({ productId, purchaseToken }) {
   };
 }
 
-module.exports = { provider: 'GOOGLE_PLAY', verifyProductPurchase, verifySubscription };
+export const provider = 'GOOGLE_PLAY';
+export { verifyProductPurchase, verifySubscription };

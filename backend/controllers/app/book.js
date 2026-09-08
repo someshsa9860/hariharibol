@@ -5,15 +5,15 @@
 // Bhagavatam alone has cantos above them; everything short hangs its verses
 // straight off the book, so a stotra has no chapter list to fetch.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
 
 /** GET /api/app/books */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { type, deity, tag } = req.valid.query;
 
   const where = {
@@ -34,7 +34,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/app/books/:slug */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const book = await prisma.book.findFirst({
     where: { slug: req.valid.params.slug, isPublished: true },
     include: {
@@ -62,7 +62,7 @@ exports.get = async (req, res) => {
 };
 
 /** GET /api/app/books/:slug/cantos — Srimad Bhagavatam only. */
-exports.cantos = async (req, res) => {
+export const cantos = async (req, res) => {
   const book = await prisma.book.findFirst({
     where: { slug: req.valid.params.slug, isPublished: true },
     select: { id: true, totalCantos: true },
@@ -82,7 +82,7 @@ exports.cantos = async (req, res) => {
  * Filtered by `canto` for Srimad Bhagavatam. Bhagavad Gita has no cantos, so
  * the whole chapter list comes back in one call.
  */
-exports.chapters = async (req, res) => {
+export const chapters = async (req, res) => {
   const { canto } = req.valid.query;
 
   const book = await prisma.book.findFirst({
@@ -104,7 +104,7 @@ exports.chapters = async (req, res) => {
  * The chapter and its verses in one call — this is the reading screen, and
  * splitting it would make every chapter open cost two round trips.
  */
-exports.chapter = async (req, res) => {
+export const chapter = async (req, res) => {
   const { slug, number } = req.valid.params;
   const { canto } = req.valid.query;
 

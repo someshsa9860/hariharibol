@@ -4,28 +4,48 @@
 // surface without opening anything else — which is the point of keeping routes
 // segregated by platform in the first place.
 
-const express = require('express');
-const { mount } = require('../../utils/router');
+import express from 'express';
+
+import { mount } from '../../utils/router.js';
+
+import authRoutes from './auth.js';
+import deviceRoutes from './device.js';
+import userRoutes from './user.js';
+import homeRoutes from './home.js';
+import bookRoutes from './book.js';
+import verseRoutes from './verse.js';
+import mantraRoutes from './mantra.js';
+import sadhanaRoutes from './sadhana.js';
+import taskRoutes from './task.js';
+import slokaRoutes from './sloka.js';
+import issueRoutes from './issue.js';
+import favoriteRoutes from './favorite.js';
+import progressRoutes from './progress.js';
+import notificationRoutes from './notification.js';
+import subscriptionRoutes from './subscription.js';
+import donationRoutes from './donation.js';
+import referenceRoutes from './reference.js';
+import searchRoutes from './search.js';
 
 const routers = [
-  require('./auth'),
-  require('./device'),
-  require('./user'),
-  require('./home'),
-  require('./book'),
-  require('./verse'),
-  require('./mantra'),
-  require('./sadhana'),
-  require('./task'),
-  require('./sloka'),
-  require('./issue'),
-  require('./favorite'),
-  require('./progress'),
-  require('./notification'),
-  require('./subscription'),
-  require('./donation'),
-  require('./reference'),
-  require('./search'),
+  authRoutes,
+  deviceRoutes,
+  userRoutes,
+  homeRoutes,
+  bookRoutes,
+  verseRoutes,
+  mantraRoutes,
+  sadhanaRoutes,
+  taskRoutes,
+  slokaRoutes,
+  issueRoutes,
+  favoriteRoutes,
+  progressRoutes,
+  notificationRoutes,
+  subscriptionRoutes,
+  donationRoutes,
+  referenceRoutes,
+  searchRoutes,
 ];
 
-module.exports = mount(express.Router(), '/api/app', routers);
+export default mount(express.Router(), '/api/app', routers);

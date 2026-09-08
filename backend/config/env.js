@@ -5,9 +5,8 @@
 // Booting with a bad config fails immediately and loudly. A missing secret that
 // only shows up on the first payment webhook is far more expensive.
 
-require('dotenv').config();
-
-const { z } = require('zod');
+import 'dotenv/config';
+import { z } from 'zod';
 
 const csv = (value) =>
   String(value || '')
@@ -90,4 +89,4 @@ const env = {
   applePrivateKey: (parsed.data.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
 };
 
-module.exports = env;
+export default env;

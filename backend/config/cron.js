@@ -60,4 +60,4 @@ const defaultJobOptions = {
   ...retention,
 };
 
-module.exports = { schedules, retention, defaultJobOptions };
+export { schedules, retention, defaultJobOptions };

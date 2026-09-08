@@ -6,15 +6,15 @@
 // chanting in Devanagari while reading English is the ordinary case here, not
 // an edge one. See utils/present.js for the resolution.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound } from '../../utils/errors.js';
 
 /** GET /api/app/mantras */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { category, deity, guru, tag, q } = req.valid.query;
   const user = req.auth.user;
 
@@ -38,7 +38,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/app/mantras/:slug */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const user = req.auth.user;
 
   const mantra = await prisma.mantra.findFirst({
@@ -79,7 +79,7 @@ exports.get = async (req, res) => {
 };
 
 /** GET /api/app/mantras/categories — the category list, with counts. */
-exports.categories = async (req, res) => {
+export const categories = async (req, res) => {
   const grouped = await prisma.mantra.groupBy({
     by: ['category'],
     where: { isPublished: true },

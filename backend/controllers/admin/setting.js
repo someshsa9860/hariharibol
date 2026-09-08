@@ -5,11 +5,11 @@
 // displays API keys is an admin panel that leaks them the first time someone
 // screenshots a bug.
 
-const settings = require('../../services/setting');
-const audit = require('../../services/audit');
-const { ok } = require('../../utils/respond');
-const { badRequest } = require('../../utils/errors');
-const { SETTING_KEYS } = require('../../config/constants');
+import * as settings from '../../services/setting.js';
+import * as audit from '../../services/audit.js';
+import { ok } from '../../utils/respond.js';
+import { badRequest } from '../../utils/errors.js';
+import { SETTING_KEYS } from '../../config/constants.js';
 
 // The keys the code actually reads, with what each is for. Listed so the panel
 // can render a form of known settings rather than a free-text key/value editor
@@ -43,7 +43,7 @@ const KNOWN = {
 };
 
 /** GET /api/admin/settings */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const stored = await settings.listForAdmin();
   const byKey = new Map(stored.map((row) => [row.key, row]));
 
@@ -61,7 +61,7 @@ exports.list = async (req, res) => {
 };
 
 /** PUT /api/admin/settings/:key */
-exports.set = async (req, res) => {
+export const set = async (req, res) => {
   const { key } = req.valid.params;
   const { value, isSecret } = req.valid.body;
 

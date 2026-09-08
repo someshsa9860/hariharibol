@@ -113,7 +113,7 @@ const CACHE = {
   dailySlokaTtl: 3600,
 };
 
-module.exports = {
+export {
   ROLES,
   PERMISSIONS,
   ALL_PERMISSIONS,

@@ -16,20 +16,32 @@
 // requires a signed-in user for every route unless that route says
 // `public: true` — so forgetting to guard something is not possible.
 
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const compression = require('compression');
-const pinoHttp = require('pino-http');
-const path = require('node:path');
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import compression from 'compression';
+import pinoHttp from 'pino-http';
+import path from 'node:path';
 
-const env = require('./config/env');
-const logger = require('./config/logger');
-const corsOptions = require('./config/cors');
+import env from './config/env.js';
+import logger from './config/logger.js';
+import corsOptions from './config/cors.js';
 
-const context = require('./middleware/context');
-const auth = require('./middleware/auth');
-const { errorHandler, notFound } = require('./middleware/error');
+import context from './middleware/context.js';
+import auth from './middleware/auth.js';
+import { errorHandler, notFound } from './middleware/error.js';
+
+// The four route groups. Imported here and mounted below — nothing is
+// mounted anywhere else in the codebase.
+import appRoutes from './routes/app/index.js';
+import webRoutes from './routes/web/index.js';
+import adminRoutes from './routes/admin/index.js';
+import webhookRoutes from './routes/webhook/index.js';
+
+// Imported after the route groups on purpose: the docs are built from the
+// registry those modules fill as they load. The build is lazy as well, so
+// this is belt and braces rather than load-order trickery.
+import { docsRouter, isDocsEnabled } from './docs/index.js';
 
 const app = express();
 
@@ -40,7 +52,7 @@ app.disable('x-powered-by');
 
 // Server-rendered HTML: emails, legal pages, deeplink landings (rule 10).
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(import.meta.dirname, 'views'));
 
 // ── 1. Security and transport ──────────────────────────────────────────────
 
@@ -105,16 +117,14 @@ app.get('/', (req, res) => {
 // ── 5. Route groups ────────────────────────────────────────────────────────
 // Four groups, four audiences. This is the whole API surface.
 
-app.use('/api/app', require('./routes/app')); //      the mobile app
-app.use('/api/web', require('./routes/web')); //      the public website
-app.use('/api/admin', require('./routes/admin')); //  the admin panel
-app.use('/api/webhooks', require('./routes/webhook')); // provider callbacks
+app.use('/api/app', appRoutes); //          the mobile app
+app.use('/api/web', webRoutes); //          the public website
+app.use('/api/admin', adminRoutes); //      the admin panel
+app.use('/api/webhooks', webhookRoutes); // provider callbacks
 
 // ── API reference ──────────────────────────────────────────────────────────
-// Mounted after the routes, because it reads the registry those routes filled.
 
-const { docsRouter, isEnabled } = require('./docs');
-if (isEnabled()) {
+if (isDocsEnabled()) {
   app.use('/docs', docsRouter);
   logger.info(`API reference at ${env.API_BASE_URL}/docs`);
 }
@@ -124,4 +134,4 @@ if (isEnabled()) {
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

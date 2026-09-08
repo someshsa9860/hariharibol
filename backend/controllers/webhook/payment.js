@@ -17,13 +17,13 @@
 //      retries harder, and a handler that does its work after responding is
 //      easier to reason about than one holding the connection open.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const env = require('../../config/env');
-const payments = require('../../services/payments');
-const entitlement = require('../../services/entitlement');
-const { ok } = require('../../utils/respond');
-const { forbidden } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import env from '../../config/env.js';
+import * as payments from '../../services/payments/index.js';
+import * as entitlement from '../../services/entitlement.js';
+import { ok } from '../../utils/respond.js';
+import { forbidden } from '../../utils/errors.js';
 
 /**
  * POST /api/webhooks/razorpay
@@ -32,7 +32,7 @@ const { forbidden } = require('../../utils/errors');
  * exactly this — re-serialising the parsed JSON changes whitespace and key
  * order, and the signature then never matches.
  */
-exports.razorpay = async (req, res) => {
+export const razorpay = async (req, res) => {
   const signature = req.get('X-Razorpay-Signature');
   const valid = payments.providers.RAZORPAY.verifyWebhookSignature(req.rawBody, signature);
 
@@ -111,7 +111,7 @@ exports.razorpay = async (req, res) => {
  * carries only an identifier — never an entitlement claim — so the state is
  * always re-read from the Play API before anything is written.
  */
-exports.google = async (req, res) => {
+export const google = async (req, res) => {
   // Pub/Sub push subscriptions authenticate with a shared token on the URL. It
   // is the mechanism Google offers for this; keep the URL out of logs.
   if (env.NODE_ENV === 'production' && req.query.token !== env.PUBSUB_VERIFICATION_TOKEN) {
@@ -175,7 +175,7 @@ exports.google = async (req, res) => {
  * anything is written — a decoded JWS whose chain has not been verified is a
  * hint about what happened, not proof of it.
  */
-exports.apple = async (req, res) => {
+export const apple = async (req, res) => {
   const signedPayload = req.body?.signedPayload;
   if (!signedPayload) return ok(res, { received: true });
 
@@ -236,7 +236,7 @@ exports.apple = async (req, res) => {
  * out of something they paid for. Recomputes from the ledger; grants nothing on
  * its own.
  */
-exports.refreshEntitlement = async (req, res) => {
+export const refreshEntitlement = async (req, res) => {
   const result = await entitlement.refresh(req.valid.params.userId);
   return ok(res, result);
 };

@@ -9,20 +9,29 @@
 // config/cron.js. The API never does, so a rolling deploy of the API cannot
 // duplicate or drop a schedule.
 
-const { Worker } = require('bullmq');
-const { bullConnection } = require('../config/redis');
-const { QUEUE_NAMES } = require('../jobs');
-const { registerSchedules } = require('../jobs/schedules');
-const { connectDatabase, disconnectDatabase } = require('../config/database');
-const logger = require('../config/logger');
+import { Worker } from 'bullmq';
+import { bullConnection } from '../config/redis.js';
+import { QUEUE_NAMES } from '../jobs/index.js';
+import { registerSchedules } from '../jobs/schedules.js';
+import { connectDatabase, disconnectDatabase } from '../config/database.js';
+import logger from '../config/logger.js';
 
+import slokaProcessor from '../jobs/processors/sloka.js';
+import notificationProcessor from '../jobs/processors/notification.js';
+import preferencesProcessor from '../jobs/processors/preferences.js';
+import paymentProcessor from '../jobs/processors/payment.js';
+import aiProcessor from '../jobs/processors/ai.js';
+import maintenanceProcessor from '../jobs/processors/maintenance.js';
+
+// One processor per queue. The queue name is the key, so worker/ and jobs/
+// cannot disagree about which processor runs what.
 const processors = {
-  sloka: require('../jobs/processors/sloka'),
-  notification: require('../jobs/processors/notification'),
-  preferences: require('../jobs/processors/preferences'),
-  payment: require('../jobs/processors/payment'),
-  ai: require('../jobs/processors/ai'),
-  maintenance: require('../jobs/processors/maintenance'),
+  sloka: slokaProcessor,
+  notification: notificationProcessor,
+  preferences: preferencesProcessor,
+  payment: paymentProcessor,
+  ai: aiProcessor,
+  maintenance: maintenanceProcessor,
 };
 
 // How many jobs of each kind may run at once.

@@ -10,9 +10,9 @@
 //
 // No AI. This is arithmetic over rows we already have.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const { localDateString, toDateColumn, shiftDays, localHour } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import { localDateString, toDateColumn, shiftDays, localHour } from '../../utils/date.js';
 
 // Eight weeks: long enough that one bad week does not redefine someone, short
 // enough that it still reflects where they are now.
@@ -130,7 +130,7 @@ async function rebuildFor(user, windowStart, windowEnd) {
   });
 }
 
-module.exports = async function preferencesProcessor(job) {
+export default async function preferencesProcessor(job) {
   const windowEnd = localDateString('UTC');
   const windowStart = shiftDays(windowEnd, -WINDOW_DAYS);
 
@@ -168,6 +168,6 @@ module.exports = async function preferencesProcessor(job) {
 
   logger.info({ rebuilt, windowStart, windowEnd }, 'preference profiles rebuilt');
   return { rebuilt };
-};
+}
 
-module.exports.rebuildFor = rebuildFor;
+export { rebuildFor };

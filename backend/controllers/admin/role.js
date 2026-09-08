@@ -8,15 +8,15 @@
 // check, so a permission that is not in config/constants.js guards nothing.
 // The panel can assign them; it cannot invent them.
 
-const { prisma } = require('../../config/database');
-const authService = require('../../services/auth');
-const audit = require('../../services/audit');
-const { ok, created, noContent } = require('../../utils/respond');
-const { notFound, badRequest, conflict } = require('../../utils/errors');
-const { PERMISSIONS } = require('../../config/constants');
+import { prisma } from '../../config/database.js';
+import * as authService from '../../services/auth.js';
+import * as audit from '../../services/audit.js';
+import { ok, created, noContent } from '../../utils/respond.js';
+import { notFound, badRequest, conflict } from '../../utils/errors.js';
+import { PERMISSIONS } from '../../config/constants.js';
 
 /** GET /api/admin/roles */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const roles = await prisma.role.findMany({
     orderBy: { createdAt: 'asc' },
     include: {
@@ -44,7 +44,7 @@ exports.list = async (req, res) => {
  * The whole catalogue, grouped — what the role editor renders its checkboxes
  * from.
  */
-exports.permissions = async (req, res) => {
+export const permissions = async (req, res) => {
   const rows = await prisma.permission.findMany({ orderBy: [{ group: 'asc' }, { slug: 'asc' }] });
 
   const grouped = rows.reduce((groups, row) => {
@@ -57,7 +57,7 @@ exports.permissions = async (req, res) => {
 };
 
 /** POST /api/admin/roles */
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const { slug, name, description, permissions = [] } = req.valid.body;
 
   const existing = await prisma.role.findUnique({ where: { slug } });
@@ -94,7 +94,7 @@ exports.create = async (req, res) => {
  * is what the panel sends, and applying it as a whole is the only way an
  * unchecked box actually removes anything.
  */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const { name, description, permissions } = req.valid.body;
 
   const role = await prisma.role.findUnique({
@@ -145,7 +145,7 @@ exports.update = async (req, res) => {
 };
 
 /** DELETE /api/admin/roles/:id */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const role = await prisma.role.findUnique({
     where: { id: req.valid.params.id },
     include: { _count: { select: { users: true } } },

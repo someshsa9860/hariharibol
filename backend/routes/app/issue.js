@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/issue');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/issue.js';
 
 const router = createRouter({
   tag: 'Issues',
@@ -74,4 +74,4 @@ router.get(
   controller.trends
 );
 
-module.exports = router;
+export default router;

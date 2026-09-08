@@ -10,14 +10,14 @@
 // written. Entitlement itself is not decided here — services/entitlement.js
 // owns that, and recomputes it from the ledger.
 
-const { prisma } = require('../../config/database');
-const payments = require('../../services/payments');
-const entitlement = require('../../services/entitlement');
-const { ok, created } = require('../../utils/respond');
-const { notFound, badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as payments from '../../services/payments/index.js';
+import * as entitlement from '../../services/entitlement.js';
+import { ok, created } from '../../utils/respond.js';
+import { notFound, badRequest } from '../../utils/errors.js';
 
 /** GET /api/app/subscription/plans — public, so the paywall can be shown before sign-in. */
-exports.plans = async (req, res) => {
+export const plans = async (req, res) => {
   const plans = await prisma.subscriptionPlan.findMany({
     where: { isActive: true },
     orderBy: { priceMinor: 'asc' },
@@ -49,7 +49,7 @@ exports.plans = async (req, res) => {
  * What this user is entitled to and why. `reason` matters — a donor and a
  * subscriber both have Premium, but only one of them has something to renew.
  */
-exports.mine = async (req, res) => {
+export const mine = async (req, res) => {
   const userId = req.auth.user.id;
 
   const [subscription, computed] = await Promise.all([
@@ -88,7 +88,7 @@ exports.mine = async (req, res) => {
  * to remove. This gives them access now; the webhook reconciles later, and
  * because both write through the same idempotent upsert, neither double-counts.
  */
-exports.verify = async (req, res) => {
+export const verify = async (req, res) => {
   const user = req.auth.user;
   const { provider, productId, purchaseToken, transactionId } = req.valid.body;
 
@@ -152,7 +152,7 @@ exports.verify = async (req, res) => {
  * Re-reads the store and rebuilds entitlement. For a reinstall, or a device
  * where the webhook landed while the user was signed out.
  */
-exports.restore = async (req, res) => {
+export const restore = async (req, res) => {
   const result = await entitlement.refresh(req.auth.user.id);
   return ok(res, result);
 };

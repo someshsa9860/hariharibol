@@ -13,8 +13,8 @@
 // what to write. It lives in utils/ rather than services/ because it holds no
 // state and talks to nothing.
 
-const s3 = require('../services/s3');
-const language = require('./language');
+import * as s3 from '../services/s3.js';
+import * as language from './language.js';
 
 // Prisma `include` blocks for the joins a shaped verse needs. Kept next to the
 // shaping code so the two cannot drift — a shape that reads `verse.translations`
@@ -214,7 +214,7 @@ async function reference(row, user) {
 
 const references = (rows, user) => Promise.all((rows || []).map((row) => reference(row, user)));
 
-module.exports = {
+export {
   includes,
   verse,
   verses,

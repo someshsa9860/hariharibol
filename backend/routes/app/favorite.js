@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/app/favorite');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/app/favorite.js';
 
 const router = createRouter({
   tag: 'Favourites',
@@ -51,4 +51,4 @@ router.delete(
   controller.remove
 );
 
-module.exports = router;
+export default router;

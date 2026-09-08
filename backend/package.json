@@ -2,10 +2,11 @@
   "name": "hariharibol-backend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "HariHariBol API \u2014 plain Node.js, no TypeScript",
   "main": "server.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.11"
   },
   "scripts": {
     "start": "node server.js",

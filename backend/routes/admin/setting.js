@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/admin/setting');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/setting.js';
 
 const router = createRouter({
   tag: 'Admin · Settings',
@@ -43,4 +43,4 @@ router.put(
   controller.set
 );
 
-module.exports = router;
+export default router;

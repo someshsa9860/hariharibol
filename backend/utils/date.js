@@ -73,7 +73,7 @@ function dateRange(fromDateString, toDateString) {
   return out;
 }
 
-module.exports = {
+export {
   DAY_MS,
   localDateString,
   localHour,

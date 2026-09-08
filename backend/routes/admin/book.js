@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/admin/book');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/book.js';
 
 const router = createRouter({
   tag: 'Admin · Books',
@@ -221,4 +221,4 @@ router.put(
   controller.linkTranslator
 );
 
-module.exports = router;
+export default router;

@@ -2,9 +2,9 @@
 // attestation (middleware/attestation.js). Initialised lazily so a deployment
 // without Firebase credentials — a local dev box, a test run — still boots.
 
-const admin = require('firebase-admin');
-const env = require('../config/env');
-const logger = require('../config/logger');
+import admin from 'firebase-admin';
+import env from '../config/env.js';
+import logger from '../config/logger.js';
 
 let app = null;
 let attempted = false;
@@ -34,4 +34,4 @@ const isConfigured = () => Boolean(getApp());
 const messaging = () => (getApp() ? admin.messaging() : null);
 const appCheck = () => (getApp() ? admin.appCheck() : null);
 
-module.exports = { admin, getApp, isConfigured, messaging, appCheck };
+export { admin, getApp, isConfigured, messaging, appCheck };

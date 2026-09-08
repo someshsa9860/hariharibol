@@ -15,17 +15,16 @@
 //      sloka costs an indexed lookup, not a model call. Spend scales with the
 //      size of the corpus, which is fixed, not with how many users we have.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const env = require('../../config/env');
-const { SETTING_KEYS } = require('../../config/constants');
-const settings = require('../setting');
-const { AppError } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import env from '../../config/env.js';
+import { SETTING_KEYS } from '../../config/constants.js';
+import * as settings from '../setting.js';
+import { AppError } from '../../utils/errors.js';
+import * as gemini from './gemini.js';
+import * as openai from './openai.js';
 
-const providers = {
-  GEMINI: require('./gemini'),
-  OPENAI: require('./openai'),
-};
+const providers = { GEMINI: gemini, OPENAI: openai };
 
 async function resolveProvider() {
   const name = (await settings.get(SETTING_KEYS.AI_PROVIDER, env.AI_PROVIDER)).toUpperCase();
@@ -153,4 +152,4 @@ const OPERATIONS = {
   SLOKA_REASON: 'sloka.reason',
 };
 
-module.exports = { complete, OPERATIONS, resolveProvider, withinBudget, providers };
+export { complete, OPERATIONS, resolveProvider, withinBudget, providers };

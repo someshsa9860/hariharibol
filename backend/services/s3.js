@@ -7,20 +7,14 @@
 // Signing is local and cheap, but caching keeps the URL stable between requests
 // so a client's own HTTP cache and any CDN in front of it can do their job.
 
-const crypto = require('node:crypto');
-const {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  HeadObjectCommand,
-} = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+import crypto from 'node:crypto';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-const env = require('../config/env');
-const logger = require('../config/logger');
-const { redis } = require('../config/redis');
-const { badRequest } = require('../utils/errors');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
+import { redis } from '../config/redis.js';
+import { badRequest } from '../utils/errors.js';
 
 const client = new S3Client({
   region: env.AWS_REGION,
@@ -157,7 +151,7 @@ async function objectExists(key) {
   }
 }
 
-module.exports = {
+export {
   PREFIXES,
   ALLOWED_CONTENT_TYPES,
   buildKey,

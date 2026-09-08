@@ -1,4 +1,4 @@
-const { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } = require('../config/constants');
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '../config/constants.js';
 
 // Reads ?page= and ?pageSize= into Prisma's skip/take, clamped so a caller
 // cannot ask for the whole table.
@@ -19,4 +19,4 @@ async function paginate(model, { where, orderBy, include, select, query }) {
   return { items, page: { page, pageSize, total } };
 }
 
-module.exports = { readPage, paginate };
+export { readPage, paginate };

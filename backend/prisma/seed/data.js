@@ -4,7 +4,7 @@
 // file is about *what* the platform starts with, index.js is about how it gets
 // written.
 
-const { ROLES, ROLE_PERMISSIONS, PERMISSIONS, SETTING_KEYS } = require('../../config/constants');
+import { ROLES, ROLE_PERMISSIONS, PERMISSIONS, SETTING_KEYS } from '../../config/constants.js';
 
 // ── Roles ──────────────────────────────────────────────────────────────────
 // Marked isSystem so they cannot be deleted from the panel: removing the role
@@ -316,7 +316,7 @@ const settings = [
   { key: SETTING_KEYS.SIGNUP_ENABLED, value: 'true' },
 ];
 
-module.exports = {
+export {
   roles,
   permissions,
   languages,

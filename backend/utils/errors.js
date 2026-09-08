@@ -40,7 +40,7 @@ const paymentRequired = (message = 'This feature is part of Premium') =>
 const serverError = (message = 'Something went wrong') =>
   new AppError(500, 'SERVER_ERROR', message);
 
-module.exports = {
+export {
   AppError,
   badRequest,
   unauthorized,

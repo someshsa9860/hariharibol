@@ -1,6 +1,6 @@
-const { createRouter, z } = require('../../utils/router');
-const attestation = require('../../middleware/attestation');
-const controller = require('../../controllers/app/device');
+import { createRouter, z } from '../../utils/router.js';
+import attestation from '../../middleware/attestation.js';
+import * as controller from '../../controllers/app/device.js';
 
 const router = createRouter({
   tag: 'Devices',
@@ -90,4 +90,4 @@ router.delete(
   controller.unsubscribe
 );
 
-module.exports = router;
+export default router;

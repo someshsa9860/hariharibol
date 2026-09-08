@@ -1,19 +1,19 @@
 // Books, cantos and chapters, from the admin side.
 //
 // The counts on Book and Canto (`totalVerses`, `totalChapters`) are rollups the
-// reading screens depend on. `recount` is the only thing that writes them, and
-// it runs after any structural change — a wrong count shows up as a progress
-// bar that never reaches the end.
+// reading screens depend on. `recountBook` is the only thing that writes them,
+// and it runs after any structural change — a wrong count shows up as a
+// progress bar that never reaches the end.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const s3 = require('../../services/s3');
-const { ok, created, noContent, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest, conflict } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as s3 from '../../services/s3.js';
+import { ok, created, noContent, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest, conflict } from '../../utils/errors.js';
 
 /** Recomputes a book's structural counts from what is actually in it. */
-async function recount(bookId) {
+async function recountBook(bookId) {
   const [cantos, chapters, verses] = await Promise.all([
     prisma.canto.count({ where: { bookId } }),
     prisma.chapter.count({ where: { bookId } }),
@@ -40,7 +40,7 @@ async function recount(bookId) {
 }
 
 /** GET /api/admin/books */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { q, type, isPublished } = req.valid.query;
 
   const { items, page } = await paginate(prisma.book, {
@@ -58,7 +58,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/admin/books/:id */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const book = await prisma.book.findUnique({
     where: { id: req.valid.params.id },
     include: {
@@ -74,7 +74,7 @@ exports.get = async (req, res) => {
 };
 
 /** POST /api/admin/books */
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const body = req.valid.body;
 
   // bookNumber is the first segment of every verseId beneath the book and is
@@ -90,7 +90,7 @@ exports.create = async (req, res) => {
 };
 
 /** PATCH /api/admin/books/:id */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const before = await prisma.book.findUnique({ where: { id: req.valid.params.id } });
   if (!before) throw notFound('Book');
 
@@ -116,7 +116,7 @@ exports.update = async (req, res) => {
  * permission. A book with no verses is refused — an empty book in the app looks
  * like a bug to everyone who opens it.
  */
-exports.publish = async (req, res) => {
+export const publish = async (req, res) => {
   const { isPublished } = req.valid.body;
 
   const book = await prisma.book.findUnique({
@@ -129,7 +129,7 @@ exports.publish = async (req, res) => {
     throw badRequest('That book has no verses yet');
   }
 
-  await recount(book.id);
+  await recountBook(book.id);
   const updated = await prisma.book.update({ where: { id: book.id }, data: { isPublished } });
 
   await audit.record(req, {
@@ -144,7 +144,7 @@ exports.publish = async (req, res) => {
 };
 
 /** DELETE /api/admin/books/:id — cascades to every canto, chapter and verse. */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const book = await prisma.book.findUnique({
     where: { id: req.valid.params.id },
     include: { _count: { select: { verses: true } } },
@@ -165,11 +165,11 @@ exports.remove = async (req, res) => {
 };
 
 /** POST /api/admin/books/:id/recount — rebuilds the rollups after a bulk import. */
-exports.recount = async (req, res) => {
+export const recount = async (req, res) => {
   const book = await prisma.book.findUnique({ where: { id: req.valid.params.id } });
   if (!book) throw notFound('Book');
 
-  await recount(book.id);
+  await recountBook(book.id);
   const updated = await prisma.book.findUnique({ where: { id: book.id } });
 
   return ok(res, updated);
@@ -177,16 +177,16 @@ exports.recount = async (req, res) => {
 
 // ── Cantos ─────────────────────────────────────────────────────────────────
 
-exports.createCanto = async (req, res) => {
+export const createCanto = async (req, res) => {
   const canto = await prisma.canto.create({
     data: { ...req.valid.body, bookId: req.valid.params.id },
   });
-  await recount(req.valid.params.id);
+  await recountBook(req.valid.params.id);
   await audit.record(req, { action: 'canto.create', entityType: 'Canto', entityId: canto.id, after: canto });
   return created(res, canto);
 };
 
-exports.updateCanto = async (req, res) => {
+export const updateCanto = async (req, res) => {
   const canto = await prisma.canto.update({
     where: { id: req.valid.params.cantoId },
     data: req.valid.body,
@@ -197,7 +197,7 @@ exports.updateCanto = async (req, res) => {
 
 // ── Chapters ───────────────────────────────────────────────────────────────
 
-exports.createChapter = async (req, res) => {
+export const createChapter = async (req, res) => {
   const bookId = req.valid.params.id;
   const body = req.valid.body;
 
@@ -212,7 +212,7 @@ exports.createChapter = async (req, res) => {
   }
 
   const chapter = await prisma.chapter.create({ data: { ...body, bookId, cantoNumber } });
-  await recount(bookId);
+  await recountBook(bookId);
 
   await audit.record(req, {
     action: 'chapter.create',
@@ -224,7 +224,7 @@ exports.createChapter = async (req, res) => {
   return created(res, chapter);
 };
 
-exports.updateChapter = async (req, res) => {
+export const updateChapter = async (req, res) => {
   const chapter = await prisma.chapter.update({
     where: { id: req.valid.params.chapterId },
     data: req.valid.body,
@@ -239,7 +239,7 @@ exports.updateChapter = async (req, res) => {
 };
 
 /** PUT /api/admin/books/:id/translators/:translatorId — link a rendering to a book. */
-exports.linkTranslator = async (req, res) => {
+export const linkTranslator = async (req, res) => {
   const { id: bookId, translatorId } = req.valid.params;
   const { seriesName, publishedYear, isDefault } = req.valid.body;
 
@@ -258,4 +258,5 @@ exports.linkTranslator = async (req, res) => {
   return ok(res, link);
 };
 
-module.exports.recountBook = recount;
+// Exported for the verse importer, which changes a book's structure in bulk.
+export { recountBook };

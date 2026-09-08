@@ -5,12 +5,12 @@
 // history — who issued it, why, and whether it was lifted. The flag alone
 // answers "is this person blocked" and nothing else.
 
-const { prisma } = require('../../config/database');
-const authService = require('../../services/auth');
-const audit = require('../../services/audit');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as authService from '../../services/auth.js';
+import * as audit from '../../services/audit.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
 
 const LIST_SELECT = {
   id: true,
@@ -27,7 +27,7 @@ const LIST_SELECT = {
 };
 
 /** GET /api/admin/users */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { q, role, isPremium, isBanned } = req.valid.query;
 
   const where = {
@@ -55,7 +55,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/admin/users/:id — the full picture for one person. */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.valid.params.id },
     select: {
@@ -100,7 +100,7 @@ exports.get = async (req, res) => {
  * with one role, and the app hides the admin entry point when the role carries
  * no permissions.
  */
-exports.setRole = async (req, res) => {
+export const setRole = async (req, res) => {
   const { roleSlug } = req.valid.body;
 
   const [user, role] = await Promise.all([
@@ -141,7 +141,7 @@ exports.setRole = async (req, res) => {
  * a banned account with working tokens would mean the ban only takes effect
  * whenever the access token happens to expire.
  */
-exports.ban = async (req, res) => {
+export const ban = async (req, res) => {
   const { reason } = req.valid.body;
   const userId = req.valid.params.id;
 
@@ -172,7 +172,7 @@ exports.ban = async (req, res) => {
 };
 
 /** POST /api/admin/users/:id/unban */
-exports.unban = async (req, res) => {
+export const unban = async (req, res) => {
   const { reason } = req.valid.body;
   const userId = req.valid.params.id;
 
@@ -204,7 +204,7 @@ exports.unban = async (req, res) => {
 };
 
 /** GET /api/admin/users/:id/bans — the ban history for one account. */
-exports.bans = async (req, res) => {
+export const bans = async (req, res) => {
   const bans = await prisma.ban.findMany({
     where: { userId: req.valid.params.id },
     orderBy: { bannedAt: 'desc' },
@@ -222,7 +222,7 @@ exports.bans = async (req, res) => {
  * separately: someone whose account is banned can sign up again in a minute,
  * and the device is the part that does not change.
  */
-exports.banDevice = async (req, res) => {
+export const banDevice = async (req, res) => {
   const { reason } = req.valid.body;
 
   const device = await prisma.device.findUnique({ where: { deviceId: req.valid.params.deviceId } });
@@ -252,7 +252,7 @@ exports.banDevice = async (req, res) => {
  * the audit trail survives, because AuditLog.actorId is set-null rather than
  * cascading — the record has to outlive the person it is about.
  */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const userId = req.valid.params.id;
   if (userId === req.auth.user.id) throw badRequest('You cannot delete your own account here');
 

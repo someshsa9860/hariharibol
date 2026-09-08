@@ -11,15 +11,15 @@
 //
 // The expensive one is deliberately the one that has to be asked for.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const notify = require('../../services/notify');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as notify from '../../services/notify.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { badRequest } from '../../utils/errors.js';
 
 /** POST /api/admin/notifications/topic */
-exports.broadcastTopic = async (req, res) => {
+export const broadcastTopic = async (req, res) => {
   const { topicKey, title, body, data } = req.valid.body;
 
   const topic = await prisma.fcmTopic.findUnique({ where: { key: topicKey } });
@@ -44,7 +44,7 @@ exports.broadcastTopic = async (req, res) => {
  * fan-out from an admin form is how someone accidentally writes a million rows
  * — anything larger belongs in a job, not a request.
  */
-exports.broadcastAudience = async (req, res) => {
+export const broadcastAudience = async (req, res) => {
   const { title, body, data, audience } = req.valid.body;
 
   const where = {
@@ -78,7 +78,7 @@ exports.broadcastAudience = async (req, res) => {
 };
 
 /** POST /api/admin/notifications/user/:userId — a message to one person. */
-exports.toUser = async (req, res) => {
+export const toUser = async (req, res) => {
   const { title, body, data, type = 'SYSTEM' } = req.valid.body;
 
   const notification = await notify.toUser(req.valid.params.userId, { type, title, body, data });
@@ -94,7 +94,7 @@ exports.toUser = async (req, res) => {
 };
 
 /** GET /api/admin/notifications — what has been sent, for checking delivery. */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { type, userId } = req.valid.query;
 
   const { items, page } = await paginate(prisma.notification, {

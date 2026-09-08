@@ -11,18 +11,18 @@
 // files, which have to be available at the domain root with exact headers —
 // easier to guarantee in a container that serves almost nothing else.
 
-const express = require('express');
-const path = require('node:path');
+import express from 'express';
+import path from 'node:path';
 
-const env = require('../config/env');
-const logger = require('../config/logger');
-const { prisma, connectDatabase, disconnectDatabase } = require('../config/database');
-const s3 = require('../services/s3');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
+import { prisma, connectDatabase, disconnectDatabase } from '../config/database.js';
+import * as s3 from '../services/s3.js';
 
 const app = express();
 
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '..', 'views'));
+app.set('views', path.join(import.meta.dirname, '..', 'views'));
 app.disable('x-powered-by');
 
 app.get('/health', (req, res) => res.json({ ok: true }));

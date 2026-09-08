@@ -2,14 +2,14 @@
 // views/ directory that holds the server-rendered pages, because both are
 // things the server renders as HTML rather than returns as JSON.
 
-const path = require('node:path');
-const nodemailer = require('nodemailer');
-const ejs = require('ejs');
+import path from 'node:path';
+import nodemailer from 'nodemailer';
+import ejs from 'ejs';
 
-const env = require('../config/env');
-const logger = require('../config/logger');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
 
-const TEMPLATE_DIR = path.join(__dirname, '..', 'views', 'emails');
+const TEMPLATE_DIR = path.join(import.meta.dirname, '..', 'views', 'emails');
 
 let transport = null;
 
@@ -57,4 +57,4 @@ async function send({ to, subject, template, data }) {
   }
 }
 
-module.exports = { send, render };
+export { send, render };

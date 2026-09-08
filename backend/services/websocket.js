@@ -9,8 +9,8 @@
 // message is simply not delivered, and the notification row and the push are
 // already handling durability.
 
-const { publisher, channels } = require('../config/redis');
-const logger = require('../config/logger');
+import { publisher, channels } from '../config/redis.js';
+import logger from '../config/logger.js';
 
 function publish(channel, message) {
   publisher
@@ -38,4 +38,4 @@ const EVENTS = {
   ANNOUNCEMENT: 'announcement',
 };
 
-module.exports = { toUser, broadcast, EVENTS };
+export { toUser, broadcast, EVENTS };

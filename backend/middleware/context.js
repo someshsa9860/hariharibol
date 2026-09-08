@@ -2,10 +2,10 @@
 // rate-limit keys and device records off the headers once, so no controller has
 // to know what the header is called.
 
-const crypto = require('node:crypto');
-const { fromHeader } = require('../utils/language');
+import crypto from 'node:crypto';
+import { fromHeader } from '../utils/language.js';
 
-module.exports = function context(req, res, next) {
+export default function context(req, res, next) {
   req.id = req.get('X-Request-Id') || crypto.randomUUID();
   req.deviceId = req.get('X-Device-Id') || null;
   req.platform = (req.get('X-Platform') || '').toLowerCase() || null;

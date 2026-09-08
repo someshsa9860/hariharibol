@@ -1,8 +1,15 @@
 // Every website route family. Mounted by app.js at /api/web.
 
-const express = require('express');
-const { mount } = require('../../utils/router');
+import express from 'express';
 
-const routers = [require('./content'), require('./page')];
+import { mount } from '../../utils/router.js';
 
-module.exports = mount(express.Router(), '/api/web', routers);
+import contentRoutes from './content.js';
+import pageRoutes from './page.js';
+
+const routers = [
+  contentRoutes,
+  pageRoutes,
+];
+
+export default mount(express.Router(), '/api/web', routers);

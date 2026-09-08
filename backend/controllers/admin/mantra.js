@@ -1,14 +1,14 @@
 // Mantras and their per-language renderings.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const s3 = require('../../services/s3');
-const { ok, created, noContent, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as s3 from '../../services/s3.js';
+import { ok, created, noContent, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
 
 /** GET /api/admin/mantras */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { q, category, isPublished } = req.valid.query;
 
   const { items, page } = await paginate(prisma.mantra, {
@@ -30,7 +30,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/admin/mantras/:id */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const mantra = await prisma.mantra.findUnique({
     where: { id: req.valid.params.id },
     include: { deity: true, guru: true, translations: { orderBy: { languageCode: 'asc' } } },
@@ -43,7 +43,7 @@ exports.get = async (req, res) => {
   });
 };
 
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const mantra = await prisma.mantra.create({ data: req.valid.body });
   await audit.record(req, {
     action: 'mantra.create',
@@ -54,7 +54,7 @@ exports.create = async (req, res) => {
   return created(res, mantra);
 };
 
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const before = await prisma.mantra.findUnique({ where: { id: req.valid.params.id } });
   if (!before) throw notFound('Mantra');
 
@@ -78,7 +78,7 @@ exports.update = async (req, res) => {
  * nothing, which is worse than a mantra with no audio at all — the reader
  * cannot tell whether it is their connection or ours.
  */
-exports.publish = async (req, res) => {
+export const publish = async (req, res) => {
   const { isPublished } = req.valid.body;
 
   const mantra = await prisma.mantra.findUnique({
@@ -111,7 +111,7 @@ exports.publish = async (req, res) => {
   return ok(res, updated);
 };
 
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const mantra = await prisma.mantra.findUnique({ where: { id: req.valid.params.id } });
   if (!mantra) throw notFound('Mantra');
   if (mantra.isPublished) throw badRequest('Unpublish the mantra before deleting it');
@@ -133,7 +133,7 @@ exports.remove = async (req, res) => {
  * reads; `meaning` is what someone reading in that language sees — the app
  * selects the two by different user settings, so both belong on this row.
  */
-exports.upsertTranslation = async (req, res) => {
+export const upsertTranslation = async (req, res) => {
   const { languageCode } = req.valid.body;
   const mantraId = req.valid.params.id;
 
@@ -156,7 +156,7 @@ exports.upsertTranslation = async (req, res) => {
   return ok(res, translation);
 };
 
-exports.deleteTranslation = async (req, res) => {
+export const deleteTranslation = async (req, res) => {
   await prisma.mantraTranslation.delete({ where: { id: req.valid.params.translationId } });
   return noContent(res);
 };

@@ -1,11 +1,11 @@
 // The signed-in person's own profile and settings.
 
-const { prisma } = require('../../config/database');
-const authService = require('../../services/auth');
-const audit = require('../../services/audit');
-const { ok } = require('../../utils/respond');
-const { badRequest } = require('../../utils/errors');
-const { isValidTimezone } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import * as authService from '../../services/auth.js';
+import * as audit from '../../services/audit.js';
+import { ok } from '../../utils/respond.js';
+import { badRequest } from '../../utils/errors.js';
+import { isValidTimezone } from '../../utils/date.js';
 
 const PROFILE_SELECT = {
   id: true,
@@ -24,7 +24,7 @@ const PROFILE_SELECT = {
 };
 
 /** GET /api/app/me */
-exports.me = async (req, res) => {
+export const me = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.auth.user.id },
     select: {
@@ -43,7 +43,7 @@ exports.me = async (req, res) => {
 };
 
 /** PATCH /api/app/me */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const { name, avatarUrl, timezone } = req.valid.body;
 
   if (timezone && !isValidTimezone(timezone)) {
@@ -69,7 +69,7 @@ exports.update = async (req, res) => {
  * set together because changing one usually means reconsidering the others, and
  * because the app presents them on a single screen.
  */
-exports.updateLanguages = async (req, res) => {
+export const updateLanguages = async (req, res) => {
   const { appLanguage, mantraLanguage, readingLanguage } = req.valid.body;
 
   // Each is checked against the Language table for the *specific* slot it is
@@ -108,7 +108,7 @@ exports.updateLanguages = async (req, res) => {
  * The numbers the profile screen shows. Counted rather than stored, because
  * none of them is read often enough to be worth a denormalised column.
  */
-exports.summary = async (req, res) => {
+export const summary = async (req, res) => {
   const userId = req.auth.user.id;
 
   const [days, rounds, tasks, favorites, slokas] = await Promise.all([
@@ -129,7 +129,7 @@ exports.summary = async (req, res) => {
 };
 
 /** PATCH /api/app/me/sadhana-profile — standing practice preferences. */
-exports.updateSadhanaProfile = async (req, res) => {
+export const updateSadhanaProfile = async (req, res) => {
   const { dailyRoundTarget, reminderTime } = req.valid.body;
   const userId = req.auth.user.id;
 

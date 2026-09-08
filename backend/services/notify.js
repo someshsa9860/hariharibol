@@ -5,10 +5,10 @@
 // off, or arrive on a device the user no longer carries — the history in the
 // app is the record that must not have holes in it.
 
-const { prisma } = require('../config/database');
-const logger = require('../config/logger');
-const fcm = require('./fcm');
-const websocket = require('./websocket');
+import { prisma } from '../config/database.js';
+import logger from '../config/logger.js';
+import * as fcm from './fcm.js';
+import * as websocket from './websocket.js';
 
 async function toUser(userId, { type, title, body, data, push = true }) {
   const notification = await prisma.notification.create({
@@ -82,4 +82,4 @@ async function toTopic(topicKey, { title, body, data }) {
   return result;
 }
 
-module.exports = { toUser, toUsers, toTopic };
+export { toUser, toUsers, toTopic };

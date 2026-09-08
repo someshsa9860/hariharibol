@@ -2,8 +2,8 @@
 // route file and one builder — but each keeps its own path, so the URL is what
 // you would guess.
 
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/admin/reference');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/reference.js';
 
 const router = createRouter({
   tag: 'Admin · Reference data',
@@ -210,4 +210,4 @@ resource('topics', 'topics', controller.topic, {
   permission: 'notification.send',
 });
 
-module.exports = router;
+export default router;

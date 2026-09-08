@@ -9,26 +9,26 @@
 // Anything with rules of its own — books, verses, mantras, slokas, money — has
 // a hand-written controller instead.
 
-const { prisma } = require('../../config/database');
-const { makeCrud } = require('../../utils/crud');
-const { ok } = require('../../utils/respond');
-const { badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import { makeCrud } from '../../utils/crud.js';
+import { ok } from '../../utils/respond.js';
+import { badRequest } from '../../utils/errors.js';
 
-exports.deity = makeCrud({
+export const deity = makeCrud({
   model: prisma.deity,
   entityType: 'Deity',
   searchFields: ['name', 'slug'],
   mediaFields: ['imagePath'],
 });
 
-exports.guru = makeCrud({
+export const guru = makeCrud({
   model: prisma.guru,
   entityType: 'Guru',
   searchFields: ['name', 'slug'],
   mediaFields: ['imagePath'],
 });
 
-exports.translator = makeCrud({
+export const translator = makeCrud({
   model: prisma.translator,
   entityType: 'Translator',
   searchFields: ['name', 'slug'],
@@ -36,14 +36,14 @@ exports.translator = makeCrud({
   include: { _count: { select: { translations: true } } },
 });
 
-exports.language = makeCrud({
+export const language = makeCrud({
   model: prisma.language,
   entityType: 'Language',
   searchFields: ['englishName', 'nativeName', 'code'],
   orderBy: [{ displayOrder: 'asc' }, { englishName: 'asc' }],
 });
 
-exports.issue = makeCrud({
+export const issue = makeCrud({
   model: prisma.issue,
   entityType: 'Issue',
   searchFields: ['name', 'slug'],
@@ -51,7 +51,7 @@ exports.issue = makeCrud({
   include: { _count: { select: { verseLinks: true, reports: true } } },
 });
 
-exports.topic = makeCrud({
+export const topic = makeCrud({
   model: prisma.fcmTopic,
   entityType: 'FcmTopic',
   searchFields: ['name', 'key'],
@@ -67,7 +67,7 @@ exports.topic = makeCrud({
  * picker finds nothing, and they get a fallback verse that has no connection to
  * what they said. Nothing else in the panel would show that.
  */
-exports.issueCoverage = async (req, res) => {
+export const issueCoverage = async (req, res) => {
   const issues = await prisma.issue.findMany({
     where: { isPublished: true },
     orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }],
@@ -96,7 +96,7 @@ exports.issueCoverage = async (req, res) => {
  * would point at a code that no longer exists. Deactivating it hides it from
  * the picker while leaving existing choices intact.
  */
-exports.deleteLanguage = async (req, res) => {
+export const deleteLanguage = async (req, res) => {
   const language = await prisma.language.findUnique({ where: { id: req.valid.params.id } });
   if (!language) throw badRequest('No such language');
 

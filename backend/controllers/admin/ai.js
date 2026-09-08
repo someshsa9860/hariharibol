@@ -9,15 +9,15 @@
 // If the spend chart ever tracks user growth instead of content growth,
 // something has started calling the model on a request.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const ai = require('../../services/ai');
-const { queues } = require('../../jobs');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as ai from '../../services/ai/index.js';
+import { queues } from '../../jobs/index.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
 
 /** GET /api/admin/ai/usage — the log, filterable by operation. */
-exports.usage = async (req, res) => {
+export const usage = async (req, res) => {
   const { operation, provider, succeeded } = req.valid.query;
 
   const { items, page } = await paginate(prisma.aiUsageLog, {
@@ -37,7 +37,7 @@ exports.usage = async (req, res) => {
  * GET /api/admin/ai/spend
  * Cost per operation for the window, plus the month to date against the budget.
  */
-exports.spend = async (req, res) => {
+export const spend = async (req, res) => {
   const days = req.valid.query.days || 30;
   const since = new Date(Date.now() - days * 86400000);
 
@@ -86,7 +86,7 @@ exports.spend = async (req, res) => {
  * a wrong verse for someone in the middle of krodha is worse than no
  * personalisation at all. An editor confirms what it proposes.
  */
-exports.runIssueMap = async (req, res) => {
+export const runIssueMap = async (req, res) => {
   const { bookNumber, limit = 100, dryRun = false } = req.valid.body;
 
   const job = await queues.ai.add('issue-map', {
@@ -112,7 +112,7 @@ exports.runIssueMap = async (req, res) => {
  * Written once per verse per language and reused by every reader — which is
  * what keeps this a fixed cost rather than a per-user one.
  */
-exports.runExplanations = async (req, res) => {
+export const runExplanations = async (req, res) => {
   const { languageCode = 'en', bookNumber, limit = 100 } = req.valid.body;
 
   const job = await queues.ai.add('explanations', {
@@ -136,7 +136,7 @@ exports.runExplanations = async (req, res) => {
  * GET /api/admin/ai/coverage
  * What the batch passes have and have not reached yet — the worklist.
  */
-exports.coverage = async (req, res) => {
+export const coverage = async (req, res) => {
   const [eligible, withIssues, withExplanation] = await Promise.all([
     prisma.verse.count({ where: { isSlokaEligible: true } }),
     prisma.verse.count({ where: { isSlokaEligible: true, issueLinks: { some: {} } } }),

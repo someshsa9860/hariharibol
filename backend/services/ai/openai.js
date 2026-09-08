@@ -2,8 +2,8 @@
 // change rather than a rewrite — the abstraction in index.js is only real if
 // there is a second implementation behind it.
 
-const env = require('../../config/env');
-const { AppError } = require('../../utils/errors');
+import env from '../../config/env.js';
+import { AppError } from '../../utils/errors.js';
 
 const BASE = 'https://api.openai.com/v1';
 
@@ -54,4 +54,6 @@ async function complete({ model, system, prompt, json = false, maxTokens = 1024,
   };
 }
 
-module.exports = { name: 'OPENAI', complete, costMicros, PRICING, defaultModel: env.OPENAI_MODEL };
+export const name = 'OPENAI';
+export const defaultModel = env.OPENAI_MODEL;
+export { complete, costMicros, PRICING };

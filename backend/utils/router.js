@@ -13,11 +13,11 @@
 // It is not a framework. It registers handlers on an express Router and keeps a
 // list of what it registered so docs/openapi.js can read it.
 
-const express = require('express');
-const { z } = require('zod');
-const asyncHandler = require('./asyncHandler');
-const { unauthorized, forbidden, badRequest, paymentRequired } = require('./errors');
-const limiters = require('../middleware/rateLimit');
+import express from 'express';
+import { z } from 'zod';
+import asyncHandler from './asyncHandler.js';
+import { unauthorized, forbidden, badRequest, paymentRequired } from './errors.js';
+import * as limiters from '../middleware/rateLimit.js';
 
 // Everything registered anywhere in the app, in registration order. docs reads
 // this after routes/index.js has loaded.
@@ -142,4 +142,4 @@ const schemas = {
   }),
 };
 
-module.exports = { createRouter, mount, registry, schemas, z };
+export { createRouter, mount, registry, schemas, z };

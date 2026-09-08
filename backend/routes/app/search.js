@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/search');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/search.js';
 
 const router = createRouter({
   tag: 'Search',
@@ -26,4 +26,4 @@ router.get(
   controller.search
 );
 
-module.exports = router;
+export default router;

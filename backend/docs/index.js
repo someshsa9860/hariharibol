@@ -9,11 +9,11 @@
 //   GET /docs/openapi.json the raw document, for Postman and code generators
 //   GET /docs/routes       a flat list, for checking coverage at a glance
 
-const express = require('express');
-const { apiReference } = require('@scalar/express-api-reference');
-const { build } = require('./openapi');
-const { registry } = require('../utils/router');
-const env = require('../config/env');
+import express from 'express';
+import { apiReference } from '@scalar/express-api-reference';
+import { build } from './openapi.js';
+import { registry } from '../utils/router.js';
+import env from '../config/env.js';
 
 const router = express.Router();
 
@@ -55,4 +55,5 @@ router.use(
   })
 );
 
-module.exports = { docsRouter: router, isEnabled: () => env.DOCS_ENABLED };
+export { router as docsRouter };
+export const isDocsEnabled = () => env.DOCS_ENABLED;

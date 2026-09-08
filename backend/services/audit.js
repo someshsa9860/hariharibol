@@ -5,8 +5,8 @@
 // before/after snapshots grows faster than the data it describes, and nobody
 // ever reads it.
 
-const { prisma } = require('../config/database');
-const logger = require('../config/logger');
+import { prisma } from '../config/database.js';
+import logger from '../config/logger.js';
 
 // Never written into an audit row, even when they changed.
 const REDACTED = new Set(['tokenHash', 'password', 'providerPayload', 'value']);
@@ -53,4 +53,4 @@ async function record(req, entry) {
   }
 }
 
-module.exports = { record, diff };
+export { record, diff };

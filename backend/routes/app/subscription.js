@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/subscription');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/subscription.js';
 
 const router = createRouter({
   tag: 'Subscription',
@@ -78,4 +78,4 @@ router.post(
   controller.restore
 );
 
-module.exports = router;
+export default router;

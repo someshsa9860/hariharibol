@@ -5,17 +5,17 @@
 // landed badly. A row is only sent once `isPublished` is true, so a draft can
 // sit on a future date safely.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const s3 = require('../../services/s3');
-const { redis } = require('../../config/redis');
-const { ok, created, noContent } = require('../../utils/respond');
-const { notFound, badRequest } = require('../../utils/errors');
-const { toDateColumn, localDateString, shiftDays, isValidDateString } = require('../../utils/date');
-const { CACHE, SLOKA_ELIGIBLE_BOOK_NUMBERS } = require('../../config/constants');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as s3 from '../../services/s3.js';
+import { redis } from '../../config/redis.js';
+import { ok, created, noContent } from '../../utils/respond.js';
+import { notFound, badRequest } from '../../utils/errors.js';
+import { toDateColumn, localDateString, shiftDays, isValidDateString } from '../../utils/date.js';
+import { CACHE, SLOKA_ELIGIBLE_BOOK_NUMBERS } from '../../config/constants.js';
 
 /** GET /api/admin/slokas — the calendar, defaulting to the coming fortnight. */
-exports.calendar = async (req, res) => {
+export const calendar = async (req, res) => {
   const from = req.valid.query.from || shiftDays(localDateString('Asia/Kolkata'), -7);
   const to = req.valid.query.to || shiftDays(from, 21);
 
@@ -55,7 +55,7 @@ function gaps(from, to, slokas) {
 }
 
 /** PUT /api/admin/slokas/:date — set or replace the sloka for one date. */
-exports.set = async (req, res) => {
+export const set = async (req, res) => {
   const { date } = req.valid.params;
   const { verseId, imagePath, isPublished } = req.valid.body;
 
@@ -92,7 +92,7 @@ exports.set = async (req, res) => {
 };
 
 /** DELETE /api/admin/slokas/:date */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const { date } = req.valid.params;
 
   const sloka = await prisma.dailySloka.findUnique({ where: { date: toDateColumn(date) } });
@@ -111,7 +111,7 @@ exports.remove = async (req, res) => {
  * repeating within 45 days, so a pool smaller than that is guaranteed to
  * repeat — this is the number that says so before users notice.
  */
-exports.pool = async (req, res) => {
+export const pool = async (req, res) => {
   const [byBook, mapped, unmapped] = await Promise.all([
     prisma.verse.groupBy({
       by: ['bookNumber'],
@@ -141,7 +141,7 @@ exports.pool = async (req, res) => {
  * What went out and what was actually opened. `seenAt` against `notifiedAt` is
  * the honest measure of whether the personalisation is landing.
  */
-exports.delivery = async (req, res) => {
+export const delivery = async (req, res) => {
   const date = req.valid.query.date || localDateString('Asia/Kolkata');
   const dateColumn = toDateColumn(date);
 

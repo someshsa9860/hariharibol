@@ -12,12 +12,12 @@
 // every request carries a second token that has to be refreshed. It guards the
 // unauthenticated doors: sign-in, sign-up, device registration.
 
-const env = require('../config/env');
-const logger = require('../config/logger');
-const firebase = require('./../services/firebase');
-const { forbidden } = require('../utils/errors');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
+import * as firebase from './../services/firebase.js';
+import { forbidden } from '../utils/errors.js';
 
-module.exports = async function attestation(req, res, next) {
+export default async function attestation(req, res, next) {
   // Off by default outside production so a local client can be pointed at the
   // API without a Firebase project. Turning it off in production is a decision
   // someone has to make in the environment, not an accident.

@@ -4,9 +4,9 @@
 //   - BullMQ      creates its own via `bullConnection` (it requires
 //                 maxRetriesPerRequest: null and will refuse a shared client)
 
-const Redis = require('ioredis');
-const env = require('./env');
-const logger = require('./logger');
+import Redis from 'ioredis';
+import env from './env.js';
+import logger from './logger.js';
 
 function createClient(name, options = {}) {
   const client = new Redis(env.REDIS_URL, { lazyConnect: false, ...options });
@@ -28,4 +28,4 @@ const channels = {
   broadcast: 'ws:broadcast',
 };
 
-module.exports = { redis, publisher, createClient, bullConnection, channels };
+export { redis, publisher, createClient, bullConnection, channels };

@@ -1,5 +1,5 @@
-const { createRouter } = require('../../utils/router');
-const controller = require('../../controllers/admin/role');
+import { createRouter } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/role.js';
 
 const router = createRouter({
   tag: 'Admin · Permissions',
@@ -21,4 +21,4 @@ router.get(
   controller.permissions
 );
 
-module.exports = router;
+export default router;

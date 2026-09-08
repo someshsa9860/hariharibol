@@ -1,6 +1,6 @@
-const { createRouter, z } = require('../../utils/router');
-const attestation = require('../../middleware/attestation');
-const controller = require('../../controllers/app/auth');
+import { createRouter, z } from '../../utils/router.js';
+import attestation from '../../middleware/attestation.js';
+import * as controller from '../../controllers/app/auth.js';
 
 const router = createRouter({
   tag: 'Auth',
@@ -106,4 +106,4 @@ router.delete(
   controller.deleteAccount
 );
 
-module.exports = router;
+export default router;

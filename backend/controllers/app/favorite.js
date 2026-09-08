@@ -5,16 +5,16 @@
 // verse takes its bookmarks with it instead of leaving rows pointing at
 // nothing. Which one is set is enforced here.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const { ok, created, noContent } = require('../../utils/respond');
-const { badRequest, notFound } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import { ok, created, noContent } from '../../utils/respond.js';
+import { badRequest, notFound } from '../../utils/errors.js';
 
 const TARGETS = ['verseId', 'mantraId', 'bookId'];
 
 /** GET /api/app/favorites */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const user = req.auth.user;
   const { type } = req.valid.query;
 
@@ -58,7 +58,7 @@ exports.list = async (req, res) => {
  * Idempotent: bookmarking something already bookmarked returns the existing
  * row rather than failing, because a double tap should not produce an error.
  */
-exports.add = async (req, res) => {
+export const add = async (req, res) => {
   const user = req.auth.user;
   const body = req.valid.body;
 
@@ -87,7 +87,7 @@ exports.add = async (req, res) => {
 };
 
 /** DELETE /api/app/favorites/:id */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const deleted = await prisma.favorite.deleteMany({
     where: { id: req.valid.params.id, userId: req.auth.user.id },
   });

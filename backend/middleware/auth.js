@@ -14,11 +14,11 @@
 // holding something it thinks is valid, and telling it plainly is what triggers
 // the silent refresh instead of a puzzling empty response.
 
-const authService = require('../services/auth');
-const logger = require('../config/logger');
-const { prisma } = require('../config/database');
-const { redis } = require('../config/redis');
-const { unauthorized } = require('../utils/errors');
+import * as authService from '../services/auth.js';
+import logger from '../config/logger.js';
+import { prisma } from '../config/database.js';
+import { redis } from '../config/redis.js';
+import { unauthorized } from '../utils/errors.js';
 
 const ANONYMOUS = { user: null, permissions: new Set(), isAuthenticated: false };
 
@@ -41,7 +41,7 @@ async function touchLastActive(userId) {
     .catch((err) => logger.debug({ err: err.message }, 'lastActiveAt update failed'));
 }
 
-module.exports = async function auth(req, res, next) {
+export default async function auth(req, res, next) {
   const token = readBearer(req);
 
   if (!token) {
@@ -63,6 +63,6 @@ module.exports = async function auth(req, res, next) {
   } catch (err) {
     return next(err);
   }
-};
+}
 
-module.exports.ANONYMOUS = ANONYMOUS;
+export { ANONYMOUS };

@@ -8,14 +8,14 @@
 // account?" before the sheet is presented, and splitting them would mean the
 // app guessing wrong and showing the wrong screen.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const authService = require('../../services/auth');
-const { ok, created } = require('../../utils/respond');
-const { badRequest, conflict, notFound } = require('../../utils/errors');
-const { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } = require('../../config/constants');
-const settings = require('../../services/setting');
-const { isValidTimezone } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import * as authService from '../../services/auth.js';
+import { ok, created } from '../../utils/respond.js';
+import { badRequest, conflict, notFound } from '../../utils/errors.js';
+import { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } from '../../config/constants.js';
+import * as settings from '../../services/setting.js';
+import { isValidTimezone } from '../../utils/date.js';
 
 // Everything the app needs about the signed-in person, in the shape it gets
 // after a refresh too — one parser on the client, not two.
@@ -77,7 +77,7 @@ async function linkDevice(userId, req, body) {
  * Verifies the provider's id token, finds or creates the account, and returns
  * a session. Guarded by client attestation — see middleware/attestation.js.
  */
-exports.social = async (req, res) => {
+export const social = async (req, res) => {
   const body = req.valid.body;
 
   const signupOpen = await settings.getBoolean(SETTING_KEYS.SIGNUP_ENABLED, true);
@@ -163,21 +163,21 @@ exports.social = async (req, res) => {
  * for a year and is re-issued on every use, so an app in regular use never asks
  * anyone to sign in again.
  */
-exports.refresh = async (req, res) => {
+export const refresh = async (req, res) => {
   const { refreshToken, deviceId } = req.valid.body;
   const result = await authService.rotateRefreshToken(refreshToken, deviceId || req.deviceId);
   return ok(res, sessionPayload(result.user, result.session));
 };
 
 /** POST /api/app/auth/logout — ends this device's session only. */
-exports.logout = async (req, res) => {
+export const logout = async (req, res) => {
   const { refreshToken } = req.valid.body;
   await authService.revokeRefreshToken(refreshToken);
   return ok(res, { message: 'Signed out' });
 };
 
 /** POST /api/app/auth/logout-all — ends every session, on every device. */
-exports.logoutAll = async (req, res) => {
+export const logoutAll = async (req, res) => {
   await authService.revokeAllForUser(req.auth.user.id);
   return ok(res, { message: 'Signed out everywhere' });
 };
@@ -187,7 +187,7 @@ exports.logoutAll = async (req, res) => {
  * A real delete, not a flag. Both stores require it to be reachable from inside
  * the app, and the cascades in the schema take the practice history with it.
  */
-exports.deleteAccount = async (req, res) => {
+export const deleteAccount = async (req, res) => {
   const userId = req.auth.user.id;
   await prisma.user.delete({ where: { id: userId } });
   await authService.invalidateUser(userId);

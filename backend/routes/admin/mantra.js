@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/admin/mantra');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/mantra.js';
 
 const router = createRouter({
   tag: 'Admin · Mantras',
@@ -149,4 +149,4 @@ router.delete(
   controller.deleteTranslation
 );
 
-module.exports = router;
+export default router;

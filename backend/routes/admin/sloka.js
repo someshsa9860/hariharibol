@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/admin/sloka');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/sloka.js';
 
 const router = createRouter({
   tag: 'Admin · Sloka',
@@ -97,4 +97,4 @@ router.delete(
   controller.remove
 );
 
-module.exports = router;
+export default router;

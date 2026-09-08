@@ -7,9 +7,9 @@
 //
 // The templates are in views/pages.
 
-const path = require('node:path');
-const { notFound } = require('../../utils/errors');
-const env = require('../../config/env');
+import path from 'node:path';
+import { notFound } from '../../utils/errors.js';
+import env from '../../config/env.js';
 
 // An allowlist, not a lookup by whatever arrived in the URL — rendering an
 // arbitrary path from a request parameter is how a template engine turns into
@@ -20,7 +20,7 @@ const PAGES = {
   'account-deletion': { template: 'account-deletion', title: 'Deleting Your Account' },
 };
 
-exports.render = async (req, res) => {
+export const render = async (req, res) => {
   const page = PAGES[req.valid.params.slug];
   if (!page) throw notFound('Page');
 
@@ -34,7 +34,7 @@ exports.render = async (req, res) => {
 };
 
 /** GET /api/web/pages — what is available, for the website to link to. */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   return res.json({
     success: true,
     data: Object.entries(PAGES).map(([slug, page]) => ({

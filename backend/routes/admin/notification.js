@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/admin/notification');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/admin/notification.js';
 
 const router = createRouter({
   tag: 'Admin · Notifications',
@@ -83,4 +83,4 @@ router.get(
   controller.list
 );
 
-module.exports = router;
+export default router;

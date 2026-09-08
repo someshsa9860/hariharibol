@@ -1,6 +1,6 @@
 # HariHariBol — Backend
 
-Plain Node.js. No TypeScript, no build step. Express, Prisma, Postgres, Redis.
+Plain Node.js — **ESM, no TypeScript, no build step**. Express, Prisma, Postgres, Redis.
 
 The rules this is built to are in [CLAUDE.md](CLAUDE.md). This file is how to run it.
 
@@ -83,6 +83,19 @@ by accident.
 
 **Validated input lands on `req.valid`**, never `req.body`. `req.valid.body`,
 `req.valid.query`, `req.valid.params`.
+
+**Modules are ESM.** Relative imports need the `.js` extension, directories are
+imported as `.../index.js`, and there is no `__dirname` — use
+`import.meta.dirname`. Most modules export named bindings, so import them as a
+namespace:
+
+```js
+import * as s3 from '../services/s3.js';        // named exports
+import router from './routes/app/index.js';      // a genuine single value
+```
+
+A plain default import of a module that has no default export gives you
+`undefined` rather than an error, so it is worth getting right first time.
 
 ## Commands
 

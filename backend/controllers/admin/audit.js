@@ -1,11 +1,11 @@
 // The audit log — who changed what.
 
-const { prisma } = require('../../config/database');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
+import { prisma } from '../../config/database.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
 
 /** GET /api/admin/audit */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { actorId, action, entityType, entityId, from, to } = req.valid.query;
 
   const { items, page } = await paginate(prisma.auditLog, {
@@ -36,7 +36,7 @@ exports.list = async (req, res) => {
  * Everything that has happened to one record, oldest first — the history of a
  * book, a user, a plan.
  */
-exports.forEntity = async (req, res) => {
+export const forEntity = async (req, res) => {
   const { entityType, entityId } = req.valid.params;
 
   const entries = await prisma.auditLog.findMany({
@@ -49,7 +49,7 @@ exports.forEntity = async (req, res) => {
 };
 
 /** GET /api/admin/audit/actions — the distinct action names, for the filter dropdown. */
-exports.actions = async (req, res) => {
+export const actions = async (req, res) => {
   const rows = await prisma.auditLog.groupBy({
     by: ['action'],
     _count: { _all: true },

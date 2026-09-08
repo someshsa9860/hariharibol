@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/donation');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/donation.js';
 
 const router = createRouter({
   tag: 'Donations',
@@ -79,4 +79,4 @@ router.get(
   controller.mine
 );
 
-module.exports = router;
+export default router;

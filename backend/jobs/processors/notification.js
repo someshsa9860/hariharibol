@@ -8,10 +8,10 @@
 // Anyone who has already met their target today is skipped. A reminder to chant
 // when the rounds are done is the fastest way to get notifications turned off.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
-const notify = require('../../services/notify');
-const { localDateString, toDateColumn } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
+import * as notify from '../../services/notify.js';
+import { localDateString, toDateColumn } from '../../utils/date.js';
 
 const WINDOW_MINUTES = 15;
 const BATCH_SIZE = 500;
@@ -38,7 +38,7 @@ function parseReminder(value) {
   return hour * 60 + minute;
 }
 
-module.exports = async function notificationProcessor(job) {
+export default async function notificationProcessor(job) {
   const now = new Date();
   let cursor = null;
   let sent = 0;

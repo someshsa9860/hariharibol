@@ -14,10 +14,10 @@
 // Donation therefore always wins over a lapsed subscription. Someone who
 // subscribed for a month and later donated is a donor, not an ex-subscriber.
 
-const { prisma } = require('../config/database');
-const logger = require('../config/logger');
-const authService = require('./auth');
-const websocket = require('./websocket');
+import { prisma } from '../config/database.js';
+import logger from '../config/logger.js';
+import * as authService from './auth.js';
+import * as websocket from './websocket.js';
 
 // Statuses that still entitle. CANCELLED is included on purpose — a cancelled
 // subscription has been paid for to the end of its period, and cutting access
@@ -126,4 +126,4 @@ async function sweep() {
   return { expired: expired.count, refreshed: stale.length };
 }
 
-module.exports = { compute, refresh, sweep, ENTITLING_STATUSES };
+export { compute, refresh, sweep, ENTITLING_STATUSES };

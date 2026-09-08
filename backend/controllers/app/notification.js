@@ -4,12 +4,12 @@
 // notifications switched off — or whose token had gone stale — still sees the
 // same list. The push is delivery; this is the record.
 
-const { prisma } = require('../../config/database');
-const { ok, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
+import { prisma } from '../../config/database.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
 
 /** GET /api/app/notifications */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { type, unreadOnly } = req.valid.query;
 
   const { items, page } = await paginate(prisma.notification, {
@@ -26,7 +26,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/app/notifications/unread-count — the badge. */
-exports.unreadCount = async (req, res) => {
+export const unreadCount = async (req, res) => {
   const count = await prisma.notification.count({
     where: { userId: req.auth.user.id, readAt: null },
   });
@@ -34,7 +34,7 @@ exports.unreadCount = async (req, res) => {
 };
 
 /** POST /api/app/notifications/:id/read */
-exports.markRead = async (req, res) => {
+export const markRead = async (req, res) => {
   // updateMany rather than update, so someone else's notification id is a
   // silent no-op instead of a 404 that confirms the row exists.
   const updated = await prisma.notification.updateMany({
@@ -45,7 +45,7 @@ exports.markRead = async (req, res) => {
 };
 
 /** POST /api/app/notifications/read-all */
-exports.markAllRead = async (req, res) => {
+export const markAllRead = async (req, res) => {
   const updated = await prisma.notification.updateMany({
     where: { userId: req.auth.user.id, readAt: null },
     data: { readAt: new Date() },

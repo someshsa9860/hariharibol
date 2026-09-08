@@ -38,4 +38,4 @@ function fail(res, status, code, message, details) {
   return res.status(status).json({ success: false, error: { code, message, details } });
 }
 
-module.exports = { ok, created, noContent, paginated, fail };
+export { ok, created, noContent, paginated, fail };

@@ -1,5 +1,5 @@
-const { createRouter, z, schemas } = require('../../utils/router');
-const controller = require('../../controllers/app/task');
+import { createRouter, z, schemas } from '../../utils/router.js';
+import * as controller from '../../controllers/app/task.js';
 
 const router = createRouter({
   tag: 'Tasks',
@@ -102,4 +102,4 @@ router.delete(
   controller.remove
 );
 
-module.exports = router;
+export default router;

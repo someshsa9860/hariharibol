@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/progress');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/progress.js';
 
 const router = createRouter({
   tag: 'Reading progress',
@@ -48,4 +48,4 @@ router.delete(
   controller.reset
 );
 
-module.exports = router;
+export default router;

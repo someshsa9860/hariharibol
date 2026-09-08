@@ -12,11 +12,11 @@
 // Only a hash of the code is stored, and verification is constant-time —
 // otherwise the comparison itself leaks the code one character at a time.
 
-const crypto = require('node:crypto');
-const { redis } = require('../config/redis');
-const logger = require('../config/logger');
-const mailer = require('./mailer');
-const { badRequest, tooMany } = require('../utils/errors');
+import crypto from 'node:crypto';
+import { redis } from '../config/redis.js';
+import logger from '../config/logger.js';
+import * as mailer from './mailer.js';
+import { badRequest, tooMany } from '../utils/errors.js';
 
 const TTL_SECONDS = 10 * 60;
 const MAX_ATTEMPTS = 5;
@@ -95,4 +95,4 @@ async function verify({ purpose, subject, code }) {
   return true;
 }
 
-module.exports = { PURPOSES, issue, verify, TTL_SECONDS };
+export { PURPOSES, issue, verify, TTL_SECONDS };

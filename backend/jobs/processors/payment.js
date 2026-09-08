@@ -8,10 +8,10 @@
 // It grants nothing on its own — it recomputes from the ledger, so a bug here
 // can at worst be corrected by running it again.
 
-const logger = require('../../config/logger');
-const entitlement = require('../../services/entitlement');
+import logger from '../../config/logger.js';
+import * as entitlement from '../../services/entitlement.js';
 
-module.exports = async function paymentProcessor(job) {
+export default async function paymentProcessor(job) {
   switch (job.name) {
     case 'entitlement.sweep': {
       const result = await entitlement.sweep();

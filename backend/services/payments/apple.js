@@ -10,11 +10,11 @@
 // A JWS that arrives any other way — from a client, or in a webhook — must have
 // its signature chain verified before it is believed.
 
-const { SignJWT, decodeJwt } = require('jose');
-const crypto = require('node:crypto');
-const env = require('../../config/env');
-const logger = require('../../config/logger');
-const { AppError, badRequest } = require('../../utils/errors');
+import { SignJWT, decodeJwt } from 'jose';
+import crypto from 'node:crypto';
+import env from '../../config/env.js';
+import logger from '../../config/logger.js';
+import { AppError, badRequest } from '../../utils/errors.js';
 
 const PRODUCTION = 'https://api.storekit.itunes.apple.com/inApps/v1';
 const SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com/inApps/v1';
@@ -117,9 +117,5 @@ function decodeNotification(signedPayload) {
   };
 }
 
-module.exports = {
-  provider: 'APPLE_APP_STORE',
-  verifyTransaction,
-  verifySubscription,
-  decodeNotification,
-};
+export const provider = 'APPLE_APP_STORE';
+export { verifyTransaction, verifySubscription, decodeNotification };

@@ -9,9 +9,9 @@
 // the worker container consumes them (worker/index.js). Both require this file,
 // which is what keeps the queue names from being typed twice.
 
-const { Queue } = require('bullmq');
-const { bullConnection } = require('../config/redis');
-const { defaultJobOptions } = require('../config/cron');
+import { Queue } from 'bullmq';
+import { bullConnection } from '../config/redis.js';
+import { defaultJobOptions } from '../config/cron.js';
 
 const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance'];
 
@@ -38,4 +38,4 @@ async function closeQueues() {
   await Promise.all(Object.values(queues).map((queue) => queue.close()));
 }
 
-module.exports = { queues, QUEUE_NAMES, JOBS, closeQueues };
+export { queues, QUEUE_NAMES, JOBS, closeQueues };

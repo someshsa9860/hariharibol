@@ -12,9 +12,9 @@
 // Both are HMAC-SHA256 and both are compared in constant time. A `===` here
 // leaks the expected signature one byte at a time.
 
-const crypto = require('node:crypto');
-const env = require('../../config/env');
-const { AppError, badRequest } = require('../../utils/errors');
+import crypto from 'node:crypto';
+import env from '../../config/env.js';
+import { AppError, badRequest } from '../../utils/errors.js';
 
 const BASE = 'https://api.razorpay.com/v1';
 
@@ -79,10 +79,5 @@ async function fetchPayment(paymentId) {
   return response.json();
 }
 
-module.exports = {
-  provider: 'RAZORPAY',
-  createOrder,
-  verifyCheckoutSignature,
-  verifyWebhookSignature,
-  fetchPayment,
-};
+export const provider = 'RAZORPAY';
+export { createOrder, verifyCheckoutSignature, verifyWebhookSignature, fetchPayment };

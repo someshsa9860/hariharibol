@@ -8,15 +8,15 @@
 // It is public. A signed-out visitor gets the sloka of the day and the books;
 // the personal sections simply come back empty rather than as an error.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const s3 = require('../../services/s3');
-const sadhana = require('./sadhana');
-const { ok } = require('../../utils/respond');
-const { localDateString, toDateColumn } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import * as s3 from '../../services/s3.js';
+import * as sadhana from './sadhana.js';
+import { ok } from '../../utils/respond.js';
+import { localDateString, toDateColumn } from '../../utils/date.js';
 
-exports.home = async (req, res) => {
+export const home = async (req, res) => {
   const user = req.auth.user;
   const timezone = user?.timezone || 'Asia/Kolkata';
   const date = localDateString(timezone);

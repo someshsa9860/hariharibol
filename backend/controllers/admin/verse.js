@@ -12,16 +12,16 @@
 //      under an acharya's name, and that separation is the point — not an
 //      implementation detail to tidy away later.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const s3 = require('../../services/s3');
-const { ok, created, noContent, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest } = require('../../utils/errors');
-const { SLOKA_ELIGIBLE_BOOK_NUMBERS } = require('../../config/constants');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as s3 from '../../services/s3.js';
+import { ok, created, noContent, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
+import { SLOKA_ELIGIBLE_BOOK_NUMBERS } from '../../config/constants.js';
 
 /** GET /api/admin/verses */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { q, bookId, canto, chapter, isSlokaEligible, untranslated } = req.valid.query;
 
   const { items, page } = await paginate(prisma.verse, {
@@ -54,7 +54,7 @@ exports.list = async (req, res) => {
 };
 
 /** GET /api/admin/verses/:verseId — everything attached, published or not. */
-exports.get = async (req, res) => {
+export const get = async (req, res) => {
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
     include: {
@@ -73,7 +73,7 @@ exports.get = async (req, res) => {
 };
 
 /** POST /api/admin/verses */
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const body = req.valid.body;
 
   const book = await prisma.book.findUnique({ where: { id: body.bookId } });
@@ -94,7 +94,7 @@ exports.create = async (req, res) => {
 };
 
 /** PATCH /api/admin/verses/:verseId */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const before = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
   if (!before) throw notFound('Verse');
 
@@ -115,7 +115,7 @@ exports.update = async (req, res) => {
 };
 
 /** DELETE /api/admin/verses/:verseId */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
   if (!verse) throw notFound('Verse');
 
@@ -141,7 +141,7 @@ exports.remove = async (req, res) => {
  * a stotra — is not something to hand someone as the verse for their day, and
  * the restriction is enforced here rather than trusted to whoever is clicking.
  */
-exports.setSlokaEligibility = async (req, res) => {
+export const setSlokaEligibility = async (req, res) => {
   const { verseIds, isSlokaEligible } = req.valid.body;
 
   const verses = await prisma.verse.findMany({
@@ -181,7 +181,7 @@ exports.setSlokaEligibility = async (req, res) => {
 // ── Translations ───────────────────────────────────────────────────────────
 
 /** PUT /api/admin/verses/:verseId/translations — create or replace one rendering. */
-exports.upsertTranslation = async (req, res) => {
+export const upsertTranslation = async (req, res) => {
   const { translatorId, languageCode, type = 'TRANSLATION' } = req.valid.body;
 
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
@@ -210,7 +210,7 @@ exports.upsertTranslation = async (req, res) => {
   return ok(res, translation);
 };
 
-exports.deleteTranslation = async (req, res) => {
+export const deleteTranslation = async (req, res) => {
   await prisma.verseTranslation.delete({ where: { id: req.valid.params.translationId } });
   await audit.record(req, {
     action: 'verse.translation.delete',
@@ -228,7 +228,7 @@ exports.deleteTranslation = async (req, res) => {
  * reader shown that verse — never stored as a translation, so it can never be
  * mistaken for something an acharya said.
  */
-exports.upsertExplanation = async (req, res) => {
+export const upsertExplanation = async (req, res) => {
   const { languageCode, text, source = 'MANUAL', isPublished } = req.valid.body;
 
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
@@ -252,7 +252,7 @@ exports.upsertExplanation = async (req, res) => {
 
 // ── Narrations ─────────────────────────────────────────────────────────────
 
-exports.createNarration = async (req, res) => {
+export const createNarration = async (req, res) => {
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
   if (!verse) throw notFound('Verse');
 
@@ -270,7 +270,7 @@ exports.createNarration = async (req, res) => {
   return created(res, narration);
 };
 
-exports.updateNarration = async (req, res) => {
+export const updateNarration = async (req, res) => {
   const narration = await prisma.narration.update({
     where: { id: req.valid.params.narrationId },
     data: req.valid.body,
@@ -278,7 +278,7 @@ exports.updateNarration = async (req, res) => {
   return ok(res, narration);
 };
 
-exports.deleteNarration = async (req, res) => {
+export const deleteNarration = async (req, res) => {
   await prisma.narration.delete({ where: { id: req.valid.params.narrationId } });
   return noContent(res);
 };
@@ -290,7 +290,7 @@ exports.deleteNarration = async (req, res) => {
  * Links are directional — "expands on" does not read the same in reverse, so
  * A→B and B→A are separate rows and the editor decides whether both exist.
  */
-exports.createLink = async (req, res) => {
+export const createLink = async (req, res) => {
   const { targetVerseId, relation, note } = req.valid.body;
 
   const [source, target] = await Promise.all([
@@ -309,7 +309,7 @@ exports.createLink = async (req, res) => {
   return created(res, link);
 };
 
-exports.deleteLink = async (req, res) => {
+export const deleteLink = async (req, res) => {
   await prisma.verseLink.delete({ where: { id: req.valid.params.linkId } });
   return noContent(res);
 };
@@ -327,7 +327,7 @@ exports.deleteLink = async (req, res) => {
  * than a complete but careless mapping of all 18,700. A wrong sloka for someone
  * in the middle of krodha is worse than no personalisation at all.
  */
-exports.setIssues = async (req, res) => {
+export const setIssues = async (req, res) => {
   const { issues } = req.valid.body;
 
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });

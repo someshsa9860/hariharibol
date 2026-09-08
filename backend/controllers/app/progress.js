@@ -8,13 +8,13 @@
 // continue-reading list can render "Canto 3, Chapter 12" without loading the
 // verse for every book in the list.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const { ok } = require('../../utils/respond');
-const { notFound } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import { ok } from '../../utils/respond.js';
+import { notFound } from '../../utils/errors.js';
 
 /** GET /api/app/progress — the continue-reading list. */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const user = req.auth.user;
 
   const rows = await prisma.readingProgress.findMany({
@@ -51,7 +51,7 @@ exports.list = async (req, res) => {
  * Records the furthest point reached. `versesRead` only ever increases —
  * flipping back to re-read an earlier verse should not undo months of progress.
  */
-exports.save = async (req, res) => {
+export const save = async (req, res) => {
   const user = req.auth.user;
   const { verseId } = req.valid.body;
 
@@ -99,7 +99,7 @@ exports.save = async (req, res) => {
 };
 
 /** DELETE /api/app/progress/:bookId — start a book over. */
-exports.reset = async (req, res) => {
+export const reset = async (req, res) => {
   await prisma.readingProgress.deleteMany({
     where: { userId: req.auth.user.id, bookId: req.valid.params.bookId },
   });

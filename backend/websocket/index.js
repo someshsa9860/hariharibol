@@ -12,14 +12,14 @@
 // Connections authenticate with the same access token as the API. There is one
 // auth service, and a socket is not a way around it.
 
-const http = require('node:http');
-const { WebSocketServer } = require('ws');
+import http from 'node:http';
+import { WebSocketServer } from 'ws';
 
-const env = require('../config/env');
-const logger = require('../config/logger');
-const { createClient, channels } = require('../config/redis');
-const { connectDatabase, disconnectDatabase } = require('../config/database');
-const authService = require('../services/auth');
+import env from '../config/env.js';
+import logger from '../config/logger.js';
+import { createClient, channels } from '../config/redis.js';
+import { connectDatabase, disconnectDatabase } from '../config/database.js';
+import * as authService from '../services/auth.js';
 
 // userId → Set of live sockets. One person may have several: a phone, a tablet,
 // the website open in a tab.

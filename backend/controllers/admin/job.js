@@ -4,14 +4,14 @@
 // table to read. That is deliberate: two records of the same thing drift, and
 // the queue is the one that decides what actually runs.
 
-const { queues, QUEUE_NAMES } = require('../../jobs');
-const { schedules } = require('../../config/cron');
-const audit = require('../../services/audit');
-const { ok } = require('../../utils/respond');
-const { badRequest, notFound } = require('../../utils/errors');
+import { queues, QUEUE_NAMES } from '../../jobs/index.js';
+import { schedules } from '../../config/cron.js';
+import * as audit from '../../services/audit.js';
+import { ok } from '../../utils/respond.js';
+import { badRequest, notFound } from '../../utils/errors.js';
 
 /** GET /api/admin/jobs — counts per queue, and the schedule that feeds them. */
-exports.overview = async (req, res) => {
+export const overview = async (req, res) => {
   const counts = await Promise.all(
     QUEUE_NAMES.map(async (name) => ({
       queue: name,
@@ -31,7 +31,7 @@ exports.overview = async (req, res) => {
 };
 
 /** GET /api/admin/jobs/:queue/failed — the failure list, with reasons. */
-exports.failed = async (req, res) => {
+export const failed = async (req, res) => {
   const { queue } = req.valid.params;
   if (!queues[queue]) throw notFound('Queue');
 
@@ -54,7 +54,7 @@ exports.failed = async (req, res) => {
 };
 
 /** POST /api/admin/jobs/:queue/:jobId/retry */
-exports.retry = async (req, res) => {
+export const retry = async (req, res) => {
   const { queue, jobId } = req.valid.params;
   if (!queues[queue]) throw notFound('Queue');
 
@@ -73,7 +73,7 @@ exports.retry = async (req, res) => {
  * that was missed while the worker was down, and for testing a change to one
  * without waiting a day to see it.
  */
-exports.runNow = async (req, res) => {
+export const runNow = async (req, res) => {
   const { name } = req.valid.params;
 
   const schedule = schedules.find((entry) => entry.name === name);
@@ -96,7 +96,7 @@ exports.runNow = async (req, res) => {
 };
 
 /** DELETE /api/admin/jobs/:queue/failed — clear the failure list once it is dealt with. */
-exports.clearFailed = async (req, res) => {
+export const clearFailed = async (req, res) => {
   const { queue } = req.valid.params;
   if (!queues[queue]) throw notFound('Queue');
 

@@ -6,11 +6,11 @@
 // container and per-process counters would multiply every limit by the replica
 // count.
 
-const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis').default || require('rate-limit-redis');
-const { redis } = require('../config/redis');
-const env = require('../config/env');
-const { fail } = require('../utils/respond');
+import rateLimit from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
+import { redis } from '../config/redis.js';
+import env from '../config/env.js';
+import { fail } from '../utils/respond.js';
 
 function store(prefix) {
   return new RedisStore({
@@ -59,4 +59,4 @@ function get(name) {
   return cache.get(name);
 }
 
-module.exports = { get, definitions };
+export { get, definitions };

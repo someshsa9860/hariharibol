@@ -2,8 +2,8 @@
 // deeplink service alike. Pretty in development, JSON in production so the log
 // shipper can parse it.
 
-const pino = require('pino');
-const env = require('./env');
+import pino from 'pino';
+import env from './env.js';
 
 const logger = pino({
   level: env.isProduction ? 'info' : 'debug',
@@ -26,4 +26,4 @@ const logger = pino({
     : { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } },
 });
 
-module.exports = logger;
+export default logger;

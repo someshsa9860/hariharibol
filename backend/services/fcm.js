@@ -10,9 +10,9 @@
 // services/notify.js — a user who has push switched off must still see the
 // message in their history.
 
-const { prisma } = require('../config/database');
-const logger = require('../config/logger');
-const firebase = require('./firebase');
+import { prisma } from '../config/database.js';
+import logger from '../config/logger.js';
+import * as firebase from './firebase.js';
 
 // Firebase says the token is dead. Keeping it means retrying a delivery that
 // can never land, on every send, forever.
@@ -137,7 +137,7 @@ async function unsubscribeDevice(deviceId, topicKey) {
   return true;
 }
 
-module.exports = {
+export {
   sendToTokens,
   sendToUser,
   sendToUsers,

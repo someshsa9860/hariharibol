@@ -5,17 +5,17 @@
 // removes access as a consequence of the ledger changing, not because this file
 // reached over and flipped a flag.
 
-const { prisma } = require('../../config/database');
-const audit = require('../../services/audit');
-const payments = require('../../services/payments');
-const entitlement = require('../../services/entitlement');
-const { ok, created, paginated } = require('../../utils/respond');
-const { paginate } = require('../../utils/pagination');
-const { notFound, badRequest } = require('../../utils/errors');
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as payments from '../../services/payments/index.js';
+import * as entitlement from '../../services/entitlement.js';
+import { ok, created, paginated } from '../../utils/respond.js';
+import { paginate } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
 
 // ── Plans ──────────────────────────────────────────────────────────────────
 
-exports.listPlans = async (req, res) => {
+export const listPlans = async (req, res) => {
   const plans = await prisma.subscriptionPlan.findMany({
     orderBy: { createdAt: 'asc' },
     include: { _count: { select: { subscriptions: true } } },
@@ -23,7 +23,7 @@ exports.listPlans = async (req, res) => {
   return ok(res, plans);
 };
 
-exports.createPlan = async (req, res) => {
+export const createPlan = async (req, res) => {
   const plan = await prisma.subscriptionPlan.create({ data: req.valid.body });
   await audit.record(req, {
     action: 'plan.create',
@@ -42,7 +42,7 @@ exports.createPlan = async (req, res) => {
  * charged is on their Payment rows. That is why the ledger stores the amount
  * rather than reading it back off the plan.
  */
-exports.updatePlan = async (req, res) => {
+export const updatePlan = async (req, res) => {
   const before = await prisma.subscriptionPlan.findUnique({ where: { id: req.valid.params.id } });
   if (!before) throw notFound('Plan');
 
@@ -64,7 +64,7 @@ exports.updatePlan = async (req, res) => {
 
 // ── Subscriptions ──────────────────────────────────────────────────────────
 
-exports.listSubscriptions = async (req, res) => {
+export const listSubscriptions = async (req, res) => {
   const { status, provider } = req.valid.query;
 
   const { items, page } = await paginate(prisma.subscription, {
@@ -82,7 +82,7 @@ exports.listSubscriptions = async (req, res) => {
 
 // ── Payments ───────────────────────────────────────────────────────────────
 
-exports.listPayments = async (req, res) => {
+export const listPayments = async (req, res) => {
   const { purpose, status, provider, from, to } = req.valid.query;
 
   const { items, page } = await paginate(prisma.payment, {
@@ -113,7 +113,7 @@ exports.listPayments = async (req, res) => {
  * paise and cents into one number would be meaningless, and a single "revenue"
  * figure across currencies is exactly the kind of thing that goes unnoticed.
  */
-exports.summary = async (req, res) => {
+export const summary = async (req, res) => {
   const from = req.valid.query.from ? new Date(req.valid.query.from) : new Date(Date.now() - 30 * 86400000);
 
   const rows = await prisma.payment.groupBy({
@@ -142,7 +142,7 @@ exports.summary = async (req, res) => {
  * which then recomputes entitlement, so a refunded donation stops granting
  * permanent Premium.
  */
-exports.refund = async (req, res) => {
+export const refund = async (req, res) => {
   const payment = await prisma.payment.findUnique({ where: { id: req.valid.params.id } });
   if (!payment) throw notFound('Payment');
   if (payment.status === 'REFUNDED') throw badRequest('That payment is already marked refunded');
@@ -162,7 +162,7 @@ exports.refund = async (req, res) => {
 };
 
 /** POST /api/admin/payments/entitlement/:userId — recompute one account. */
-exports.refreshEntitlement = async (req, res) => {
+export const refreshEntitlement = async (req, res) => {
   const result = await entitlement.refresh(req.valid.params.userId);
   return ok(res, result);
 };
@@ -172,7 +172,7 @@ exports.refreshEntitlement = async (req, res) => {
  * Donors, most recent first. Anonymous donors are included as totals but not
  * named — they asked not to be, and an admin list is still a list.
  */
-exports.donors = async (req, res) => {
+export const donors = async (req, res) => {
   const donations = await prisma.payment.findMany({
     where: { purpose: 'DONATION', status: 'SUCCEEDED' },
     orderBy: { paidAt: 'desc' },

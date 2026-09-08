@@ -7,8 +7,8 @@
 // Retention is deliberately generous. Disk is cheaper than the afternoon spent
 // wishing the log went back further.
 
-const { prisma } = require('../../config/database');
-const logger = require('../../config/logger');
+import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
 
 const RETENTION_DAYS = {
   // Who changed what. The longest, because this is the one that answers
@@ -25,7 +25,7 @@ const RETENTION_DAYS = {
 
 const cutoff = (days) => new Date(Date.now() - days * 86400000);
 
-module.exports = async function maintenanceProcessor(job) {
+export default async function maintenanceProcessor(job) {
   const results = {};
 
   results.auditLog = (

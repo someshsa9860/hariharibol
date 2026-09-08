@@ -8,14 +8,14 @@
 // the translation text, not a separate search cluster. Nothing here would have
 // to move.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const language = require('../../utils/language');
-const { ok } = require('../../utils/respond');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
+import { ok } from '../../utils/respond.js';
 
 const LIMIT = 20;
 
-exports.search = async (req, res) => {
+export const search = async (req, res) => {
   const user = req.auth.user;
   const { q, type } = req.valid.query;
   const readingChain = language.readingChain(user);

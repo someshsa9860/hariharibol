@@ -12,11 +12,11 @@
 // them. If you find yourself adding options to this file, that is the signal
 // the resource has outgrown it.
 
-const audit = require('../services/audit');
-const s3 = require('../services/s3');
-const { ok, created, noContent, paginated } = require('./respond');
-const { notFound } = require('./errors');
-const { paginate } = require('./pagination');
+import * as audit from '../services/audit.js';
+import * as s3 from '../services/s3.js';
+import { ok, created, noContent, paginated } from './respond.js';
+import { notFound } from './errors.js';
+import { paginate } from './pagination.js';
 
 /**
  * @param {object}   config
@@ -110,4 +110,4 @@ function makeCrud(config) {
   };
 }
 
-module.exports = { makeCrud };
+export { makeCrud };

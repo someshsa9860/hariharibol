@@ -1,6 +1,6 @@
 # Backend — HariHariBol API
 
-Plain **Node.js. No TypeScript.** Simple, readable code. Prisma for the database.
+Plain **Node.js. No TypeScript.** **ESM everywhere** — `"type": "module"`, `import`/`export`, no `require` anywhere. Simple, readable code. Prisma for the database.
 
 ## Structure
 
@@ -57,7 +57,21 @@ backend/
 
 ## Rules
 
-1. **JavaScript, not TypeScript.** No build step for the API code.
+1. **JavaScript, not TypeScript, and ESM not CommonJS.** No build step either
+   way — Node runs the source as written.
+
+   Three consequences worth knowing before writing a file:
+
+   - **Relative imports carry the `.js` extension**, and a directory is
+     imported as `.../index.js`. ESM does not guess.
+   - **A module of named exports is imported as a namespace**:
+     `import * as s3 from '../services/s3.js'`. A plain `import s3 from …`
+     silently yields `undefined` — the one trap worth remembering.
+   - **No `__dirname`.** Use `import.meta.dirname`.
+
+   Modules export named bindings by default. `export default` is reserved for
+   things that genuinely are one value: an express router, a middleware, a job
+   processor.
 
 2. **One `app.js`, one `server.js`.** `server.js` only starts the server. `app.js` wires middleware and mounts every routes directory — reading `app.js` alone should tell you every route family the API exposes.
 

@@ -1,5 +1,5 @@
-const { createRouter, z } = require('../../utils/router');
-const controller = require('../../controllers/app/user');
+import { createRouter, z } from '../../utils/router.js';
+import * as controller from '../../controllers/app/user.js';
 
 const router = createRouter({
   tag: 'Me',
@@ -93,4 +93,4 @@ router.get(
   controller.summary
 );
 
-module.exports = router;
+export default router;

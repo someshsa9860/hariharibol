@@ -6,11 +6,11 @@
 //   - anything else — a bug. Logged with the stack, reported as a bare 500. An
 //     internal message must never reach a client.
 
-const { Prisma } = require('@prisma/client');
-const logger = require('../config/logger');
-const env = require('../config/env');
-const { AppError } = require('../utils/errors');
-const { fail } = require('../utils/respond');
+import { Prisma } from '@prisma/client';
+import logger from '../config/logger.js';
+import env from '../config/env.js';
+import { AppError } from '../utils/errors.js';
+import { fail } from '../utils/respond.js';
 
 // Prisma's own errors carry enough to answer properly instead of as a 500.
 function fromPrisma(err) {
@@ -66,4 +66,4 @@ function errorHandler(err, req, res, next) {
   );
 }
 
-module.exports = { errorHandler, notFound };
+export { errorHandler, notFound };

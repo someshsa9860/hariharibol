@@ -1,9 +1,9 @@
 // The admin landing screen, and "who am I" for the panel itself.
 
-const { prisma } = require('../../config/database');
-const { ok } = require('../../utils/respond');
-const { PERMISSIONS } = require('../../config/constants');
-const { localDateString, toDateColumn, shiftDays } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import { ok } from '../../utils/respond.js';
+import { PERMISSIONS } from '../../config/constants.js';
+import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
 
 /**
  * GET /api/admin/me
@@ -12,7 +12,7 @@ const { localDateString, toDateColumn, shiftDays } = require('../../utils/date')
  * kind of record — so the panel must be told what this person may actually do
  * rather than assuming that reaching the admin API means full access.
  */
-exports.me = async (req, res) => {
+export const me = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.auth.user.id },
     select: {
@@ -46,7 +46,7 @@ exports.me = async (req, res) => {
  * rather than a reporting layer — this screen is opened constantly and should
  * never be the reason the database is busy.
  */
-exports.stats = async (req, res) => {
+export const stats = async (req, res) => {
   const today = localDateString('Asia/Kolkata');
   const monthAgo = toDateColumn(shiftDays(today, -30));
   const weekAgo = toDateColumn(shiftDays(today, -7));
@@ -112,7 +112,7 @@ exports.stats = async (req, res) => {
  * GET /api/admin/dashboard/signups
  * New accounts per day for the last 30 days.
  */
-exports.signups = async (req, res) => {
+export const signups = async (req, res) => {
   const days = req.valid.query.days || 30;
   const since = toDateColumn(shiftDays(localDateString('Asia/Kolkata'), -days));
 

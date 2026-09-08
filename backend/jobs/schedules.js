@@ -10,9 +10,9 @@
 // are cleared here too, or they would keep firing forever with nothing left in
 // the code that mentions them.
 
-const { queues } = require('./index');
-const { schedules } = require('../config/cron');
-const logger = require('../config/logger');
+import { queues } from './index.js';
+import { schedules } from '../config/cron.js';
+import logger from '../config/logger.js';
 
 async function registerSchedules() {
   const wanted = new Set(schedules.map((entry) => entry.name));
@@ -44,4 +44,4 @@ async function registerSchedules() {
   }
 }
 
-module.exports = { registerSchedules };
+export { registerSchedules };

@@ -11,8 +11,8 @@
 // once, by hand, by promoting a real signed-in user — a seeded admin with a
 // known email is a credential sitting in version control.
 
-const { PrismaClient } = require('@prisma/client');
-const data = require('./data');
+import { PrismaClient } from '@prisma/client';
+import * as data from './data.js';
 
 const prisma = new PrismaClient();
 

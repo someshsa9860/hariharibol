@@ -1,9 +1,9 @@
 // One Prisma client for the whole process. Controllers require this directly —
 // there is no repository or data-access layer between a controller and Prisma.
 
-const { PrismaClient } = require('@prisma/client');
-const env = require('./env');
-const logger = require('./logger');
+import { PrismaClient } from '@prisma/client';
+import env from './env.js';
+import logger from './logger.js';
 
 const prisma = new PrismaClient({
   log: env.isDevelopment
@@ -26,4 +26,4 @@ async function disconnectDatabase() {
   await prisma.$disconnect();
 }
 
-module.exports = { prisma, connectDatabase, disconnectDatabase };
+export { prisma, connectDatabase, disconnectDatabase };

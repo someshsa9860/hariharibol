@@ -9,14 +9,14 @@
 // A fixed list rather than a text box, because these are what VerseIssue maps
 // slokas to. Free text would give the picker nothing to match against.
 
-const { prisma } = require('../../config/database');
-const present = require('../../utils/present');
-const { ok, created } = require('../../utils/respond');
-const { notFound } = require('../../utils/errors');
-const { toDateColumn, localDateString, shiftDays } = require('../../utils/date');
+import { prisma } from '../../config/database.js';
+import * as present from '../../utils/present.js';
+import { ok, created } from '../../utils/respond.js';
+import { notFound } from '../../utils/errors.js';
+import { toDateColumn, localDateString, shiftDays } from '../../utils/date.js';
 
 /** GET /api/app/issues */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   const { category } = req.valid.query;
 
   const issues = await prisma.issue.findMany({
@@ -39,7 +39,7 @@ exports.list = async (req, res) => {
  * what the weekly learning is built from, and putting a price on that would
  * make the data worse for everyone.
  */
-exports.report = async (req, res) => {
+export const report = async (req, res) => {
   const user = req.auth.user;
   const { issueSlug, intensity, note, date } = req.valid.body;
 
@@ -68,7 +68,7 @@ exports.report = async (req, res) => {
 };
 
 /** GET /api/app/issues/mine — this user's own reports, newest first. */
-exports.mine = async (req, res) => {
+export const mine = async (req, res) => {
   const reports = await prisma.userIssue.findMany({
     where: { userId: req.auth.user.id },
     orderBy: { reportedAt: 'desc' },
@@ -85,7 +85,7 @@ exports.mine = async (req, res) => {
  * The comparison against the previous window of the same length is the part
  * worth showing — a raw count says nothing about direction.
  */
-exports.trends = async (req, res) => {
+export const trends = async (req, res) => {
   const user = req.auth.user;
   const days = req.valid.query.days || 30;
 

@@ -8,13 +8,13 @@
 // The object key is generated here, never taken from the client. A
 // client-supplied key is how one upload silently overwrites another's file.
 
-const s3 = require('../../services/s3');
-const audit = require('../../services/audit');
-const { ok } = require('../../utils/respond');
-const { badRequest, notFound } = require('../../utils/errors');
+import * as s3 from '../../services/s3.js';
+import * as audit from '../../services/audit.js';
+import { ok } from '../../utils/respond.js';
+import { badRequest, notFound } from '../../utils/errors.js';
 
 /** POST /api/admin/uploads — get a URL to upload to. */
-exports.presign = async (req, res) => {
+export const presign = async (req, res) => {
   const { kind, contentType } = req.valid.body;
 
   const result = await s3.presignUpload(kind, contentType);
@@ -30,7 +30,7 @@ exports.presign = async (req, res) => {
 };
 
 /** GET /api/admin/uploads/kinds — what may be uploaded and where each kind lands. */
-exports.kinds = async (req, res) => {
+export const kinds = async (req, res) => {
   return ok(res, {
     kinds: Object.keys(s3.PREFIXES),
     contentTypes: [...s3.ALLOWED_CONTENT_TYPES],
@@ -43,7 +43,7 @@ exports.kinds = async (req, res) => {
  * key pointing at nothing is worse than an empty column: the app renders a play
  * button that does nothing, and the reader blames their connection.
  */
-exports.verify = async (req, res) => {
+export const verify = async (req, res) => {
   const { key } = req.valid.body;
 
   const exists = await s3.objectExists(key);
@@ -53,7 +53,7 @@ exports.verify = async (req, res) => {
 };
 
 /** DELETE /api/admin/uploads — remove an orphaned object. */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const { key } = req.valid.body;
   if (!key) throw badRequest('key is required');
 
