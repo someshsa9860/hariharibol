@@ -19,7 +19,7 @@ backend/
 │   ├── web/
 │   └── admin/
 ├── services/              # shared infra only: fcm.js, otp.js, websocket.js, auth.js …
-├── views/                 # server-rendered templates
+├── views/                 # email templates + server-rendered pages
 ├── jobs/                  # BullMQ queues and processors (Redis-backed)
 ├── worker/                # background job runner — own Docker container
 ├── websocket/             # realtime server — own Docker container
@@ -48,6 +48,8 @@ backend/
 
 9. **Every endpoint is documented.** API docs are a requirement, not an afterthought, and they must look good — a browsable, well-presented reference, not a raw dump.
 
+10. **`views/` holds email templates and server-rendered pages** — OTP and notification emails, deeplink landing pages, legal/policy pages. Anything the server renders as HTML rather than returns as JSON.
+
 ## Auth, roles and permissions
 
 - **One auth service**, one users table. Admins and normal users are the same record type, separated by a `role` column.
@@ -64,7 +66,5 @@ A code-build-graph package should be wired up and re-run periodically so the str
 
 ## Open questions
 
-- **Platform folder naming** — rules say segregate by `app`/`web`/`admin`, but the example given was `routes/user` + `controllers/user`. Confirm whether the split is `app|web|admin` or `user|admin` (with `user` covering both mobile and web).
-- **`views/`** — what renders here? Email templates, admin-side server-rendered pages, or something else?
 - **API docs tool** — Scalar and Redoc both produce good-looking docs from an OpenAPI spec; Swagger UI is plainer. Pick one before the first endpoint ships.
 - **Attestation mechanism** — Firebase App Check fits well since Firebase is already in use (Play Integrity on Android, App Attest on iOS, reCAPTCHA on web). Alternative is a signed-request HMAC scheme.

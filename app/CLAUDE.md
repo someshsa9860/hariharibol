@@ -40,7 +40,9 @@ app/lib/
 
 ## State management
 
-Bloc or Riverpod — **one of them, chosen once, used everywhere.** See _Decisions needed_ below.
+**Riverpod.** Used everywhere — no second state solution alongside it.
+
+Chosen for less boilerplate than Bloc, compile-time safety, and because it pairs naturally with Drift's stream queries: a database stream becomes a provider directly, so offline data and UI state share one mechanism. It also keeps view files small, which the 500-line rule depends on.
 
 ## Offline storage
 
@@ -85,7 +87,6 @@ ObjectBox is the only other serious option, and is worth revisiting **only** if 
 
 ## Decisions needed
 
-- **State management** — Bloc or Riverpod. Riverpod suits this structure well (compile-safe, less boilerplate, easy to test); Bloc is more prescriptive and better if you want strict event/state discipline across a team.
 - **Access token lifetime** — 7 days is long for an access token (typical is minutes to hours). It means a stolen token stays valid for a week and cannot be easily revoked. The 1-year rotating refresh token already delivers the "never asked to log in again" experience, so a shorter access token costs nothing in UX. Worth reconsidering.
 
 ## Notes carried over
