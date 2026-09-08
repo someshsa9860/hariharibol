@@ -83,6 +83,20 @@ enum AiProvider {
   OPENAI
 }
 
+enum NotificationType {
+  SLOKA // the daily sloka
+  SADHANA // chanting or task reminders
+  ANNOUNCEMENT // broadcast from admin
+  SYSTEM // account, payment, security
+}
+
+enum VerseLinkRelation {
+  SAME_CONCEPT
+  EXPANDS_ON
+  QUOTED_IN
+  CONTRASTS_WITH
+}
+
 enum PaymentProvider {
   GOOGLE_PLAY
   APPLE_APP_STORE
@@ -177,6 +191,14 @@ model User {
   subscriptions  Subscription[]
   payments       Payment[]
 
+  favorites       Favorite[]
+  readingProgress ReadingProgress[]
+  notifications   Notification[]
+
+  auditLogs  AuditLog[] @relation("AuditActor")
+  bans       Ban[]      @relation("BannedUser")
+  bansIssued Ban[]      @relation("BanActor")
+
   @@index([roleId])
   @@index([isBanned])
   @@index([createdAt])
@@ -247,6 +269,9 @@ model Device {
   firstSeenAt DateTime @default(now())
   lastSeenAt  DateTime @updatedAt
 
+  topicSubscriptions FcmSubscription[]
+  bans               Ban[]
+
   @@index([userId])
   @@index([isBanned])
 }
@@ -313,10 +338,12 @@ model Book {
 
   deity Deity? @relation(fields: [deityId], references: [id], onDelete: SetNull)
 
-  cantos      Canto[]
-  chapters    Chapter[]
-  verses      Verse[]
-  translators BookTranslator[]
+  cantos          Canto[]
+  chapters        Chapter[]
+  verses          Verse[]
+  translators     BookTranslator[]
+  favorites       Favorite[]
+  readingProgress ReadingProgress[]
 
   @@index([type])
   @@index([sampradaya])
@@ -423,6 +450,11 @@ model Verse {
   dailySlokas  DailySloka[]
   userSlokas   UserDailySloka[]
   issueLinks   VerseIssue[]
+  narrations   Narration[]
+  favorites    Favorite[]
+  readingMarks ReadingProgress[]
+  linksFrom    VerseLink[]        @relation("SourceVerse")
+  linksTo      VerseLink[]        @relation("TargetVerse")
 
   @@index([bookId])
   @@index([chapterId])
@@ -529,6 +561,60 @@ model VerseExplanation {
 
   @@unique([verseId, languageCode])
   @@index([isPublished])
+}
+
+// A saint's telling of the story or teaching around a verse — attributed,
+// usually with audio. Distinct from a translator's purport: this is narrative,
+// not commentary on the text.
+model Narration {
+  id String @id @default(cuid())
+
+  verseId String
+  guruId  String? // who it is attributed to
+
+  languageCode String  @db.VarChar(10)
+  title        String?
+  text         String? @db.Text
+
+  audioPath  String? // S3 object key
+  durationMs Int?
+
+  sourceNote String? // where it was recorded or published
+
+  isPublished  Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  guru  Guru? @relation(fields: [guruId], references: [id], onDelete: SetNull)
+
+  @@index([verseId, languageCode])
+  @@index([guruId])
+  @@index([isPublished])
+}
+
+// Connections between verses across the Gita and the Bhagavatam. Directional:
+// the pair (A→B) and (B→A) are separate rows, because "expands on" does not
+// read the same both ways.
+model VerseLink {
+  id String @id @default(cuid())
+
+  sourceVerseId String
+  targetVerseId String
+
+  relation VerseLinkRelation @default(SAME_CONCEPT)
+  note     String?
+
+  createdAt DateTime @default(now())
+
+  sourceVerse Verse @relation("SourceVerse", fields: [sourceVerseId], references: [id], onDelete: Cascade)
+  targetVerse Verse @relation("TargetVerse", fields: [targetVerseId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceVerseId, targetVerseId, relation])
+  @@index([sourceVerseId])
+  @@index([targetVerseId])
 }
 
 // ============================================================================
@@ -698,6 +784,117 @@ model UserDailySloka {
 }
 
 // ============================================================================
+// User engagement — favourites, reading progress, notifications
+// ============================================================================
+
+// Bookmarks. Exactly one target column is set per row; which one is enforced in
+// the controller. Real foreign keys rather than a generic targetType/targetId
+// pair, so deleting a verse takes its bookmarks with it.
+model Favorite {
+  id String @id @default(cuid())
+
+  userId   String
+  verseId  String?
+  mantraId String?
+  bookId   String?
+
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verse  Verse?  @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  mantra Mantra? @relation(fields: [mantraId], references: [id], onDelete: Cascade)
+  book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, verseId])
+  @@unique([userId, mantraId])
+  @@unique([userId, bookId])
+  @@index([userId, createdAt])
+}
+
+// Where a user left off in a book — one row per user per book, overwritten as
+// they read. Feeds "continue reading" and the weekly preference learning.
+model ReadingProgress {
+  id String @id @default(cuid())
+
+  userId String
+  bookId String
+
+  // Last verse actually reached. Denormalised numbers so the reading list can
+  // render "Canto 3, Chapter 12" without loading the verse.
+  verseId       String?
+  cantoNumber   Int?
+  chapterNumber Int?
+  verseNumber   Int?
+
+  versesRead Int      @default(0)
+  lastReadAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book  Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  verse Verse? @relation(fields: [verseId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, bookId])
+  @@index([userId, lastReadAt])
+}
+
+// In-app notification history. Written whether or not a push went out, so the
+// user sees the same list on a device that had notifications disabled.
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  type   NotificationType
+
+  title String
+  body  String @db.Text
+  data  Json? // deeplink target and any payload the app needs
+
+  sentAt DateTime?
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+// FCM broadcast topics. Sending to a topic is one call regardless of audience
+// size, so anything going to everyone goes here rather than looping devices.
+model FcmTopic {
+  id String @id @default(cuid())
+
+  key         String  @unique @db.VarChar(100) // "sloka-of-day", "announcements"
+  name        String
+  description String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  subscriptions FcmSubscription[]
+}
+
+model FcmSubscription {
+  id String @id @default(cuid())
+
+  deviceId String
+  topicId  String
+
+  subscribedAt DateTime @default(now())
+
+  device Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  topic  FcmTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, topicId])
+  @@index([topicId])
+}
+
+// ============================================================================
 // Money — subscriptions and donations
 // ============================================================================
 
@@ -857,9 +1054,88 @@ model AiUsageLog {
   @@index([targetType, targetId])
 }
 
+// Every admin action that changes data. RBAC without this only says who *could*
+// have done something; this says who did.
+model AuditLog {
+  id String @id @default(cuid())
+
+  actorId String? // null if the actor was deleted — the record must outlive them
+  action  String  @db.VarChar(100) // "book.publish", "user.ban", "role.update"
+
+  entityType String  @db.VarChar(50)
+  entityId   String?
+
+  // Only the fields that changed, not whole rows — otherwise this table grows
+  // faster than the data it describes.
+  before Json?
+  after  Json?
+
+  ipAddress String? @db.VarChar(45)
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+}
+
+// Ban records, kept as history rather than only as flags. The flags on User and
+// Device stay as the fast check; this table answers who banned, why, and
+// whether it was lifted.
+model Ban {
+  id String @id @default(cuid())
+
+  userId   String?
+  deviceId String?
+  actorId  String? // the admin who issued it
+
+  reason   String   @db.Text
+  bannedAt DateTime @default(now())
+
+  liftedAt   DateTime?
+  liftedById String?
+  liftReason String?   @db.Text
+
+  user   User?   @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
+  device Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  actor  User?   @relation("BanActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([bannedAt])
+}
+
 // ============================================================================
 // Reference data — seeded, then managed from admin
 // ============================================================================
+
+// Which languages the app offers. Users pick three (app, mantra, reading) and
+// this is the list they pick from, so adding a language is a data change.
+model Language {
+  id String @id @default(cuid())
+
+  code        String  @unique @db.VarChar(10) // "en", "hi", "mr", "sa"
+  nativeName  String // "हिन्दी"
+  englishName String // "Hindi"
+  isRtl       Boolean @default(false)
+
+  // Whether it can be chosen for each of the three settings — Sanskrit is a
+  // valid mantra language but not a sensible app language.
+  isAppLanguage     Boolean @default(true)
+  isMantraLanguage  Boolean @default(true)
+  isReadingLanguage Boolean @default(true)
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
 
 // Deities content can be attributed to or filtered by. Seeded with the Vaishnav
 // set (Krishna, Vishnu, Rama, Narasimha, Radha …) and extended from admin.
@@ -911,7 +1187,8 @@ model Guru {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  mantras Mantra[]
+  mantras    Mantra[]
+  narrations Narration[]
 
   @@index([sampradaya])
   @@index([isPublished])
@@ -968,6 +1245,7 @@ model Mantra {
 
   translations  MantraTranslation[]
   chantSessions ChantSession[]
+  favorites     Favorite[]
 
   @@index([category])
   @@index([sampradaya])
