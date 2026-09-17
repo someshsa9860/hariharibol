@@ -61,7 +61,12 @@ jobs:
 
       - name: Create deployment ECR password
         id: deployment-ecr
-        run: echo "password=${{ steps.login-ecr.outputs.docker_password }}" >> "$GITHUB_OUTPUT"
+        run: |
+          {
+            echo 'password<<EOF'
+            aws ecr get-login-password --region "$AWS_REGION"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push backend image
         env:
