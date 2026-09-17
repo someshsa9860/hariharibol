@@ -1,26 +1,55 @@
-name: Build and Push Docker Image to ECR
+name: Admin CI
 
 on:
   push:
-    branches:
-      - website
+    branches: [main, develop]
     paths:
-      - 'website/**'
-      - '.github/workflows/build-and-push-ecr.yml'
+      - admin/**
+      - .github/workflows/build-and-push-ecr.yml
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - admin/**
+      - .github/workflows/build-and-push-ecr.yml
   workflow_dispatch:
 
-env:
-  AWS_REGION: ap-south-1
-  ECR_REPOSITORY: hariharibol-website
-  IMAGE_TAG: ${{ github.sha }}
-
 jobs:
-  build-and-push:
+  validate:
+    name: Typecheck and build
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - name: Install dependencies
+        working-directory: admin
+        run: npm ci
+      - name: Build
+        working-directory: admin
+        env:
+          VITE_API_URL: http://localhost:4000
+          VITE_GOOGLE_CLIENT_ID: placeholder
+        run: npm run build
+
+  build-push-deploy:
+    name: Build, push and deploy
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    permissions:
+      contents: read
+    env:
+      AWS_REGION: ap-south-1
+      ECR_REPOSITORY: hariharibol-admin
+      IMAGE_TAG: ${{ github.sha }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -33,43 +62,28 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
+      - name: Build and push admin image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: |
-          cd website
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker build \
+            --build-arg VITE_API_URL="$VITE_API_URL" \
+            --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" \
+            admin
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-      - name: Push Docker image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "Image pushed successfully:"
-          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
-
-      - name: Deployment summary
-        if: success()
-        run: |
-          echo "## ✨ Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Repository | $ECR_REPOSITORY |" >> $GITHUB_STEP_SUMMARY
-          echo "| Image Tag | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
-          echo "| Latest Tag | latest |" >> $GITHUB_STEP_SUMMARY
-          echo "| Region | ${{ env.AWS_REGION }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branch | ${{ github.ref }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Author | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
-
-      - name: Build failed notification
-        if: failure()
-        run: |
-          echo "## ❌ Docker Build or Push Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
-          exit 1
+      - name: Deploy on server
+        if: ${{ env.DEPLOY_HOST != '' }}
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd "${{ secrets.DEPLOY_PATH }}"
+            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh admin
