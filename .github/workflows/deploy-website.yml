@@ -60,6 +60,7 @@ jobs:
             chmod +x server/deploy.sh server/website.sh
             IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh website
             sudo install -m 0644 server/nginx.conf /etc/nginx/sites-available/hariharibol
+            sudo ln -sfn /etc/nginx/sites-available/hariharibol /etc/nginx/sites-enabled/hariharibol
             sudo nginx -t
             sudo systemctl reload nginx
             sudo nginx -T 2>/dev/null | grep -E 'server_name (api|admin|hariharibol)' | head -10
