@@ -62,3 +62,5 @@ jobs:
             sudo install -m 0644 server/nginx.conf /etc/nginx/sites-available/hariharibol
             sudo nginx -t
             sudo systemctl reload nginx
+            sudo nginx -T 2>/dev/null | grep -E 'server_name (api|admin|hariharibol)' | head -10
+            curl --fail --silent --show-error https://hariharibol.com/ | grep -F 'Make room for the sacred in your everyday.'
