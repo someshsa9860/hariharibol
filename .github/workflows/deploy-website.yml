@@ -21,15 +21,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload website and server config
+      - name: Upload website
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "website,deploy/server/docker-compose.yml,deploy/server/deploy.sh,deploy/server/website.sh,deploy/server/nginx.conf"
+          source: "website"
           target: ${{ secrets.DEPLOY_PATH }}
-          strip_components: 0
+
+      - name: Upload server config
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "deploy/server/docker-compose.yml,deploy/server/deploy.sh,deploy/server/website.sh,deploy/server/nginx.conf"
+          target: ${{ secrets.DEPLOY_PATH }}/server
+          strip_components: 2
 
       - name: Issue certificate and deploy
         uses: appleboy/ssh-action@v1.2.2
