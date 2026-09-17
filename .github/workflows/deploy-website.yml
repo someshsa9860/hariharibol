@@ -1,0 +1,55 @@
+name: Website CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - website/**
+      - deploy/server/docker-compose.yml
+      - deploy/server/deploy.sh
+      - deploy/server/website.sh
+      - deploy/server/nginx.conf
+      - .github/workflows/deploy-website.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy landing page
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload website and server config
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "website,deploy/server/docker-compose.yml,deploy/server/deploy.sh,deploy/server/website.sh,deploy/server/nginx.conf"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Issue certificate and deploy
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -eu
+            cd "${{ secrets.DEPLOY_PATH }}"
+            if [ ! -f /etc/letsencrypt/live/hariharibol.com/fullchain.pem ]; then
+              sudo apt-get update
+              sudo apt-get install -y certbot python3-certbot-nginx
+              sudo certbot certonly --nginx \
+                --non-interactive --agree-tos \
+                --email support@hariharibol.com \
+                -d hariharibol.com
+            fi
+            chmod +x server/deploy.sh server/website.sh
+            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh website
+            sudo install -m 0644 server/nginx.conf /etc/nginx/sites-available/hariharibol
+            sudo nginx -t
+            sudo systemctl reload nginx

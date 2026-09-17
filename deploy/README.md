@@ -35,6 +35,12 @@ The workflows use the latter commands after pushing their image when
 `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, and `DEPLOY_PATH` GitHub
 secrets are configured. GitHub Actions does not write runtime environment
 variables or credential files to the server; those remain on the server.
+
+The public landing page lives in `website/`. Changes to it deploy through
+`.github/workflows/deploy-website.yml` to the root `hariharibol.com` host. The
+workflow uploads the static files, starts the small nginx website container,
+and reloads the host Nginx configuration. On the first deployment it requests
+the `hariharibol.com` Let's Encrypt certificate using the existing DNS record.
 If `DEPLOY_HOST` is unset, the image build still completes and no SSH
 deployment is attempted.
 

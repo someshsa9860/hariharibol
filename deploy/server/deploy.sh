@@ -9,6 +9,7 @@ if [[ -n "${2:-}" ]]; then export IMAGE_TAG="$2"; fi
 
 case "${1:-all}" in
   admin) "$SCRIPT_DIR/admin.sh" ;;
+  website) "$SCRIPT_DIR/website.sh" ;;
   backend)
     "$SCRIPT_DIR/api.sh"
     "$SCRIPT_DIR/worker.sh"
@@ -21,9 +22,10 @@ case "${1:-all}" in
     "$SCRIPT_DIR/socket.sh"
     "$SCRIPT_DIR/deeplink.sh"
     "$SCRIPT_DIR/admin.sh"
+    "$SCRIPT_DIR/website.sh"
     ;;
   *)
-    echo "usage: $0 [admin|backend|all]" >&2
+    echo "usage: $0 [admin|website|backend|all]" >&2
     exit 2
     ;;
 esac
