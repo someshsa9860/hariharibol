@@ -20,13 +20,8 @@ set +o allexport
 export ECR_REGISTRY
 
 login_ecr() {
-  if [[ -n "${ECR_PASSWORD:-}" ]]; then
-    printf '%s' "$ECR_PASSWORD" |
-      docker login --username AWS --password-stdin "$ECR_REGISTRY"
-  else
-    aws ecr get-login-password --region "$AWS_REGION" |
-      docker login --username AWS --password-stdin "$ECR_REGISTRY"
-  fi
+  aws ecr get-login-password --region "$AWS_REGION" |
+    docker login --username AWS --password-stdin "$ECR_REGISTRY"
 }
 
 update_service() {

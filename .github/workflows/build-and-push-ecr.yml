@@ -62,15 +62,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Create deployment ECR password
-        id: deployment-ecr
-        run: |
-          {
-            echo 'password<<EOF'
-            aws ecr get-login-password --region "$AWS_REGION"
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-
       - name: Build and push admin image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -89,14 +80,11 @@ jobs:
       - name: Deploy on server
         if: ${{ env.DEPLOY_HOST != '' }}
         uses: appleboy/ssh-action@v1.2.2
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_PASSWORD: ${{ steps.deployment-ecr.outputs.password }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: AWS_REGION,ECR_REGISTRY,ECR_PASSWORD
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION
           script: |
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
