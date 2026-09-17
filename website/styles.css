@@ -44,6 +44,10 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
 .text-link { color: var(--ink); font-size: .8rem; font-weight: 700; }
 .quiet-note { align-items: center; color: var(--muted); display: flex; font-size: .72rem; gap: 9px; }
 .note-dot { background: var(--sage); border-radius: 50%; height: 7px; width: 7px; }
+.gita-verse { border-left: 2px solid var(--gold); margin: 35px 0 0; padding: 2px 0 2px 18px; }
+.gita-verse p { color: var(--saffron-dark); font-family: var(--serif); font-size: 1.1rem; line-height: 1.35; margin: 0 0 5px; }
+.gita-verse footer { color: var(--muted); font-size: .67rem; line-height: 1.5; }
+.hero-verse { max-width: 440px; }
 
 .hero-art { background: #ecd9c2; border-radius: 52% 52% 12px 12px; height: 525px; overflow: hidden; position: relative; }
 .sun { background: var(--gold); border-radius: 50%; height: 190px; position: absolute; right: 9%; top: 12%; width: 190px; }
@@ -71,6 +75,7 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
 .icon-heart { font-size: 3rem; line-height: .8; }
 .feature-card h3 { font-family: var(--serif); font-size: 1.35rem; font-weight: 500; margin-bottom: 8px; }
 .feature-card p { color: var(--muted); font-size: .82rem; max-width: 260px; }
+.intro-section > .gita-verse { margin: 48px auto 0; max-width: 570px; }
 
 .practice-section { align-items: center; background: #eee5d8; display: grid; gap: 100px; grid-template-columns: minmax(300px, .85fr) 1fr; margin: 80px 0; padding: 100px max(34px, calc((100% - 1100px) / 2)); }
 .practice-art { background: var(--sage); border-radius: 50%; height: 330px; justify-self: center; overflow: hidden; position: relative; width: 330px; }
@@ -83,6 +88,7 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
 .practice-copy { max-width: 520px; }
 .practice-copy h2 { font-size: clamp(2.2rem, 3.5vw, 3.3rem); }
 .practice-copy > p:not(.eyebrow) { color: var(--muted); font-size: .9rem; }
+.practice-verse { margin-top: 34px; }
 .check-list { list-style: none; margin: 30px 0 0; padding: 0; }
 .check-list li { align-items: center; display: flex; font-size: .78rem; gap: 12px; margin: 13px 0; }
 .check-list span { align-items: center; background: #fff; border-radius: 50%; color: var(--saffron); display: inline-flex; font-size: .7rem; height: 21px; justify-content: center; width: 21px; }
@@ -100,6 +106,7 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
 .reel-card-gold { background: #c98b45; }
 .reel-card-green { background: #7b8f70; }
 .reel-card-plum { background: var(--plum); }
+.reels-verse { margin: 45px auto 0; max-width: 620px; }
 
 .start-section { background: var(--saffron); color: #fff; margin-top: 45px; overflow: hidden; position: relative; text-align: center; }
 .start-section::before, .start-section::after { border: 1px solid rgba(255,255,255,.2); border-radius: 50%; content: ''; height: 480px; left: -160px; position: absolute; top: -240px; width: 480px; }
@@ -108,6 +115,8 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
 .start-inner .eyebrow { color: #f9e4c1; }
 .start-inner h2 { font-size: clamp(2.6rem, 5vw, 4.3rem); margin-bottom: 15px; }
 .start-inner > p:not(.eyebrow) { color: #f9e4c1; font-size: .9rem; margin-bottom: 28px; }
+.start-verse { border-color: #f3d29b; margin: 38px auto 0; max-width: 430px; text-align: left; }
+.start-verse p, .start-verse footer { color: #fff; }
 .button-light { background: #fff; color: var(--saffron-dark); display: inline-block; }
 .button-light:hover { background: #fff7ec; }
 .site-footer { align-items: center; display: flex; gap: 30px; justify-content: space-between; margin: auto; max-width: 1170px; padding: 28px 34px; }
@@ -124,6 +133,7 @@ h2 { font-size: clamp(2.3rem, 4vw, 3.7rem); margin-bottom: 20px; }
   .page-section { padding: 70px 22px; }
   .hero { min-height: auto; padding-top: 55px; }
   .hero-art { height: 440px; }
+  .hero-verse { margin-top: 30px; }
   .feature-grid, .reel-row { grid-template-columns: 1fr; }
   .feature-card-highlight { transform: none; }
   .practice-section { margin: 35px 0; padding: 70px 22px; }
