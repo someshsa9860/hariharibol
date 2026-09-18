@@ -33,6 +33,8 @@ abstract final class ApiPaths {
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';
+  static String bookChaptersBulk(String slug) => '$_app/books/$slug/chapters/bulk';
+  static String bookVerses(String slug) => '$_app/books/$slug/verses';
 
   static const String verses = '$_app/verses';
   static String verse(String verseId) => '$_app/verses/$verseId';
@@ -45,6 +47,26 @@ abstract final class ApiPaths {
   static String mantra(String slug) => '$_app/mantras/$slug';
 
   static const String search = '$_app/search';
+
+  // Reels
+  static const String reels = '$_app/reels';
+  static const String savedReels = '$_app/reels/saved';
+  static String reel(String id) => '$_app/reels/$id';
+  static String reelLike(String id) => '$_app/reels/$id/like';
+  static String reelView(String id) => '$_app/reels/$id/view';
+  static String reelShare(String id) => '$_app/reels/$id/share';
+  static String reelReport(String id) => '$_app/reels/$id/report';
+
+  static const String reelComments = '$_app/reel-comments';
+  static String reelComment(String id) => '$_app/reel-comments/$id';
+  static String reelCommentLike(String id) => '$_app/reel-comments/$id/like';
+  static String reelCommentPin(String id) => '$_app/reel-comments/$id/pin';
+  static String reelCommentReport(String id) => '$_app/reel-comments/$id/report';
+
+  static const String creators = '$_app/creators';
+  static String creator(String id) => '$_app/creators/$id';
+  static String creatorReels(String id) => '$_app/creators/$id/reels';
+  static String creatorFollow(String id) => '$_app/creators/$id/follow';
 
   // Sadhana
   static const String sadhanaToday = '$_app/sadhana/today';
@@ -63,6 +85,7 @@ abstract final class ApiPaths {
   static const String slokaToday = '$_app/sloka/today';
   static const String slokaMine = '$_app/sloka/mine';
   static const String slokaMood = '$_app/sloka/mood';
+  static const String slokaMoodToday = '$_app/sloka/mood/today';
   static String slokaSeen(String id) => '$_app/sloka/$id/seen';
   static const String slokaHistory = '$_app/sloka/history';
 
@@ -75,6 +98,10 @@ abstract final class ApiPaths {
   // Reading
   static const String favorites = '$_app/favorites';
   static String favorite(String id) => '$_app/favorites/$id';
+  static const String verseNotes = '$_app/verse-notes';
+  static String verseNote(String id) => '$_app/verse-notes/$id';
+  static const String verseHighlights = '$_app/verse-highlights';
+  static String verseHighlight(String id) => '$_app/verse-highlights/$id';
   static const String progress = '$_app/progress';
   static String progressForBook(String bookId) => '$_app/progress/$bookId';
 

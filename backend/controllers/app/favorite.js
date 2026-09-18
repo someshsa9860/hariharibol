@@ -7,11 +7,12 @@
 
 import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
+import * as s3 from '../../services/s3.js';
 import * as language from '../../utils/language.js';
 import { ok, created, noContent } from '../../utils/respond.js';
 import { badRequest, notFound } from '../../utils/errors.js';
 
-const TARGETS = ['verseId', 'mantraId', 'bookId'];
+const TARGETS = ['verseId', 'mantraId', 'bookId', 'reelId'];
 
 /** GET /api/app/favorites */
 export const list = async (req, res) => {
@@ -23,6 +24,7 @@ export const list = async (req, res) => {
     ...(type === 'verse' ? { verseId: { not: null } } : {}),
     ...(type === 'mantra' ? { mantraId: { not: null } } : {}),
     ...(type === 'book' ? { bookId: { not: null } } : {}),
+    ...(type === 'reel' ? { reelId: { not: null } } : {}),
   };
 
   const favorites = await prisma.favorite.findMany({
@@ -30,11 +32,16 @@ export const list = async (req, res) => {
     orderBy: { createdAt: 'desc' },
     take: 200,
     include: {
-      verse: { include: present.includes.verse(language.readingChain(user)) },
+      verse: { include: present.includes.verse(language.readingChain(user), user.id) },
       mantra: {
         include: present.includes.mantra(language.mantraChain(user), language.readingChain(user)),
       },
       book: true,
+      // Saved reels have a screen of their own (GET /reels/saved), which
+      // returns them fully shaped. Here they are only the bookmark, so a
+      // mixed favourites list can label the row without pulling media it is
+      // not going to play.
+      reel: { select: { id: true, thumbnailPath: true, caption: true, mediaType: true } },
     },
   });
 
@@ -44,10 +51,24 @@ export const list = async (req, res) => {
       favorites.map(async (row) => ({
         id: row.id,
         createdAt: row.createdAt,
-        type: row.verseId ? 'verse' : row.mantraId ? 'mantra' : 'book',
+        type: row.verseId
+          ? 'verse'
+          : row.mantraId
+            ? 'mantra'
+            : row.bookId
+              ? 'book'
+              : 'reel',
         verse: row.verse ? await present.verse(row.verse, user) : null,
         mantra: row.mantra ? await present.mantra(row.mantra, user) : null,
         book: row.book ? await present.book(row.book, user) : null,
+        reel: row.reel
+          ? {
+              id: row.reel.id,
+              caption: row.reel.caption,
+              mediaType: row.reel.mediaType,
+              thumbnailUrl: await s3.presignGet(row.reel.thumbnailPath),
+            }
+          : null,
       }))
     )
   );
@@ -63,7 +84,9 @@ export const add = async (req, res) => {
   const body = req.valid.body;
 
   const set = TARGETS.filter((field) => body[field]);
-  if (set.length !== 1) throw badRequest('Set exactly one of verseId, mantraId or bookId');
+  if (set.length !== 1) {
+    throw badRequest('Set exactly one of verseId, mantraId, bookId or reelId');
+  }
 
   const field = set[0];
   const value = body[field];
@@ -74,6 +97,11 @@ export const add = async (req, res) => {
     verseId: () => prisma.verse.findUnique({ where: { id: value }, select: { id: true } }),
     mantraId: () => prisma.mantra.findUnique({ where: { id: value }, select: { id: true } }),
     bookId: () => prisma.book.findUnique({ where: { id: value }, select: { id: true } }),
+    reelId: () =>
+      prisma.reel.findFirst({
+        where: { id: value, status: 'PUBLISHED' },
+        select: { id: true },
+      }),
   }[field]();
   if (!exists) throw notFound(field.replace('Id', ''));
 

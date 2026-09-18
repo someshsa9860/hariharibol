@@ -22,7 +22,15 @@ abstract final class BoxKeys {
 
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
+  static const String readingFontSize = 'settings.reading_font_size';
   static const String onboardingSeen = 'onboarding.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
+
+  /// The routine list, device-only until a backend model exists for it.
+  static const String routineTasks = 'routine.tasks';
+
+  /// The last calendar day the routine list was opened on, so a new day can
+  /// drop what was finished and carry over what was not.
+  static const String routineDate = 'routine.date';
 }

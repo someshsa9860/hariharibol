@@ -15,10 +15,15 @@ import 'firebase_service.dart';
 /// A parsed response: the `data` the API sent, and the `meta` block beside it
 /// when the endpoint paginates.
 class ApiResponse {
-  const ApiResponse(this.data, this.meta);
+  const ApiResponse(this.data, this.meta, {this.statusCode});
 
   final dynamic data;
   final Json? meta;
+
+  /// The HTTP status. Almost nothing needs it — but sign-in does, because a
+  /// 201 means the account was just created and a 200 means it already
+  /// existed, and that is the only signal the app gets.
+  final int? statusCode;
 
   Json get json => asJson(data) ?? const {};
   List<dynamic> get list => data is List ? data as List<dynamic> : const [];
@@ -230,8 +235,8 @@ class ApiClient {
   /// 204 arrives with no body at all, which is a success with nothing in it.
   ApiResponse _unwrap(Response<dynamic> response) {
     final body = asJson(response.data);
-    if (body == null) return const ApiResponse(null, null);
-    return ApiResponse(body['data'], asJson(body['meta']));
+    if (body == null) return ApiResponse(null, null, statusCode: response.statusCode);
+    return ApiResponse(body['data'], asJson(body['meta']), statusCode: response.statusCode);
   }
 
   ApiFailure _toFailure(DioException error) {

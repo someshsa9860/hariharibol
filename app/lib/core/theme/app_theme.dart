@@ -36,12 +36,20 @@ abstract final class AppTheme {
         titleTextStyle: textTheme.titleLarge,
       ),
 
-      // Cards are a lighter plane than the page with a hairline round them,
-      // not a shadow. Elevation on a warm ground reads as dirt.
+      // A lighter plane than the page, lifted by a soft warm shadow and held
+      // by a hairline. The shadow is tinted with the deepest orange rather
+      // than left grey — a neutral drop shadow on warm paper looks like dirt,
+      // and there is no grey in this palette to spend anyway.
+      //
+      // Dark mode gets no shadow at all: it is invisible against black, and
+      // the hairline is what separates a card from the page there.
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        shadowColor: isLight
+            ? AppColors.orangeDeep.withValues(alpha: 0.13)
+            : Colors.transparent,
+        elevation: isLight ? 6 : 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.lgAll,
@@ -97,22 +105,33 @@ abstract final class AppTheme {
       ),
 
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: scheme.surface,
+        // Transparent by default: the bar is wrapped in a GlassSurface, which
+        // supplies the ground. A colour here would sit on top of the frost.
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         indicatorColor: scheme.primaryContainer,
-        elevation: 3,
+        elevation: 0,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStatePropertyAll(textTheme.labelMedium),
       ),
 
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerLowest,
-        selectedColor: scheme.onSurface,
-        side: BorderSide(color: scheme.outlineVariant),
+        selectedColor: scheme.primary,
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => BorderSide(
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.outlineVariant,
+          ),
+        ),
         shape: const StadiumBorder(),
         showCheckmark: false,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         labelStyle: textTheme.labelLarge,
+        // ChoiceChip hands the label this style once it is selected. Without
+        // it the label keeps the unselected ink and vanishes into the fill.
+        secondaryLabelStyle: textTheme.labelLarge?.copyWith(color: scheme.onPrimary),
       ),
 
       dividerTheme: DividerThemeData(

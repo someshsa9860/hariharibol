@@ -60,7 +60,7 @@ export const home = async (req, res) => {
 
 // The signed-in half. Kept separate so the public path does none of this work.
 async function loadPersonal(user, date, readingChain) {
-  const [day, mySloka, continueReading, unread, streak] = await Promise.all([
+  const [day, mySloka, issuesToday, continueReading, unread, streak] = await Promise.all([
     prisma.sadhanaDay.findUnique({
       where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
       select: { roundTarget: true, roundsCompleted: true, tasksTotal: true, tasksDone: true },
@@ -72,6 +72,13 @@ async function loadPersonal(user, date, readingChain) {
         verse: { include: present.includes.verse(readingChain) },
         issue: { select: { slug: true, name: true } },
       },
+    }),
+
+    // Distinct issues reported today — not the full log, just enough for the
+    // dashboard to grey out a vikara already answered rather than ask again.
+    prisma.userIssue.findMany({
+      where: { userId: user.id, date: toDateColumn(date) },
+      select: { issue: { select: { slug: true } } },
     }),
 
     prisma.readingProgress.findFirst({
@@ -101,6 +108,7 @@ async function loadPersonal(user, date, readingChain) {
           verse: await present.verse(mySloka.verse, user),
         }
       : null,
+    issuesReportedToday: [...new Set(issuesToday.map((row) => row.issue.slug))],
     continueReading: continueReading
       ? {
           book: await present.book(continueReading.book, user),

@@ -94,6 +94,34 @@ abstract final class AppColors {
   /// The gradient behind a line-art motif. Named here rather than typed into
   /// each card, so the panels on the verse, the sadhana strip and a coverless
   /// book are the same wash.
+  // ── The reel surface ───────────────────────────────────────────────────────
+
+  /// A reel plays edge to edge over its own black ground, in **both** themes.
+  ///
+  /// This is the one surface that does not follow the light palette, and the
+  /// reason is the same one behind the colour rule itself: the media is the
+  /// thing meant to be looked at. Warm paper behind a video would tint it, and
+  /// orange chrome over someone's footage competes with it. So the overlays
+  /// are white on a black scrim, which is legible over any frame, and the
+  /// **state is carried by the icon** — filled versus outline — rather than by
+  /// a hue, exactly as the rule requires for a mode that has no colours to
+  /// spend.
+  ///
+  /// Named here rather than typed into the widgets so the whole surface can be
+  /// retuned in one place, same as every other colour in the app.
+  static const Color reelGround = black;
+  static const Color reelInk = white;
+
+  /// The gradient that makes white text readable over an unknown frame. Weak
+  /// at the top (the close button) and strong at the bottom (the caption),
+  /// because that is where the text actually is.
+  static const Color reelScrimStrong = Color(0xCC000000);
+  static const Color reelScrimSoft = Color(0x66000000);
+
+  /// A control that needs to be visible over a bright frame — the mute
+  /// toggle, a slideshow dot. Not a border, a wash.
+  static const Color reelControl = Color(0x33FFFFFF);
+
   static const Color panelFrom = Color(0xFFFDF0DC);
   static const Color panelTo = Color(0xFFF6D9AE);
   static const Color panelFromDark = Color(0xFF141414);

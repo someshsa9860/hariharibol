@@ -2,9 +2,15 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.scripts.example
+!.env.legacy-media.example
 dist/
 coverage/
 *.log
 .DS_Store
 prisma/*.db
 docs/openapi.json
+
+# Local fallback for S3 media when no AWS credentials are configured — see
+# services/s3.js. Never the real store; production always uses S3.
+/storage/

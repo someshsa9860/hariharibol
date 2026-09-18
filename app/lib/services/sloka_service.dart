@@ -11,10 +11,6 @@ class SlokaService {
   final ApiClient _api = ApiClient.instance;
 
   /// Names a struggle and gets a verse chosen for it.
-  ///
-  /// Throws an [ApiFailure] with status 402 once the free monthly quota is
-  /// used up — the caller shows the message the backend wrote, which names
-  /// the quota, rather than inventing paywall copy of its own.
   Future<PersonalSloka> forMood(String issueSlug, {int? intensity, String? note}) async {
     final response = await _api.post(
       ApiPaths.slokaMood,
@@ -30,4 +26,15 @@ class SlokaService {
   /// Separates "delivered" from "actually read". Fire and forget: nothing on
   /// screen depends on it, and a failure must never interrupt reading.
   Future<void> markSeen(String id) => _api.post(ApiPaths.slokaSeen(id));
+
+  /// Every struggle reported today, each with the verse it was answered with —
+  /// what a mood already answered today reopens to, since only the latest of
+  /// these still shows on the dashboard.
+  Future<List<PersonalSloka>> moodToday() async {
+    final response = await _api.get(ApiPaths.slokaMoodToday);
+    return response.list
+        .whereType<Map>()
+        .map((item) => PersonalSloka.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
 }

@@ -42,6 +42,7 @@ class HomeFeed {
     this.mantras = const [],
     this.sadhana,
     this.mySloka,
+    this.issuesReportedToday = const [],
     this.continueReading,
     this.unreadNotifications = 0,
     this.isPremium = false,
@@ -57,6 +58,12 @@ class HomeFeed {
 
   final SadhanaSummary? sadhana;
   final PersonalSloka? mySloka;
+
+  /// Slugs of the vikaras already reported today — what tells the mood chips
+  /// not to ask again until tomorrow, even across a cold restart, since this
+  /// rides in the same cached payload as everything else on the dashboard.
+  final List<String> issuesReportedToday;
+
   final ContinueReading? continueReading;
   final int unreadNotifications;
   final bool isPremium;
@@ -76,6 +83,7 @@ class HomeFeed {
         mySloka: asJson(json['mySloka']) == null
             ? null
             : PersonalSloka.fromJson(asJson(json['mySloka'])!),
+        issuesReportedToday: asStringList(json['issuesReportedToday']),
         continueReading: asJson(json['continueReading']) == null
             ? null
             : ContinueReading.fromJson(asJson(json['continueReading'])!),

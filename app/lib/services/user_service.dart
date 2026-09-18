@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../core/session/app_session.dart';
 import '../models/app_user.dart';
+import '../models/user_summary.dart';
 import 'api_client.dart';
 
 /// The signed-in person's own profile and settings.
@@ -23,6 +24,12 @@ class UserService {
     final user = AppUser.fromJson(response.json);
     await AppSession.instance.updateUser(user);
     return user;
+  }
+
+  /// The counts the profile screen shows.
+  Future<UserSummary> summary() async {
+    final response = await _api.get(ApiPaths.meSummary);
+    return UserSummary.fromJson(response.json);
   }
 
   Future<AppUser> updateProfile({String? name, String? timezone}) async {

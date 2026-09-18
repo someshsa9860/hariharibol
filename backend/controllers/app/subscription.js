@@ -1,9 +1,8 @@
 // Subscriptions.
 //
-// One plan: Premium, monthly. The app itself is free — the only thing behind
-// the paywall is the mood-driven sloka, which is also the only feature with a
-// per-user cost behind it. Spend follows revenue rather than running ahead of
-// it.
+// One plan: Premium, monthly. The app itself is free — there is currently no
+// feature behind a paywall; Premium and donations exist so someone who wants
+// to support the project can, not to unlock anything.
 //
 // A purchase token from the client is never trusted. Every verification is a
 // server-to-server call to Google or Apple, and what they say is what gets

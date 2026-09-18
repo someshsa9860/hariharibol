@@ -20,7 +20,13 @@ import * as language from './language.js';
 // shaping code so the two cannot drift — a shape that reads `verse.translations`
 // only works if the query asked for them.
 const includes = {
-  verse: (readingChain) => ({
+  /**
+   * `userId` is optional — a signed-out reader gets the content joins only,
+   * the same shape as before. Signed in, this is what lets the chapter
+   * reading screen show favourite/highlight/note state and whether "related
+   * verses" has anything behind it, without a second round trip per verse.
+   */
+  verse: (readingChain, userId) => ({
     book: { select: { id: true, slug: true, title: true, bookNumber: true, type: true } },
     chapter: { select: { id: true, number: true, title: true } },
     translations: {
@@ -29,6 +35,51 @@ const includes = {
       orderBy: { displayOrder: 'asc' },
     },
     explanations: { where: { isPublished: true, languageCode: { in: readingChain } } },
+    _count: { select: { linksFrom: true } },
+    ...(userId
+      ? {
+          favorites: { where: { userId }, select: { id: true } },
+          highlights: { where: { userId }, select: { id: true } },
+          notes: { where: { userId }, select: { id: true } },
+        }
+      : {}),
+  }),
+
+  /**
+   * Everything a shaped reel reads. `userId` is required rather than optional
+   * — unlike a verse, a reel is never served to a signed-out reader, and the
+   * like/save/follow flags are what the action rail renders from.
+   */
+  reel: (userId) => ({
+    creator: {
+      select: {
+        id: true,
+        userId: true,
+        displayName: true,
+        avatarPath: true,
+        isVerified: true,
+        followerCount: true,
+        followers: { where: { followerId: userId }, select: { followerId: true } },
+      },
+    },
+    media: { orderBy: { displayOrder: 'asc' } },
+    audioTracks: true,
+    verse: {
+      select: { id: true, verseId: true, bookNumber: true, chapterNumber: true, verseNumber: true },
+    },
+    mantra: { select: { id: true, slug: true, name: true } },
+    deity: { select: { id: true, slug: true, name: true, imagePath: true } },
+    likes: { where: { userId }, select: { userId: true } },
+    favorites: { where: { userId }, select: { id: true } },
+  }),
+
+  /**
+   * A comment and the two things every row needs beside its text: who wrote it,
+   * and whether this reader has already liked it.
+   */
+  reelComment: (userId) => ({
+    user: { select: { id: true, name: true, avatarUrl: true } },
+    likes: { where: { userId }, select: { userId: true } },
   }),
 
   mantra: (mantraChain, readingChain) => ({
@@ -71,6 +122,20 @@ async function verse(row, user) {
     wordMeanings: row.wordMeanings,
     audioUrl: row.audioPath ? await s3.presignGet(row.audioPath) : null,
     tags: row.tags,
+
+    // Present only when the verse was fetched with a signed-in `userId` in its
+    // include (see `includes.verse`) — absent (rather than false) for a
+    // signed-out reader would be more correct, but `false`/`0` let the client
+    // render the same way either way instead of null-checking per field.
+    favoriteId: row.favorites?.[0]?.id ?? null,
+    isFavorite: Boolean(row.favorites?.length),
+    highlightId: row.highlights?.[0]?.id ?? null,
+    isHighlighted: Boolean(row.highlights?.length),
+    noteCount: row.notes?.length ?? 0,
+    // Only ever the count of outgoing links — see VerseLink's own comment on
+    // why the relation is directional. Lets the client show the "related
+    // verses" affordance only where there is something behind it.
+    relatedCount: row._count?.linksFrom ?? 0,
 
     book: row.book || null,
     chapter: row.chapter || null,
@@ -214,6 +279,182 @@ async function reference(row, user) {
 
 const references = (rows, user) => Promise.all((rows || []).map((row) => reference(row, user)));
 
+/**
+ * One reel, shaped for the feed.
+ *
+ * Deliberately light on the verse/mantra it references — id and enough to
+ * label a card, not the full translation. A reader who taps through fetches
+ * that verse or mantra the normal way; pulling its whole shape into every feed
+ * item would triple the payload for content most cards never get opened.
+ */
+async function reel(row, user) {
+  if (!row) return null;
+
+  // AUDIO reels carry their content as one row per language in `audioTracks`
+  // (ReelAudioTrack) rather than a single path — resolved the same way a
+  // Narration or VerseTranslation is, via the reader's mantra-language chain.
+  // `mantraChain` always ends in "sa", so a Sanskrit-only reel still resolves
+  // for every reader; `audioTracks[0]` is only reached if that somehow misses.
+  const audioTrack =
+    row.mediaType === 'AUDIO'
+      ? language.pick(row.audioTracks, language.mantraChain(user)) || row.audioTracks?.[0] || null
+      : null;
+
+  const [videoUrl, audioUrl, thumbnailUrl, media, creatorAvatarUrl, deityImageUrl] =
+    await Promise.all([
+      row.videoPath ? s3.presignGet(row.videoPath) : null,
+      // AUDIO reels: the resolved narration track is the content. Otherwise:
+      // `audioTrackPath` is the optional background track over video/images —
+      // see the Reel model comment.
+      audioTrack
+        ? s3.presignGet(audioTrack.audioPath)
+        : row.audioTrackPath
+          ? s3.presignGet(row.audioTrackPath)
+          : null,
+      row.thumbnailPath ? s3.presignGet(row.thumbnailPath) : null,
+      Promise.all(
+        (row.media || []).map(async (m) => ({
+          id: m.id,
+          imageUrl: await s3.presignGet(m.imagePath),
+          displayOrder: m.displayOrder,
+        }))
+      ),
+      row.creator?.avatarPath ? s3.presignGet(row.creator.avatarPath) : null,
+      row.deity?.imagePath ? s3.presignGet(row.deity.imagePath) : null,
+    ]);
+
+  return {
+    id: row.id,
+    mediaType: row.mediaType,
+    videoUrl,
+    audioUrl,
+    audioLanguageCode: audioTrack?.languageCode ?? null,
+    thumbnailUrl,
+    media,
+    durationMs: audioTrack?.durationMs ?? row.durationMs,
+    width: row.width,
+    height: row.height,
+
+    caption: row.caption,
+    tags: row.tags,
+    languageCode: row.languageCode,
+
+    viewCount: row.viewCount,
+    likeCount: row.likeCount,
+    commentCount: row.commentCount,
+    shareCount: row.shareCount,
+
+    // Only meaningful for a signed-in reader, which every caller of this
+    // shaper currently is — the feed does not have a public, signed-out mode.
+    isLiked: (row.likes || []).length > 0,
+    isSaved: (row.favorites || []).length > 0,
+
+    // Whether the reader already follows whoever posted this. Present so the
+    // follow button on a feed card renders in its settled state rather than
+    // flashing "Follow" and correcting itself a moment later.
+    isFollowingCreator: (row.creator?.followers || []).length > 0,
+
+    // A creator watching their own reel from their profile gets the delete
+    // and pin affordances; nobody else does.
+    isMine: Boolean(user && row.creator?.userId && row.creator.userId === user.id),
+
+    publishedAt: row.publishedAt,
+    createdAt: row.createdAt,
+
+    creator: row.creator
+      ? {
+          id: row.creator.id,
+          displayName: row.creator.displayName,
+          avatarUrl: creatorAvatarUrl,
+          isVerified: row.creator.isVerified,
+          followerCount: row.creator.followerCount ?? 0,
+        }
+      : null,
+
+    verse: row.verse
+      ? {
+          id: row.verse.id,
+          verseId: row.verse.verseId,
+          bookNumber: row.verse.bookNumber,
+          chapterNumber: row.verse.chapterNumber,
+          verseNumber: row.verse.verseNumber,
+        }
+      : null,
+    mantra: row.mantra ? { id: row.mantra.id, slug: row.mantra.slug, name: row.mantra.name } : null,
+    deity: row.deity
+      ? { id: row.deity.id, slug: row.deity.slug, name: row.deity.name, imageUrl: deityImageUrl }
+      : null,
+  };
+}
+
+const reels = (rows, user) => Promise.all((rows || []).map((row) => reel(row, user)));
+
+/**
+ * One comment.
+ *
+ * A hidden comment is returned rather than dropped: removing the row from the
+ * list would renumber every reply under it and make a thread read as though it
+ * had never happened. The text is replaced instead, so the shape of the
+ * conversation survives a moderation takedown.
+ */
+function reelComment(row, user) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    reelId: row.reelId,
+    parentId: row.parentId,
+    text: row.isHidden ? null : row.text,
+    isHidden: row.isHidden,
+    isPinned: row.isPinned,
+    likeCount: row.likeCount,
+    replyCount: row.replyCount,
+    isLiked: (row.likes || []).length > 0,
+    // Drives whether the sheet offers "delete" or "report" on a long press.
+    isMine: Boolean(user && row.userId === user.id),
+    createdAt: row.createdAt,
+    author: row.user
+      ? { id: row.user.id, name: row.user.name, avatarUrl: row.user.avatarUrl }
+      : null,
+  };
+}
+
+const reelComments = (rows, user) => (rows || []).map((row) => reelComment(row, user));
+
+/**
+ * A creator's public profile.
+ *
+ * `user` decides two fields the row itself cannot: whether the reader follows
+ * this creator, and whether the reader *is* them — a creator opening their own
+ * profile should not be offered a follow button.
+ */
+async function creator(row, user) {
+  if (!row) return null;
+
+  const [avatarUrl, coverImageUrl] = await Promise.all([
+    row.avatarPath ? s3.presignGet(row.avatarPath) : null,
+    row.coverImagePath ? s3.presignGet(row.coverImagePath) : null,
+  ]);
+
+  return {
+    id: row.id,
+    displayName: row.displayName,
+    bio: row.bio,
+    avatarUrl: avatarUrl || row.user?.avatarUrl || null,
+    coverImageUrl,
+    socialLinks: row.socialLinks || null,
+    isVerified: row.isVerified,
+    followerCount: row.followerCount,
+    reelCount: row.reelCount,
+    totalViews: row.totalViews,
+    isFollowing: (row.followers || []).length > 0,
+    isMe: Boolean(user && row.userId === user.id),
+    createdAt: row.createdAt,
+  };
+}
+
+const creators = (rows, user) => Promise.all((rows || []).map((row) => creator(row, user)));
+
 export {
   includes,
   verse,
@@ -226,4 +467,10 @@ export {
   sections,
   reference,
   references,
+  reel,
+  reels,
+  reelComment,
+  reelComments,
+  creator,
+  creators,
 };

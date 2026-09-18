@@ -15,11 +15,16 @@ import homeRoutes from './home.js';
 import bookRoutes from './book.js';
 import verseRoutes from './verse.js';
 import mantraRoutes from './mantra.js';
+import reelRoutes from './reel.js';
+import reelCommentRoutes from './reel-comment.js';
+import creatorRoutes from './creator.js';
 import sadhanaRoutes from './sadhana.js';
 import taskRoutes from './task.js';
 import slokaRoutes from './sloka.js';
 import issueRoutes from './issue.js';
 import favoriteRoutes from './favorite.js';
+import verseNoteRoutes from './verse-note.js';
+import verseHighlightRoutes from './verse-highlight.js';
 import progressRoutes from './progress.js';
 import notificationRoutes from './notification.js';
 import subscriptionRoutes from './subscription.js';
@@ -35,11 +40,16 @@ const routers = [
   bookRoutes,
   verseRoutes,
   mantraRoutes,
+  reelRoutes,
+  reelCommentRoutes,
+  creatorRoutes,
   sadhanaRoutes,
   taskRoutes,
   slokaRoutes,
   issueRoutes,
   favoriteRoutes,
+  verseNoteRoutes,
+  verseHighlightRoutes,
   progressRoutes,
   notificationRoutes,
   subscriptionRoutes,

@@ -3,10 +3,10 @@
 // Two things share this file because they are the same object seen twice:
 //
 //   the global sloka   one per date, the same for everyone, curated or picked
-//                      by the nightly job. Free, and public — it is the thing
-//                      someone sees before they have an account.
+//                      by the nightly job. Public — it is the thing someone
+//                      sees before they have an account.
 //   a personal sloka   chosen for one user from what they have said they are
-//                      struggling with. This is the Premium feature.
+//                      struggling with.
 //
 // Slokas are drawn only from the Bhagavad Gita and the Srimad Bhagavatam, and
 // only from verses an editor has opted in with `isSlokaEligible`. A short work
@@ -21,11 +21,10 @@ import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
 import * as s3 from '../../services/s3.js';
-import * as settings from '../../services/setting.js';
 import { ok, created } from '../../utils/respond.js';
-import { notFound, paymentRequired } from '../../utils/errors.js';
+import { notFound } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
-import { SETTING_KEYS, SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE } from '../../config/constants.js';
+import { SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE } from '../../config/constants.js';
 import { redis } from '../../config/redis.js';
 
 // How far back to look when avoiding repeats. Long enough that a sloka does not
@@ -172,18 +171,11 @@ export const mine = async (req, res) => {
   if (!row) {
     const exclude = await recentVerseIds(user.id);
 
-    // Choosing by what someone reported struggling with is the paid feature.
-    // A free reader gets a verse from the eligible pool — a good verse, chosen
-    // for nobody in particular. Without this line the paywall would have a door
-    // straight through it: report a struggle to the free endpoint, then read
-    // this one tomorrow.
-    const lastIssue = user.isPremium
-      ? await prisma.userIssue.findFirst({
-          where: { userId: user.id },
-          orderBy: { reportedAt: 'desc' },
-          select: { issueId: true },
-        })
-      : null;
+    const lastIssue = await prisma.userIssue.findFirst({
+      where: { userId: user.id },
+      orderBy: { reportedAt: 'desc' },
+      select: { issueId: true },
+    });
 
     const verseId =
       (lastIssue ? await pickVerseForIssue(lastIssue.issueId, exclude) : null) ||
@@ -222,15 +214,15 @@ export const mine = async (req, res) => {
   });
 };
 
+/** "Because you mentioned krodha" — the app shows this, so the pick never looks arbitrary. */
+function moodReason(issue) {
+  return `Because you mentioned ${issue.name.toLowerCase()}`;
+}
+
 /**
  * POST /api/app/sloka/mood
  *
- * The Premium feature: report what is weighing on you and get a sloka chosen
- * for it. Everything else in the app is free — this is the one thing that is
- * not, because it is the one thing with a per-user cost behind it.
- *
- * A free monthly quota is allowed through first. Gating it completely would
- * mean most people never see the thing that makes the app worth paying for.
+ * Report what is weighing on you and get a sloka chosen for it.
  */
 export const mood = async (req, res) => {
   const user = req.auth.user;
@@ -239,41 +231,6 @@ export const mood = async (req, res) => {
 
   const issue = await prisma.issue.findFirst({ where: { slug: issueSlug, isPublished: true } });
   if (!issue) throw notFound('Issue');
-
-  if (!user.isPremium) {
-    // The quota counts *days*, not requests: there is one personal sloka per
-    // person per date, so reporting a second struggle on the same day replaces
-    // the pick rather than spending another day of the allowance. Someone
-    // working out what is really bothering them should not be charged for
-    // changing their mind.
-    const quota = await settings.getNumber(SETTING_KEYS.FREE_MOOD_SLOKA_QUOTA, 3);
-    const monthStart = new Date();
-    monthStart.setUTCDate(1);
-    monthStart.setUTCHours(0, 0, 0, 0);
-
-    const usedToday = await prisma.userDailySloka.findUnique({
-      where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
-      select: { issueId: true },
-    });
-
-    if (!usedToday?.issueId) {
-      const daysUsed = await prisma.userDailySloka.count({
-        where: { userId: user.id, issueId: { not: null }, createdAt: { gte: monthStart } },
-      });
-
-      if (daysUsed >= quota) {
-        throw paymentRequired(
-          `You have used your ${quota} free mood slokas this month. Premium removes the limit.`
-        );
-      }
-    }
-  }
-
-  // Append-only: the report needs to show which struggle recurs and whether it
-  // eases, and a current-mood column could not answer that.
-  const report = await prisma.userIssue.create({
-    data: { userId: user.id, issueId: issue.id, intensity: intensity || null, note: note || null },
-  });
 
   const exclude = await recentVerseIds(user.id);
   const verseId =
@@ -285,20 +242,39 @@ export const mood = async (req, res) => {
     (await pickAnyEligibleVerse([]));
   if (!verseId) throw notFound('A sloka for that — none are mapped to it yet');
 
+  const reason = moodReason(issue);
+
+  // Append-only: the report needs to show which struggle recurs and whether it
+  // eases, and a current-mood column could not answer that. `date` is what
+  // lets the dashboard later ask "has this been answered today" without
+  // redoing this same timezone math. `verseId` is stored here too — see GET
+  // /sloka/mood/today — so a vikara answered earlier today can still be
+  // reopened and read again after a later one replaces it below.
+  const report = await prisma.userIssue.create({
+    data: {
+      userId: user.id,
+      issueId: issue.id,
+      intensity: intensity || null,
+      note: note || null,
+      date: toDateColumn(date),
+      verseId,
+    },
+  });
+
   const readingChain = language.readingChain(user);
 
   // One personal sloka per user per date is a database constraint, so a second
   // report on the same day replaces the pick rather than failing.
   const row = await prisma.userDailySloka.upsert({
     where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
-    update: { verseId, issueId: issue.id, source: 'RULE', reason: `Because you mentioned ${issue.name.toLowerCase()}`, seenAt: new Date() },
+    update: { verseId, issueId: issue.id, source: 'RULE', reason, seenAt: new Date() },
     create: {
       userId: user.id,
       date: toDateColumn(date),
       verseId,
       issueId: issue.id,
       source: 'RULE',
-      reason: `Because you mentioned ${issue.name.toLowerCase()}`,
+      reason,
       seenAt: new Date(),
     },
     include: { verse: { include: present.includes.verse(readingChain) } },
@@ -312,6 +288,41 @@ export const mood = async (req, res) => {
     reportId: report.id,
     verse: await present.verse(row.verse, user),
   });
+};
+
+/**
+ * GET /api/app/sloka/mood/today
+ *
+ * Every struggle reported today, each with the verse it was answered with.
+ * `UserDailySloka` keeps only one row per day, so the dashboard's "for you"
+ * card only ever shows the last of these — this is what lets an earlier one
+ * be reopened and read again, as many times as wanted.
+ */
+export const moodToday = async (req, res) => {
+  const user = req.auth.user;
+  const date = req.valid.query.date || localDateString(user.timezone);
+  const readingChain = language.readingChain(user);
+
+  const rows = await prisma.userIssue.findMany({
+    where: { userId: user.id, date: toDateColumn(date), verseId: { not: null } },
+    orderBy: { reportedAt: 'desc' },
+    include: {
+      issue: { select: { id: true, slug: true, name: true, category: true } },
+      verse: { include: present.includes.verse(readingChain) },
+    },
+  });
+
+  return ok(
+    res,
+    await Promise.all(
+      rows.map(async (row) => ({
+        id: row.id,
+        reason: moodReason(row.issue),
+        issue: row.issue,
+        verse: await present.verse(row.verse, user),
+      }))
+    )
+  );
 };
 
 /** POST /api/app/sloka/:id/seen — marks a personal sloka as read. */

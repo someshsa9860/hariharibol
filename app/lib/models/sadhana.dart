@@ -93,3 +93,127 @@ class SadhanaTask {
         movedFromId: asStringOrNull(json['movedFromId']),
       );
 }
+
+/// One sitting of japa — counted bead by bead in the app, or entered
+/// afterwards for rounds chanted on physical beads. Both sources land here.
+class ChantSession {
+  const ChantSession({
+    required this.id,
+    required this.source,
+    required this.rounds,
+    required this.beads,
+    required this.startedAt,
+    this.endedAt,
+    this.durationSeconds,
+    this.mantraId,
+    this.mantraName,
+  });
+
+  final String id;
+
+  /// The backend's `ChantSource` — IN_APP or MANUAL.
+  final String source;
+  final int rounds;
+
+  /// Beads into the round in progress. 108 completes a round.
+  final int beads;
+
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final int? durationSeconds;
+
+  final String? mantraId;
+  final String? mantraName;
+
+  bool get isManual => source == 'MANUAL';
+  bool get isFinished => endedAt != null;
+
+  factory ChantSession.fromJson(Json json) {
+    final mantra = asJson(json['mantra']);
+    return ChantSession(
+      id: asString(json['id']),
+      source: asString(json['source'], 'IN_APP'),
+      rounds: asInt(json['rounds']),
+      beads: asInt(json['beads']),
+      startedAt: asDate(json['startedAt']) ?? DateTime.now(),
+      endedAt: asDate(json['endedAt']),
+      durationSeconds: asIntOrNull(json['durationSeconds']),
+      mantraId: asStringOrNull(json['mantraId']),
+      mantraName: mantra == null ? null : asStringOrNull(mantra['name']),
+    );
+  }
+}
+
+/// The standing target and reminder, read from the profile and prefilled
+/// onto every new day unless that day changes its own target.
+class SadhanaProfile {
+  const SadhanaProfile({
+    required this.dailyRoundTarget,
+    this.reminderTime,
+    this.preferredMantraId,
+    this.preferredMantraSlug,
+    this.preferredMantraName,
+  });
+
+  final int dailyRoundTarget;
+
+  /// "04:30", local to the user's own timezone.
+  final String? reminderTime;
+
+  /// What "Chant now" opens with when nothing more specific was tapped. Only
+  /// the id, slug and name travel with the profile — the chant screen needs
+  /// the full mantra (text, pacing), which it fetches by slug the same way
+  /// opening a mantra from its own detail page does.
+  final String? preferredMantraId;
+  final String? preferredMantraSlug;
+  final String? preferredMantraName;
+
+  factory SadhanaProfile.fromJson(Json json) {
+    final mantra = asJson(json['preferredMantra']);
+    return SadhanaProfile(
+      dailyRoundTarget: asInt(json['dailyRoundTarget'], 16),
+      reminderTime: asStringOrNull(json['reminderTime']),
+      preferredMantraId: asStringOrNull(json['preferredMantraId']),
+      preferredMantraSlug: mantra == null ? null : asStringOrNull(mantra['slug']),
+      preferredMantraName: mantra == null ? null : asStringOrNull(mantra['name']),
+    );
+  }
+}
+
+/// The whole practice screen in one call: the day, its sessions, its standing
+/// preferences and the current streak.
+class SadhanaToday {
+  const SadhanaToday({
+    required this.date,
+    required this.day,
+    required this.tasks,
+    required this.sessions,
+    required this.streak,
+    required this.beadsPerRound,
+    this.profile,
+  });
+
+  final String date;
+  final SadhanaDay day;
+  final List<SadhanaTask> tasks;
+  final List<ChantSession> sessions;
+  final int streak;
+
+  /// 108, sent by the server rather than assumed, so a future mantra counted
+  /// differently does not need an app update to chant correctly.
+  final int beadsPerRound;
+
+  final SadhanaProfile? profile;
+
+  factory SadhanaToday.fromJson(Json json) => SadhanaToday(
+        date: asString(json['date']),
+        day: SadhanaDay.fromJson(asJson(json['day']) ?? const {}),
+        tasks: asList(json['tasks'], SadhanaTask.fromJson),
+        sessions: asList(json['sessions'], ChantSession.fromJson),
+        streak: asInt(json['streak']),
+        beadsPerRound: asInt(json['beadsPerRound'], 108),
+        profile: asJson(json['profile']) == null
+            ? null
+            : SadhanaProfile.fromJson(asJson(json['profile'])!),
+      );
+}

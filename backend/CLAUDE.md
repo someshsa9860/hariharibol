@@ -155,31 +155,18 @@ completions for anything that is really similarity matching. Cache in Redis.
 
 ## Subscriptions, donations and entitlement
 
-**The app is free.** Paywalling is the exception, not the model — default any new
-feature to free unless there is a decision otherwise.
+**The app is free — everything in it.** There is currently no paywalled
+feature: mood-driven sloka (reporting a struggle and getting a verse chosen for
+it) was tried as a Premium-only feature and the restriction was deliberately
+removed, because it stood between a reader and the whole point of the app. New
+features default to free; a decision to gate one behind Premium has to be made
+explicitly and is expected to be rare.
 
-| Free | Premium |
-|---|---|
-| All books, verses, mantras and translations | Mood-driven sloka: reporting a struggle and getting a verse chosen for it |
-| Chanting, sadhana targets, tasks, reports | |
-| The global sloka of the day | |
-| A personal daily sloka, drawn from the eligible pool | The same slot, but *chosen from what you reported* |
-
-The paid feature is the one with a per-user AI cost behind it, so spend follows
-revenue rather than running ahead of it.
-
-**Free readers get a monthly quota** (`sloka.mood.free_quota_per_month`,
-default 3) before the paywall applies. Gating the feature completely would mean
-most people never experience the one thing that makes Premium worth buying. The
-quota counts *days*, not requests — one personal sloka exists per person per
-date, so someone working out what is really bothering them can re-report without
-being charged for changing their mind.
-
-**Everything that picks a verse must respect the same line.** Both
-`GET /sloka/mine` and the nightly build job only use `UserIssue` when the reader
-is Premium; a free reader gets a verse from the eligible pool. Without that,
-reporting a struggle to the free endpoint and reading the personal sloka the
-next morning would be the paid feature through an unlocked side door.
+`Subscription`, `Payment` and `User.isPremium` still exist — donations are real
+money and still need a ledger and a receipt — but nothing in the app currently
+reads `isPremium` to withhold a feature. `utils/router.js`'s `premium: true`
+route flag is still there for a future feature that does need gating; no route
+uses it today.
 
 **Premium is earned two ways**, and they are worth equal access:
 

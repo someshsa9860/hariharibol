@@ -25,6 +25,9 @@ class Mantra {
     this.standardCount = 0,
     this.deity,
     this.guru,
+    this.availableLanguages = const [],
+    this.isFavorite = false,
+    this.myRounds = 0,
   });
 
   final String id;
@@ -56,6 +59,15 @@ class Mantra {
   final ReferenceItem? deity;
   final ReferenceItem? guru;
 
+  /// Set only by `GET /mantras/:slug` — the list endpoint does not resolve
+  /// these, so they stay at their defaults for every card in a row.
+  final List<String> availableLanguages;
+  final bool isFavorite;
+
+  /// Rounds this reader has chanted of this mantra, lifetime. 0 when signed
+  /// out or never chanted — same as not being shown at all.
+  final int myRounds;
+
   Duration get duration => Duration(milliseconds: durationMs);
   bool get hasAudio => (audioUrl ?? '').isNotEmpty;
 
@@ -79,5 +91,8 @@ class Mantra {
         standardCount: asInt(json['standardCount']),
         deity: asJson(json['deity']) == null ? null : ReferenceItem.fromJson(asJson(json['deity'])!),
         guru: asJson(json['guru']) == null ? null : ReferenceItem.fromJson(asJson(json['guru'])!),
+        availableLanguages: asStringList(json['availableLanguages']),
+        isFavorite: asBool(json['isFavorite']),
+        myRounds: asInt(json['myRounds']),
       );
 }

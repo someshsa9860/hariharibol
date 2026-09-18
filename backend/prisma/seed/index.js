@@ -13,6 +13,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
+import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
 const prisma = new PrismaClient();
 
@@ -94,14 +95,46 @@ async function seedReference() {
   log(`${data.translators.length} translators`);
 }
 
+async function seedMantras() {
+  for (const mantra of data.mantras) {
+    const { deity, guru, translations, ...fields } = mantra;
+
+    const deityRow = deity ? await prisma.deity.findUnique({ where: { slug: deity } }) : null;
+    const guruRow = guru ? await prisma.guru.findUnique({ where: { slug: guru } }) : null;
+
+    const saved = await prisma.mantra.upsert({
+      where: { slug: mantra.slug },
+      update: { ...fields, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null },
+      create: { ...fields, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
+    });
+
+    for (const translation of translations) {
+      await prisma.mantraTranslation.upsert({
+        where: { mantraId_languageCode: { mantraId: saved.id, languageCode: translation.languageCode } },
+        update: { ...translation, isPublished: true },
+        create: { ...translation, mantraId: saved.id, isPublished: true },
+      });
+    }
+  }
+  log(`${data.mantras.length} mantras`);
+}
+
 async function seedBooks() {
   for (const book of data.books) {
+    const { deity, ...fields } = book;
+    const deityRow = deity ? await prisma.deity.findUnique({ where: { slug: deity } }) : null;
+
     // isPublished is never written on update — a book that has been published
     // must not be quietly unpublished by re-running the seed.
     await prisma.book.upsert({
       where: { bookNumber: book.bookNumber },
-      update: { title: book.title, titleI18n: book.titleI18n, description: book.description },
-      create: { ...book, isPublished: false },
+      update: {
+        title: fields.title,
+        titleI18n: fields.titleI18n,
+        description: fields.description,
+        deityId: deityRow?.id ?? null,
+      },
+      create: { ...fields, deityId: deityRow?.id ?? null, isPublished: false },
     });
   }
   log(`${data.books.length} books`);
@@ -115,6 +148,59 @@ async function seedBooks() {
     });
   }
   log(`${data.cantos.length} cantos`);
+}
+
+async function seedStories() {
+  for (const story of data.stories) {
+    const { book: bookSlug, canto, parts, dailyEligible, ...fields } = story;
+
+    const book = await prisma.book.findUnique({ where: { slug: bookSlug } });
+
+    const saved = await prisma.story.upsert({
+      where: { slug: story.slug },
+      update: { title: fields.title, description: fields.description },
+      create: { ...fields, bookId: book.id, cantoNumber: canto, isPublished: true },
+    });
+
+    for (const part of parts) {
+      const { chapter, verseStart, verseEnd, issue, ...partFields } = part;
+
+      const chapterRow = await prisma.chapter.findUnique({
+        where: { bookId_cantoNumber_number: { bookId: book.id, cantoNumber: canto, number: chapter } },
+      });
+
+      const savedPart = await prisma.storyPart.upsert({
+        where: { storyId_number: { storyId: saved.id, number: part.number } },
+        update: {
+          title: partFields.title,
+          description: partFields.description,
+          chapterId: chapterRow.id,
+          verseNumberStart: verseStart,
+          verseNumberEnd: verseEnd,
+          isDailyEligible: !!dailyEligible,
+        },
+        create: {
+          ...partFields,
+          storyId: saved.id,
+          chapterId: chapterRow.id,
+          verseNumberStart: verseStart,
+          verseNumberEnd: verseEnd,
+          isDailyEligible: !!dailyEligible,
+          isPublished: true,
+        },
+      });
+
+      if (issue) {
+        const issueRow = await prisma.issue.findUnique({ where: { slug: issue } });
+        await prisma.storyPartIssue.upsert({
+          where: { storyPartId_issueId: { storyPartId: savedPart.id, issueId: issueRow.id } },
+          update: {},
+          create: { storyPartId: savedPart.id, issueId: issueRow.id },
+        });
+      }
+    }
+  }
+  log(`${data.stories.length} stories, ${data.stories.reduce((n, s) => n + s.parts.length, 0)} parts`);
 }
 
 async function seedPlansAndTopics() {
@@ -155,7 +241,9 @@ async function main() {
   await seedLanguages();
   await seedIssues();
   await seedReference();
+  await seedMantras();
   await seedBooks();
+  await seedStories();
   await seedPlansAndTopics();
   await seedSettings();
 

@@ -37,6 +37,19 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Auto-count: listens for a known mantra's own sound to count
+	     repetitions, entirely on-device. No audio leaves the phone. -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>HariHariBol listens for your chanting to count repetitions automatically. Audio stays on your phone.</string>
+	<!-- Lets --dart-define=API_BASE_URL point at a plain http://localhost
+	     backend on the dev machine. Scoped to local networking only, not a
+	     blanket ATS opt-out, so it carries no risk in a release build that
+	     talks to the real https:// API. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

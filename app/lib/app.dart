@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/navigation/app_navigator.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'providers/theme_provider.dart';
 
 /// The root widget.
 ///
 /// It builds the router once — rebuilding it would reset the whole navigation
 /// stack — and hands the theme, the localisations and the messenger key to
 /// `MaterialApp`. Nothing else lives here.
-class HariHariBolApp extends StatefulWidget {
+class HariHariBolApp extends ConsumerStatefulWidget {
   const HariHariBolApp({super.key});
 
   @override
-  State<HariHariBolApp> createState() => _HariHariBolAppState();
+  ConsumerState<HariHariBolApp> createState() => _HariHariBolAppState();
 }
 
-class _HariHariBolAppState extends State<HariHariBolApp> {
+class _HariHariBolAppState extends ConsumerState<HariHariBolApp> {
   late final GoRouter _router = createRouter();
 
   @override
@@ -31,9 +33,7 @@ class _HariHariBolAppState extends State<HariHariBolApp> {
       scaffoldMessengerKey: AppNavigator.instance.messengerKey,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      // The system decides for now. A per-account setting can be added later
-      // without touching anything but this line.
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themeModeProvider),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

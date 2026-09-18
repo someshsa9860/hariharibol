@@ -26,6 +26,7 @@ import aiRoutes from './ai.js';
 import auditRoutes from './audit.js';
 import uploadRoutes from './upload.js';
 import jobRoutes from './job.js';
+import systemRoutes from './system.js';
 
 const routers = [
   dashboardRoutes,
@@ -45,6 +46,7 @@ const routers = [
   auditRoutes,
   uploadRoutes,
   jobRoutes,
+  systemRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

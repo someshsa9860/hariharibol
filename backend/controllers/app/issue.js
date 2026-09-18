@@ -61,6 +61,7 @@ export const report = async (req, res) => {
       sadhanaDayId: day?.id || null,
       intensity: intensity || null,
       note: note || null,
+      date: toDateColumn(localDate),
     },
   });
 

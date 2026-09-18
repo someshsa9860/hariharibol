@@ -49,6 +49,11 @@ abstract final class AppSizes {
   static const double coverWidth = 128;
   static const double coverHeight = 176;
 
+  /// Material's own height for a labelled NavigationBar. Needed because
+  /// `extendBody` deliberately drops the floating button over the bar, so
+  /// anything meant to float above it has to be lifted by hand.
+  static const double navBarHeight = 80;
+
   /// Widest a text column is allowed to get on a tablet.
   static const double readingMaxWidth = 680;
 }

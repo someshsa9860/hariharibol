@@ -8,7 +8,7 @@ const allowed = new Set(
     env.WEB_BASE_URL,
     env.API_BASE_URL,
     'http://localhost:3000', // website dev
-    'http://localhost:3001', // admin dev
+    'http://localhost:5183', // admin dev
   ].filter(Boolean)
 );
 

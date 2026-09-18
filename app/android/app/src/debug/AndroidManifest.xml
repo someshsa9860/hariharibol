@@ -4,4 +4,9 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Debug builds only: lets a build-time define for the API base URL
+         point at a plain http:// backend on the dev machine (e.g. 10.0.2.2
+         for the emulator). -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "HariHariBol API \u2014 plain Node.js, no TypeScript",
+  "description": "HariHariBol API — plain Node.js, no TypeScript",
   "main": "server.js",
   "engines": {
     "node": ">=20.11"
@@ -19,9 +19,13 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed/index.js",
+    "seed:reels": "node scripts/seed-reels.js",
+    "seed:verse-issues": "node scripts/seed-verse-issues.js",
+    "promote-admin": "node scripts/promote-admin.js",
     "docs:export": "node docs/export.js",
     "graph": "node scripts/code-graph.js",
-    "test:auth": "node scripts/auth-e2e.js"
+    "test:auth": "node scripts/auth-e2e.js",
+    "test:reels": "node scripts/reels-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"
@@ -31,6 +35,7 @@
     "@aws-sdk/s3-request-presigner": "^3.658.0",
     "@prisma/client": "^6.0.0",
     "@scalar/express-api-reference": "^0.4.0",
+    "@smithy/node-http-handler": "^4.12.1",
     "bullmq": "^5.21.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",

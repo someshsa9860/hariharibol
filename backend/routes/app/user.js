@@ -65,10 +65,11 @@ router.patch(
 router.patch(
   '/sadhana-profile',
   {
-    summary: 'Set my daily round target and reminder time',
+    summary: 'Set my daily round target, reminder time and preferred mantra',
     description:
       'Standing preferences used to prefill each new day. `reminderTime` is local to the ' +
-      'user’s own timezone, in 24-hour HH:MM.',
+      'user’s own timezone, in 24-hour HH:MM. `preferredMantraId` is what "Chant now" opens ' +
+      'with when nothing more specific was tapped; send `null` to go back to no preference.',
     limit: 'write',
     body: z.object({
       dailyRoundTarget: z.coerce.number().int().min(1).max(200).optional(),
@@ -77,8 +78,9 @@ router.patch(
         .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM, 24-hour')
         .nullable()
         .optional(),
+      preferredMantraId: z.string().nullable().optional(),
     }),
-    responds: { 200: 'Updated practice profile' },
+    responds: { 200: 'Updated practice profile', 404: 'No published mantra with that id' },
   },
   controller.updateSadhanaProfile
 );

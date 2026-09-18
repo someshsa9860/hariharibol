@@ -114,6 +114,15 @@ app.get('/', (req, res) => {
   });
 });
 
+// ── Local media (development only) ─────────────────────────────────────────
+// Production serves every asset from S3 via a presigned URL. A machine with no
+// AWS credentials configured falls back to backend/storage/ instead — see
+// services/s3.js — and this is what makes that fallback's URLs actually
+// resolve.
+if (!env.isProduction) {
+  app.use('/media', express.static(path.join(import.meta.dirname, 'storage')));
+}
+
 // ── 5. Route groups ────────────────────────────────────────────────────────
 // Four groups, four audiences. This is the whole API surface.
 

@@ -4,7 +4,7 @@ import { prisma } from '../../config/database.js';
 import * as authService from '../../services/auth.js';
 import * as audit from '../../services/audit.js';
 import { ok } from '../../utils/respond.js';
-import { badRequest } from '../../utils/errors.js';
+import { badRequest, notFound } from '../../utils/errors.js';
 import { isValidTimezone } from '../../utils/date.js';
 
 const PROFILE_SELECT = {
@@ -130,20 +130,32 @@ export const summary = async (req, res) => {
 
 /** PATCH /api/app/me/sadhana-profile — standing practice preferences. */
 export const updateSadhanaProfile = async (req, res) => {
-  const { dailyRoundTarget, reminderTime } = req.valid.body;
+  const { dailyRoundTarget, reminderTime, preferredMantraId } = req.valid.body;
   const userId = req.auth.user.id;
 
+  // Clearing the preference is a valid request (`preferredMantraId: null`), so
+  // this only looks the mantra up when a specific id was actually sent.
+  if (preferredMantraId) {
+    const mantra = await prisma.mantra.findFirst({
+      where: { id: preferredMantraId, isPublished: true },
+      select: { id: true },
+    });
+    if (!mantra) throw notFound('Mantra');
+  }
+
+  const data = { dailyRoundTarget, reminderTime, preferredMantraId };
   const profile = await prisma.sadhanaProfile.upsert({
     where: { userId },
-    update: { dailyRoundTarget, reminderTime },
-    create: { userId, dailyRoundTarget, reminderTime },
+    update: data,
+    create: { userId, ...data },
+    include: { preferredMantra: { select: { id: true, slug: true, name: true } } },
   });
 
   await audit.record(req, {
     action: 'sadhana.profile.update',
     entityType: 'SadhanaProfile',
     entityId: profile.id,
-    after: { dailyRoundTarget, reminderTime },
+    after: { dailyRoundTarget, reminderTime, preferredMantraId },
   });
 
   return ok(res, profile);

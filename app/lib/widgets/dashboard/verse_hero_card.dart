@@ -5,6 +5,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/verse.dart';
+import '../common/animations.dart';
 import '../common/eyebrow.dart';
 import '../common/motif.dart';
 
@@ -48,10 +49,10 @@ class VerseHeroCard extends StatelessWidget {
     final translator = verse.translation?.translator?.name;
     final isLight = context.theme.brightness == Brightness.light;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
+    return TapScale(
+      onTap: onTap,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

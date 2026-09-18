@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/sadhana.dart';
+import '../common/animations.dart';
 import '../common/eyebrow.dart';
 import '../common/motif.dart';
 
@@ -30,10 +31,10 @@ class SadhanaCard extends StatelessWidget {
     final today = summary.today;
     final isLight = context.theme.brightness == Brightness.light;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
+    return TapScale(
+      onTap: onTap,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

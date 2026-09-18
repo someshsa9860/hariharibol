@@ -1,3 +1,4 @@
+import '../core/navigation/app_routes.dart';
 import 'json.dart';
 
 /// Who rendered a translation. Only ever shown next to their own text — an
@@ -129,6 +130,12 @@ class Verse {
     this.translation,
     this.availableTranslations = const [],
     this.explanation,
+    this.favoriteId,
+    this.isFavorite = false,
+    this.highlightId,
+    this.isHighlighted = false,
+    this.noteCount = 0,
+    this.relatedCount = 0,
   });
 
   final String id;
@@ -162,6 +169,23 @@ class Verse {
 
   final VerseExplanation? explanation;
 
+  /// Set when this reader has bookmarked the verse — the id of the
+  /// [Favorite] row itself, so removing it needs no extra lookup.
+  final String? favoriteId;
+  final bool isFavorite;
+
+  /// Set when this reader has highlighted the verse — same shape as
+  /// [favoriteId], for the same reason.
+  final String? highlightId;
+  final bool isHighlighted;
+
+  /// How many of this reader's own notes sit against this verse.
+  final int noteCount;
+
+  /// How many curated cross-links lead out of this verse — the reading
+  /// screen only shows a "related" affordance when this is above zero.
+  final int relatedCount;
+
   /// "Bhagavad Gita · 2.13" — the citation, with the book set off from the
   /// numbering. The same parts as [reference], punctuated for display.
   String get citation {
@@ -177,6 +201,17 @@ class Verse {
     final numbering = _numbering;
     if (title == null || title.isEmpty) return numbering.isEmpty ? verseId : numbering;
     return numbering.isEmpty ? title : '$title $numbering';
+  }
+
+  /// Where to open this verse in full — the chapter it lives in, scrolled to
+  /// its own place in it. Null when there is nowhere to send someone (no book
+  /// or chapter attached), which is how a card decides whether to offer a tap
+  /// at all rather than promising a screen that does not exist.
+  String? get readingPath {
+    final slug = book?.slug;
+    final chapter = chapterNumber;
+    if (slug == null || slug.isEmpty || chapter == null) return null;
+    return AppRoutes.chapterPath(slug, chapter, canto: cantoNumber, verse: verseNumber);
   }
 
   /// "2.13", or "2.10.1.5-7" for a Bhagavatam range.
@@ -212,5 +247,28 @@ class Verse {
         explanation: asJson(json['explanation']) == null
             ? null
             : VerseExplanation.fromJson(asJson(json['explanation'])!),
+        favoriteId: asStringOrNull(json['favoriteId']),
+        isFavorite: asBool(json['isFavorite']),
+        highlightId: asStringOrNull(json['highlightId']),
+        isHighlighted: asBool(json['isHighlighted']),
+        noteCount: asInt(json['noteCount']),
+        relatedCount: asInt(json['relatedCount']),
+      );
+}
+
+/// One curated cross-link out of a verse — "Related" in the reading screen.
+class RelatedVerse {
+  const RelatedVerse({required this.relation, required this.verse, this.note});
+
+  /// `SAME_CONCEPT`, `EXPANDS_ON`, `QUOTED_IN` or `CONTRASTS_WITH` — the
+  /// backend's `VerseLinkRelation` enum, as-is; the UI labels it.
+  final String relation;
+  final String? note;
+  final Verse verse;
+
+  factory RelatedVerse.fromJson(Json json) => RelatedVerse(
+        relation: asString(json['relation']),
+        note: asStringOrNull(json['note']),
+        verse: Verse.fromJson(asJson(json['verse']) ?? const {}),
       );
 }

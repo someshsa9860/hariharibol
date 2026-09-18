@@ -112,7 +112,10 @@ export const today = async (req, res) => {
       orderBy: { startedAt: 'desc' },
       include: { mantra: { select: { id: true, slug: true, name: true } } },
     }),
-    prisma.sadhanaProfile.findUnique({ where: { userId: user.id } }),
+    prisma.sadhanaProfile.findUnique({
+      where: { userId: user.id },
+      include: { preferredMantra: { select: { id: true, slug: true, name: true } } },
+    }),
     currentStreak(user.id, user.timezone),
   ]);
 

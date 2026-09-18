@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hariharibol/models/sadhana.dart';
+import 'package:hariharibol/models/search_result.dart';
 import 'package:hariharibol/models/verse.dart';
 
 void main() {
@@ -44,6 +45,34 @@ void main() {
         'book': {'id': 'b2', 'slug': 'srimad-bhagavatam', 'title': 'Srimad Bhagavatam', 'bookNumber': 2},
       });
       expect(verse.reference, 'Srimad Bhagavatam 10.1.5-7');
+    });
+  });
+
+  group('SearchOverview.fromJson', () {
+    test('reads each kind and its hasMore flag independently', () {
+      final overview = SearchOverview.fromJson({
+        'query': 'krishna',
+        'verses': [],
+        'verseHasMore': false,
+        'mantras': [
+          {'id': 'm1', 'slug': 'hare-krishna', 'name': 'Hare Krishna', 'text': 'Hare Krishna'},
+        ],
+        'mantraHasMore': true,
+        'books': [],
+        'bookHasMore': false,
+      });
+
+      expect(overview.query, 'krishna');
+      expect(overview.verses, isEmpty);
+      expect(overview.mantras, hasLength(1));
+      expect(overview.mantraHasMore, isTrue);
+      expect(overview.bookHasMore, isFalse);
+      expect(overview.isEmpty, isFalse);
+    });
+
+    test('is empty only when all three kinds are', () {
+      final overview = SearchOverview.fromJson({'query': 'xyzzy'});
+      expect(overview.isEmpty, isTrue);
     });
   });
 }

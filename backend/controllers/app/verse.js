@@ -45,7 +45,7 @@ export const list = async (req, res) => {
       { chapterNumber: 'asc' },
       { verseNumber: 'asc' },
     ],
-    include: present.includes.verse(readingChain),
+    include: present.includes.verse(readingChain, req.auth.user?.id),
     query: req.valid.query,
   });
 
@@ -58,24 +58,11 @@ export const get = async (req, res) => {
 
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
-    include: present.includes.verse(readingChain),
+    include: present.includes.verse(readingChain, req.auth.user?.id),
   });
   if (!verse) throw notFound('Verse');
 
-  const shaped = await present.verse(verse, req.auth.user);
-
-  // Whether this reader has bookmarked it — one extra indexed lookup, and it
-  // saves the client fetching the whole favourites list to colour one icon.
-  let isFavorite = false;
-  if (req.auth.user) {
-    const favorite = await prisma.favorite.findUnique({
-      where: { userId_verseId: { userId: req.auth.user.id, verseId: verse.id } },
-      select: { id: true },
-    });
-    isFavorite = Boolean(favorite);
-  }
-
-  return ok(res, { ...shaped, isFavorite });
+  return ok(res, await present.verse(verse, req.auth.user));
 };
 
 /**
@@ -175,7 +162,9 @@ export const related = async (req, res) => {
 
   const links = await prisma.verseLink.findMany({
     where: { sourceVerseId: verse.id },
-    include: { targetVerse: { include: present.includes.verse(readingChain) } },
+    include: {
+      targetVerse: { include: present.includes.verse(readingChain, req.auth.user?.id) },
+    },
     orderBy: { createdAt: 'asc' },
   });
 

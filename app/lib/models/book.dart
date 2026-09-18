@@ -1,4 +1,5 @@
 import 'json.dart';
+import 'verse.dart';
 
 /// A book — Bhagavad Gita, Srimad Bhagavatam, or a short-form collection.
 ///
@@ -19,6 +20,7 @@ class Book {
     this.totalChapters = 0,
     this.totalVerses = 0,
     this.tags = const [],
+    this.translators = const [],
   });
 
   final String id;
@@ -38,6 +40,11 @@ class Book {
   final int totalVerses;
   final List<String> tags;
 
+  /// Who this book's renderings are by. Only `GET /books/:slug` sends this —
+  /// the plain listing doesn't, so it is empty there, same as an unpublished
+  /// field would be.
+  final List<Translator> translators;
+
   bool get hasCantos => totalCantos > 0;
 
   factory Book.fromJson(Json json) => Book(
@@ -54,6 +61,7 @@ class Book {
         totalChapters: asInt(json['totalChapters']),
         totalVerses: asInt(json['totalVerses']),
         tags: asStringList(json['tags']),
+        translators: asList(json['translators'], Translator.fromJson),
       );
 }
 
@@ -86,5 +94,20 @@ class BookSection {
         summary: asStringOrNull(json['summary']),
         totalChapters: asIntOrNull(json['totalChapters']),
         totalVerses: asInt(json['totalVerses']),
+      );
+}
+
+/// `GET /books/:slug/chapters/:number` — the chapter and every verse in it,
+/// already resolved to the reader's language. This is the reading screen's
+/// one call.
+class ChapterReading {
+  const ChapterReading({required this.chapter, required this.verses});
+
+  final BookSection chapter;
+  final List<Verse> verses;
+
+  factory ChapterReading.fromJson(Json json) => ChapterReading(
+        chapter: BookSection.fromJson(asJson(json['chapter']) ?? const {}),
+        verses: asList(json['verses'], Verse.fromJson),
       );
 }

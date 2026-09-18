@@ -20,6 +20,12 @@ class BookCard extends StatelessWidget {
   final Book book;
   final VoidCallback? onTap;
 
+  /// How tall a row of these needs to be: the cover, plus the gap, plus one
+  /// line of title and one of subtitle. Stated here rather than guessed at by
+  /// the screens that lay the row out.
+  static const double rowHeight =
+      AppSizes.coverHeight + AppSpacing.sm + 20 + 18 + AppSpacing.xs;
+
   /// The motif is picked from the book's own number, so a given book always
   /// gets the same one and the row does not reshuffle on every rebuild.
   Motif get _motif => Motif.values[book.bookNumber.abs() % Motif.values.length];
@@ -71,7 +77,7 @@ class BookCard extends StatelessWidget {
             Text(
               book.title,
               style: context.texts.titleSmall,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             if (subtitle != null)

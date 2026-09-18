@@ -35,9 +35,8 @@ router.get(
     description:
       'The verse chosen for this user, written overnight by the sloka job. If the job has ' +
       'not reached them yet one is picked on the spot, so a new account never opens to an ' +
-      'empty screen.\n\nFor a Premium reader the pick is drawn from what they reported ' +
-      'struggling with; for everyone else it comes from the eligible pool. Free either way — ' +
-      'what Premium buys is the choosing, not the verse.',
+      'empty screen. The pick is drawn from what they last reported struggling with, if ' +
+      'anything; otherwise it comes from the eligible pool.',
     limit: 'read',
     query: z.object({ date: dateString.optional() }),
     responds: { 200: 'The personal sloka', 404: 'No verses are marked sloka-eligible yet' },
@@ -50,10 +49,8 @@ router.post(
   {
     summary: 'Report a struggle and receive a sloka for it',
     description:
-      'The Premium feature. Name what is weighing on you — one of the six vikaras, or a ' +
-      'practice difficulty — and get a verse chosen for it, with a plain reason the app can ' +
-      'show. A free monthly quota is allowed through before the paywall applies, because ' +
-      'gating it entirely would mean most people never see what Premium is for.',
+      'Name what is weighing on you — one of the six vikaras, or a practice difficulty — and ' +
+      'get a verse chosen for it, with a plain reason the app can show.',
     limit: 'write',
     body: z.object({
       issueSlug: z.string().min(1).max(100),
@@ -62,11 +59,25 @@ router.post(
     }),
     responds: {
       201: 'The chosen sloka and the reason for it',
-      402: 'Free quota used up for this month',
       404: 'No such issue, or nothing mapped to it yet',
     },
   },
   controller.mood
+);
+
+router.get(
+  '/mood/today',
+  {
+    summary: "List today's mood slokas",
+    description:
+      'Every vikara or practice difficulty reported today, each with the verse it was answered ' +
+      'with. `/sloka/mood` keeps only the latest of these on the dashboard, so this is what ' +
+      'lets an earlier one be reopened and read again, with no limit.',
+    limit: 'read',
+    query: z.object({ date: dateString.optional() }),
+    responds: { 200: "Today's mood slokas, newest first" },
+  },
+  controller.moodToday
 );
 
 router.post(

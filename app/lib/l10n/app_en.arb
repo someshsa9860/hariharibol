@@ -19,6 +19,8 @@
   "errorTimeout": "That took too long. Please try again.",
   "errorSessionExpired": "Your session has ended. Please sign in again.",
   "errorEmptyTitle": "Nothing here yet",
+  "errorRouteNotFound": "That screen does not exist.",
+  "actionGoHome": "Go to home",
 
   "signInTitle": "Welcome",
   "signInSubtitle": "Read, chant and keep your daily practice in one place.",
@@ -28,18 +30,33 @@
   "signInFailed": "We could not sign you in. Please try again.",
   "signInLegal": "By continuing you agree to our Terms and Privacy Policy.",
 
-  "tabHome": "Home",
-  "tabSadhana": "Sadhana",
-  "tabLibrary": "Library",
-  "tabProfile": "Profile",
+  "languageStepOf": "Step {current} of {total}",
+  "@languageStepOf": {
+    "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "languageAppTitle": "Which language feels like home?",
+  "languageAppSubtitle": "You can change this anytime in settings.",
+  "languageMantraTitle": "Which script do you chant in?",
+  "languageMantraSubtitle": "Mantras appear in this script. Their meaning stays in your own language.",
+  "actionBack": "Back",
 
-  "homeGreeting": "Hare Kṛṣṇa",
-  "homeGreetingNamed": "Hare Kṛṣṇa, {name}",
+  "tabHome": "Home",
+  "tabSadhana": "Jap",
+  "tabLibrary": "Read",
+  "tabRoutine": "Routine",
+  "reelsTitle": "Reels",
+  "tabSearch": "Search",
+
+  "homeGreeting": "Hari Bol",
+  "homeGreetingNamed": "Hari Bol, {name}",
   "@homeGreetingNamed": {
     "description": "The dashboard greeting. The devotional greeting is the point, so it is not swapped for a time-of-day one.",
     "placeholders": { "name": { "type": "String" } }
   },
   "homeMoodPrompt": "How are you today?",
+  "homeMoodAnsweredToday": "You've shared how you're feeling today — tap it again to read the verse. Come back tomorrow to share something new.",
+  "homeMoodSubmit": "{count, plural, =1{Show me a verse} other{Show me {count} verses}}",
+  "@homeMoodSubmit": { "placeholders": { "count": { "type": "int" } } },
   "homeVerseOfTheDay": "Verse of the day",
   "homeSlokaForYou": "For you today",
   "homeTodaysSadhana": "Today's sadhana",
@@ -52,6 +69,12 @@
   "@bookChapterCount": { "placeholders": { "count": { "type": "int" } } },
   "bookVerseCount": "{count, plural, =1{1 verse} other{{count} verses}}",
   "@bookVerseCount": { "placeholders": { "count": { "type": "int" } } },
+
+  "searchHint": "Search verses, mantras, books",
+  "searchPrompt": "Search across the whole library, straight from the server.",
+  "searchShortcutLabel": "Or jump straight to a verse:",
+  "searchNoResults": "No results. Try a different word, or a reference like BG 2.47.",
+  "searchSectionVerses": "Verses",
 
   "labelCanto": "Canto {number}",
   "@labelCanto": { "placeholders": { "number": { "type": "int" } } },
@@ -73,6 +96,76 @@
     "placeholders": { "days": { "type": "int" } }
   },
 
+  "sadhanaGenericChant": "Japa",
+  "sadhanaRoundsShort": "{rounds} rounds",
+  "@sadhanaRoundsShort": { "placeholders": { "rounds": { "type": "int" } } },
+  "sadhanaTodaysSessions": "Today's chanting",
+  "sadhanaNoSessionsYet": "Nothing logged yet today.",
+  "sadhanaRoundsEyebrow": "Rounds today",
+  "sadhanaRoundsCaption": "Rounds",
+  "sadhanaChantNow": "Chant now",
+  "sadhanaLogRounds": "Log rounds",
+  "sadhanaLogRoundsSubtitle": "Rounds chanted on your beads, added to today's total.",
+  "sadhanaLogRoundsSubmit": "Log {rounds} rounds",
+  "@sadhanaLogRoundsSubmit": { "placeholders": { "rounds": { "type": "int" } } },
+  "sadhanaTargetReached": "Today's target reached",
+  "sadhanaUndoBead": "Undo last bead",
+  "sadhanaElapsedEyebrow": "Elapsed",
+  "sadhanaPaceEyebrow": "Pace",
+  "sadhanaElapsedSeconds": "{seconds}s",
+  "@sadhanaElapsedSeconds": { "placeholders": { "seconds": { "type": "String" } } },
+  "sadhanaPacePerMantra": "{seconds}s each",
+  "@sadhanaPacePerMantra": { "placeholders": { "seconds": { "type": "String" } } },
+
+  "sadhanaAutoCount": "Auto count",
+  "sadhanaAutoCountOff": "Off — tap a bead yourself",
+  "sadhanaAutoCountIdle": "Waiting for chanting",
+  "sadhanaAutoCountListening": "Listening…",
+  "sadhanaAutoCountCounted": "Counted — listening for the next one",
+  "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
+  "sadhanaAutoCountUnavailable": "Auto count isn't available right now",
+
+  "mantraAllCategories": "All",
+  "mantraNoneInCategory": "No mantras in this category yet.",
+  "mantraStandardRounds": "{rounds} rounds",
+  "@mantraStandardRounds": { "placeholders": { "rounds": { "type": "int" } } },
+  "mantraStandardCount": "{count} times",
+  "@mantraStandardCount": { "placeholders": { "count": { "type": "int" } } },
+  "mantraHasAudio": "Recitation available",
+  "mantraPurport": "Purport",
+  "mantraMyRounds": "You've chanted {rounds} rounds of this",
+  "@mantraMyRounds": { "placeholders": { "rounds": { "type": "int" } } },
+  "mantraChantThis": "Chant this",
+
+  "profileStatVersesSaved": "Verses saved",
+  "profileStatTotalRounds": "Total rounds",
+  "profileStatChantingDays": "Chanting days",
+  "profileStatSlokasRead": "Slokas read",
+  "profileRecentFavorites": "Recent favourites",
+  "profileNoFavorites": "Nothing saved yet. Bookmark a verse and it will be here.",
+
+  "settingsTitle": "Settings",
+  "settingsSectionPractice": "Practice",
+  "settingsSectionAccount": "Account",
+  "settingsLanguage": "Language",
+  "settingsTheme": "Theme",
+  "settingsDailyGoal": "Daily goal",
+  "settingsDailyGoalSubtitle": "Rounds to aim for each day. Sets what every new day starts at.",
+  "settingsDailyGoalSubmit": "Set daily goal to {rounds}",
+  "@settingsDailyGoalSubmit": { "placeholders": { "rounds": { "type": "int" } } },
+  "settingsPreferredMantra": "Preferred mantra",
+  "settingsPreferredMantraNone": "Not set",
+  "settingsChooseMantraTitle": "Choose your mantra",
+  "settingsChooseMantraSubtitle": "What \"Chant now\" opens with. You can still chant anything else from its own page.",
+  "settingsNoMantraPreference": "No preference — ask me each time",
+  "settingsPrivacy": "Privacy policy",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": { "placeholders": { "version": { "type": "String" } } },
+  "settingsMadeWith": "Made with reverence",
+  "themeSystem": "Auto",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+
   "profileSignedInAs": "Signed in as {email}",
   "@profileSignedInAs": {
     "placeholders": { "email": { "type": "String" } }
@@ -83,5 +176,191 @@
   "deleteAccountTitle": "Delete your account?",
   "deleteAccountBody": "This removes your practice history, favourites and notifications. It cannot be undone.",
 
-  "comingSoon": "Coming soon"
+  "comingSoon": "Coming soon",
+  "libraryNoBooks": "No books published yet.",
+  "actionEdit": "Edit",
+  "actionDelete": "Delete",
+
+  "libraryDownloadBook": "Download for offline reading",
+  "libraryDownloading": "Downloading…",
+  "libraryDownloaded": "Downloaded for offline reading",
+  "libraryDownloadFailed": "Could not download this book. Please try again.",
+
+  "bookCantoCount": "{count, plural, =1{1 canto} other{{count} cantos}}",
+  "@bookCantoCount": { "placeholders": { "count": { "type": "int" } } },
+  "bookByTranslators": "Renderings by {names}",
+  "@bookByTranslators": {
+    "description": "e.g. \"Renderings by Prabhupada, Ramanuja\"",
+    "placeholders": { "names": { "type": "String" } }
+  },
+
+  "chapterPrevious": "Previous chapter",
+  "chapterNext": "Next chapter",
+
+  "actionBookmark": "Bookmark",
+  "actionRemoveBookmark": "Remove bookmark",
+  "actionHighlight": "Highlight",
+  "actionRemoveHighlight": "Remove highlight",
+
+  "verseExplanationLabel": "Explanation",
+  "verseExplanationAiLabel": "Explanation (AI-assisted)",
+
+  "verseCompareTranslations": "Compare translations",
+  "verseTranslationsEmpty": "No other renderings published yet.",
+
+  "verseRelatedTitle": "Related verses",
+  "verseRelatedEmpty": "No related verses yet.",
+  "relationSameConcept": "Same concept",
+  "relationExpandsOn": "Expands on",
+  "relationQuotedIn": "Quoted in",
+  "relationContrastsWith": "Contrasts with",
+
+  "verseNotesTitle": "My notes",
+  "verseNoteHint": "Write a note…",
+  "verseNoteAdd": "Add note",
+  "verseNoteEmpty": "No notes yet on this verse.",
+  "verseNoteDeleteConfirm": "Delete this note?",
+
+  "readingSettingsTitle": "Reading settings",
+  "readingFontSizeLabel": "Text size",
+  "readingFontSizeSmall": "Small",
+  "readingFontSizeMedium": "Medium",
+  "readingFontSizeLarge": "Large",
+  "readingFontSizeExtraLarge": "Extra large",
+  "readingLanguageLabel": "Reading language",
+
+  "routineSubtitle": "Devotion, work and the ordinary in between.",
+  "routineProgress": "{done} of {total} done today",
+  "@routineProgress": {
+    "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "routineEmptyBody": "Add a round of japa, an errand, a chore — build today with intention.",
+  "routineAddTask": "Add task",
+  "routineTaskHint": "What needs doing?",
+  "routineCategoryLabel": "Category",
+  "routineCategoryDevotion": "Devotion",
+  "routineCategoryWork": "Work",
+  "routineCategoryHome": "Home",
+  "routineCategoryErrand": "Errand",
+  "routineSlotLabel": "Time of day",
+  "routineSlotMorning": "Morning",
+  "routineSlotAfternoon": "Afternoon",
+  "routineSlotEvening": "Evening",
+  "routineSlotAnytime": "Anytime",
+  "routineSaveAction": "Add to today",
+  "routineTaskRemoved": "Removed from today's list",
+  "routineUndo": "Undo",
+
+  "reelsEmpty": "No reels yet",
+  "reelsEmptyBody": "When creators start posting, their reels will appear here.",
+  "reelsFailed": "Could not load reels",
+  "reelsRetry": "Try again",
+  "reelFollow": "Follow",
+  "reelFollowing": "Following",
+  "reelLike": "Like",
+  "reelUnlike": "Unlike",
+  "reelComment": "Comment",
+  "reelShare": "Share",
+  "reelSave": "Save",
+  "reelUnsave": "Remove from saved",
+  "reelSaved": "Saved",
+  "reelRemovedFromSaved": "Removed from saved",
+  "reelMore": "More options",
+  "reelMuted": "Sound off",
+  "reelUnmuted": "Sound on",
+  "reelPlay": "Play",
+  "reelPause": "Pause",
+  "reelVideoUnavailable": "This video is still processing.",
+  "reelAudioUnavailable": "This recitation is still processing.",
+  "reelSlideOf": "{current} of {total}",
+  "@reelSlideOf": {
+    "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "reelVerseRef": "{book} {chapter}.{verse}",
+  "@reelVerseRef": {
+    "description": "A verse reference on a reel, e.g. BG 2.47",
+    "placeholders": {
+      "book": { "type": "String" },
+      "chapter": { "type": "int" },
+      "verse": { "type": "int" }
+    }
+  },
+  "reelBookGita": "BG",
+  "reelBookBhagavatam": "SB",
+  "reelCaptionMore": "more",
+  "reelCaptionLess": "less",
+
+  "reelCommentsTitle": "Comments",
+  "reelCommentsCount": "{count, plural, =0{No comments yet} =1{1 comment} other{{count} comments}}",
+  "@reelCommentsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reelCommentsEmpty": "Be the first to say something.",
+  "reelCommentHint": "Add a comment…",
+  "reelReplyHint": "Reply to {name}…",
+  "@reelReplyHint": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "reelCommentSend": "Post",
+  "reelCommentReply": "Reply",
+  "reelCommentDelete": "Delete",
+  "reelCommentReport": "Report",
+  "reelCommentPin": "Pin",
+  "reelCommentUnpin": "Unpin",
+  "reelCommentPinned": "Pinned",
+  "reelCommentRemoved": "This comment was removed.",
+  "reelCommentDeleted": "Comment deleted",
+  "reelCommentDeleteTitle": "Delete this comment?",
+  "reelCommentDeleteBody": "It will be removed for everyone, along with any replies to it.",
+  "reelCommentCancelReply": "Cancel reply",
+  "reelViewReplies": "{count, plural, =1{View 1 reply} other{View {count} replies}}",
+  "@reelViewReplies": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reelHideReplies": "Hide replies",
+  "reelLoadMoreComments": "Load more comments",
+
+  "reelReportTitle": "Report this reel",
+  "reelReportCommentTitle": "Report this comment",
+  "reelReportBody": "Tell us what is wrong with it. A moderator will review it.",
+  "reelReportSpam": "Spam or misleading",
+  "reelReportHarassment": "Harassment or abuse",
+  "reelReportNonDevotional": "Not devotional content",
+  "reelReportMisinformation": "Misinformation",
+  "reelReportSexualOrViolent": "Sexual or violent",
+  "reelReportOther": "Something else",
+  "reelReportNoteHint": "Anything else we should know? (optional)",
+  "reelReportSubmit": "Report",
+  "reelReportThanks": "Thank you. A moderator will look at this.",
+
+  "reelShareTitle": "Share this reel",
+  "reelShareMessage": "{caption}\n\nWatch on HariHariBol: {link}",
+  "@reelShareMessage": {
+    "placeholders": {
+      "caption": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
+  "reelCopyLink": "Copy link",
+  "reelLinkCopied": "Link copied",
+
+  "creatorTitle": "Creator",
+  "creatorFollowers": "{count, plural, =1{1 follower} other{{count} followers}}",
+  "@creatorFollowers": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "creatorReelCount": "{count, plural, =1{1 reel} other{{count} reels}}",
+  "@creatorReelCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "creatorViews": "{count, plural, =1{1 view} other{{count} views}}",
+  "@creatorViews": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "creatorStatFollowers": "Followers",
+  "creatorStatReels": "Reels",
+  "creatorStatViews": "Views",
+  "creatorVerified": "Verified creator",
+  "creatorNoReels": "Nothing posted yet.",
+  "creatorNotFound": "That creator is no longer here."
 }

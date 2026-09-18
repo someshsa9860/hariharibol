@@ -7,12 +7,14 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../core/constants/api_paths.dart';
 import '../core/constants/app_config.dart';
+import '../core/constants/storage_keys.dart';
 import '../core/session/app_session.dart';
 import '../models/api_failure.dart';
 import '../models/auth_session.dart';
 import 'api_client.dart';
 import 'device_service.dart';
 import 'fcm_service.dart';
+import 'local_store.dart';
 
 /// Raised when the person closes the Google or Apple sheet. Not an error worth
 /// a red snack bar — the caller just stops.
@@ -140,6 +142,12 @@ class AuthService {
 
     final session = AuthSession.fromJson(response.json);
     await AppSession.instance.start(session);
+
+    // 201 means the backend just created the account, 200 that it already
+    // existed. A new account has the default languages rather than chosen
+    // ones, so it is sent through the picker; a returning one never is.
+    final isNewAccount = response.statusCode == 201;
+    await LocalStore.instance.write(BoxKeys.onboardingSeen, !isNewAccount);
 
     // Now there is an account for the push token to belong to. Not awaited:
     // it ends in a permission dialog, and the dashboard should not wait behind

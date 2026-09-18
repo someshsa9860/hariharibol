@@ -73,6 +73,31 @@ router.get(
 );
 
 router.get(
+  '/:slug/chapters/bulk',
+  {
+    summary: 'Read every chapter in a book, or one canto, for offline download',
+    description:
+      'Every chapter in scope with its verses, already resolved to the reader’s language — ' +
+      'the same shape as GET /:slug/chapters/{number}, repeated. This is the download path, ' +
+      'not the reading screen: Bhagavad Gita has no cantos, so it has no translation and ' +
+      'purport volume large enough to matter, and this returns the whole book in one call. ' +
+      'Srimad Bhagavatam’s does, so `canto` is required there and this is called once per ' +
+      'canto — twelve requests for the whole book instead of one per chapter. Registered ' +
+      'ahead of /:slug/chapters/:number so "bulk" is never parsed as a chapter number.',
+    public: true,
+    limit: 'read',
+    params: schemas.slug,
+    query: z.object({ canto: z.coerce.number().int().min(1).max(12).optional() }),
+    responds: {
+      200: 'Every chapter in scope, each with its verses',
+      400: 'Book is organised by canto and none was given',
+      404: 'No such published book',
+    },
+  },
+  controller.chaptersBulk
+);
+
+router.get(
   '/:slug/chapters/:number',
   {
     summary: 'Read a chapter',
@@ -91,6 +116,26 @@ router.get(
     },
   },
   controller.chapter
+);
+
+router.get(
+  '/:slug/verses',
+  {
+    summary: 'Read a short work',
+    description:
+      'Every verse of a book with no chapters — a stotra, aarti, prayer or poem — in order, ' +
+      'already resolved to the reader’s language. The equivalent of ' +
+      'GET /:slug/chapters/{number} for a book whose verses hang directly off it.',
+    public: true,
+    limit: 'read',
+    params: schemas.slug,
+    responds: {
+      200: 'The book’s verses in order',
+      400: 'Book is organised by chapter instead',
+      404: 'No such published book',
+    },
+  },
+  controller.verses
 );
 
 export default router;

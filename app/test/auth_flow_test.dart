@@ -8,7 +8,6 @@
 
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -18,9 +17,12 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hariharibol/app.dart';
 import 'package:hariharibol/core/session/app_session.dart';
 import 'package:hariharibol/models/auth_session.dart';
+import 'package:hariharibol/core/constants/storage_keys.dart';
 import 'package:hariharibol/services/local_store.dart';
 import 'package:hariharibol/views/auth/sign_in_view.dart';
 import 'package:hariharibol/views/dashboard/dashboard_view.dart';
+import 'package:hariharibol/widgets/common/glass_nav_bar.dart';
+import 'package:hariharibol/views/onboarding/language_view.dart';
 import 'package:hariharibol/views/splash/splash_view.dart';
 
 /// What the API actually returns from `/auth/social` and `/auth/refresh` —
@@ -141,13 +143,19 @@ void main() {
     // Storage has to run outside the fake clock. `testWidgets` drives time
     // itself, so a Hive write — which is real disk I/O — would be issued and
     // then never observed to finish, and the test would sit there forever.
-    Future<void> signIn(WidgetTester tester) => tester.runAsync(() async {
+    // `chosenLanguages: false` is what a brand-new account looks like — the
+    // router holds it at the language picker until the API has accepted a
+    // choice. Everything below is a returning account unless it says otherwise.
+    Future<void> signIn(WidgetTester tester, {bool chosenLanguages = true}) =>
+        tester.runAsync(() async {
           await AppSession.instance.start(AuthSession.fromJson(sessionPayload()));
+          await LocalStore.instance.write(BoxKeys.onboardingSeen, chosenLanguages);
           await AppSession.instance.restore();
         });
 
     Future<void> signOut(WidgetTester tester) => tester.runAsync(() async {
           await AppSession.instance.clear();
+          await LocalStore.instance.write(BoxKeys.onboardingSeen, null);
           await AppSession.instance.restore();
         });
 
@@ -159,7 +167,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.byType(DashboardView), findsOneWidget);
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(GlassNavBar), findsOneWidget);
       expect(find.byType(SignInView), findsNothing);
       expect(find.byType(SplashView), findsNothing);
     });
@@ -171,9 +179,20 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(bar.destinations, hasLength(4));
+      final bar = tester.widget<GlassNavBar>(find.byType(GlassNavBar));
+      expect(bar.items, hasLength(4));
       expect(bar.selectedIndex, 0);
+    });
+
+    testWidgets('a new account is held at the language picker', (tester) async {
+      await signIn(tester, chosenLanguages: false);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(LanguageView), findsOneWidget);
+      expect(find.byType(DashboardView), findsNothing);
     });
 
     testWidgets('a signed-out person gets the sign-in screen', (tester) async {

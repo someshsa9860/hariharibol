@@ -61,7 +61,7 @@ async function buildPersonal(job) {
   for (;;) {
     const users = await prisma.user.findMany({
       where: { isBanned: false },
-      select: { id: true, timezone: true, isPremium: true },
+      select: { id: true, timezone: true },
       orderBy: { id: 'asc' },
       take: BATCH_SIZE,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -83,16 +83,11 @@ async function buildPersonal(job) {
         continue;
       }
 
-      // Issue-driven picking is the paid feature — the same rule the request
-      // path applies. A free reader still gets a sloka every morning; it is
-      // simply not chosen from what they said was troubling them.
-      const lastIssue = user.isPremium
-        ? await prisma.userIssue.findFirst({
-            where: { userId: user.id, reportedAt: { gte: new Date(Date.now() - 14 * 86400000) } },
-            orderBy: { reportedAt: 'desc' },
-            include: { issue: { select: { id: true, name: true } } },
-          })
-        : null;
+      const lastIssue = await prisma.userIssue.findFirst({
+        where: { userId: user.id, reportedAt: { gte: new Date(Date.now() - 14 * 86400000) } },
+        orderBy: { reportedAt: 'desc' },
+        include: { issue: { select: { id: true, name: true } } },
+      });
 
       const exclude = await slokaController.recentVerseIds(user.id);
       const verseId =

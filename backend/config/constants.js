@@ -31,6 +31,12 @@ const PERMISSIONS = {
   'reference.manage': { group: 'content', name: 'Manage deities, gurus, languages, issues' },
   'sloka.manage': { group: 'content', name: 'Curate the daily sloka' },
   'media.upload': { group: 'content', name: 'Upload media to S3' },
+  'reelTemplate.read': { group: 'content', name: 'View reel templates' },
+  'reelTemplate.write': { group: 'content', name: 'Create and edit reel templates' },
+  'reelTemplate.delete': { group: 'content', name: 'Delete reel templates' },
+  'reel.read': { group: 'content', name: 'View generated reels' },
+  'reel.generate': { group: 'content', name: 'Generate reels from scripture verses' },
+  'reel.delete': { group: 'content', name: 'Delete generated reels' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },
@@ -50,6 +56,7 @@ const PERMISSIONS = {
   'ai.run': { group: 'system', name: 'Trigger AI batch jobs' },
   'audit.read': { group: 'system', name: 'View the audit log' },
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
+  'system.read': { group: 'system', name: 'View server health, storage and analytics' },
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSIONS);
@@ -79,6 +86,13 @@ const ROLE_PERMISSIONS = {
 const BOOK_NUMBERS = { BHAGAVAD_GITA: 1, SRIMAD_BHAGAVATAM: 2 };
 const SLOKA_ELIGIBLE_BOOK_NUMBERS = [BOOK_NUMBERS.BHAGAVAD_GITA, BOOK_NUMBERS.SRIMAD_BHAGAVATAM];
 
+// The account that owns every reel a ReelTemplate generates. It never signs
+// in — there is no outside creator to attribute auto-generated scripture
+// content to, and the admin who runs "generate" is already the reviewer — so
+// this exists purely so Reel.creatorId (required, same as any other reel) has
+// somewhere to point. Seeded once by prisma/seed/index.js.
+const SYSTEM_CREATOR_EMAIL = 'content@hariharibol.app';
+
 // ── Language fallbacks ─────────────────────────────────────────────────────
 const DEFAULT_LANGUAGE = 'en';
 const SOURCE_LANGUAGE = 'sa';
@@ -91,6 +105,37 @@ const DEFAULT_ROUND_TARGET = 16;
 const PAGE_SIZE_DEFAULT = 20;
 const PAGE_SIZE_MAX = 100;
 
+// The reel feed is swiped, not paged through by number — 11 is enough to fill
+// a first screen with a couple ahead of it, without pulling video/image media
+// the reader may never reach.
+const REEL_PAGE_SIZE_DEFAULT = 11;
+
+// ── Reels ──────────────────────────────────────────────────────────────────
+
+// Comments are read in a sheet over the video, so a page is sized to what fits
+// in one without the reader having to fetch again to fill the screen.
+const REEL_COMMENT_PAGE_SIZE = 20;
+
+// Replies are collapsed under their parent and opened deliberately, so they
+// come in smaller batches than top-level comments.
+const REEL_REPLY_PAGE_SIZE = 10;
+
+// Threads go exactly one level deep: replying to a reply attaches to the same
+// parent. Instagram and YouTube both do this, and it is the difference between
+// a comment list that renders in a fixed indent and one that needs a tree.
+const REEL_MAX_COMMENT_DEPTH = 1;
+
+const REEL_COMMENT_MAX_LENGTH = 1000;
+
+// What counts as having watched a reel rather than swiped past it. The client
+// reports progress; this is the line at which ReelView.completed flips.
+const REEL_COMPLETION_RATIO = 0.9;
+
+// A view is only counted once the reader has actually stayed with the reel.
+// Without a floor, a fast swipe through fifty reels would register fifty
+// views and make viewCount meaningless as a ranking signal.
+const REEL_MIN_VIEW_MS = 3000;
+
 // ── AppSetting keys ────────────────────────────────────────────────────────
 // The settings the code actually reads. Listed so the admin panel can render
 // them without a hardcoded copy of its own.
@@ -99,7 +144,6 @@ const SETTING_KEYS = {
   AI_MODEL_TEXT: 'ai.model.text',
   AI_MONTHLY_BUDGET_MICROS: 'ai.budget.monthly_micros',
   SLOKA_DELIVERY_HOUR: 'sloka.delivery.default_hour',
-  FREE_MOOD_SLOKA_QUOTA: 'sloka.mood.free_quota_per_month',
   SIGNUP_ENABLED: 'auth.signup.enabled',
 };
 
@@ -120,12 +164,20 @@ export {
   ROLE_PERMISSIONS,
   BOOK_NUMBERS,
   SLOKA_ELIGIBLE_BOOK_NUMBERS,
+  SYSTEM_CREATOR_EMAIL,
   DEFAULT_LANGUAGE,
   SOURCE_LANGUAGE,
   BEADS_PER_ROUND,
   DEFAULT_ROUND_TARGET,
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,
+  REEL_PAGE_SIZE_DEFAULT,
+  REEL_COMMENT_PAGE_SIZE,
+  REEL_REPLY_PAGE_SIZE,
+  REEL_MAX_COMMENT_DEPTH,
+  REEL_COMMENT_MAX_LENGTH,
+  REEL_COMPLETION_RATIO,
+  REEL_MIN_VIEW_MS,
   SETTING_KEYS,
   CACHE,
 };

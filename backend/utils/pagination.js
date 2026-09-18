@@ -1,10 +1,12 @@
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '../config/constants.js';
 
 // Reads ?page= and ?pageSize= into Prisma's skip/take, clamped so a caller
-// cannot ask for the whole table.
-function readPage(query = {}) {
+// cannot ask for the whole table. `defaultPageSize` lets a feed with its own
+// natural batch size (the reel feed's 11) override the general default without
+// every caller having to pass `pageSize` just to get it.
+function readPage(query = {}, defaultPageSize = PAGE_SIZE_DEFAULT) {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
-  const requested = Number.parseInt(query.pageSize, 10) || PAGE_SIZE_DEFAULT;
+  const requested = Number.parseInt(query.pageSize, 10) || defaultPageSize;
   const pageSize = Math.min(Math.max(1, requested), PAGE_SIZE_MAX);
   return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
 }

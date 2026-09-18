@@ -32,10 +32,6 @@ const KNOWN = {
     label: 'Default sloka delivery hour',
     help: '0–23 in each user’s own timezone, used until the weekly learning finds a better one.',
   },
-  [SETTING_KEYS.FREE_MOOD_SLOKA_QUOTA]: {
-    label: 'Free mood slokas per month',
-    help: 'How many a non-Premium user gets before the paywall. Set 0 to gate it completely.',
-  },
   [SETTING_KEYS.SIGNUP_ENABLED]: {
     label: 'Signups open',
     help: 'true or false. Existing accounts keep working when off.',

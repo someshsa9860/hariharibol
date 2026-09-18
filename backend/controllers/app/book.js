@@ -3,7 +3,8 @@
 // A Book is any complete work: a full scripture like Srimad Bhagavatam, or a
 // single aarti. `type` decides the shape. SCRIPTURE has chapters, and Srimad
 // Bhagavatam alone has cantos above them; everything short hangs its verses
-// straight off the book, so a stotra has no chapter list to fetch.
+// straight off the book, so a stotra has no chapter list to fetch — it reads
+// through `verses` below instead.
 
 import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
@@ -100,6 +101,58 @@ export const chapters = async (req, res) => {
 };
 
 /**
+ * GET /api/app/books/:slug/chapters/bulk
+ * Every chapter in scope, each with its verses — the offline download path.
+ * Bhagavad Gita has no cantos, so this is the whole book in one call. Srimad
+ * Bhagavatam's translations and purports are too large to return in one
+ * request, so `canto` is required there and this is called once per canto —
+ * see `chapter()` below for the single-chapter equivalent the reading screen
+ * itself uses.
+ */
+export const chaptersBulk = async (req, res) => {
+  const { canto } = req.valid.query;
+
+  const book = await prisma.book.findFirst({
+    where: { slug: req.valid.params.slug, isPublished: true },
+    select: { id: true, totalCantos: true },
+  });
+  if (!book) throw notFound('Book');
+
+  if (book.totalCantos > 0 && canto === undefined) {
+    throw badRequest('This book is organised by canto — pass ?canto= for one canto at a time');
+  }
+
+  const chapters = await prisma.chapter.findMany({
+    where: { bookId: book.id, ...(canto !== undefined ? { cantoNumber: canto } : {}) },
+    orderBy: [{ cantoNumber: 'asc' }, { number: 'asc' }],
+  });
+
+  const readingChain = language.readingChain(req.auth.user);
+
+  const verseRows = await prisma.verse.findMany({
+    where: { chapterId: { in: chapters.map((c) => c.id) } },
+    orderBy: [{ chapterNumber: 'asc' }, { verseNumber: 'asc' }],
+    include: present.includes.verse(readingChain, req.auth.user?.id),
+  });
+
+  const versesByChapter = new Map();
+  for (const verseRow of verseRows) {
+    const list = versesByChapter.get(verseRow.chapterId) ?? [];
+    list.push(verseRow);
+    versesByChapter.set(verseRow.chapterId, list);
+  }
+
+  const shaped = await Promise.all(
+    chapters.map(async (chapterRow) => ({
+      chapter: present.section(chapterRow, req.auth.user),
+      verses: await present.verses(versesByChapter.get(chapterRow.id) ?? [], req.auth.user),
+    }))
+  );
+
+  return ok(res, shaped);
+};
+
+/**
  * GET /api/app/books/:slug/chapters/:number
  * The chapter and its verses in one call — this is the reading screen, and
  * splitting it would make every chapter open cost two round trips.
@@ -128,11 +181,39 @@ export const chapter = async (req, res) => {
   const verses = await prisma.verse.findMany({
     where: { chapterId: chapter.id },
     orderBy: { verseNumber: 'asc' },
-    include: present.includes.verse(readingChain),
+    include: present.includes.verse(readingChain, req.auth.user?.id),
   });
 
   return ok(res, {
     chapter: present.section(chapter, req.auth.user),
     verses: await present.verses(verses, req.auth.user),
   });
+};
+
+/**
+ * GET /api/app/books/:slug/verses
+ * A short work's reading screen, in one call — the equivalent of
+ * `/:slug/chapters/:number` for a stotra, aarti, prayer or poem, where every
+ * verse hangs directly off the book instead of under a chapter.
+ */
+export const verses = async (req, res) => {
+  const book = await prisma.book.findFirst({
+    where: { slug: req.valid.params.slug, isPublished: true },
+    select: { id: true, totalChapters: true },
+  });
+  if (!book) throw notFound('Book');
+
+  if (book.totalChapters > 0) {
+    throw badRequest('This book is organised by chapter — use GET /:slug/chapters/:number');
+  }
+
+  const readingChain = language.readingChain(req.auth.user);
+
+  const verseRows = await prisma.verse.findMany({
+    where: { bookId: book.id },
+    orderBy: { verseNumber: 'asc' },
+    include: present.includes.verse(readingChain, req.auth.user?.id),
+  });
+
+  return ok(res, await present.verses(verseRows, req.auth.user));
 };

@@ -88,6 +88,7 @@ enum NotificationType {
   SADHANA // chanting or task reminders
   ANNOUNCEMENT // broadcast from admin
   SYSTEM // account, payment, security
+  REEL // someone engaged with your reel, or with you as a creator
 }
 
 enum VerseLinkRelation {
@@ -95,6 +96,15 @@ enum VerseLinkRelation {
   EXPANDS_ON
   QUOTED_IN
   CONTRASTS_WITH
+}
+
+// What sort of curated reading a Story is. Governs nothing structurally —
+// StoryPart looks the same either way — but it is what a listing screen
+// groups and titles its sections by.
+enum StoryKind {
+  DEVOTEE_STORY // a devotee's life and pastimes: Prahlada, Dhruva, Ajamila, Gajendra…
+  GURU_LESSON // a numbered teaching cycle, e.g. Dattatreya's twenty-four gurus
+  KAVACHA // a protective stotra, e.g. Narayana Kavacha
 }
 
 enum PaymentProvider {
@@ -122,6 +132,46 @@ enum SubscriptionStatus {
   CANCELLED // will not renew, but entitled until currentPeriodEnd
   EXPIRED
   REFUNDED
+}
+
+enum CreatorStatus {
+  PENDING // applied, awaiting review
+  APPROVED
+  REJECTED
+  SUSPENDED // was approved, posting rights pulled
+}
+
+enum ReelMediaType {
+  VIDEO
+  IMAGE // one or more photos, shown as a slideshow — see ReelMedia
+  AUDIO // a recitation/narration, no video — see ReelAudioTrack
+}
+
+enum ReelStatus {
+  DRAFT // creator has not submitted it yet
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  TAKEN_DOWN // was published, removed after the fact
+}
+
+enum SharePlatform {
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  TWITTER
+  TELEGRAM
+  COPY_LINK
+  OTHER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT_OR_ABUSE
+  NON_DEVOTIONAL // does not belong on a devotional platform
+  MISINFORMATION
+  SEXUAL_OR_VIOLENT
+  OTHER
 }
 
 // ============================================================================
@@ -193,7 +243,21 @@ model User {
 
   favorites       Favorite[]
   readingProgress ReadingProgress[]
+  verseNotes      VerseNote[]
+  verseHighlights VerseHighlight[]
   notifications   Notification[]
+
+  // A user becomes a creator by having this row, not by a different Role — role
+  // governs admin-panel access levels (user/moderator/admin), which is orthogonal
+  // to "can this person post reels". Same pattern as SadhanaProfile.
+  creatorProfile   CreatorProfile?
+  creatorFollows   CreatorFollow[]
+  reelLikes        ReelLike[]
+  reelComments     ReelComment[]
+  reelCommentLikes ReelCommentLike[]
+  reelShares       ReelShare[]
+  reelViews        ReelView[]
+  reelReports      ReelReport[]
 
   auditLogs  AuditLog[] @relation("AuditActor")
   bans       Ban[]      @relation("BannedUser")
@@ -341,6 +405,7 @@ model Book {
   cantos          Canto[]
   chapters        Chapter[]
   verses          Verse[]
+  stories         Story[]
   translators     BookTranslator[]
   favorites       Favorite[]
   readingProgress ReadingProgress[]
@@ -395,9 +460,10 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  book   Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  canto  Canto?  @relation(fields: [cantoId], references: [id], onDelete: Cascade)
-  verses Verse[]
+  book       Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  canto      Canto?      @relation(fields: [cantoId], references: [id], onDelete: Cascade)
+  verses     Verse[]
+  storyParts StoryPart[]
 
   @@unique([bookId, cantoNumber, number])
   @@index([bookId])
@@ -449,12 +515,16 @@ model Verse {
   explanations VerseExplanation[]
   dailySlokas  DailySloka[]
   userSlokas   UserDailySloka[]
+  issueReports UserIssue[]
   issueLinks   VerseIssue[]
   narrations   Narration[]
   favorites    Favorite[]
   readingMarks ReadingProgress[]
+  notes        VerseNote[]
+  highlights   VerseHighlight[]
   linksFrom    VerseLink[]        @relation("SourceVerse")
   linksTo      VerseLink[]        @relation("TargetVerse")
+  reels        Reel[]
 
   @@index([bookId])
   @@index([chapterId])
@@ -618,6 +688,132 @@ model VerseLink {
 }
 
 // ============================================================================
+// Stories — devotee pastimes, teaching cycles and stotras curated for reading
+// ============================================================================
+//
+// The text itself is not duplicated here — it already exists as Book/Canto/
+// Chapter/Verse, scraped once from source. A Story curates and introduces a
+// range of that text as one readable unit: a devotee's life (Prahlada, Dhruva,
+// Ajamila, Gajendra…), a teaching cycle (Dattatreya's twenty-four gurus, SB
+// 11.7-9), or a stotra (Narayana Kavacha, SB 6.8). Deliberately not the `Guru`
+// model above — Guru is the Vaishnav parampara a mantra or practice comes
+// through (Prabhupada, Ramanujacharya…); the twenty-four gurus are earth,
+// air, a pigeon, a prostitute — teachers by example, not lineage.
+
+// One curated story, spanning a range of an existing book.
+model Story {
+  id String @id @default(cuid())
+
+  slug String    @unique @db.VarChar(100) // "dattatreya-24-gurus", "gajendra-moksha"
+  kind StoryKind
+
+  title           String
+  titleI18n       Json?
+  description     String? @db.Text // what the story is and why it matters, shown before reading
+  descriptionI18n Json?
+
+  bookId      String
+  cantoNumber Int? // denormalised, same reasoning as Chapter.cantoNumber
+
+  imagePath String? // S3 object key
+  audioPath String? // full narration, when one exists
+
+  tags String[] @default([])
+
+  displayOrder Int     @default(0)
+  isPublished  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book      Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  parts     StoryPart[]
+  favorites Favorite[]
+
+  @@index([bookId])
+  @@index([kind])
+  @@index([isPublished])
+}
+
+// One numbered unit within a Story — one of the twenty-four gurus, one beat
+// of a devotee's life, one protective assignment in a kavacha. Points at the
+// chapter and verse range it is drawn from so the reader can jump to the
+// source text; a range rather than a single verseId because a unit is rarely
+// exactly one verse (the honeybee's lesson alone spans four, SB 11.8.9-12).
+model StoryPart {
+  id String @id @default(cuid())
+
+  storyId String
+  number  Int // 1-based position within the story — the guru's place in the list, etc.
+
+  title           String // e.g. "The Earth", "The Honeybee", "Kesava — the head"
+  titleI18n       Json?
+  description     String? @db.Text // the teaching itself, in prose
+  descriptionI18n Json?
+
+  chapterId        String
+  verseNumberStart Int
+  verseNumberEnd   Int? // null means a single verse, same convention as Verse.verseNumberEnd
+
+  imagePath String?
+  audioPath String?
+
+  // Opted in to the daily rotation (DailyStoryPart) — "today's guru" and
+  // whatever else earns a daily slot later. Mirrors Verse.isSlokaEligible:
+  // being part of a story doesn't make a unit fit to stand alone each morning.
+  isDailyEligible Boolean @default(false)
+  isPublished     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  story      Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  chapter    Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  issueLinks StoryPartIssue[]
+  dailyPicks DailyStoryPart[]
+
+  @@unique([storyId, number])
+  @@index([chapterId])
+  @@index([isDailyEligible])
+  @@index([isPublished])
+}
+
+// Which vikaras (or other Issues) a story part speaks to — same shape as
+// VerseIssue, so a guru's lesson is just another kind of content the
+// personalisation picker can draw from once a user reports a struggle.
+model StoryPartIssue {
+  storyPartId String
+  issueId     String
+
+  weight Int @default(0)
+
+  storyPart StoryPart @relation(fields: [storyPartId], references: [id], onDelete: Cascade)
+  issue     Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@id([storyPartId, issueId])
+  @@index([issueId, weight])
+}
+
+// The one story part surfaced globally for a given date — "today's guru", and
+// whatever else gets a daily slot later. Same shape as DailySloka.
+model DailyStoryPart {
+  id String @id @default(cuid())
+
+  date        DateTime @unique @db.Date
+  storyPartId String
+
+  isPublished Boolean   @default(false)
+  sentAt      DateTime? // set when the cron job has pushed it out
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  storyPart StoryPart @relation(fields: [storyPartId], references: [id], onDelete: Cascade)
+
+  @@index([storyPartId])
+}
+
+// ============================================================================
 // Issues — what a user is struggling with, and which slokas answer it
 // ============================================================================
 
@@ -641,9 +837,10 @@ model Issue {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  verseLinks VerseIssue[]
-  reports    UserIssue[]
-  userSlokas UserDailySloka[]
+  verseLinks     VerseIssue[]
+  storyPartLinks StoryPartIssue[]
+  reports        UserIssue[]
+  userSlokas     UserDailySloka[]
 
   @@index([category])
   @@index([isPublished])
@@ -680,13 +877,31 @@ model UserIssue {
 
   reportedAt DateTime @default(now())
 
+  // The user's own local date this was reported on — same "UTC midnight of
+  // the local date" convention as SadhanaDay.date and UserDailySloka.date.
+  // What lets the dashboard ask "which vikaras has this person already told
+  // us about today" as a plain equality lookup instead of timezone-aware
+  // range math over `reportedAt`. Nullable only because rows written before
+  // this column existed have nothing to backfill it with.
+  date DateTime? @db.Date
+
+  // The sloka this report was answered with, from the mood endpoint — not set
+  // by the free-standing `/issues/report`. `UserDailySloka` keeps only one row
+  // per user per date, so a second vikara reported the same day overwrites the
+  // first there; this is what still lets that first one be reopened and read
+  // again, since the report itself is append-only and never overwritten.
+  verseId String?
+
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   issue Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
   day   SadhanaDay? @relation(fields: [sadhanaDayId], references: [id], onDelete: SetNull)
+  verse Verse?      @relation(fields: [verseId], references: [id], onDelete: SetNull)
 
   @@index([userId, reportedAt])
+  @@index([userId, date])
   @@index([issueId])
   @@index([sadhanaDayId])
+  @@index([verseId])
 }
 
 // What the system has learned about one user, rebuilt weekly by a cron job from
@@ -797,6 +1012,8 @@ model Favorite {
   verseId  String?
   mantraId String?
   bookId   String?
+  reelId   String?
+  storyId  String?
 
   createdAt DateTime @default(now())
 
@@ -804,10 +1021,14 @@ model Favorite {
   verse  Verse?  @relation(fields: [verseId], references: [id], onDelete: Cascade)
   mantra Mantra? @relation(fields: [mantraId], references: [id], onDelete: Cascade)
   book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  reel   Reel?   @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  story  Story?  @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, verseId])
   @@unique([userId, mantraId])
   @@unique([userId, bookId])
+  @@unique([userId, reelId])
+  @@unique([userId, storyId])
   @@index([userId, createdAt])
 }
 
@@ -838,6 +1059,48 @@ model ReadingProgress {
 
   @@unique([userId, bookId])
   @@index([userId, lastReadAt])
+}
+
+// A reader's own words against a verse. Deliberately separate from
+// VerseExplanation — that is app-written prose shown to every reader; this is
+// personal and private, one row per thought, not one per verse. Named
+// VerseNote (not just "Note") so it is never confused with the Notes tab,
+// which is an unrelated feature — daily tasks and timetable, not verses.
+model VerseNote {
+  id String @id @default(cuid())
+
+  userId  String
+  verseId String
+
+  text String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, verseId])
+}
+
+// A verse a reader has marked while reading. Distinct from Favorite: a
+// favourite is something saved to a personal collection surfaced elsewhere in
+// the app; a highlight is an emphasis inline in the text being read, and a
+// reader may want one without the other. Whole-verse granularity — no
+// sub-string range, the same way a favourite has none.
+model VerseHighlight {
+  id String @id @default(cuid())
+
+  userId  String
+  verseId String
+
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verse Verse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, verseId])
+  @@index([userId])
 }
 
 // In-app notification history. Written whether or not a push went out, so the
@@ -1158,6 +1421,7 @@ model Deity {
 
   mantras Mantra[]
   books   Book[]
+  reels   Reel[]
 
   @@index([sampradaya])
   @@index([isPublished])
@@ -1243,9 +1507,11 @@ model Mantra {
   deity Deity? @relation(fields: [deityId], references: [id], onDelete: SetNull)
   guru  Guru?  @relation(fields: [guruId], references: [id], onDelete: SetNull)
 
-  translations  MantraTranslation[]
-  chantSessions ChantSession[]
-  favorites     Favorite[]
+  translations     MantraTranslation[]
+  chantSessions    ChantSession[]
+  favorites        Favorite[]
+  reels            Reel[]
+  preferredByUsers SadhanaProfile[]
 
   @@index([category])
   @@index([sampradaya])
@@ -1299,13 +1565,17 @@ model SadhanaProfile {
 
   userId String @unique
 
-  dailyRoundTarget Int     @default(16)
-  reminderTime     String? @db.VarChar(5) // "04:30", local to User.timezone
+  dailyRoundTarget  Int     @default(16)
+  reminderTime      String? @db.VarChar(5) // "04:30", local to User.timezone
+  preferredMantraId String? // what "Chant now" opens with when nothing more specific was tapped
 
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredMantra Mantra? @relation(fields: [preferredMantraId], references: [id], onDelete: SetNull)
+
+  @@index([preferredMantraId])
 }
 
 // One row per user per calendar date — the anchor every report is built from.
@@ -1397,4 +1667,344 @@ model SadhanaTask {
 
   @@index([sadhanaDayId])
   @@index([userId, status])
+}
+
+// ============================================================================
+// Reels — short-form creator video/image posts, and engagement on them
+// ============================================================================
+
+// What makes a User a creator. A capability, not a Role — Role/Permission is
+// admin-panel access (user/moderator/admin), which has nothing to do with
+// whether someone can post reels. Same shape as SadhanaProfile: the row's
+// existence is the flag.
+model CreatorProfile {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  displayName    String // public name; may differ from User.name
+  bio            String? @db.Text
+  avatarPath     String? // overrides User.avatarUrl on the creator's public profile
+  coverImagePath String?
+  socialLinks    Json? // { "youtube": "...", "instagram": "..." }
+
+  status          CreatorStatus @default(PENDING)
+  rejectionReason String?
+  appliedAt       DateTime      @default(now())
+  approvedAt      DateTime?
+  approvedById    String? // admin User.id; no relation, same as Ban.liftedById
+  isVerified      Boolean       @default(false)
+
+  // Derived caches, checked on every profile view — rebuildable from
+  // CreatorFollow / Reel / ReelView at any time, same reasoning as User.isPremium.
+  followerCount Int @default(0)
+  reelCount     Int @default(0)
+  totalViews    Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reels     Reel[]
+  followers CreatorFollow[]
+
+  @@index([status])
+}
+
+model CreatorFollow {
+  followerId String
+  creatorId  String
+
+  createdAt DateTime @default(now())
+
+  follower User           @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  creator  CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, creatorId])
+  @@index([creatorId])
+}
+
+// A reusable visual "look" for auto-generating reels from scripture: a
+// background (image or looping video), an optional logo, and where the verse
+// text goes. The verse text itself is never baked in here or into the reel —
+// it is rendered by the app at watch time, in the viewer's own reading
+// language, the same way a translation is (see utils/language.js). That is
+// what lets one template produce reels that work for every language without a
+// copy of the video per language, and it costs nothing at render time this
+// server doesn't already pay for drawing a caption.
+model ReelTemplate {
+  id String @id @default(cuid())
+
+  name     String
+  isActive Boolean @default(true)
+
+  config Json
+  // {
+  //   background: { type: "IMAGE"|"VIDEO", path: string },
+  //   logo:      { path: string, x, y, widthPct } | null,
+  //   text:      { x, y, widthPct, fontFamily, fontSize, color, align },
+  //   animation: { type: "NONE"|"FADE_IN"|"KEN_BURNS", durationMs }
+  // }
+  // x/y/widthPct are percentages of the frame, set by dragging the element in
+  // the admin preview — not pixels, so one template renders correctly on
+  // every device's screen.
+
+  createdBy String? // admin User.id; no relation, same as Ban.liftedById
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reels Reel[]
+
+  @@index([isActive])
+}
+
+// One post. `mediaType` decides where the media actually lives:
+//   VIDEO → videoPath, a single file (audio may already be muxed into it)
+//   IMAGE → ReelMedia rows, one or more, shown as a slideshow
+//   AUDIO → ReelAudioTrack rows, one per language — a recitation or narration
+//           with no picture beyond `thumbnailPath`; the reader's language chain
+//           picks which row plays, same resolution as everything else in
+//           utils/language.js
+// `audioTrackPath` is separate from all three — a background track a creator
+// adds over a silent video or an image slideshow, the way a Reel/Short works.
+// An AUDIO reel has no use for it; the content itself is the audio.
+// `templateId` is orthogonal to all of the above: set only on a reel that a
+// ReelTemplate generated, it tells the app to draw the linked verse's text
+// over the media rather than treating the reel as a plain video/image/audio
+// post. mediaType still describes what the *background* is.
+model Reel {
+  id String @id @default(cuid())
+
+  creatorId String
+
+  mediaType      ReelMediaType
+  videoPath      String? // VIDEO only
+  audioTrackPath String? // optional background music, either media type
+  thumbnailPath  String?
+  durationMs     Int?
+  width          Int?
+  height         Int?
+
+  caption      String?  @db.Text
+  tags         String[] @default([]) // hashtags/topics
+  languageCode String?  @db.VarChar(10) // spoken/caption language; null = unspecified
+
+  // Ties a reel back into the app's actual content, so "reels about this verse"
+  // is a join, not a guess from the caption text.
+  verseId  String?
+  mantraId String?
+  deityId  String?
+
+  // Set only for a reel a ReelTemplate generated — see the model comment above.
+  templateId String?
+
+  sampradaya String @default("vaishnav") @db.VarChar(50)
+
+  status          ReelStatus @default(PENDING_REVIEW)
+  rejectionReason String?
+  reviewedById    String? // admin/moderator User.id; no relation, same as Ban.liftedById
+  reviewedAt      DateTime?
+  publishedAt     DateTime?
+
+  // Denormalised counters, updated alongside the row they summarise (ReelLike,
+  // ReelComment, ReelShare, ReelView) so a feed page never has to aggregate them.
+  viewCount    Int @default(0)
+  likeCount    Int @default(0)
+  commentCount Int @default(0)
+  shareCount   Int @default(0)
+
+  isPinned Boolean @default(false) // pinned to the top of the creator's profile
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator  CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  verse    Verse?         @relation(fields: [verseId], references: [id], onDelete: SetNull)
+  mantra   Mantra?        @relation(fields: [mantraId], references: [id], onDelete: SetNull)
+  deity    Deity?         @relation(fields: [deityId], references: [id], onDelete: SetNull)
+  template ReelTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  media       ReelMedia[]
+  audioTracks ReelAudioTrack[]
+  likes       ReelLike[]
+  comments    ReelComment[]
+  shares      ReelShare[]
+  views       ReelView[]
+  reports     ReelReport[]
+  favorites   Favorite[]
+
+  @@unique([templateId, verseId]) // "generate" skips a verse already paired with this template
+  @@index([creatorId])
+  @@index([status, publishedAt])
+  @@index([verseId])
+  @@index([mantraId])
+  @@index([deityId])
+  @@index([sampradaya])
+}
+
+// One image in an IMAGE reel's slideshow. A single-image reel still gets one
+// row here, rather than splitting storage between "the first image" on Reel
+// and "the rest" here.
+model ReelMedia {
+  id String @id @default(cuid())
+
+  reelId       String
+  imagePath    String
+  displayOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@index([reelId])
+}
+
+// One language's track for an AUDIO reel. A reel with only Sanskrit today
+// gets one row; a language added later is one more row, not a schema change —
+// same shape as ReelMedia, and resolved by the reader's mantra-language chain
+// the same way Narration and VerseTranslation are (see utils/language.js).
+model ReelAudioTrack {
+  id String @id @default(cuid())
+
+  reelId       String
+  languageCode String @db.VarChar(10)
+  audioPath    String // S3 object key
+  durationMs   Int?
+
+  createdAt DateTime @default(now())
+
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@unique([reelId, languageCode])
+  @@index([reelId])
+}
+
+model ReelLike {
+  userId String
+  reelId String
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, reelId])
+  @@index([reelId])
+}
+
+// Flat model with a self-relation for one level of replies — the controller
+// decides how deep it lets threads go, the schema does not need to know.
+model ReelComment {
+  id String @id @default(cuid())
+
+  reelId   String
+  userId   String
+  parentId String?
+
+  text String @db.Text
+
+  // Denormalised, same reasoning as the counters on Reel.
+  likeCount  Int @default(0)
+  replyCount Int @default(0)
+
+  isPinned Boolean @default(false) // creator can pin one comment
+  isHidden Boolean @default(false) // moderation takedown, without losing the thread
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reel    Reel              @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  ReelComment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies ReelComment[]     @relation("CommentReplies")
+  likes   ReelCommentLike[]
+  reports ReelReport[]
+
+  @@index([reelId, createdAt])
+  @@index([parentId])
+  @@index([userId])
+}
+
+model ReelCommentLike {
+  userId    String
+  commentId String
+
+  createdAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment ReelComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+  @@index([commentId])
+}
+
+// Append-only log, same shape as UserIssue — every share event, not just a
+// running total, so which platform actually drives traffic is answerable later.
+model ReelShare {
+  id String @id @default(cuid())
+
+  reelId String
+  userId String? // nullable: a web visitor sharing a public reel page may be signed out
+
+  platform SharePlatform @default(OTHER)
+
+  createdAt DateTime @default(now())
+
+  reel Reel  @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([reelId, createdAt])
+  @@index([userId])
+}
+
+// One row per user per reel, overwritten on rewatch — same pattern as
+// ReadingProgress. Anonymous/logged-out plays are not tracked here; they only
+// bump Reel.viewCount directly, since there is no user to dedupe against.
+model ReelView {
+  id String @id @default(cuid())
+
+  userId String
+  reelId String
+
+  watchCount    Int     @default(1) // times (re)watched
+  lastWatchedMs Int? // furthest point reached in the most recent watch
+  completed     Boolean @default(false) // reached ~90%+ at least once
+
+  firstViewedAt DateTime @default(now())
+  lastViewedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reelId])
+  @@index([reelId])
+  @@index([userId, lastViewedAt])
+}
+
+// A user flagging a reel or a comment. Exactly one of reelId/commentId is set
+// per row, same convention as Favorite's target columns.
+model ReelReport {
+  id String @id @default(cuid())
+
+  reelId     String?
+  commentId  String?
+  reporterId String
+
+  reason ReportReason
+  note   String?      @db.Text
+
+  reviewedById String? // admin/moderator User.id; no relation, same as Ban.liftedById
+  reviewedAt   DateTime?
+  actionTaken  String? // free text: "removed", "warned creator", "dismissed"
+
+  createdAt DateTime @default(now())
+
+  reel     Reel?        @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  comment  ReelComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reelId])
+  @@index([commentId])
+  @@index([reviewedAt])
 }
