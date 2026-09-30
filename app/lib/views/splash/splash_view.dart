@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_theme.dart';
-import '../../l10n/generated/app_localizations.dart';
 import '../../widgets/common/app_loader.dart';
 
 /// The first frame.
@@ -20,9 +18,11 @@ class SplashView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              AppLocalizations.of(context).appName,
-              style: context.texts.headlineSmall?.copyWith(color: context.colors.primary),
+            Image.asset(
+              'assets/logo.png',
+              width: 180,
+              height: 180,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: AppSpacing.xl),
             const AppLoader(size: AppSizes.iconMd),

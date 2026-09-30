@@ -2,14 +2,31 @@
 
 import { prisma } from '../../config/database.js';
 import { ok, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
+
+// Columns the audit table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  action: 'action',
+  entityType: 'entityType',
+};
 
 /** GET /api/admin/audit */
 export const list = async (req, res) => {
-  const { actorId, action, entityType, entityId, from, to } = req.valid.query;
+  const { q, actorId, action, entityType, entityId, from, to } = req.valid.query;
 
   const { items, page } = await paginate(prisma.auditLog, {
     where: {
+      // Free-text: who did it (email), what it was (action), or which record.
+      ...(q
+        ? {
+            OR: [
+              { action: { contains: q, mode: 'insensitive' } },
+              { entityId: { contains: q } },
+              { actor: { email: { contains: q, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
       ...(actorId ? { actorId } : {}),
       ...(action ? { action: { startsWith: action } } : {}),
       ...(entityType ? { entityType } : {}),
@@ -23,7 +40,7 @@ export const list = async (req, res) => {
           }
         : {}),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
     include: { actor: { select: { id: true, name: true, email: true } } },
     query: req.valid.query,
   });

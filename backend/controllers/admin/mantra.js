@@ -4,8 +4,17 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
+
+// Columns the mantras table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  name: 'name',
+  category: 'category',
+  isPublished: 'isPublished',
+  translations: 'translations._count',
+  createdAt: 'createdAt',
+};
 
 /** GET /api/admin/mantras */
 export const list = async (req, res) => {
@@ -13,11 +22,13 @@ export const list = async (req, res) => {
 
   const { items, page } = await paginate(prisma.mantra, {
     where: {
-      ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
+      ...(q
+        ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { slug: { contains: q, mode: 'insensitive' } }] }
+        : {}),
       ...(category ? { category } : {}),
       ...(isPublished !== undefined ? { isPublished } : {}),
     },
-    orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, [{ displayOrder: 'asc' }, { name: 'asc' }]),
     include: {
       deity: { select: { slug: true, name: true } },
       guru: { select: { slug: true, name: true } },

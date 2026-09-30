@@ -56,15 +56,18 @@ class _SignInViewState extends ConsumerState<SignInView> {
               vertical: AppSpacing.xxl,
             ),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppSizes.readingMaxWidth),
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.readingMaxWidth,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    text.appName,
-                    textAlign: TextAlign.center,
-                    style: context.texts.displaySmall?.copyWith(color: context.colors.primary),
+                  Image.asset(
+                    'assets/logo.png',
+                    width: 220,
+                    height: 220,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
@@ -84,9 +87,14 @@ class _SignInViewState extends ConsumerState<SignInView> {
 
                   SocialSignInButton(
                     label: text.signInWithGoogle,
-                    icon: const Icon(Icons.g_mobiledata_rounded, size: AppSizes.iconLg),
+                    icon: const Icon(
+                      Icons.g_mobiledata_rounded,
+                      size: AppSizes.iconLg,
+                    ),
                     filled: true,
-                    onPressed: _busy ? null : () => _signIn(auth.signInWithGoogle),
+                    onPressed: _busy
+                        ? null
+                        : () => _signIn(auth.signInWithGoogle),
                   ),
 
                   if (auth.isAppleAvailable) ...[
@@ -94,7 +102,9 @@ class _SignInViewState extends ConsumerState<SignInView> {
                     SocialSignInButton(
                       label: text.signInWithApple,
                       icon: const Icon(Icons.apple, size: AppSizes.iconMd),
-                      onPressed: _busy ? null : () => _signIn(auth.signInWithApple),
+                      onPressed: _busy
+                          ? null
+                          : () => _signIn(auth.signInWithApple),
                     ),
                   ],
 

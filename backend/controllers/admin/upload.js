@@ -29,6 +29,28 @@ export const presign = async (req, res) => {
   return ok(res, result);
 };
 
+/**
+ * PUT /api/admin/uploads/local/<key>
+ * Development stand-in for the presigned S3 PUT — see presignUpload in
+ * services/s3.js. The key arrives in the URL, so it is checked against the shape
+ * buildKey produces before anything touches the disk.
+ */
+export const receiveLocal = async (req, res) => {
+  if (!s3.useLocalStorage) throw notFound('Local uploads');
+
+  const key = req.params[0];
+  if (!s3.isGeneratedKey(key)) throw badRequest('Not an upload key');
+
+  const contentType = req.get('content-type');
+  if (!s3.ALLOWED_CONTENT_TYPES.has(contentType)) {
+    throw badRequest(`Unsupported content type: ${contentType}`);
+  }
+  if (!Buffer.isBuffer(req.body) || req.body.length === 0) throw badRequest('The body is empty');
+
+  await s3.putObject(key, req.body, contentType);
+  return ok(res, { key });
+};
+
 /** GET /api/admin/uploads/kinds — what may be uploaded and where each kind lands. */
 export const kinds = async (req, res) => {
   return ok(res, {

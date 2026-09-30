@@ -10,7 +10,7 @@ import * as audit from '../../services/audit.js';
 import * as payments from '../../services/payments/index.js';
 import * as entitlement from '../../services/entitlement.js';
 import { ok, created, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 
 // ── Plans ──────────────────────────────────────────────────────────────────
@@ -64,12 +64,34 @@ export const updatePlan = async (req, res) => {
 
 // ── Subscriptions ──────────────────────────────────────────────────────────
 
+// Columns the subscriptions and payments tables can be sorted by — see readSort.
+export const SUBSCRIPTION_SORT_COLUMNS = {
+  currentPeriodEnd: 'currentPeriodEnd',
+  startedAt: 'startedAt',
+  status: 'status',
+  provider: 'provider',
+};
+
+export const PAYMENT_SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  paidAt: 'paidAt',
+  amount: 'amountMinor',
+  status: 'status',
+  provider: 'provider',
+  purpose: 'purpose',
+};
+
+// The person a subscription or payment belongs to, searched by email or name.
+const byUser = (q) => ({
+  user: { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] },
+});
+
 export const listSubscriptions = async (req, res) => {
-  const { status, provider } = req.valid.query;
+  const { q, status, provider } = req.valid.query;
 
   const { items, page } = await paginate(prisma.subscription, {
-    where: { ...(status ? { status } : {}), ...(provider ? { provider } : {}) },
-    orderBy: { currentPeriodEnd: 'desc' },
+    where: { ...(q ? byUser(q) : {}), ...(status ? { status } : {}), ...(provider ? { provider } : {}) },
+    orderBy: readSort(req.valid.query, SUBSCRIPTION_SORT_COLUMNS, { currentPeriodEnd: 'desc' }),
     include: {
       user: { select: { id: true, email: true, name: true } },
       plan: { select: { slug: true, name: true } },
@@ -83,10 +105,13 @@ export const listSubscriptions = async (req, res) => {
 // ── Payments ───────────────────────────────────────────────────────────────
 
 export const listPayments = async (req, res) => {
-  const { purpose, status, provider, from, to } = req.valid.query;
+  const { q, purpose, status, provider, from, to } = req.valid.query;
 
   const { items, page } = await paginate(prisma.payment, {
     where: {
+      // A support lookup: "did this person pay?" — by their email or name, or by the
+      // provider's own transaction id.
+      ...(q ? { OR: [byUser(q), { externalId: { contains: q } }] } : {}),
       ...(purpose ? { purpose } : {}),
       ...(status ? { status } : {}),
       ...(provider ? { provider } : {}),
@@ -99,7 +124,7 @@ export const listPayments = async (req, res) => {
           }
         : {}),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: readSort(req.valid.query, PAYMENT_SORT_COLUMNS, { createdAt: 'desc' }),
     include: { user: { select: { id: true, email: true, name: true } } },
     query: req.valid.query,
   });

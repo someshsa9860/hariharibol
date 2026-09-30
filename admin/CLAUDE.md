@@ -43,11 +43,14 @@ admin/
 │   ├── lib/
 │   │   ├── api.ts           # fetch client, envelope parsing, token refresh
 │   │   ├── auth.tsx         # AuthContext, Google sign-in, session storage
+│   │   ├── use-table.ts     # useDataTable: search/filter/sort/paging in the URL, selection, bulk runs
+│   │   ├── csv.ts           # toCsv / downloadCsv (guards against spreadsheet formula injection)
 │   │   └── utils.ts
 │   ├── components/
-│   │   ├── ui/               # button, card, table, badge, dialog, …
+│   │   ├── ui/               # button, card, table, badge, dialog, dropdown, checkbox, …
 │   │   ├── layout/            # sidebar, topbar, shell
-│   │   └── data-table.tsx    # one generic paginated/searchable table, reused everywhere
+│   │   ├── data-table.tsx    # the one table every list screen renders through
+│   │   └── table-filters.tsx # FilterSelect, FlagFilter, DateRangeFilter — plug into a table's URL state
 │   └── routes/                # one file per section: dashboard.tsx, users.tsx, books.tsx …
 ```
 
@@ -72,10 +75,34 @@ already-signed-in user to `super_admin`, run once by hand after that
 person's first Google sign-in.
 
 **Data tables over bespoke forms, for now.** Every list screen goes through
-the one `DataTable` component (pagination, search, filters) against the
-resource's real `GET` list endpoint — no page is a placeholder. Create/edit
-uses whatever the simplest correct form is per resource; nothing here
-justifies a form-generation layer yet.
+the one `DataTable` component against the resource's real `GET` list
+endpoint — no page is a placeholder. Create/edit uses whatever the simplest
+correct form is per resource; nothing here justifies a form-generation layer
+yet.
+
+A list page is `useDataTable({id, path, filters})` plus a `columns` array plus
+`<DataTable table columns …/>`. That gives it, without any per-page code:
+
+- **Search, filters, sort, page and page size live in the URL**, so a filtered
+  view survives a refresh and can be pasted to a colleague. A page that hosts
+  several tables passes `scope` (`pay.status=…`). Selection is component state;
+  column visibility is a personal preference in localStorage
+  (`hhb_admin_cols:<id>`).
+- **Sorting is the server's.** A column's `sort` value must be a key in that
+  endpoint's whitelist (`readSort` in `backend/utils/pagination.js`); sorting
+  the loaded page client-side would lie about the rest of the rows. An
+  endpoint that has no whitelist gets no sortable columns
+  (the reference lists, for example).
+- **Bulk actions** — pass `bulkActions` and rows get checkboxes. `runBulk`
+  fires the per-row call five at a time and reports "done N of M" (failed rows
+  stay selected); `runOnce` is for the rare endpoint that takes the whole
+  selection. Destructive or money-moving actions are deliberately per-row
+  (refunds).
+- **CSV export** — a column with `csv` is exported, hidden or not; "All
+  matching" pages the API 100 at a time and stops at 5,000 rows.
+
+Adding a filter means adding it to the endpoint's zod schema in
+`backend/routes/admin/` first — the panel only offers what the API can serve.
 
 ## Notes carried over
 
@@ -87,7 +114,40 @@ justifies a form-generation layer yet.
   `backend/controllers/admin/`.
 - The previous Next.js admin panel is archived on the `unorganized` branch at
   `admin/` — reference only, not a pattern to carry forward.
-- **Reels moderation is not here yet.** `backend/controllers/admin/` has no
-  reel/report/creator-approval controllers — that backend work has to land
-  before this panel can grow a moderation queue for it. See the "Reels — what
-  is not there" section of the root [CLAUDE.md](../../CLAUDE.md).
+- **Reels can be made and published here; they cannot yet be moderated.**
+  `backend/controllers/admin/reel.js` covers create, edit, publish, unpublish
+  and delete (see below). What is still missing is the review side — reel and
+  comment reports, creator applications and rejection — and the backend
+  endpoints for it. See the "Reels — what is not there" section of the root
+  [CLAUDE.md](../CLAUDE.md).
+
+## The reel editor
+
+`routes/reels.tsx` is an ordinary list page. `routes/reel-editor.tsx` is the one
+screen that is not a table or a form: a 9:16 frame in the middle, text layers on
+the left, and Media / Text / Details on the right. It is split by job, not by
+layer:
+
+| File | Job |
+|---|---|
+| `lib/reel-doc.ts` | The document the editor changes (`ReelDoc`), its undo history, and the two conversions to and from the API. **The overlay shape here is a contract** with `backend/routes/admin/reel.js` and the app's `models/reel_overlay.dart` — change all three together. |
+| `lib/upload.ts` | Sign → PUT → verify, with progress. Dev storage needs the bearer token on the PUT; a real presigned S3 URL must not get one. |
+| `components/reel-stage.tsx` | The frame: drag, width and size handles, snap and safe-area guides, playback. |
+| `components/reel-layers.tsx`, `reel-text-inspector.tsx` | The layer list and the selected box's settings. |
+| `components/reel-media-panel.tsx`, `reel-details-panel.tsx`, `verse-picker.tsx` | Media upload, caption/tags/links, and choosing a verse from any book. |
+
+Things to know before changing it:
+
+- **Text is a layer, not burned into the video.** A box stores `x`, `y`, `width`
+  and `size` as percentages of the frame, plus a style / colour / alignment
+  *name*. The app resolves the names against its own fonts and palette, so the
+  editor's colours (`COLOR_PREVIEW`) only need to look about right.
+- **The API stores the whole document each save**, and a create is always a
+  draft. Publishing is a separate call that the API refuses if the creator is
+  not approved or the media is missing from storage.
+- **Uploads are never deleted** from storage when a reel or a file is replaced.
+- **Signed media URLs expire.** They are refreshed on every save; an editor left
+  open for a long time can hold stale ones.
+- **The bucket needs CORS for the admin origin** (`PUT`, and `GET` for
+  thumbnail-from-frame). Local dev storage does not.
+- Not built: timed text (a box is always on screen), templates.

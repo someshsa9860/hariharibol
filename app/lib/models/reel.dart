@@ -1,4 +1,5 @@
 import 'json.dart';
+import 'reel_overlay.dart';
 
 /// What a reel's media actually is. The three are genuinely different
 /// screens — one plays, one is swiped, one is listened to — so the player
@@ -182,6 +183,7 @@ class Reel {
     this.verse,
     this.mantra,
     this.deity,
+    this.overlays = const [],
   });
 
   final String id;
@@ -224,6 +226,10 @@ class Reel {
   final ReelVerseRef? verse;
   final ReelSubject? mantra;
   final ReelSubject? deity;
+
+  /// Text an admin laid over the media. Drawn by the app, so it stays on top of
+  /// whatever the media is and can be re-worded without touching the file.
+  final List<ReelOverlay> overlays;
 
   bool get isVideo => mediaType == ReelMediaType.video;
   bool get isAudio => mediaType == ReelMediaType.audio;
@@ -276,6 +282,7 @@ class Reel {
         verse: ReelVerseRef.maybe(asJson(json['verse'])),
         mantra: ReelSubject.maybe(asJson(json['mantra'])),
         deity: ReelSubject.maybe(asJson(json['deity'])),
+        overlays: ReelOverlay.listFrom(json['overlays']),
       );
 
   static List<ReelImage> _ordered(List<ReelImage> images) {
@@ -321,6 +328,7 @@ class Reel {
       verse: verse,
       mantra: mantra,
       deity: deity,
+      overlays: overlays,
     );
   }
 }

@@ -11,6 +11,26 @@ function readPage(query = {}, defaultPageSize = PAGE_SIZE_DEFAULT) {
   return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
 }
 
+// Turns ?sort=<column>&dir=asc|desc into a Prisma orderBy. `columns` is the
+// whitelist a list declares for itself — sort key → the field it orders by, with
+// dots for a relation ('role.name', 'translations._count') — so a caller can only
+// sort by something the list chose to offer, never by an arbitrary field name.
+// With no (or an unknown) sort, `fallback` is the list's natural order.
+//
+// A sort key is rarely unique — a hundred users can share a role — and paging
+// through an unstable order repeats some rows and skips others. So every
+// explicit sort ends with the primary key as a tiebreaker.
+function readSort(query = {}, columns = {}, fallback, tiebreaker = 'id') {
+  const path = Object.hasOwn(columns, query.sort) ? columns[query.sort] : null;
+  if (!path) return fallback;
+
+  const dir = query.dir === 'desc' ? 'desc' : 'asc';
+  const nest = (parts) => (parts.length === 1 ? { [parts[0]]: dir } : { [parts[0]]: nest(parts.slice(1)) });
+  const primary = nest(path.split('.'));
+
+  return path === tiebreaker ? [primary] : [primary, { [tiebreaker]: 'asc' }];
+}
+
 // Runs the list and the count together — two round trips become one.
 async function paginate(model, { where, orderBy, include, select, query }) {
   const { page, pageSize, skip, take } = readPage(query);
@@ -21,4 +41,4 @@ async function paginate(model, { where, orderBy, include, select, query }) {
   return { items, page: { page, pageSize, total } };
 }
 
-export { readPage, paginate };
+export { readPage, readSort, paginate };

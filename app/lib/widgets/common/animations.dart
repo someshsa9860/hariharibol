@@ -10,14 +10,18 @@ import '../../core/theme/app_spacing.dart';
 /// above, so the eye is led down the page.
 ///
 /// It runs once, on mount. A rebuild does not replay it, because a list that
-/// re-animates every time its data refreshes is a list nobody can read.
+/// re-animates every time its data refreshes is a list nobody can read. For the
+/// same reason it does not belong on the rows of a lazily built list: those are
+/// mounted again every time they scroll back into view.
+///
+/// With the system's reduce-motion setting on, the section is simply there.
 class FadeSlideIn extends StatefulWidget {
   const FadeSlideIn({
     super.key,
     required this.child,
     this.index = 0,
-    this.step = const Duration(milliseconds: 55),
-    this.duration = const Duration(milliseconds: 380),
+    this.step = AppDurations.stagger,
+    this.duration = AppDurations.entrance,
   });
 
   final Widget child;
@@ -44,9 +48,20 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
     curve: Curves.easeOutCubic,
   );
 
+  bool _started = false;
+
+  // Not initState: whether to animate at all is read from the MediaQuery, and
+  // an inherited widget cannot be read that early.
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller.value = 1;
+      return;
+    }
 
     // The stagger is capped: on a long list the twentieth item should not wait
     // a second and a half to appear.

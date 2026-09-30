@@ -1799,6 +1799,14 @@ model Reel {
   // Set only for a reel a ReelTemplate generated — see the model comment above.
   templateId String?
 
+  // Text the admin editor placed on the frame, drawn by the app at watch time.
+  // A list of { id, text, x, y, width, size, style, color, align } with x/y/
+  // width/size as percentages of the frame — see controllers/admin/reel.js for
+  // the schema that guards it. Frozen text, not a live link: `verseId` says
+  // where a quoted verse came from, but editing the verse later must not
+  // silently change a published reel.
+  overlays Json @default("[]")
+
   sampradaya String @default("vaishnav") @db.VarChar(50)
 
   status          ReelStatus @default(PENDING_REVIEW)

@@ -16,9 +16,18 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 import { SLOKA_ELIGIBLE_BOOK_NUMBERS } from '../../config/constants.js';
+
+// Columns the verses table can be sorted by — see readSort. With none chosen the
+// list runs in reading order (book, canto, chapter, verse).
+export const SORT_COLUMNS = {
+  translations: 'translations._count',
+  explanations: 'explanations._count',
+  narrations: 'narrations._count',
+  createdAt: 'createdAt',
+};
 
 /** GET /api/admin/verses */
 export const list = async (req, res) => {
@@ -42,7 +51,12 @@ export const list = async (req, res) => {
           }
         : {}),
     },
-    orderBy: [{ bookNumber: 'asc' }, { cantoNumber: 'asc' }, { chapterNumber: 'asc' }, { verseNumber: 'asc' }],
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, [
+      { bookNumber: 'asc' },
+      { cantoNumber: 'asc' },
+      { chapterNumber: 'asc' },
+      { verseNumber: 'asc' },
+    ]),
     include: {
       book: { select: { slug: true, title: true } },
       _count: { select: { translations: true, explanations: true, narrations: true, issueLinks: true } },

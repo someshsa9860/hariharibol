@@ -15,7 +15,7 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as notify from '../../services/notify.js';
 import { ok, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { badRequest } from '../../utils/errors.js';
 
 /** POST /api/admin/notifications/topic */
@@ -93,13 +93,24 @@ export const toUser = async (req, res) => {
   return ok(res, notification);
 };
 
+// Columns the notifications table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  type: 'type',
+  title: 'title',
+};
+
 /** GET /api/admin/notifications — what has been sent, for checking delivery. */
 export const list = async (req, res) => {
-  const { type, userId } = req.valid.query;
+  const { q, type, userId } = req.valid.query;
 
   const { items, page } = await paginate(prisma.notification, {
-    where: { ...(type ? { type } : {}), ...(userId ? { userId } : {}) },
-    orderBy: { createdAt: 'desc' },
+    where: {
+      ...(q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { body: { contains: q, mode: 'insensitive' } }] } : {}),
+      ...(type ? { type } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
     include: { user: { select: { id: true, email: true, name: true } } },
     query: req.valid.query,
   });

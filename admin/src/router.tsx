@@ -11,6 +11,8 @@ import { RolesPage } from '@/routes/roles';
 import { BooksPage } from '@/routes/books';
 import { VersesPage } from '@/routes/verses';
 import { MantrasPage } from '@/routes/mantras';
+import { ReelsPage } from '@/routes/reels';
+import { ReelEditorPage } from '@/routes/reel-editor';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
@@ -24,8 +26,12 @@ import { SystemPage } from '@/routes/system';
 
 const ALL_ITEMS = NAV.flatMap((section) => section.items);
 
+// Exact for the sidebar's own pages; a page under one (/reels/:id) takes its parent's title.
 function titleFor(pathname: string) {
-  return ALL_ITEMS.find((item) => item.path === pathname)?.label ?? 'HariHariBol Admin';
+  const item =
+    ALL_ITEMS.find((item) => item.path === pathname) ??
+    ALL_ITEMS.find((item) => item.path !== '/' && pathname.startsWith(`${item.path}/`));
+  return item?.label ?? 'HariHariBol Admin';
 }
 
 function Protected({ permission, children }: { permission: string; children: ReactNode }) {
@@ -111,6 +117,30 @@ export function Router() {
         element={
           <Protected permission="mantra.read">
             <MantrasPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reels"
+        element={
+          <Protected permission="reel.read">
+            <ReelsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reels/new"
+        element={
+          <Protected permission="reel.write">
+            <ReelEditorPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reels/:id"
+        element={
+          <Protected permission="reel.read">
+            <ReelEditorPage />
           </Protected>
         }
       />

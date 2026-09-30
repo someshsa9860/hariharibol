@@ -87,7 +87,7 @@ router.get(
     summary: 'List subscriptions',
     permission: 'payment.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SUBSCRIPTION_SORT_COLUMNS).extend({
       status: z
         .enum(['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED', 'EXPIRED', 'REFUNDED'])
         .optional(),
@@ -138,7 +138,7 @@ router.get(
     description: 'One ledger for subscriptions and donations alike, separated by `purpose`.',
     permission: 'payment.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.PAYMENT_SORT_COLUMNS).extend({
       purpose: z.enum(['SUBSCRIPTION', 'DONATION']).optional(),
       status: z.enum(['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED']).optional(),
       provider: provider.optional(),

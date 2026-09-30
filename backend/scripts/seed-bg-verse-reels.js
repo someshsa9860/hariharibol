@@ -21,11 +21,12 @@
 
 import { prisma } from '../config/database.js';
 import * as s3 from '../services/s3.js';
+import { OFFICIAL_CREATOR_EMAIL } from '../config/constants.js';
 
 const BOOK_NUMBER = 1; // Bhagavad Gita — see the verseId comment on Verse
 
 const OFFICIAL_CREATOR = {
-  email: 'official@hariharibol.com',
+  email: OFFICIAL_CREATOR_EMAIL,
   name: 'HariHariBol',
   displayName: 'HariHariBol',
   bio: 'Official Bhagavad Gita verse recitations — Sanskrit, chapter by chapter.',

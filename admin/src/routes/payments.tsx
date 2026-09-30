@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Eye, MoreHorizontal } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
+import { DateRangeFilter, FilterSelect } from '@/components/table-filters';
 import { DetailDialog, JsonValue } from '@/components/detail-dialog';
-import { useResource, useResourceList, useResourceMutation } from '@/lib/use-resource';
+import { useResource } from '@/lib/use-resource';
+import { useDataTable } from '@/lib/use-table';
+import { api } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -39,6 +42,7 @@ type Payment = {
   externalId: string;
   amountMinor: number;
   currency: string;
+  createdAt: string;
   paidAt: string | null;
   refundedAt: string | null;
   message: string | null;
@@ -102,29 +106,49 @@ function Overview() {
   );
 }
 
+const SUBSCRIPTION_STATUSES = ['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED', 'EXPIRED', 'REFUNDED'];
+const PAYMENT_STATUSES = ['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED'];
+const PROVIDERS = ['GOOGLE_PLAY', 'APPLE_APP_STORE', 'RAZORPAY'];
+
+const person = (u: { email: string; name: string | null }) => (
+  <div>
+    <p className="font-medium leading-tight">{u.name || '—'}</p>
+    <p className="text-xs leading-tight text-muted-foreground">{u.email}</p>
+  </div>
+);
+
 function SubscriptionsTab() {
-  const [status, setStatus] = useState('');
-  const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<Subscription | null>(null);
-  const list = useResourceList<Subscription>('subscriptions', '/api/admin/subscriptions', { page, pageSize: 20, status: status || undefined });
+  const table = useDataTable<Subscription>({
+    id: 'subscriptions',
+    scope: 'sub',
+    path: '/api/admin/subscriptions',
+    filters: ['status', 'provider'],
+    defaultSort: { key: 'currentPeriodEnd', dir: 'desc' },
+  });
 
   const columns: Column<Subscription>[] = [
-    { key: 'user', header: 'User', render: (s) => (
-        <div>
-          <p className="font-medium">{s.user.name || '—'}</p>
-          <p className="text-xs text-muted-foreground">{s.user.email}</p>
-        </div>
-      ) },
-    { key: 'plan', header: 'Plan', render: (s) => s.plan.name },
-    { key: 'provider', header: 'Provider', render: (s) => <Badge variant="outline">{s.provider}</Badge> },
-    { key: 'status', header: 'Status', render: (s) => <Badge variant={STATUS_VARIANT[s.status] ?? 'secondary'}>{s.status}</Badge> },
-    { key: 'ends', header: 'Period ends', render: (s) => formatDate(s.currentPeriodEnd) },
+    { key: 'user', header: 'User', fixed: true, csv: (s) => s.user.email, render: (s) => person(s.user) },
+    { key: 'name', header: 'Name', csv: (s) => s.user.name, defaultHidden: true, render: (s) => s.user.name ?? '—' },
+    { key: 'plan', header: 'Plan', csv: (s) => s.plan.name, render: (s) => s.plan.name },
+    { key: 'provider', header: 'Provider', sort: 'provider', csv: (s) => s.provider, render: (s) => <Badge variant="outline">{s.provider}</Badge> },
+    {
+      key: 'status',
+      header: 'Status',
+      sort: 'status',
+      csv: (s) => s.status,
+      render: (s) => <Badge variant={STATUS_VARIANT[s.status] ?? 'secondary'}>{s.status}</Badge>,
+    },
+    { key: 'renews', header: 'Auto-renew', csv: (s) => (s.autoRenew ? 'Yes' : 'No'), defaultHidden: true, render: (s) => (s.autoRenew ? 'Yes' : 'No') },
+    { key: 'started', header: 'Started', sort: 'startedAt', csv: (s) => s.startedAt, defaultHidden: true, render: (s) => formatDate(s.startedAt) },
+    { key: 'ends', header: 'Period ends', sort: 'currentPeriodEnd', csv: (s) => s.currentPeriodEnd, render: (s) => formatDate(s.currentPeriodEnd) },
+    { key: 'externalId', header: 'Provider id', csv: (s) => s.externalId, defaultHidden: true, render: (s) => <span className="font-mono text-xs">{s.externalId ?? '—'}</span> },
     {
       key: 'actions',
       header: '',
       className: 'text-right',
       render: (s) => (
-        <Button variant="ghost" size="icon" onClick={(e) => (e.stopPropagation(), setViewing(s))}>
+        <Button variant="ghost" size="icon" aria-label="View details" onClick={(e) => (e.stopPropagation(), setViewing(s))}>
           <Eye className="h-4 w-4" />
         </Button>
       ),
@@ -133,15 +157,20 @@ function SubscriptionsTab() {
 
   return (
     <div>
-      <div className="mb-4">
-        <Select value={status} onChange={(e) => (setStatus(e.target.value), setPage(1))} className="w-48">
-          <option value="">All statuses</option>
-          {['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED', 'EXPIRED', 'REFUNDED'].map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </Select>
-      </div>
-      <DataTable columns={columns} page={list.data} isLoading={list.isLoading} isError={list.isError} onPageChange={setPage} />
+      <DataTable
+        table={table}
+        columns={columns}
+        exportName="subscriptions"
+        searchPlaceholder="Search user email or name…"
+        emptyMessage="No subscriptions yet."
+        onRowClick={setViewing}
+        filters={
+          <>
+            <FilterSelect table={table} name="status" label="All statuses" options={SUBSCRIPTION_STATUSES} />
+            <FilterSelect table={table} name="provider" label="All providers" className="w-44" options={PROVIDERS} />
+          </>
+        }
+      />
 
       <DetailDialog
         open={!!viewing}
@@ -151,6 +180,7 @@ function SubscriptionsTab() {
         fields={
           viewing
             ? [
+                { label: 'Email', value: viewing.user.email },
                 { label: 'Status', value: <Badge variant={STATUS_VARIANT[viewing.status] ?? 'secondary'}>{viewing.status}</Badge> },
                 { label: 'Provider', value: <Badge variant="outline">{viewing.provider}</Badge> },
                 { label: 'Provider subscription id', value: <span className="font-mono text-xs">{viewing.externalId ?? '—'}</span> },
@@ -169,28 +199,59 @@ function SubscriptionsTab() {
 
 function PaymentsTab() {
   const { hasPermission } = useAuth();
-  const [status, setStatus] = useState('');
-  const [purpose, setPurpose] = useState('');
-  const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<Payment | null>(null);
-  const list = useResourceList<Payment>('payments', '/api/admin/payments', {
-    page, pageSize: 20, status: status || undefined, purpose: purpose || undefined,
+  const table = useDataTable<Payment>({
+    id: 'payments',
+    scope: 'pay',
+    path: '/api/admin/payments',
+    filters: ['purpose', 'status', 'provider', 'from', 'to'],
+    defaultSort: { key: 'createdAt', dir: 'desc' },
   });
-  const mutate = useResourceMutation('payments');
+
+  const canRefund = hasPermission('payment.refund');
+
+  // Money moves here, so refunds are one payment at a time — there is deliberately
+  // no bulk refund. Cancelling the prompt cancels the refund.
+  const refund = (p: Payment) => {
+    const reason = prompt(`Refund ${formatMinorUnits(p.amountMinor, p.currency)}? Reason (optional):`);
+    if (reason === null) return;
+    table.runBulk([p], 'Refunded', (row) => api.post(`/api/admin/payments/${row.id}/refund`, { reason }));
+  };
 
   const columns: Column<Payment>[] = [
-    { key: 'user', header: 'User', render: (p) => (p.user ? <div><p className="font-medium">{p.user.name || '—'}</p><p className="text-xs text-muted-foreground">{p.user.email}</p></div> : '—') },
-    { key: 'purpose', header: 'Purpose', render: (p) => <Badge variant="outline">{p.purpose}</Badge> },
-    { key: 'amount', header: 'Amount', render: (p) => formatMinorUnits(p.amountMinor, p.currency) },
-    { key: 'provider', header: 'Provider', render: (p) => p.provider },
-    { key: 'status', header: 'Status', render: (p) => <Badge variant={STATUS_VARIANT[p.status] ?? 'secondary'}>{p.status}</Badge> },
-    { key: 'date', header: 'Paid', render: (p) => (p.paidAt ? formatDate(p.paidAt) : '—') },
     {
-      key: 'actions', header: '', className: 'text-right',
+      key: 'user',
+      header: 'User',
+      fixed: true,
+      csv: (p) => p.user?.email ?? (p.isAnonymous ? 'Anonymous' : ''),
+      render: (p) =>
+        p.user ? person(p.user) : <span className="text-muted-foreground">{p.isAnonymous ? 'Anonymous' : '—'}</span>,
+    },
+    { key: 'purpose', header: 'Purpose', sort: 'purpose', csv: (p) => p.purpose, render: (p) => <Badge variant="outline">{p.purpose}</Badge> },
+    // Amount and currency are separate CSV columns: minor units differ by currency, so one
+    // number in a spreadsheet would be ambiguous.
+    { key: 'amount', header: 'Amount', sort: 'amount', className: 'tabular-nums', csv: (p) => p.amountMinor, render: (p) => formatMinorUnits(p.amountMinor, p.currency) },
+    { key: 'currency', header: 'Currency', csv: (p) => p.currency, defaultHidden: true, render: (p) => p.currency },
+    { key: 'provider', header: 'Provider', sort: 'provider', csv: (p) => p.provider, render: (p) => p.provider },
+    {
+      key: 'status',
+      header: 'Status',
+      sort: 'status',
+      csv: (p) => p.status,
+      render: (p) => <Badge variant={STATUS_VARIANT[p.status] ?? 'secondary'}>{p.status}</Badge>,
+    },
+    { key: 'created', header: 'Created', sort: 'createdAt', csv: (p) => p.createdAt, render: (p) => formatDate(p.createdAt) },
+    { key: 'paid', header: 'Paid', sort: 'paidAt', csv: (p) => p.paidAt, defaultHidden: true, render: (p) => (p.paidAt ? formatDate(p.paidAt) : '—') },
+    { key: 'message', header: 'Message', csv: (p) => p.message, defaultHidden: true, render: (p) => <p className="max-w-xs truncate">{p.message ?? '—'}</p> },
+    { key: 'externalId', header: 'Provider id', csv: (p) => p.externalId, defaultHidden: true, render: (p) => <span className="font-mono text-xs">{p.externalId}</span> },
+    {
+      key: 'actions',
+      header: '',
+      className: 'text-right',
       render: (p) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon" aria-label="Row actions" onClick={(e) => e.stopPropagation()}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -199,14 +260,8 @@ function PaymentsTab() {
               <Eye className="mr-2 h-4 w-4" />
               View details
             </DropdownMenuItem>
-            {hasPermission('payment.refund') && p.status === 'SUCCEEDED' && (
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => {
-                  const reason = prompt('Refund reason (optional):') ?? '';
-                  mutate.mutate({ path: `/api/admin/payments/${p.id}/refund`, method: 'post', body: { reason } });
-                }}
-              >
+            {canRefund && p.status === 'SUCCEEDED' && (
+              <DropdownMenuItem className="text-destructive" onClick={() => refund(p)}>
                 Refund
               </DropdownMenuItem>
             )}
@@ -218,20 +273,31 @@ function PaymentsTab() {
 
   return (
     <div>
-      <div className="mb-4 flex gap-2">
-        <Select value={purpose} onChange={(e) => (setPurpose(e.target.value), setPage(1))} className="w-40">
-          <option value="">All purposes</option>
-          <option value="SUBSCRIPTION">Subscription</option>
-          <option value="DONATION">Donation</option>
-        </Select>
-        <Select value={status} onChange={(e) => (setStatus(e.target.value), setPage(1))} className="w-40">
-          <option value="">All statuses</option>
-          {['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED'].map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </Select>
-      </div>
-      <DataTable columns={columns} page={list.data} isLoading={list.isLoading} isError={list.isError} onPageChange={setPage} />
+      <DataTable
+        table={table}
+        columns={columns}
+        exportName="payments"
+        searchPlaceholder="Search user or provider transaction id…"
+        emptyMessage="No payments yet."
+        onRowClick={setViewing}
+        filters={
+          <>
+            <FilterSelect
+              table={table}
+              name="purpose"
+              label="All purposes"
+              options={[
+                { value: 'SUBSCRIPTION', label: 'Subscription' },
+                { value: 'DONATION', label: 'Donation' },
+              ]}
+            />
+            <FilterSelect table={table} name="status" label="All statuses" options={PAYMENT_STATUSES} />
+            <FilterSelect table={table} name="provider" label="All providers" className="w-44" options={PROVIDERS} />
+            {/* The API filters this range on when the payment was created. */}
+            <DateRangeFilter table={table} />
+          </>
+        }
+      />
 
       <DetailDialog
         open={!!viewing}
@@ -245,6 +311,7 @@ function PaymentsTab() {
                 { label: 'Status', value: <Badge variant={STATUS_VARIANT[viewing.status] ?? 'secondary'}>{viewing.status}</Badge> },
                 { label: 'Provider', value: viewing.provider },
                 { label: 'Provider transaction id', value: <span className="font-mono text-xs">{viewing.externalId}</span> },
+                { label: 'Created', value: formatDate(viewing.createdAt) },
                 { label: 'Paid', value: viewing.paidAt ? formatDate(viewing.paidAt) : '—' },
                 { label: 'Refunded', value: viewing.refundedAt ? formatDate(viewing.refundedAt) : '—' },
                 ...(viewing.message ? [{ label: 'Message', value: viewing.message, full: true }] : []),
@@ -258,11 +325,19 @@ function PaymentsTab() {
   );
 }
 
+const TABS = ['overview', 'subscriptions', 'payments'];
+
 export function PaymentsPage() {
+  // The tab lives in the URL so "the failed payments from last week" is a link,
+  // and a refresh doesn't drop you back on the overview.
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('tab') ?? '';
+  const tab = TABS.includes(requested) ? requested : 'overview';
+
   return (
     <div>
       <PageHeader title="Payments" description="One ledger for subscriptions and donations, split by purpose." />
-      <Tabs defaultValue="overview">
+      <Tabs value={tab} onValueChange={(value) => setParams({ tab: value }, { replace: true })}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>

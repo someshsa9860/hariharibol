@@ -18,10 +18,10 @@ router.get(
     description: 'Every call with its tokens, cost and outcome. Filter by operation to attribute spend.',
     permission: 'ai.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       operation: z.string().max(50).optional(),
       provider: z.enum(['GEMINI', 'OPENAI']).optional(),
-      succeeded: z.coerce.boolean().optional(),
+      succeeded: schemas.flag.optional(),
     }),
     responds: { 200: 'A page of usage records' },
   },

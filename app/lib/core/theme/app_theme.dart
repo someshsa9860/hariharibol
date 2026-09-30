@@ -151,6 +151,28 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
       ),
 
+      // Every modal sheet in the app, so a call site says what is in the sheet
+      // and nothing about how it looks. A plane lifted off the page: the page's
+      // own paper, rounded where it rises, and a hairline along the edge —
+      // that hairline is what gives a black sheet a top edge against a black
+      // page in dark mode.
+      //
+      // The scrim is the scheme's ink rather than Flutter's default of grey
+      // black54, for the same reason the card shadow is orange: a neutral grey
+      // over warm paper looks like dirt.
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        modalBarrierColor: scheme.scrim.withValues(alpha: 0.5),
+        showDragHandle: true,
+        dragHandleColor: scheme.outline,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.lgTop,
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+      ),
+
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,
         linearTrackColor: scheme.surfaceContainerHighest,

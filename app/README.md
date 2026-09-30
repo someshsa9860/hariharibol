@@ -16,6 +16,20 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000
 an iOS simulator use `http://localhost:4000`; on a physical device use the
 laptop's LAN address. With no define at all the app talks to production.
 
+Set build configuration once in `config.sh`, then use the short commands:
+
+```bash
+cp config.sh.example config.sh
+# edit config.sh
+./run.sh
+./build_ipa.sh
+./build_bundle.sh
+```
+
+`config.sh` supports `API_BASE_URL`, `GOOGLE_SERVER_CLIENT_ID`,
+`GOOGLE_IOS_CLIENT_ID`, `FLUTTER_BIN`, and an `EXTRA_DART_DEFINES` array.
+Additional Flutter options can still be appended to any script.
+
 Start the API first — `cd ../backend && npm run dev`.
 
 ## What works today

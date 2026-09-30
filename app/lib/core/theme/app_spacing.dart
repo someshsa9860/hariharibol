@@ -33,6 +33,10 @@ abstract final class AppRadius {
   static const BorderRadius smAll = BorderRadius.all(Radius.circular(sm));
   static const BorderRadius mdAll = BorderRadius.all(Radius.circular(md));
   static const BorderRadius lgAll = BorderRadius.all(Radius.circular(lg));
+
+  /// A surface that rises from the bottom edge: rounded where it meets the
+  /// page, square where it meets the screen.
+  static const BorderRadius lgTop = BorderRadius.vertical(top: Radius.circular(lg));
 }
 
 /// Sizes that would otherwise be typed inline.
@@ -63,6 +67,25 @@ abstract final class AppDurations {
   static const Duration fast = Duration(milliseconds: 150);
   static const Duration normal = Duration(milliseconds: 250);
   static const Duration slow = Duration(milliseconds: 400);
+
+  /// A section fading and rising into place when a screen first draws.
+  static const Duration entrance = Duration(milliseconds: 380);
+
+  /// Delay added per position in a staggered entrance: each item starts this
+  /// long after the one above it.
+  static const Duration stagger = Duration(milliseconds: 55);
+
+  /// A bottom sheet rising into place. It leaves faster than it arrives — the
+  /// reader has already decided, so the exit is the only part of a sheet that
+  /// can feel slow.
+  static const Duration sheetIn = Duration(milliseconds: 380);
+  static const Duration sheetOut = Duration(milliseconds: 220);
+
+  /// One screen cross-fading into another.
+  static const Duration page = Duration(milliseconds: 280);
+
+  /// One sweep of the loading shimmer across its placeholders.
+  static const Duration shimmer = Duration(milliseconds: 1400);
 
   /// How long a snack bar stays up.
   static const Duration snack = Duration(seconds: 4);

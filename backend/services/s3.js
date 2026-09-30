@@ -155,8 +155,30 @@ const presignList = (rows, fields) =>
 // Admin uploads go straight from the browser to S3. The API only signs the
 // request, so a 40 MB narration never passes through the API container.
 
+// True only for a key buildKey could have produced. The local-upload route
+// writes wherever its key says, so it has to be able to refuse `../../.env`.
+const GENERATED_KEY = new RegExp(
+  `^(?:${Object.values(PREFIXES).join('|')})/[0-9a-f]{32}\\.(?:${Object.values(EXTENSIONS).join('|')})$`
+);
+const isGeneratedKey = (key) => typeof key === 'string' && GENERATED_KEY.test(key);
+
 async function presignUpload(kind, contentType) {
   const key = buildKey(kind, contentType);
+
+  // No bucket on a laptop, so there is nothing to sign. The browser PUTs to the
+  // API instead (controllers/admin/upload.js, receiveLocal) — the one place a
+  // file does pass through it, and only in development. `viaApi` tells the
+  // client to send its bearer token, which a real presigned URL must not get.
+  if (useLocalStorage) {
+    return {
+      key,
+      uploadUrl: `${env.API_BASE_URL}/api/admin/uploads/local/${key}`,
+      contentType,
+      expiresIn: 900,
+      viaApi: true,
+    };
+  }
+
   const url = await getSignedUrl(
     client,
     new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: contentType }),
@@ -219,6 +241,7 @@ export {
   PREFIXES,
   ALLOWED_CONTENT_TYPES,
   buildKey,
+  isGeneratedKey,
   presignGet,
   presignFields,
   presignList,

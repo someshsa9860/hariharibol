@@ -9,7 +9,7 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest, conflict } from '../../utils/errors.js';
 
 /** Recomputes a book's structural counts from what is actually in it. */
@@ -39,17 +39,29 @@ async function recountBook(bookId) {
   }
 }
 
+// Columns the books table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  title: 'title',
+  type: 'type',
+  bookNumber: 'bookNumber',
+  displayOrder: 'displayOrder',
+  isPublished: 'isPublished',
+  createdAt: 'createdAt',
+};
+
 /** GET /api/admin/books */
 export const list = async (req, res) => {
   const { q, type, isPublished } = req.valid.query;
 
   const { items, page } = await paginate(prisma.book, {
     where: {
-      ...(q ? { title: { contains: q, mode: 'insensitive' } } : {}),
+      ...(q
+        ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { slug: { contains: q, mode: 'insensitive' } }] }
+        : {}),
       ...(type ? { type } : {}),
       ...(isPublished !== undefined ? { isPublished } : {}),
     },
-    orderBy: [{ displayOrder: 'asc' }, { bookNumber: 'asc' }],
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, [{ displayOrder: 'asc' }, { bookNumber: 'asc' }]),
     include: { deity: { select: { slug: true, name: true } } },
     query: req.valid.query,
   });

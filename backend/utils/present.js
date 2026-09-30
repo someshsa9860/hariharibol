@@ -339,6 +339,10 @@ async function reel(row, user) {
     tags: row.tags,
     languageCode: row.languageCode,
 
+    // Text placed on the frame in the admin editor, drawn by the app at watch
+    // time — percentages of the frame, see routes/admin/reel.js.
+    overlays: row.overlays ?? [],
+
     viewCount: row.viewCount,
     likeCount: row.likeCount,
     commentCount: row.commentCount,

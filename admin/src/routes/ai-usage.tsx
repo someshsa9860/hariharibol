@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/data-table';
+import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
-import { useResource, useResourceList, useResourceMutation } from '@/lib/use-resource';
+import { useResource, useResourceMutation } from '@/lib/use-resource';
+import { useDataTable } from '@/lib/use-table';
 import { formatDate, formatMicros } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 
@@ -30,25 +32,38 @@ type UsageRow = {
 
 export function AiUsagePage() {
   const { hasPermission } = useAuth();
-  const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<UsageRow | null>(null);
   const spend = useResource<Spend>(['ai-spend'], '/api/admin/ai/spend');
   const coverage = useResource<Coverage>(['ai-coverage'], '/api/admin/ai/coverage');
-  const list = useResourceList<UsageRow>('ai-usage', '/api/admin/ai/usage', { page, pageSize: 25 });
+  const table = useDataTable<UsageRow>({
+    id: 'ai-usage',
+    path: '/api/admin/ai/usage',
+    filters: ['operation', 'provider', 'succeeded'],
+    defaultSort: { key: 'createdAt', dir: 'desc' },
+  });
   const mutate = useResourceMutation('ai-usage');
 
   const columns: Column<UsageRow>[] = [
-    { key: 'operation', header: 'Operation', render: (r) => r.operation },
-    { key: 'provider', header: 'Provider', render: (r) => <Badge variant="outline">{r.provider}</Badge> },
-    { key: 'cost', header: 'Cost', render: (r) => formatMicros(r.costMicros) },
-    { key: 'status', header: 'Status', render: (r) => <Badge variant={r.succeeded ? 'success' : 'destructive'}>{r.succeeded ? 'OK' : 'Failed'}</Badge> },
-    { key: 'when', header: 'When', render: (r) => formatDate(r.createdAt) },
+    { key: 'operation', header: 'Operation', sort: 'operation', fixed: true, csv: (r) => r.operation, render: (r) => r.operation },
+    { key: 'provider', header: 'Provider', csv: (r) => r.provider, render: (r) => <Badge variant="outline">{r.provider}</Badge> },
+    { key: 'model', header: 'Model', csv: (r) => r.model, defaultHidden: true, render: (r) => r.model },
+    { key: 'input', header: 'Tokens in', sort: 'inputTokens', csv: (r) => r.inputTokens, defaultHidden: true, render: (r) => r.inputTokens.toLocaleString() },
+    { key: 'output', header: 'Tokens out', sort: 'outputTokens', csv: (r) => r.outputTokens, defaultHidden: true, render: (r) => r.outputTokens.toLocaleString() },
+    // Micros are millionths of a dollar; the CSV keeps the raw integer so a spreadsheet can sum it exactly.
+    { key: 'cost', header: 'Cost', sort: 'cost', csv: (r) => r.costMicros, render: (r) => formatMicros(r.costMicros) },
+    {
+      key: 'status',
+      header: 'Status',
+      csv: (r) => (r.succeeded ? 'OK' : `Failed: ${r.errorMessage ?? ''}`),
+      render: (r) => <Badge variant={r.succeeded ? 'success' : 'destructive'}>{r.succeeded ? 'OK' : 'Failed'}</Badge>,
+    },
+    { key: 'when', header: 'When', sort: 'createdAt', csv: (r) => r.createdAt, render: (r) => formatDate(r.createdAt) },
     {
       key: 'actions',
       header: '',
       className: 'text-right',
       render: (r) => (
-        <Button variant="ghost" size="icon" onClick={(e) => (e.stopPropagation(), setViewing(r))}>
+        <Button variant="ghost" size="icon" aria-label="View details" onClick={(e) => (e.stopPropagation(), setViewing(r))}>
           <Eye className="h-4 w-4" />
         </Button>
       ),
@@ -126,7 +141,36 @@ export function AiUsagePage() {
       </div>
 
       <h3 className="mb-2 mt-6 text-sm font-medium">Recent calls</h3>
-      <DataTable columns={columns} page={list.data} isLoading={list.isLoading} isError={list.isError} onPageChange={setPage} />
+      <DataTable
+        table={table}
+        columns={columns}
+        exportName="ai-usage"
+        emptyMessage="No AI calls yet — the batch passes log here as they run."
+        onRowClick={setViewing}
+        rowClassName={(r) => (r.succeeded ? undefined : 'bg-destructive/5')}
+        filters={
+          <>
+            <FilterSelect
+              table={table}
+              name="operation"
+              label="All operations"
+              className="w-48"
+              // The operations the backend names in services/ai/index.js; the spend card
+              // below lists whichever have actually been called.
+              options={[
+                ...new Set([
+                  'verse.issue-map',
+                  'verse.explanation',
+                  'sloka.reason',
+                  ...(spend.data?.byOperation.map((o) => o.operation) ?? []),
+                ]),
+              ]}
+            />
+            <FilterSelect table={table} name="provider" label="All providers" className="w-40" options={['GEMINI', 'OPENAI']} />
+            <FlagFilter table={table} name="succeeded" label="Any outcome" yes="Succeeded" no="Failed" />
+          </>
+        }
+      />
 
       <DetailDialog
         open={!!viewing}

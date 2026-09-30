@@ -1,3 +1,5 @@
+import express from 'express';
+
 import { createRouter, z } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/upload.js';
 
@@ -40,6 +42,25 @@ router.post(
     responds: { 200: 'The key and the URL to PUT to', 400: 'Unknown kind or content type' },
   },
   controller.presign
+);
+
+router.put(
+  '/local/*',
+  {
+    summary: 'Receive an upload (development only)',
+    description:
+      'What a presigned URL points at when there is no bucket — a laptop with no AWS ' +
+      'credentials. The path after `/local/` is the key `POST /uploads` returned, and the ' +
+      'body is the file itself. Refuses anything that is not a generated key, and is a 404 ' +
+      'wherever real S3 is in use.',
+    permission: 'media.upload',
+    limit: 'write',
+    // Only route that reads a raw body, and only in development, so the parser
+    // lives here rather than in app.js where it would apply to everything.
+    middleware: express.raw({ type: () => true, limit: '200mb' }),
+    responds: { 200: 'Stored', 400: 'Bad key, type or empty body', 404: 'Not in local mode' },
+  },
+  controller.receiveLocal
 );
 
 router.post(

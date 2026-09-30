@@ -23,12 +23,12 @@ router.get(
       'at all, which is usually what someone opening this screen is looking for.',
     permission: 'verse.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       bookId: z.string().optional(),
       canto: z.coerce.number().int().optional(),
       chapter: z.coerce.number().int().optional(),
-      isSlokaEligible: z.coerce.boolean().optional(),
-      untranslated: z.coerce.boolean().optional(),
+      isSlokaEligible: schemas.flag.optional(),
+      untranslated: schemas.flag.optional(),
     }),
     responds: { 200: 'A page of verses with attachment counts' },
   },

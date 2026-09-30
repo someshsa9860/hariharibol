@@ -140,6 +140,17 @@ const schemas = {
     pageSize: z.coerce.number().int().min(1).max(100).optional(),
     q: z.string().trim().min(1).max(200).optional(),
   }),
+  // A page plus ?sort=&dir= — `columns` is the list's own sort whitelist (the
+  // keys of the map its controller hands to readSort), so the docs show exactly
+  // which columns can be sorted.
+  sorted: (columns) =>
+    schemas.page.extend({
+      sort: z.enum(Object.keys(columns)).optional(),
+      dir: z.enum(['asc', 'desc']).optional(),
+    }),
+  // A yes/no query filter. z.coerce.boolean() is wrong for query strings —
+  // Boolean('false') is true, so ?isBanned=false would return the banned users.
+  flag: z.enum(['true', 'false']).transform((value) => value === 'true'),
 };
 
 export { createRouter, mount, registry, schemas, z };

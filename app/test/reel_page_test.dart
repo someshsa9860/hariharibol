@@ -12,9 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:hariharibol/core/theme/app_colors.dart';
 import 'package:hariharibol/core/theme/app_theme.dart';
 import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/reel.dart';
+import 'package:hariharibol/widgets/reels/reel_overlays.dart';
 import 'package:hariharibol/widgets/reels/reel_page.dart';
 
 Reel reel({
@@ -31,6 +33,7 @@ Reel reel({
   bool isMine = false,
   Map<String, dynamic>? verse,
   Map<String, dynamic>? mantra,
+  List<Map<String, dynamic>> overlays = const [],
 }) =>
     Reel.fromJson({
       'id': 'r1',
@@ -47,6 +50,7 @@ Reel reel({
       'isMine': isMine,
       'verse': verse,
       'mantra': mantra,
+      'overlays': overlays,
       'creator': {'id': 'c1', 'displayName': 'Gopal Das', 'isVerified': true},
     });
 
@@ -217,5 +221,97 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.text('Gopal Das'), findsOneWidget);
+  });
+
+  group('text laid over the reel', () {
+    // The test surface is 800 x 600 logical pixels, and the page fills it.
+    const frameWidth = 800.0;
+    const frameHeight = 600.0;
+
+    Map<String, dynamic> box(String text, {Map<String, dynamic> extra = const {}}) => {
+          'id': text,
+          'text': text,
+          'x': 10,
+          'y': 25,
+          'width': 50,
+          'size': 5,
+          ...extra,
+        };
+
+    testWidgets('lands where the editor put it, sized as a share of the width', (tester) async {
+      await pumpReel(tester, reel(overlays: [box('Karmanye vadhikaraste')]));
+      await tester.pump();
+
+      final finder = find.text('Karmanye vadhikaraste');
+      expect(finder, findsOneWidget);
+
+      final topLeft = tester.getTopLeft(finder);
+      expect(topLeft.dx, closeTo(frameWidth * 0.10, 0.01));
+      expect(topLeft.dy, closeTo(frameHeight * 0.25, 0.01));
+      expect(tester.getSize(finder).width, closeTo(frameWidth * 0.50, 0.01));
+
+      final style = tester.widget<Text>(finder).style!;
+      expect(style.fontSize, closeTo(frameWidth * 0.05, 0.01));
+    });
+
+    testWidgets('does not scale with the system text size', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await pumpReel(tester, reel(overlays: [box('Govinda Hari')]));
+      await tester.pump();
+
+      // Doubling the type would push this line into the one below it; the box
+      // is placed by percentage, so its type is too.
+      expect(tester.widget<Text>(find.text('Govinda Hari')).textScaler, TextScaler.noScaling);
+    });
+
+    testWidgets('draws every box, in the colour and alignment it was given', (tester) async {
+      await pumpReel(
+        tester,
+        reel(overlays: [
+          box('First', extra: {'color': 'accent', 'align': 'right'}),
+          box('Second', extra: {'y': 60, 'style': 'heading', 'color': 'dark'}),
+        ]),
+      );
+      await tester.pump();
+
+      final first = tester.widget<Text>(find.text('First'));
+      expect(first.textAlign, TextAlign.right);
+      expect(first.style!.color, AppColors.reelOverlayAccent);
+
+      final second = tester.widget<Text>(find.text('Second'));
+      expect(second.style!.color, AppColors.reelOverlayDark);
+      // Dark text gets a light glow, not the dark shadow light text gets.
+      expect(second.style!.shadows!.single.color, AppColors.reelTextGlow);
+      expect(first.style!.shadows!.single.color, AppColors.reelTextShadow);
+    });
+
+    testWidgets('does not take taps away from the player underneath', (tester) async {
+      await pumpReel(tester, reel(overlays: [box('Govinda Hari')]));
+      await tester.pump();
+
+      final ignoring = find.ancestor(
+        of: find.text('Govinda Hari'),
+        matching: find.byType(IgnorePointer),
+      );
+      expect(ignoring, findsWidgets);
+    });
+
+    testWidgets('draws nothing extra for a reel without any', (tester) async {
+      await pumpReel(tester, reel());
+      await tester.pump();
+      expect(find.byType(ReelOverlays), findsOneWidget);
+      expect(find.descendant(of: find.byType(ReelOverlays), matching: find.byType(Text)), findsNothing);
+    });
+
+    testWidgets('renders the same over both themes', (tester) async {
+      for (final theme in [AppTheme.light, AppTheme.dark]) {
+        await pumpReel(tester, reel(overlays: [box('Om Namo Narayanaya', extra: {'style': 'verse'})]), theme: theme);
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Om Namo Narayanaya'), findsOneWidget);
+      }
+    });
   });
 }

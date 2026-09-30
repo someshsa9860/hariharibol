@@ -9,7 +9,7 @@ import { prisma } from '../../config/database.js';
 import * as authService from '../../services/auth.js';
 import * as audit from '../../services/audit.js';
 import { ok, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 
 const LIST_SELECT = {
@@ -24,6 +24,15 @@ const LIST_SELECT = {
   createdAt: true,
   lastActiveAt: true,
   role: { select: { slug: true, name: true } },
+};
+
+// Columns the users table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  lastActiveAt: 'lastActiveAt',
+  name: 'name',
+  email: 'email',
+  role: 'role.name',
 };
 
 /** GET /api/admin/users */
@@ -46,7 +55,7 @@ export const list = async (req, res) => {
 
   const { items, page } = await paginate(prisma.user, {
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
     select: LIST_SELECT,
     query: req.valid.query,
   });

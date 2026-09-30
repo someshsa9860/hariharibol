@@ -34,9 +34,11 @@ const PERMISSIONS = {
   'reelTemplate.read': { group: 'content', name: 'View reel templates' },
   'reelTemplate.write': { group: 'content', name: 'Create and edit reel templates' },
   'reelTemplate.delete': { group: 'content', name: 'Delete reel templates' },
-  'reel.read': { group: 'content', name: 'View generated reels' },
+  'reel.read': { group: 'content', name: 'View reels' },
+  'reel.write': { group: 'content', name: 'Create and edit reels' },
+  'reel.publish': { group: 'content', name: 'Publish and unpublish reels' },
   'reel.generate': { group: 'content', name: 'Generate reels from scripture verses' },
-  'reel.delete': { group: 'content', name: 'Delete generated reels' },
+  'reel.delete': { group: 'content', name: 'Delete reels' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },
@@ -92,6 +94,11 @@ const SLOKA_ELIGIBLE_BOOK_NUMBERS = [BOOK_NUMBERS.BHAGAVAD_GITA, BOOK_NUMBERS.SR
 // this exists purely so Reel.creatorId (required, same as any other reel) has
 // somewhere to point. Seeded once by prisma/seed/index.js.
 const SYSTEM_CREATOR_EMAIL = 'content@hariharibol.app';
+
+// The platform's own reel channel — "HariHariBol". Created by
+// scripts/seed-bg-verse-reels.js. The admin panel finds it by this address to
+// preselect it as the creator of a new reel; nothing else depends on it.
+const OFFICIAL_CREATOR_EMAIL = 'official@hariharibol.com';
 
 // ── Language fallbacks ─────────────────────────────────────────────────────
 const DEFAULT_LANGUAGE = 'en';
@@ -165,6 +172,7 @@ export {
   BOOK_NUMBERS,
   SLOKA_ELIGIBLE_BOOK_NUMBERS,
   SYSTEM_CREATOR_EMAIL,
+  OFFICIAL_CREATOR_EMAIL,
   DEFAULT_LANGUAGE,
   SOURCE_LANGUAGE,
   BEADS_PER_ROUND,

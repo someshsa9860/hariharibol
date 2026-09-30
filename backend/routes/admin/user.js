@@ -16,10 +16,10 @@ router.get(
     description: 'Search by name or email, filter by role, entitlement or ban state.',
     permission: 'user.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       role: z.string().max(50).optional(),
-      isPremium: z.coerce.boolean().optional(),
-      isBanned: z.coerce.boolean().optional(),
+      isPremium: schemas.flag.optional(),
+      isBanned: schemas.flag.optional(),
     }),
     responds: { 200: 'A page of users' },
   },

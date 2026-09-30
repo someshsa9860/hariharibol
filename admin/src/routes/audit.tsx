@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Eye } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
+import { DateRangeFilter, FilterSelect } from '@/components/table-filters';
 import { DetailDialog, JsonValue } from '@/components/detail-dialog';
-import { useResource, useResourceList } from '@/lib/use-resource';
-import { Select } from '@/components/ui/input';
+import { useResource } from '@/lib/use-resource';
+import { useDataTable } from '@/lib/use-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
@@ -19,28 +20,57 @@ type AuditRow = {
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
-  actor: { name: string | null; email: string } | null;
+  actor: { id: string; name: string | null; email: string } | null;
 };
 type ActionCount = { action: string; count: number };
 
 export function AuditPage() {
-  const [action, setAction] = useState('');
-  const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<AuditRow | null>(null);
   const actions = useResource<ActionCount[]>(['audit-actions'], '/api/admin/audit/actions');
-  const list = useResourceList<AuditRow>('audit', '/api/admin/audit', { page, pageSize: 30, action: action || undefined });
+  const table = useDataTable<AuditRow>({
+    id: 'audit',
+    path: '/api/admin/audit',
+    filters: ['action', 'from', 'to'],
+    defaultSort: { key: 'createdAt', dir: 'desc' },
+    pageSize: 50,
+  });
+
+  // Action names read "book.publish", "user.ban" — the part before the first dot
+  // is the kind of record, and the API matches `action` by prefix, so "book." is
+  // a one-click "everything that happened to books".
+  const groups = [...new Set((actions.data ?? []).map((a) => a.action.split('.')[0]))].sort();
 
   const columns: Column<AuditRow>[] = [
-    { key: 'action', header: 'Action', render: (r) => <Badge variant="outline">{r.action}</Badge> },
-    { key: 'entity', header: 'Entity', render: (r) => `${r.entityType}${r.entityId ? ` · ${r.entityId.slice(0, 8)}` : ''}` },
-    { key: 'actor', header: 'Actor', render: (r) => r.actor?.email ?? 'System' },
-    { key: 'when', header: 'When', render: (r) => formatDate(r.createdAt) },
+    {
+      key: 'action',
+      header: 'Action',
+      sort: 'action',
+      fixed: true,
+      csv: (r) => r.action,
+      render: (r) => <Badge variant="outline">{r.action}</Badge>,
+    },
+    {
+      key: 'entity',
+      header: 'Entity',
+      sort: 'entityType',
+      csv: (r) => `${r.entityType}${r.entityId ? ` ${r.entityId}` : ''}`,
+      render: (r) => (
+        <span>
+          {r.entityType}
+          {r.entityId && <span className="ml-1 font-mono text-xs text-muted-foreground">{r.entityId.slice(0, 8)}</span>}
+        </span>
+      ),
+    },
+    { key: 'actor', header: 'Actor', csv: (r) => r.actor?.email ?? 'System', render: (r) => r.actor?.email ?? <span className="text-muted-foreground">System</span> },
+    { key: 'ip', header: 'IP address', csv: (r) => r.ipAddress, defaultHidden: true, render: (r) => r.ipAddress ?? '—' },
+    { key: 'when', header: 'When', sort: 'createdAt', csv: (r) => r.createdAt, render: (r) => formatDate(r.createdAt) },
+    { key: 'id', header: 'ID', csv: (r) => r.id, defaultHidden: true, render: (r) => <span className="font-mono text-xs">{r.id}</span> },
     {
       key: 'actions',
       header: '',
       className: 'text-right',
       render: (r) => (
-        <Button variant="ghost" size="icon" onClick={(e) => (e.stopPropagation(), setViewing(r))}>
+        <Button variant="ghost" size="icon" aria-label="View details" onClick={(e) => (e.stopPropagation(), setViewing(r))}>
           <Eye className="h-4 w-4" />
         </Button>
       ),
@@ -51,18 +81,30 @@ export function AuditPage() {
     <div>
       <PageHeader title="Audit log" description="Only what changed is stored, not a full snapshot per edit." />
 
-      <div className="mb-4">
-        <Select value={action} onChange={(e) => (setAction(e.target.value), setPage(1))} className="w-64">
-          <option value="">All actions</option>
-          {actions.data?.map((a) => (
-            <option key={a.action} value={a.action}>
-              {a.action} ({a.count})
-            </option>
-          ))}
-        </Select>
-      </div>
-
-      <DataTable columns={columns} page={list.data} isLoading={list.isLoading} isError={list.isError} onPageChange={setPage} />
+      <DataTable
+        table={table}
+        columns={columns}
+        exportName="audit-log"
+        searchPlaceholder="Search action, actor email or record id…"
+        emptyMessage="Nothing has been logged yet."
+        onRowClick={setViewing}
+        filters={
+          <>
+            <FilterSelect
+              table={table}
+              name="action"
+              label="All actions"
+              className="w-56"
+              options={[
+                // Prefix filter: "book." matches every book action. Offered ahead of the exact names.
+                ...groups.map((g) => ({ value: `${g}.`, label: `${g}.* (all)` })),
+                ...(actions.data ?? []).map((a) => ({ value: a.action, label: `${a.action} (${a.count})` })),
+              ]}
+            />
+            <DateRangeFilter table={table} />
+          </>
+        }
+      />
 
       <DetailDialog
         open={!!viewing}

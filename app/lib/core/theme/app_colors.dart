@@ -122,6 +122,19 @@ abstract final class AppColors {
   /// toggle, a slideshow dot. Not a border, a wash.
   static const Color reelControl = Color(0x33FFFFFF);
 
+  /// The colours an admin can choose for text laid over a reel. Named by role
+  /// rather than by hue, because the editor offers three words — light, dark,
+  /// accent — and the app decides what each looks like. Like the rest of the
+  /// reel surface they do not change with the theme.
+  static const Color reelOverlayLight = white;
+  static const Color reelOverlayDark = ink;
+  static const Color reelOverlayAccent = saffronLight;
+
+  /// What keeps that text readable over a bright or busy frame: a soft dark
+  /// shadow behind light text, a soft light glow behind dark text.
+  static const Color reelTextShadow = Color(0x99000000);
+  static const Color reelTextGlow = Color(0x66FFFFFF);
+
   static const Color panelFrom = Color(0xFFFDF0DC);
   static const Color panelTo = Color(0xFFF6D9AE);
   static const Color panelFromDark = Color(0xFF141414);

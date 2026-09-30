@@ -74,7 +74,7 @@ router.get(
     description: 'For checking delivery — `sentAt` is set only when push actually went out.',
     permission: 'notification.send',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM']).optional(),
       userId: z.string().optional(),
     }),

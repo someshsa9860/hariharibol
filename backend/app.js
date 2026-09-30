@@ -120,7 +120,17 @@ app.get('/', (req, res) => {
 // services/s3.js — and this is what makes that fallback's URLs actually
 // resolve.
 if (!env.isProduction) {
-  app.use('/media', express.static(path.join(import.meta.dirname, 'storage')));
+  app.use(
+    '/media',
+    // helmet's default is same-origin, which would stop the admin panel (another
+    // origin in development) from showing a <video> or <img> it just uploaded.
+    // S3 URLs have no such restriction, so this only makes local match production.
+    (req, res, next) => {
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+      next();
+    },
+    express.static(path.join(import.meta.dirname, 'storage'))
+  );
 }
 
 // ── 5. Route groups ────────────────────────────────────────────────────────

@@ -46,7 +46,7 @@ router.get(
     description: '`action` matches by prefix, so "book." finds every book action.',
     permission: 'audit.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       actorId: z.string().optional(),
       action: z.string().max(100).optional(),
       entityType: z.string().max(50).optional(),

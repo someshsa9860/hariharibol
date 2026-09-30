@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hariharibol/models/reel.dart';
+import 'package:hariharibol/models/reel_overlay.dart';
 import 'package:hariharibol/models/reel_comment.dart';
 
 /// The reel model's job is to survive a response that is missing things, and
@@ -131,6 +132,9 @@ void main() {
         'likeCount': 4,
         'commentCount': 9,
         'caption': 'Jai Sri Krishna',
+        'overlays': [
+          {'id': 'o1', 'text': 'Chapter 2', 'x': 10, 'y': 20, 'width': 80, 'size': 6},
+        ],
         'creator': {'id': 'c1', 'displayName': 'Gopal Das'},
       });
 
@@ -144,6 +148,95 @@ void main() {
       expect(liked.caption, 'Jai Sri Krishna');
       expect(liked.creator.displayName, 'Gopal Das');
       expect(liked.id, reel.id);
+      // Likewise the text on the frame — a like must not wipe the verse off it.
+      expect(liked.overlays.map((o) => o.text), ['Chapter 2']);
+    });
+  });
+
+  group('ReelOverlay', () {
+    test('reads a text box whole', () {
+      final reel = Reel.fromJson({
+        'id': 'r8',
+        'creator': {'id': 'c1', 'displayName': 'Gopal Das'},
+        'overlays': [
+          {
+            'id': 'o1',
+            'text': 'कर्मण्येवाधिकारस्ते',
+            'x': 10.5,
+            'y': 22,
+            'width': 80,
+            'size': 6.5,
+            'style': 'verse',
+            'color': 'accent',
+            'align': 'left',
+            // Editor bookkeeping the app has no use for.
+            'source': {'verseId': '1.2.47', 'label': 'Bhagavad Gita 2.47'},
+          },
+        ],
+      });
+
+      final box = reel.overlays.single;
+      expect(box.text, 'कर्मण्येवाधिकारस्ते');
+      expect(box.x, 10.5);
+      expect(box.y, 22);
+      expect(box.width, 80);
+      expect(box.size, 6.5);
+      expect(box.style, ReelOverlayStyle.verse);
+      expect(box.color, ReelOverlayColor.accent);
+      expect(box.align, ReelOverlayAlign.left);
+    });
+
+    test('is empty for a reel that predates overlays', () {
+      final reel = Reel.fromJson({'id': 'r9', 'creator': {'id': 'c1', 'displayName': 'Gopal Das'}});
+      expect(reel.overlays, isEmpty);
+    });
+
+    test('falls back to plain centred light text for names it does not know', () {
+      final box = ReelOverlay.fromJson({
+        'id': 'o1',
+        'text': 'Hare Krishna',
+        'x': 0,
+        'y': 0,
+        'style': 'neon',
+        'color': 'chartreuse',
+        'align': 'justify',
+      });
+
+      // A newer editor can ship a style before this build knows it; the text
+      // still has to appear, just plainly.
+      expect(box.style, ReelOverlayStyle.body);
+      expect(box.color, ReelOverlayColor.light);
+      expect(box.align, ReelOverlayAlign.center);
+    });
+
+    test('keeps a hand-edited value from hiding or flooding the frame', () {
+      final box = ReelOverlay.fromJson({
+        'id': 'o1',
+        'text': 'Hare Krishna',
+        'x': -40,
+        'y': 900,
+        'width': 0,
+        'size': 0,
+      });
+
+      expect(box.x, 0);
+      expect(box.y, 100);
+      expect(box.width, ReelOverlay.minWidth);
+      expect(box.size, ReelOverlay.minSize);
+
+      final huge = ReelOverlay.fromJson({'id': 'o2', 'text': 'x', 'size': 500});
+      expect(huge.size, ReelOverlay.maxSize);
+    });
+
+    test('drops boxes with nothing to show', () {
+      final overlays = ReelOverlay.listFrom([
+        {'id': 'o1', 'text': '   '},
+        {'id': 'o2', 'text': ''},
+        {'id': 'o3', 'text': 'Om'},
+        'not an object',
+      ]);
+
+      expect(overlays.map((o) => o.id), ['o3']);
     });
   });
 

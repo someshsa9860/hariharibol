@@ -16,9 +16,9 @@ router.get(
     summary: 'List mantras',
     permission: 'mantra.read',
     limit: 'read',
-    query: schemas.page.extend({
+    query: schemas.sorted(controller.SORT_COLUMNS).extend({
       category: z.string().max(50).optional(),
-      isPublished: z.coerce.boolean().optional(),
+      isPublished: schemas.flag.optional(),
     }),
     responds: { 200: 'A page of mantras' },
   },

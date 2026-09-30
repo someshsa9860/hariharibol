@@ -14,7 +14,16 @@ import * as audit from '../../services/audit.js';
 import * as ai from '../../services/ai/index.js';
 import { queues } from '../../jobs/index.js';
 import { ok, paginated } from '../../utils/respond.js';
-import { paginate } from '../../utils/pagination.js';
+import { paginate, readSort } from '../../utils/pagination.js';
+
+// Columns the usage log can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  cost: 'costMicros',
+  inputTokens: 'inputTokens',
+  outputTokens: 'outputTokens',
+  operation: 'operation',
+};
 
 /** GET /api/admin/ai/usage — the log, filterable by operation. */
 export const usage = async (req, res) => {
@@ -26,7 +35,7 @@ export const usage = async (req, res) => {
       ...(provider ? { provider } : {}),
       ...(succeeded !== undefined ? { succeeded } : {}),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
     query: req.valid.query,
   });
 

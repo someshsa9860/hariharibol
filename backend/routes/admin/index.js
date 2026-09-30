@@ -17,6 +17,7 @@ import permissionRoutes from './permission.js';
 import bookRoutes from './book.js';
 import verseRoutes from './verse.js';
 import mantraRoutes from './mantra.js';
+import reelRoutes from './reel.js';
 import referenceRoutes from './reference.js';
 import slokaRoutes from './sloka.js';
 import paymentRoutes from './payment.js';
@@ -37,6 +38,7 @@ const routers = [
   bookRoutes,
   verseRoutes,
   mantraRoutes,
+  reelRoutes,
   referenceRoutes,
   slokaRoutes,
   paymentRoutes,

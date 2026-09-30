@@ -85,6 +85,7 @@ flutter:
   generate: true
 
   assets:
+    - assets/logo.png
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/models/auto_chant/kws/

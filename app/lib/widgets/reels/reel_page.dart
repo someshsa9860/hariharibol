@@ -7,15 +7,16 @@ import '../../models/reel.dart';
 import 'reel_action_rail.dart';
 import 'reel_audio_player.dart';
 import 'reel_caption.dart';
+import 'reel_overlays.dart';
 import 'reel_slideshow.dart';
 import 'reel_video_player.dart';
 
 /// One reel, filling the screen.
 ///
-/// Three layers, in this order: the media, a scrim, then the controls. The
-/// scrim is what makes white text readable over footage nobody has seen — it
-/// is a gradient rather than a flat wash so the middle of the frame, which is
-/// usually the subject, stays untouched.
+/// Four layers, in this order: the media, a scrim, the text an admin laid over
+/// it, then the controls. The scrim is what makes white text readable over
+/// footage nobody has seen — it is a gradient rather than a flat wash so the
+/// middle of the frame, which is usually the subject, stays untouched.
 class ReelPage extends StatelessWidget {
   const ReelPage({
     super.key,
@@ -70,6 +71,7 @@ class ReelPage extends StatelessWidget {
         children: [
           _media(context),
           const _Scrim(),
+          ReelOverlays(overlays: reel.overlays),
           Positioned(
             left: AppSpacing.lg,
             right: 0,
