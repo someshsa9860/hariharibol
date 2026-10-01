@@ -13,6 +13,7 @@ import { VersesPage } from '@/routes/verses';
 import { MantrasPage } from '@/routes/mantras';
 import { ReelsPage } from '@/routes/reels';
 import { ReelEditorPage } from '@/routes/reel-editor';
+import { ReelRecipePage } from '@/routes/reel-recipe';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
@@ -125,6 +126,14 @@ export function Router() {
         element={
           <Protected permission="reel.read">
             <ReelsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reels/recipe"
+        element={
+          <Protected permission="reel.write">
+            <ReelRecipePage />
           </Protected>
         }
       />

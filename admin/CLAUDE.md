@@ -165,4 +165,26 @@ Things to know before changing it:
   can move between reels), the text presets and the 3×3 position grid all
   produce ordinary overlays. The "sits under the app's buttons" warning uses
   `SAFE_AREAS` in `reel-stage.tsx` — keep it in step with the app's reel chrome.
-- Not built: timed text (a box is always on screen), templates.
+- Not built: timed text (a box is always on screen).
+
+## Reels from verses
+
+`routes/reel-recipe.tsx` (`/reels/recipe`, from **New reel → From a book's verses…**)
+is a three-step page: **Verses** (book, canto, chapter, range, topic, hints, audio,
+creator — with a live count and sample), **Design**, **Create**.
+
+The Design step is the reel editor itself. Its three-column surface was lifted out of
+`reel-editor.tsx` into `components/reel-designer.tsx`, which edits whatever document it
+is handed and knows nothing about saving; the reel editor wraps it with save / publish /
+delete, the recipe page with "save as template". Passing `verseTexts` puts it in
+*template mode*: the **Verse field** menu adds a box bound to the verse's Sanskrit,
+transliteration, translation or reference, shown with a sample verse (the **Preview
+with** picker) and filled from each verse when reels are made. A bound box's `bind` is
+part of the overlay contract with `backend/routes/admin/reel.js`; the app ignores it
+(the API resolves it before sending).
+
+- The template is saved before creating, so reels can point at it and "next batch"
+  works; reels already made are unaffected if the template changes or is deleted.
+- Background is an image (or several) or a video; AUDIO reels are not offered.
+- The position grid and the default box width keep text clear of the app's button
+  column (`SAFE_AREAS` in `reel-stage.tsx`) — keep them in step with the app.

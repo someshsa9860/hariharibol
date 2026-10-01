@@ -2,7 +2,7 @@ import { AlertTriangle, ArrowDown, ArrowUp, BookOpen, ChevronDown, Copy, Eye, Ey
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { BoxMetrics } from '@/components/reel-stage';
 import { Button } from '@/components/ui/button';
-import { MAX_OVERLAYS, type Overlay, type OverlayStyle, type OVERLAY_PRESETS } from '@/lib/reel-doc';
+import { BIND_LABELS, MAX_OVERLAYS, type Overlay, type OverlayBind, type OverlayStyle, type OVERLAY_PRESETS } from '@/lib/reel-doc';
 import { cn } from '@/lib/utils';
 
 const ICON: Record<OverlayStyle, typeof Type> = { body: Type, heading: Heading, verse: Quote };
@@ -14,6 +14,7 @@ export function ReelLayers({
   onSelect,
   onAdd,
   onAddVerse,
+  onAddBound,
   onDuplicate,
   onDelete,
   onMove,
@@ -30,7 +31,10 @@ export function ReelLayers({
   hiddenIds: Set<string>;
   onToggleHidden: (id: string) => void;
   metrics: Record<string, BoxMetrics>;
-  onAddVerse: () => void;
+  /** Pick one verse from any book. Absent when making a template. */
+  onAddVerse?: () => void;
+  /** Add a box filled from a field of each verse. Present only when making a template. */
+  onAddBound?: (bind: OverlayBind) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
   /** +1 brings the box forward, −1 sends it back. */
@@ -64,15 +68,34 @@ export function ReelLayers({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button size="sm" variant="outline" className="flex-1" onClick={onAddVerse} disabled={full}>
-          <BookOpen className="h-4 w-4" />
-          Verse
-        </Button>
+        {onAddVerse && (
+          <Button size="sm" variant="outline" className="flex-1" onClick={onAddVerse} disabled={full}>
+            <BookOpen className="h-4 w-4" />
+            Verse
+          </Button>
+        )}
+        {onAddBound && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="flex-1" disabled={full}>
+                <BookOpen className="h-4 w-4" />
+                Verse field
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {(Object.keys(BIND_LABELS) as OverlayBind[]).map((bind) => (
+                <DropdownMenuItem key={bind} onSelect={() => onAddBound(bind)}>
+                  {BIND_LABELS[bind]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {overlays.length === 0 && (
         <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-          No text yet. Add a text box, or pull in a verse from any book.
+          {onAddBound ? 'No text yet. Add a verse field — it is filled from each verse — or a fixed text box.' : 'No text yet. Add a text box, or pull in a verse from any book.'}
         </p>
       )}
 
@@ -92,7 +115,14 @@ export function ReelLayers({
             >
               <button type="button" onClick={() => onSelect(overlay.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
                 <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className={cn('truncate', hidden && 'text-muted-foreground line-through')}>{overlay.text.replace(/\s+/g, ' ')}</span>
+                {overlay.bind ? (
+                  // The text is a different verse on every reel, so the row says what it is filled from.
+                  <span className={cn('truncate font-medium text-primary', hidden && 'text-muted-foreground line-through')} title={overlay.text}>
+                    Verse {BIND_LABELS[overlay.bind].toLowerCase()}
+                  </span>
+                ) : (
+                  <span className={cn('truncate', hidden && 'text-muted-foreground line-through')}>{overlay.text.replace(/\s+/g, ' ')}</span>
+                )}
                 {under.length > 0 && (
                   <span title={`Sits under the app's ${under.join(' and ').toLowerCase()}`} className="shrink-0">
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />

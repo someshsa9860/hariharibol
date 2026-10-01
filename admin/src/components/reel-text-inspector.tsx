@@ -2,14 +2,16 @@ import type { RefObject } from 'react';
 import { AlertTriangle, AlignCenter, AlignLeft, AlignRight, Copy, Trash2 } from 'lucide-react';
 import type { BoxMetrics } from '@/components/reel-stage';
 import { Button } from '@/components/ui/button';
-import { Label, Textarea } from '@/components/ui/input';
+import { Label, Select, Textarea } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
+  BIND_LABELS,
   COLOR_LABELS,
   COLOR_PREVIEW,
   STYLE_LABELS,
   type Overlay,
   type OverlayAlign,
+  type OverlayBind,
   type OverlayColor,
   type OverlayStyle,
 } from '@/lib/reel-doc';
@@ -19,14 +21,18 @@ const round = (value: number) => Math.round(value * 100) / 100;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 // Where the 3×3 position grid puts a box. Top clears the status bar, bottom
-// stops above the creator & caption strip — the same areas "Show app overlays" draws.
+// stops above the creator & caption strip, and below the top row the box stays
+// left of the button column — the same areas "Show app overlays" draws — so a
+// box placed from the grid is not one the app then covers.
 const COLUMNS = ['left', 'centre', 'right'] as const;
 const ROWS = ['top', 'middle', 'bottom'] as const;
+const BUTTON_COLUMN = 80; // % — where the app's side buttons begin, with a little air
 
 function placed(overlay: Overlay, height: number, column: (typeof COLUMNS)[number], row: (typeof ROWS)[number]) {
+  const limit = row === 'top' ? 100 : BUTTON_COLUMN;
   const x = column === 'left' ? 5 : column === 'centre' ? 50 - overlay.width / 2 : 95 - overlay.width;
   const y = row === 'top' ? 10 : row === 'middle' ? 50 - height / 2 : 75 - height;
-  return { x: round(clamp(x, 0, 100 - overlay.width)), y: round(clamp(y, 0, 95)) };
+  return { x: round(clamp(Math.min(x, limit - overlay.width), 0, 100 - overlay.width)), y: round(clamp(y, 0, 95)) };
 }
 
 const ALIGNS: { value: OverlayAlign; icon: typeof AlignLeft; label: string }[] = [
@@ -40,6 +46,7 @@ const ALIGNS: { value: OverlayAlign; icon: typeof AlignLeft; label: string }[] =
 export function ReelTextInspector({
   overlay,
   metrics,
+  bindable,
   onChange,
   onDuplicate,
   onDelete,
@@ -47,6 +54,8 @@ export function ReelTextInspector({
 }: {
   overlay: Overlay | null;
   metrics?: BoxMetrics;
+  /** Making a template: a box can be filled from a field of each verse. */
+  bindable?: boolean;
   onChange: (id: string, patch: Partial<Overlay>, key?: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -64,6 +73,26 @@ export function ReelTextInspector({
 
   return (
     <div className="space-y-4">
+      {(bindable || overlay.bind) && (
+        <Field label="Filled from">
+          <Select
+            aria-label="Filled from"
+            value={overlay.bind ?? ''}
+            onChange={(e) => change({ bind: (e.target.value || undefined) as OverlayBind | undefined })}
+          >
+            <option value="">{bindable ? 'Fixed text — the same on every reel' : 'Fixed text — write my own'}</option>
+            {/* On a finished reel a box can be detached from its verse, not attached to one. */}
+            {(Object.keys(BIND_LABELS) as OverlayBind[])
+              .filter((bind) => bindable || bind === overlay.bind)
+              .map((bind) => (
+                <option key={bind} value={bind}>
+                  The verse’s {BIND_LABELS[bind].toLowerCase()}
+                </option>
+              ))}
+          </Select>
+        </Field>
+      )}
+
       <div>
         <Label htmlFor="overlay-text">Text</Label>
         <Textarea
@@ -73,14 +102,22 @@ export function ReelTextInspector({
           value={overlay.text}
           onChange={(e) => change({ text: e.target.value }, 'text')}
           maxLength={2000}
+          readOnly={Boolean(overlay.bind)}
         />
+        {overlay.bind && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {bindable
+              ? `Showing the sample verse. Each reel gets its own verse's ${BIND_LABELS[overlay.bind].toLowerCase()}, and the app shows the reader's language.`
+              : `Filled from this reel's verse each time it is shown, in the reader's language. Choose fixed text above to write your own.`}
+          </p>
+        )}
         {overlay.source && (
           <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
             <Badge variant="outline">{overlay.source.label}</Badge>
             copied from a verse — edits here do not change the verse.
           </p>
         )}
-        {!overlay.text.trim() && <p className="mt-1 text-xs text-destructive">Empty text is dropped when you save.</p>}
+        {!overlay.bind && !overlay.text.trim() && <p className="mt-1 text-xs text-destructive">Empty text is dropped when you save.</p>}
       </div>
 
       <Field label="Style">
