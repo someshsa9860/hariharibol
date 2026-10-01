@@ -150,4 +150,19 @@ Things to know before changing it:
   open for a long time can hold stale ones.
 - **The bucket needs CORS for the admin origin** (`PUT`, and `GET` for
   thumbnail-from-frame). Local dev storage does not.
+- **Playback is clocked by one element** — the video when there is one,
+  otherwise the audio — and the play button follows that element's own
+  play/pause events. Background music loops on its own length and is re-synced
+  to the video on play, seek and every video loop. A media error shows a
+  "Reload media" button that fetches fresh signed links.
+- **A new reel's first save must not remount the editor.** It moves to
+  `/reels/:id` with `state.editorKey: 'new'`, so the undo history and any upload
+  still in flight survive. Edits made while a save is in the air are kept as
+  unsaved, and blob: URLs from this browser's uploads are kept over the fresh
+  signed ones so the player does not reload.
+- **Editor-only conveniences are not part of the document**: hiding a box (H),
+  the copy/paste clipboard (`hhb_admin_reel_clipboard` in localStorage, so a box
+  can move between reels), the text presets and the 3×3 position grid all
+  produce ordinary overlays. The "sits under the app's buttons" warning uses
+  `SAFE_AREAS` in `reel-stage.tsx` — keep it in step with the app's reel chrome.
 - Not built: timed text (a box is always on screen), templates.

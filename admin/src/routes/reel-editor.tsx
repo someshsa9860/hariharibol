@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, ArrowLeft, EyeOff, Loader2, Redo2, Save, Send, Trash2, Undo2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, EyeOff, Keyboard, Loader2, Redo2, Save, Send, Trash2, Undo2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReelStage } from '@/components/reel-stage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ReelStage, type BoxMetrics } from '@/components/reel-stage';
 import { ReelLayers } from '@/components/reel-layers';
 import { ReelTextInspector } from '@/components/reel-text-inspector';
 import { ReelMediaPanel } from '@/components/reel-media-panel';
@@ -19,6 +20,7 @@ import { useResource } from '@/lib/use-resource';
 import {
   MAX_OVERLAYS,
   MEDIA_LABEL,
+  OVERLAY_PRESETS,
   STATUS_LABEL,
   STATUS_VARIANT,
   bodyFromDoc,
@@ -26,6 +28,8 @@ import {
   duplicateOverlay,
   emptyDoc,
   newOverlay,
+  readClipboard,
+  writeClipboard,
   useReelHistory,
   type MediaType,
   type Overlay,
@@ -54,6 +58,11 @@ function problemFrom(error: unknown, fallback: string): Problem {
 export function ReelEditorPage() {
   const { id } = useParams();
   const [params] = useSearchParams();
+  // A new reel's first save moves the page to /reels/:id. That address change
+  // must not remount the editor — it would throw away the undo history and any
+  // upload still in flight — so the save passes the key it was mounted under.
+  const location = useLocation();
+  const editorKey = (location.state as { editorKey?: string } | null)?.editorKey ?? id ?? 'new';
 
   const reel = useResource<ReelDetail>(['reel', id], `/api/admin/reels/${id}`, undefined, { enabled: !!id });
   const creators = useResource<Creator[]>(['reel-creators'], '/api/admin/reels/creators');
@@ -81,7 +90,7 @@ export function ReelEditorPage() {
     );
   }
 
-  return <Editor key={id ?? 'new'} reel={id ? reel.data! : null} creators={creators.data} mediaType={mediaType} />;
+  return <Editor key={editorKey} reel={id ? reel.data! : null} creators={creators.data} mediaType={mediaType} />;
 }
 
 function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creators: Creator[]; mediaType: MediaType }) {
@@ -106,7 +115,14 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
   const [snap, setSnap] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
+  const [metrics, setMetrics] = useState<Record<string, BoxMetrics>>({});
+  const [helpOpen, setHelpOpen] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  // The document as of the last render, for async work that finishes later.
+  const docRef = useRef(doc);
+  docRef.current = doc;
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   const reelId = reel?.id ?? null;
@@ -154,8 +170,27 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
     return overlay;
   }
 
-  function addText() {
-    if (addOverlay()) focusText();
+  function addText(partial: Partial<Overlay> = {}) {
+    if (addOverlay(partial)) focusText();
+  }
+
+  function toggleHidden(id: string) {
+    setHiddenIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function paste() {
+    const copied = readClipboard();
+    if (!copied) return;
+    if (doc.overlays.length >= MAX_OVERLAYS) {
+      setProblem({ message: `A reel holds at most ${MAX_OVERLAYS} text boxes.`, details: [] });
+      return;
+    }
+    addOverlay(duplicateOverlay(copied));
   }
 
   function removeOverlay(id: string) {
@@ -233,10 +268,19 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
 
   // ── saving ───────────────────────────────────────────────────────────────
 
-  function accept(fresh: ReelDetail) {
-    const next = docFromReel(fresh);
-    replace(next);
-    setSaved(snapshot(next));
+  // `sent` is the snapshot that went to the API. If the document changed while
+  // the request was out — typing, an upload finishing — those edits are kept
+  // and stay unsaved; only the links are brought up to date.
+  function accept(fresh: ReelDetail, sent?: string) {
+    const current = docRef.current;
+    const server = keepLocalUrls(docFromReel(fresh), current);
+    if (sent === undefined || snapshot(current) === sent) {
+      replace(server);
+      setSaved(snapshot(server));
+    } else {
+      replace(withUrlsFrom(current, server));
+      setSaved(sent);
+    }
     setStatus(fresh.status);
     queryClient.setQueryData(['reel', fresh.id], fresh);
     queryClient.invalidateQueries({ queryKey: ['reels'] });
@@ -247,12 +291,13 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
     setBusy('save');
     try {
       const body = bodyFromDoc(doc);
+      const sent = JSON.stringify(body);
       const { data } = reelId
         ? await api.patch<ReelDetail>(`/api/admin/reels/${reelId}`, body)
         : await api.post<ReelDetail>('/api/admin/reels', body);
-      accept(data);
+      accept(data, sent);
       // A new reel now has an id; move to its own address so a refresh keeps it.
-      if (!reelId) navigate(`/reels/${data.id}`, { replace: true });
+      if (!reelId) navigate(`/reels/${data.id}`, { replace: true, state: { editorKey: 'new' } });
       return data.id;
     } catch (error) {
       setProblem(problemFrom(error, 'Could not save this reel.'));
@@ -295,6 +340,18 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
     }
   }
 
+  // Signed links expire. Fetch fresh ones without touching anything else.
+  async function reloadMedia() {
+    if (!reelId) return;
+    try {
+      const { data } = await api.get<ReelDetail>(`/api/admin/reels/${reelId}`);
+      queryClient.setQueryData(['reel', data.id], data);
+      replace(withUrlsFrom(docRef.current, docFromReel(data)));
+    } catch (error) {
+      setProblem(problemFrom(error, 'Could not reload the media links.'));
+    }
+  }
+
   // ── keyboard ─────────────────────────────────────────────────────────────
   // Registered on every render so the handler always sees the current document.
 
@@ -321,6 +378,17 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
       } else if (mod && key === 'd' && selected) {
         event.preventDefault();
         copyOverlay(selected.id);
+      } else if (mod && key === 'c' && selected) {
+        // Through localStorage, so a box can be carried to another reel. Not
+        // prevented: any page text that is selected still copies as usual.
+        writeClipboard(selected);
+      } else if (mod && key === 'v' && readClipboard()) {
+        event.preventDefault();
+        paste();
+      } else if (!mod && key === 'h' && selected) {
+        toggleHidden(selected.id);
+      } else if (!mod && event.key === '?') {
+        setHelpOpen(true);
       } else if (!mod && selected) {
         const step = event.shiftKey ? 5 : 1;
         const nudge = (dx: number, dy: number) => {
@@ -373,6 +441,9 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {canWrite && (
             <>
+              <Button variant="ghost" size="icon" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" onClick={() => setHelpOpen(true)}>
+                <Keyboard className="h-4 w-4" />
+              </Button>
               <Button variant="outline" size="icon" aria-label="Undo" title="Undo (Ctrl/⌘ Z)" disabled={!canUndo} onClick={undo}>
                 <Undo2 className="h-4 w-4" />
               </Button>
@@ -431,6 +502,10 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
                 setTab('text');
               }}
               onAdd={addText}
+              presets={OVERLAY_PRESETS}
+              hiddenIds={hiddenIds}
+              onToggleHidden={toggleHidden}
+              metrics={metrics}
               onAddVerse={() => setPickerOpen(true)}
               onDuplicate={copyOverlay}
               onDelete={removeOverlay}
@@ -456,6 +531,10 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
             showGuides={showGuides}
             snap={snap}
             videoRef={videoRef}
+            hiddenIds={hiddenIds}
+            metrics={metrics}
+            onMeasure={setMetrics}
+            onReloadMedia={reelId ? reloadMedia : undefined}
           />
           <div className="flex gap-5 text-sm">
             <label className="flex cursor-pointer items-center gap-2">
@@ -484,10 +563,10 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="text">
-                <ReelTextInspector overlay={selected} onChange={patchOverlay} onDuplicate={copyOverlay} onDelete={removeOverlay} textRef={textRef} />
+                <ReelTextInspector overlay={selected} metrics={selected ? metrics[selected.id] : undefined} onChange={patchOverlay} onDuplicate={copyOverlay} onDelete={removeOverlay} textRef={textRef} />
               </TabsContent>
               <TabsContent value="media">
-                <ReelMediaPanel doc={doc} set={set} videoRef={videoRef} />
+                <ReelMediaPanel doc={doc} set={set} videoRef={videoRef} slide={slide} />
               </TabsContent>
               <TabsContent value="details">
                 <ReelDetailsPanel doc={doc} creators={creators} set={set} onPickVerse={() => setPickerOpen(true)} />
@@ -497,6 +576,7 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
         </aside>
       </div>
 
+      <ShortcutHelp open={helpOpen} onOpenChange={setHelpOpen} />
       <VersePicker open={pickerOpen} onOpenChange={setPickerOpen} onInsert={insertVerse} />
     </div>
   );
@@ -514,5 +594,73 @@ function Notice({ tone, children }: { tone: 'info' | 'error'; children: React.Re
     >
       {children}
     </div>
+  );
+}
+
+// ── links ──────────────────────────────────────────────────────────────────
+
+/**
+ * After a save the API hands back signed links for every file. Where the file
+ * is the one already on screen from this browser (a blob: URL from the upload),
+ * keep that: swapping it would reload the player and stop playback for nothing.
+ */
+function keepLocalUrls(next: ReelDoc, current: ReelDoc): ReelDoc {
+  const local = (url: string | null) => Boolean(url?.startsWith('blob:'));
+  const localImages = new Map(current.images.filter((i) => local(i.url)).map((i) => [i.path, i.url]));
+  return {
+    ...next,
+    videoUrl: next.videoPath === current.videoPath && local(current.videoUrl) ? current.videoUrl : next.videoUrl,
+    audioUrl: next.audioPath === current.audioPath && local(current.audioUrl) ? current.audioUrl : next.audioUrl,
+    thumbnailUrl: next.thumbnailPath === current.thumbnailPath && local(current.thumbnailUrl) ? current.thumbnailUrl : next.thumbnailUrl,
+    images: next.images.map((image) => ({ ...image, url: localImages.get(image.path) ?? image.url })),
+  };
+}
+
+/** `doc` as it is, with fresher links from `server` for every file both still point at. */
+function withUrlsFrom(doc: ReelDoc, server: ReelDoc): ReelDoc {
+  const urls = new Map(server.images.map((i) => [i.path, i.url]));
+  return {
+    ...doc,
+    videoUrl: doc.videoPath && doc.videoPath === server.videoPath ? server.videoUrl : doc.videoUrl,
+    audioUrl: doc.audioPath && doc.audioPath === server.audioPath ? server.audioUrl : doc.audioUrl,
+    thumbnailUrl: doc.thumbnailPath && doc.thumbnailPath === server.thumbnailPath ? server.thumbnailUrl : doc.thumbnailUrl,
+    images: doc.images.map((image) => ({ ...image, url: urls.get(image.path) ?? image.url })),
+  };
+}
+
+const SHORTCUTS: [string, string][] = [
+  ['Space', 'Play / pause the preview'],
+  ['M', 'Mute / unmute the preview'],
+  ['← →', 'Seek 1s (Shift: 5s) — when no text box is selected'],
+  ['← → ↑ ↓', 'Nudge the selected box 1% (Shift: 5%)'],
+  ['Alt while dragging', 'Skip snapping'],
+  ['Ctrl/⌘ Z', 'Undo'],
+  ['Ctrl/⌘ Shift Z, Ctrl/⌘ Y', 'Redo'],
+  ['Ctrl/⌘ S', 'Save'],
+  ['Ctrl/⌘ D', 'Duplicate the selected box'],
+  ['Ctrl/⌘ C, Ctrl/⌘ V', 'Copy a box, paste it here or into another reel'],
+  ['H', 'Hide / show the selected box while editing'],
+  ['Delete', 'Delete the selected box'],
+  ['Esc', 'Deselect'],
+  ['Double-click a box', 'Edit its text'],
+];
+
+function ShortcutHelp({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Keyboard shortcuts</DialogTitle>
+        </DialogHeader>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          {SHORTCUTS.map(([keys, what]) => (
+            <div key={keys} className="contents">
+              <dt className="font-mono text-xs font-medium">{keys}</dt>
+              <dd className="text-muted-foreground">{what}</dd>
+            </div>
+          ))}
+        </dl>
+      </DialogContent>
+    </Dialog>
   );
 }

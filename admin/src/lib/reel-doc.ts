@@ -239,6 +239,46 @@ export const duplicateOverlay = (overlay: Overlay): Overlay => ({
   y: Math.min(overlay.y + 3, 95),
 });
 
+/** Starting points for a new box. Only fields the overlay contract already has. */
+export const OVERLAY_PRESETS: { label: string; hint: string; overlay: Partial<Overlay> }[] = [
+  { label: 'Title', hint: 'Large heading near the top', overlay: { text: 'Title', style: 'heading', size: 9, x: 8, y: 12, width: 84 } },
+  { label: 'Subtitle', hint: 'Under a title', overlay: { text: 'Subtitle', style: 'body', size: 5, x: 10, y: 24, width: 80 } },
+  { label: 'Verse', hint: 'Verse face, centred', overlay: { text: 'Verse', style: 'verse', size: 4.5, x: 8, y: 36, width: 84 } },
+  { label: 'Translation', hint: 'Smaller body text', overlay: { text: 'Translation', style: 'body', size: 4, x: 8, y: 52, width: 84 } },
+  { label: 'Highlight', hint: 'Accent colour, one line', overlay: { text: 'Highlight', style: 'heading', color: 'accent', size: 6.5, x: 10, y: 64, width: 72 } },
+];
+
+// ── Clipboard ──────────────────────────────────────────────────────────────
+// A copied text box goes to localStorage rather than the system clipboard, so
+// it can be pasted into another reel in another tab without asking for
+// clipboard permission — and so copying text out of a field still works as usual.
+
+const CLIPBOARD_KEY = 'hhb_admin_reel_clipboard';
+
+export function writeClipboard(overlay: Overlay) {
+  try {
+    localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(overlay));
+  } catch {
+    // Storage blocked: copy simply does nothing.
+  }
+}
+
+export function readClipboard(): Overlay | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(CLIPBOARD_KEY) ?? 'null') as Overlay | null;
+    const valid =
+      value &&
+      typeof value.text === 'string' &&
+      ['x', 'y', 'width', 'size'].every((k) => typeof value[k as keyof Overlay] === 'number') &&
+      value.style in STYLE_LABELS &&
+      value.color in COLOR_LABELS &&
+      ['left', 'center', 'right'].includes(value.align);
+    return valid ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 // ── History ────────────────────────────────────────────────────────────────
 // Undo/redo over the whole document. Two things keep it usable: a drag is one
 // step, not one per pixel (begin/end), and typing into the same field within a
