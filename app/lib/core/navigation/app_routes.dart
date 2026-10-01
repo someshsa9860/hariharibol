@@ -75,6 +75,10 @@ abstract final class AppRoutes {
   static const String reelPattern = '/reels/:id';
   static String reelPath(String id) => '/reels/$id';
 
+  /// Reels like one the reader is watching: same chapter, canto or book.
+  static const String similarPattern = '/reels/:id/similar';
+  static String similarPath(String id) => '/reels/$id/similar';
+
   /// A creator's profile and everything they have posted.
   static const String creatorPattern = '/creators/:id';
   static String creatorPath(String id) => '/creators/$id';
@@ -101,5 +105,6 @@ abstract final class RouteNames {
   static const String chant = 'chant';
   static const String reels = 'reels';
   static const String reelDetail = 'reelDetail';
+  static const String reelSimilar = 'reelSimilar';
   static const String creatorProfile = 'creatorProfile';
 }

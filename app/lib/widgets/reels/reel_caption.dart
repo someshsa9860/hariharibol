@@ -19,6 +19,7 @@ class ReelCaption extends StatefulWidget {
     required this.onCreatorTap,
     required this.onFollowTap,
     this.onSubjectTap,
+    this.onSimilarTap,
   });
 
   final Reel reel;
@@ -29,6 +30,11 @@ class ReelCaption extends StatefulWidget {
   /// screen to open — the chip is not drawn at all then, rather than drawn
   /// dead.
   final void Function(Reel reel)? onSubjectTap;
+
+  /// Opens reels like this one. Null where there are none to offer — a reel
+  /// with nothing in common with any other, or the list that is already the
+  /// answer to this — and the chip is not drawn then.
+  final VoidCallback? onSimilarTap;
 
   @override
   State<ReelCaption> createState() => _ReelCaptionState();
@@ -100,6 +106,14 @@ class _ReelCaptionState extends State<ReelCaption> {
             onTap: widget.onSubjectTap == null ? null : () => widget.onSubjectTap!(reel),
           ),
         ],
+        if (widget.onSimilarTap != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _SubjectChip(
+            label: text.reelSimilar,
+            icon: Icons.video_library_outlined,
+            onTap: widget.onSimilarTap,
+          ),
+        ],
       ],
     );
   }
@@ -116,6 +130,10 @@ class _ReelCaptionState extends State<ReelCaption> {
 
     final verse = reel.verse;
     if (verse != null) {
+      // The API names the verse with its book. The numbers alone only ever
+      // distinguished two books, so any other would have been called "SB".
+      final label = verse.label;
+      if (label != null && label.isNotEmpty) return label;
       return text.reelVerseRef(
         verse.bookNumber == 1 ? text.reelBookGita : text.reelBookBhagavatam,
         verse.chapterNumber,

@@ -1306,6 +1306,18 @@ abstract class AppLocalizations {
   /// **'This recitation is still processing.'**
   String get reelAudioUnavailable;
 
+  /// No description provided for @reelSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'More like this'**
+  String get reelSimilar;
+
+  /// No description provided for @reelSimilarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No similar reels yet.'**
+  String get reelSimilarEmpty;
+
   /// No description provided for @reelSlideOf.
   ///
   /// In en, this message translates to:

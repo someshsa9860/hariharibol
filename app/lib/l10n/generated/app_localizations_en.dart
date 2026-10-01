@@ -723,6 +723,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reelAudioUnavailable => 'This recitation is still processing.';
 
   @override
+  String get reelSimilar => 'More like this';
+
+  @override
+  String get reelSimilarEmpty => 'No similar reels yet.';
+
+  @override
   String reelSlideOf(int current, int total) {
     return '$current of $total';
   }

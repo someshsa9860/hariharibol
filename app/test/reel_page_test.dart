@@ -33,6 +33,7 @@ Reel reel({
   bool isMine = false,
   Map<String, dynamic>? verse,
   Map<String, dynamic>? mantra,
+  List<String> tags = const [],
   List<Map<String, dynamic>> overlays = const [],
 }) =>
     Reel.fromJson({
@@ -50,11 +51,12 @@ Reel reel({
       'isMine': isMine,
       'verse': verse,
       'mantra': mantra,
+      'tags': tags,
       'overlays': overlays,
       'creator': {'id': 'c1', 'displayName': 'Gopal Das', 'isVerified': true},
     });
 
-Future<void> pumpReel(WidgetTester tester, Reel subject, {ThemeData? theme}) {
+Future<void> pumpReel(WidgetTester tester, Reel subject, {ThemeData? theme, VoidCallback? onSimilarTap}) {
   return tester.pumpWidget(
     MaterialApp(
       theme: theme ?? AppTheme.light,
@@ -77,6 +79,7 @@ Future<void> pumpReel(WidgetTester tester, Reel subject, {ThemeData? theme}) {
         onFollow: () {},
         onCreatorTap: () {},
         onToggleMute: () {},
+        onSimilarTap: onSimilarTap,
       ),
     ),
   );
@@ -204,6 +207,40 @@ void main() {
     );
     await tester.pump();
     expect(find.text('SB 1.10'), findsOneWidget);
+  });
+
+  testWidgets('cites a verse from any book by the name the API gives it', (tester) async {
+    // bookNumber alone only ever told Gita from Bhagavatam, so a third book
+    // used to be called "SB".
+    await pumpReel(
+      tester,
+      reel(verse: {
+        'id': 'v',
+        'verseId': '7.2.3',
+        'bookNumber': 7,
+        'chapterNumber': 2,
+        'verseNumber': 3,
+        'label': 'Chaitanya Charitamrita 2.3',
+      }),
+    );
+    await tester.pump();
+
+    expect(find.text('Chaitanya Charitamrita 2.3'), findsOneWidget);
+    expect(find.text('SB 2.3'), findsNothing);
+  });
+
+  testWidgets('offers more like this only when it is given somewhere to go', (tester) async {
+    await pumpReel(tester, reel(tags: const ['chapter:bhagavad-gita-2']));
+    await tester.pump();
+    expect(find.text('More like this'), findsNothing);
+
+    var opened = 0;
+    await pumpReel(tester, reel(tags: const ['chapter:bhagavad-gita-2']), onSimilarTap: () => opened++);
+    await tester.pump();
+    expect(find.text('More like this'), findsOneWidget);
+
+    await tester.tap(find.text('More like this'));
+    expect(opened, 1);
   });
 
   testWidgets('names a linked mantra', (tester) async {
