@@ -32,6 +32,7 @@ import logger from '../../config/logger.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
+import { keyTagsOf, TAG_BOOK, TAG_CANTO, TAG_CHAPTER } from '../../utils/reel-tags.js';
 import {
   REEL_PAGE_SIZE_DEFAULT,
   REEL_COMPLETION_RATIO,
@@ -109,7 +110,7 @@ export const feed = async (req, res) => {
   const ids = ranked.map((row) => row.id);
   const rows = await prisma.reel.findMany({
     where: { id: { in: ids } },
-    include: present.includes.reel(user.id),
+    include: present.includes.reel(user.id, language.readingChain(user)),
   });
 
   // The raw query already returned ids in rank order; `findMany` with `in`
@@ -140,11 +141,91 @@ export const get = async (req, res) => {
         { creator: { userId: user.id } },
       ],
     },
-    include: present.includes.reel(user.id),
+    include: present.includes.reel(user.id, language.readingChain(user)),
   });
   if (!row) throw notFound('Reel');
 
   return ok(res, await present.reel(row, user));
+};
+
+// How much each kind of shared tag counts towards "similar". The standard keys
+// (utils/reel-tags.js) say *where in a book* a reel is from, so they outweigh
+// the loose hashtags: the same chapter beats the same canto beats the same
+// book, and any number of shared hashtags beats nothing.
+const SIMILAR_WEIGHT = { chapter: 100, canto: 40, book: 15, hashtag: 3 };
+const SIMILAR_POOL = 120;
+
+/**
+ * GET /api/app/reels/:id/similar
+ *
+ * "More like this" for a reel that was made from a verse: others from the same
+ * chapter first, then the same canto, then the same book, then anything sharing
+ * a hashtag. Reels with no tags in common are not padded in — an empty list is
+ * the honest answer, and the app hides the option then.
+ *
+ * Ordered by score and, within a score, by verse order so a chapter plays in
+ * sequence. Unlike the feed it includes the reader's own reels (it is a
+ * continuation of what they are watching) but never the reel itself.
+ */
+export const similar = async (req, res) => {
+  const user = req.auth.user;
+  const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
+
+  const source = await prisma.reel.findFirst({
+    where: {
+      id: req.valid.params.id,
+      OR: [{ status: 'PUBLISHED', creator: { status: 'APPROVED' } }, { creator: { userId: user.id } }],
+    },
+    select: { id: true, tags: true, verse: { select: { verseNumber: true } } },
+  });
+  if (!source) throw notFound('Reel');
+
+  const keys = keyTagsOf(source.tags);
+  const isKey = (tag) => [TAG_BOOK, TAG_CANTO, TAG_CHAPTER].some((prefix) => tag.startsWith(prefix));
+  const hashtags = source.tags.filter((tag) => !isKey(tag));
+  // Names (`karma-yoga`) are hashtags too, but a chapter's own name matching
+  // another book's chapter of the same name is a weak signal — it counts as one.
+  const wanted = [keys.chapter, keys.canto, keys.book, ...hashtags].filter(Boolean);
+
+  if (!wanted.length) return paginated(res, [], { page, pageSize, total: 0 });
+
+  const candidates = await prisma.reel.findMany({
+    where: {
+      id: { not: source.id },
+      status: 'PUBLISHED',
+      creator: { status: 'APPROVED' },
+      tags: { hasSome: wanted },
+    },
+    select: { id: true, tags: true, publishedAt: true, verse: { select: { verseNumber: true } } },
+    orderBy: { publishedAt: 'desc' },
+    take: SIMILAR_POOL,
+  });
+
+  const score = (tags) =>
+    (keys.chapter && tags.includes(keys.chapter) ? SIMILAR_WEIGHT.chapter : 0) +
+    (keys.canto && tags.includes(keys.canto) ? SIMILAR_WEIGHT.canto : 0) +
+    (keys.book && tags.includes(keys.book) ? SIMILAR_WEIGHT.book : 0) +
+    hashtags.filter((tag) => tags.includes(tag)).length * SIMILAR_WEIGHT.hashtag;
+
+  const ranked = candidates
+    .map((c) => ({ ...c, score: score(c.tags) }))
+    .filter((c) => c.score > 0)
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        (a.verse?.verseNumber ?? Infinity) - (b.verse?.verseNumber ?? Infinity) ||
+        b.publishedAt - a.publishedAt
+    );
+
+  const ids = ranked.slice(skip, skip + pageSize).map((c) => c.id);
+  const rows = await prisma.reel.findMany({
+    where: { id: { in: ids } },
+    include: present.includes.reel(user.id, language.readingChain(user)),
+  });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+
+  return paginated(res, await present.reels(ordered, user), { page, pageSize, total: ranked.length });
 };
 
 // Loads a reel for a write, and refuses one the reader should not be acting
@@ -361,7 +442,7 @@ export const saved = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       skip,
       take,
-      include: { reel: { include: present.includes.reel(user.id) } },
+      include: { reel: { include: present.includes.reel(user.id, language.readingChain(user)) } },
     }),
   ]);
 

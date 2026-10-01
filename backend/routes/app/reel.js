@@ -71,6 +71,23 @@ router.get(
 );
 
 router.get(
+  '/:id/similar',
+  {
+    summary: 'More reels like this one',
+    description:
+      'Reels that share this reel’s standard tags — same chapter first, then the same canto, ' +
+      'then the same book — and then ones sharing a hashtag. Within a match, verse order, so a ' +
+      'chapter plays in sequence. Empty for a reel with no tags in common with anything: hide ' +
+      'the option rather than show a dead end. The reel itself is never in the list.',
+    limit: 'read',
+    params: schemas.id,
+    query: schemas.page,
+    responds: { 200: 'A page of similar reels', 404: 'No such reel' },
+  },
+  controller.similar
+);
+
+router.get(
   '/:id',
   {
     summary: 'Get one reel',

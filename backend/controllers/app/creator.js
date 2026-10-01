@@ -11,6 +11,7 @@
 
 import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { notFound, badRequest } from '../../utils/errors.js';
@@ -98,7 +99,7 @@ export const reels = async (req, res) => {
       orderBy: [{ isPinned: 'desc' }, { publishedAt: 'desc' }, { createdAt: 'desc' }],
       skip,
       take,
-      include: present.includes.reel(user.id),
+      include: present.includes.reel(user.id, language.readingChain(user)),
     }),
   ]);
 

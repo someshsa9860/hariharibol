@@ -20,7 +20,7 @@ const router = createRouter({
 // typefaces (Devanagari in particular must stay on the platform font), so the
 // panel picks from a short list rather than shipping hex codes and font names
 // the app would have to honour.
-const overlay = z.object({
+export const overlay = z.object({
   id: z.string().min(1).max(40),
   text: z.string().min(1).max(2000),
   x: z.number().min(0).max(100),
@@ -33,9 +33,14 @@ const overlay = z.object({
   // Where a quoted verse came from. Purely a note for the next editor — the
   // text above is what the app draws, and stays as written if the verse changes.
   source: z.object({ verseId: z.string().max(40), label: z.string().max(120) }).optional(),
+  // Filled from the reel's verse instead of being typed: the app swaps `text` for
+  // the verse's own field (the translation in the reader's language) when it
+  // fetches the reel, so `text` is only what a reader sees if that lookup fails.
+  // Used by reels made from a template; see controllers/admin/reel-recipe.js.
+  bind: z.enum(['sanskrit', 'transliteration', 'translation', 'reference']).optional(),
 });
 
-const key = z.string().min(1).max(500);
+export const key = z.string().min(1).max(500);
 
 const reelBody = {
   mediaType: z.enum(['VIDEO', 'IMAGE', 'AUDIO']),

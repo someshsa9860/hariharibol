@@ -53,7 +53,7 @@ const EDIT_INCLUDE = {
 // upload. Otherwise presignGet would sign whatever object the key names.
 // A value the row already holds passes untouched — reels seeded from the legacy
 // bucket carry keys that predate the generated format.
-function assertKey(key, kinds, current = []) {
+export function assertKey(key, kinds, current = []) {
   if (!key || current.includes(key)) return;
   const inKind = kinds.some((kind) => key.startsWith(`${s3.PREFIXES[kind]}/`));
   if (!s3.isGeneratedKey(key) || !inKind) throw badRequest(`Not a reel upload key: ${key}`);
@@ -93,7 +93,7 @@ function mediaOf(reel) {
 // A missing file is a black screen in the feed, so a live reel never points at
 // one. `alreadyLive` are keys readers are already loading — not re-checked, so
 // fixing a typo in the caption of an old reel is not blocked by its old media.
-async function assertShowable(reel, alreadyLive = []) {
+export async function assertShowable(reel, alreadyLive = []) {
   const { keys, missing } = mediaOf(reel);
   if (missing) throw badRequest(`Add ${missing} before publishing`);
 
@@ -150,7 +150,7 @@ async function assertReferences(body) {
 
 // The feed's "N reels" figure. Rebuildable from Reel at any time, so it is
 // recounted rather than nudged up and down.
-async function syncReelCount(...creatorIds) {
+export async function syncReelCount(...creatorIds) {
   for (const id of new Set(creatorIds.filter(Boolean))) {
     const reelCount = await prisma.reel.count({ where: { creatorId: id, status: 'PUBLISHED' } });
     await prisma.creatorProfile.update({ where: { id }, data: { reelCount } });

@@ -1739,15 +1739,17 @@ model ReelTemplate {
   isActive Boolean @default(true)
 
   config Json
-  // {
-  //   background: { type: "IMAGE"|"VIDEO", path: string },
-  //   logo:      { path: string, x, y, widthPct } | null,
-  //   text:      { x, y, widthPct, fontFamily, fontSize, color, align },
-  //   animation: { type: "NONE"|"FADE_IN"|"KEN_BURNS", durationMs }
-  // }
-  // x/y/widthPct are percentages of the frame, set by dragging the element in
-  // the admin preview — not pixels, so one template renders correctly on
-  // every device's screen.
+  // The design every reel made from this template starts from — the same shape
+  // the admin reel editor works on, minus what is per reel:
+  //   { mediaType: "VIDEO"|"IMAGE", videoPath, images: [path], audioPath,
+  //     thumbnailPath, durationMs, width, height,
+  //     overlays: [{ id, text, x, y, width, size, style, color, align,
+  //                  bind?: "sanskrit"|"transliteration"|"translation"|"reference" }] }
+  // Positions and sizes are percentages of the frame, set by dragging in the
+  // editor. An overlay with `bind` is filled from each verse when a reel is made
+  // — and again whenever it is fetched, so it follows the reader's language.
+  // `audioPath` is background music, used when a run does not use the verse's
+  // own recitation.
 
   createdBy String? // admin User.id; no relation, same as Ban.liftedById
 
@@ -1843,6 +1845,7 @@ model Reel {
   favorites   Favorite[]
 
   @@unique([templateId, verseId]) // "generate" skips a verse already paired with this template
+  @@index([tags], type: Gin) // "more like this" matches on the standard tags — see utils/reel-tags.js
   @@index([creatorId])
   @@index([status, publishedAt])
   @@index([verseId])
