@@ -15,6 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import 'package:hariharibol/app.dart';
+import 'package:hariharibol/core/navigation/app_navigator.dart';
+import 'package:hariharibol/core/navigation/app_routes.dart';
 import 'package:hariharibol/core/session/app_session.dart';
 import 'package:hariharibol/models/auth_session.dart';
 import 'package:hariharibol/core/constants/storage_keys.dart';
@@ -224,6 +226,33 @@ void main() {
 
       expect(find.byType(SignInView), findsOneWidget);
       expect(find.byType(DashboardView), findsNothing);
+    });
+
+    testWidgets('a profile update does not bring back a screen that just closed', (tester) async {
+      await signIn(tester);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      AppNavigator.instance.push(AppRoutes.languageSetup);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(LanguageView), findsOneWidget);
+
+      // What saving a language in settings does: the session takes the new
+      // user, then the screen pops itself. The session notifies on the update,
+      // and a router that refreshed on that put the picker straight back.
+      final user = AppSession.instance.user!;
+      await tester.runAsync(
+        () => AppSession.instance.updateUser(user.copyWith(appLanguage: 'hi')),
+      );
+      AppNavigator.instance.pop();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(LanguageView), findsNothing);
+      expect(find.byType(DashboardView), findsOneWidget);
     });
   });
 }

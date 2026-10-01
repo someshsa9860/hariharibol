@@ -14,6 +14,7 @@ import '../../models/home_feed.dart';
 import '../../models/verse.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/sadhana_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_image.dart';
@@ -25,6 +26,7 @@ import '../../widgets/dashboard/book_card.dart';
 import '../../widgets/dashboard/continue_reading_card.dart';
 import '../../widgets/dashboard/mantra_card.dart';
 import '../../widgets/dashboard/mood_chips.dart';
+import '../../widgets/dashboard/open_chant.dart';
 import '../../widgets/dashboard/sadhana_card.dart';
 import '../../widgets/dashboard/verse_hero_card.dart';
 
@@ -107,6 +109,10 @@ class _HomeContent extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final daily = feed.slokaOfTheDay;
     final mine = feed.mySloka;
+    // The standing preferred mantra lives on the sadhana profile, not the home
+    // feed. Read as a value, not `.when`: a slow or failed load just leaves the
+    // shortcut as a generic "Chant now" rather than holding the card back.
+    final profile = ref.watch(sadhanaTodayProvider).value?.profile;
 
     // Built as a list so each section can be handed its position and brought
     // in a beat after the one above it.
@@ -124,6 +130,8 @@ class _HomeContent extends ConsumerWidget {
         SadhanaCard(
           summary: feed.sadhana!,
           onTap: () => AppNavigator.instance.go(AppRoutes.sadhana),
+          mantraName: profile?.preferredMantraName,
+          onChant: () => openChant(ref, mantraSlug: profile?.preferredMantraSlug),
         ),
 
       // Lifetime totals, right after today's practice — a separate request

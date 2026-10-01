@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
+import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/sadhana_service.dart';
@@ -247,6 +248,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // The day this screen started from is stale the moment a round lands —
     // refreshed here rather than left for the tab's own pull to refresh.
     unawaited(ref.read(sadhanaTodayProvider.notifier).refresh());
+    unawaited(ref.read(homeFeedProvider.notifier).refresh());
     if (mounted) Navigator.of(context).pop();
   }
 

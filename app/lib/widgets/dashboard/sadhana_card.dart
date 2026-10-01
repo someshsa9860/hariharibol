@@ -17,11 +17,24 @@ import '../common/motif.dart';
 /// this shows an invitation instead of a progress bar sitting at 0 of 0 — the
 /// difference between "not started" and "failing" matters on a screen someone
 /// sees first thing in the morning.
+///
+/// The card as a whole opens the Jap tab; [onChant] is the shortcut past it,
+/// straight into the counter. It names the person's own [mantraName] when they
+/// have set one, so the button says what will be chanted, and reads "Chant
+/// now" when they have not. Null [onChant] leaves the shortcut out.
 class SadhanaCard extends StatelessWidget {
-  const SadhanaCard({super.key, required this.summary, this.onTap});
+  const SadhanaCard({
+    super.key,
+    required this.summary,
+    this.onTap,
+    this.onChant,
+    this.mantraName,
+  });
 
   final SadhanaSummary summary;
   final VoidCallback? onTap;
+  final VoidCallback? onChant;
+  final String? mantraName;
 
   static const double _panelWidth = 92;
 
@@ -55,6 +68,10 @@ class SadhanaCard extends StatelessWidget {
                       if (summary.streak > 0) ...[
                         const SizedBox(height: AppSpacing.md),
                         _Streak(label: text.sadhanaStreak(summary.streak)),
+                      ],
+                      if (onChant != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        _ChantButton(mantraName: mantraName, onPressed: onChant!),
                       ],
                     ],
                   ),
@@ -182,6 +199,38 @@ class _Streak extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ChantButton extends StatelessWidget {
+  const _ChantButton({required this.mantraName, required this.onPressed});
+
+  final String? mantraName;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    final name = mantraName;
+
+    return Semantics(
+      label: name == null ? text.sadhanaChantNow : text.homeChantMantra(name),
+      excludeSemantics: true,
+      button: true,
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+          icon: const Icon(Icons.radio_button_unchecked_rounded, size: AppSizes.iconSm),
+          label: Text(
+            name ?? text.sadhanaChantNow,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
     );
   }
 }

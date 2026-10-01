@@ -195,11 +195,42 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
           child: hasAnsweredToday
               ? Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.md),
-                  child: Text(
-                    text.homeMoodAnsweredToday,
-                    style: context.texts.bodySmall?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        text.homeMoodAnsweredToday,
+                        style: context.texts.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      // The chips above reopen these too, but they read as
+                      // finished, not tappable — so the way back to the verses
+                      // is a control that says what it does.
+                      OutlinedButton.icon(
+                        onPressed: _viewing ? null : _viewToday,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 40),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                          ),
+                        ),
+                        icon: _viewing
+                            ? SizedBox(
+                                width: AppSizes.iconSm,
+                                height: AppSizes.iconSm,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.menu_book_rounded,
+                                size: AppSizes.iconSm,
+                              ),
+                        label: Text(text.homeMoodViewToday(answeredToday.length)),
+                      ),
+                    ],
                   ),
                 )
               : _selected.isEmpty

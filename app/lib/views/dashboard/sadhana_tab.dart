@@ -22,6 +22,7 @@ import '../../widgets/common/motif.dart';
 import '../../widgets/common/section_header.dart';
 import '../../widgets/dashboard/log_rounds_sheet.dart';
 import '../../widgets/dashboard/mantra_list_tile.dart';
+import '../../widgets/dashboard/open_chant.dart';
 
 /// Chanting and today's rounds.
 ///
@@ -67,26 +68,10 @@ class _SadhanaContent extends ConsumerWidget {
 
   final SadhanaToday today;
 
-  /// Opens the counter already carrying the standing preferred mantra, the
-  /// same way tapping "chant this" from a mantra's own page does. With
+  /// Opens the counter already carrying the standing preferred mantra. With
   /// nothing preferred, this is exactly the old generic "chant now".
-  Future<void> _chantNow(BuildContext context, WidgetRef ref) async {
-    final slug = today.profile?.preferredMantraSlug;
-    final navigator = AppNavigator.instance;
-    if (slug == null) {
-      navigator.push(AppRoutes.chant);
-      return;
-    }
-
-    try {
-      final mantra = await navigator.loading.wrap(
-        () => ref.read(mantraDetailProvider(slug).future),
-      );
-      navigator.push(AppRoutes.chant, extra: mantra);
-    } on ApiFailure catch (failure) {
-      navigator.showFailure(failure);
-    }
-  }
+  Future<void> _chantNow(WidgetRef ref) =>
+      openChant(ref, mantraSlug: today.profile?.preferredMantraSlug);
 
   Future<void> _logRounds(BuildContext context, WidgetRef ref) async {
     final rounds = await showLogRoundsSheet(context);
@@ -109,7 +94,7 @@ class _SadhanaContent extends ConsumerWidget {
       _RoundsHero(
         day: today.day,
         streak: today.streak,
-        onChant: () => _chantNow(context, ref),
+        onChant: () => _chantNow(ref),
         onLogRounds: () => _logRounds(context, ref),
       ),
       const _MantraBrowser(),

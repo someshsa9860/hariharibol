@@ -136,7 +136,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeMoodAnsweredToday =>
-      'You\'ve shared how you\'re feeling today — tap it again to read the verse. Come back tomorrow to share something new.';
+      'You\'ve shared how you\'re feeling today. Come back tomorrow to share something new.';
+
+  @override
+  String homeMoodViewToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Read today\'s $count verses again',
+      one: 'Read today\'s verse again',
+    );
+    return '$_temp0';
+  }
 
   @override
   String homeMoodSubmit(int count) {
@@ -169,6 +180,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeStartYourDay => 'Set today\'s target';
+
+  @override
+  String homeChantMantra(String mantra) {
+    return 'Chant $mantra';
+  }
 
   @override
   String bookChapterCount(int count) {

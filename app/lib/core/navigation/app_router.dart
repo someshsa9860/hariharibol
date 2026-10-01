@@ -33,16 +33,23 @@ import 'app_routes.dart';
 /// The router.
 ///
 /// One redirect decides which of the three states the app is in — still
-/// reading storage, signed out, signed in — and it runs again whenever
-/// [AppSession] notifies, which is how signing out anywhere in the app lands
+/// reading storage, signed out, signed in — and it runs again whenever the
+/// session's status changes, which is how signing out anywhere in the app lands
 /// everyone back on the sign-in screen without a single `Navigator` call.
+///
+/// It listens to the status and not to [AppSession] itself, which also notifies
+/// when the profile is updated. A refresh re-applies the stack the router held
+/// before it, so one fired by a language change in settings put the screen that
+/// had just popped itself back on top.
 GoRouter createRouter() {
   final session = AppSession.instance;
+  final status = ValueNotifier<SessionStatus>(session.status);
+  session.addListener(() => status.value = session.status);
 
   final router = GoRouter(
     navigatorKey: AppNavigator.instance.rootKey,
     initialLocation: AppRoutes.splash,
-    refreshListenable: session,
+    refreshListenable: status,
     debugLogDiagnostics: false,
     redirect: (context, state) {
       final location = state.matchedLocation;

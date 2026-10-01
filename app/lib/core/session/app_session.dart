@@ -20,8 +20,8 @@ enum SessionStatus {
 /// Nothing else reads or writes them: the API client asks this class for the
 /// access token and hands it a new pair after a refresh; sign-in hands it a
 /// whole [AuthSession]; the router listens to it to decide which screen to
-/// show. Being a [ChangeNotifier] is what makes that last part work — go_router
-/// takes it as its `refreshListenable`.
+/// show. Being a [ChangeNotifier] is what makes that last part work — the router
+/// watches [status] through it, and Riverpod watches the user.
 class AppSession extends ChangeNotifier {
   AppSession._();
 

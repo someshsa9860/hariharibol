@@ -331,8 +331,14 @@ abstract class AppLocalizations {
   /// No description provided for @homeMoodAnsweredToday.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve shared how you\'re feeling today — tap it again to read the verse. Come back tomorrow to share something new.'**
+  /// **'You\'ve shared how you\'re feeling today. Come back tomorrow to share something new.'**
   String get homeMoodAnsweredToday;
+
+  /// No description provided for @homeMoodViewToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Read today\'s verse again} other{Read today\'s {count} verses again}}'**
+  String homeMoodViewToday(int count);
 
   /// No description provided for @homeMoodSubmit.
   ///
@@ -381,6 +387,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set today\'s target'**
   String get homeStartYourDay;
+
+  /// No description provided for @homeChantMantra.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant {mantra}'**
+  String homeChantMantra(String mantra);
 
   /// No description provided for @bookChapterCount.
   ///
