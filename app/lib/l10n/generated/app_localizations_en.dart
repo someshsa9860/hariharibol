@@ -928,4 +928,146 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creatorNotFound => 'That creator is no longer here.';
+
+  @override
+  String get chantAnalyticsTooltip => 'Analytics and history';
+
+  @override
+  String get chantSittingTime => 'Sitting time';
+
+  @override
+  String chantMalaTime(int number) {
+    return 'Mala $number time';
+  }
+
+  @override
+  String get chantStatCurrentMala => 'Current mala';
+
+  @override
+  String get chantStatCount => 'Count';
+
+  @override
+  String get chantStatMalasDone => 'Malas done';
+
+  @override
+  String get chantStatAvgMala => 'Avg per mala';
+
+  @override
+  String get chantStatAvgChant => 'Avg per chant';
+
+  @override
+  String get chantStatTotalChants => 'Total chants';
+
+  @override
+  String get chantStatFastestMala => 'Fastest mala';
+
+  @override
+  String get chantStatTotalTime => 'Total time';
+
+  @override
+  String get chantNoValue => '—';
+
+  @override
+  String get chantRecentTitle => 'Recent chants';
+
+  @override
+  String get chantRecentEmpty => 'Tap the ring to begin.';
+
+  @override
+  String chantTapNumber(int seq) {
+    return '#$seq';
+  }
+
+  @override
+  String get chantAutoBadge => 'Auto';
+
+  @override
+  String get chantDetectWords => 'Detect words';
+
+  @override
+  String get chantDetectWordsOff => 'Off — words aren\'t recorded';
+
+  @override
+  String get chantDetectWordsListening => 'Listening for words…';
+
+  @override
+  String get chantDetectWordsPermission =>
+      'Microphone and speech access are needed';
+
+  @override
+  String get chantDetectWordsUnavailable =>
+      'Word detection isn\'t available on this device';
+
+  @override
+  String get chantDetectWordsNote =>
+      'What is heard is kept for 7 days, then deleted.';
+
+  @override
+  String get chantAnalyticsTitle => 'Chant analytics';
+
+  @override
+  String get chantTabThisSitting => 'This sitting';
+
+  @override
+  String get chantTabHistory => 'History';
+
+  @override
+  String chantMalaTitle(int number) {
+    return 'Mala $number';
+  }
+
+  @override
+  String get chantMalaInProgress => 'In progress';
+
+  @override
+  String get chantMalaStart => 'Start';
+
+  @override
+  String get chantMalaEnd => 'End';
+
+  @override
+  String get chantMalaDuration => 'Duration';
+
+  @override
+  String chantMalaChants(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count chants',
+      one: '1 chant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chantTapsHeader => 'Every chant';
+
+  @override
+  String get chantHeardLabel => 'Heard';
+
+  @override
+  String get chantNoMalasYet =>
+      'No chants yet this sitting. Each mala you complete will be listed here, with its start, end and time taken.';
+
+  @override
+  String get chantHistoryEmpty => 'No earlier sittings yet.';
+
+  @override
+  String chantHistorySummary(int malas, int chants) {
+    return '$malas malas · $chants chants';
+  }
+
+  @override
+  String get chantHistoryNoDetail => 'Counted before chant timing was recorded';
+
+  @override
+  String get chantSessionTitle => 'Sitting';
+
+  @override
+  String get chantSessionNoMalas =>
+      'No timed malas were recorded for this sitting.';
+
+  @override
+  String get chantHeardExpiry =>
+      'Words heard are removed from your account 7 days after the sitting.';
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_repetition_counter.dart';
+import 'chant_toggle_row.dart';
 
 /// The auto-count toggle: a switch plus one line of status underneath it —
 /// listening, just counted, or why it isn't running. Only ever shown for a
@@ -20,23 +19,12 @@ class AutoChantSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(text.sadhanaAutoCount, style: context.texts.bodyMedium),
-            const SizedBox(width: AppSpacing.sm),
-            Switch(value: status.enabled, onChanged: onChanged),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          _statusText(text, status),
-          style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
-        ),
-      ],
+    return ChantToggleRow(
+      icon: Icons.graphic_eq_rounded,
+      title: text.sadhanaAutoCount,
+      status: _statusText(text, status),
+      value: status.enabled,
+      onChanged: onChanged,
     );
   }
 
