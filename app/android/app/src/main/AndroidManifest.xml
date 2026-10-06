@@ -2,6 +2,13 @@
     <!-- Auto-count listens to the mic to recognise a known mantra's own
          sound, entirely on-device — see core/constants/auto_chant_config.dart. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Word detection hands the mic to the device's own speech recogniser,
+         and Android 11+ only lets an app see one that it has declared. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+    </queries>
     <application
         android:label="hariharibol"
         android:name="${applicationName}"

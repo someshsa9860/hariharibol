@@ -14,10 +14,11 @@
 // time, and `recountDay` is the only thing allowed to write them.
 
 import { prisma } from '../../config/database.js';
-import { ok, created } from '../../utils/respond.js';
+import { ok, created, paginated } from '../../utils/respond.js';
+import { readPage } from '../../utils/pagination.js';
 import { notFound, badRequest, forbidden } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString } from '../../utils/date.js';
-import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET } from '../../config/constants.js';
+import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET, CHANT_TRANSCRIPT_TTL_DAYS } from '../../config/constants.js';
 import * as websocket from '../../services/websocket.js';
 
 /**
@@ -240,6 +241,150 @@ export const updateSession = async (req, res) => {
   });
 
   return ok(res, { session: updated, day });
+};
+
+/** The caller's own session, or the right error. */
+async function ownSession(id, user) {
+  const session = await prisma.chantSession.findUnique({ where: { id } });
+  if (!session) throw notFound('Session');
+  if (session.userId !== user.id) throw forbidden('That is not your session');
+  return session;
+}
+
+/**
+ * PUT /api/app/sadhana/chant/session/:id/detail
+ * The tap record, one row per round. Everything derived — bead count, span,
+ * average gap — is recomputed from the taps so a client bug cannot store a
+ * duration that disagrees with the taps beside it.
+ */
+export const saveChantDetail = async (req, res) => {
+  const user = req.auth.user;
+  const { id } = req.valid.params;
+  const { malas } = req.valid.body;
+  const session = await ownSession(id, user);
+
+  const rows = malas.map((mala) => {
+    const taps = [...mala.taps].sort((a, b) => a.seq - b.seq);
+    const first = taps[0];
+    const last = taps[taps.length - 1];
+    // The first tap of a round has no span of its own; the gaps after it are
+    // what a round's duration is made of.
+    const gaps = taps.slice(1).map((tap) => tap.gapMs);
+    const data = {
+      beads: taps.length,
+      startedAt: first ? new Date(first.at) : session.startedAt,
+      endedAt: last ? new Date(last.at) : null,
+      durationMs: first && last ? Math.max(0, last.at - first.at) : 0,
+      avgGapMs: gaps.length ? Math.round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length) : 0,
+      complete: Boolean(mala.complete) && taps.length >= BEADS_PER_ROUND,
+      taps,
+    };
+    return { index: mala.index, data };
+  });
+
+  const saved = await prisma.$transaction(
+    rows.map(({ index, data }) =>
+      prisma.chantMala.upsert({
+        where: { sessionId_index: { sessionId: id, index } },
+        create: { sessionId: id, userId: user.id, index, ...data },
+        update: data,
+      })
+    )
+  );
+
+  return ok(res, { malas: saved });
+};
+
+/**
+ * POST /api/app/sadhana/chant/session/:id/transcripts
+ * Short-lived — see ChantTapTranscript. `expiresAt` is stamped here so the
+ * sweep is a single indexed delete.
+ */
+export const saveChantTranscripts = async (req, res) => {
+  const user = req.auth.user;
+  const { id } = req.valid.params;
+  const { items } = req.valid.body;
+  await ownSession(id, user);
+
+  const expiresAt = new Date(Date.now() + CHANT_TRANSCRIPT_TTL_DAYS * 86400000);
+
+  await prisma.$transaction(
+    items.map((item) => {
+      const data = {
+        malaIndex: item.malaIndex,
+        text: item.text.trim(),
+        confidence: item.confidence ?? null,
+        locale: item.locale ?? null,
+        heardAt: item.heardAt,
+        expiresAt,
+      };
+      return prisma.chantTapTranscript.upsert({
+        where: { sessionId_seq: { sessionId: id, seq: item.seq } },
+        create: { sessionId: id, userId: user.id, seq: item.seq, ...data },
+        update: data,
+      });
+    })
+  );
+
+  return ok(res, { stored: items.length, expiresAt });
+};
+
+/** GET /api/app/sadhana/chant/sessions — past sittings, newest first, with their round summary. */
+export const listChantSessions = async (req, res) => {
+  const user = req.auth.user;
+  const { page, pageSize, skip, take } = readPage(req.valid.query);
+  const where = { userId: user.id, source: 'IN_APP' };
+
+  const [sessions, total] = await Promise.all([
+    prisma.chantSession.findMany({
+      where,
+      orderBy: { startedAt: 'desc' },
+      skip,
+      take,
+      include: {
+        mantra: { select: { id: true, slug: true, name: true } },
+        malas: { select: { index: true, durationMs: true, complete: true } },
+      },
+    }),
+    prisma.chantSession.count({ where }),
+  ]);
+
+  const items = sessions.map(({ malas, ...session }) => {
+    const finished = malas.filter((mala) => mala.complete);
+    return {
+      ...session,
+      malaCount: malas.length,
+      avgMalaMs: finished.length
+        ? Math.round(finished.reduce((sum, mala) => sum + mala.durationMs, 0) / finished.length)
+        : 0,
+    };
+  });
+
+  return paginated(res, items, { page, pageSize, total });
+};
+
+/** GET /api/app/sadhana/chant/session/:id — one session, its rounds and what was heard. */
+export const getChantSession = async (req, res) => {
+  const user = req.auth.user;
+  const { id } = req.valid.params;
+  await ownSession(id, user);
+
+  const [session, malas, transcripts] = await Promise.all([
+    prisma.chantSession.findUnique({
+      where: { id },
+      include: { mantra: { select: { id: true, slug: true, name: true } } },
+    }),
+    prisma.chantMala.findMany({ where: { sessionId: id }, orderBy: { index: 'asc' } }),
+    // Expired rows may still be on disk until the nightly sweep; they are gone
+    // to the reader the moment they expire.
+    prisma.chantTapTranscript.findMany({
+      where: { sessionId: id, expiresAt: { gt: new Date() } },
+      orderBy: { seq: 'asc' },
+      select: { seq: true, malaIndex: true, text: true, confidence: true, heardAt: true, expiresAt: true },
+    }),
+  ]);
+
+  return ok(res, { session, malas, transcripts });
 };
 
 /** GET /api/app/sadhana/days — history for a date range, for the calendar view. */

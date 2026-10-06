@@ -41,6 +41,12 @@ const schedules = [
     description: 'Expire lapsed subscriptions and rebuild the isPremium cache.',
   },
   {
+    name: 'chant.transcripts.prune',
+    queue: 'maintenance',
+    cron: '15 2 * * *',
+    description: 'Delete chant speech transcripts past their 7-day expiry.',
+  },
+  {
     name: 'audit.prune',
     queue: 'maintenance',
     cron: '0 3 * * 0',

@@ -40,7 +40,11 @@
 	<!-- Auto-count: listens for a known mantra's own sound to count
 	     repetitions, entirely on-device. No audio leaves the phone. -->
 	<key>NSMicrophoneUsageDescription</key>
-	<string>HariHariBol listens for your chanting to count repetitions automatically. Audio stays on your phone.</string>
+	<string>HariHariBol listens while you chant to count repetitions and, if you turn on word detection, to note the words you said.</string>
+	<!-- Word detection: iOS's own recogniser, which may send audio to Apple
+	     to be transcribed. Only the resulting text reaches our server. -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>HariHariBol uses speech recognition, only when you switch on word detection, to note which words you chanted so you can see any you missed.</string>
 	<!-- Lets --dart-define=API_BASE_URL point at a plain http://localhost
 	     backend on the dev machine. Scoped to local networking only, not a
 	     blanket ATS opt-out, so it carries no risk in a release build that

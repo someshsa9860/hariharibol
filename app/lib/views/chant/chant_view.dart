@@ -5,23 +5,33 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/app_navigator.dart';
+import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../models/chant_log.dart';
 import '../../models/mantra.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/chant_recorder.dart';
+import '../../services/chant_speech_listener.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/sadhana_service.dart';
 import '../../widgets/chant/auto_chant_switch.dart';
-import '../../widgets/common/animations.dart';
-import '../../widgets/common/eyebrow.dart';
-import '../../widgets/dashboard/mala_ring.dart';
+import '../../widgets/chant/chant_disc.dart';
+import '../../widgets/chant/chant_recent_taps.dart';
+import '../../widgets/chant/chant_summary_header.dart';
+import '../../widgets/chant/word_detect_switch.dart';
+import 'chant_analytics_view.dart';
 
 /// The counter. Tap-driven, one bead at a time, the way a thumb moves along a
 /// physical mala — a ring rather than a stopwatch, because a round is a shape
 /// completed, not a duration elapsed.
+///
+/// Every tap is stamped as it lands and kept by a [ChantRecorder], so the
+/// screen can show how long each chant, each mala and the whole sitting took —
+/// and the same record is sent to the server as the sitting goes.
 ///
 /// [mantra] is optional: most chanting on this sampradaya is the one
 /// mahamantra, so this screen works with nothing chosen and simply opens a
@@ -38,23 +48,26 @@ class ChantView extends ConsumerStatefulWidget {
 class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserver {
   static const int _beadsPerRound = 108;
 
-  /// Null until the day's own beads-per-round is read, then fixed for the
-  /// sitting — a value changing under a ring mid-count would be confusing
-  /// even if it never actually happens.
-  int _beadsPerRoundInUse = _beadsPerRound;
+  /// How often the two clocks redraw. They show whole seconds, so anything
+  /// faster is repaint work nobody can see.
+  static const Duration _clockTick = Duration(milliseconds: 500);
+
+  /// What the day's own beads-per-round says, fixed for the sitting so a value
+  /// changing under a ring mid-count never happens.
+  late final int _beadsPerRoundInUse;
+  late final ChantRecorder _recorder;
 
   String? _sessionId;
 
-  /// This sitting's own beads and rounds — what gets sent to the session.
-  int _beads = 0;
-  int _sessionRounds = 0;
-
-  /// Today's total including whatever was chanted before this sitting, purely
-  /// for the number shown in the ring — continuity with the day, not a reset
-  /// to zero every time the screen opens.
-  int _totalRounds = 0;
+  /// Rounds already chanted today before this sitting, purely for the number
+  /// in the ring — continuity with the day, not a reset to zero every time the
+  /// screen opens.
+  int _roundsBefore = 0;
   int _target = 0;
   bool _targetAnnounced = false;
+
+  /// Counts taps, to restart the ring's ripple on each one.
+  int _pulse = 0;
 
   Timer? _syncDebounce;
   bool _finishing = false;
@@ -66,40 +79,36 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   StreamSubscription<AutoChantStatus>? _autoChantStatusSub;
   StreamSubscription<void>? _autoChantRepetitionSub;
 
-  /// Runs for the whole sitting, screen-open to screen-close — what "elapsed"
-  /// on the counter means. Pace is a separate measure: taps, not wall time
-  /// since opening, because a sitting can start with the phone just sitting
-  /// there while attention is elsewhere.
+  /// Created the first time word detection is switched on.
+  ChantSpeechListener? _speech;
+  ChantSpeechState _speechState = ChantSpeechState.off;
+
+  /// Runs for the whole sitting, screen-open to screen-close — what "sitting
+  /// time" on the counter means.
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _clockTicker;
 
-  /// Every tap this sitting, counted independent of the ring wrapping at
-  /// [_beadsPerRoundInUse] — pace is per repetition, not per round.
-  int _tapsThisSitting = 0;
+  /// Bumped by the clock; only the header listens, so the ring and the lists
+  /// are not redrawn twice a second.
+  final ValueNotifier<int> _clock = ValueNotifier(0);
 
-  /// The stopwatch reading at the very first tap. Pace is measured from here,
-  /// not from zero, so the time spent reading the mantra before the first
-  /// bead never gets folded into "how long one repetition takes."
-  int? _firstTapMs;
+  int get _totalRounds => _roundsBefore + _recorder.completedMalas;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final today = ref.read(sadhanaTodayProvider).value;
-    _totalRounds = today?.day.roundsCompleted ?? 0;
+    _roundsBefore = today?.day.roundsCompleted ?? 0;
     _target = today?.day.roundTarget ?? 0;
     _beadsPerRoundInUse = today?.beadsPerRound ?? _beadsPerRound;
-    _targetAnnounced = _target > 0 && _totalRounds >= _target;
+    _recorder = ChantRecorder(beadsPerRound: _beadsPerRoundInUse);
+    _targetAnnounced = _target > 0 && _roundsBefore >= _target;
     unawaited(_startSession());
     _initAutoChant();
 
     _stopwatch.start();
-    // A tenth of a second is plenty for a number meant to be read, not raced
-    // against — anything faster is repaint work nobody can actually see.
-    _clockTicker = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      if (mounted) setState(() {});
-    });
+    _clockTicker = Timer.periodic(_clockTick, (_) => _clock.value += 1);
   }
 
   void _initAutoChant() {
@@ -112,16 +121,17 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantStatusSub = session.statusStream.listen((status) {
       if (mounted) setState(() => _autoChantStatus = status);
     });
-    _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead());
+    _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // The mic has no business listening while the app cannot be seen. The
-    // switch itself is left as the user set it — coming back to the app
-    // does not silently turn the mic back on.
+    // switches themselves are left as the user set them — coming back to the
+    // app does not silently turn the mic back on.
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       unawaited(_autoChant?.disable());
+      unawaited(_speech?.stop());
     }
   }
 
@@ -130,9 +140,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     WidgetsBinding.instance.removeObserver(this);
     _syncDebounce?.cancel();
     _clockTicker?.cancel();
+    _clock.dispose();
     _stopwatch.stop();
     _autoChantStatusSub?.cancel();
     _autoChantRepetitionSub?.cancel();
+    _speech?.state.removeListener(_onSpeechState);
+    unawaited(_speech?.dispose());
     unawaited(_autoChant?.dispose());
     // Best effort: dispose cannot be awaited, so a sync already in flight or
     // triggered here may not finish before the widget is gone. The explicit
@@ -141,59 +154,52 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     super.dispose();
   }
 
-  /// Seconds since the screen opened, for the "elapsed" reading.
-  double get _elapsedSeconds => _stopwatch.elapsedMilliseconds / 1000;
-
-  /// Average seconds per repetition, from the first tap onward. Null until
-  /// there have been at least two taps — one tap alone has no interval to
-  /// measure yet, and showing "0.0s" would read as a stopped watch rather
-  /// than as "not enough data."
-  double? get _paceSeconds {
-    final firstTapMs = _firstTapMs;
-    if (firstTapMs == null || _tapsThisSitting < 2) return null;
-    final elapsedMs = _stopwatch.elapsedMilliseconds - firstTapMs;
-    return elapsedMs / 1000 / (_tapsThisSitting - 1);
-  }
-
   Future<void> _startSession() async {
     try {
       final session = await SadhanaService.instance.startSession(mantraId: widget.mantra?.id);
-      if (mounted) setState(() => _sessionId = session.id);
+      if (!mounted) return;
+      setState(() => _sessionId = session.id);
+      // Whatever was counted before the session existed goes up with it.
+      if (_recorder.hasUnsent) _scheduleSync();
     } catch (_) {
       // Chanting does not wait on the network. A tap before the session
       // exists still counts locally, and the next sync retries the start.
     }
   }
 
-  void _tapBead() {
+  void _tapBead({bool auto = false}) {
     HapticFeedback.selectionClick();
-    _firstTapMs ??= _stopwatch.elapsedMilliseconds;
-    setState(() {
-      _beads += 1;
-      _tapsThisSitting += 1;
-      if (_beads >= _beadsPerRoundInUse) {
-        _beads = 0;
-        _sessionRounds += 1;
-        _totalRounds += 1;
-        HapticFeedback.mediumImpact();
-      }
-    });
+    final tap = _recorder.tap(auto: auto);
+
+    final heard = _speech?.takeHeard();
+    if (heard != null) {
+      _recorder.attachHeard(
+        ChantHeard(
+          seq: tap.seq,
+          malaIndex: _recorder.malaOf(tap.seq),
+          text: heard.text,
+          heardAt: tap.at,
+          confidence: heard.confidence,
+        ),
+      );
+    }
+
+    final roundCompleted = _recorder.beadsInMala == 0;
+    if (roundCompleted) HapticFeedback.mediumImpact();
+    setState(() => _pulse += 1);
 
     if (!_targetAnnounced && _target > 0 && _totalRounds >= _target) {
       _targetAnnounced = true;
       AppNavigator.instance.showMessage(AppLocalizations.of(context).sadhanaTargetReached);
     }
 
-    _scheduleSync(immediate: _beads == 0);
+    _scheduleSync(immediate: roundCompleted);
   }
 
   void _undoBead() {
-    if (_beads == 0) return;
+    if (!_recorder.undo()) return;
     HapticFeedback.selectionClick();
-    setState(() {
-      _beads -= 1;
-      if (_tapsThisSitting > 0) _tapsThisSitting -= 1;
-    });
+    setState(() {});
     _scheduleSync();
   }
 
@@ -201,6 +207,24 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     final session = _autoChant;
     if (session == null) return Future.value();
     return enabled ? session.enable() : session.disable();
+  }
+
+  Future<void> _toggleWords(bool enabled) async {
+    if (!enabled) {
+      await _speech?.stop();
+      return;
+    }
+    final speech = _speech ??
+        (ChantSpeechListener(
+          contextualPhrases: widget.mantra == null ? null : [widget.mantra!.text],
+        )..state.addListener(_onSpeechState));
+    _speech = speech;
+    await speech.start();
+  }
+
+  void _onSpeechState() {
+    final state = _speech?.state.value;
+    if (state != null && mounted) setState(() => _speechState = state);
   }
 
   void _scheduleSync({bool immediate = false}) {
@@ -220,13 +244,30 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     try {
       await SadhanaService.instance.updateSession(
         id,
-        rounds: _sessionRounds,
-        beads: _beads,
+        rounds: _recorder.completedMalas,
+        beads: _recorder.beadsInMala,
         finish: finish,
       );
     } catch (_) {
       // A background sync failing is not something to interrupt chanting
       // for. The next tap schedules another one with the same running totals.
+    }
+
+    await _syncRecord(id);
+  }
+
+  /// Sends the rounds and words that changed since the last send. What fails
+  /// is put back on the recorder, so the next sync carries it.
+  Future<void> _syncRecord(String id) async {
+    final malas = _recorder.takeDirtyMalas();
+    final heard = _recorder.takeUnsentHeard();
+    if (malas.isEmpty && heard.isEmpty) return;
+
+    try {
+      if (malas.isNotEmpty) await SadhanaService.instance.saveChantDetail(id, malas);
+      if (heard.isNotEmpty) await SadhanaService.instance.saveChantTranscripts(id, heard);
+    } catch (_) {
+      _recorder.restoreUnsent(malas: malas, heard: heard);
     }
   }
 
@@ -252,6 +293,17 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _openAnalytics() {
+    AppNavigator.instance.push(
+      AppRoutes.chantAnalytics,
+      extra: ChantAnalyticsArgs(
+        malas: _recorder.malas,
+        sittingTime: _stopwatch.elapsed,
+        beadsPerRound: _beadsPerRoundInUse,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -270,122 +322,100 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
           ),
           title: Text(title, style: context.texts.titleMedium),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.insights_rounded),
+              tooltip: text.chantAnalyticsTooltip,
+              onPressed: _openAnalytics,
+            ),
+          ],
         ),
         body: SafeArea(
-          // A scrollable centered column rather than a bare centered one: the
-          // mantra text below varies in length, and a long one on a short
-          // phone must scroll rather than overflow the screen.
-          child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.xl,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (widget.mantra != null) ...[
-                      Text(
-                        widget.mantra!.text,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.verse(context, size: 24),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                    ],
-                    if (_target > 0) ...[
-                      Text(
-                        text.sadhanaRoundsProgress(_totalRounds, _target),
-                        style: context.texts.bodyMedium?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                    ],
-                    TapScale(
-                      onTap: _tapBead,
-                      child: MalaRing(
-                        beadsInRound: _beads,
-                        roundsCompleted: _totalRounds,
-                        roundsLabel: text.sadhanaRoundsCaption,
-                        beadsPerRound: _beadsPerRoundInUse,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    _ChantStats(elapsedSeconds: _elapsedSeconds, paceSeconds: _paceSeconds),
-                    const SizedBox(height: AppSpacing.lg),
-                    IconButton(
-                      onPressed: _beads > 0 ? _undoBead : null,
-                      icon: const Icon(Icons.undo_rounded),
-                      tooltip: text.sadhanaUndoBead,
-                    ),
-                    if (_autoChant != null) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      AutoChantSwitch(status: _autoChantStatus, onChanged: _toggleAutoChant),
-                    ],
-                  ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: _clock,
+                  builder: (context, _, _) => ChantSummaryHeader(
+                    sittingTime: _stopwatch.elapsed,
+                    malaTime: _recorder.currentMalaElapsed,
+                    currentMala: _recorder.currentMala,
+                    beadsInMala: _recorder.beadsInMala,
+                    beadsPerRound: _beadsPerRoundInUse,
+                    stats: _recorder.stats,
+                  ),
                 ),
-              ),
+                const SizedBox(height: AppSpacing.xl),
+                if (widget.mantra != null) ...[
+                  Text(
+                    widget.mantra!.text,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.verse(context, size: 22),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+                if (_target > 0) ...[
+                  Text(
+                    text.sadhanaRoundsProgress(_totalRounds, _target),
+                    textAlign: TextAlign.center,
+                    style: context.texts.bodyMedium?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                Center(
+                  child: ChantDisc(
+                    beadsInRound: _recorder.beadsInMala,
+                    roundsCompleted: _totalRounds,
+                    roundsLabel: text.sadhanaRoundsCaption,
+                    beadsPerRound: _beadsPerRoundInUse,
+                    pulse: _pulse,
+                    onTap: _tapBead,
+                  ),
+                ),
+                Align(
+                  child: IconButton(
+                    onPressed: _recorder.beadsInMala > 0 ? _undoBead : null,
+                    icon: const Icon(Icons.undo_rounded),
+                    tooltip: text.sadhanaUndoBead,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ChantRecentTaps(taps: _recorder.taps),
+                const SizedBox(height: AppSpacing.xl),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Column(
+                      children: [
+                        if (_autoChant != null) ...[
+                          AutoChantSwitch(status: _autoChantStatus, onChanged: _toggleAutoChant),
+                          const Divider(),
+                        ],
+                        WordDetectSwitch(state: _speechState, onChanged: _toggleWords),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  text.chantDetectWordsNote,
+                  textAlign: TextAlign.center,
+                  style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+                ),
+              ],
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Elapsed time and average pace, read together the way a stopwatch and a lap
-/// counter sit side by side — two numbers about the same sitting, not one
-/// competing with the ring for attention.
-class _ChantStats extends StatelessWidget {
-  const _ChantStats({required this.elapsedSeconds, required this.paceSeconds});
-
-  final double elapsedSeconds;
-
-  /// Null until there have been at least two taps to measure an interval
-  /// between.
-  final double? paceSeconds;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context);
-    final pace = paceSeconds;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _ChantStat(
-          label: text.sadhanaElapsedEyebrow,
-          value: text.sadhanaElapsedSeconds(elapsedSeconds.toStringAsFixed(1)),
-        ),
-        if (pace != null) ...[
-          const SizedBox(width: AppSpacing.xxl),
-          _ChantStat(
-            label: text.sadhanaPaceEyebrow,
-            value: text.sadhanaPacePerMantra(pace.toStringAsFixed(1)),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _ChantStat extends StatelessWidget {
-  const _ChantStat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Eyebrow(label),
-        const SizedBox(height: AppSpacing.xs),
-        Text(value, style: AppTypography.numeral(context, size: 22)),
-      ],
     );
   }
 }

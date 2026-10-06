@@ -114,6 +114,27 @@ Rules that follow from it:
 - **A motif is the fallback for a missing image**, not a grey box. Most of the library has no cover art and never will; absence should look deliberate.
 - **No control that does nothing.** The verse card's arrow appears only when there is a screen to open; a play button waits on audio existing. Ship the section without the affordance rather than with a dead one.
 
+## The chant counter
+
+`views/chant/chant_view.dart` is the tap counter. Every tap is stamped by a `ChantRecorder`
+(`services/chant_recorder.dart`, pure Dart, clock injected — `test/chant_recorder_test.dart`):
+a round is simply the next `beadsPerRound` taps, so which round a tap belongs to, and a
+round's start, end and duration, are read off the taps rather than stored beside them. A
+chant's duration is its **gap** — time since the tap before it; the first tap of a sitting
+has none and every average leaves it out.
+
+- **Server record.** Changed rounds go up with the existing 2-second session sync
+  (`PUT …/chant/session/:id/detail`, idempotent per round); a failed send is put back on the
+  recorder. History is read from `GET …/chant/sessions` and `…/chant/session/:id`.
+- **Word detection** (`services/chant_speech_listener.dart`, the `speech_to_text` plugin) is a
+  separate switch from auto-count. Each tap takes the words heard since the tap before it;
+  they are sent to `…/transcripts`, which the server **deletes after 7 days**. Audio is not
+  recorded or uploaded — an S3 upload for later server-side transcription is the unbuilt
+  alternative (`ChantTapTranscript.audioKey` is reserved for it).
+- **Mic sharing.** Auto-count (`record`) and word detection (the OS recogniser) both want the
+  microphone. Whether they can run together is a per-device question — check it on hardware
+  before promising both at once.
+
 ## State management
 
 **Riverpod.** Used everywhere — no second state solution alongside it.

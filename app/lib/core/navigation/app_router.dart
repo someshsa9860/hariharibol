@@ -5,6 +5,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../models/search_result.dart';
 import '../../views/auth/sign_in_view.dart';
+import '../../views/chant/chant_analytics_view.dart';
+import '../../views/chant/chant_session_view.dart';
 import '../../views/chant/chant_view.dart';
 import '../../views/dashboard/dashboard_view.dart';
 import '../../views/dashboard/home_tab.dart';
@@ -159,6 +161,16 @@ GoRouter createRouter() {
         path: AppRoutes.chant,
         name: RouteNames.chant,
         builder: (context, state) => ChantView(mantra: state.extra as Mantra?),
+      ),
+      GoRoute(
+        path: AppRoutes.chantAnalytics,
+        name: RouteNames.chantAnalytics,
+        builder: (context, state) => ChantAnalyticsView(args: state.extra as ChantAnalyticsArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.chantSessionPattern,
+        name: RouteNames.chantSession,
+        builder: (context, state) => ChantSessionView(sessionId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.reels,

@@ -1809,6 +1809,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That creator is no longer here.'**
   String get creatorNotFound;
+
+  /// No description provided for @chantAnalyticsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics and history'**
+  String get chantAnalyticsTooltip;
+
+  /// No description provided for @chantSittingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Sitting time'**
+  String get chantSittingTime;
+
+  /// No description provided for @chantMalaTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Mala {number} time'**
+  String chantMalaTime(int number);
+
+  /// No description provided for @chantStatCurrentMala.
+  ///
+  /// In en, this message translates to:
+  /// **'Current mala'**
+  String get chantStatCurrentMala;
+
+  /// No description provided for @chantStatCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get chantStatCount;
+
+  /// No description provided for @chantStatMalasDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Malas done'**
+  String get chantStatMalasDone;
+
+  /// No description provided for @chantStatAvgMala.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg per mala'**
+  String get chantStatAvgMala;
+
+  /// No description provided for @chantStatAvgChant.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg per chant'**
+  String get chantStatAvgChant;
+
+  /// No description provided for @chantStatTotalChants.
+  ///
+  /// In en, this message translates to:
+  /// **'Total chants'**
+  String get chantStatTotalChants;
+
+  /// No description provided for @chantStatFastestMala.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastest mala'**
+  String get chantStatFastestMala;
+
+  /// No description provided for @chantStatTotalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time'**
+  String get chantStatTotalTime;
+
+  /// No description provided for @chantNoValue.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get chantNoValue;
+
+  /// No description provided for @chantRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent chants'**
+  String get chantRecentTitle;
+
+  /// No description provided for @chantRecentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the ring to begin.'**
+  String get chantRecentEmpty;
+
+  /// No description provided for @chantTapNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'#{seq}'**
+  String chantTapNumber(int seq);
+
+  /// No description provided for @chantAutoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get chantAutoBadge;
+
+  /// No description provided for @chantDetectWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect words'**
+  String get chantDetectWords;
+
+  /// No description provided for @chantDetectWordsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — words aren\'t recorded'**
+  String get chantDetectWordsOff;
+
+  /// No description provided for @chantDetectWordsListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening for words…'**
+  String get chantDetectWordsListening;
+
+  /// No description provided for @chantDetectWordsPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone and speech access are needed'**
+  String get chantDetectWordsPermission;
+
+  /// No description provided for @chantDetectWordsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Word detection isn\'t available on this device'**
+  String get chantDetectWordsUnavailable;
+
+  /// No description provided for @chantDetectWordsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'What is heard is kept for 7 days, then deleted.'**
+  String get chantDetectWordsNote;
+
+  /// No description provided for @chantAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant analytics'**
+  String get chantAnalyticsTitle;
+
+  /// No description provided for @chantTabThisSitting.
+  ///
+  /// In en, this message translates to:
+  /// **'This sitting'**
+  String get chantTabThisSitting;
+
+  /// No description provided for @chantTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get chantTabHistory;
+
+  /// No description provided for @chantMalaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mala {number}'**
+  String chantMalaTitle(int number);
+
+  /// No description provided for @chantMalaInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get chantMalaInProgress;
+
+  /// No description provided for @chantMalaStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get chantMalaStart;
+
+  /// No description provided for @chantMalaEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get chantMalaEnd;
+
+  /// No description provided for @chantMalaDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get chantMalaDuration;
+
+  /// No description provided for @chantMalaChants.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 chant} other{{count} chants}}'**
+  String chantMalaChants(int count);
+
+  /// No description provided for @chantTapsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Every chant'**
+  String get chantTapsHeader;
+
+  /// No description provided for @chantHeardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heard'**
+  String get chantHeardLabel;
+
+  /// No description provided for @chantNoMalasYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No chants yet this sitting. Each mala you complete will be listed here, with its start, end and time taken.'**
+  String get chantNoMalasYet;
+
+  /// No description provided for @chantHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier sittings yet.'**
+  String get chantHistoryEmpty;
+
+  /// No description provided for @chantHistorySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{malas} malas · {chants} chants'**
+  String chantHistorySummary(int malas, int chants);
+
+  /// No description provided for @chantHistoryNoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted before chant timing was recorded'**
+  String get chantHistoryNoDetail;
+
+  /// No description provided for @chantSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sitting'**
+  String get chantSessionTitle;
+
+  /// No description provided for @chantSessionNoMalas.
+  ///
+  /// In en, this message translates to:
+  /// **'No timed malas were recorded for this sitting.'**
+  String get chantSessionNoMalas;
+
+  /// No description provided for @chantHeardExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Words heard are removed from your account 7 days after the sitting.'**
+  String get chantHeardExpiry;
 }
 
 class _AppLocalizationsDelegate

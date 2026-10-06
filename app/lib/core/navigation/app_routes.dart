@@ -68,6 +68,14 @@ abstract final class AppRoutes {
   /// is not a screen to half-see while switching tabs.
   static const String chant = '/chant';
 
+  /// The counter's analytics: this sitting by mala, and the history. Pushed
+  /// over [chant] with a snapshot of the sitting as its `extra`.
+  static const String chantAnalytics = '/chant/analytics';
+
+  /// One past sitting. Registered under [chantSessionPattern].
+  static const String chantSessionPattern = '/chant/sessions/:id';
+  static String chantSessionPath(String id) => '/chant/sessions/$id';
+
   /// Reels. Pushed from the nav bar's action circle rather than a tab — the
   /// one thing worth reaching from anywhere, same treatment [chant] used to
   /// get before Jap became a tab of its own.
@@ -107,6 +115,8 @@ abstract final class RouteNames {
   static const String bookCanto = 'bookCanto';
   static const String chapterRead = 'chapterRead';
   static const String chant = 'chant';
+  static const String chantAnalytics = 'chantAnalytics';
+  static const String chantSession = 'chantSession';
   static const String reels = 'reels';
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';

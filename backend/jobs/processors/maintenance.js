@@ -26,6 +26,15 @@ const RETENTION_DAYS = {
 const cutoff = (days) => new Date(Date.now() - days * 86400000);
 
 export default async function maintenanceProcessor(job) {
+  // The transcript sweep is daily where everything below is weekly, and shares
+  // the queue — so it is told apart by name rather than run with the rest.
+  if (job.name === 'chant.transcripts.prune') {
+    const count = (await prisma.chantTapTranscript.deleteMany({ where: { expiresAt: { lt: new Date() } } }))
+      .count;
+    logger.info({ count }, 'chant transcript prune finished');
+    return { chantTranscript: count };
+  }
+
   const results = {};
 
   results.auditLog = (

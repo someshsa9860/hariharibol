@@ -108,6 +108,11 @@ const SOURCE_LANGUAGE = 'sa';
 const BEADS_PER_ROUND = 108;
 const DEFAULT_ROUND_TARGET = 16;
 
+// What speech recognition heard while someone chanted is bulky and only worth
+// having while the sitting is fresh, so it is stamped to expire on write and
+// swept nightly (see jobs/processors/maintenance.js).
+const CHANT_TRANSCRIPT_TTL_DAYS = 7;
+
 // ── Pagination ─────────────────────────────────────────────────────────────
 const PAGE_SIZE_DEFAULT = 20;
 const PAGE_SIZE_MAX = 100;
@@ -177,6 +182,7 @@ export {
   SOURCE_LANGUAGE,
   BEADS_PER_ROUND,
   DEFAULT_ROUND_TARGET,
+  CHANT_TRANSCRIPT_TTL_DAYS,
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,
   REEL_PAGE_SIZE_DEFAULT,
