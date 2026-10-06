@@ -70,6 +70,9 @@ const languages = [
   { code: 'te', nativeName: 'తెలుగు', englishName: 'Telugu', displayOrder: 8 },
   { code: 'kn', nativeName: 'ಕನ್ನಡ', englishName: 'Kannada', displayOrder: 9 },
   { code: 'or', nativeName: 'ଓଡ଼ିଆ', englishName: 'Odia', displayOrder: 10 },
+  { code: 'pa', nativeName: 'ਪੰਜਾਬੀ', englishName: 'Punjabi', displayOrder: 11 },
+  { code: 'ml', nativeName: 'മലയാളം', englishName: 'Malayalam', displayOrder: 12 },
+  { code: 'as', nativeName: 'অসমীয়া', englishName: 'Assamese', displayOrder: 13 },
 ];
 
 // ── Issues ─────────────────────────────────────────────────────────────────

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, MoreHorizontal, Plus, Send, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Languages, MoreHorizontal, Plus, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
+import { MantraTranslations } from '@/components/mantra-translations';
 import { useResourceMutation } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { api, ApiRequestError } from '@/lib/api';
@@ -52,6 +53,7 @@ export function MantrasPage() {
   const { hasPermission } = useAuth();
   const [editing, setEditing] = useState<Mantra | 'new' | null>(null);
   const [viewing, setViewing] = useState<Mantra | null>(null);
+  const [translating, setTranslating] = useState<Mantra | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
 
@@ -143,7 +145,18 @@ export function MantrasPage() {
       header: 'Translations',
       sort: 'translations',
       csv: (m) => m._count.translations,
-      render: (m) => (m._count.translations === 0 ? <Badge variant="warning">None</Badge> : m._count.translations),
+      render: (m) => (
+        <button
+          type="button"
+          className="rounded hover:underline"
+          onClick={(e) => {
+            e.stopPropagation();
+            setTranslating(m);
+          }}
+        >
+          {m._count.translations === 0 ? <Badge variant="warning">None</Badge> : `${m._count.translations} languages`}
+        </button>
+      ),
     },
     {
       key: 'audio',
@@ -188,6 +201,10 @@ export function MantrasPage() {
             <DropdownMenuItem onClick={() => setViewing(m)}>
               <Eye className="mr-2 h-4 w-4" />
               View details
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTranslating(m)}>
+              <Languages className="mr-2 h-4 w-4" />
+              Translations
             </DropdownMenuItem>
             {canWrite && <DropdownMenuItem onClick={() => setEditing(m)}>Edit</DropdownMenuItem>}
             {canPublish && (
@@ -315,6 +332,8 @@ export function MantrasPage() {
         </DialogContent>
       </Dialog>
 
+      <MantraTranslations mantra={translating} onClose={() => setTranslating(null)} canWrite={canWrite} canDelete={canDelete} />
+
       <DetailDialog
         open={!!viewing}
         onOpenChange={(open) => !open && setViewing(null)}
@@ -325,7 +344,22 @@ export function MantrasPage() {
             ? [
                 { label: 'Category', value: <Badge variant="outline">{viewing.category}</Badge> },
                 { label: 'Deity / Guru', value: viewing.deity?.name ?? viewing.guru?.name ?? '—' },
-                { label: 'Translations', value: viewing._count.translations },
+                {
+                  label: 'Translations',
+                  value: (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setTranslating(viewing);
+                        setViewing(null);
+                      }}
+                    >
+                      <Languages className="h-4 w-4" />
+                      {viewing._count.translations} languages — view / edit
+                    </Button>
+                  ),
+                },
                 { label: 'Audio', value: viewing.audioPath ? 'Attached' : 'None' },
                 { label: 'Duration', value: viewing.durationMs ? formatDuration(viewing.durationMs) : '—' },
                 {

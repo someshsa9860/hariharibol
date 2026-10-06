@@ -13,6 +13,8 @@
 
 import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
+import { meanings } from './mantra-meanings.js';
+import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
 const prisma = new PrismaClient();
@@ -95,6 +97,30 @@ async function seedReference() {
   log(`${data.translators.length} translators`);
 }
 
+// The mantra written out in every language's script, generated from the
+// Devanagari source, plus Hindi and Marathi meanings. Create-only: once an
+// editor has corrected a row in the admin panel, re-seeding must not undo it.
+async function seedMantraScripts(mantra, sanskrit) {
+  const languages = await prisma.language.findMany({ where: { isMantraLanguage: true } });
+  const meaning = meanings[mantra.slug] ?? {};
+
+  for (const { code } of languages) {
+    if (code === 'en') continue; // hand-written, with its own meaning and purport
+
+    await prisma.mantraTranslation.upsert({
+      where: { mantraId_languageCode: { mantraId: mantra.id, languageCode: code } },
+      update: {},
+      create: {
+        mantraId: mantra.id,
+        languageCode: code,
+        text: isDevanagari(code) ? sanskrit : fromDevanagari(sanskrit, code),
+        meaning: meaning[code] ?? null,
+        isPublished: true,
+      },
+    });
+  }
+}
+
 async function seedMantras() {
   for (const mantra of data.mantras) {
     const { deity, guru, translations, ...fields } = mantra;
@@ -115,6 +141,8 @@ async function seedMantras() {
         create: { ...translation, mantraId: saved.id, isPublished: true },
       });
     }
+
+    await seedMantraScripts(saved, mantra.sanskrit);
   }
   log(`${data.mantras.length} mantras`);
 }
