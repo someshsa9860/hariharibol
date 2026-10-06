@@ -1,1 +1,0 @@
-export { MessageSchema } from './index';

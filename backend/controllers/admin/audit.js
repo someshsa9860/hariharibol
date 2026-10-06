@@ -1,0 +1,78 @@
+// The audit log — who changed what.
+
+import { prisma } from '../../config/database.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate, readSort } from '../../utils/pagination.js';
+
+// Columns the audit table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  action: 'action',
+  entityType: 'entityType',
+};
+
+/** GET /api/admin/audit */
+export const list = async (req, res) => {
+  const { q, actorId, action, entityType, entityId, from, to } = req.valid.query;
+
+  const { items, page } = await paginate(prisma.auditLog, {
+    where: {
+      // Free-text: who did it (email), what it was (action), or which record.
+      ...(q
+        ? {
+            OR: [
+              { action: { contains: q, mode: 'insensitive' } },
+              { entityId: { contains: q } },
+              { actor: { email: { contains: q, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+      ...(actorId ? { actorId } : {}),
+      ...(action ? { action: { startsWith: action } } : {}),
+      ...(entityType ? { entityType } : {}),
+      ...(entityId ? { entityId } : {}),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from ? { gte: new Date(from) } : {}),
+              ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
+            },
+          }
+        : {}),
+    },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
+    include: { actor: { select: { id: true, name: true, email: true } } },
+    query: req.valid.query,
+  });
+
+  return paginated(res, items, page);
+};
+
+/**
+ * GET /api/admin/audit/entity/:entityType/:entityId
+ * Everything that has happened to one record, oldest first — the history of a
+ * book, a user, a plan.
+ */
+export const forEntity = async (req, res) => {
+  const { entityType, entityId } = req.valid.params;
+
+  const entries = await prisma.auditLog.findMany({
+    where: { entityType, entityId },
+    orderBy: { createdAt: 'asc' },
+    include: { actor: { select: { id: true, name: true, email: true } } },
+  });
+
+  return ok(res, entries);
+};
+
+/** GET /api/admin/audit/actions — the distinct action names, for the filter dropdown. */
+export const actions = async (req, res) => {
+  const rows = await prisma.auditLog.groupBy({
+    by: ['action'],
+    _count: { _all: true },
+    orderBy: { _count: { action: 'desc' } },
+    take: 100,
+  });
+
+  return ok(res, rows.map((row) => ({ action: row.action, count: row._count._all })));
+};

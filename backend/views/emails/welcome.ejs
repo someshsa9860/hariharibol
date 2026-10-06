@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome to HariHariBol</title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Welcome<%= name ? `, ${name}` : '' %></h1>
+
+    <p>Your account is ready. A few things worth knowing:</p>
+
+    <div class="card">
+      <h2 style="margin-top:0">Set your three languages</h2>
+      <p class="meaning">
+        The app you read, the script you chant in, and the language you read meanings in are
+        three separate choices. They can all differ, or all match.
+      </p>
+
+      <h2>Start your sadhana</h2>
+      <p class="meaning">
+        Set a daily round target and chant in the app, or enter your rounds afterwards if you
+        chant on beads.
+      </p>
+
+      <h2>A sloka each day</h2>
+      <p class="meaning">
+        A verse from the Bhagavad Gita or the Srimad Bhagavatam, every morning.
+      </p>
+    </div>
+
+    <footer class="muted">
+      <p>HariHariBol &middot; <%= year %></p>
+    </footer>
+  </div>
+</body>
+</html>

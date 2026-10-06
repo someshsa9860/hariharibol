@@ -1,1 +1,0 @@
-export { ChatbotMessageSchema } from './index';

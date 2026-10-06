@@ -1,458 +1,148 @@
-# HariHariBol Backend — NestJS + PostgreSQL + Prisma
+# HariHariBol — Backend
 
-Complete Node.js backend for the Sanatan Devotee Platform with support for multiple AI providers (Claude, OpenAI, Gemini), real-time messaging, and moderation.
+Plain Node.js — **ESM, no TypeScript, no build step**. Express, Prisma, Postgres, Redis.
 
-## Stack
+The rules this is built to are in [CLAUDE.md](CLAUDE.md). This file is how to run it.
 
-- **Framework:** NestJS 10+ (TypeScript)
-- **Database:** PostgreSQL 16
-- **ORM:** Prisma 5
-- **Real-time:** Socket.IO for group chat
-- **Jobs:** BullMQ + Redis for async tasks
-- **Cache:** Redis + cache-manager
-- **Auth:** JWT + Google/Apple OAuth
-- **AI:** Multi-provider abstraction (Claude, OpenAI, Gemini)
-- **Push Notifications:** Firebase Cloud Messaging + APNs
-- **Storage:** AWS S3 / Google Cloud Storage
-- **Monitoring:** Sentry
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- Docker & Docker Compose (for PostgreSQL + Redis)
-- PostgreSQL 16 (or use Docker)
-- Redis (or use Docker)
-
-### Setup
-
-1. **Clone and install dependencies:**
+## Getting started
 
 ```bash
-cd backend
+cp .env.example .env          # then fill in DATABASE_URL and JWT_SECRET
 npm install
+npx prisma migrate dev        # creates the schema
+npm run seed                  # roles, languages, issues, deities, plans, settings
+npm run dev                   # http://localhost:4000
 ```
 
-2. **Start Docker containers:**
+Then open **http://localhost:4000/docs** — every endpoint, with what it does and
+what it needs.
+
+### With Docker
 
 ```bash
-docker-compose up -d
+docker compose up --build
 ```
 
-This starts:
-- PostgreSQL on `5432`
-- Redis on `6379`
-- Adminer (DB UI) on `8080`
+Brings up Postgres, Redis and all four application containers.
 
-3. **Configure environment:**
+## The four processes
 
-```bash
-cp .env.example .env
-# Edit .env with your credentials
-```
+Separate containers, separate failure modes. One image, four commands.
 
-4. **Run migrations & seed data:**
+| | Command | Port | What it does |
+|---|---|---|---|
+| **api** | `npm start` | 4000 | The HTTP API and the docs |
+| **worker** | `npm run worker` | — | BullMQ jobs; owns the cron schedule |
+| **websocket** | `npm run websocket` | 4001 | Live connections, fed from Redis |
+| **deeplink** | `npm run deeplink` | 4002 | Shared links and the store association files |
 
-```bash
-# Generate Prisma client
-npm run prisma:generate
+The API never processes jobs and never holds a socket. It publishes to Redis and
+the other two pick it up, so a twenty-minute AI batch pass cannot compete with
+request handling for the same event loop.
 
-# Create database schema
-npx prisma migrate dev --name init
-
-# Seed initial data (languages, sampradayas, verses)
-npm run seed
-```
-
-5. **Start development server:**
-
-```bash
-npm run dev
-```
-
-Server runs on `http://localhost:3000`
-
-## Project Structure
+## Where things are
 
 ```
-backend/
-├── src/
-│   ├── main.ts                      # Entry point
-│   ├── app.module.ts               # Root module
-│   ├── common/                      # Shared utilities
-│   │   ├── decorators/
-│   │   ├── filters/
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   └── controllers/
-│   ├── config/                      # Environment config
-│   ├── infrastructure/              # External services
-│   │   ├── database/               # Prisma service
-│   │   ├── ai/                     # AI provider abstraction
-│   │   ├── queue/                  # BullMQ jobs
-│   │   ├── storage/                # S3/GCS wrapper
-│   │   ├── push/                   # Firebase + APNs
-│   │   └── cache/                  # Redis wrapper
-│   ├── modules/                     # Feature modules
-│   │   ├── auth/                   # Google/Apple auth, JWT
-│   │   ├── users/                  # User profiles
-│   │   ├── sampradayas/            # Sampraday CRUD
-│   │   ├── books/                  # Books & verses
-│   │   ├── verses/
-│   │   ├── narrations/             # Saint commentaries
-│   │   ├── mantras/                # Public mantras
-│   │   ├── chanting/               # Chant logging & stats
-│   │   ├── favorites/              # User favorites
-│   │   ├── translations/           # i18n system
-│   │   ├── languages/
-│   │   ├── groups/                 # Group chats
-│   │   ├── messages/               # Group messages
-│   │   ├── moderation/             # AI moderation pipeline
-│   │   ├── bans/                   # Ban cascade system
-│   │   ├── chatbot/                # GuruDev AI chat
-│   │   ├── notifications/          # Push notifications
-│   │   ├── admin/                  # Admin endpoints
-│   │   ├── analytics/              # Events & analytics
-│   │   └── recommendations/        # Personalized content
-│   └── seeders/                    # Database seeders
-├── prisma/
-│   ├── schema.prisma               # Database schema
-│   └── migrations/                 # Database migrations
-├── docker-compose.yml
-├── .env.example
-├── package.json
-└── README.md
+server.js          starts the HTTP server, nothing else
+app.js             the express app — every route family is mounted here
+config/            env, database, redis, cors, cron, logger, constants
+middleware/        auth, attestation, rate limits, errors
+routes/            app/ · web/ · admin/ · webhook/
+controllers/       mirrors routes/ exactly, file for file
+services/          shared infrastructure: auth, s3, fcm, ai/, payments/, …
+utils/             small helpers — router, present, dates, languages
+jobs/              queue definitions and processors
+views/             email templates and server-rendered pages
+docs/              the OpenAPI document, built from the routes
+prisma/            schema and seed
 ```
 
-## Database Schema
+Two conventions worth knowing before you write anything:
 
-**Core Models:**
-- `User` — Devotees, auth via Google/Apple
-- `Device` — Device tracking for multi-device support
-- `Ban` — Email + device bans with cascade system
+**Routes carry their own documentation and access rules.** A route is registered
+through `utils/router.js`, which takes a metadata object alongside the handler:
 
-**Content:**
-- `Sampraday` — Spiritual traditions
-- `Book`, `Chapter`, `Verse` — Scripture hierarchy
-- `Narration` — Saint commentaries
-- `Mantra` — Public mantras by sampraday
-- `Translation` — Multi-language translations
-
-**User Engagement:**
-- `Favorite` — Verses, mantras, narrations
-- `Follow` — Followed sampradayas
-- `ChantLog` — Chanting history
-
-**Real-time:**
-- `Group` — Sampraday group chats
-- `GroupMember` — Group membership
-- `Message` — Group messages with moderation
-
-**AI:**
-- `ChatbotSession`, `ChatbotMessage` — GuruDev conversations
-- `Citation` — Verse citations in AI responses
-
-**Monitoring:**
-- `AuditLog` — Admin actions
-- `QueueJob` — Async job tracking
-
-## Key Features
-
-### 1. Multi-Provider AI
-
-Switch between Claude, OpenAI, or Gemini via `AI_PROVIDER` env var:
-
-```typescript
-@Inject('AI_PROVIDER')
-private aiProvider: IAIProvider;
-
-const response = await this.aiProvider.generateResponse(messages, systemPrompt);
-```
-
-### 2. Ban Cascade System
-
-When a user is banned:
-1. Email ban → finds all linked devices
-2. Device ban → finds all linked emails
-3. Creates full audit trail
-
-```typescript
-await this.bansService.banEmail(email, reason, adminId);
-```
-
-### 3. AI Moderation Pipeline
-
-Every group message flows through:
-1. Save as `pending`
-2. Queue moderation job
-3. AI verdict: safe → `approved`, unsafe → `hidden`
-4. Admin can override
-
-### 4. Translation System
-
-Every text field has a `*_key`:
-- `nameKey: "sampraday.gaudiya.name"`
-- Fetches from `Translation` table per language
-- Fallback to English if missing
-
-### 5. Real-time Chat
-
-Socket.IO namespace `/groups`:
-- Join/leave group
-- Send message (with moderation)
-- Typing indicator
-- Real-time notifications
-
-### 6. GuruDev Personalization
-
-System detects user's preferred guru based on:
-- Followed sampradayas
-- Favorite verses
-- Chant history
-- Adjusts AI persona accordingly
-
-## API Endpoints
-
-All endpoints prefixed with `/api/v1`
-
-### Auth
-
-```
-POST   /auth/google          — Google Sign-In
-POST   /auth/apple           — Apple Sign-In
-POST   /auth/refresh         — Refresh JWT
-POST   /auth/logout          — Revoke refresh token
-DELETE /auth/account         — Delete account
-```
-
-### Content
-
-```
-GET    /sampradayas          — List all sampradayas
-GET    /sampradayas/:slug    — Sampraday detail
-POST   /sampradayas/:id/follow — Follow sampraday
-
-GET    /books                — All books
-GET    /books/:slug          — Book detail with chapters
-GET    /verses/:id           — Verse with narrations
-
-GET    /mantras              — List mantras
-GET    /mantras/:id          — Mantra detail
-```
-
-### User
-
-```
-GET    /users/me             — Current user profile
-PATCH  /users/me             — Update profile
-GET    /users/me/stats       — Chant stats, favorites count
-```
-
-### Chanting
-
-```
-POST   /chanting/log         — Log chants
-GET    /chanting/stats       — Daily/weekly/monthly stats
-GET    /chanting/history     — Chant history
-```
-
-### Groups & Chat
-
-```
-GET    /groups/:id           — Group detail
-GET    /groups/:id/messages  — Paginated messages
-POST   /groups/:id/messages  — Send message
-
-WS     /socket -> /groups    — WebSocket namespace
-```
-
-### GuruDev Chatbot
-
-```
-GET    /chatbot/sessions     — User's chat history
-POST   /chatbot/sessions     — Start new session
-GET    /chatbot/sessions/:id — Session with messages
-POST   /chatbot/sessions/:id/messages — Send message (SSE stream)
-```
-
-### Admin (protected by role)
-
-```
-GET    /admin/dashboard      — Stats
-POST   /admin/users/:id/ban  — Ban user
-GET    /admin/moderation/queue — Hidden messages
-POST   /admin/sampradayas    — Create sampraday
-...
-```
-
-## Jobs & Queues
-
-BullMQ workers process async jobs:
-
-- **moderation** — AI moderation of group messages
-- **notifications** — Push notifications (verse of day, group activity)
-- **affinity-calculation** — Compute user's guru affinity nightly
-- **email** — Transactional emails
-
-```typescript
-const job = await this.moderationQueue.add(
-  { messageId, content },
-  { delay: 100 },
+```js
+router.post(
+  '/mood',
+  {
+    summary: 'Report a struggle and receive a sloka for it',
+    description: '…',
+    limit: 'write',
+    body: z.object({ issueSlug: z.string() }),
+    responds: { 201: 'The chosen sloka' },
+  },
+  controller.mood
 );
 ```
 
-## Authentication Flow
+That object is the docs, the validation and the auth guard. A route without a
+`summary` throws at boot, and every route requires a signed-in user unless it
+says `public: true` — so an undocumented or unguarded endpoint cannot be written
+by accident.
 
-### Google Sign-In
+**Validated input lands on `req.valid`**, never `req.body`. `req.valid.body`,
+`req.valid.query`, `req.valid.params`.
 
-1. Mobile app calls `google_sign_in` → gets `id_token`
-2. POST `/auth/google` with `id_token`
-3. Backend verifies token with Google's public keys
-4. Create/update User, generate JWT
-5. Return `access_token` + `refresh_token`
+**Modules are ESM.** Relative imports need the `.js` extension, directories are
+imported as `.../index.js`, and there is no `__dirname` — use
+`import.meta.dirname`. Most modules export named bindings, so import them as a
+namespace:
 
-### Apple Sign-In
-
-Similar, but uses Apple's token verification.
-
-### Refresh Token
-
-1. POST `/auth/refresh` with `refresh_token`
-2. Verify token signature
-3. Return new `access_token`
-4. Tokens stored hashed in DB
-
-## Moderation
-
-Moderation happens in a BullMQ worker:
-
-```typescript
-// Message saved as 'pending'
-await this.queue.add('moderation', { messageId, content });
-
-// Worker processes
-const verdict = await this.aiProvider.moderateMessage(content);
-
-if (verdict.confidence > 0.85) {
-  if (verdict.verdict === 'safe') {
-    // Approve
-  } else {
-    // Hide + increment strikes
-    if (strikes >= 3) await this.bansService.banEmail(email);
-  }
-} else {
-  // Send to admin queue for manual review
-}
+```js
+import * as s3 from '../services/s3.js';        // named exports
+import router from './routes/app/index.js';      // a genuine single value
 ```
 
-## Development
+A plain default import of a module that has no default export gives you
+`undefined` rather than an error, so it is worth getting right first time.
 
-### Run tests
+## Commands
+
+| | |
+|---|---|
+| `npm run dev` | API with reload |
+| `npm run worker` | Background jobs |
+| `npm run websocket` | Realtime server |
+| `npm run deeplink` | Deeplink server |
+| `npm run seed` | Reference data (safe to re-run) |
+| `npm run prisma:migrate` | Create and apply a migration |
+| `npm run prisma:studio` | Browse the database |
+| `npm run docs:export` | Write `docs/openapi.json` |
+
+## First admin
+
+The seed deliberately creates no admin — a seeded account with a known email is
+a credential in version control. Sign in through the app, then promote yourself:
 
 ```bash
-npm run test
-npm run test:cov
+npx prisma studio     # User → set roleId to the super_admin role
 ```
 
-### Lint & format
+## A few things that will save you time
 
-```bash
-npm run lint
-npm run format
-```
+**Dates are the user's, not the server's.** Sadhana days, slokas and reminders
+are anchored to `User.timezone`. Someone in Toronto and someone in Mumbai are on
+different dates at the same instant, and getting this wrong shows up as a
+missing day in someone's practice record. Use `utils/date.js`.
 
-### Database studio (visual DB browser)
+**Three languages, not one.** Each user picks an app language, a mantra language
+and a reading language, independently. A mantra response may combine two of
+them — the script from one, the meaning from another. `utils/present.js` handles
+the resolution; don't do it by hand.
 
-```bash
-npm run prisma:studio
-```
+**Media columns hold S3 keys, not URLs.** The bucket is private. `presignGet`
+signs at response time; a stored URL would be a permanent public link that also
+expires.
 
-Opens at `http://localhost:5555`
+**AI never runs on a request.** Model calls happen in `jobs/processors/ai.js`,
+ahead of time, and write into `VerseIssue` and `VerseExplanation`. Serving a
+user is then a database query. If you find yourself wanting `services/ai` from a
+controller, the answer is a job.
 
-### Generate new migration
+**Money is integer minor units.** Paise, cents. Never a float — it drifts as
+soon as it is summed.
 
-```bash
-npm run prisma:migrate "add_field_to_user"
-```
-
-This creates a migration file you can inspect before applying.
-
-## Deployment
-
-### Environment Variables
-
-Set these on production:
-- `DATABASE_URL` (PostgreSQL connection string)
-- `REDIS_URL`
-- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
-- `GOOGLE_CLIENT_ID_*`, `APPLE_CLIENT_ID`, etc.
-- `ANTHROPIC_API_KEY` (or OpenAI/Gemini keys)
-- `FIREBASE_*` (credentials)
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET`
-- `SENTRY_DSN`
-
-### Build & Run
-
-```bash
-npm run build
-npm start
-```
-
-### Docker
-
-```bash
-docker build -t sanatan-backend .
-docker run -p 3000:3000 --env-file .env sanatan-backend
-```
-
-## Security Checklist
-
-- [ ] All inputs validated with class-validator
-- [ ] Helmet.js for security headers
-- [ ] CORS configured for specific origins
-- [ ] Rate limiting on auth + AI endpoints
-- [ ] Passwords hashed with bcrypt
-- [ ] Refresh tokens stored hashed
-- [ ] OAuth tokens verified with issuer keys
-- [ ] No PII in logs
-- [ ] Database backups automated daily
-- [ ] Secrets rotated quarterly
-
-## Troubleshooting
-
-**"Cannot connect to database"**
-```bash
-# Check Docker containers running
-docker ps
-
-# Check PostgreSQL logs
-docker logs backend-postgres-1
-
-# Recreate containers
-docker-compose down && docker-compose up -d
-```
-
-**"Prisma client not found"**
-```bash
-npm run prisma:generate
-```
-
-**"Redis connection failed"**
-```bash
-# Check Redis is running
-redis-cli ping
-# Output should be: PONG
-```
-
-## Contributing
-
-1. Create feature branch: `git checkout -b feature/xyz`
-2. Follow NestJS module patterns
-3. Add tests for new features
-4. Lint & format: `npm run lint && npm run format`
-5. Create PR with clear description
-
-## License
-
-Proprietary — HariHariBol Platform
+**Webhooks are the truth about payments.** The client-side verify endpoints
+exist so nobody stares at a paywall they have just paid to remove. Both write
+through the same upsert on `(provider, externalId)`, because providers retry.

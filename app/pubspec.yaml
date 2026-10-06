@@ -1,0 +1,112 @@
+name: hariharibol
+description: "HariHariBol — Vedic verses, mantras and daily sadhana."
+publish_to: "none"
+
+version: 2.0.0+25
+
+environment:
+  sdk: ^3.12.2
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State — one solution, everywhere.
+  flutter_riverpod: ^3.3.2
+
+  # Routing.
+  go_router: ^17.5.0
+
+  # Network.
+  dio: ^5.11.1
+
+  # Storage. Drift for content (relational, searchable, offline),
+  # hive_ce for small key-value state, secure storage for tokens.
+  drift: ^2.34.4
+  drift_flutter: ^0.3.1
+  hive_ce: ^2.19.3
+  hive_ce_flutter: ^2.3.4
+  flutter_secure_storage: ^11.0.0
+
+  # Sign-in.
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
+
+  # Firebase — push, analytics, and App Check (the client attestation the
+  # backend requires before it will create an account).
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  firebase_analytics: ^12.5.0
+  firebase_app_check: ^0.4.7
+
+  # Device facts the API wants on every request.
+  package_info_plus: ^10.2.1
+  device_info_plus: ^13.2.0
+  flutter_timezone: ^5.1.0
+
+  # Media.
+  cached_network_image: ^3.4.1
+  just_audio: ^0.10.6
+
+  # Reels. `video_player` is the first-party plugin — AVPlayer on iOS and
+  # ExoPlayer on Android, so the codec support is the platform's own rather
+  # than something bundled. `visibility_detector` is what tells a reel it has
+  # scrolled off screen: without it every page in the feed keeps decoding video
+  # in the background and the phone gets hot within a minute.
+  video_player: ^2.10.0
+  visibility_detector: ^0.4.0+2
+  share_plus: ^13.3.0
+
+  # Subscriptions. The first-party plugin: StoreKit on iOS, Play Billing on
+  # Android. Purchases are verified server to server by the backend, never here.
+  in_app_purchase: ^3.2.3
+
+  intl: ^0.20.2
+  cupertino_icons: ^1.0.8
+  liquid_glass_renderer: ^0.2.0-dev.4
+
+  # Auto-count: on-device mic streaming (record) feeding Silero VAD + a
+  # streaming keyword spotter (sherpa_onnx) — see
+  # core/constants/auto_chant_config.dart. path/path_provider place the
+  # bundled models on disk, which is where the native side needs them.
+  record: ^6.2.0
+  sherpa_onnx: ^1.13.8
+  path_provider: ^2.1.3
+  path: ^1.9.0
+
+  # Word detection: the platform's own speech recogniser, so a sitting can
+  # keep what was said beside each tap and show what was missed.
+  speech_to_text: ^7.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.1
+  drift_dev: ^2.34.6
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/logo.png
+    - assets/fonts/OFL.txt
+    - assets/models/auto_chant/vad/
+    - assets/models/auto_chant/kws/
+
+  # Playfair Display, for headings and the big counters. Bundled rather than
+  # downloaded at runtime: a webfont fetch means a flash of the wrong type on
+  # every cold start, and this face is the first thing anyone sees.
+  #
+  # Both files are variable (a `wght` axis), so weight is selected with
+  # `fontVariations` in app_typography.dart, not by shipping nine statics.
+  fonts:
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay.ttf
+        - asset: assets/fonts/PlayfairDisplay-Italic.ttf
+          style: italic

@@ -1,1 +1,0 @@
-export { VerseSchema } from './index';

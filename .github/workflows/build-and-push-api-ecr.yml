@@ -1,27 +1,52 @@
-name: Build and Push API Docker Image to ECR
+name: Backend CI
 
 on:
   push:
-    branches:
-      - api
+    branches: [main, develop]
     paths:
-      - 'api/**'
-      - 'src/**'
-      - '.github/workflows/build-and-push-api-ecr.yml'
+      - backend/**
+      - .github/workflows/build-and-push-api-ecr.yml
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - backend/**
+      - .github/workflows/build-and-push-api-ecr.yml
   workflow_dispatch:
 
-env:
-  AWS_REGION: ap-south-1
-  ECR_REPOSITORY: hariharibol-api
-  IMAGE_TAG: ${{ github.sha }}
-
 jobs:
-  build-and-push:
+  validate:
+    name: Install and validate
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+
+  build-push-deploy:
+    name: Build, push and deploy
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    permissions:
+      contents: read
+    env:
+      AWS_REGION: ap-south-1
+      ECR_REPOSITORY: hariharibol-backend
+      IMAGE_TAG: ${{ github.sha }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -34,42 +59,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
+      - name: Build and push backend image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker build \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" \
+            backend
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-      - name: Push Docker image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "Image pushed successfully:"
-          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
-
-      - name: Deployment summary
-        if: success()
-        run: |
-          echo "## ✨ API Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Repository | $ECR_REPOSITORY |" >> $GITHUB_STEP_SUMMARY
-          echo "| Image Tag | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
-          echo "| Latest Tag | latest |" >> $GITHUB_STEP_SUMMARY
-          echo "| Region | ${{ env.AWS_REGION }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branch | ${{ github.ref }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Author | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
-
-      - name: Build failed notification
-        if: failure()
-        run: |
-          echo "## ❌ API Docker Build or Push Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
-          exit 1
+      - name: Deploy on server
+        if: env.DEPLOY_HOST != ''
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -eu
+            cd "${{ secrets.DEPLOY_PATH }}"
+            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh backend

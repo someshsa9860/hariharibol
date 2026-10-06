@@ -1,1 +1,0 @@
-export { NarrationSchema } from './index';

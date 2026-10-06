@@ -1,45 +1,16 @@
-# Dependencies
 node_modules/
-package-lock.json
-yarn.lock
-
-# Build
-dist/
-build/
-
-# Environment
 .env
-.env.local
-.env.*.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Database
-*.db
-*.sqlite
-postgres_data/
-redis_data/
-
-# Prisma
-prisma/.env
-
-# Testing
+.env.*
+!.env.example
+!.env.scripts.example
+!.env.legacy-media.example
+dist/
 coverage/
-.nyc_output/
+*.log
+.DS_Store
+prisma/*.db
+docs/openapi.json
 
-# Misc
-.cache/
-tmp/
+# Local fallback for S3 media when no AWS credentials are configured — see
+# services/s3.js. Never the real store; production always uses S3.
+/storage/

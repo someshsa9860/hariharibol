@@ -1,0 +1,172 @@
+// The money screens: subscriptions, the payment ledger and refunds.
+//
+// Nothing here decides entitlement. services/entitlement.js does, by
+// recomputing it from the ledger — so an admin marking a payment refunded
+// removes access as a consequence of the ledger changing, not because this file
+// reached over and flipped a flag.
+
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as payments from '../../services/payments/index.js';
+import * as entitlement from '../../services/entitlement.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate, readSort } from '../../utils/pagination.js';
+import { notFound, badRequest } from '../../utils/errors.js';
+
+// ── Subscriptions ──────────────────────────────────────────────────────────
+
+// Columns the subscriptions and payments tables can be sorted by — see readSort.
+export const SUBSCRIPTION_SORT_COLUMNS = {
+  currentPeriodEnd: 'currentPeriodEnd',
+  startedAt: 'startedAt',
+  status: 'status',
+  provider: 'provider',
+};
+
+export const PAYMENT_SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  paidAt: 'paidAt',
+  amount: 'amountMinor',
+  status: 'status',
+  provider: 'provider',
+  purpose: 'purpose',
+};
+
+// The person a subscription or payment belongs to, searched by email or name.
+const byUser = (q) => ({
+  user: { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] },
+});
+
+export const listSubscriptions = async (req, res) => {
+  const { q, status, provider } = req.valid.query;
+
+  const { items, page } = await paginate(prisma.subscription, {
+    where: { ...(q ? byUser(q) : {}), ...(status ? { status } : {}), ...(provider ? { provider } : {}) },
+    orderBy: readSort(req.valid.query, SUBSCRIPTION_SORT_COLUMNS, { currentPeriodEnd: 'desc' }),
+    include: {
+      user: { select: { id: true, email: true, name: true } },
+      plan: { select: { slug: true, name: true } },
+    },
+    query: req.valid.query,
+  });
+
+  return paginated(res, items, page);
+};
+
+// ── Payments ───────────────────────────────────────────────────────────────
+
+export const listPayments = async (req, res) => {
+  const { q, purpose, status, provider, from, to } = req.valid.query;
+
+  const { items, page } = await paginate(prisma.payment, {
+    where: {
+      // A support lookup: "did this person pay?" — by their email or name, or by the
+      // provider's own transaction id.
+      ...(q ? { OR: [byUser(q), { externalId: { contains: q } }] } : {}),
+      ...(purpose ? { purpose } : {}),
+      ...(status ? { status } : {}),
+      ...(provider ? { provider } : {}),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from ? { gte: new Date(from) } : {}),
+              ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
+            },
+          }
+        : {}),
+    },
+    orderBy: readSort(req.valid.query, PAYMENT_SORT_COLUMNS, { createdAt: 'desc' }),
+    include: { user: { select: { id: true, email: true, name: true } } },
+    query: req.valid.query,
+  });
+
+  return paginated(res, items, page);
+};
+
+/**
+ * GET /api/admin/payments/summary
+ * Totals by purpose and currency. Grouped by currency deliberately — summing
+ * paise and cents into one number would be meaningless, and a single "revenue"
+ * figure across currencies is exactly the kind of thing that goes unnoticed.
+ */
+export const summary = async (req, res) => {
+  const from = req.valid.query.from ? new Date(req.valid.query.from) : new Date(Date.now() - 30 * 86400000);
+
+  const rows = await prisma.payment.groupBy({
+    by: ['purpose', 'currency'],
+    where: { status: 'SUCCEEDED', paidAt: { gte: from } },
+    _sum: { amountMinor: true },
+    _count: { _all: true },
+  });
+
+  return ok(res, {
+    from,
+    totals: rows.map((row) => ({
+      purpose: row.purpose,
+      currency: row.currency,
+      amountMinor: row._sum.amountMinor || 0,
+      count: row._count._all,
+    })),
+  });
+};
+
+/**
+ * POST /api/admin/payments/:id/refund
+ *
+ * Records that a refund happened; it does not issue one. The money is returned
+ * through the provider's own console, and this brings our ledger back in line —
+ * which then recomputes entitlement, so a refunded donation stops granting
+ * permanent Premium.
+ */
+export const refund = async (req, res) => {
+  const payment = await prisma.payment.findUnique({ where: { id: req.valid.params.id } });
+  if (!payment) throw notFound('Payment');
+  if (payment.status === 'REFUNDED') throw badRequest('That payment is already marked refunded');
+  if (payment.status !== 'SUCCEEDED') throw badRequest('Only a successful payment can be refunded');
+
+  await payments.markRefunded({ provider: payment.provider, externalId: payment.externalId });
+
+  await audit.record(req, {
+    action: 'payment.refund',
+    entityType: 'Payment',
+    entityId: payment.id,
+    before: { status: payment.status },
+    after: { status: 'REFUNDED', reason: req.valid.body.reason },
+  });
+
+  return ok(res, { refunded: true });
+};
+
+/** POST /api/admin/payments/entitlement/:userId — recompute one account. */
+export const refreshEntitlement = async (req, res) => {
+  const result = await entitlement.refresh(req.valid.params.userId);
+  return ok(res, result);
+};
+
+/**
+ * GET /api/admin/payments/donors
+ * Donors, most recent first. Anonymous donors are included as totals but not
+ * named — they asked not to be, and an admin list is still a list.
+ */
+export const donors = async (req, res) => {
+  const donations = await prisma.payment.findMany({
+    where: { purpose: 'DONATION', status: 'SUCCEEDED' },
+    orderBy: { paidAt: 'desc' },
+    take: 200,
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
+
+  return ok(
+    res,
+    donations.map((row) => ({
+      id: row.id,
+      amountMinor: row.amountMinor,
+      currency: row.currency,
+      message: row.message,
+      paidAt: row.paidAt,
+      provider: row.provider,
+      donor: row.isAnonymous ? null : row.user,
+      isAnonymous: row.isAnonymous,
+    }))
+  );
+};

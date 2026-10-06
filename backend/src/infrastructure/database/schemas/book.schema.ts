@@ -1,1 +1,0 @@
-export { BookSchema } from './index';

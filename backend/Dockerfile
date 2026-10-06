@@ -1,46 +1,42 @@
-# ── Stage 1: build ───────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+# One image, four containers.
+#
+# The API, the worker, the websocket server and the deeplink service all run
+# from this image with a different command (see docker-compose.yml). They share
+# every dependency and the whole Prisma client, so building four near-identical
+# images would mean four builds, four pushes and four chances for them to drift
+# out of sync with each other.
+#
+# They are still separate containers, which is the part that matters: each
+# scales, restarts and fails on its own.
+
+FROM node:22-alpine AS deps
 WORKDIR /app
 
+# Prisma needs OpenSSL to pick its query engine on Alpine.
+RUN apk add --no-cache openssl
+
 COPY package*.json ./
-RUN npm ci
+COPY prisma ./prisma
+RUN npm ci --omit=dev && npx prisma generate
 
-COPY .swcrc ./
-COPY src/ ./src/
-RUN node_modules/.bin/swc src -d dist --strip-leading-paths
-
-# ── Stage 2: production ───────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runtime
 WORKDIR /app
 
-# Non-root user
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 --ingroup nodejs nodejs
+RUN apk add --no-cache openssl tini
 
-# Production deps (prisma is in dependencies so included here)
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+ENV NODE_ENV=production
 
-# Compiled output + prisma schema (for migrate deploy at startup)
-COPY --from=builder /app/dist ./dist
-COPY prisma/ ./prisma/
-COPY entrypoint.sh ./entrypoint.sh
-RUN chmod +x entrypoint.sh
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-# Local upload directory (used when STORAGE_PROVIDER=local)
-RUN mkdir -p uploads && chown -R nodejs:nodejs uploads
+# Never run as root. The image contains signing keys' worth of trust; a process
+# that does not need write access to it should not have it.
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
+USER app
 
-USER nodejs
+EXPOSE 4000
 
-# APP_MODE controls which process starts:
-#   api    → REST API on PORT (default 3000)
-#   socket → Socket.IO on SOCKET_PORT (default 3001)
-#   worker → BullMQ workers (no HTTP port)
-ENV APP_MODE=api
-
-EXPOSE 3000 3001
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:${PORT:-3000}/health 2>/dev/null || wget -qO- http://localhost:${SOCKET_PORT:-3001}/health 2>/dev/null || exit 1
-
-ENTRYPOINT ["./entrypoint.sh"]
+# tini reaps zombies and forwards SIGTERM, which is what makes the graceful
+# shutdown in server.js actually run on a container stop.
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "server.js"]

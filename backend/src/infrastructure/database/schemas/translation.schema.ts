@@ -1,1 +1,0 @@
-export { TranslationSchema } from './index';

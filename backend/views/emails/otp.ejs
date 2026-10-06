@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your verification code</title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1>HariHariBol</h1>
+    <p>Use this code to confirm it is you:</p>
+
+    <div class="card" style="text-align:center">
+      <div class="code"><%= code %></div>
+      <p class="muted">Expires in <%= minutes %> minutes.</p>
+    </div>
+
+    <p class="muted">
+      If you did not ask for this, you can ignore this email — nothing has changed on your
+      account, and the code will expire on its own.
+    </p>
+
+    <footer class="muted">
+      <p>HariHariBol &middot; <%= year %></p>
+    </footer>
+  </div>
+</body>
+</html>

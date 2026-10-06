@@ -1,0 +1,119 @@
+// Broadcasts.
+//
+// Two ways to reach people, and the difference matters:
+//
+//   topic     one call to Firebase regardless of how many devices are on it.
+//             Nothing is written to Notification, so it does not appear in
+//             anyone's in-app history. Right for time-bound announcements.
+//   audience  a real fan-out. A Notification row per user, so it appears in the
+//             app whether or not push was delivered. Right for anything that
+//             should still be readable tomorrow.
+//
+// The expensive one is deliberately the one that has to be asked for.
+
+import { prisma } from '../../config/database.js';
+import * as audit from '../../services/audit.js';
+import * as notify from '../../services/notify.js';
+import { ok, paginated } from '../../utils/respond.js';
+import { paginate, readSort } from '../../utils/pagination.js';
+import { badRequest } from '../../utils/errors.js';
+
+/** POST /api/admin/notifications/topic */
+export const broadcastTopic = async (req, res) => {
+  const { topicKey, title, body, data } = req.valid.body;
+
+  const topic = await prisma.fcmTopic.findUnique({ where: { key: topicKey } });
+  if (!topic || !topic.isActive) throw badRequest('No such active topic');
+
+  const result = await notify.toTopic(topicKey, { title, body, data });
+
+  await audit.record(req, {
+    action: 'notification.broadcast.topic',
+    entityType: 'FcmTopic',
+    entityId: topic.id,
+    after: { topicKey, title },
+  });
+
+  return ok(res, { sent: true, messageId: result.messageId });
+};
+
+/**
+ * POST /api/admin/notifications/audience
+ *
+ * Writes a row per user and pushes in batches. Capped, because an unbounded
+ * fan-out from an admin form is how someone accidentally writes a million rows
+ * — anything larger belongs in a job, not a request.
+ */
+export const broadcastAudience = async (req, res) => {
+  const { title, body, data, audience } = req.valid.body;
+
+  const where = {
+    isBanned: false,
+    ...(audience === 'premium' ? { isPremium: true } : {}),
+    ...(audience === 'free' ? { isPremium: false } : {}),
+    ...(audience === 'active'
+      ? { lastActiveAt: { gte: new Date(Date.now() - 30 * 86400000) } }
+      : {}),
+  };
+
+  const total = await prisma.user.count({ where });
+  if (total > 50000) {
+    throw badRequest(`That audience is ${total} people — too large to send from here.`);
+  }
+
+  const users = await prisma.user.findMany({ where, select: { id: true } });
+
+  const result = await notify.toUsers(
+    users.map((u) => u.id),
+    { type: 'ANNOUNCEMENT', title, body, data }
+  );
+
+  await audit.record(req, {
+    action: 'notification.broadcast.audience',
+    entityType: 'Notification',
+    after: { audience, title, recipients: users.length },
+  });
+
+  return ok(res, { recipients: users.length, created: result.created });
+};
+
+/** POST /api/admin/notifications/user/:userId — a message to one person. */
+export const toUser = async (req, res) => {
+  const { title, body, data, type = 'SYSTEM' } = req.valid.body;
+
+  const notification = await notify.toUser(req.valid.params.userId, { type, title, body, data });
+
+  await audit.record(req, {
+    action: 'notification.direct',
+    entityType: 'Notification',
+    entityId: notification.id,
+    after: { userId: req.valid.params.userId, title },
+  });
+
+  return ok(res, notification);
+};
+
+// Columns the notifications table can be sorted by — see readSort.
+export const SORT_COLUMNS = {
+  createdAt: 'createdAt',
+  type: 'type',
+  title: 'title',
+};
+
+/** GET /api/admin/notifications — what has been sent, for checking delivery. */
+export const list = async (req, res) => {
+  const { q, type, userId } = req.valid.query;
+
+  const { items, page } = await paginate(prisma.notification, {
+    where: {
+      ...(q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { body: { contains: q, mode: 'insensitive' } }] } : {}),
+      ...(type ? { type } : {}),
+      ...(userId ? { userId } : {}),
+    },
+    orderBy: readSort(req.valid.query, SORT_COLUMNS, { createdAt: 'desc' }),
+    include: { user: { select: { id: true, email: true, name: true } } },
+    query: req.valid.query,
+  });
+
+  return paginated(res, items, page);
+};
