@@ -6,6 +6,7 @@ import * as s3 from '../../services/s3.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
+import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 
 // Columns the mantras table can be sorted by — see readSort.
 export const SORT_COLUMNS = {
@@ -38,6 +39,30 @@ export const list = async (req, res) => {
   });
 
   return paginated(res, await s3.presignList(items, ['audioPath']), page);
+};
+
+/**
+ * GET /api/admin/mantras/languages
+ * The languages a mantra can be rendered in, for the translation editor. Served
+ * here so a mantra editor does not also need the reference-data permission.
+ */
+export const languages = async (req, res) => {
+  const rows = await prisma.language.findMany({
+    where: { isActive: true, isMantraLanguage: true },
+    orderBy: { displayOrder: 'asc' },
+    select: { code: true, nativeName: true, englishName: true, isRtl: true },
+  });
+  return ok(res, rows);
+};
+
+/**
+ * POST /api/admin/mantras/transliterate
+ * Writes Devanagari text in another language's script, so an editor starts a
+ * new rendering from a correct draft instead of a blank box. Nothing is saved.
+ */
+export const transliterate = async (req, res) => {
+  const { text, languageCode } = req.valid.body;
+  return ok(res, { text: isDevanagari(languageCode) ? text : fromDevanagari(text, languageCode) });
 };
 
 /** GET /api/admin/mantras/:id */
@@ -151,6 +176,10 @@ export const upsertTranslation = async (req, res) => {
   const mantra = await prisma.mantra.findUnique({ where: { id: mantraId }, select: { id: true } });
   if (!mantra) throw notFound('Mantra');
 
+  // A code the app does not offer would save fine and never be shown to anyone.
+  const language = await prisma.language.findUnique({ where: { code: languageCode } });
+  if (!language) throw badRequest(`Unknown language "${languageCode}"`);
+
   const translation = await prisma.mantraTranslation.upsert({
     where: { mantraId_languageCode: { mantraId, languageCode } },
     update: req.valid.body,
@@ -168,6 +197,17 @@ export const upsertTranslation = async (req, res) => {
 };
 
 export const deleteTranslation = async (req, res) => {
-  await prisma.mantraTranslation.delete({ where: { id: req.valid.params.translationId } });
+  const { id, translationId } = req.valid.params;
+
+  const translation = await prisma.mantraTranslation.findFirst({ where: { id: translationId, mantraId: id } });
+  if (!translation) throw notFound('Translation');
+
+  await prisma.mantraTranslation.delete({ where: { id: translation.id } });
+  await audit.record(req, {
+    action: 'mantra.translation.delete',
+    entityType: 'MantraTranslation',
+    entityId: translation.id,
+    before: { mantraId: id, languageCode: translation.languageCode },
+  });
   return noContent(res);
 };

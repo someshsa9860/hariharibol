@@ -26,6 +26,33 @@ router.get(
 );
 
 router.get(
+  '/languages',
+  {
+    summary: 'Languages a mantra can be rendered in',
+    permission: 'mantra.read',
+    limit: 'read',
+    responds: { 200: 'Active mantra languages, in display order' },
+  },
+  controller.languages
+);
+
+router.post(
+  '/transliterate',
+  {
+    summary: 'Draft a mantra in another script',
+    description:
+      'Converts Devanagari text into the script of `languageCode` (Bengali, Gujarati, Tamil, ' +
+      'Telugu …). Nothing is saved — it gives the editor a starting point to review. Tamil has ' +
+      'no aspirated or voiced consonants, so those collapse onto the plain ones there.',
+    permission: 'mantra.write',
+    limit: 'write',
+    body: z.object({ text: z.string().min(1).max(10000), languageCode: z.string().max(10) }),
+    responds: { 200: 'The converted text' },
+  },
+  controller.transliterate
+);
+
+router.get(
   '/:id',
   {
     summary: 'Get one mantra with its translations',
@@ -123,16 +150,16 @@ router.put(
     params: schemas.id,
     body: z.object({
       languageCode: z.string().max(10),
-      name: z.string().max(200).optional(),
-      description: z.string().max(5000).optional(),
+      name: z.string().max(200).nullable().optional(),
+      description: z.string().max(5000).nullable().optional(),
       text: z.string().min(1),
-      meaning: z.string().optional(),
-      purport: z.string().optional(),
+      meaning: z.string().nullable().optional(),
+      purport: z.string().nullable().optional(),
       audioPath: z.string().max(500).nullable().optional(),
       durationMs: z.coerce.number().int().nullable().optional(),
       isPublished: z.boolean().optional(),
     }),
-    responds: { 200: 'The rendering', 404: 'No such mantra' },
+    responds: { 200: 'The rendering', 400: 'Unknown language', 404: 'No such mantra' },
   },
   controller.upsertTranslation
 );
@@ -144,7 +171,7 @@ router.delete(
     permission: 'mantra.delete',
     limit: 'write',
     params: z.object({ id: z.string(), translationId: z.string() }),
-    responds: { 204: 'Deleted' },
+    responds: { 204: 'Deleted', 404: 'No such translation on this mantra' },
   },
   controller.deleteTranslation
 );
