@@ -168,15 +168,44 @@ reads `isPremium` to withhold a feature. `utils/router.js`'s `premium: true`
 route flag is still there for a future feature that does need gating; no route
 uses it today.
 
-**Premium is earned two ways**, and they are worth equal access:
+**Plans, prices and features are data, not code.** Three tables, edited from
+the admin panel's Plans page, so a new benefit or a new price never needs a
+deploy:
 
-- an **active subscription** — one monthly plan, named "Premium"
-- **any donation, of any amount**, through Google Play, Apple or Razorpay. A
-  donor keeps premium permanently: `premiumUntil` stays null.
+- `SubscriptionPlan` — a tier (`tier` 0 = the `free` baseline every user is on
+  with no subscription; paid plans rank above it). The free plan is a real row so
+  what a free user gets is edited in the same place as what a paid user gets.
+- `PlanPrice` — one row per **provider × billing period**: the store's product
+  id, the price, currency and an optional `trialDays` (the plan's free tier).
+  Different stores charge different amounts, which is why price is not on the
+  plan. A new provider is a `PaymentProvider` value, a module in
+  `services/payments/` and rows here — plans are untouched.
+- `Feature` + `PlanFeature` — a catalogue of things the product can do
+  (`FLAG` on/off, or `LIMIT` with a number, null = unlimited) with a value per
+  plan. A plan with no value for a feature gets `Feature.defaultEnabled`, which
+  is **on**: new features are free until someone decides otherwise.
 
-`User.isPremium` is a cache, owned by the payment webhooks and the daily job, and
-rebuildable from `Subscription` and `Payment` at any time. Read entitlement from
-it; never scatter subscription logic through controllers.
+Gate something with `entitlement.can(userId, 'feature.key')`, or put
+`feature: 'feature.key'` on a route (402 if the plan does not include it). Read
+`entitlement.featuresForPlan` for limits. `premium: true` still means "any paid
+plan".
+
+**A plan is earned two ways**, and they are worth equal access:
+
+- an **active subscription** — entitled until `currentPeriodEnd`, on the plan
+  it was bought through
+- **any donation, of any amount**, through Google Play, Apple or Razorpay —
+  permanent access (`premiumUntil` stays null) to the highest-tier plan flagged
+  `grantedToDonors`
+
+When someone holds both, the higher tier wins. Nothing else decides this —
+`services/entitlement.js` does, from the ledger.
+
+`User.isPremium` is a cache (true on any non-free plan), owned by the payment
+webhooks and the daily job, and rebuildable from `Subscription` and `Payment`
+at any time. Read entitlement from `entitlement.compute`; never scatter
+subscription logic through controllers. `npm run test:subscriptions` walks the
+whole surface.
 
 **Payments are one ledger.** Subscriptions and donations both land in `Payment`,
 separated by `purpose`. They arrive the same way and reconcile the same way, so

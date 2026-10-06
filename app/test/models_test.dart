@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hariharibol/models/sadhana.dart';
 import 'package:hariharibol/models/search_result.dart';
+import 'package:hariharibol/models/subscription.dart';
 import 'package:hariharibol/models/verse.dart';
 
 void main() {
@@ -73,6 +74,61 @@ void main() {
     test('is empty only when all three kinds are', () {
       final overview = SearchOverview.fromJson({'query': 'xyzzy'});
       expect(overview.isEmpty, isTrue);
+    });
+  });
+
+  group('Entitlement', () {
+    test('reads the plan, its features and a limit', () {
+      final entitlement = Entitlement.fromJson({
+        'isPremium': true,
+        'reason': 'SUBSCRIPTION',
+        'plan': {'id': 'p', 'slug': 'premium', 'name': 'Premium', 'tier': 1, 'isFree': false},
+        'features': {
+          'ads.removed': {'enabled': true, 'limit': null},
+          'downloads.offline': {'enabled': true, 'limit': 5},
+        },
+      });
+
+      expect(entitlement.plan?.name, 'Premium');
+      expect(entitlement.can('ads.removed'), isTrue);
+      expect(entitlement.limitOf('downloads.offline'), 5);
+      expect(entitlement.limitOf('ads.removed'), isNull);
+    });
+
+    test('a feature it has never heard of is off', () {
+      expect(Entitlement.none.can('something.new'), isFalse);
+    });
+  });
+
+  group('PlanCatalog', () {
+    test('keeps a price per provider', () {
+      final catalog = PlanCatalog.fromJson({
+        'features': [
+          {'key': 'ads.removed', 'name': 'Ad-free', 'kind': 'FLAG'},
+        ],
+        'plans': [
+          {
+            'id': 'f', 'slug': 'free', 'name': 'Free', 'tier': 0, 'isFree': true,
+            'prices': [], 'features': {'ads.removed': {'enabled': false}},
+          },
+          {
+            'id': 'p', 'slug': 'premium', 'name': 'Premium', 'tier': 1, 'isFree': false,
+            'prices': [
+              {'id': 'a', 'provider': 'GOOGLE_PLAY', 'productId': 'g', 'priceMinor': 19900, 'currency': 'INR', 'periodDays': 30, 'trialDays': 7},
+              {'id': 'b', 'provider': 'APPLE_APP_STORE', 'productId': 'a', 'priceMinor': 24900, 'currency': 'INR', 'periodDays': 30, 'trialDays': 0},
+            ],
+            'features': {'ads.removed': {'enabled': true}},
+          },
+        ],
+      });
+
+      expect(catalog.plans.first.isFree, isTrue);
+      expect(catalog.plans.first.prices, isEmpty);
+      final premium = catalog.plans.last;
+      expect(premium.prices.map((p) => p.priceMinor), [19900, 24900]);
+      expect(premium.prices.first.hasTrial, isTrue);
+      expect(premium.prices.last.hasTrial, isFalse);
+      expect(catalog.features.single.isLimit, isFalse);
     });
   });
 }

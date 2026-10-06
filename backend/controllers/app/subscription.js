@@ -1,8 +1,9 @@
 // Subscriptions.
 //
-// One plan: Premium, monthly. The app itself is free — there is currently no
-// feature behind a paywall; Premium and donations exist so someone who wants
-// to support the project can, not to unlock anything.
+// Plans are tiers (Free, Premium, …). What a plan costs is a PlanPrice — one
+// per store and billing period — and what it unlocks is a set of Features with
+// a value per plan. The app itself is free; paid plans add benefits, they do
+// not take things away from the free one.
 //
 // A purchase token from the client is never trusted. Every verification is a
 // server-to-server call to Google or Apple, and what they say is what gets
@@ -15,32 +16,68 @@ import * as entitlement from '../../services/entitlement.js';
 import { ok, created } from '../../utils/respond.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 
-/** GET /api/app/subscription/plans — public, so the paywall can be shown before sign-in. */
-export const plans = async (req, res) => {
-  const plans = await prisma.subscriptionPlan.findMany({
-    where: { isActive: true },
-    orderBy: { priceMinor: 'asc' },
-  });
+const presentPrice = (price) => ({
+  id: price.id,
+  provider: price.provider,
+  // The id the store knows the product by — differs per store, which is why
+  // the app is told it rather than hardcoding it.
+  productId: price.productId,
+  // Minor units — paise for INR, cents for USD. The client formats; the
+  // server never sends a float. The store's own localised price, when the
+  // client can read it, is what the user is actually charged.
+  priceMinor: price.priceMinor,
+  currency: price.currency,
+  periodDays: price.periodDays,
+  trialDays: price.trialDays,
+});
 
-  return ok(
-    res,
-    plans.map((plan) => ({
-      id: plan.id,
-      slug: plan.slug,
-      name: plan.name,
-      description: plan.description,
-      // Minor units — paise for INR, cents for USD. The client formats; the
-      // server never sends a float.
-      priceMinor: plan.priceMinor,
-      currency: plan.currency,
-      periodDays: plan.periodDays,
-      // Each store issues its own product id, which is why these live on the
-      // plan rather than being constants in the app.
-      googleProductId: plan.googleProductId,
-      appleProductId: plan.appleProductId,
-      razorpayPlanId: plan.razorpayPlanId,
-    }))
-  );
+/**
+ * GET /api/app/subscription/plans — public, so the paywall can be shown before sign-in.
+ * `?provider=` narrows the prices to the store this device buys from.
+ */
+export const plans = async (req, res) => {
+  const { provider } = req.valid.query;
+
+  const [plans, features] = await Promise.all([
+    prisma.subscriptionPlan.findMany({
+      where: { isActive: true },
+      orderBy: { tier: 'asc' },
+      include: {
+        prices: {
+          where: { isActive: true, ...(provider ? { provider } : {}) },
+          orderBy: { periodDays: 'asc' },
+        },
+        features: true,
+      },
+    }),
+    prisma.feature.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+  ]);
+
+  return ok(res, {
+    // The catalogue, so the app can lay out a comparison table in one pass.
+    features: features.map((f) => ({ key: f.key, name: f.name, description: f.description, kind: f.kind, unit: f.unit })),
+    plans: plans.map((plan) => {
+      const values = new Map(plan.features.map((v) => [v.featureId, v]));
+      return {
+        id: plan.id,
+        slug: plan.slug,
+        name: plan.name,
+        description: plan.description,
+        tier: plan.tier,
+        isFree: plan.isFree,
+        prices: plan.prices.map(presentPrice),
+        features: Object.fromEntries(
+          features.map((f) => {
+            const v = values.get(f.id);
+            return [
+              f.key,
+              { enabled: v ? v.enabled : f.defaultEnabled, limit: v && f.kind === 'LIMIT' ? v.limit : null },
+            ];
+          })
+        ),
+      };
+    }),
+  });
 };
 
 /**
@@ -55,7 +92,10 @@ export const mine = async (req, res) => {
     prisma.subscription.findFirst({
       where: { userId },
       orderBy: { currentPeriodEnd: 'desc' },
-      include: { plan: { select: { slug: true, name: true, priceMinor: true, currency: true } } },
+      include: {
+        plan: { select: { slug: true, name: true, tier: true } },
+        price: { select: { priceMinor: true, currency: true, periodDays: true } },
+      },
     }),
     entitlement.compute(userId),
   ]);
@@ -65,6 +105,8 @@ export const mine = async (req, res) => {
     premiumSince: computed.premiumSince,
     premiumUntil: computed.premiumUntil,
     reason: computed.reason,
+    plan: computed.plan,
+    features: await entitlement.featuresForPlan(computed.plan?.id),
     subscription: subscription
       ? {
           id: subscription.id,
@@ -73,6 +115,7 @@ export const mine = async (req, res) => {
           currentPeriodEnd: subscription.currentPeriodEnd,
           autoRenew: subscription.autoRenew,
           plan: subscription.plan,
+          price: subscription.price,
         }
       : null,
   });
@@ -91,14 +134,14 @@ export const verify = async (req, res) => {
   const user = req.auth.user;
   const { provider, productId, purchaseToken, transactionId } = req.valid.body;
 
-  const plan = await prisma.subscriptionPlan.findFirst({
-    where: {
-      isActive: true,
-      ...(provider === 'GOOGLE_PLAY' ? { googleProductId: productId } : {}),
-      ...(provider === 'APPLE_APP_STORE' ? { appleProductId: productId } : {}),
-    },
+  // The product id names a price, and the price names the plan. Inactive prices
+  // still resolve: someone who bought before it was retired has paid for it.
+  const price = await prisma.planPrice.findUnique({
+    where: { provider_productId: { provider, productId } },
+    include: { plan: true },
   });
-  if (!plan) throw notFound(`A plan for product ${productId}`);
+  if (!price || price.plan.isFree) throw notFound(`A plan for product ${productId}`);
+  const plan = price.plan;
 
   let verified;
   if (provider === 'GOOGLE_PLAY') {
@@ -114,6 +157,7 @@ export const verify = async (req, res) => {
   const subscription = await payments.upsertSubscription({
     userId: user.id,
     planId: plan.id,
+    priceId: price.id,
     provider,
     externalId: verified.externalId,
     status: 'ACTIVE',
@@ -130,8 +174,8 @@ export const verify = async (req, res) => {
     // is keyed by the order, which is different every month. Using the same key
     // for both would collapse a year of renewals into one ledger row.
     externalId: verified.orderId || verified.externalId,
-    amountMinor: verified.priceMinor ?? plan.priceMinor,
-    currency: verified.currency ?? plan.currency,
+    amountMinor: verified.priceMinor ?? price.priceMinor,
+    currency: verified.currency ?? price.currency,
     status: 'SUCCEEDED',
     providerPayload: verified.raw,
   });
@@ -143,6 +187,7 @@ export const verify = async (req, res) => {
       currentPeriodEnd: subscription.currentPeriodEnd,
     },
     isPremium: true,
+    plan: { slug: plan.slug, name: plan.name, tier: plan.tier },
   });
 };
 

@@ -26,7 +26,8 @@
     "graph": "node scripts/code-graph.js",
     "test:auth": "node scripts/auth-e2e.js",
     "test:reels": "node scripts/reels-e2e.js",
-    "test:admin-reels": "node scripts/admin-reels-e2e.js"
+    "test:admin-reels": "node scripts/admin-reels-e2e.js",
+    "test:subscriptions": "node scripts/subscription-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

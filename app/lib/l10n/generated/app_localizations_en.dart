@@ -435,6 +435,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNoMantraPreference => 'No preference — ask me each time';
 
   @override
+  String get settingsPlans => 'Plans & Premium';
+
+  @override
+  String get plansTitle => 'Plans';
+
+  @override
+  String get plansSubtitle => 'The whole app is free. A paid plan adds a little more on top.';
+
+  @override
+  String get plansYourPlan => 'Your plan';
+
+  @override
+  String get plansCurrent => 'Current plan';
+
+  @override
+  String get plansFreeForEveryone => 'Free for everyone';
+
+  @override
+  String plansPricePer(String price, String period) {
+    return '$price / $period';
+  }
+
+  @override
+  String get plansPeriodWeek => 'week';
+
+  @override
+  String get plansPeriodMonth => 'month';
+
+  @override
+  String get plansPeriodYear => 'year';
+
+  @override
+  String plansPeriodDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String plansTrial(int days) {
+    return '$days-day free trial';
+  }
+
+  @override
+  String get plansSubscribe => 'Subscribe';
+
+  @override
+  String get plansStartTrial => 'Start free trial';
+
+  @override
+  String get plansRestore => 'Restore purchases';
+
+  @override
+  String get plansStoreUnavailable => 'The store is not available on this device.';
+
+  @override
+  String get plansProductMissing => 'This plan is not available in the store right now.';
+
+  @override
+  String get plansPurchasePending => 'Your purchase is being processed…';
+
+  @override
+  String get plansPurchaseSuccess => 'Thank you — your plan is active.';
+
+  @override
+  String get plansPurchaseFailed => 'The purchase did not go through.';
+
+  @override
+  String get plansPurchaseCancelled => 'Purchase cancelled.';
+
+  @override
+  String plansRenews(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String plansEnds(String date) {
+    return 'Access until $date';
+  }
+
+  @override
+  String get plansPermanent => 'Yours permanently — thank you for supporting HariHariBol.';
+
+  @override
+  String get plansIncluded => 'Included';
+
+  @override
+  String get plansNotIncluded => 'Not included';
+
+  @override
+  String get plansUnlimited => 'Unlimited';
+
+  @override
+  String plansLimit(int limit, String unit) {
+    return '$limit $unit';
+  }
+
+  @override
+  String get plansNoFeatures => 'No extra benefits yet — more are on the way.';
+
+  @override
+  String get plansRestoreDone => 'Purchases restored.';
+
+  @override
   String get settingsPrivacy => 'Privacy policy';
 
   @override

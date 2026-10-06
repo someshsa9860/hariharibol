@@ -213,6 +213,12 @@ class SettingsView extends ConsumerWidget {
             title: text.settingsSectionAccount,
             children: [
               SettingsRow(
+                icon: Icons.workspace_premium_outlined,
+                label: text.settingsPlans,
+                value: user?.isPremium == true ? text.profilePremium : text.profileFree,
+                onTap: () => AppNavigator.instance.push(AppRoutes.plans),
+              ),
+              SettingsRow(
                 icon: Icons.logout_rounded,
                 label: text.actionSignOut,
                 isDestructive: true,

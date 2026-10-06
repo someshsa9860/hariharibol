@@ -758,19 +758,55 @@ const stories = [
   },
 ];
 
-// ── Subscription plan ──────────────────────────────────────────────────────
-// One plan. Price in paise, never a float.
+// ── Subscription plans ─────────────────────────────────────────────────────
+// Tiers, their prices per store, and the feature catalogue with a value per
+// plan. Price in paise, never a float. Product ids are placeholders for the
+// ones created in the Play Console and App Store Connect — edit them in the
+// panel (Plans) once the products exist. Seeded once and never overwritten:
+// after that the panel is the source of truth.
 
 const plans = [
   {
-    slug: 'premium-monthly',
-    name: 'Premium',
-    description:
-      'Unlimited mood-driven slokas. Everything else in the app is free, and always will be.',
-    priceMinor: 9900, // ₹99
-    currency: 'INR',
-    periodDays: 30,
+    slug: 'free',
+    name: 'Free',
+    description: 'The whole app. Nothing a reader needs is behind a paywall.',
+    tier: 0,
+    isFree: true,
     isActive: true,
+    prices: [],
+  },
+  {
+    slug: 'premium',
+    name: 'Premium',
+    description: 'Supports the project, and adds a few extras on top of everything that is already free.',
+    tier: 1,
+    grantedToDonors: true,
+    isActive: true,
+    prices: [
+      { provider: 'GOOGLE_PLAY', productId: 'premium_monthly', priceMinor: 9900, currency: 'INR', periodDays: 30 },
+      { provider: 'APPLE_APP_STORE', productId: 'premium_monthly', priceMinor: 9900, currency: 'INR', periodDays: 30 },
+    ],
+  },
+];
+
+// A few starting benefits. More arrive as features are built — each is a row
+// here (or added from the panel) plus values on the plans.
+const features = [
+  {
+    key: 'ads.removed',
+    name: 'Ad-free',
+    description: 'No advertising anywhere in the app.',
+    kind: 'FLAG',
+    sortOrder: 10,
+    values: { free: { enabled: false }, premium: { enabled: true } },
+  },
+  {
+    key: 'supporter.badge',
+    name: 'Supporter badge',
+    description: 'A badge on your profile.',
+    kind: 'FLAG',
+    sortOrder: 20,
+    values: { free: { enabled: false }, premium: { enabled: true } },
   },
 ];
 
@@ -815,6 +851,7 @@ export {
   cantos,
   stories,
   plans,
+  features,
   topics,
   settings,
 };

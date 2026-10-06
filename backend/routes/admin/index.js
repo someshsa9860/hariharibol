@@ -21,6 +21,7 @@ import reelRoutes from './reel.js';
 import referenceRoutes from './reference.js';
 import slokaRoutes from './sloka.js';
 import paymentRoutes from './payment.js';
+import planRoutes from './plan.js';
 import notificationRoutes from './notification.js';
 import settingRoutes from './setting.js';
 import aiRoutes from './ai.js';
@@ -42,6 +43,7 @@ const routers = [
   referenceRoutes,
   slokaRoutes,
   paymentRoutes,
+  planRoutes,
   notificationRoutes,
   settingRoutes,
   aiRoutes,

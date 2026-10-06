@@ -5,9 +5,10 @@ const router = createRouter({
   tag: 'Subscription',
   prefix: '/subscription',
   description:
-    'Premium — one monthly plan. The app is free; the only paid feature is the mood-driven ' +
-    'sloka. Premium is also earned permanently by donating any amount, which is why ' +
-    'entitlement is reported separately from the subscription itself.',
+    'Plans, what each costs on each store, and what each unlocks. The app is free; paid plans ' +
+    'add benefits and never take them from the free one. A higher plan is also earned ' +
+    'permanently by donating any amount, which is why entitlement is reported separately ' +
+    'from the subscription itself.',
 });
 
 router.get(
@@ -15,12 +16,16 @@ router.get(
   {
     summary: 'List plans',
     description:
-      'Public, so the paywall can be shown before anyone signs in. Prices are in minor ' +
-      'units — paise for INR, cents for USD — and each store’s own product id is included, ' +
-      'because they differ and the app must not hardcode them.',
+      'Public, so the paywall can be shown before anyone signs in. Returns every active plan ' +
+      '— the free one included, so the app can compare — with a price per store and billing ' +
+      'period, and the value of every feature on each plan. Prices are in minor units — ' +
+      'paise for INR, cents for USD — and each store’s own product id is included, because ' +
+      'they differ and the app must not hardcode them. `provider` narrows the prices to the ' +
+      'store the device buys from.',
     public: true,
+    query: z.object({ provider: z.enum(['GOOGLE_PLAY', 'APPLE_APP_STORE', 'RAZORPAY']).optional() }),
     limit: 'read',
-    responds: { 200: 'Active plans' },
+    responds: { 200: 'Active plans, the feature catalogue, and prices' },
   },
   controller.plans
 );
@@ -30,7 +35,7 @@ router.get(
   {
     summary: 'Get my entitlement',
     description:
-      'Whether this user has Premium, until when, and why. `reason` is `DONATION`, ' +
+      'Which plan this user is on, until when, why, and what it unlocks. `reason` is `DONATION`, ' +
       '`SUBSCRIPTION` or `NONE` — a donor and a subscriber both have access, but only one ' +
       'of them has something that renews or can lapse.',
     limit: 'read',
@@ -59,7 +64,7 @@ router.post(
     responds: {
       201: 'Subscription active',
       400: 'Store says the subscription is not active',
-      404: 'No plan matches that product id',
+      404: 'No plan has a price with that product id',
     },
   },
   controller.verify

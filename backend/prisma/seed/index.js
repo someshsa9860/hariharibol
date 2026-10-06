@@ -204,17 +204,38 @@ async function seedStories() {
 }
 
 async function seedPlansAndTopics() {
-  for (const plan of data.plans) {
-    await prisma.subscriptionPlan.upsert({
+  for (const { prices, ...plan } of data.plans) {
+    // Created once. After that the panel owns plans, prices and feature values —
+    // re-seeding must not put back a price an operator has changed.
+    const saved = await prisma.subscriptionPlan.upsert({
       where: { slug: plan.slug },
-      // The price is not overwritten on update: changing it here would rewrite
-      // what the panel has set, and subscribers keep paying what they were sold
-      // regardless.
-      update: { name: plan.name, description: plan.description, isActive: plan.isActive },
+      update: {},
       create: plan,
     });
+
+    for (const price of prices) {
+      await prisma.planPrice.upsert({
+        where: { provider_productId: { provider: price.provider, productId: price.productId } },
+        update: {},
+        create: { ...price, planId: saved.id },
+      });
+    }
   }
-  log(`${data.plans.length} subscription plan(s)`);
+
+  for (const { values, ...feature } of data.features) {
+    const saved = await prisma.feature.upsert({ where: { key: feature.key }, update: {}, create: feature });
+
+    for (const [slug, value] of Object.entries(values)) {
+      const plan = await prisma.subscriptionPlan.findUnique({ where: { slug } });
+      if (!plan) continue;
+      await prisma.planFeature.upsert({
+        where: { planId_featureId: { planId: plan.id, featureId: saved.id } },
+        update: {},
+        create: { planId: plan.id, featureId: saved.id, enabled: value.enabled, limit: value.limit ?? null },
+      });
+    }
+  }
+  log(`${data.plans.length} subscription plan(s), ${data.features.length} feature(s)`);
 
   for (const topic of data.topics) {
     await prisma.fcmTopic.upsert({ where: { key: topic.key }, update: topic, create: topic });

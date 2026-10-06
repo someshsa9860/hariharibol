@@ -772,6 +772,186 @@ abstract class AppLocalizations {
   /// **'No preference — ask me each time'**
   String get settingsNoMantraPreference;
 
+  /// No description provided for @settingsPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans & Premium'**
+  String get settingsPlans;
+
+  /// No description provided for @plansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get plansTitle;
+
+  /// No description provided for @plansSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole app is free. A paid plan adds a little more on top.'**
+  String get plansSubtitle;
+
+  /// No description provided for @plansYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan'**
+  String get plansYourPlan;
+
+  /// No description provided for @plansCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get plansCurrent;
+
+  /// No description provided for @plansFreeForEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Free for everyone'**
+  String get plansFreeForEveryone;
+
+  /// No description provided for @plansPricePer.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} / {period}'**
+  String plansPricePer(String price, String period);
+
+  /// No description provided for @plansPeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'week'**
+  String get plansPeriodWeek;
+
+  /// No description provided for @plansPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'month'**
+  String get plansPeriodMonth;
+
+  /// No description provided for @plansPeriodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'year'**
+  String get plansPeriodYear;
+
+  /// No description provided for @plansPeriodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String plansPeriodDays(int days);
+
+  /// No description provided for @plansTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}-day free trial'**
+  String plansTrial(int days);
+
+  /// No description provided for @plansSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get plansSubscribe;
+
+  /// No description provided for @plansStartTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Start free trial'**
+  String get plansStartTrial;
+
+  /// No description provided for @plansRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get plansRestore;
+
+  /// No description provided for @plansStoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The store is not available on this device.'**
+  String get plansStoreUnavailable;
+
+  /// No description provided for @plansProductMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan is not available in the store right now.'**
+  String get plansProductMissing;
+
+  /// No description provided for @plansPurchasePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your purchase is being processed…'**
+  String get plansPurchasePending;
+
+  /// No description provided for @plansPurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you — your plan is active.'**
+  String get plansPurchaseSuccess;
+
+  /// No description provided for @plansPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase did not go through.'**
+  String get plansPurchaseFailed;
+
+  /// No description provided for @plansPurchaseCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase cancelled.'**
+  String get plansPurchaseCancelled;
+
+  /// No description provided for @plansRenews.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String plansRenews(String date);
+
+  /// No description provided for @plansEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Access until {date}'**
+  String plansEnds(String date);
+
+  /// No description provided for @plansPermanent.
+  ///
+  /// In en, this message translates to:
+  /// **'Yours permanently — thank you for supporting HariHariBol.'**
+  String get plansPermanent;
+
+  /// No description provided for @plansIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Included'**
+  String get plansIncluded;
+
+  /// No description provided for @plansNotIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not included'**
+  String get plansNotIncluded;
+
+  /// No description provided for @plansUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get plansUnlimited;
+
+  /// No description provided for @plansLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{limit} {unit}'**
+  String plansLimit(int limit, String unit);
+
+  /// No description provided for @plansNoFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra benefits yet — more are on the way.'**
+  String get plansNoFeatures;
+
+  /// No description provided for @plansRestoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored.'**
+  String get plansRestoreDone;
+
   /// No description provided for @settingsPrivacy.
   ///
   /// In en, this message translates to:

@@ -9,6 +9,7 @@ import {
   Library,
   Sun,
   CreditCard,
+  Crown,
   Bell,
   Settings,
   Sparkles,
@@ -61,6 +62,7 @@ export const NAV: NavSection[] = [
     label: 'System',
     items: [
       { label: 'Payments', path: '/payments', icon: CreditCard, permission: 'payment.read' },
+      { label: 'Plans', path: '/plans', icon: Crown, permission: 'payment.read' },
       { label: 'Notifications', path: '/notifications', icon: Bell, permission: 'notification.send' },
       { label: 'Settings', path: '/settings', icon: Settings, permission: 'setting.read' },
       { label: 'AI usage', path: '/ai', icon: Sparkles, permission: 'ai.read' },

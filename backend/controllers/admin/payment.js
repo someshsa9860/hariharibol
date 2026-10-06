@@ -1,4 +1,4 @@
-// The money screens: plans, subscriptions, the payment ledger and refunds.
+// The money screens: subscriptions, the payment ledger and refunds.
 //
 // Nothing here decides entitlement. services/entitlement.js does, by
 // recomputing it from the ledger — so an admin marking a payment refunded
@@ -9,58 +9,9 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as payments from '../../services/payments/index.js';
 import * as entitlement from '../../services/entitlement.js';
-import { ok, created, paginated } from '../../utils/respond.js';
+import { ok, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
-
-// ── Plans ──────────────────────────────────────────────────────────────────
-
-export const listPlans = async (req, res) => {
-  const plans = await prisma.subscriptionPlan.findMany({
-    orderBy: { createdAt: 'asc' },
-    include: { _count: { select: { subscriptions: true } } },
-  });
-  return ok(res, plans);
-};
-
-export const createPlan = async (req, res) => {
-  const plan = await prisma.subscriptionPlan.create({ data: req.valid.body });
-  await audit.record(req, {
-    action: 'plan.create',
-    entityType: 'SubscriptionPlan',
-    entityId: plan.id,
-    after: req.valid.body,
-  });
-  return created(res, plan);
-};
-
-/**
- * PATCH /api/admin/plans/:id
- *
- * Changing a price does not change what an existing subscriber pays — their
- * Subscription keeps pointing at this plan, and the amount they were actually
- * charged is on their Payment rows. That is why the ledger stores the amount
- * rather than reading it back off the plan.
- */
-export const updatePlan = async (req, res) => {
-  const before = await prisma.subscriptionPlan.findUnique({ where: { id: req.valid.params.id } });
-  if (!before) throw notFound('Plan');
-
-  const plan = await prisma.subscriptionPlan.update({
-    where: { id: before.id },
-    data: req.valid.body,
-  });
-
-  await audit.record(req, {
-    action: 'plan.update',
-    entityType: 'SubscriptionPlan',
-    entityId: plan.id,
-    before,
-    after: plan,
-  });
-
-  return ok(res, plan);
-};
 
 // ── Subscriptions ──────────────────────────────────────────────────────────
 

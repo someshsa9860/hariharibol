@@ -125,6 +125,11 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum FeatureKind {
+  FLAG // on or off
+  LIMIT // a number — a quota or a cap
+}
+
 enum SubscriptionStatus {
   IN_TRIAL
   ACTIVE
@@ -1161,35 +1166,131 @@ model FcmSubscription {
 // Money — subscriptions and donations
 // ============================================================================
 
-// One row today: the monthly "Premium" plan. A table rather than constants
-// because the three stores each issue their own product id, and because a
-// subscription must keep pointing at the price it was actually sold at when
-// that price later changes.
+// A tier of benefit. `free` is the baseline every user is on with no
+// subscription — it is a real row so that what a free user gets is edited in
+// the same place as what a paid user gets, and the app can show them side by
+// side. Paid plans sit above it by `tier`.
+//
+// What a plan costs is not here: that differs by store and by billing period,
+// so it lives on PlanPrice. What a plan unlocks is not here either — see
+// Feature and PlanFeature.
 model SubscriptionPlan {
   id String @id @default(cuid())
 
-  slug        String  @unique @db.VarChar(50) // "premium-monthly"
-  name        String // "Premium"
+  slug        String  @unique @db.VarChar(50) // "free", "premium"
+  name        String
   description String? @db.Text
 
-  googleProductId String?
-  appleProductId  String?
-  razorpayPlanId  String?
+  // Rank, 0 = the free baseline. When a user holds several entitlements (a
+  // subscription and a donation, say) the highest tier wins.
+  tier Int @default(0)
 
-  // Smallest currency unit — paise for INR, cents for USD. Never a float:
-  // money in floating point drifts once it is summed.
-  priceMinor Int
-  currency   String @db.VarChar(3)
-  periodDays Int    @default(30)
+  // Exactly one plan is the free baseline. Never sold, so it has no prices.
+  isFree Boolean @default(false)
+
+  // Donating any amount earns permanent access to this plan — the highest tier
+  // flagged here. See services/entitlement.js.
+  grantedToDonors Boolean @default(false)
 
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  prices        PlanPrice[]
+  features      PlanFeature[]
   subscriptions Subscription[]
 
-  @@index([isActive])
+  @@index([isActive, tier])
+}
+
+// One way of buying a plan: a store product with a price and a billing period.
+//
+// A plan has one row per (provider, period). Adding a store means a new
+// PaymentProvider value, a file in services/payments/ and rows here — the plan
+// itself does not change. `productId` is what the store knows the product by
+// (Play subscription id, App Store product id, Razorpay plan id), which is why
+// it is data and not a constant in the app.
+//
+// `priceMinor` is what the panel shows and what the app falls back on; the
+// store's own localised price is what the user is actually charged, and the
+// amount really paid is on the Payment row.
+model PlanPrice {
+  id String @id @default(cuid())
+
+  planId String
+
+  provider  PaymentProvider
+  productId String
+
+  priceMinor Int // smallest currency unit — never a float
+  currency   String @db.VarChar(3)
+  periodDays Int    @default(30)
+
+  // Free trial offered with this product. 0 = none. The store enforces the
+  // trial; this is so the app can say "7 days free" before opening the sheet.
+  trialDays Int @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan          SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@unique([provider, productId])
+  @@index([planId, isActive])
+}
+
+// What the product can do, named once. `key` is what code asks about —
+// `entitlement.can(userId, 'downloads.offline')` — so it is permanent; the name
+// and description are free to change.
+//
+// Features are added as the app grows them, with nothing deployed: a row here
+// and values on the plans. FLAG is on/off; LIMIT is a number (a daily quota, a
+// cap), where a null limit means unlimited.
+model Feature {
+  id String @id @default(cuid())
+
+  key         String      @unique @db.VarChar(80) // "ads.removed", "downloads.offline"
+  name        String
+  description String?     @db.Text
+  kind        FeatureKind @default(FLAG)
+  unit        String?     @db.VarChar(40) // "per day", "items" — display only, for LIMIT
+
+  // What a plan with no PlanFeature row gets. True by default: the app is free,
+  // and a feature a plan was never configured for should not silently lock
+  // people out of it.
+  defaultEnabled Boolean @default(true)
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plans PlanFeature[]
+
+  @@index([isActive, sortOrder])
+}
+
+// A feature's value on one plan.
+model PlanFeature {
+  id String @id @default(cuid())
+
+  planId    String
+  featureId String
+
+  enabled Boolean @default(true)
+  // LIMIT features only; null with `enabled` true means unlimited.
+  limit   Int?
+
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature Feature          @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, featureId])
+  @@index([featureId])
 }
 
 model Subscription {
@@ -1197,6 +1298,10 @@ model Subscription {
 
   userId String
   planId String
+
+  // The store product it was bought through. Null for rows that predate
+  // PlanPrice, and when the product has since been deleted.
+  priceId String?
 
   provider   PaymentProvider
   externalId String? // the provider's own subscription id
@@ -1213,6 +1318,7 @@ model Subscription {
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  price    PlanPrice?       @relation(fields: [priceId], references: [id], onDelete: SetNull)
   payments Payment[]
 
   @@unique([provider, externalId])

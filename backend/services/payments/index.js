@@ -73,6 +73,7 @@ async function upsertSubscription(input) {
   const {
     userId,
     planId,
+    priceId = null,
     provider,
     externalId,
     status = 'ACTIVE',
@@ -83,8 +84,8 @@ async function upsertSubscription(input) {
 
   const subscription = await prisma.subscription.upsert({
     where: { provider_externalId: { provider, externalId } },
-    update: { status, currentPeriodEnd, autoRenew, planId },
-    create: { userId, planId, provider, externalId, status, currentPeriodEnd, autoRenew, startedAt },
+    update: { status, currentPeriodEnd, autoRenew, planId, ...(priceId ? { priceId } : {}) },
+    create: { userId, planId, priceId, provider, externalId, status, currentPeriodEnd, autoRenew, startedAt },
   });
 
   await entitlement.refresh(userId);

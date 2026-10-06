@@ -27,6 +27,12 @@ abstract final class ApiPaths {
   // Dashboard
   static const String home = '$_app/home';
 
+  // Plans and entitlement
+  static const String subscriptionPlans = '$_app/subscription/plans';
+  static const String subscriptionMe = '$_app/subscription/me';
+  static const String subscriptionVerify = '$_app/subscription/verify';
+  static const String subscriptionRestore = '$_app/subscription/restore';
+
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';

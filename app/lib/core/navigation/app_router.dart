@@ -21,6 +21,7 @@ import '../../views/reels/reel_detail_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_results_view.dart';
 import '../../views/search/search_view.dart';
+import '../../views/premium/plans_view.dart';
 import '../../views/settings/settings_view.dart';
 import '../../views/splash/splash_view.dart';
 import '../constants/storage_keys.dart';
@@ -102,6 +103,11 @@ GoRouter createRouter() {
         path: AppRoutes.settings,
         name: RouteNames.settings,
         builder: (context, state) => const SettingsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.plans,
+        name: RouteNames.plans,
+        builder: (context, state) => const PlansView(),
       ),
       GoRoute(
         path: AppRoutes.search,

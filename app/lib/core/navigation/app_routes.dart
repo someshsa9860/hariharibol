@@ -19,6 +19,9 @@ abstract final class AppRoutes {
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
+  /// Plans and what each unlocks. Pushed from settings.
+  static const String plans = '/plans';
+
   /// The search screen. Pushed from Library's app bar; searches the server's
   /// index, never a local one.
   static const String search = '/search';
@@ -92,6 +95,7 @@ abstract final class RouteNames {
   static const String library = 'library';
   static const String routine = 'routine';
   static const String settings = 'settings';
+  static const String plans = 'plans';
   static const String search = 'search';
   static const String searchResults = 'searchResults';
   static const String mantraDetail = 'mantraDetail';

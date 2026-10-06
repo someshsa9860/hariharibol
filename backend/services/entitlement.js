@@ -5,7 +5,9 @@
 // This module owns it, and it can be rebuilt from Subscription and Payment at
 // any time. Nothing else may write those three columns.
 //
-// Premium is earned two ways, and they are worth the same access:
+// Premium is earned two ways, and they are worth the same access (a donation
+// earns the plan flagged `grantedToDonors`; a subscription earns the plan
+// bought):
 //
 //   - an active subscription — entitled until `currentPeriodEnd`
 //   - any donation, of any amount — entitled permanently. `premiumUntil` stays
@@ -24,41 +26,101 @@ import * as websocket from './websocket.js';
 // the moment someone cancels is taking money for nothing.
 const ENTITLING_STATUSES = ['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED'];
 
+const PLAN_SELECT = { id: true, slug: true, name: true, tier: true, isFree: true };
+
+// The baseline plan — what anyone with no subscription and no donation is on.
+async function freePlan() {
+  return prisma.subscriptionPlan.findFirst({ where: { isFree: true }, select: PLAN_SELECT });
+}
+
+// The plan a donation earns: the highest tier flagged `grantedToDonors`.
+async function donorPlan() {
+  return prisma.subscriptionPlan.findFirst({
+    where: { grantedToDonors: true, isActive: true },
+    orderBy: { tier: 'desc' },
+    select: PLAN_SELECT,
+  });
+}
+
 // Works out what a user's entitlement *should* be, without writing anything.
+// `plan` is the tier they are on; when several things entitle someone, the
+// highest tier wins.
 async function compute(userId) {
   const now = new Date();
 
-  const donation = await prisma.payment.findFirst({
-    where: { userId, purpose: 'DONATION', status: 'SUCCEEDED' },
-    orderBy: { paidAt: 'asc' },
-    select: { paidAt: true, createdAt: true },
-  });
+  const [donation, subscription] = await Promise.all([
+    prisma.payment.findFirst({
+      where: { userId, purpose: 'DONATION', status: 'SUCCEEDED' },
+      orderBy: { paidAt: 'asc' },
+      select: { paidAt: true, createdAt: true },
+    }),
+    // Highest tier first, then whichever runs longest.
+    prisma.subscription.findFirst({
+      where: { userId, status: { in: ENTITLING_STATUSES }, currentPeriodEnd: { gt: now } },
+      orderBy: [{ plan: { tier: 'desc' } }, { currentPeriodEnd: 'desc' }],
+      select: { startedAt: true, currentPeriodEnd: true, plan: { select: PLAN_SELECT } },
+    }),
+  ]);
 
-  if (donation) {
+  const donated = donation ? await donorPlan() : null;
+
+  // A donation wins over a subscription of the same or lower tier: someone who
+  // subscribed for a month and later donated is a donor, not an ex-subscriber.
+  if (donated && (!subscription || donated.tier >= subscription.plan.tier)) {
     return {
-      isPremium: true,
+      isPremium: !donated.isFree,
       premiumSince: donation.paidAt || donation.createdAt,
       premiumUntil: null, // permanent
       reason: 'DONATION',
+      plan: donated,
     };
   }
-
-  const subscription = await prisma.subscription.findFirst({
-    where: { userId, status: { in: ENTITLING_STATUSES }, currentPeriodEnd: { gt: now } },
-    orderBy: { currentPeriodEnd: 'desc' },
-    select: { startedAt: true, currentPeriodEnd: true },
-  });
 
   if (subscription) {
     return {
-      isPremium: true,
+      isPremium: !subscription.plan.isFree,
       premiumSince: subscription.startedAt,
       premiumUntil: subscription.currentPeriodEnd,
       reason: 'SUBSCRIPTION',
+      plan: subscription.plan,
     };
   }
 
-  return { isPremium: false, premiumSince: null, premiumUntil: null, reason: 'NONE' };
+  return { isPremium: false, premiumSince: null, premiumUntil: null, reason: 'NONE', plan: await freePlan() };
+}
+
+// What a plan unlocks, as { [key]: { enabled, limit, ... } } for every active
+// feature. A feature the plan has no row for gets the feature's own default —
+// so a feature added tomorrow is on for everyone until someone says otherwise,
+// which is the app's rule: new things are free unless a decision is made.
+async function featuresForPlan(planId) {
+  const [features, values] = await Promise.all([
+    prisma.feature.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+    planId ? prisma.planFeature.findMany({ where: { planId } }) : [],
+  ]);
+  const byFeature = new Map(values.map((v) => [v.featureId, v]));
+
+  const result = {};
+  for (const feature of features) {
+    const value = byFeature.get(feature.id);
+    result[feature.key] = {
+      name: feature.name,
+      kind: feature.kind,
+      unit: feature.unit,
+      enabled: value ? value.enabled : feature.defaultEnabled,
+      // null = unlimited. Only meaningful for LIMIT features.
+      limit: value && feature.kind === 'LIMIT' ? value.limit : null,
+    };
+  }
+  return result;
+}
+
+// The one question the rest of the codebase asks: may this user use this?
+async function can(userId, key) {
+  const { plan } = await compute(userId);
+  if (!plan) return false;
+  const features = await featuresForPlan(plan.id);
+  return features[key]?.enabled ?? false;
 }
 
 // Recompute and persist. Called by every payment webhook and by the nightly
@@ -91,6 +153,7 @@ async function refresh(userId) {
       isPremium: next.isPremium,
       premiumUntil: next.premiumUntil,
       reason: next.reason,
+      plan: next.plan?.slug ?? null,
     });
   }
 
@@ -126,4 +189,4 @@ async function sweep() {
   return { expired: expired.count, refreshed: stale.length };
 }
 
-export { compute, refresh, sweep, ENTITLING_STATUSES };
+export { compute, refresh, sweep, featuresForPlan, can, ENTITLING_STATUSES };

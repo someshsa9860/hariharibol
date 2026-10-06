@@ -5,79 +5,13 @@ const router = createRouter({
   tag: 'Admin · Money',
   prefix: '',
   description:
-    'Plans, subscriptions, the payment ledger and refunds. Nothing here decides entitlement ' +
+    'Subscriptions, the payment ledger and refunds. Nothing here decides entitlement ' +
     'directly — it is always recomputed from the ledger, so an admin correcting a payment ' +
     'changes access as a consequence rather than by flipping a flag.',
 });
 
 const provider = z.enum(['GOOGLE_PLAY', 'APPLE_APP_STORE', 'RAZORPAY']);
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-
-// ── Plans ──────────────────────────────────────────────────────────────────
-
-router.get(
-  '/plans',
-  {
-    summary: 'List subscription plans',
-    permission: 'payment.read',
-    limit: 'read',
-    responds: { 200: 'Plans with subscriber counts' },
-  },
-  controller.listPlans
-);
-
-router.post(
-  '/plans',
-  {
-    summary: 'Create a plan',
-    description:
-      'Prices are in the smallest currency unit — paise for INR, cents for USD. Never a ' +
-      'float: money in floating point drifts as soon as it is summed.',
-    permission: 'plan.manage',
-    limit: 'write',
-    body: z.object({
-      slug: z.string().regex(/^[a-z0-9-]+$/).max(50),
-      name: z.string().min(1).max(100),
-      description: z.string().max(2000).optional(),
-      googleProductId: z.string().max(200).optional(),
-      appleProductId: z.string().max(200).optional(),
-      razorpayPlanId: z.string().max(200).optional(),
-      priceMinor: z.coerce.number().int().min(0),
-      currency: z.string().length(3),
-      periodDays: z.coerce.number().int().min(1).optional(),
-      isActive: z.boolean().optional(),
-    }),
-    responds: { 201: 'The plan' },
-  },
-  controller.createPlan
-);
-
-router.patch(
-  '/plans/:id',
-  {
-    summary: 'Update a plan',
-    description:
-      'Changing the price does not change what existing subscribers pay. What they were ' +
-      'actually charged lives on their Payment rows, which is why the ledger stores the ' +
-      'amount rather than reading it back off the plan.',
-    permission: 'plan.manage',
-    limit: 'write',
-    params: schemas.id,
-    body: z.object({
-      name: z.string().min(1).max(100).optional(),
-      description: z.string().max(2000).optional(),
-      googleProductId: z.string().max(200).nullable().optional(),
-      appleProductId: z.string().max(200).nullable().optional(),
-      razorpayPlanId: z.string().max(200).nullable().optional(),
-      priceMinor: z.coerce.number().int().min(0).optional(),
-      currency: z.string().length(3).optional(),
-      periodDays: z.coerce.number().int().min(1).optional(),
-      isActive: z.boolean().optional(),
-    }),
-    responds: { 200: 'The plan', 404: 'No such plan' },
-  },
-  controller.updatePlan
-);
 
 // ── Subscriptions ──────────────────────────────────────────────────────────
 

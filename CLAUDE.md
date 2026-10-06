@@ -1,3 +1,4 @@
+| Subscriptions | Built on all three parts. Plans (tiers, with a real `free` baseline), a price per provider × billing period (optional free trial), and a feature catalogue with a value per plan — all editable in the admin panel's **Plans** page, so benefits added later need no schema change. Google Play and App Store purchases are bought via `in_app_purchase` and verified server to server; donors keep the donor plan permanently. See [backend/CLAUDE.md](backend/CLAUDE.md). `npm run test:subscriptions` walks it. |
 | Reels | Built end to end, consumer side. Feed (ranked, watch-aware), player, view/like/comment/share/save/report, one-level comment threads, creator profiles and following, and the text an admin laid over a reel (`models/reel_overlay.dart`, `widgets/reels/reel_overlays.dart`). `npm run seed:reels` puts six playable demo reels on a laptop. **Creator self-publishing is deliberately not built** — see below. |
 # HariHariBol
 

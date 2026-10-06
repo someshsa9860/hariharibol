@@ -69,6 +69,17 @@ function guard(meta) {
     // by the payment webhooks and the nightly sweep, never here.
     if (meta.premium && !auth.user.isPremium) return next(paymentRequired());
 
+    // A named feature is decided by the user's plan, so it needs the plan —
+    // one lookup, only on the routes that ask for it.
+    if (meta.feature) {
+      // Imported here, not at the top: entitlement pulls in auth and the websocket,
+      // and the router is loaded before any of them.
+      return import('../services/entitlement.js')
+        .then((entitlement) => entitlement.can(auth.user.id, meta.feature))
+        .then((allowed) => next(allowed ? undefined : paymentRequired()))
+        .catch(next);
+    }
+
     return next();
   };
 }

@@ -9,6 +9,7 @@ import 'services/device_service.dart';
 import 'services/fcm_service.dart';
 import 'services/firebase_service.dart';
 import 'services/local_store.dart';
+import 'services/purchase_service.dart';
 import 'services/tracking_service.dart';
 
 /// Boot.
@@ -27,6 +28,10 @@ Future<void> main() async {
 
   unawaited(TrackingService.instance.init());
   unawaited(FcmService.instance.init());
+
+  // Purchases finish on their own schedule — pending approvals, ones made while
+  // the app was closed — so the store's stream is listened to from boot.
+  PurchaseService.instance.start();
 
   runApp(const ProviderScope(child: HariHariBolApp()));
 }

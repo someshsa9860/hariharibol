@@ -16,6 +16,7 @@ import { ReelEditorPage } from '@/routes/reel-editor';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
+import { PlansPage } from '@/routes/plans';
 import { NotificationsPage } from '@/routes/notifications';
 import { SettingsPage } from '@/routes/settings';
 import { AiUsagePage } from '@/routes/ai-usage';
@@ -165,6 +166,14 @@ export function Router() {
         element={
           <Protected permission="payment.read">
             <PaymentsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/plans"
+        element={
+          <Protected permission="payment.read">
+            <PlansPage />
           </Protected>
         }
       />

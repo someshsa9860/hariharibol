@@ -111,6 +111,7 @@ function accessNote(meta) {
     notes.push(`Requires permission \`${[].concat(meta.permission).join('`, `')}\`.`);
   }
   if (meta.premium) notes.push('**Premium only.**');
+  if (meta.feature) notes.push(`**Requires the \`${meta.feature}\` plan feature.**`);
   if (meta.limit) notes.push(`Rate limit group: \`${meta.limit}\`.`);
   return notes.join(' ');
 }
