@@ -9,6 +9,7 @@ import 'reel_audio_player.dart';
 import 'reel_caption.dart';
 import 'reel_overlays.dart';
 import 'reel_slideshow.dart';
+import 'reel_soundtrack.dart';
 import 'reel_video_player.dart';
 
 /// One reel, filling the screen.
@@ -17,7 +18,7 @@ import 'reel_video_player.dart';
 /// it, then the controls. The scrim is what makes white text readable over
 /// footage nobody has seen — it is a gradient rather than a flat wash so the
 /// middle of the frame, which is usually the subject, stays untouched.
-class ReelPage extends StatelessWidget {
+class ReelPage extends StatefulWidget {
   const ReelPage({
     super.key,
     required this.reel,
@@ -32,6 +33,7 @@ class ReelPage extends StatelessWidget {
     required this.onCreatorTap,
     required this.onToggleMute,
     this.onSubjectTap,
+    this.onSimilarTap,
     this.onProgress,
     this.playerKey,
     this.bottomInset = 0,
@@ -50,6 +52,9 @@ class ReelPage extends StatelessWidget {
   final VoidCallback onCreatorTap;
   final VoidCallback onToggleMute;
   final void Function(Reel reel)? onSubjectTap;
+
+  /// Opens reels like this one. Pass it only when there are some to offer.
+  final VoidCallback? onSimilarTap;
   final void Function(int watchedMs, int durationMs)? onProgress;
 
   /// Lets the feed reach this page's player to report a watch when the whole
@@ -61,6 +66,17 @@ class ReelPage extends StatelessWidget {
   final double bottomInset;
 
   @override
+  State<ReelPage> createState() => _ReelPageState();
+}
+
+class _ReelPageState extends State<ReelPage> {
+  /// The track under a video or slideshow, so a tap that pauses the picture can
+  /// pause it too.
+  final GlobalKey<ReelSoundtrackState> _soundtrack = GlobalKey<ReelSoundtrackState>();
+
+  Reel get reel => widget.reel;
+
+  @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
 
@@ -70,12 +86,20 @@ class ReelPage extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           _media(context),
+          // Silent itself; only here to play the track.
+          if (reel.hasSoundtrack)
+            ReelSoundtrack(
+              key: _soundtrack,
+              url: reel.audioUrl!,
+              isActive: widget.isActive,
+              isMuted: widget.isMuted,
+            ),
           const _Scrim(),
           ReelOverlays(overlays: reel.overlays),
           Positioned(
             left: AppSpacing.lg,
             right: 0,
-            bottom: bottomInset + AppSpacing.lg,
+            bottom: widget.bottomInset + AppSpacing.lg,
             child: SafeArea(
               top: false,
               child: Row(
@@ -84,19 +108,20 @@ class ReelPage extends StatelessWidget {
                   Expanded(
                     child: ReelCaption(
                       reel: reel,
-                      onCreatorTap: onCreatorTap,
-                      onFollowTap: onFollow,
-                      onSubjectTap: onSubjectTap,
+                      onCreatorTap: widget.onCreatorTap,
+                      onFollowTap: widget.onFollow,
+                      onSubjectTap: widget.onSubjectTap,
+                      onSimilarTap: widget.onSimilarTap,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   ReelActionRail(
                     reel: reel,
-                    onLike: onLike,
-                    onComment: onComment,
-                    onShare: onShare,
-                    onSave: onSave,
-                    onMore: onMore,
+                    onLike: widget.onLike,
+                    onComment: widget.onComment,
+                    onShare: widget.onShare,
+                    onSave: widget.onSave,
+                    onMore: widget.onMore,
                   ),
                 ],
               ),
@@ -110,9 +135,9 @@ class ReelPage extends StatelessWidget {
               right: AppSpacing.lg,
               child: SafeArea(
                 child: _MuteButton(
-                  isMuted: isMuted,
-                  label: isMuted ? text.reelMuted : text.reelUnmuted,
-                  onTap: onToggleMute,
+                  isMuted: widget.isMuted,
+                  label: widget.isMuted ? text.reelMuted : text.reelUnmuted,
+                  onTap: widget.onToggleMute,
                 ),
               ),
             ),
@@ -127,35 +152,44 @@ class ReelPage extends StatelessWidget {
         // Falls through to the slideshow widget, which shows the thumbnail
         // when there are no image rows — the right fallback for a video whose
         // file is not there yet.
-        return ReelSlideshow(reel: reel, isActive: isActive);
+        return ReelSlideshow(reel: reel, isActive: widget.isActive);
       }
       return ReelVideoPlayer(
-        key: playerKey,
+        key: widget.playerKey,
         url: reel.videoUrl!,
-        isActive: isActive,
-        isMuted: isMuted,
+        isActive: widget.isActive,
+        // A track under the video replaces the video's own sound, as it does in
+        // the editor's preview; the mute button then governs the track.
+        isMuted: widget.isMuted || reel.hasSoundtrack,
         thumbnailUrl: reel.thumbnailUrl,
         cacheKey: reel.id,
-        onProgress: onProgress,
-        onTap: () => playerKey?.currentState?.togglePlayback(),
+        onProgress: widget.onProgress,
+        onTap: _toggleVideo,
       );
     }
 
     if (reel.isAudio) {
       if (!reel.hasPlayableAudio) {
-        return ReelSlideshow(reel: reel, isActive: isActive);
+        return ReelSlideshow(reel: reel, isActive: widget.isActive);
       }
       return ReelAudioPlayer(
         url: reel.audioUrl!,
-        isActive: isActive,
-        isMuted: isMuted,
+        isActive: widget.isActive,
+        isMuted: widget.isMuted,
         thumbnailUrl: reel.thumbnailUrl,
         cacheKey: reel.id,
-        onProgress: onProgress,
+        onProgress: widget.onProgress,
       );
     }
 
-    return ReelSlideshow(reel: reel, isActive: isActive);
+    return ReelSlideshow(reel: reel, isActive: widget.isActive);
+  }
+
+  /// Tap to pause or resume the picture, and the track with it.
+  Future<void> _toggleVideo() async {
+    final player = widget.playerKey?.currentState;
+    await player?.togglePlayback();
+    _soundtrack.currentState?.setHeld(!(player?.isPlaying ?? true));
   }
 }
 

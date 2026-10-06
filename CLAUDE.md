@@ -41,8 +41,8 @@ Each part carries its own rules file. Read the relevant one before writing code 
 |---|---|
 | `backend/` | Built. 43-model Prisma schema, app/web/admin/webhook routes, worker, websocket, deeplink, docs. Migrated and seeded locally; `npm run test:auth` walks the session lifecycle end to end and `npm run test:reels` walks the reels surface (77 assertions, every denormalised counter checked against its rows). |
 | `app/` | Foundation built. Sign-in (Google/Apple), session and silent token rotation, theme, l10n, router, dashboard fed by `/api/app/home`. Firebase and release signing are wired for `com.sss.ramkrishnahari` — see [app/CLAUDE.md](app/CLAUDE.md). Sadhana and library tabs are routed and empty. |
-| Reels | Built end to end, consumer side. Feed (ranked, watch-aware), player, view/like/comment/share/save/report, one-level comment threads, creator profiles and following. `npm run seed:reels` puts six playable demo reels on a laptop. **Creator publishing is deliberately not built** — see below. |
-| `admin/` | Foundation built. React + Vite + TypeScript SPA — see [admin/CLAUDE.md](admin/CLAUDE.md). Sign-in reuses the app's Google-only `/api/app/auth/social`, gated by role permissions from `/api/admin/me`. Dashboard, users & roles, content (books/verses/mantras/reference data/daily sloka), payments, notifications, settings, AI usage, audit log, jobs, and a system health/analytics page, all wired to the existing `backend/routes/admin/` API plus a new `backend/routes/admin/system.js`. **Reels** are made and published from a multi-feature editor (video / slideshow / audio upload, draggable text, verse picker, undo) over `backend/routes/admin/reel.js`; `npm run test:admin-reels` walks it. **Reels moderation still isn't here** — reel/comment reports and creator approval have no reviewer until `backend/controllers/admin/` grows the endpoints for them. |
+| Reels | Built end to end, consumer side. Feed (ranked, watch-aware), player, view/like/comment/share/save/report, one-level comment threads, creator profiles and following. `npm run seed:reels` puts six playable demo reels on a laptop. **Reels can also be made in bulk from a book's verses** (below), and a reel from a verse offers "More like this". **Creator publishing is deliberately not built** — see below. |
+| `admin/` | Foundation built. React + Vite + TypeScript SPA — see [admin/CLAUDE.md](admin/CLAUDE.md). Sign-in reuses the app's Google-only `/api/app/auth/social`, gated by role permissions from `/api/admin/me`. Dashboard, users & roles, content (books/verses/mantras/reference data/daily sloka), payments, notifications, settings, AI usage, audit log, jobs, and a system health/analytics page, all wired to the existing `backend/routes/admin/` API plus a new `backend/routes/admin/system.js`. **Reels** are made and published from a multi-feature editor (video / slideshow / audio upload, draggable text, verse picker, undo) over `backend/routes/admin/reel.js`; `npm run test:admin-reels` walks it. **Reels from verses**: pick a book (and canto / chapter / range / topic / keywords), design one template in the same editor, and one draft reel per verse is made — see "Reels from verses" below; `npm run test:reel-recipes` walks it. **Reels moderation still isn't here** — reel/comment reports and creator approval have no reviewer until `backend/controllers/admin/` grows the endpoints for them. |
 
 ### Reels — what is not there
 
@@ -68,3 +68,30 @@ The reader-side surface is written so the creator side drops in without being
 retrofitted: `GET /reels/:id` and the creator profile already return a
 creator's own unpublished reels, `present.reel` already sets `isMine`, and the
 grid already badges a reel awaiting review.
+
+### Reels from verses
+
+An admin picks a book, narrows it (canto, chapter, verse range, a topic tag, keywords),
+designs **one template** in the reel editor — a background image or video, optional
+music, and text boxes that can be *bound* to a verse field — and the API makes one
+draft reel per matching verse (`backend/controllers/admin/reel-recipe.js`, panel page
+`admin/src/routes/reel-recipe.tsx`). Three decisions worth knowing before changing it:
+
+- **The reel keeps its verse, and bound boxes keep their binding.** The app is sent the
+  reel with each bound box's text re-read from the verse in the *reader's* language
+  (`bindOverlays` in `backend/utils/present.js`), so one reel shows a Hindi reader the
+  Hindi translation, and a corrected translation reaches reels already made. The text
+  stored at creation is only a fallback. No app change was needed for this.
+- **Standard tags, built in one place** (`backend/utils/reel-tags.js`): `book:<slug>`,
+  `canto:<slug>-<n>`, `chapter:<slug>-[<canto>-]<n>`, plus the book / canto / chapter
+  names as plain hashtags. The `book:` / `canto:` / `chapter:` keys are scoped by book
+  and are what `GET /api/app/reels/:id/similar` ranks on (same chapter, then canto,
+  then book, then shared hashtags); a GIN index on `Reel.tags` backs it. The app shows
+  "More like this" only for a reel carrying one of those keys.
+- **Re-running makes the next batch.** Verses that already have a reel from the template
+  are excluded *before* the limit, and `(templateId, verseId)` is unique.
+
+Audio is either each verse's own recitation (verses without one are not candidates) or
+the template's background music. Drafts unless the run is published, which needs
+`reel.publish`. Background music / recitation on a video or slideshow reel is now played
+by the app (`widgets/reels/reel_soundtrack.dart`); before this it was sent and ignored.

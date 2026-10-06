@@ -211,6 +211,18 @@ final reelProvider = FutureProvider.family.autoDispose<Reel, String>((ref, id) {
   return ReelService.instance.get(id);
 });
 
+/// How many similar reels to ask for at once. One page, not a feed: "more like
+/// this" is a short run that ends, and the API ranks only its closest hundred
+/// or so, so paging past the first screenful of it would be a second request
+/// for very little.
+const int similarReelsPageSize = 30;
+
+/// Reels like one the reader is watching — the same chapter first.
+final similarReelsProvider = FutureProvider.family.autoDispose<List<Reel>, String>((ref, id) async {
+  final page = await ReelService.instance.similar(id, pageSize: similarReelsPageSize);
+  return page.items;
+});
+
 /// Reels the reader saved.
 final savedReelsProvider = FutureProvider.autoDispose<List<Reel>>((ref) async {
   final page = await ReelService.instance.saved();

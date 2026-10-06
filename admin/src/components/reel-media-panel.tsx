@@ -22,8 +22,11 @@ export function ReelMediaPanel({
   doc,
   set,
   videoRef,
+  slide,
 }: {
   doc: ReelDoc;
+  /** The slideshow image on the frame right now. */
+  slide: number;
   set: (fn: (doc: ReelDoc) => ReelDoc, key?: string) => void;
   videoRef: RefObject<HTMLVideoElement | null>;
 }) {
@@ -44,6 +47,9 @@ export function ReelMediaPanel({
     try {
       const [info, key] = await Promise.all([probeMedia(file, 'video'), upload('video', 'reelVideo', file)]);
       set((d) => ({ ...d, videoPath: key, videoUrl: URL.createObjectURL(file), ...info }));
+      // The browser's decoder is a fair stand-in for the phone's: a file it cannot
+      // open (HEVC, an odd MOV) is likely to be a black screen in the app too.
+      if (info.durationMs === null) setError(`"${file.name}" was uploaded, but this browser could not read it. Check that it plays in the preview — re-export as H.264 MP4 if not.`);
     } catch (e) {
       setError(message(e));
     }
@@ -66,6 +72,7 @@ export function ReelMediaPanel({
   async function addAudio(file: File) {
     try {
       const [info, key] = await Promise.all([probeMedia(file, 'audio'), upload('audio', 'reelAudio', file)]);
+      if (info.durationMs === null) setError(`"${file.name}" was uploaded, but this browser could not read it. Check that it plays in the preview.`);
       // On a video the video already sets the length; on an audio reel this is the length.
       set((d) => ({
         ...d,
@@ -112,6 +119,7 @@ export function ReelMediaPanel({
     });
 
   const isAudioReel = doc.mediaType === 'AUDIO';
+  const shown = doc.mediaType === 'IMAGE' ? doc.images[Math.min(slide, doc.images.length - 1)] : undefined;
 
   return (
     <div className="space-y-6">
@@ -210,9 +218,15 @@ export function ReelMediaPanel({
               Use current frame
             </Button>
           )}
-          {doc.mediaType === 'IMAGE' && doc.images[0] && (
-            <Button type="button" variant="outline" size="sm" onClick={() => set((d) => ({ ...d, thumbnailPath: d.images[0].path, thumbnailUrl: d.images[0].url }))}>
-              Use first image
+          {shown && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={doc.thumbnailPath === shown.path}
+              onClick={() => set((d) => ({ ...d, thumbnailPath: shown.path, thumbnailUrl: shown.url }))}
+            >
+              Use image {Math.min(slide, doc.images.length - 1) + 1}
             </Button>
           )}
         </div>

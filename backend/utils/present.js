@@ -15,6 +15,7 @@
 
 import * as s3 from '../services/s3.js';
 import * as language from './language.js';
+import { DEFAULT_LANGUAGE } from '../config/constants.js';
 
 // Prisma `include` blocks for the joins a shaped verse needs. Kept next to the
 // shaping code so the two cannot drift — a shape that reads `verse.translations`
@@ -50,7 +51,7 @@ const includes = {
    * — unlike a verse, a reel is never served to a signed-out reader, and the
    * like/save/follow flags are what the action rail renders from.
    */
-  reel: (userId) => ({
+  reel: (userId, readingChain = [DEFAULT_LANGUAGE]) => ({
     creator: {
       select: {
         id: true,
@@ -65,7 +66,24 @@ const includes = {
     media: { orderBy: { displayOrder: 'asc' } },
     audioTracks: true,
     verse: {
-      select: { id: true, verseId: true, bookNumber: true, chapterNumber: true, verseNumber: true },
+      select: {
+        id: true,
+        verseId: true,
+        bookNumber: true,
+        cantoNumber: true,
+        chapterNumber: true,
+        verseNumber: true,
+        verseNumberEnd: true,
+        // What a text box bound to the verse is filled from — see `bindOverlays`.
+        sanskrit: true,
+        transliteration: true,
+        book: { select: { title: true } },
+        translations: {
+          where: { isPublished: true, languageCode: { in: readingChain } },
+          orderBy: { displayOrder: 'asc' },
+          select: { languageCode: true, meaning: true },
+        },
+      },
     },
     mantra: { select: { id: true, slug: true, name: true } },
     deity: { select: { id: true, slug: true, name: true, imagePath: true } },
@@ -279,6 +297,42 @@ async function reference(row, user) {
 
 const references = (rows, user) => Promise.all((rows || []).map((row) => reference(row, user)));
 
+/** "Bhagavad Gita 2.47" — a reel's verse as a person cites it. Null without a book to name. */
+function reelVerseLabel(verse) {
+  if (!verse?.book?.title) return null;
+  const numbers = [verse.cantoNumber, verse.chapterNumber].filter((n) => n != null);
+  const own = verse.verseNumberEnd ? `${verse.verseNumber}-${verse.verseNumberEnd}` : `${verse.verseNumber}`;
+  return `${verse.book.title} ${[...numbers, own].join('.')}`;
+}
+
+/**
+ * Fills a reel's bound text boxes from its verse, in this reader's language.
+ *
+ * A reel made from a template stores each box's `bind` ("translation",
+ * "sanskrit"…) next to the text it was written with. Reading the verse here,
+ * rather than trusting that text, is what lets one reel show a Hindi reader the
+ * Hindi translation and an English reader the English — and what makes a
+ * corrected translation show up on reels already made. If the verse or the
+ * field is gone the stored text stands, so a box is never blanked.
+ */
+function bindOverlays(overlays, verse, user) {
+  if (!Array.isArray(overlays) || !overlays.some((o) => o?.bind)) return overlays ?? [];
+  if (!verse) return overlays;
+
+  const translation = language.pick(verse.translations, language.readingChain(user));
+  const fields = {
+    sanskrit: verse.sanskrit,
+    transliteration: verse.transliteration,
+    translation: translation?.meaning,
+    reference: reelVerseLabel(verse),
+  };
+
+  return overlays.map((overlay) => {
+    const text = overlay?.bind ? fields[overlay.bind]?.trim() : null;
+    return text ? { ...overlay, text: text.slice(0, 2000) } : overlay;
+  });
+}
+
 /**
  * One reel, shaped for the feed.
  *
@@ -341,7 +395,7 @@ async function reel(row, user) {
 
     // Text placed on the frame in the admin editor, drawn by the app at watch
     // time — percentages of the frame, see routes/admin/reel.js.
-    overlays: row.overlays ?? [],
+    overlays: bindOverlays(row.overlays, row.verse, user),
 
     viewCount: row.viewCount,
     likeCount: row.likeCount,
@@ -382,6 +436,8 @@ async function reel(row, user) {
           bookNumber: row.verse.bookNumber,
           chapterNumber: row.verse.chapterNumber,
           verseNumber: row.verse.verseNumber,
+          // Named by the API so the app need not know which book a number means.
+          label: reelVerseLabel(row.verse),
         }
       : null,
     mantra: row.mantra ? { id: row.mantra.id, slug: row.mantra.slug, name: row.mantra.name } : null,

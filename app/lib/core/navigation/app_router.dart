@@ -18,6 +18,7 @@ import '../../views/mantra/mantra_detail_view.dart';
 import '../../views/onboarding/language_view.dart';
 import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
+import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_results_view.dart';
 import '../../views/search/search_view.dart';
@@ -170,6 +171,11 @@ GoRouter createRouter() {
         path: AppRoutes.reelPattern,
         name: RouteNames.reelDetail,
         builder: (context, state) => ReelDetailView(reelId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.similarPattern,
+        name: RouteNames.reelSimilar,
+        builder: (context, state) => SimilarReelsView(reelId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.creatorPattern,

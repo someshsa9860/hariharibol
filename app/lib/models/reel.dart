@@ -126,6 +126,7 @@ class ReelVerseRef {
     required this.bookNumber,
     required this.chapterNumber,
     required this.verseNumber,
+    this.label,
   });
 
   final String id;
@@ -138,6 +139,11 @@ class ReelVerseRef {
   final int chapterNumber;
   final int verseNumber;
 
+  /// How the API cites the verse, book included — "Bhagavad Gita 2.47". Present
+  /// on reels made from any book, which is why it is preferred over building a
+  /// label from [bookNumber]: the numbers say nothing about which book that is.
+  final String? label;
+
   static ReelVerseRef? maybe(Json? json) {
     if (json == null) return null;
     return ReelVerseRef(
@@ -146,6 +152,7 @@ class ReelVerseRef {
       bookNumber: asInt(json['bookNumber']),
       chapterNumber: asInt(json['chapterNumber']),
       verseNumber: asInt(json['verseNumber']),
+      label: asStringOrNull(json['label']),
     );
   }
 }
@@ -230,6 +237,19 @@ class Reel {
   /// Text an admin laid over the media. Drawn by the app, so it stays on top of
   /// whatever the media is and can be re-worded without touching the file.
   final List<ReelOverlay> overlays;
+
+  /// The keys the API puts on every reel it makes from a verse (see the
+  /// backend's `utils/reel-tags.js`): where in which book the verse sits. A
+  /// reel carrying one of them has siblings worth offering.
+  static const List<String> seriesTagPrefixes = ['book:', 'canto:', 'chapter:'];
+
+  /// Whether "more like this" has anything to build on. Hand-made reels carry
+  /// only loose hashtags, which are too weak a link to promise a list from.
+  bool get hasSimilar => tags.any((tag) => seriesTagPrefixes.any(tag.startsWith));
+
+  /// A track playing under a video or slideshow — as opposed to an audio reel,
+  /// whose track *is* the reel.
+  bool get hasSoundtrack => !isAudio && (audioUrl ?? '').isNotEmpty;
 
   bool get isVideo => mediaType == ReelMediaType.video;
   bool get isAudio => mediaType == ReelMediaType.audio;

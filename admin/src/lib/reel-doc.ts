@@ -13,6 +13,8 @@ export type ReelStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'REJECTED' |
 export type OverlayStyle = 'body' | 'heading' | 'verse';
 export type OverlayColor = 'light' | 'dark' | 'accent';
 export type OverlayAlign = 'left' | 'center' | 'right';
+/** Which field of the reel's verse a box is filled from. Only reels made from a template have these. */
+export type OverlayBind = 'sanskrit' | 'transliteration' | 'translation' | 'reference';
 
 export type Overlay = {
   id: string;
@@ -28,6 +30,8 @@ export type Overlay = {
   color: OverlayColor;
   align: OverlayAlign;
   source?: { verseId: string; label: string };
+  /** Filled from the verse — by the API when the reel is made, and by the app each time it is fetched. */
+  bind?: OverlayBind;
 };
 
 export const STYLE_LABELS: Record<OverlayStyle, string> = { body: 'Body', heading: 'Heading', verse: 'Verse' };
@@ -39,6 +43,22 @@ export const COLOR_PREVIEW: Record<OverlayColor, string> = {
   light: '#ffffff',
   dark: '#1b1b1f',
   accent: '#f5a524',
+};
+
+export const BIND_LABELS: Record<OverlayBind, string> = {
+  sanskrit: 'Sanskrit',
+  transliteration: 'Transliteration',
+  translation: 'Translation',
+  reference: 'Reference',
+};
+
+/** How a new box for each verse field starts out: Sanskrit large, the rest quieter. */
+export const BIND_DEFAULTS: Record<OverlayBind, Partial<Overlay>> = {
+  // 6% in and 72% wide ends at 78%, clear of the app's button column (from 82%).
+  sanskrit: { style: 'verse', size: 5.5, x: 6, width: 72 },
+  transliteration: { style: 'body', size: 3.6, x: 6, width: 72 },
+  translation: { style: 'body', size: 4, x: 6, width: 72 },
+  reference: { style: 'body', size: 3.2, x: 6, width: 72, color: 'accent' },
 };
 
 export const MAX_OVERLAYS = 20;
@@ -116,6 +136,8 @@ export type ReelDetail = {
   mantraId: string | null;
   deityId: string | null;
   overlays: Overlay[];
+  /** Set when the reel was made automatically from a template. */
+  templateId?: string | null;
   publishedAt: string | null;
   rejectionReason: string | null;
   viewCount: number;
@@ -132,6 +154,61 @@ export type ReelDetail = {
     verseNumber: number;
   } | null;
 };
+
+/** A reel template as `GET /api/admin/reel-recipes/templates/:id` returns it. */
+export type TemplateDetail = {
+  id: string;
+  name: string;
+  reelCount: number;
+  mediaType: 'VIDEO' | 'IMAGE';
+  videoPath: string | null;
+  videoUrl: string | null;
+  images: ReelImage[];
+  audioPath: string | null;
+  audioUrl: string | null;
+  thumbnailPath: string | null;
+  thumbnailUrl: string | null;
+  durationMs: number | null;
+  width: number | null;
+  height: number | null;
+  overlays: Overlay[];
+};
+
+/** A template opened in the editor: the same document, minus what belongs to each reel. */
+export function docFromTemplate(template: TemplateDetail): ReelDoc {
+  return {
+    ...emptyDoc(template.mediaType),
+    videoPath: template.videoPath,
+    videoUrl: template.videoUrl,
+    images: template.images,
+    audioPath: template.audioPath,
+    audioUrl: template.audioUrl,
+    thumbnailPath: template.thumbnailPath,
+    thumbnailUrl: template.thumbnailUrl,
+    durationMs: template.durationMs,
+    width: template.width,
+    height: template.height,
+    overlays: template.overlays ?? [],
+  };
+}
+
+/** The `config` a template is saved with. */
+export function configFromDoc(doc: ReelDoc) {
+  return {
+    mediaType: doc.mediaType === 'VIDEO' ? ('VIDEO' as const) : ('IMAGE' as const),
+    videoPath: doc.mediaType === 'VIDEO' ? doc.videoPath : null,
+    images: doc.mediaType === 'IMAGE' ? doc.images.map((image) => image.path) : [],
+    audioPath: doc.audioPath,
+    thumbnailPath: doc.thumbnailPath,
+    durationMs: doc.durationMs,
+    width: doc.width,
+    height: doc.height,
+    // A bound box keeps whatever text it last showed; the API replaces it per verse.
+    overlays: doc.overlays
+      .filter((overlay) => overlay.bind || overlay.text.trim())
+      .map((overlay) => (overlay.text.trim() ? overlay : { ...overlay, text: BIND_LABELS[overlay.bind!] })),
+  };
+}
 
 export function emptyDoc(mediaType: MediaType, creatorId = ''): ReelDoc {
   return {
@@ -239,6 +316,46 @@ export const duplicateOverlay = (overlay: Overlay): Overlay => ({
   y: Math.min(overlay.y + 3, 95),
 });
 
+/** Starting points for a new box. Only fields the overlay contract already has. */
+export const OVERLAY_PRESETS: { label: string; hint: string; overlay: Partial<Overlay> }[] = [
+  { label: 'Title', hint: 'Large heading near the top', overlay: { text: 'Title', style: 'heading', size: 9, x: 8, y: 12, width: 84 } },
+  { label: 'Subtitle', hint: 'Under a title', overlay: { text: 'Subtitle', style: 'body', size: 5, x: 10, y: 24, width: 80 } },
+  { label: 'Verse', hint: 'Verse face, centred', overlay: { text: 'Verse', style: 'verse', size: 4.5, x: 8, y: 36, width: 84 } },
+  { label: 'Translation', hint: 'Smaller body text', overlay: { text: 'Translation', style: 'body', size: 4, x: 8, y: 52, width: 84 } },
+  { label: 'Highlight', hint: 'Accent colour, one line', overlay: { text: 'Highlight', style: 'heading', color: 'accent', size: 6.5, x: 10, y: 64, width: 72 } },
+];
+
+// ── Clipboard ──────────────────────────────────────────────────────────────
+// A copied text box goes to localStorage rather than the system clipboard, so
+// it can be pasted into another reel in another tab without asking for
+// clipboard permission — and so copying text out of a field still works as usual.
+
+const CLIPBOARD_KEY = 'hhb_admin_reel_clipboard';
+
+export function writeClipboard(overlay: Overlay) {
+  try {
+    localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(overlay));
+  } catch {
+    // Storage blocked: copy simply does nothing.
+  }
+}
+
+export function readClipboard(): Overlay | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(CLIPBOARD_KEY) ?? 'null') as Overlay | null;
+    const valid =
+      value &&
+      typeof value.text === 'string' &&
+      ['x', 'y', 'width', 'size'].every((k) => typeof value[k as keyof Overlay] === 'number') &&
+      value.style in STYLE_LABELS &&
+      value.color in COLOR_LABELS &&
+      ['left', 'center', 'right'].includes(value.align);
+    return valid ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 // ── History ────────────────────────────────────────────────────────────────
 // Undo/redo over the whole document. Two things keep it usable: a drag is one
 // step, not one per pixel (begin/end), and typing into the same field within a
@@ -333,3 +450,52 @@ export function useReelHistory(initial: ReelDoc) {
 }
 
 export type ReelHistory = ReturnType<typeof useReelHistory>;
+
+// ── Links ──────────────────────────────────────────────────────────────────
+
+/**
+ * After a save the API hands back signed links for every file. Where the file
+ * is the one already on screen from this browser (a blob: URL from the upload),
+ * keep that: swapping it would reload the player and stop playback for nothing.
+ */
+export function keepLocalUrls(next: ReelDoc, current: ReelDoc): ReelDoc {
+  const local = (url: string | null) => Boolean(url?.startsWith('blob:'));
+  const localImages = new Map(current.images.filter((i) => local(i.url)).map((i) => [i.path, i.url]));
+  return {
+    ...next,
+    videoUrl: next.videoPath === current.videoPath && local(current.videoUrl) ? current.videoUrl : next.videoUrl,
+    audioUrl: next.audioPath === current.audioPath && local(current.audioUrl) ? current.audioUrl : next.audioUrl,
+    thumbnailUrl: next.thumbnailPath === current.thumbnailPath && local(current.thumbnailUrl) ? current.thumbnailUrl : next.thumbnailUrl,
+    images: next.images.map((image) => ({ ...image, url: localImages.get(image.path) ?? image.url })),
+  };
+}
+
+/** `doc` as it is, with fresher links from `server` for every file both still point at. */
+export function withUrlsFrom(doc: ReelDoc, server: ReelDoc): ReelDoc {
+  const urls = new Map(server.images.map((i) => [i.path, i.url]));
+  return {
+    ...doc,
+    videoUrl: doc.videoPath && doc.videoPath === server.videoPath ? server.videoUrl : doc.videoUrl,
+    audioUrl: doc.audioPath && doc.audioPath === server.audioPath ? server.audioUrl : doc.audioUrl,
+    thumbnailUrl: doc.thumbnailPath && doc.thumbnailPath === server.thumbnailPath ? server.thumbnailUrl : doc.thumbnailUrl,
+    images: doc.images.map((image) => ({ ...image, url: urls.get(image.path) ?? image.url })),
+  };
+}
+
+/** The document with its media dropped and its type changed. */
+export function withMediaType(doc: ReelDoc, mediaType: MediaType): ReelDoc {
+  return {
+    ...doc,
+    mediaType,
+    videoPath: null,
+    videoUrl: null,
+    images: [],
+    audioPath: null,
+    audioUrl: null,
+    thumbnailPath: null,
+    thumbnailUrl: null,
+    durationMs: null,
+    width: null,
+    height: null,
+  };
+}

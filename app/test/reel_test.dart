@@ -262,6 +262,45 @@ void main() {
     });
   });
 
+  group('series tags and the soundtrack', () {
+    Reel withTags(List<String> tags, {String mediaType = 'IMAGE', String? audioUrl}) => Reel.fromJson({
+          'id': 'r9',
+          'mediaType': mediaType,
+          'audioUrl': audioUrl,
+          'tags': tags,
+          'creator': {'id': 'c1', 'displayName': 'Gopal Das'},
+        });
+
+    test('offers more like this for a reel made from a verse', () {
+      expect(withTags(['book:bhagavad-gita', 'chapter:bhagavad-gita-2', 'karma-yoga']).hasSimilar, isTrue);
+      expect(withTags(['canto:srimad-bhagavatam-3']).hasSimilar, isTrue);
+    });
+
+    test('does not promise a list from loose hashtags alone', () {
+      expect(withTags(['krishna', 'bhakti']).hasSimilar, isFalse);
+      expect(withTags(const []).hasSimilar, isFalse);
+      // A hashtag that merely contains the word is not a series key.
+      expect(withTags(['my-book:club']).hasSimilar, isFalse);
+    });
+
+    test('has a soundtrack under a video or slideshow, but not as an audio reel', () {
+      expect(withTags(const [], audioUrl: 'https://x/a.mp3').hasSoundtrack, isTrue);
+      expect(withTags(const [], mediaType: 'VIDEO', audioUrl: 'https://x/a.mp3').hasSoundtrack, isTrue);
+      expect(withTags(const [], mediaType: 'AUDIO', audioUrl: 'https://x/a.mp3').hasSoundtrack, isFalse);
+      expect(withTags(const []).hasSoundtrack, isFalse);
+      expect(withTags(const [], audioUrl: '').hasSoundtrack, isFalse);
+    });
+
+    test('reads the verse label the API cites it by', () {
+      final reel = Reel.fromJson({
+        'id': 'r10',
+        'creator': {'id': 'c1', 'displayName': 'Gopal Das'},
+        'verse': {'id': 'v', 'verseId': '7.2.3', 'bookNumber': 7, 'chapterNumber': 2, 'verseNumber': 3, 'label': 'Chaitanya Charitamrita 2.3'},
+      });
+      expect(reel.verse!.label, 'Chaitanya Charitamrita 2.3');
+    });
+  });
+
   group('ReelComment', () {
     test('reads a top-level comment', () {
       final comment = ReelComment.fromJson({

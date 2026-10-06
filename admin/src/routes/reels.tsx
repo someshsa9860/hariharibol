@@ -1,4 +1,4 @@
-import { EyeOff, Film, Headphones, Images, MoreHorizontal, Pencil, Plus, Send, Trash2 } from 'lucide-react';
+import { EyeOff, Film, Headphones, Images, MoreHorizontal, Pencil, Plus, Send, Sparkles, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useResource } from '@/lib/use-resource';
@@ -205,6 +206,11 @@ export function ReelsPage() {
                 <DropdownMenuItem onClick={() => create('AUDIO')}>
                   <Headphones className="mr-2 h-4 w-4" />
                   Audio reel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/reels/recipe')}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  From a book’s verses…
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

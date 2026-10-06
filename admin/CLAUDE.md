@@ -150,4 +150,41 @@ Things to know before changing it:
   open for a long time can hold stale ones.
 - **The bucket needs CORS for the admin origin** (`PUT`, and `GET` for
   thumbnail-from-frame). Local dev storage does not.
-- Not built: timed text (a box is always on screen), templates.
+- **Playback is clocked by one element** — the video when there is one,
+  otherwise the audio — and the play button follows that element's own
+  play/pause events. Background music loops on its own length and is re-synced
+  to the video on play, seek and every video loop. A media error shows a
+  "Reload media" button that fetches fresh signed links.
+- **A new reel's first save must not remount the editor.** It moves to
+  `/reels/:id` with `state.editorKey: 'new'`, so the undo history and any upload
+  still in flight survive. Edits made while a save is in the air are kept as
+  unsaved, and blob: URLs from this browser's uploads are kept over the fresh
+  signed ones so the player does not reload.
+- **Editor-only conveniences are not part of the document**: hiding a box (H),
+  the copy/paste clipboard (`hhb_admin_reel_clipboard` in localStorage, so a box
+  can move between reels), the text presets and the 3×3 position grid all
+  produce ordinary overlays. The "sits under the app's buttons" warning uses
+  `SAFE_AREAS` in `reel-stage.tsx` — keep it in step with the app's reel chrome.
+- Not built: timed text (a box is always on screen).
+
+## Reels from verses
+
+`routes/reel-recipe.tsx` (`/reels/recipe`, from **New reel → From a book's verses…**)
+is a three-step page: **Verses** (book, canto, chapter, range, topic, hints, audio,
+creator — with a live count and sample), **Design**, **Create**.
+
+The Design step is the reel editor itself. Its three-column surface was lifted out of
+`reel-editor.tsx` into `components/reel-designer.tsx`, which edits whatever document it
+is handed and knows nothing about saving; the reel editor wraps it with save / publish /
+delete, the recipe page with "save as template". Passing `verseTexts` puts it in
+*template mode*: the **Verse field** menu adds a box bound to the verse's Sanskrit,
+transliteration, translation or reference, shown with a sample verse (the **Preview
+with** picker) and filled from each verse when reels are made. A bound box's `bind` is
+part of the overlay contract with `backend/routes/admin/reel.js`; the app ignores it
+(the API resolves it before sending).
+
+- The template is saved before creating, so reels can point at it and "next batch"
+  works; reels already made are unaffected if the template changes or is deleted.
+- Background is an image (or several) or a video; AUDIO reels are not offered.
+- The position grid and the default box width keep text clear of the app's button
+  column (`SAFE_AREAS` in `reel-stage.tsx`) — keep them in step with the app.

@@ -47,6 +47,15 @@ class ReelService {
     return Reel.fromJson(response.json);
   }
 
+  /// Reels from the same chapter, canto or book as [id], nearest first.
+  Future<Paged<Reel>> similar(String id, {int page = 1, int? pageSize}) async {
+    final response = await _api.get(
+      ApiPaths.reelSimilar(id),
+      query: {'page': page, 'pageSize': ?pageSize},
+    );
+    return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
+  }
+
   Future<Paged<Reel>> saved({int page = 1}) async {
     final response = await _api.get(ApiPaths.savedReels, query: {'page': page});
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);

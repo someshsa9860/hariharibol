@@ -272,6 +272,11 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                             onSubjectTap: reel.mantra?.slug == null
                                 ? null
                                 : _openSubject,
+                            onSimilarTap: reel.hasSimilar
+                                ? () => AppNavigator.instance.push(
+                                      AppRoutes.similarPath(reel.id),
+                                    )
+                                : null,
                           );
                         },
                       );

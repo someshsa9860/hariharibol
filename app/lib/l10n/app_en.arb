@@ -312,6 +312,8 @@
   "reelPause": "Pause",
   "reelVideoUnavailable": "This video is still processing.",
   "reelAudioUnavailable": "This recitation is still processing.",
+  "reelSimilar": "More like this",
+  "reelSimilarEmpty": "No similar reels yet.",
   "reelSlideOf": "{current} of {total}",
   "@reelSlideOf": {
     "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } }
