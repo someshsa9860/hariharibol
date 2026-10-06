@@ -231,15 +231,17 @@ model User {
   devices       Device[]
   refreshTokens RefreshToken[]
 
-  sadhanaProfile SadhanaProfile?
-  sadhanaDays    SadhanaDay[]
-  chantSessions  ChantSession[]
-  sadhanaTasks   SadhanaTask[]
-  dailySlokas    UserDailySloka[]
-  issues         UserIssue[]
-  preferences    UserPreferenceProfile?
-  subscriptions  Subscription[]
-  payments       Payment[]
+  sadhanaProfile   SadhanaProfile?
+  sadhanaDays      SadhanaDay[]
+  chantSessions    ChantSession[]
+  chantMalas       ChantMala[]
+  chantTranscripts ChantTapTranscript[]
+  sadhanaTasks     SadhanaTask[]
+  dailySlokas      UserDailySloka[]
+  issues           UserIssue[]
+  preferences      UserPreferenceProfile?
+  subscriptions    Subscription[]
+  payments         Payment[]
 
   favorites       Favorite[]
   readingProgress ReadingProgress[]
@@ -1627,12 +1629,81 @@ model ChantSession {
 
   createdAt DateTime @default(now())
 
-  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  day    SadhanaDay @relation(fields: [sadhanaDayId], references: [id], onDelete: Cascade)
-  mantra Mantra?    @relation(fields: [mantraId], references: [id], onDelete: SetNull)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day         SadhanaDay           @relation(fields: [sadhanaDayId], references: [id], onDelete: Cascade)
+  mantra      Mantra?              @relation(fields: [mantraId], references: [id], onDelete: SetNull)
+  malas       ChantMala[]
+  transcripts ChantTapTranscript[]
 
   @@index([userId, startedAt])
   @@index([sadhanaDayId])
+}
+
+// One round of a session — the start, the end and every tap in between.
+//
+// Taps live inside the row as a JSON array rather than as a row each: a round
+// is at most 108 of them, they are only ever read together with their round and
+// never queried on their own, and a table with a row per bead would grow by
+// thousands a day per active user. Each entry is
+// `{ seq, at (epoch ms), gapMs, auto }` — `gapMs` is the time since the tap
+// before it, which is what "how long did that chant take" means.
+//
+// Durable: unlike ChantTapTranscript this is practice history and is kept.
+model ChantMala {
+  id String @id @default(cuid())
+
+  sessionId String
+  userId    String
+
+  index      Int // 1-based within the session
+  beads      Int       @default(0) // taps recorded; 108 once the round is complete
+  startedAt  DateTime // first tap of the round
+  endedAt    DateTime? // last tap of the round
+  durationMs Int       @default(0)
+  avgGapMs   Int       @default(0)
+  complete   Boolean   @default(false)
+
+  taps Json @default("[]")
+
+  updatedAt DateTime @updatedAt
+
+  session ChantSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, index])
+  @@index([userId, startedAt])
+}
+
+// What speech recognition heard for one tap. Deliberately short-lived: it is
+// bulky, only useful while someone is still looking at the sitting it came
+// from, and `expiresAt` is stamped on write so the nightly prune is one
+// indexed delete. Reads also filter on it, so a row is gone to users the
+// moment it expires even if the prune has not run yet.
+model ChantTapTranscript {
+  id String @id @default(cuid())
+
+  sessionId String
+  userId    String
+
+  seq        Int // the tap this was heard for, matching ChantMala.taps[].seq
+  malaIndex  Int
+  text       String  @db.VarChar(500)
+  confidence Float?
+  locale     String? @db.VarChar(16)
+
+  // Set when the audio itself is kept (S3 key) instead of, or alongside, the
+  // on-device text. Unused until audio upload exists.
+  audioKey String? @db.VarChar(255)
+
+  heardAt   DateTime
+  expiresAt DateTime
+
+  session ChantSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, seq])
+  @@index([expiresAt])
+  @@index([userId, heardAt])
 }
 
 // A task on one day's list.

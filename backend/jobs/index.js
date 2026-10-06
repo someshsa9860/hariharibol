@@ -30,6 +30,7 @@ const JOBS = {
   PREFERENCES_REBUILD: 'preferences.rebuild',
   ENTITLEMENT_SWEEP: 'entitlement.sweep',
   AUDIT_PRUNE: 'audit.prune',
+  CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
 };

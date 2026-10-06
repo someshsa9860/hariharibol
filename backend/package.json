@@ -26,6 +26,7 @@
     "graph": "node scripts/code-graph.js",
     "test:auth": "node scripts/auth-e2e.js",
     "test:reels": "node scripts/reels-e2e.js",
+    "test:chant": "node scripts/chant-e2e.js",
     "test:admin-reels": "node scripts/admin-reels-e2e.js"
   },
   "prisma": {
