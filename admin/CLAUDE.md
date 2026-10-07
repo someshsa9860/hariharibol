@@ -188,3 +188,19 @@ part of the overlay contract with `backend/routes/admin/reel.js`; the app ignore
 - Background is an image (or several) or a video; AUDIO reels are not offered.
 - The position grid and the default box width keep text clear of the app's button
   column (`SAFE_AREAS` in `reel-stage.tsx`) — keep them in step with the app.
+
+## Mantra mala recording
+
+A mantra can carry one recording of a whole mala (optional) and the stretch of it that is
+chanting. `routes/mantras.tsx` hosts `components/mantra-mala-audio.tsx`: upload it
+(`lib/upload.ts`, kind `mantraMalaAudio`), play it back, and mark where the chanting **starts**
+and **ends** — type the seconds, or play the recording to the spot and press the crosshair
+("Use player position"). It shows the pace the marks give (the stretch ÷ 108), so a wrong mark
+is visible before it is saved.
+
+- **The three fields go together**: `malaAudioPath`, `malaAudioStartMs` and `malaAudioEndMs` are
+  all set or all null. Save is disabled while `malaAudioProblem()` has something to say, and the
+  API refuses the same cases itself (`backend/controllers/admin/mantra.js`).
+- **108 is not decided here.** The app splits the stretch by one round's beads, which the API
+  sends it; `CHANTS_PER_MALA` in the component only has to be the same number for the preview.
+- **Uploads are never deleted** from storage when a recording is replaced, as with reels.

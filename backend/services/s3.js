@@ -59,6 +59,7 @@ function localPath(key) {
 // stray upload cannot land at the bucket root.
 const PREFIXES = {
   mantraAudio: 'mantras/audio',
+  mantraMalaAudio: 'mantras/mala',
   verseAudio: 'verses/audio',
   narrationAudio: 'narrations/audio',
   bookCover: 'books/covers',

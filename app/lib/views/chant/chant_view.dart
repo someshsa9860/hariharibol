@@ -12,13 +12,18 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/chant_log.dart';
 import '../../models/mantra.dart';
+import '../../providers/chant_audio_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/chant_mala_player.dart';
+import '../../services/chant_mala_timing.dart';
 import '../../services/chant_recorder.dart';
 import '../../services/chant_speech_listener.dart';
 import '../../services/mantra_auto_chant_session.dart';
+import '../../services/mantra_service.dart';
 import '../../services/sadhana_service.dart';
 import '../../widgets/chant/auto_chant_switch.dart';
+import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
 import '../../widgets/chant/chant_recent_taps.dart';
 import '../../widgets/chant/chant_summary_header.dart';
@@ -35,7 +40,8 @@ import 'chant_analytics_view.dart';
 ///
 /// [mantra] is optional: most chanting on this sampradaya is the one
 /// mahamantra, so this screen works with nothing chosen and simply opens a
-/// session with no mantra attached.
+/// session with no mantra attached. A mantra that has a mala recording also gets
+/// a player, and each chant on the recording is counted as it ends.
 class ChantView extends ConsumerStatefulWidget {
   const ChantView({super.key, this.mantra});
 
@@ -83,6 +89,11 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   ChantSpeechListener? _speech;
   ChantSpeechState _speechState = ChantSpeechState.off;
 
+  /// Null when the mantra has no recording of a mala to chant along to.
+  ChantMalaPlayer? _mala;
+  StreamSubscription<int>? _malaChantsSub;
+  bool _malaWasPlaying = false;
+
   /// Runs for the whole sitting, screen-open to screen-close — what "sitting
   /// time" on the counter means.
   final Stopwatch _stopwatch = Stopwatch();
@@ -106,6 +117,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _targetAnnounced = _target > 0 && _roundsBefore >= _target;
     unawaited(_startSession());
     _initAutoChant();
+    _initMala();
 
     _stopwatch.start();
     _clockTicker = Timer.periodic(_clockTick, (_) => _clock.value += 1);
@@ -124,6 +136,43 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
   }
 
+  void _initMala() {
+    final mantra = widget.mantra;
+    if (mantra == null || !mantra.hasMalaAudio) return;
+
+    // A recording is one mala, so it is split into as many chants as a round has.
+    final player = ChantMalaPlayer(
+      url: mantra.malaAudioUrl!,
+      refreshUrl: () async => (await MantraService.instance.get(mantra.slug)).malaAudioUrl,
+      timing: ChantMalaTiming(
+        start: Duration(milliseconds: mantra.malaAudioStartMs),
+        end: Duration(milliseconds: mantra.malaAudioEndMs),
+        chants: _beadsPerRoundInUse,
+      ),
+      player: ref.read(malaAudioPlayerProvider)(),
+    );
+    _mala = player;
+    _malaChantsSub = player.chantsCompleted.listen((chants) {
+      for (var i = 0; i < chants; i++) {
+        _tapBead(auto: true);
+      }
+    });
+    player.state.addListener(_onMalaState);
+    unawaited(player.load());
+  }
+
+  void _onMalaState() {
+    final playing = _mala?.isPlaying ?? false;
+    if (playing == _malaWasPlaying) return;
+    _malaWasPlaying = playing;
+    // Both listen on the microphone, which would hear the recording from the
+    // speaker and count every chant a second time.
+    if (playing) {
+      unawaited(_autoChant?.disable());
+      unawaited(_speech?.stop());
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // The mic has no business listening while the app cannot be seen. The
@@ -132,6 +181,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       unawaited(_autoChant?.disable());
       unawaited(_speech?.stop());
+      // A recording cannot be counted along to from the background.
+      unawaited(_mala?.pause());
     }
   }
 
@@ -144,6 +195,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _stopwatch.stop();
     _autoChantStatusSub?.cancel();
     _autoChantRepetitionSub?.cancel();
+    _malaChantsSub?.cancel();
+    _mala?.state.removeListener(_onMalaState);
+    unawaited(_mala?.dispose());
     _speech?.state.removeListener(_onSpeechState);
     unawaited(_speech?.dispose());
     unawaited(_autoChant?.dispose());
@@ -203,10 +257,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _scheduleSync();
   }
 
-  Future<void> _toggleAutoChant(bool enabled) {
+  Future<void> _toggleAutoChant(bool enabled) async {
     final session = _autoChant;
-    if (session == null) return Future.value();
-    return enabled ? session.enable() : session.disable();
+    if (session == null) return;
+    if (!enabled) return session.disable();
+    await _mala?.pause();
+    await session.enable();
   }
 
   Future<void> _toggleWords(bool enabled) async {
@@ -214,6 +270,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       await _speech?.stop();
       return;
     }
+    await _mala?.pause();
     final speech = _speech ??
         (ChantSpeechListener(
           contextualPhrases: widget.mantra == null ? null : [widget.mantra!.text],
@@ -284,6 +341,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   Future<void> _close() async {
     if (_finishing) return;
     setState(() => _finishing = true);
+    // Nothing is counted after the sitting's last sync.
+    await _mala?.pause();
     _syncDebounce?.cancel();
     await _sync(finish: true);
     // The day this screen started from is stale the moment a round lands —
@@ -359,6 +418,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     textAlign: TextAlign.center,
                     style: AppTypography.verse(context, size: 22),
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+                if (_mala != null) ...[
+                  ChantAlongCard(player: _mala!),
                   const SizedBox(height: AppSpacing.lg),
                 ],
                 if (_target > 0) ...[

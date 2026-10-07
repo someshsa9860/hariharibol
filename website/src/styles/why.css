@@ -1,0 +1,20 @@
+/* "Why HariHariBol": three cards, the middle one raised. */
+.feature-grid { display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); }
+.feature-card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; min-height: 280px; padding: 32px; position: relative; transition: box-shadow .25s ease, translate .25s ease; }
+.feature-card:hover { box-shadow: var(--shadow); translate: 0 -4px; }
+.feature-card-highlight { background: #f3eadc; border-color: #e4d2b8; translate: 0 -12px; }
+.feature-card-highlight:hover { translate: 0 -16px; }
+.feature-number { color: #7d7469; font-size: .78rem; font-weight: 700; letter-spacing: .1em; position: absolute; right: 26px; top: 26px; }
+.feature-icon { align-items: center; background: #f6e4d6; border-radius: 14px; color: var(--saffron-dark); display: inline-flex; font-size: 1.7rem; height: 56px; justify-content: center; margin-bottom: 22px; width: 56px; }
+.feature-card h3 { font-family: var(--serif); font-size: 1.45rem; font-weight: 500; margin-bottom: 8px; }
+.feature-card p { color: var(--muted); font-size: .95rem; max-width: 290px; }
+.intro-section > .gita-verse { margin: 52px auto 0; max-width: 590px; }
+/* A card keeps its hover lift while it is also fading in. */
+.js .feature-card.reveal { transition: opacity .65s ease var(--d, 0ms), transform .65s ease var(--d, 0ms), box-shadow .25s ease, translate .25s ease; }
+
+@media (max-width: 780px) {
+  .feature-grid { grid-template-columns: 1fr; }
+  .feature-card { min-height: 0; }
+  .feature-card-highlight { translate: none; }
+  .feature-card-highlight:hover { translate: 0 -4px; }
+}

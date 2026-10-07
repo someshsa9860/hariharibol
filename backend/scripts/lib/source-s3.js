@@ -4,7 +4,8 @@
 // .env; this is a migration source with its own credentials that do not
 // belong in the app's permanent configuration. See scripts/README.md.
 
-import { dirname, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { config as loadEnv } from 'dotenv';
@@ -22,27 +23,53 @@ function requireEnv(name) {
   return value;
 }
 
-const bucket = requireEnv('SOURCE_S3_BUCKET');
-const client = new S3Client({
-  region: process.env.SOURCE_AWS_REGION || 'ap-south-1',
-  credentials: {
-    accessKeyId: requireEnv('SOURCE_AWS_ACCESS_KEY_ID'),
-    secretAccessKey: requireEnv('SOURCE_AWS_SECRET_ACCESS_KEY'),
-  },
-});
+// SOURCE_LOCAL_DIR points at a folder laid out like the bucket
+// (<dir>/json/...) — used to import a repaired copy before it is uploaded.
+const localDir = process.env.SOURCE_LOCAL_DIR;
+const bucket = localDir ? null : requireEnv('SOURCE_S3_BUCKET');
+const client = localDir
+  ? null
+  : new S3Client({
+      region: process.env.SOURCE_AWS_REGION || 'ap-south-1',
+      credentials: {
+        accessKeyId: requireEnv('SOURCE_AWS_ACCESS_KEY_ID'),
+        secretAccessKey: requireEnv('SOURCE_AWS_SECRET_ACCESS_KEY'),
+      },
+    });
+
+/** Local-directory stand-in for the bucket: a file when present, else the S3 object's absence. */
+function localPath(key) {
+  return join(localDir, key);
+}
 
 async function getJson(key) {
+  if (localDir) {
+    if (!existsSync(localPath(key))) {
+      const err = new Error(`${key} not in SOURCE_LOCAL_DIR`);
+      err.name = 'NoSuchKey';
+      throw err;
+    }
+    return JSON.parse(readFileSync(localPath(key), 'utf8'));
+  }
   const res = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   return JSON.parse(await res.Body.transformToString());
 }
 
 async function getBuffer(key) {
+  if (localDir) return readFileSync(localPath(key));
   const res = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   return Buffer.from(await res.Body.transformToByteArray());
 }
 
+function localKeys(prefix) {
+  const dir = localPath(prefix);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).map((name) => prefix + name);
+}
+
 /** Every key under a prefix, paging past S3's 1000-key-per-call limit. */
 async function listKeys(prefix) {
+  if (localDir) return localKeys(prefix);
   const keys = [];
   let continuationToken;
   do {
@@ -55,4 +82,4 @@ async function listKeys(prefix) {
   return keys;
 }
 
-export { getJson, getBuffer, listKeys };
+export { getJson, getBuffer, listKeys, client, bucket };

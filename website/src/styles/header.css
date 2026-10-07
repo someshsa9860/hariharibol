@@ -1,0 +1,25 @@
+/* Sticky header and its navigation; on a phone the nav becomes a drop-down menu. */
+.site-header { backdrop-filter: blur(0); background: transparent; border-bottom: 1px solid transparent; position: sticky; top: 0; transition: background .25s ease, border-color .25s ease, box-shadow .25s ease; z-index: 20; }
+.site-header.is-scrolled { backdrop-filter: blur(12px); background: rgba(248, 245, 239, .88); border-color: var(--line); box-shadow: 0 8px 24px rgba(42, 40, 37, .05); }
+.header-inner { align-items: center; display: flex; height: var(--header-height); justify-content: space-between; margin: 0 auto; max-width: 1240px; padding: 0 34px; }
+.site-nav { align-items: center; display: flex; font-size: .9rem; gap: 30px; }
+.site-nav a:not(.nav-cta) { color: var(--muted); font-weight: 500; padding: 6px 0; position: relative; transition: color .2s ease; }
+.site-nav a:not(.nav-cta)::after { background: var(--saffron-dark); bottom: 0; content: ''; height: 2px; left: 0; position: absolute; transform: scaleX(0); transform-origin: left; transition: transform .25s ease; width: 100%; }
+.site-nav a:not(.nav-cta):hover, .site-nav a[aria-current] { color: var(--saffron-dark); }
+.site-nav a:not(.nav-cta):hover::after, .site-nav a[aria-current]::after { transform: scaleX(1); }
+.nav-cta { background: var(--ink); color: #fff; }
+.nav-cta:hover { background: #000; }
+.menu-toggle { background: none; border: 0; cursor: pointer; display: none; }
+
+@media (max-width: 780px) {
+  .header-inner { padding: 0 22px; }
+  .menu-toggle { display: block; padding: 8px 0 8px 8px; }
+  .menu-toggle span:not(.sr-only) { background: var(--ink); display: block; height: 2px; margin: 5px 0; transition: transform .25s ease; width: 22px; }
+  .menu-toggle[aria-expanded='true'] span:nth-of-type(2) { transform: translateY(3.5px) rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] span:nth-of-type(3) { transform: translateY(-3.5px) rotate(-45deg); }
+  .site-nav { align-items: stretch; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 15px 30px rgba(42,40,37,.1); display: none; flex-direction: column; gap: 6px; padding: 14px; position: absolute; right: 22px; top: calc(var(--header-height) - 6px); width: min(260px, calc(100vw - 44px)); z-index: 5; }
+  .site-nav.is-open { display: flex; }
+  .site-nav a:not(.nav-cta) { padding: 10px 12px; }
+  .site-nav a:not(.nav-cta)::after { display: none; }
+  .nav-cta { justify-content: center; margin-top: 6px; }
+}

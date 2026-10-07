@@ -187,6 +187,16 @@ async function verse(row, user) {
 
 const verses = (rows, user) => Promise.all((rows || []).map((row) => verse(row, user)));
 
+/** The mala recording and the span of it that is chanting, or three nulls. */
+async function malaRecording(row) {
+  const usable = row.malaAudioPath && row.malaAudioStartMs != null && row.malaAudioEndMs > row.malaAudioStartMs;
+  return {
+    malaAudioUrl: usable ? await s3.presignGet(row.malaAudioPath) : null,
+    malaAudioStartMs: usable ? row.malaAudioStartMs : null,
+    malaAudioEndMs: usable ? row.malaAudioEndMs : null,
+  };
+}
+
 /**
  * One mantra.
  *
@@ -228,6 +238,11 @@ async function mantra(row, user) {
     audioUrl: audioPath ? await s3.presignGet(audioPath) : null,
     // Drives the in-app chant pacing, so it must hold even before audio loads.
     durationMs: script?.durationMs || row.durationMs,
+
+    // A whole mala on a recording, for the counter to play and count along to.
+    // Sent only as a complete set — a link with no span is nothing to count to.
+    // Not per language: it is one recording, and the chant is the same sound.
+    ...(await malaRecording(row)),
 
     standardRounds: row.standardRounds,
     standardCount: row.standardCount,

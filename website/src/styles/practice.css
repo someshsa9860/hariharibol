@@ -1,0 +1,32 @@
+/* "A little, every day": a lotus drawing beside a short pitch, on a sand band. */
+.practice-section { align-items: center; background: var(--sand); display: grid; gap: 100px; grid-template-columns: minmax(300px, .85fr) 1fr; margin: 40px 0; padding: 100px max(34px, calc((100% - 1100px) / 2)); }
+.practice-art { background: #5f7455; border-radius: 50%; height: 340px; justify-self: center; overflow: hidden; position: relative; width: 340px; }
+.practice-orbit { border: 1px solid rgba(255,255,255,.5); border-radius: 50%; left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); }
+.orbit-one { height: 270px; width: 270px; }
+.orbit-two { height: 200px; width: 200px; }
+.practice-lotus { height: 240px; left: 50%; position: absolute; top: 46%; transform: translate(-50%, -50%); width: 240px; }
+.petals ellipse { fill: #e8d5b2; fill-opacity: .6; stroke: #f6ead2; stroke-width: 1; }
+.lotus-eye { fill: var(--gold); }
+.practice-badge { background: var(--saffron-dark); border-radius: 50%; bottom: 30px; color: #fff; font-size: 1.25rem; font-weight: 700; height: 74px; line-height: 1; padding-top: 17px; position: absolute; right: 38px; text-align: center; width: 74px; }
+.practice-badge small { font-size: .6rem; letter-spacing: .15em; }
+.practice-copy { max-width: 540px; }
+.practice-copy .eyebrow { color: var(--saffron-deep); }
+.practice-copy h2 { font-size: clamp(2.1rem, 3.4vw, 3.1rem); }
+.practice-copy > p:not(.eyebrow) { color: var(--muted); font-size: 1.05rem; }
+.practice-verse { margin-top: 34px; }
+.practice-verse p { color: var(--saffron-deep); }
+.check-list { list-style: none; margin: 30px 0 0; padding: 0; }
+.check-list li { align-items: center; display: flex; font-size: .95rem; gap: 12px; margin: 14px 0; }
+.check-list span { align-items: center; background: #fff; border-radius: 50%; color: var(--saffron-dark); display: inline-flex; flex-shrink: 0; font-size: .9rem; height: 26px; justify-content: center; width: 26px; }
+
+@media (max-width: 960px) {
+  .practice-section { gap: 60px; }
+}
+
+@media (max-width: 780px) {
+  .practice-section { gap: 48px; grid-template-columns: 1fr; margin: 35px 0; padding: 70px 22px; }
+  .practice-art { height: 280px; width: 280px; }
+  .practice-lotus { height: 200px; width: 200px; }
+  .orbit-one { height: 220px; width: 220px; }
+  .orbit-two { height: 165px; width: 165px; }
+}

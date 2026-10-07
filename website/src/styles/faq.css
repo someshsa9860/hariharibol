@@ -1,0 +1,17 @@
+/* "Questions": native <details> accordions. */
+.faq-section { max-width: 860px; padding-top: 40px; }
+.faq-list { display: flex; flex-direction: column; gap: 12px; }
+.faq-item { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; transition: border-color .2s ease, box-shadow .2s ease; }
+.faq-item[open] { border-color: #e4d2b8; box-shadow: 0 12px 28px rgba(96, 62, 30, .07); }
+.faq-item summary { align-items: center; cursor: pointer; display: flex; font-family: var(--serif); font-size: 1.15rem; gap: 20px; justify-content: space-between; list-style: none; padding: 20px 24px; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-icon { color: var(--saffron-dark); font-size: 1.3rem; transition: transform .25s ease; }
+.faq-item[open] .faq-icon { transform: rotate(180deg); }
+.faq-item p { color: var(--muted); margin: 0; padding: 0 24px 22px; }
+
+@media (max-width: 780px) {
+  /* Every section gets the same top spacing on a phone. */
+  .faq-section { padding-top: 70px; }
+  .faq-item summary { font-size: 1.05rem; padding: 18px 20px; }
+  .faq-item p { padding: 0 20px 20px; }
+}

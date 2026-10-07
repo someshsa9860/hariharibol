@@ -1600,6 +1600,16 @@ model Mantra {
   // the round-duration estimate, so it must hold even when audio hasn't loaded.
   durationMs Int?
 
+  // One whole mala chanted on a recording — optional. The counter plays it and
+  // counts along: the chanting runs from malaAudioStartMs to malaAudioEndMs
+  // (the mahamantra recording opens with the Pancha-tattva mantra, which is not
+  // a chant), and that span is split evenly into the round's 108 chants. Key,
+  // not URL, for the same reason as audioPath. All three are set together or
+  // not at all — the admin API refuses a half-filled recording.
+  malaAudioPath    String?
+  malaAudioStartMs Int?
+  malaAudioEndMs   Int?
+
   // Mantras are counted two different ways in practice, so both are kept and
   // either may be null: japa mantras in rounds of 108 beads (mahamantra: 16
   // rounds), others in plain repetitions (gayatri: 3, 11 or 108 times).

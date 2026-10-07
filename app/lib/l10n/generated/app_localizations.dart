@@ -2049,6 +2049,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Words heard are removed from your account 7 days after the sitting.'**
   String get chantHeardExpiry;
+
+  /// No description provided for @chantAlongTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant along'**
+  String get chantAlongTitle;
+
+  /// No description provided for @chantAlongCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'The counter counts with the recording. Auto count and word detection rest while it plays.'**
+  String get chantAlongCaption;
+
+  /// No description provided for @chantAlongPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play recording'**
+  String get chantAlongPlay;
+
+  /// No description provided for @chantAlongPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause recording'**
+  String get chantAlongPause;
+
+  /// No description provided for @chantAlongPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position in the recording'**
+  String get chantAlongPosition;
+
+  /// No description provided for @chantAlongLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the recording…'**
+  String get chantAlongLoading;
+
+  /// No description provided for @chantAlongLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The recording couldn\'t be loaded.'**
+  String get chantAlongLoadFailed;
 }
 
 class _AppLocalizationsDelegate

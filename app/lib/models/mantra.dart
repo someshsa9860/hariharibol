@@ -21,6 +21,9 @@ class Mantra {
     this.meaningLanguage,
     this.audioUrl,
     this.durationMs = 0,
+    this.malaAudioUrl,
+    this.malaAudioStartMs = 0,
+    this.malaAudioEndMs = 0,
     this.standardRounds = 0,
     this.standardCount = 0,
     this.deity,
@@ -53,6 +56,14 @@ class Mantra {
   /// work before — or without — the audio loading.
   final int durationMs;
 
+  /// One whole mala chanted on a recording — optional. The counter plays it
+  /// and counts along: the chanting runs from [malaAudioStartMs] to
+  /// [malaAudioEndMs] on the recording (an opening prayer before it is not a
+  /// chant), and that stretch is split evenly into the round's chants.
+  final String? malaAudioUrl;
+  final int malaAudioStartMs;
+  final int malaAudioEndMs;
+
   final int standardRounds;
   final int standardCount;
 
@@ -71,6 +82,10 @@ class Mantra {
   Duration get duration => Duration(milliseconds: durationMs);
   bool get hasAudio => (audioUrl ?? '').isNotEmpty;
 
+  /// A recording with no stretch to count over is not one the counter can
+  /// follow — the API sends all three or none, this guards the same rule.
+  bool get hasMalaAudio => (malaAudioUrl ?? '').isNotEmpty && malaAudioEndMs > malaAudioStartMs;
+
   factory Mantra.fromJson(Json json) => Mantra(
         id: asString(json['id']),
         slug: asString(json['slug']),
@@ -87,6 +102,9 @@ class Mantra {
         meaningLanguage: asStringOrNull(json['meaningLanguage']),
         audioUrl: asStringOrNull(json['audioUrl']),
         durationMs: asInt(json['durationMs']),
+        malaAudioUrl: asStringOrNull(json['malaAudioUrl']),
+        malaAudioStartMs: asInt(json['malaAudioStartMs']),
+        malaAudioEndMs: asInt(json['malaAudioEndMs']),
         standardRounds: asInt(json['standardRounds']),
         standardCount: asInt(json['standardCount']),
         deity: asJson(json['deity']) == null ? null : ReferenceItem.fromJson(asJson(json['deity'])!),

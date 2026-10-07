@@ -215,6 +215,27 @@ splitting them would mean maintaining two of everything.
 every provider retries webhooks — without that constraint a retry credits the
 user twice. Store money as integer minor units (paise, cents); floats drift.
 
+## Mantra mala recording
+
+A mantra can carry one recording of a whole mala and the stretch of it that is chanting; the
+app plays it on the chant counter and counts one chant per `(end − start) ÷ beads-per-round`.
+Three nullable columns on `Mantra`: `malaAudioPath` (an S3 **key**, under `mantras/mala/`),
+`malaAudioStartMs` and `malaAudioEndMs`.
+
+- **All three or none.** `malaAudioChanges` in `controllers/admin/mantra.js` judges a *patch*
+  against the row it would produce, not against the request: changing only the end is fine,
+  clearing the recording takes its span with it, and an end that is not after the start is
+  refused. A new recording whose file is not in storage is refused, and publishing checks again.
+- **The app is sent a link, never the key — and never a link without its span.**
+  `malaRecording()` in `utils/present.js` returns `malaAudioUrl` / `malaAudioStartMs` /
+  `malaAudioEndMs`, or three nulls. The link is presigned (`S3_PRESIGN_TTL_SECONDS`, an hour by
+  default), which is why the app asks again when one will not open.
+- **Replacing a recording does not delete the old file** — same as every other upload.
+- `npm run test:mantra-mala` walks it over real HTTP. It uploads and deletes real files, so the
+  API **and** the script must run with `AWS_ACCESS_KEY_ID=` and `AWS_SECRET_ACCESS_KEY=` blank:
+  the dev `.env` points at the real bucket, and blank keys make storage fall back to
+  `backend/storage/`.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.

@@ -20,15 +20,31 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
 
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Build website
+        working-directory: website
+        run: npm run build
+
+      # The built site (website/dist) goes straight into the folder nginx serves.
+      # No `rm: true`: it would delete the folder the container has mounted.
       - name: Upload website
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "website"
-          target: ${{ secrets.DEPLOY_PATH }}
+          source: "website/dist"
+          target: ${{ secrets.DEPLOY_PATH }}/website
+          strip_components: 2
 
       - name: Upload server config
         uses: appleboy/scp-action@v1.0.0

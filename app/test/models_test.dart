@@ -1,11 +1,49 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:hariharibol/models/mantra.dart';
 import 'package:hariharibol/models/sadhana.dart';
 import 'package:hariharibol/models/search_result.dart';
 import 'package:hariharibol/models/subscription.dart';
 import 'package:hariharibol/models/verse.dart';
 
 void main() {
+  group('Mantra mala recording', () {
+    const base = {'id': 'm1', 'slug': 'mahamantra', 'name': 'Mahamantra', 'text': 'हरे कृष्ण'};
+
+    test('is followed when the API sends a link and the stretch of chanting', () {
+      final mantra = Mantra.fromJson({
+        ...base,
+        'malaAudioUrl': 'https://media.example/mala.mp3',
+        'malaAudioStartMs': 15500,
+        'malaAudioEndMs': 430000,
+      });
+      expect(mantra.hasMalaAudio, isTrue);
+      expect(mantra.malaAudioStartMs, 15500);
+      expect(mantra.malaAudioEndMs, 430000);
+    });
+
+    test('is absent when the API sends three nulls, or nothing at all', () {
+      final nulls = Mantra.fromJson({
+        ...base,
+        'malaAudioUrl': null,
+        'malaAudioStartMs': null,
+        'malaAudioEndMs': null,
+      });
+      expect(nulls.hasMalaAudio, isFalse);
+      expect(Mantra.fromJson(base).hasMalaAudio, isFalse);
+    });
+
+    test('is not followed when there is no stretch to count over', () {
+      final empty = Mantra.fromJson({
+        ...base,
+        'malaAudioUrl': 'https://media.example/mala.mp3',
+        'malaAudioStartMs': 9000,
+        'malaAudioEndMs': 9000,
+      });
+      expect(empty.hasMalaAudio, isFalse);
+    });
+  });
+
   group('SadhanaDay', () {
     test('reports no progress when no target is set', () {
       const day = SadhanaDay(roundTarget: 0, roundsCompleted: 4, tasksTotal: 0, tasksDone: 0);

@@ -2,8 +2,9 @@
 // 1-9 have no Devanagari in the source; cantos 10-12 do. See scripts/README.md
 // for the source bucket and credentials this needs.
 //
-// Idempotent and resumable — run it again any time; existing rows are left
-// alone (see lib/import-verses.js). Canto rows themselves are not created
+// Idempotent and resumable — run it again any time. A re-run also corrects
+// existing rows whose text differs from the source (see lib/import-verses.js).
+// SOURCE_LOCAL_DIR (see lib/source-s3.js) reads a local copy instead of S3. Canto rows themselves are not created
 // here — they are standing content structure, seeded ahead of time — this
 // only fills in their chapters and verses.
 
@@ -41,6 +42,8 @@ async function run() {
   const skippedSlugs = new Map();
   let versesWritten = 0;
   let translationsWritten = 0;
+  let versesUpdated = 0;
+  let translationsUpdated = 0;
   let filesDone = 0;
 
   for (const { key, canto: cantoNumber, chapter: chapterNumber } of keys) {
@@ -51,21 +54,23 @@ async function run() {
     }
 
     const data = await getJson(key);
+    // Titles come from vedabase via scripts/repair-verse-source.js; a source
+    // without one keeps a plain positional name.
+    const title = data.meta.chapterName || `Canto ${cantoNumber}, Chapter ${chapterNumber}`;
+    const totalVerses = data.verses.length;
 
     const chapter = await prisma.chapter.upsert({
       where: {
         bookId_cantoNumber_number: { bookId: book.id, cantoNumber, number: chapterNumber },
       },
-      update: { title: `Canto ${cantoNumber}, Chapter ${chapterNumber}`, totalVerses: data.meta.totalVerses },
+      update: { title, totalVerses },
       create: {
         bookId: book.id,
         cantoId: canto.id,
         cantoNumber,
         number: chapterNumber,
-        // The source carries no chapter titles for SB, only verse content —
-        // a plain positional name until real ones are curated.
-        title: `Canto ${cantoNumber}, Chapter ${chapterNumber}`,
-        totalVerses: data.meta.totalVerses,
+        title,
+        totalVerses,
       },
     });
 
@@ -96,6 +101,8 @@ async function run() {
     const result = await writeVerses(verseRows, translationsByVerseId);
     versesWritten += result.versesWritten;
     translationsWritten += result.translationsWritten;
+    versesUpdated += result.versesUpdated;
+    translationsUpdated += result.translationsUpdated;
     filesDone += 1;
     if (filesDone % 20 === 0 || filesDone === keys.length) {
       console.log(`${filesDone}/${keys.length} files — canto ${cantoNumber}, chapter ${chapterNumber}`);
@@ -121,7 +128,7 @@ async function run() {
     data: { totalCantos: cantos.length, totalChapters, totalVerses, isPublished: true },
   });
 
-  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} translations written this run.`);
+  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
   if (skippedSlugs.size > 0) {
     console.log('Skipped (not on the approved Vaishnav-sampradaya list):');
     for (const [slug, count] of skippedSlugs) console.log(`  ${slug}: ${count}`);

@@ -1,0 +1,19 @@
+/* Closing call to action on a saffron band. */
+.start-section { background: var(--saffron-dark); color: #fff; margin-top: 45px; overflow: hidden; position: relative; text-align: center; }
+.start-section::before, .start-section::after { border: 1px solid rgba(255,255,255,.2); border-radius: 50%; content: ''; height: 480px; left: -160px; position: absolute; top: -240px; width: 480px; }
+.start-section::after { height: 350px; left: auto; right: -100px; top: -110px; width: 350px; }
+.start-inner { margin: auto; max-width: 600px; padding: 96px 34px 104px; position: relative; z-index: 1; }
+.start-inner .eyebrow { color: #fdf0d8; }
+.start-inner h2 { font-size: clamp(2.6rem, 5vw, 4.2rem); margin-bottom: 15px; }
+.start-inner > p:not(.eyebrow) { color: #fdf0d8; font-size: 1.05rem; margin-bottom: 30px; }
+.start-actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.start-verse { border-color: #f3d29b; margin: 44px auto 0; max-width: 440px; text-align: left; }
+.start-verse p, .start-verse footer { color: #fff; }
+
+@media (max-width: 780px) {
+  .start-inner { padding: 76px 22px 84px; }
+}
+
+@media (max-width: 430px) {
+  .start-actions .button { justify-content: center; width: 100%; }
+}

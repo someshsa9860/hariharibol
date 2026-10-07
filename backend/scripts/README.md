@@ -44,6 +44,19 @@ widen it.
   Sridhara Swami), and Dnyaneshwari's Marathi ovis.
 - `import-sb.js` — Srimad Bhagavatam: cantos 1–12, Prabhupada's translation.
   Cantos 1–9 have no Devanagari in the source; cantos 10–12 do.
+- `repair-verse-source.js` / `repair-bg-source.js <srcDir> <outDir>` — check the
+  scraped JSON against vedabase.io (BBT text) and write a corrected copy: SB
+  compounds and whole verses the scrape dropped, SB chapter titles, Gita
+  translations that were split or misplaced, the "There is no purport"
+  placeholder. Work on a local download of the bucket; nothing is written to S3
+  or the database.
+- `upload-verse-source.js <dir> --yes` — puts that corrected copy into the
+  bucket. The bucket has no versioning, so it first copies every object it will
+  replace to `json-backup-<date>/` and checks each copy.
+- The importers **correct** existing rows when the source differs (not just add
+  new ones), so after a source repair, running `import-bg.js` then
+  `import-sb.js` on the server is what brings the live database up to date.
+  `SOURCE_LOCAL_DIR=<dir>` makes them read a local copy instead of S3.
 - `set-book-cover.js <book-slug> <path-to-image>` — sets one book's cover
   image. Uploads through `services/s3.js`, so it lands on S3 in production and
   under `storage/` locally, same as everything else that service handles.

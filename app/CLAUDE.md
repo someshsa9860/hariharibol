@@ -134,6 +134,33 @@ has none and every average leaves it out.
 - **Mic sharing.** Auto-count (`record`) and word detection (the OS recogniser) both want the
   microphone. Whether they can run together is a per-device question — check it on hardware
   before promising both at once.
+- **Chant along** (a mantra's mala recording). A mantra can carry one recording of a whole
+  mala and where the chanting starts and ends in it (`Mantra.malaAudioUrl` / `malaAudioStartMs`
+  / `malaAudioEndMs`; `hasMalaAudio` is false unless the end is after the start). With one, the
+  screen shows `widgets/chant/chant_along_card.dart` — play / pause and a bar that can be
+  dragged — and the counter counts with the voice: the stretch is split evenly into one
+  round's beads, and a chant is counted as it **finishes**. The arithmetic is
+  `services/chant_mala_timing.dart` (pure — `test/chant_mala_timing_test.dart`);
+  `services/chant_mala_player.dart` is the `just_audio` player around it; `chant_view.dart`
+  turns each finished chant into a bead tap. The other halves are in
+  [backend/CLAUDE.md](../backend/CLAUDE.md) and [admin/CLAUDE.md](../admin/CLAUDE.md).
+  - **Only listening counts.** A seek — the bar, or any reading that jumps more than
+    `ChantAudioConfig.continuousStep` — finds its place and counts nothing, so dragging to the
+    middle adds no fifty chants and dragging back takes none away. Playing a stretch again
+    counts it again: that is another time through.
+  - **The mic features rest while it plays.** The speaker would be heard as chanting, so
+    starting the recording switches auto-count and word detection off, and turning either on
+    pauses the recording.
+  - **It stops when the person does.** Paused when the app goes to the background and when the
+    sitting is closed (nothing is counted after the last sync). While it plays the screen is
+    held awake (`wakelock_plus`) — nobody is tapping, and a locked screen stops the audio and
+    the count. `ChantMalaPlayer.dispose` lets the screen go *first*, before awaiting anything.
+  - **A stale link is asked for again once.** It is signed for an hour by default; a recording
+    that will not open is re-fetched (`MantraService.get`) before the card says it failed.
+  - **Tests.** `malaAudioPlayerProvider` is the seam: tests swap in `FakeAudioPlayer` and
+    `FakeWakelock` from `test/fake_audio_player.dart`. Under `testWidgets` a stream `cancel()`
+    does not finish during `pump`, which is why `dispose` does not wait on one; and frames stop
+    once the lifecycle is `paused`, so a test resumes it before leaving the screen.
 
 ## State management
 

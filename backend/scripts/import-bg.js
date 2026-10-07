@@ -4,8 +4,9 @@
 // the source bucket and credentials this needs, and lib/translators.js for
 // why only these commentators are imported.
 //
-// Idempotent and resumable — run it again any time; existing rows are left
-// alone (see lib/import-verses.js).
+// Idempotent and resumable — run it again any time. A re-run also corrects
+// existing rows whose text differs from the source (see lib/import-verses.js).
+// SOURCE_LOCAL_DIR (see lib/source-s3.js) reads a local copy instead of S3.
 
 import { prisma } from '../config/database.js';
 import { getJson } from './lib/source-s3.js';
@@ -30,6 +31,8 @@ async function run() {
   const skippedSlugs = new Map();
   let versesWritten = 0;
   let translationsWritten = 0;
+  let versesUpdated = 0;
+  let translationsUpdated = 0;
 
   for (let chapterNumber = 1; chapterNumber <= CHAPTER_COUNT; chapterNumber++) {
     const [sa, en, dnyaneshwari] = await Promise.all([
@@ -42,13 +45,16 @@ async function run() {
     // cantoNumber (and Postgres would not have enforced uniqueness through it
     // anyway — NULL is never equal to NULL), so BG's canto-less chapters are
     // found by a plain query and upserted by hand instead of `.upsert()`.
+    // The English chapter title (from vedabase, see repair-bg-source.js) goes
+    // beside the Sanskrit `title`, keeping any other language already there.
+    const titleI18n = (current) => (en.meta.chapterTitleEn ? { ...(current || {}), en: en.meta.chapterTitleEn } : current ?? undefined);
     const existingChapter = await prisma.chapter.findFirst({
       where: { bookId: book.id, cantoNumber: null, number: chapterNumber },
     });
     const chapter = existingChapter
       ? await prisma.chapter.update({
           where: { id: existingChapter.id },
-          data: { title: sa.meta.chapterName, totalVerses: sa.meta.totalVerses },
+          data: { title: sa.meta.chapterName, titleI18n: titleI18n(existingChapter.titleI18n), totalVerses: sa.verses.length },
         })
       : await prisma.chapter.create({
           data: {
@@ -57,7 +63,8 @@ async function run() {
             cantoNumber: null,
             number: chapterNumber,
             title: sa.meta.chapterName,
-            totalVerses: sa.meta.totalVerses,
+            titleI18n: titleI18n(null),
+            totalVerses: sa.verses.length,
           },
         });
 
@@ -102,6 +109,8 @@ async function run() {
     const result = await writeVerses(verseRows, translationsByVerseId);
     versesWritten += result.versesWritten;
     translationsWritten += result.translationsWritten;
+    versesUpdated += result.versesUpdated;
+    translationsUpdated += result.translationsUpdated;
     console.log(`Chapter ${chapterNumber}/${CHAPTER_COUNT}: ${result.versesWritten} verses`);
   }
 
@@ -111,7 +120,7 @@ async function run() {
     data: { totalChapters: CHAPTER_COUNT, totalVerses, isPublished: true },
   });
 
-  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} translations written this run.`);
+  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
   if (skippedSlugs.size > 0) {
     console.log('Skipped (not on the approved Vaishnav-sampradaya list):');
     for (const [slug, count] of skippedSlugs) console.log(`  ${slug}: ${count}`);

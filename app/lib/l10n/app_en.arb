@@ -450,5 +450,13 @@
   "chantHistoryNoDetail": "Counted before chant timing was recorded",
   "chantSessionTitle": "Sitting",
   "chantSessionNoMalas": "No timed malas were recorded for this sitting.",
-  "chantHeardExpiry": "Words heard are removed from your account 7 days after the sitting."
+  "chantHeardExpiry": "Words heard are removed from your account 7 days after the sitting.",
+
+  "chantAlongTitle": "Chant along",
+  "chantAlongCaption": "The counter counts with the recording. Auto count and word detection rest while it plays.",
+  "chantAlongPlay": "Play recording",
+  "chantAlongPause": "Pause recording",
+  "chantAlongPosition": "Position in the recording",
+  "chantAlongLoading": "Loading the recording…",
+  "chantAlongLoadFailed": "The recording couldn't be loaded."
 }

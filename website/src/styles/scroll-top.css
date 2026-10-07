@@ -1,0 +1,4 @@
+/* Floating back-to-top button. */
+.scroll-top { align-items: center; background: var(--ink); border-radius: 50%; bottom: 22px; box-shadow: 0 10px 24px rgba(42, 40, 37, .25); color: #fff; display: flex; font-size: 1.4rem; height: 46px; justify-content: center; opacity: 0; pointer-events: none; position: fixed; right: 22px; transform: translateY(10px); transition: opacity .25s ease, transform .25s ease, background .2s ease; visibility: hidden; width: 46px; z-index: 15; }
+.scroll-top.is-visible { opacity: 1; pointer-events: auto; transform: none; visibility: visible; }
+.scroll-top:hover { background: var(--saffron-dark); }

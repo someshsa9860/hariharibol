@@ -17,6 +17,40 @@ export const SORT_COLUMNS = {
   createdAt: 'createdAt',
 };
 
+// Both are S3 keys on the row; the admin panel is handed signed links for them.
+const AUDIO_FIELDS = ['audioPath', 'malaAudioPath'];
+
+const MALA_FIELDS = ['malaAudioPath', 'malaAudioStartMs', 'malaAudioEndMs'];
+
+/**
+ * The mala recording columns to write, or none if the request does not touch
+ * them. The three only make sense together — a recording with no span cannot be
+ * counted along to, and a span with no recording points at nothing — so what is
+ * checked is the row *as it will be*, not the request: a patch that moves only
+ * the end is fine, one that clears the recording takes its span with it.
+ */
+async function malaAudioChanges(before, body) {
+  if (!MALA_FIELDS.some((field) => field in body)) return {};
+
+  const next = {};
+  for (const field of MALA_FIELDS) next[field] = field in body ? body[field] : before?.[field] ?? null;
+
+  if (!next.malaAudioPath) {
+    return { malaAudioPath: null, malaAudioStartMs: null, malaAudioEndMs: null };
+  }
+  if (next.malaAudioStartMs == null || next.malaAudioEndMs == null) {
+    throw badRequest('Set where the chanting starts and ends in the recording');
+  }
+  if (next.malaAudioEndMs <= next.malaAudioStartMs) {
+    throw badRequest('The chanting has to end after it starts');
+  }
+  // A key that points at nothing is a player that never loads.
+  if (next.malaAudioPath !== before?.malaAudioPath && !(await s3.objectExists(next.malaAudioPath))) {
+    throw badRequest('The mala recording is missing from storage');
+  }
+  return next;
+}
+
 /** GET /api/admin/mantras */
 export const list = async (req, res) => {
   const { q, category, isPublished } = req.valid.query;
@@ -38,7 +72,7 @@ export const list = async (req, res) => {
     query: req.valid.query,
   });
 
-  return paginated(res, await s3.presignList(items, ['audioPath']), page);
+  return paginated(res, await s3.presignList(items, AUDIO_FIELDS), page);
 };
 
 /**
@@ -74,18 +108,19 @@ export const get = async (req, res) => {
   if (!mantra) throw notFound('Mantra');
 
   return ok(res, {
-    ...(await s3.presignFields(mantra, ['audioPath'])),
+    ...(await s3.presignFields(mantra, AUDIO_FIELDS)),
     translations: await s3.presignList(mantra.translations, ['audioPath']),
   });
 };
 
 export const create = async (req, res) => {
-  const mantra = await prisma.mantra.create({ data: req.valid.body });
+  const data = { ...req.valid.body, ...(await malaAudioChanges(null, req.valid.body)) };
+  const mantra = await prisma.mantra.create({ data });
   await audit.record(req, {
     action: 'mantra.create',
     entityType: 'Mantra',
     entityId: mantra.id,
-    after: req.valid.body,
+    after: data,
   });
   return created(res, mantra);
 };
@@ -94,7 +129,8 @@ export const update = async (req, res) => {
   const before = await prisma.mantra.findUnique({ where: { id: req.valid.params.id } });
   if (!before) throw notFound('Mantra');
 
-  const mantra = await prisma.mantra.update({ where: { id: before.id }, data: req.valid.body });
+  const data = { ...req.valid.body, ...(await malaAudioChanges(before, req.valid.body)) };
+  const mantra = await prisma.mantra.update({ where: { id: before.id }, data });
   await audit.record(req, {
     action: 'mantra.update',
     entityType: 'Mantra',
@@ -127,6 +163,10 @@ export const publish = async (req, res) => {
     if (!mantra.audioPath) throw badRequest('Upload the recitation audio before publishing');
     const audioExists = await s3.objectExists(mantra.audioPath);
     if (!audioExists) throw badRequest('The audio file is missing from storage');
+    // Optional, but if it is there it has to play.
+    if (mantra.malaAudioPath && !(await s3.objectExists(mantra.malaAudioPath))) {
+      throw badRequest('The mala recording is missing from storage');
+    }
     if (!mantra.durationMs) {
       throw badRequest('Set the approximate duration — the in-app chant pacing needs it');
     }

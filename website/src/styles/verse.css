@@ -1,0 +1,4 @@
+/* A Gita verse set off as a quotation. Each section places its own (hero-verse, start-verse, …). */
+.gita-verse { border-left: 2px solid var(--gold); margin: 35px 0 0; padding: 2px 0 2px 18px; }
+.gita-verse p { color: var(--saffron-dark); font-family: var(--deva); font-size: 1.2rem; line-height: 1.5; margin: 0 0 5px; }
+.gita-verse footer { color: var(--muted); font-size: .8rem; line-height: 1.5; }

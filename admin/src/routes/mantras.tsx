@@ -5,6 +5,7 @@ import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
 import { MantraTranslations } from '@/components/mantra-translations';
+import { MantraMalaAudio, NO_MALA_AUDIO, malaAudioProblem, type MalaAudio } from '@/components/mantra-mala-audio';
 import { useResourceMutation } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { api, ApiRequestError } from '@/lib/api';
@@ -32,6 +33,10 @@ type Mantra = {
   sampradaya: string;
   audioPath: string | null;
   durationMs: number | null;
+  malaAudioPath: string | null;
+  malaAudioUrl: string | null;
+  malaAudioStartMs: number | null;
+  malaAudioEndMs: number | null;
   standardRounds: number | null;
   standardCount: number | null;
   displayOrder: number;
@@ -55,6 +60,7 @@ export function MantrasPage() {
   const [viewing, setViewing] = useState<Mantra | null>(null);
   const [translating, setTranslating] = useState<Mantra | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [mala, setMala] = useState<MalaAudio>(NO_MALA_AUDIO);
   const [formError, setFormError] = useState('');
 
   const table = useDataTable<Mantra>({
@@ -70,8 +76,16 @@ export function MantrasPage() {
 
   useEffect(() => {
     setFormError('');
-    if (editing === 'new') setForm(EMPTY_FORM);
-    else if (editing) {
+    if (editing === 'new') {
+      setForm(EMPTY_FORM);
+      setMala(NO_MALA_AUDIO);
+    } else if (editing) {
+      setMala({
+        path: editing.malaAudioPath,
+        url: editing.malaAudioUrl,
+        startMs: editing.malaAudioStartMs,
+        endMs: editing.malaAudioEndMs,
+      });
       setForm({
         slug: editing.slug,
         name: editing.name,
@@ -92,6 +106,10 @@ export function MantrasPage() {
       transliteration: form.transliteration || undefined,
       description: form.description || undefined,
       ...(form.displayOrder !== '' ? { displayOrder: Number(form.displayOrder) } : {}),
+      // Always sent, so removing the recording clears it — the API takes the span with it.
+      malaAudioPath: mala.path,
+      malaAudioStartMs: mala.path ? mala.startMs : null,
+      malaAudioEndMs: mala.path ? mala.endMs : null,
     };
     try {
       if (editing === 'new') {
@@ -163,6 +181,12 @@ export function MantrasPage() {
       header: 'Audio',
       csv: (m) => (m.audioPath ? 'Yes' : 'No'),
       render: (m) => (m.audioPath ? <Badge variant="success">Yes</Badge> : <Badge variant="secondary">No</Badge>),
+    },
+    {
+      key: 'mala',
+      header: 'Mala audio',
+      csv: (m) => (m.malaAudioPath ? 'Yes' : 'No'),
+      render: (m) => (m.malaAudioPath ? <Badge variant="success">Yes</Badge> : <Badge variant="secondary">No</Badge>),
     },
     {
       key: 'duration',
@@ -316,6 +340,7 @@ export function MantrasPage() {
                 <Input className="mt-1" type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: e.target.value })} />
               </div>
             </div>
+            <MantraMalaAudio value={mala} onChange={setMala} disabled={mutate.isPending} />
             {formError && <p className="text-sm text-destructive">{formError}</p>}
           </div>
           <DialogFooter>
@@ -324,7 +349,7 @@ export function MantrasPage() {
             </Button>
             <Button
               onClick={save}
-              disabled={!form.name || !form.category || !form.sanskrit || (editing === 'new' && !form.slug) || mutate.isPending}
+              disabled={!form.name || !form.category || !form.sanskrit || (editing === 'new' && !form.slug) || malaAudioProblem(mala) !== null || mutate.isPending}
             >
               Save
             </Button>
@@ -362,6 +387,13 @@ export function MantrasPage() {
                 },
                 { label: 'Audio', value: viewing.audioPath ? 'Attached' : 'None' },
                 { label: 'Duration', value: viewing.durationMs ? formatDuration(viewing.durationMs) : '—' },
+                {
+                  label: 'Mala recording',
+                  value:
+                    viewing.malaAudioPath && viewing.malaAudioStartMs != null && viewing.malaAudioEndMs != null
+                      ? `Chanting ${formatDuration(viewing.malaAudioStartMs)} → ${formatDuration(viewing.malaAudioEndMs)}`
+                      : 'None',
+                },
                 {
                   label: 'Standard count',
                   value: viewing.standardRounds ? `${viewing.standardRounds} rounds` : viewing.standardCount ? `${viewing.standardCount} repetitions` : '—',

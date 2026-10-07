@@ -441,7 +441,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plansTitle => 'Plans';
 
   @override
-  String get plansSubtitle => 'The whole app is free. A paid plan adds a little more on top.';
+  String get plansSubtitle =>
+      'The whole app is free. A paid plan adds a little more on top.';
 
   @override
   String get plansYourPlan => 'Your plan';
@@ -486,10 +487,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plansRestore => 'Restore purchases';
 
   @override
-  String get plansStoreUnavailable => 'The store is not available on this device.';
+  String get plansStoreUnavailable =>
+      'The store is not available on this device.';
 
   @override
-  String get plansProductMissing => 'This plan is not available in the store right now.';
+  String get plansProductMissing =>
+      'This plan is not available in the store right now.';
 
   @override
   String get plansPurchasePending => 'Your purchase is being processed…';
@@ -514,7 +517,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get plansPermanent => 'Yours permanently — thank you for supporting HariHariBol.';
+  String get plansPermanent =>
+      'Yours permanently — thank you for supporting HariHariBol.';
 
   @override
   String get plansIncluded => 'Included';
@@ -1178,4 +1182,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chantHeardExpiry =>
       'Words heard are removed from your account 7 days after the sitting.';
+
+  @override
+  String get chantAlongTitle => 'Chant along';
+
+  @override
+  String get chantAlongCaption =>
+      'The counter counts with the recording. Auto count and word detection rest while it plays.';
+
+  @override
+  String get chantAlongPlay => 'Play recording';
+
+  @override
+  String get chantAlongPause => 'Pause recording';
+
+  @override
+  String get chantAlongPosition => 'Position in the recording';
+
+  @override
+  String get chantAlongLoading => 'Loading the recording…';
+
+  @override
+  String get chantAlongLoadFailed => 'The recording couldn\'t be loaded.';
 }

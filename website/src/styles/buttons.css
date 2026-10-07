@@ -1,0 +1,10 @@
+/* Pill buttons. `.nav-cta` is the header's Download link, styled in header.css. */
+.nav-cta, .button { align-items: center; border-radius: 999px; display: inline-flex; font-size: .9rem; font-weight: 700; gap: 8px; letter-spacing: .01em; padding: 12px 22px; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
+.nav-cta:hover, .button:hover { transform: translateY(-2px); }
+
+.button-primary { background: var(--saffron-dark); box-shadow: 0 10px 24px rgba(169, 79, 40, .28); color: #fff; padding: 16px 26px; }
+.button-primary:hover { background: var(--saffron-deep); }
+.button-light { background: #fff; color: var(--saffron-deep); padding: 15px 26px; }
+.button-light:hover { background: #fff7ec; }
+.button-outline { border: 1.5px solid rgba(255, 255, 255, .7); color: #fff; padding: 13.5px 24px; }
+.button-outline:hover { background: rgba(255, 255, 255, .12); }

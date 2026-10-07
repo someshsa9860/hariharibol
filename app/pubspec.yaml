@@ -81,12 +81,19 @@ dependencies:
   # keep what was said beside each tap and show what was missed.
   speech_to_text: ^7.5.0
 
+  # Keeps the screen on while a mala recording plays. The recording counts the
+  # sitting for the user, so there are no taps to hold the screen awake — and a
+  # locked screen pauses the app, and with it the audio and the count.
+  wakelock_plus: ^1.8.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   build_runner: ^2.15.1
   drift_dev: ^2.34.6
+  # Only so a test can stand in for the wakelock plugin (test/fake_audio_player.dart).
+  wakelock_plus_platform_interface: ^1.7.0
 
 flutter:
   uses-material-design: true

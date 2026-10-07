@@ -1,0 +1,20 @@
+/* Footer: brand, section links, contact. */
+.site-footer { margin: auto; max-width: 1170px; padding: 64px 34px 28px; }
+.footer-grid { display: grid; gap: 50px; grid-template-columns: 1.4fr 1fr 1fr; }
+.footer-about p { color: var(--muted); margin: 14px 0 0; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-links h2 { color: var(--ink); font-family: var(--sans); font-size: .78rem; font-weight: 700; letter-spacing: .14em; margin: 0 0 6px; text-transform: uppercase; }
+.footer-links a { color: var(--muted); font-size: .95rem; transition: color .2s ease; width: fit-content; }
+.footer-links a:hover { color: var(--saffron-dark); }
+.footer-mail { align-items: center; display: inline-flex; gap: 8px; }
+.copyright { border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; margin: 48px 0 0; padding-top: 22px; }
+
+@media (max-width: 960px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-about { grid-column: 1 / -1; }
+}
+
+@media (max-width: 780px) {
+  .site-footer { padding: 50px 22px 24px; }
+  .footer-grid { gap: 36px; grid-template-columns: 1fr; }
+}

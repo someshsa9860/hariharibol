@@ -77,6 +77,12 @@ const mantraBody = {
   tags: z.array(z.string().max(50)).optional(),
   audioPath: z.string().max(500).nullable().optional(),
   durationMs: z.coerce.number().int().min(0).nullable().optional(),
+  // One whole mala on a recording, and the span of it that is chanting. Whether
+  // the three agree with each other is checked in the controller, against the
+  // row as it will be after the write — a partial update cannot be checked here.
+  malaAudioPath: z.string().max(500).nullable().optional(),
+  malaAudioStartMs: z.coerce.number().int().min(0).nullable().optional(),
+  malaAudioEndMs: z.coerce.number().int().min(0).nullable().optional(),
   standardRounds: z.coerce.number().int().min(0).nullable().optional(),
   standardCount: z.coerce.number().int().min(0).nullable().optional(),
   displayOrder: z.coerce.number().int().optional(),
