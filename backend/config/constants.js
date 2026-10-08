@@ -113,6 +113,11 @@ const DEFAULT_ROUND_TARGET = 16;
 // swept nightly (see jobs/processors/maintenance.js).
 const CHANT_TRANSCRIPT_TTL_DAYS = 7;
 
+// How many separate days someone must chant a tradition's mantras before we
+// call them a follower of it — and before a different tradition takes over from
+// the one they had. Days, not rounds: one long sitting is not a habit.
+const SAMPRADAYA_MIN_DAYS = 3;
+
 // ── Pagination ─────────────────────────────────────────────────────────────
 const PAGE_SIZE_DEFAULT = 20;
 const PAGE_SIZE_MAX = 100;
@@ -183,6 +188,7 @@ export {
   BEADS_PER_ROUND,
   DEFAULT_ROUND_TARGET,
   CHANT_TRANSCRIPT_TTL_DAYS,
+  SAMPRADAYA_MIN_DAYS,
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,
   REEL_PAGE_SIZE_DEFAULT,

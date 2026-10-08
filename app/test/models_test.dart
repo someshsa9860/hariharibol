@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:hariharibol/models/app_user.dart';
 import 'package:hariharibol/models/mantra.dart';
 import 'package:hariharibol/models/sadhana.dart';
 import 'package:hariharibol/models/search_result.dart';
@@ -7,6 +8,25 @@ import 'package:hariharibol/models/subscription.dart';
 import 'package:hariharibol/models/verse.dart';
 
 void main() {
+  group('AppUser.sampradaya', () {
+    const base = {'id': 'u1', 'email': 'a@example.com', 'timezone': 'Asia/Kolkata'};
+
+    test('is the tradition the API sends', () {
+      expect(AppUser.fromJson({...base, 'sampradaya': 'shaiva'}).sampradaya, 'shaiva');
+    });
+
+    test('is null while there is not enough chanting to say, or when the API says nothing', () {
+      expect(AppUser.fromJson({...base, 'sampradaya': null}).sampradaya, isNull);
+      expect(AppUser.fromJson(base).sampradaya, isNull);
+    });
+
+    test('survives being stored and read back, and a copy with other changes', () {
+      final user = AppUser.fromJson({...base, 'sampradaya': 'vaishnav'});
+      expect(AppUser.fromJson(user.toJson()).sampradaya, 'vaishnav');
+      expect(user.copyWith(name: 'Asha').sampradaya, 'vaishnav');
+    });
+  });
+
   group('Mantra mala recording', () {
     const base = {'id': 'm1', 'slug': 'mahamantra', 'name': 'Mahamantra', 'text': 'हरे कृष्ण'};
 

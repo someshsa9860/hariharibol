@@ -13,7 +13,10 @@ router.get(
     summary: 'Get my profile',
     description:
       'Profile, language choices, entitlement and standing practice preferences. ' +
-      '`canAccessAdmin` tells the app whether to show the admin entry point; the API still ' +
+      '`sampradaya` is the tradition their chanting points to — `shaiva`, `vaishnav` and so on — ' +
+      'or null until one tradition has been chanted on three separate days; it is worked out ' +
+      'from their chanting and cannot be set. `canAccessAdmin` tells the app whether to show the ' +
+      'admin entry point; the API still ' +
       'checks permissions on every admin route.',
     responds: { 200: 'The signed-in user' },
   },

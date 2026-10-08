@@ -17,6 +17,7 @@ const PROFILE_SELECT = {
   mantraLanguage: true,
   readingLanguage: true,
   timezone: true,
+  sampradaya: true,
   isPremium: true,
   premiumSince: true,
   premiumUntil: true,

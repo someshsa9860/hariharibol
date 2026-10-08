@@ -14,12 +14,14 @@
 // time, and `recountDay` is the only thing allowed to write them.
 
 import { prisma } from '../../config/database.js';
+import logger from '../../config/logger.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
 import { notFound, badRequest, forbidden } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString } from '../../utils/date.js';
 import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET, CHANT_TRANSCRIPT_TTL_DAYS } from '../../config/constants.js';
 import * as websocket from '../../services/websocket.js';
+import * as sampradaya from '../../services/sampradaya.js';
 
 /**
  * The day row for a user's local date, created on first touch.
@@ -62,6 +64,20 @@ async function recountDay(sadhanaDayId) {
     where: { id: sadhanaDayId },
     data: { roundsCompleted: rounds._sum.rounds || 0, tasksTotal, tasksDone },
   });
+}
+
+/**
+ * Chanting a mantra on a new day can change which tradition someone is counted
+ * in (services/sampradaya.js). It must never fail the request that saved the
+ * chanting — the rounds are what the person came to keep — so a failure here is
+ * logged and the old value stands until the next day's chanting.
+ */
+async function learnSampradaya(userId) {
+  try {
+    await sampradaya.refresh(userId);
+  } catch (err) {
+    logger.warn({ err: err.message, userId }, 'sampradaya refresh failed');
+  }
 }
 
 /**
@@ -181,6 +197,9 @@ export const logManualRounds = async (req, res) => {
     roundTarget: updated.roundTarget,
   });
 
+  // Rounds are at least 1 here, so this is always the day's chanting on it.
+  if (session.mantraId) await learnSampradaya(user.id);
+
   return created(res, { session, day: updated });
 };
 
@@ -239,6 +258,12 @@ export const updateSession = async (req, res) => {
     roundsCompleted: day.roundsCompleted,
     roundTarget: day.roundTarget,
   });
+
+  // Only the first bead or round of a session can add a day to a tradition;
+  // every PATCH after it is more of the same day, and this runs on each one.
+  const firstProgress =
+    session.rounds === 0 && session.beads === 0 && ((data.rounds ?? 0) > 0 || (data.beads ?? 0) > 0);
+  if (session.mantraId && firstProgress) await learnSampradaya(user.id);
 
   return ok(res, { session: updated, day });
 };

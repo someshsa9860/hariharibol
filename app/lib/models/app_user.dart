@@ -15,6 +15,7 @@ class AppUser {
     required this.isPremium,
     required this.premiumUntil,
     required this.role,
+    this.sampradaya,
     this.canAccessAdmin = false,
   });
 
@@ -38,6 +39,12 @@ class AppUser {
   /// Null for someone who became premium by donating — that does not expire.
   final DateTime? premiumUntil;
   final String role;
+
+  /// The tradition their chanting points to — `shaiva`, `vaishnav` and so on —
+  /// or null until one has been chanted on three separate days. The API works
+  /// it out from their chanting and it can change as that does; the app never
+  /// asks for it or lets anyone set it.
+  final String? sampradaya;
 
   /// Set only by `/me`, and only when the account actually holds admin
   /// permissions. The app hides the admin entry point unless it is true; the
@@ -74,6 +81,7 @@ class AppUser {
         role: asJson(json['role']) != null
             ? asString(asJson(json['role'])!['slug'], 'user')
             : asString(json['role'], 'user'),
+        sampradaya: asStringOrNull(json['sampradaya']),
         canAccessAdmin: asBool(json['canAccessAdmin']),
       );
 
@@ -90,6 +98,7 @@ class AppUser {
         'isPremium': isPremium,
         'premiumUntil': premiumUntil?.toUtc().toIso8601String(),
         'role': role,
+        'sampradaya': sampradaya,
         'canAccessAdmin': canAccessAdmin,
       };
 
@@ -116,6 +125,7 @@ class AppUser {
         isPremium: isPremium ?? this.isPremium,
         premiumUntil: premiumUntil ?? this.premiumUntil,
         role: role,
+        sampradaya: sampradaya,
         canAccessAdmin: canAccessAdmin,
       );
 }

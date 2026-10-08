@@ -50,7 +50,12 @@ type Mantra = {
 // Category is free text on the model; these are the ones the seed and the app's
 // chant screen know about. The form lets you type a new one.
 const CATEGORIES = ['mahamantra', 'beej', 'name', 'gayatri'];
-const EMPTY_FORM = { slug: '', name: '', category: '', sanskrit: '', transliteration: '', description: '', displayOrder: '' };
+// The tradition a mantra belongs to. A user's own tradition is worked out from
+// the tags on the mantras they chant, so a Shiva mantra left on the API's
+// default (vaishnav) would count towards the wrong one. Free text on the model,
+// like category.
+const SAMPRADAYAS = ['vaishnav', 'shaiva', 'shakta', 'smarta'];
+const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '' };
 
 const formatDuration = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
 
@@ -90,6 +95,7 @@ export function MantrasPage() {
         slug: editing.slug,
         name: editing.name,
         category: editing.category,
+        sampradaya: editing.sampradaya,
         sanskrit: editing.sanskrit,
         transliteration: editing.transliteration ?? '',
         description: editing.description ?? '',
@@ -102,6 +108,8 @@ export function MantrasPage() {
     const body: Record<string, unknown> = {
       name: form.name,
       category: form.category,
+      // Left blank on a new mantra, the API's default applies.
+      sampradaya: form.sampradaya.trim().toLowerCase() || undefined,
       sanskrit: form.sanskrit,
       transliteration: form.transliteration || undefined,
       description: form.description || undefined,
@@ -323,6 +331,24 @@ export function MantrasPage() {
               </div>
             </div>
             <div>
+              <Label>Sampradaya</Label>
+              <Input
+                className="mt-1"
+                list="mantra-sampradayas"
+                placeholder="vaishnav"
+                value={form.sampradaya}
+                onChange={(e) => setForm({ ...form, sampradaya: e.target.value })}
+              />
+              <datalist id="mantra-sampradayas">
+                {SAMPRADAYAS.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Chanting this on three separate days makes someone that tradition, so tag Shiva mantras shaiva. Blank means vaishnav.
+              </p>
+            </div>
+            <div>
               <Label>Sanskrit</Label>
               <Textarea className="mt-1" value={form.sanskrit} onChange={(e) => setForm({ ...form, sanskrit: e.target.value })} />
             </div>
@@ -368,6 +394,7 @@ export function MantrasPage() {
           viewing
             ? [
                 { label: 'Category', value: <Badge variant="outline">{viewing.category}</Badge> },
+                { label: 'Sampradaya', value: <Badge variant="outline">{viewing.sampradaya}</Badge> },
                 { label: 'Deity / Guru', value: viewing.deity?.name ?? viewing.guru?.name ?? '—' },
                 {
                   label: 'Translations',

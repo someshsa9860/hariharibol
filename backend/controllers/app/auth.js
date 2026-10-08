@@ -31,6 +31,7 @@ function sessionPayload(user, session) {
       mantraLanguage: user.mantraLanguage,
       readingLanguage: user.readingLanguage,
       timezone: user.timezone,
+      sampradaya: user.sampradaya,
       isPremium: user.isPremium,
       premiumUntil: user.premiumUntil,
       role: user.role?.slug || ROLES.USER,

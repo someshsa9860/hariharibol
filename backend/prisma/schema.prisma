@@ -211,6 +211,14 @@ model User {
   // the sloka cron needs a timezone for every user.
   timezone String @default("Asia/Kolkata") @db.VarChar(64)
 
+  // Which tradition this person's chanting says they follow — "shaiva",
+  // "vaishnav", whatever `Mantra.sampradaya` carries. Null until some tradition
+  // has been chanted on enough separate days to say.
+  //
+  // Never chosen by the user and never edited by hand: it is a cache that
+  // services/sampradaya.js owns, rebuildable from ChantSession at any time.
+  sampradaya String? @db.VarChar(50)
+
   roleId String
   role   Role   @relation(fields: [roleId], references: [id])
 
