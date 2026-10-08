@@ -16,6 +16,7 @@ import '../../models/mantra.dart';
 import '../../providers/chant_audio_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/auto_chant_log.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
 import '../../services/chant_recorder.dart';
@@ -160,6 +161,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       _setupChanged.value += 1;
     });
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
+    AutoChantLog.info('ready for "${mantra.name}" — switch it on from the setup sheet');
   }
 
   void _initMala() {
@@ -194,6 +196,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // Both listen on the microphone, which would hear the recording from the
     // speaker and count every chant a second time.
     if (playing) {
+      if (_autoChantStatus.enabled) AutoChantLog.info('the recording started playing — switching auto-count off');
       unawaited(_autoChant?.disable());
       unawaited(_speech?.stop());
     }
@@ -207,6 +210,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // `inactive` is also a pulled-down notification shade or a system dialog,
     // and an hour's sitting should not end silently because of one.
     if (state == AppLifecycleState.paused) {
+      if (_autoChantStatus.enabled) AutoChantLog.info('the app went to the background — switching auto-count off');
       unawaited(_autoChant?.disable());
       unawaited(_speech?.stop());
     }
@@ -257,6 +261,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   void _tapBead({bool auto = false}) {
     HapticFeedback.selectionClick();
     final tap = _recorder.tap(auto: auto);
+    if (auto && _autoChantStatus.enabled) {
+      AutoChantLog.info(
+        'bead #${tap.seq} added to the counter (round ${_recorder.currentMala}, '
+        '${_recorder.beadsInMala}/$_beadsPerRoundInUse)',
+      );
+    }
 
     final heard = _speech?.takeHeard();
     if (heard != null) {
@@ -293,6 +303,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   Future<void> _toggleAutoChant(bool enabled) async {
     final session = _autoChant;
     if (session == null) return;
+    AutoChantLog.info('switch turned ${enabled ? 'on' : 'off'}');
     if (!enabled) return session.disable();
     await _mala?.pause();
     await session.enable();

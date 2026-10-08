@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 /// Tuning and asset locations for auto-count: listen to the mic, transcribe it
 /// on the phone, match the transcript to the open mantra's phrases, count each
 /// completed repetition — no cloud speech-to-text, no network.
@@ -6,6 +8,22 @@
 /// from. A mantra's phrases come from the API (`Mantra.chantPhrases`).
 abstract final class AutoChantConfig {
   static const int sampleRate = 16000;
+
+  // ── Logging ─────────────────────────────────────────────────────────────
+  /// Whether auto-count writes `[AutoChant …]` lines to the console (see
+  /// `AutoChantLog`). On in debug and profile builds, off in release; a release
+  /// build can turn it on with `--dart-define=AUTO_CHANT_LOG=true`. The lines
+  /// carry what was heard, so they are for the developer's console only.
+  static const bool logging = bool.fromEnvironment('AUTO_CHANT_LOG', defaultValue: !kReleaseMode);
+
+  /// How often a sitting reports that it is alive: audio received, how loud,
+  /// and whether the recogniser is keeping up.
+  static const Duration logHeartbeat = Duration(seconds: 5);
+
+  /// A heartbeat whose loudest sample is below this (on the samples' 0–1 scale)
+  /// is logged as a silent microphone: a working mic in a quiet room still
+  /// reads well above it, a muted or taken-over one reads exactly zero.
+  static const double logSilentPeak = 0.001;
 
   // ── Bundled model assets ──────────────────────────────────────────────
   static const String vadModelAsset = 'assets/models/auto_chant/vad/silero_vad.onnx';

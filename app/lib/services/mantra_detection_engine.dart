@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa_onnx;
 
 import '../core/constants/auto_chant_config.dart';
+import 'auto_chant_log.dart';
 import 'chant_word_engine.dart' show WordTranscript;
 
 /// Runs Silero VAD and an on-device speech recogniser on a background isolate
@@ -45,12 +46,23 @@ class MantraDetectionEngine {
   /// Copies the bundled models to disk and starts the worker isolate.
   /// Completes once the native engines are built and ready for audio.
   Future<void> start() async {
+    final clock = Stopwatch()..start();
+    AutoChantLog.info('engine: copying the bundled models to disk');
     final vadConfig = await _prepareVadConfig();
     final asrConfig = await _prepareRecognizerConfig();
+    AutoChantLog.info('engine: models on disk after ${clock.elapsedMilliseconds} ms, starting the worker isolate');
 
     final receivePort = ReceivePort();
     _receivePort = receivePort;
-    _isolate = await Isolate.spawn(_workerMain, receivePort.sendPort);
+    // The same port takes the worker's own messages, an uncaught error in it
+    // (a two-item list: error, stack) and its exit (null) — so a worker that
+    // dies is heard about instead of leaving the screen "listening" to nothing.
+    _isolate = await Isolate.spawn(
+      _workerMain,
+      receivePort.sendPort,
+      onError: receivePort.sendPort,
+      onExit: receivePort.sendPort,
+    );
 
     final ready = Completer<void>();
     receivePort.listen((message) {
@@ -58,14 +70,27 @@ class MantraDetectionEngine {
         _workerPort = message;
         message.send(_InitRequest(vadConfig, asrConfig));
       } else if (message is _Ready) {
+        AutoChantLog.info('engine: ready after ${clock.elapsedMilliseconds} ms');
         if (!ready.isCompleted) ready.complete();
       } else if (message is _VoiceActiveChanged) {
         _voiceActiveController.add(message.active);
       } else if (message is WordTranscript) {
         _transcriptController.add(message);
+      } else if (message is _WorkerLog) {
+        message.warn ? AutoChantLog.warn(message.text) : AutoChantLog.info(message.text);
       } else if (message is _WorkerError) {
+        AutoChantLog.error('worker reported an error', message.message);
         _errorController.add(message.message);
         if (!ready.isCompleted) ready.completeError(message.message);
+      } else if (message is List) {
+        final reason = message.isEmpty ? 'unknown error' : '${message.first}';
+        AutoChantLog.error('worker isolate crashed', reason, message.length > 1 ? message[1] : null);
+        _errorController.add(reason);
+        if (!ready.isCompleted) ready.completeError(reason);
+      } else if (message == null) {
+        AutoChantLog.warn('worker isolate exited');
+        _errorController.add('the worker isolate exited');
+        if (!ready.isCompleted) ready.completeError('the worker isolate exited before it was ready');
       }
     });
     return ready.future;
@@ -77,6 +102,7 @@ class MantraDetectionEngine {
   }
 
   Future<void> stop() async {
+    if (_isolate != null) AutoChantLog.info('engine: stopping the worker isolate');
     _workerPort?.send(const _DisposeRequest());
     _isolate?.kill(priority: Isolate.immediate);
     _receivePort?.close();
@@ -182,6 +208,14 @@ class _WorkerError {
   final String message;
 }
 
+/// A line for the log, written by the worker and printed on the main isolate so
+/// every line comes out of one place.
+class _WorkerLog {
+  const _WorkerLog(this.text, {this.warn = false});
+  final String text;
+  final bool warn;
+}
+
 /// About 0.6 seconds at 16kHz — covers Silero VAD's own onset lag (it only
 /// reports "speech" after `minSpeechDuration` of continuous voice), so the
 /// first syllable of a mantra is never silently dropped while the gate was
@@ -201,6 +235,40 @@ void _workerMain(SendPort mainSendPort) {
   final preRoll = Queue<Float32List>();
   var preRollSamples = 0;
 
+  // What the worker has done since it last reported, for the log.
+  final clock = Stopwatch()..start();
+  var lastReport = Duration.zero;
+  var chunksIn = 0;
+  var chunksFed = 0;
+  var chunksWithVoice = 0;
+  var slowestDecodeMs = 0;
+  var chunkMs = 0;
+
+  void log(String text, {bool warn = false}) {
+    if (AutoChantConfig.logging) mainSendPort.send(_WorkerLog(text, warn: warn));
+  }
+
+  void reportIfDue() {
+    if (!AutoChantConfig.logging) return;
+    if (clock.elapsed - lastReport < AutoChantConfig.logHeartbeat) return;
+    lastReport = clock.elapsed;
+    log(
+      'worker: $chunksIn chunks received, voice present in $chunksWithVoice, '
+      '$chunksFed fed to the recogniser, slowest decode $slowestDecodeMs ms',
+    );
+    // A chunk is $chunkMs of sound; decoding it slower than that falls behind.
+    if (chunkMs > 0 && slowestDecodeMs > chunkMs) {
+      log(
+        'recogniser took $slowestDecodeMs ms on a $chunkMs ms chunk — too slow to keep up in real time',
+        warn: true,
+      );
+    }
+    chunksIn = 0;
+    chunksFed = 0;
+    chunksWithVoice = 0;
+    slowestDecodeMs = 0;
+  }
+
   void closeUtterance() {
     final text = recognizer!.getResult(stream!).text.trim();
     if (text.isNotEmpty || lastText.isNotEmpty) {
@@ -211,10 +279,13 @@ void _workerMain(SendPort mainSendPort) {
   }
 
   void feedRecognizer(Float32List chunk) {
+    final decodeClock = Stopwatch()..start();
     stream!.acceptWaveform(samples: chunk, sampleRate: AutoChantConfig.sampleRate);
     while (recognizer!.isReady(stream!)) {
       recognizer!.decode(stream!);
     }
+    chunksFed += 1;
+    if (decodeClock.elapsedMilliseconds > slowestDecodeMs) slowestDecodeMs = decodeClock.elapsedMilliseconds;
     final text = recognizer!.getResult(stream!).text.trim();
     if (text != lastText) {
       lastText = text;
@@ -228,15 +299,20 @@ void _workerMain(SendPort mainSendPort) {
     if (message is _InitRequest) {
       try {
         sherpa_onnx.initBindings();
+        log('worker: native library loaded after ${clock.elapsedMilliseconds} ms');
         vad = sherpa_onnx.VoiceActivityDetector(config: message.vad, bufferSizeInSeconds: 30);
+        log('worker: voice detector built after ${clock.elapsedMilliseconds} ms');
         recognizer = sherpa_onnx.OnlineRecognizer(message.asr);
         stream = recognizer!.createStream();
+        log('worker: recogniser built after ${clock.elapsedMilliseconds} ms');
         mainSendPort.send(const _Ready());
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
       }
     } else if (message is _AudioChunk && vad != null && recognizer != null) {
       try {
+        chunksIn += 1;
+        chunkMs = message.samples.length * 1000 ~/ AutoChantConfig.sampleRate;
         preRoll.addLast(message.samples);
         preRollSamples += message.samples.length;
         while (preRollSamples > _preRollCapSamples && preRoll.length > 1) {
@@ -253,6 +329,7 @@ void _workerMain(SendPort mainSendPort) {
         }
 
         final active = vad!.isDetected();
+        if (active) chunksWithVoice += 1;
         if (active != voiceWasActive) {
           voiceWasActive = active;
           mainSendPort.send(_VoiceActiveChanged(active));
@@ -274,6 +351,7 @@ void _workerMain(SendPort mainSendPort) {
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
       }
+      reportIfDue();
     } else if (message is _DisposeRequest) {
       stream?.free();
       recognizer?.free();

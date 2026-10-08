@@ -78,9 +78,30 @@ void main() {
       expect(_heard(matcher, 'hare krishna hare krishna'), 0);
     });
 
+    test('closest says how near a miss came, and changes nothing', () {
+      final matcher = MantraPhraseMatcher(['Om Namah Shivaya']);
+      final miss = matcher.closest('hare krishna')!;
+      expect(miss.ratio, lessThan(miss.needed));
+
+      final hit = matcher.closest('om namah shivaya')!;
+      expect(hit.ratio, greaterThanOrEqualTo(hit.needed));
+      // Looking did not use anything up: the same words still count.
+      expect(_heard(matcher, 'om namah shivaya'), 1);
+    });
+
+    test('closest looks only at what is not yet counted', () {
+      final matcher = MantraPhraseMatcher([_maha]);
+      expect(matcher.closest(_maha)!.ratio, greaterThanOrEqualTo(MantraPhraseMatcher.needed(_maha.length)));
+      expect(matcher.update(_maha, isFinal: true), 1);
+      // What is left over is at most a stub, nowhere near another repetition.
+      final left = matcher.closest(_maha);
+      expect(left == null || left.ratio < left.needed, isTrue);
+    });
+
     test('no phrases means nothing is ever heard', () {
       final matcher = MantraPhraseMatcher(const []);
       expect(matcher.hasPhrases, isFalse);
+      expect(matcher.closest('hare krishna'), isNull);
       expect(matcher.update('hare krishna', isFinal: true), 0);
     });
   });

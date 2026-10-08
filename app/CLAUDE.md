@@ -152,6 +152,15 @@ has none and every average leaves it out.
   match is settled so half a chant is never counted twice). Phrases come from the API per mantra (seeded
   in `backend/prisma/seed/chant-phrases.js`, fallback `transliteration`), so any mantra opened works with
   no app change. Tuning is in `AutoChantConfig`; `test/mantra_phrase_matcher_test.dart`.
+  - **It logs what it is doing** (`services/auto_chant_log.dart`): every line starts `[AutoChant hh:mm:ss.mmm]`,
+    so filtering the console on `AutoChant` shows only this. On in debug and profile builds, off in release
+    unless built with `--dart-define=AUTO_CHANT_LOG=true` (`AutoChantConfig.logging`). The lines carry what
+    was heard, so they are for the developer's console, not for analytics. Read them top to bottom:
+    `enabling` → `microphone is streaming` → `engine: ready` → `LISTENING` → `alive:` every 5 s (audio
+    chunks and level — `no audio` / `delivering silence` warnings point at the mic) → `voice detected` →
+    `heard: "…"` → `COUNTED +1` → `bead #N added to the counter`. A miss logs `NOT counted … matched 38%,
+    needs 50%`; a voice with no words logs `produced no words`; a dead worker logs `worker isolate crashed`
+    or `exited`. `worker:` lines come from the background isolate and say whether the recogniser keeps up.
 - **Setup is one sheet.** Both switches live in `widgets/chant/chant_setup_sheet.dart`, opened from
   the "Auto count & words" button under the ring; its label shows how many are on.
 - **Mic sharing.** Auto-count and word detection (both use `record`, each with its own recorder) both want the

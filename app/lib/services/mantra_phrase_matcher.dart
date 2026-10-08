@@ -26,6 +26,10 @@ class MantraPhraseMatcher {
 
   bool get hasPhrases => _targets.isNotEmpty;
 
+  /// The phrases as they are compared, spellings folded — what the log shows,
+  /// so a mismatch can be read against what the recogniser wrote.
+  List<String> get foldedPhrases => List.unmodifiable(_targets);
+
   /// Repetitions newly completed by [transcript], the running text of the
   /// current utterance (revised as more is heard). [isFinal] once the voice has
   /// stopped, when whatever matches is counted; call [reset] after it.
@@ -66,14 +70,28 @@ class MantraPhraseMatcher {
         AutoChantConfig.shortPhraseExtra * shortBy / AutoChantConfig.shortPhraseLetters;
   }
 
-  /// Best approximate match of [target] anywhere in [text] (free start, free
-  /// end). Returns where the earliest good-enough one ends, or null when none
-  /// reaches [needed].
-  static _Match? _match(String target, String text) {
+  /// How near the not-yet-counted part of [transcript] comes to the mantra, for
+  /// the log: the best score over every phrase and what that phrase needed.
+  /// Changes nothing — a score below `needed` is exactly why nothing was counted.
+  ({double ratio, double needed})? closest(String transcript) {
+    if (_targets.isEmpty) return null;
+    final heard = fold(transcript);
+    if (heard.length <= _consumed) return null;
+    final rest = heard.substring(_consumed);
+    ({double ratio, double needed})? best;
+    for (final target in _targets) {
+      final ratio = _bestRatio(target, rest);
+      if (best == null || ratio > best.ratio) best = (ratio: ratio, needed: needed(target.length));
+    }
+    return best;
+  }
+
+  /// The last row of the edit-distance table of [target] against [text] (free
+  /// start, free end): entry `j` is the fewest edits to make [target] out of a
+  /// stretch of [text] that ends at `j`.
+  static Int32List _lastRow(String target, String text) {
     final n = target.length;
     final m = text.length;
-    if (m == 0) return null;
-
     var prev = Int32List(m + 1); // row 0: a match may start anywhere, at no cost
     var cur = Int32List(m + 1);
     for (var i = 1; i <= n; i++) {
@@ -91,7 +109,28 @@ class MantraPhraseMatcher {
       prev = cur;
       cur = swap;
     }
+    return prev;
+  }
 
+  static double _bestRatio(String target, String text) {
+    if (text.isEmpty) return 0;
+    final row = _lastRow(target, text);
+    var lowest = row[0];
+    for (var j = 1; j < row.length; j++) {
+      if (row[j] < lowest) lowest = row[j];
+    }
+    return (target.length - lowest) / target.length;
+  }
+
+  /// Best approximate match of [target] anywhere in [text] (free start, free
+  /// end). Returns where the earliest good-enough one ends, or null when none
+  /// reaches [needed].
+  static _Match? _match(String target, String text) {
+    final n = target.length;
+    final m = text.length;
+    if (m == 0) return null;
+
+    final prev = _lastRow(target, text);
     var lowest = prev[0];
     for (var j = 1; j <= m; j++) {
       if (prev[j] < lowest) lowest = prev[j];
