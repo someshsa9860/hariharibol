@@ -244,6 +244,9 @@ async function mantra(row, user) {
     // Not per language: it is one recording, and the chant is the same sound.
     ...(await malaRecording(row)),
 
+    // What auto count listens for — see Mantra.chantPhrases in the schema.
+    chantPhrases: row.chantPhrases || [],
+
     standardRounds: row.standardRounds,
     standardCount: row.standardCount,
 

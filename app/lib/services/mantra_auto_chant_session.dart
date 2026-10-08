@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import '../core/constants/auto_chant_config.dart';
 import '../models/mantra.dart';
+import 'chant_word_engine.dart' show WordTranscript;
 import 'mantra_audio_capture.dart';
 import 'mantra_detection_engine.dart';
+import 'mantra_phrase_matcher.dart';
 import 'mantra_repetition_counter.dart';
 
 /// Why auto-count is not running. Kept as reasons rather than a message
@@ -38,11 +40,11 @@ class AutoChantStatus {
 /// session, not a mutation of this one.
 class MantraAutoChantSession {
   MantraAutoChantSession(this.mantra)
-      : _keyword = AutoChantConfig.keywordFor(mantra.slug),
-        _counter = MantraRepetitionCounter(cooldown: AutoChantConfig.cooldownFor(mantra.durationMs));
+      : _matcher = MantraPhraseMatcher(mantra.spokenPhrases),
+        _counter = MantraRepetitionCounter(cooldown: AutoChantConfig.defaultCooldown);
 
   final Mantra mantra;
-  final MantraKeyword? _keyword;
+  final MantraPhraseMatcher _matcher;
   final MantraRepetitionCounter _counter;
 
   final MantraAudioCapture _capture = MantraAudioCapture();
@@ -53,15 +55,16 @@ class MantraAutoChantSession {
 
   StreamSubscription<Float32List>? _audioSub;
   StreamSubscription<bool>? _voiceSub;
-  StreamSubscription<void>? _keywordSub;
+  StreamSubscription<WordTranscript>? _transcriptSub;
   StreamSubscription<String>? _errorSub;
 
   bool _enabled = false;
 
-  /// Whether this mantra has a keyword configured at all. The switch is
-  /// hidden entirely when this is false, never shown disabled — this app
-  /// does not ship controls that cannot do anything.
-  bool get isSupported => _keyword != null;
+  /// Whether this mantra has anything to listen for — phrases from the API,
+  /// or its transliteration. The switch is hidden entirely when this is
+  /// false, never shown disabled — this app does not ship controls that
+  /// cannot do anything.
+  bool get isSupported => _matcher.hasPhrases;
 
   Stream<AutoChantStatus> get statusStream => _statusController.stream;
 
@@ -70,8 +73,7 @@ class MantraAutoChantSession {
   Stream<void> get repetitionDetected => _repetitionController.stream;
 
   Future<void> enable() async {
-    final keyword = _keyword;
-    if (keyword == null || _enabled) return;
+    if (!isSupported || _enabled) return;
 
     if (!await _capture.hasPermission()) {
       _emitStatus(error: AutoChantError.permissionDenied);
@@ -79,22 +81,35 @@ class MantraAutoChantSession {
     }
 
     try {
-      await _engine.start(keyword);
+      await _engine.start();
       final audio = await _capture.start();
       _enabled = true;
       _counter.reset();
+      _matcher.reset();
 
       _voiceSub = _engine.voiceActive.listen((active) {
         _counter.onVoiceActive(active);
         _emitStatus();
       });
-      _keywordSub = _engine.keywordDetected.listen((_) {
-        final completedRepetition = _counter.onKeywordDetected();
-        if (completedRepetition) _repetitionController.add(null);
+      _transcriptSub = _engine.transcripts.listen((transcript) {
+        final heard = _matcher.update(transcript.text, isFinal: transcript.isFinal);
+        if (transcript.isFinal) _matcher.reset();
+        if (heard > 0) {
+          _counter.onRepetitionsHeard(heard);
+          for (var i = 0; i < heard; i++) {
+            _repetitionController.add(null);
+          }
+        }
         _emitStatus();
       });
       _errorSub = _engine.errors.listen((_) => _emitStatus(error: AutoChantError.unavailable));
-      _audioSub = audio.listen(_engine.acceptWaveform);
+      // The recorder can be taken away mid-sitting (a phone call, another app
+      // opening the mic). Say so rather than sit "listening" to nothing.
+      _audioSub = audio.listen(
+        _engine.acceptWaveform,
+        onError: (_) => unawaited(_lostMicrophone()),
+        onDone: () => unawaited(_lostMicrophone()),
+      );
 
       _emitStatus();
     } catch (_) {
@@ -121,14 +136,20 @@ class MantraAutoChantSession {
     _enabled = false;
     await _audioSub?.cancel();
     await _voiceSub?.cancel();
-    await _keywordSub?.cancel();
+    await _transcriptSub?.cancel();
     await _errorSub?.cancel();
     _audioSub = null;
     _voiceSub = null;
-    _keywordSub = null;
+    _transcriptSub = null;
     _errorSub = null;
     await _capture.stop();
     await _engine.stop();
+  }
+
+  Future<void> _lostMicrophone() async {
+    if (!_enabled) return;
+    await _teardown();
+    _emitStatus(error: AutoChantError.unavailable);
   }
 
   void _emitStatus({AutoChantError? error}) {

@@ -1,9 +1,9 @@
-/// Tuning and asset locations for auto-count: listen to the mic, recognise a
-/// known mantra's own sound, count each completed repetition — no cloud
-/// speech-to-text, no network.
+/// Tuning and asset locations for auto-count: listen to the mic, transcribe it
+/// on the phone, match the transcript to the open mantra's phrases, count each
+/// completed repetition — no cloud speech-to-text, no network.
 ///
 /// See `assets/models/auto_chant/NOTICE.md` for where the bundled models come
-/// from and how to add a mantra.
+/// from. A mantra's phrases come from the API (`Mantra.chantPhrases`).
 abstract final class AutoChantConfig {
   static const int sampleRate = 16000;
 
@@ -24,57 +24,41 @@ abstract final class AutoChantConfig {
   /// repetitions must never hit it and have its own audio cut off mid-mantra.
   static const double vadMaxSpeechDurationSeconds = 20.0;
 
-  // ── Keyword spotting ───────────────────────────────────────────────────
-  /// Deliberately more conservative than the library's own default (0.25).
-  /// A missed repetition costs nothing — chant it again. A false count sits
-  /// in the total until the user notices and second-guesses the whole
-  /// session, which is the worse failure by far.
-  static const double kwsThreshold = 0.5;
-  static const double kwsBoostScore = 2.0;
-  static const int kwsMaxActivePaths = 4;
+  // ── Matching what was heard to the mantra ───────────────────────────────
+  /// The least a chant must resemble one of the mantra's phrases to count as a
+  /// repetition: half of its letters, once spellings are folded together (see
+  /// `MantraPhraseMatcher`). Deliberately a floor, not a target — a fast chant
+  /// or a recogniser that drops letters still counts, and a different mantra
+  /// does not reach it.
+  static const double matchThreshold = 0.5;
 
-  // ── Repetition cooldown ─────────────────────────────────────────────────
+  /// Very short mantras (an "Om") would reach half by chance, so below
+  /// [shortPhraseLetters] folded letters the bar rises, by up to this much.
+  static const double shortPhraseExtra = 0.25;
+  static const int shortPhraseLetters = 24;
+
+  /// A repetition is credited at the earliest point within this much of the
+  /// best match, so the next one starts where it really did — not after
+  /// whichever later stretch happened to score a little higher.
+  static const double matchSlack = 0.1;
+
+  /// Credit is held back while the transcript is still growing across a match,
+  /// or half a repetition would count and then its other half would count
+  /// again. A match is *settled* — and counted — once it is this good, once
+  /// [settleTrailing] of a phrase's length has been heard past it, or once the
+  /// voice stops.
+  static const double strongMatch = 0.85;
+  static const double settleTrailing = 0.3;
+
+  /// A running transcript this long is closed off and started afresh, so one
+  /// unbroken hour of chanting never becomes one unbounded string.
+  static const int maxTranscriptLetters = 400;
+
+  /// Silence fed after a stretch of voice so the recogniser flushes the last
+  /// syllables it was still holding back.
+  static const int endPaddingSamples = 6400;
+
+  // ── Repetition feedback ─────────────────────────────────────────────────
+  /// How long the status row says "counted" after a repetition.
   static const Duration defaultCooldown = Duration(milliseconds: 900);
-  static const Duration minCooldown = Duration(milliseconds: 400);
-  static const Duration maxCooldown = Duration(seconds: 4);
-
-  /// Half of one mantra's own pace: short enough to admit real back-to-back
-  /// chanting, long enough to absorb one stray re-trigger. Falls back to
-  /// [defaultCooldown] for a mantra with no timed pace of its own.
-  static Duration cooldownFor(int mantraDurationMs) {
-    if (mantraDurationMs <= 0) return defaultCooldown;
-    final half = Duration(milliseconds: (mantraDurationMs / 2).round());
-    if (half < minCooldown) return minCooldown;
-    if (half > maxCooldown) return maxCooldown;
-    return half;
-  }
-
-  /// One entry per mantra the auto-counter can hear, keyed by slug. A mantra
-  /// with no entry here simply does not offer the switch.
-  static const Map<String, MantraKeyword> _keywords = {
-    'hare-krishna-mahamantra': MantraKeyword(
-      // "Hare Hare" closes both lines of one full recitation — shorter and
-      // more reliably spotted than the whole 32-syllable mantra end to end,
-      // so two firings make one repetition rather than one firing of the
-      // entire phrase.
-      tokens: '▁HA RE ▁HA RE',
-      detectionsPerRepetition: 2,
-    ),
-    'om-namah-shivaya': MantraKeyword(tokens: '▁O M ▁NA MA H ▁S H IV A Y A'),
-  };
-
-  static MantraKeyword? keywordFor(String mantraSlug) => _keywords[mantraSlug];
-}
-
-/// A mantra's cue for the keyword spotter: its phrase (or a short, reliably
-/// distinctive piece of it) already tokenised against the bundled model's BPE
-/// vocabulary, plus how many firings of that cue make up one repetition.
-class MantraKeyword {
-  const MantraKeyword({required this.tokens, this.detectionsPerRepetition = 1});
-
-  /// Space-separated BPE pieces, e.g. `▁O M ▁NA MA H ▁S H IV A Y A`. Produced
-  /// offline — see the NOTICE — never derived on-device.
-  final String tokens;
-
-  final int detectionsPerRepetition;
 }

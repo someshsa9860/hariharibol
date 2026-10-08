@@ -35,6 +35,13 @@ class MantraAudioCapture {
         autoGain: true,
         noiseSuppress: true,
         streamBufferSize: 3200, // ~100ms at 16kHz, mono, 16-bit
+        androidConfig: AndroidRecordConfig(
+          // Listening must be silent and must leave the audio route alone: no
+          // switching a Bluetooth headset into call mode (which beeps and
+          // degrades whatever else is playing) and no muting other audio.
+          manageBluetooth: false,
+          muteAudio: false,
+        ),
       ),
     );
 

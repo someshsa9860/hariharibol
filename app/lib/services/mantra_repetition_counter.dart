@@ -82,6 +82,17 @@ class MantraRepetitionCounter {
     return true;
   }
 
+  /// The matcher heard [repetitions] whole repetitions in the transcript. All
+  /// count — fast chanting with no pause between them is several in one
+  /// utterance — so the cooldown does not apply; it only drives the "counted"
+  /// moment in [phase].
+  void onRepetitionsHeard(int repetitions) {
+    if (repetitions <= 0) return;
+    _lastCountAt = _now();
+    _pending = 0;
+    count += repetitions;
+  }
+
   /// Back to a clean slate — used when a session (re)starts.
   void reset() {
     _voiceActive = false;

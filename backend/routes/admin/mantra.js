@@ -83,6 +83,8 @@ const mantraBody = {
   malaAudioPath: z.string().max(500).nullable().optional(),
   malaAudioStartMs: z.coerce.number().int().min(0).nullable().optional(),
   malaAudioEndMs: z.coerce.number().int().min(0).nullable().optional(),
+  // Spellings auto count matches the chant against, one full repetition each.
+  chantPhrases: z.array(z.string().min(1).max(2000)).max(20).optional(),
   standardRounds: z.coerce.number().int().min(0).nullable().optional(),
   standardCount: z.coerce.number().int().min(0).nullable().optional(),
   displayOrder: z.coerce.number().int().optional(),

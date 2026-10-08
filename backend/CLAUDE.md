@@ -234,6 +234,16 @@ user twice. Store money as integer minor units (paise, cents); floats drift.
 - **A new database takes the seed twice** (migrate → seed → importers → seed): stories
   point at chapters, and chapters come from `scripts/import-*.js`. See `scripts/README.md`.
 
+## Mantra chant phrases
+
+`Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted: plain Roman
+spellings, one full repetition each — the standard transliteration plus looser spellings of what an
+English-trained recogniser writes down. The app's auto count matches the live transcript against them
+(≥ ~50%, stricter for very short mantras), so fast or slurred chanting still counts. Written by the seed
+from `prisma/seed/chant-phrases.js` (every run, like the rest of a mantra's seed fields), accepted by the
+admin create/update, and sent on every mantra as `chantPhrases`. The admin panel has no field for it yet.
+A mantra with none falls back to `transliteration` in the app.
+
 ## Mantra mala recording
 
 A mantra can carry one recording of a whole mala and the stretch of it that is chanting; the

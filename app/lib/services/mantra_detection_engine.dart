@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -11,40 +10,43 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa_onnx;
 
 import '../core/constants/auto_chant_config.dart';
+import 'chant_word_engine.dart' show WordTranscript;
 
-/// Runs Silero VAD and the keyword spotter on a background isolate and
-/// exposes their output as two plain streams.
+/// Runs Silero VAD and an on-device speech recogniser on a background isolate
+/// and exposes their output as plain streams: when a voice starts and stops,
+/// and what it said.
 ///
-/// The decode work happens off the UI isolate because it runs for the whole
-/// length of a chanting sitting — anywhere from a few minutes to an hour —
-/// and nothing about that should ever compete with a frame budget. This
-/// mirrors the isolate architecture sherpa-onnx's own Flutter microphone
-/// examples use, not a pattern invented for this app.
+/// What was said is matched to the open mantra on the main isolate (see
+/// `MantraPhraseMatcher`), so this class knows nothing about any mantra — one
+/// engine serves them all, and a mantra needs no model of its own.
+///
+/// The work happens off the UI isolate because it runs for the whole length of
+/// a chanting sitting — anywhere from a few minutes to an hour. This mirrors
+/// the isolate architecture sherpa-onnx's own Flutter microphone examples use.
 class MantraDetectionEngine {
   Isolate? _isolate;
   SendPort? _workerPort;
   ReceivePort? _receivePort;
 
   final _voiceActiveController = StreamController<bool>.broadcast();
-  final _keywordDetectedController = StreamController<void>.broadcast();
+  final _transcriptController = StreamController<WordTranscript>.broadcast();
   final _errorController = StreamController<String>.broadcast();
 
   /// Voice-activity edges from the VAD — one event per transition, not one
   /// per audio frame.
   Stream<bool> get voiceActive => _voiceActiveController.stream;
 
-  /// One event per completed keyword firing (already de-duplicated by the
-  /// spotter's own stream reset — see the worker below).
-  Stream<void> get keywordDetected => _keywordDetectedController.stream;
+  /// The running transcript of the current stretch of voice (revised as more
+  /// is heard), and a final one when the voice stops.
+  Stream<WordTranscript> get transcripts => _transcriptController.stream;
 
   Stream<String> get errors => _errorController.stream;
 
-  /// Copies the bundled models to disk and starts the worker isolate,
-  /// configured to spot [keyword]. Completes once the native engines are
-  /// built and ready for audio.
-  Future<void> start(MantraKeyword keyword) async {
+  /// Copies the bundled models to disk and starts the worker isolate.
+  /// Completes once the native engines are built and ready for audio.
+  Future<void> start() async {
     final vadConfig = await _prepareVadConfig();
-    final kwsConfig = await _prepareKwsConfig(keyword);
+    final asrConfig = await _prepareRecognizerConfig();
 
     final receivePort = ReceivePort();
     _receivePort = receivePort;
@@ -54,13 +56,13 @@ class MantraDetectionEngine {
     receivePort.listen((message) {
       if (message is SendPort) {
         _workerPort = message;
-        message.send(_InitRequest(vadConfig, kwsConfig));
+        message.send(_InitRequest(vadConfig, asrConfig));
       } else if (message is _Ready) {
         if (!ready.isCompleted) ready.complete();
       } else if (message is _VoiceActiveChanged) {
         _voiceActiveController.add(message.active);
-      } else if (message is _KeywordDetected) {
-        _keywordDetectedController.add(null);
+      } else if (message is WordTranscript) {
+        _transcriptController.add(message);
       } else if (message is _WorkerError) {
         _errorController.add(message.message);
         if (!ready.isCompleted) ready.completeError(message.message);
@@ -86,7 +88,7 @@ class MantraDetectionEngine {
   Future<void> dispose() async {
     await stop();
     await _voiceActiveController.close();
-    await _keywordDetectedController.close();
+    await _transcriptController.close();
     await _errorController.close();
   }
 
@@ -108,13 +110,13 @@ class MantraDetectionEngine {
     );
   }
 
-  Future<sherpa_onnx.KeywordSpotterConfig> _prepareKwsConfig(MantraKeyword keyword) async {
+  Future<sherpa_onnx.OnlineRecognizerConfig> _prepareRecognizerConfig() async {
     final encoder = await copyAsset(AutoChantConfig.kwsEncoderAsset);
     final decoder = await copyAsset(AutoChantConfig.kwsDecoderAsset);
     final joiner = await copyAsset(AutoChantConfig.kwsJoinerAsset);
     final tokens = await copyAsset(AutoChantConfig.kwsTokensAsset);
 
-    return sherpa_onnx.KeywordSpotterConfig(
+    return sherpa_onnx.OnlineRecognizerConfig(
       model: sherpa_onnx.OnlineModelConfig(
         transducer: sherpa_onnx.OnlineTransducerModelConfig(
           encoder: encoder,
@@ -125,11 +127,6 @@ class MantraDetectionEngine {
         numThreads: 1,
         debug: false,
       ),
-      maxActivePaths: AutoChantConfig.kwsMaxActivePaths,
-      keywordsScore: AutoChantConfig.kwsBoostScore,
-      keywordsThreshold: AutoChantConfig.kwsThreshold,
-      keywordsBuf: keyword.tokens,
-      keywordsBufSize: utf8.encode(keyword.tokens).length,
     );
   }
 
@@ -153,13 +150,13 @@ class MantraDetectionEngine {
 //
 // Every message class here is plain data (strings, numbers, typed lists) —
 // deliberately, since only plain data survives being sent across an isolate
-// boundary. The native VAD and keyword spotter objects are built inside the
-// worker itself, from the config carried by [_InitRequest], never passed in.
+// boundary. The native VAD and recogniser objects are built inside the worker
+// itself, from the config carried by [_InitRequest], never passed in.
 
 class _InitRequest {
-  const _InitRequest(this.vad, this.kws);
+  const _InitRequest(this.vad, this.asr);
   final sherpa_onnx.VadModelConfig vad;
-  final sherpa_onnx.KeywordSpotterConfig kws;
+  final sherpa_onnx.OnlineRecognizerConfig asr;
 }
 
 class _AudioChunk {
@@ -180,10 +177,6 @@ class _VoiceActiveChanged {
   final bool active;
 }
 
-class _KeywordDetected {
-  const _KeywordDetected();
-}
-
 class _WorkerError {
   const _WorkerError(this.message);
   final String message;
@@ -200,26 +193,35 @@ void _workerMain(SendPort mainSendPort) {
   mainSendPort.send(receivePort.sendPort);
 
   sherpa_onnx.VoiceActivityDetector? vad;
-  sherpa_onnx.KeywordSpotter? spotter;
+  sherpa_onnx.OnlineRecognizer? recognizer;
   sherpa_onnx.OnlineStream? stream;
   var voiceWasActive = false;
+  var lastText = '';
 
   final preRoll = Queue<Float32List>();
   var preRollSamples = 0;
 
-  void feedKws(Float32List chunk) {
-    stream!.acceptWaveform(samples: chunk, sampleRate: AutoChantConfig.sampleRate);
-    while (spotter!.isReady(stream!)) {
-      spotter!.decode(stream!);
-      final result = spotter!.getResult(stream!);
-      if (result.keyword != '') {
-        // Reset right away: the keyword's own detection window is now spent,
-        // and leaving the stream unreset risks the same firing lingering
-        // into the result of the very next decode step.
-        spotter!.reset(stream!);
-        mainSendPort.send(const _KeywordDetected());
-      }
+  void closeUtterance() {
+    final text = recognizer!.getResult(stream!).text.trim();
+    if (text.isNotEmpty || lastText.isNotEmpty) {
+      mainSendPort.send(WordTranscript(text, isFinal: true));
     }
+    recognizer!.reset(stream!);
+    lastText = '';
+  }
+
+  void feedRecognizer(Float32List chunk) {
+    stream!.acceptWaveform(samples: chunk, sampleRate: AutoChantConfig.sampleRate);
+    while (recognizer!.isReady(stream!)) {
+      recognizer!.decode(stream!);
+    }
+    final text = recognizer!.getResult(stream!).text.trim();
+    if (text != lastText) {
+      lastText = text;
+      mainSendPort.send(WordTranscript(text, isFinal: false));
+    }
+    // An hour of unbroken chanting must not become one unbounded string.
+    if (text.length > AutoChantConfig.maxTranscriptLetters) closeUtterance();
   }
 
   receivePort.listen((message) {
@@ -227,13 +229,13 @@ void _workerMain(SendPort mainSendPort) {
       try {
         sherpa_onnx.initBindings();
         vad = sherpa_onnx.VoiceActivityDetector(config: message.vad, bufferSizeInSeconds: 30);
-        spotter = sherpa_onnx.KeywordSpotter(message.kws);
-        stream = spotter!.createStream();
+        recognizer = sherpa_onnx.OnlineRecognizer(message.asr);
+        stream = recognizer!.createStream();
         mainSendPort.send(const _Ready());
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
       }
-    } else if (message is _AudioChunk && vad != null) {
+    } else if (message is _AudioChunk && vad != null && recognizer != null) {
       try {
         preRoll.addLast(message.samples);
         preRollSamples += message.samples.length;
@@ -256,21 +258,29 @@ void _workerMain(SendPort mainSendPort) {
           mainSendPort.send(_VoiceActiveChanged(active));
           if (active) {
             for (final chunk in preRoll) {
-              feedKws(chunk);
+              feedRecognizer(chunk);
             }
             preRoll.clear();
             preRollSamples = 0;
+          } else {
+            // The recogniser holds back its last few syllables until it has
+            // heard a little more; silence lets them out.
+            feedRecognizer(Float32List(AutoChantConfig.endPaddingSamples));
+            closeUtterance();
           }
         } else if (active) {
-          feedKws(message.samples);
+          feedRecognizer(message.samples);
         }
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
       }
     } else if (message is _DisposeRequest) {
       stream?.free();
-      spotter?.free();
+      recognizer?.free();
       vad?.free();
+      stream = null;
+      recognizer = null;
+      vad = null;
       receivePort.close();
     }
   });

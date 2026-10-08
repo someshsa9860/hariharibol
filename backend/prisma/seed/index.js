@@ -19,6 +19,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
 import { meanings } from './mantra-meanings.js';
+import { chantPhrases } from './chant-phrases.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
@@ -133,10 +134,13 @@ async function seedMantras() {
     const deityRow = deity ? await prisma.deity.findUnique({ where: { slug: deity } }) : null;
     const guruRow = guru ? await prisma.guru.findUnique({ where: { slug: guru } }) : null;
 
+    // Always written from the seed, like the rest of a mantra's fields.
+    const phrases = chantPhrases[mantra.slug] ?? [];
+
     const saved = await prisma.mantra.upsert({
       where: { slug: mantra.slug },
-      update: { ...fields, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null },
-      create: { ...fields, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
+      update: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null },
+      create: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
     });
 
     for (const translation of translations) {

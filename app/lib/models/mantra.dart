@@ -24,6 +24,7 @@ class Mantra {
     this.malaAudioUrl,
     this.malaAudioStartMs = 0,
     this.malaAudioEndMs = 0,
+    this.chantPhrases = const [],
     this.standardRounds = 0,
     this.standardCount = 0,
     this.deity,
@@ -64,6 +65,11 @@ class Mantra {
   final int malaAudioStartMs;
   final int malaAudioEndMs;
 
+  /// How this mantra may sound when chanted, one full repetition each in plain
+  /// Roman letters — what auto count matches the live transcript against.
+  /// Empty for a mantra the API has none for; see [spokenPhrases].
+  final List<String> chantPhrases;
+
   final int standardRounds;
   final int standardCount;
 
@@ -78,6 +84,14 @@ class Mantra {
   /// Rounds this reader has chanted of this mantra, lifetime. 0 when signed
   /// out or never chanted — same as not being shown at all.
   final int myRounds;
+
+  /// What auto count listens for: the API's phrases, or failing those the
+  /// transliteration, when there is one.
+  List<String> get spokenPhrases {
+    if (chantPhrases.isNotEmpty) return chantPhrases;
+    final fallback = transliteration?.trim() ?? '';
+    return fallback.isEmpty ? const [] : [fallback];
+  }
 
   Duration get duration => Duration(milliseconds: durationMs);
   bool get hasAudio => (audioUrl ?? '').isNotEmpty;
@@ -105,6 +119,7 @@ class Mantra {
         malaAudioUrl: asStringOrNull(json['malaAudioUrl']),
         malaAudioStartMs: asInt(json['malaAudioStartMs']),
         malaAudioEndMs: asInt(json['malaAudioEndMs']),
+        chantPhrases: asStringList(json['chantPhrases']),
         standardRounds: asInt(json['standardRounds']),
         standardCount: asInt(json['standardCount']),
         deity: asJson(json['deity']) == null ? null : ReferenceItem.fromJson(asJson(json['deity'])!),
