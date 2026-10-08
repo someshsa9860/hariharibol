@@ -103,7 +103,13 @@ class MantraAutoChantSession {
         _emitStatus();
       });
       _errorSub = _engine.errors.listen((_) => _emitStatus(error: AutoChantError.unavailable));
-      _audioSub = audio.listen(_engine.acceptWaveform);
+      // The recorder can be taken away mid-sitting (a phone call, another app
+      // opening the mic). Say so rather than sit "listening" to nothing.
+      _audioSub = audio.listen(
+        _engine.acceptWaveform,
+        onError: (_) => unawaited(_lostMicrophone()),
+        onDone: () => unawaited(_lostMicrophone()),
+      );
 
       _emitStatus();
     } catch (_) {
@@ -138,6 +144,12 @@ class MantraAutoChantSession {
     _errorSub = null;
     await _capture.stop();
     await _engine.stop();
+  }
+
+  Future<void> _lostMicrophone() async {
+    if (!_enabled) return;
+    await _teardown();
+    _emitStatus(error: AutoChantError.unavailable);
   }
 
   void _emitStatus({AutoChantError? error}) {

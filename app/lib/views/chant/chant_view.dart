@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
@@ -113,6 +114,18 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
           ? 1
           : 0);
 
+  /// Listening only works with the screen on — a locked phone pauses the app,
+  /// and with it the count — so the screen is held awake while either helper
+  /// listens, as it is for the recording.
+  bool _screenHeld = false;
+
+  void _holdScreenForListening() {
+    final want = _helpersOn > 0;
+    if (want == _screenHeld) return;
+    _screenHeld = want;
+    unawaited(WakelockPlus.toggle(enable: want).catchError((_) {}));
+  }
+
   int get _totalRounds => _roundsBefore + _recorder.completedMalas;
 
   @override
@@ -143,6 +156,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantStatusSub = session.statusStream.listen((status) {
       if (!mounted) return;
       setState(() => _autoChantStatus = status);
+      _holdScreenForListening();
       _setupChanged.value += 1;
     });
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
@@ -189,11 +203,15 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // The mic has no business listening while the app cannot be seen. The
     // switches themselves are left as the user set them — coming back to the
-    // app does not silently turn the mic back on.
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    // app does not silently turn the mic back on. Only `paused` counts:
+    // `inactive` is also a pulled-down notification shade or a system dialog,
+    // and an hour's sitting should not end silently because of one.
+    if (state == AppLifecycleState.paused) {
       unawaited(_autoChant?.disable());
       unawaited(_speech?.stop());
-      // A recording cannot be counted along to from the background.
+    }
+    // A recording cannot be counted along to from the background.
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       unawaited(_mala?.pause());
     }
   }
@@ -205,6 +223,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _clockTicker?.cancel();
     _clock.dispose();
     _setupChanged.dispose();
+    // Let the screen go first, before anything is awaited.
+    if (_screenHeld) unawaited(WakelockPlus.toggle(enable: false).catchError((_) {}));
     _stopwatch.stop();
     _autoChantStatusSub?.cancel();
     _autoChantRepetitionSub?.cancel();
@@ -293,6 +313,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     final state = _speech?.state.value;
     if (state == null || !mounted) return;
     setState(() => _speechState = state);
+    _holdScreenForListening();
     _setupChanged.value += 1;
   }
 

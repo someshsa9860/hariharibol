@@ -71,7 +71,13 @@ class ChantSpeechListener {
       final audio = await _capture.start();
       _transcriptSub = _engine.transcripts.listen(_onTranscript);
       _errorSub = _engine.errors.listen((_) => unawaited(_fail(ChantSpeechState.unavailable)));
-      _audioSub = audio.listen(_engine.acceptWaveform);
+      _audioSub = audio.listen(
+        _engine.acceptWaveform,
+        onError: (_) => unawaited(_fail(ChantSpeechState.unavailable)),
+        onDone: () {
+          if (_wanted) unawaited(_fail(ChantSpeechState.unavailable));
+        },
+      );
       _emit(ChantSpeechState.listening);
     } catch (_) {
       await _fail(ChantSpeechState.unavailable);
