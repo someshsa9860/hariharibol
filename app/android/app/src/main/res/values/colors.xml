@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The ground the launch animation draws on, so the hand-off from the
+         native window to Flutter has no seam. Must equal AppColors.paper in
+         lib/core/theme/app_colors.dart; the dark value is in values-night. -->
+    <color name="launch_ground">#FFFBF6</color>
+
+    <!-- Behind the logo in the adaptive launcher icon. The logo sits on white,
+         so this is white in both themes — there is no values-night entry. -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>

@@ -2,7 +2,7 @@ name: hariharibol
 description: "HariHariBol — Vedic verses, mantras and daily sadhana."
 publish_to: "none"
 
-version: 2.0.0+25
+version: 2.0.0+28
 
 environment:
   sdk: ^3.12.2
@@ -100,7 +100,7 @@ flutter:
   generate: true
 
   assets:
-    - assets/logo.png
+    - assets/hariharibol_trprt.png
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/models/auto_chant/kws/

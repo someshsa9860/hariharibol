@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Plain ground, no logo: the animation in lib/views/splash/ draws the mark,
+     and a static one here would pop when Flutter's first frame replaced it. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
-
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/logo" />
-    </item>
+    <item android:drawable="@color/launch_ground" />
 </layer-list>

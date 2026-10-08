@@ -4,12 +4,13 @@ Flutter, iOS and Android. Rules live in [CLAUDE.md](CLAUDE.md).
 
 ## Running it
 
-The SDK on `PATH` is too old. Use 3.44.2:
+The app is pinned to Flutter 3.44.2 (`.flutter-version`), which is not always the
+`flutter` first on `PATH`. `tool/flutter.sh` runs the pinned one for you — it only
+needs 3.44.2 to be somewhere on `PATH`:
 
 ```bash
-export PATH="/Users/teja/company/flutter-versions/flutter_3.44.2/bin:$PATH"
-flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000
+tool/flutter.sh pub get
+tool/flutter.sh run --dart-define=API_BASE_URL=http://10.0.2.2:4000
 ```
 
 `10.0.2.2` is how an Android emulator reaches the machine it is running on. On
@@ -27,8 +28,10 @@ cp config.sh.example config.sh
 ```
 
 `config.sh` supports `API_BASE_URL`, `GOOGLE_SERVER_CLIENT_ID`,
-`GOOGLE_IOS_CLIENT_ID`, `FLUTTER_BIN`, and an `EXTRA_DART_DEFINES` array.
-Additional Flutter options can still be appended to any script.
+`GOOGLE_IOS_CLIENT_ID`, `FLUTTER_SDK` (only if 3.44.2 is not on `PATH`),
+`FLUTTER_BIN` (replaces the pinned wrapper entirely), and an
+`EXTRA_DART_DEFINES` array. Additional Flutter options can still be appended to any
+script.
 
 Start the API first — `cd ../backend && npm run dev`.
 
@@ -50,6 +53,6 @@ library tabs are routed and empty.
 ## Checks
 
 ```bash
-flutter analyze
-flutter test
+tool/flutter.sh analyze
+tool/flutter.sh test
 ```

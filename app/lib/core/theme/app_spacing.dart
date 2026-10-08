@@ -53,6 +53,10 @@ abstract final class AppSizes {
   static const double coverWidth = 128;
   static const double coverHeight = 176;
 
+  /// The brand logo where it is the main thing on the screen (sign-in). It is
+  /// square, so this is both its width and its height.
+  static const double logo = 220;
+
   /// Material's own height for a labelled NavigationBar. Needed because
   /// `extendBody` deliberately drops the floating button over the bar, so
   /// anything meant to float above it has to be lifted by hand.

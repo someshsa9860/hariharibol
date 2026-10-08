@@ -16,7 +16,9 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import 'package:hariharibol/app.dart';
 import 'package:hariharibol/core/navigation/app_navigator.dart';
+import 'package:hariharibol/core/constants/splash_config.dart';
 import 'package:hariharibol/core/navigation/app_routes.dart';
+import 'package:hariharibol/core/navigation/splash_gate.dart';
 import 'package:hariharibol/core/session/app_session.dart';
 import 'package:hariharibol/models/auth_session.dart';
 import 'package:hariharibol/core/constants/storage_keys.dart';
@@ -77,6 +79,11 @@ void main() {
   setUp(() async {
     FlutterSecureStorage.setMockInitialValues({});
     await LocalStore.instance.clear();
+
+    // The launch animation holds the router on the splash for a couple of
+    // seconds. Everything outside the "launch animation" group is about where
+    // the app lands, not how it gets there, so the hold starts open.
+    SplashGate.instance.open();
   });
 
   group('AppSession.restore', () {
@@ -253,6 +260,85 @@ void main() {
 
       expect(find.byType(LanguageView), findsNothing);
       expect(find.byType(DashboardView), findsOneWidget);
+    });
+
+    group('the launch animation', () {
+      // The session is known before the first frame, so a signed-in person
+      // would see the splash for a single frame. The gate is what stops that —
+      // and it must never strand anyone on the splash.
+      setUp(() => SplashGate.instance.close());
+
+      // Three steps, because there are three things to wait for: the clock
+      // running out (the gate opens on the tick after it does), the router
+      // acting on the open gate, and the route transition finishing — until it
+      // does the splash is legitimately still in the tree.
+      Future<void> playOut(WidgetTester tester, Duration length) async {
+        await tester.pump(length);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      testWidgets('holds the splash while it plays, then lands where the session says',
+          (tester) async {
+        await signIn(tester);
+
+        await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+        await tester.pump();
+        await tester.pump(SplashConfig.total ~/ 2);
+
+        expect(find.byType(SplashView), findsOneWidget);
+        expect(find.byType(DashboardView), findsNothing);
+
+        await playOut(tester, SplashConfig.total);
+
+        expect(find.byType(DashboardView), findsOneWidget);
+        expect(find.byType(SplashView), findsNothing);
+      });
+
+      testWidgets('a signed-out person is sent to sign-in when it ends', (tester) async {
+        await signOut(tester);
+
+        await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+        await tester.pump();
+        expect(find.byType(SplashView), findsOneWidget);
+
+        await playOut(tester, SplashConfig.total);
+
+        expect(find.byType(SignInView), findsOneWidget);
+        expect(find.byType(SplashView), findsNothing);
+      });
+
+      testWidgets('a tap skips it', (tester) async {
+        await signIn(tester);
+
+        await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+        await tester.pump();
+        expect(find.byType(SplashView), findsOneWidget);
+
+        await tester.tap(find.byType(SplashView));
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(find.byType(DashboardView), findsOneWidget);
+      });
+
+      testWidgets('with reduce-motion on it is a short still, not an animation',
+          (tester) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: true);
+        addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+        await signIn(tester);
+
+        await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+        await tester.pump();
+        expect(find.byType(SplashView), findsOneWidget);
+
+        // Gone well before the full timeline would have finished.
+        await playOut(tester, SplashConfig.reducedMotionHold);
+
+        expect(SplashConfig.reducedMotionHold < SplashConfig.total, isTrue);
+        expect(find.byType(DashboardView), findsOneWidget);
+      });
     });
   });
 }

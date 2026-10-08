@@ -4,7 +4,7 @@ set -euo pipefail
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
 
-FLUTTER_BIN="${FLUTTER_BIN:-flutter}"
+FLUTTER_BIN="${FLUTTER_BIN:-$APP_DIR/tool/flutter.sh}"
 API_BASE_URL="${API_BASE_URL:-https://api.hariharibol.com}"
 EXTRA_DART_DEFINES=()
 if [[ -f "$APP_DIR/config.sh" ]]; then

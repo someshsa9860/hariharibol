@@ -11,13 +11,25 @@ Flutter app (iOS + Android). Clean, simple, conventional. No clever architecture
 
 ## Toolchain
 
-**Flutter 3.44.2 / Dart 3.12.2.** Not the copy on `PATH` — that one is 3.38.3,
-and `drift_dev` will not resolve against its analyzer. Build with:
+**Flutter 3.44.2 / Dart 3.12.2**, pinned in `.flutter-version`. The first `flutter`
+on `PATH` is usually a different one (several SDKs are installed here), and
+`drift_dev` will not resolve against an older analyzer.
 
-```
-export PATH="/Users/teja/company/flutter-versions/flutter_3.44.2/bin:$PATH"
-```
+`./run.sh`, `./build_bundle.sh` and `./build_ipa.sh` go through
+[tool/flutter.sh](tool/flutter.sh), which finds the pinned SDK on `PATH` itself
+(or `FLUTTER_SDK=` in `config.sh`) — no `export PATH` needed. Use it for anything
+else too: `tool/flutter.sh test`, `tool/flutter.sh pub get`, `tool/flutter.sh analyze`.
 
+A build with the wrong SDK leaves `.dart_tool` unusable for the right one: the
+native-asset hook cache (`.dart_tool/hooks_runner/*/*/hook.dill`) is not keyed by SDK,
+and an IDE's Dart daemon can re-point `package_config.json` at its own SDK. Both end
+in `Invalid kernel binary format version` or `ui.HitTestResponse` not found, and
+neither is a code bug. `tool/flutter.sh` deletes the hook dirs another SDK built and
+re-runs `pub get` when the framework path is wrong, so it heals itself. A bare
+`flutter` run in a terminal or IDE skips that; the next script run cleans up after it.
+For VS Code set `dart.flutterSdkPath` to the pinned SDK in `.vscode/settings.json`.
+
+To move to a new SDK, change `.flutter-version` and `pubspec.yaml` together.
 `pubspec.yaml` pins `sdk: ^3.12.2`, so an older SDK fails loudly at `pub get`
 rather than quietly somewhere else.
 
@@ -161,6 +173,75 @@ has none and every average leaves it out.
     `FakeWakelock` from `test/fake_audio_player.dart`. Under `testWidgets` a stream `cancel()`
     does not finish during `pump`, which is why `dispose` does not wait on one; and frames stop
     once the lifecycle is `paused`, so a test resumes it before leaving the screen.
+
+## The launch animation
+
+`views/splash/splash_view.dart` plays a 2.6 s sequence over `widgets/splash/`: a soft light and
+expanding rings behind (`splash_backdrop.dart`), the logo coming into focus (`splash_logo.dart`),
+and the tagline tightening into place (`splash_tagline.dart`, ARB key `splashTagline`). **Every
+number — each beat's start, end and curve, sizes, alphas — is in
+`core/constants/splash_config.dart`**; retime it there, not in the widgets.
+
+- **The router holds the splash.** The session is restored before `runApp`, so without a hold the
+  splash would last one frame. `SplashGate` (`core/navigation/`) is shut at launch; the redirect
+  leaves `/splash` alone until the view opens it, then sends the person on as usual. A tap opens
+  it early. Deep links are untouched — only the splash location waits.
+- **Reduce-motion** shows the finished logo for `reducedMotionHold` and moves nothing.
+- **One picture, one arrival.** The logo is a single image, so `SplashLogo` does not assemble it
+  from parts: it is uncovered outward from the eye of the feather in a soft-edged circle
+  (`bloom`), comes into focus — a little small, low and blurred, sharpening as it settles
+  (`focus`) — and one sheen crosses it (`glint`). At the end of the timeline each of those has
+  wound back to doing nothing, so the last frame, and the reduce-motion frame, is exactly the
+  asset. The widget tree is identical on every frame, otherwise the image would be re-mounted when
+  a layer was added or dropped. The blur wraps the reveal rather than sitting under it: a blur
+  spills past the picture's edge and a mask only covers the picture, so blurred ink would leak
+  round a reveal that had not reached it.
+- **The eye.** The light behind the logo, the rings and the reveal all spread from the heart of the
+  feather's eye, `SplashConfig.logoEye` — a fraction of the logo's width and height, measured off
+  `assets/hariharibol_trprt.png`. `SplashView` turns it into a screen position for the backdrop.
+  **A different picture means measuring it again**, or the light spreads from the wrong place.
+  `logoWidth` and `logoLift` place the logo; on a screen too narrow it shrinks inside the margins.
+- **Colour.** The light and rings take scheme colours, so they follow the palette rule. The logo
+  keeps its own colours in both themes — it is artwork, not UI, and was drawn to sit on cream and
+  on black alike.
+- **The native screens are plain ground, no logo** — a static one would pop when Flutter's first
+  frame replaced it. iOS: `LaunchScreen.storyboard` over the `LaunchGround` colour set (light and
+  dark). Android: `launch_ground` in `values/` and `values-night/`, used by both
+  `launch_background.xml` files. All three **must equal `AppColors.paper` / `paperDark`**; native
+  files cannot import a Dart constant, so retuning the palette means editing them by hand.
+  Android 12+ draws its own system splash (icon on that colour) regardless.
+- **Tests.** `SplashGate.instance.open()` in `setUp` is what lets router tests reach their screen;
+  the `launch animation` group in `test/auth_flow_test.dart` closes it again to test the hold.
+  `test/splash_logo_test.dart` checks the picture is in the bundle, that every moment of the
+  timeline can be drawn without an exception, and that the last frame matches the plain asset
+  pixel for pixel.
+
+## Logos and app icons
+
+There are two pictures, and each has one job. Nothing else is a logo — don't add a third.
+
+- **`assets/hariharibol_trprt.png`** (transparent) is the logo the app *shows*: the splash and the
+  sign-in screen. Everything reaches it through `AppAssets.logo` (`core/constants/app_assets.dart`),
+  so a new picture is one path to change. It is the only logo listed under `assets:` in
+  `pubspec.yaml`.
+- **`assets/hariharibol.png`** (square, on white) is the *icon master*. The launcher icons are cut
+  from it and it ships as those, not as a file the app loads — so it is deliberately **not** in
+  `pubspec.yaml` and adds nothing to the bundle.
+
+`python3 tool/generate_app_icons.py` (needs Pillow) rewrites every launcher icon from the master:
+the whole of iOS `AppIcon.appiconset` (flattened to opaque RGB, because the App Store rejects an
+icon with alpha) and on Android the legacy `mipmap-*/ic_launcher.png` plus the adaptive icon's
+`ic_launcher_foreground.png`. The adaptive icon's XML (`mipmap-anydpi-v26/ic_launcher.xml`) and its
+white background (`ic_launcher_background` in `values/colors.xml`) are written by hand and the
+script leaves them alone.
+
+- **A launcher crops an adaptive icon to its own mask** (circle, squircle, …); only a circle 66/108
+  across is never cut. The artwork is shrunk (`ADAPTIVE_INSET`) so its farthest point stays inside
+  that circle. Change the shape of the master and recheck it against a circular mask before
+  trusting the inset.
+- **There is no monochrome (themed-icon) layer.** The logo is multi-colour artwork; a themed icon
+  would need a single-colour silhouette drawn for the purpose.
+- **Native launch screens carry no logo** — see above.
 
 ## State management
 

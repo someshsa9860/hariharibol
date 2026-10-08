@@ -100,6 +100,12 @@ abstract class AppLocalizations {
   /// **'HariHariBol'**
   String get appName;
 
+  /// The line under the logo while the app opens. Shown in capitals, so write it in ordinary case.
+  ///
+  /// In en, this message translates to:
+  /// **'Read · Chant · Practice'**
+  String get splashTagline;
+
   /// No description provided for @actionRetry.
   ///
   /// In en, this message translates to:

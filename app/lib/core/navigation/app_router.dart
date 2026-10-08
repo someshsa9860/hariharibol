@@ -33,6 +33,7 @@ import '../theme/app_spacing.dart';
 import '../../services/local_store.dart';
 import 'app_navigator.dart';
 import 'app_routes.dart';
+import 'splash_gate.dart';
 
 /// The router.
 ///
@@ -45,18 +46,26 @@ import 'app_routes.dart';
 /// when the profile is updated. A refresh re-applies the stack the router held
 /// before it, so one fired by a language change in settings put the screen that
 /// had just popped itself back on top.
+///
+/// The splash is the one place the redirect does not run: the session is known
+/// before the first frame, so without a hold the launch animation would last a
+/// single frame. [SplashGate] opens when the animation ends, which re-runs the
+/// redirect and sends the person on as usual.
 GoRouter createRouter() {
   final session = AppSession.instance;
+  final gate = SplashGate.instance;
   final status = ValueNotifier<SessionStatus>(session.status);
   session.addListener(() => status.value = session.status);
 
   final router = GoRouter(
     navigatorKey: AppNavigator.instance.rootKey,
     initialLocation: AppRoutes.splash,
-    refreshListenable: status,
+    refreshListenable: Listenable.merge([status, gate]),
     debugLogDiagnostics: false,
     redirect: (context, state) {
       final location = state.matchedLocation;
+
+      if (location == AppRoutes.splash && !gate.isOpen) return null;
 
       switch (session.status) {
         case SessionStatus.unknown:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
@@ -64,10 +65,11 @@ class _SignInViewState extends ConsumerState<SignInView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Image.asset(
-                    'assets/logo.png',
-                    width: 220,
-                    height: 220,
+                    AppAssets.logo,
+                    width: AppSizes.logo,
+                    height: AppSizes.logo,
                     fit: BoxFit.contain,
+                    semanticLabel: text.appName,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(

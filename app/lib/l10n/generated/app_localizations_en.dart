@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'HariHariBol';
 
   @override
+  String get splashTagline => 'Read · Chant · Practice';
+
+  @override
   String get actionRetry => 'Try again';
 
   @override

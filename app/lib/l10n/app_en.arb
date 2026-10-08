@@ -4,6 +4,9 @@
   "appName": "HariHariBol",
   "@appName": { "description": "The application name." },
 
+  "splashTagline": "Read · Chant · Practice",
+  "@splashTagline": { "description": "The line under the logo while the app opens. Shown in capitals, so write it in ordinary case." },
+
   "actionRetry": "Try again",
   "actionCancel": "Cancel",
   "actionOk": "OK",
