@@ -133,6 +133,13 @@ has none and every average leaves it out.
   English-trained, so Sanskrit comes out approximate. Each tap takes the words heard since the tap
   before it; they are sent to `…/transcripts`, which the server **deletes after 7 days**. Audio is
   not recorded or uploaded.
+- **Auto-count** (`services/mantra_auto_chant_session.dart`) listens, transcribes on the phone
+  (VAD gates the recogniser, `mantra_detection_engine.dart`) and counts a repetition when the
+  transcript matches one of the open mantra's `chantPhrases` by **≥ 50%** (`mantra_phrase_matcher.dart`:
+  spellings folded to a rough sound, edit distance, stricter for very short mantras, held back until a
+  match is settled so half a chant is never counted twice). Phrases come from the API per mantra (seeded
+  in `backend/prisma/seed/chant-phrases.js`, fallback `transliteration`), so any mantra opened works with
+  no app change. Tuning is in `AutoChantConfig`; `test/mantra_phrase_matcher_test.dart`.
 - **Setup is one sheet.** Both switches live in `widgets/chant/chant_setup_sheet.dart`, opened from
   the "Auto count & words" button under the ring; its label shows how many are on.
 - **Mic sharing.** Auto-count and word detection (both use `record`, each with its own recorder) both want the

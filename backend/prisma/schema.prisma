@@ -1610,6 +1610,16 @@ model Mantra {
   malaAudioStartMs Int?
   malaAudioEndMs   Int?
 
+  // How the mantra may be heard when it is chanted — the spellings the app's
+  // on-device speech recogniser is matched against to count a repetition by
+  // ear (auto count). Plain Roman letters, one full repetition each: the
+  // standard transliteration first, then looser spellings of what an
+  // English-trained recogniser tends to write down. A repetition counts when a
+  // phrase is matched at least ~50% (stricter for very short mantras), so a
+  // fast or slurred chant still counts. Empty means the app falls back to
+  // `transliteration`. Set in prisma/seed/chant-phrases.js.
+  chantPhrases String[] @default([])
+
   // Mantras are counted two different ways in practice, so both are kept and
   // either may be null: japa mantras in rounds of 108 beads (mahamantra: 16
   // rounds), others in plain repetitions (gayatri: 3, 11 or 108 times).

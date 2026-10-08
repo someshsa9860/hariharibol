@@ -1,0 +1,87 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hariharibol/services/mantra_phrase_matcher.dart';
+
+const _maha = 'Hare Krishna Hare Krishna Krishna Krishna Hare Hare '
+    'Hare Rama Hare Rama Rama Rama Hare Hare';
+
+/// Feeds [text] a word at a time, like a recogniser revising its transcript,
+/// then closes the utterance; returns the repetitions counted.
+int _heard(MantraPhraseMatcher matcher, String text) {
+  final words = text.split(' ');
+  var total = 0;
+  for (var i = 1; i <= words.length; i++) {
+    total += matcher.update(words.take(i).join(' '));
+  }
+  total += matcher.update(text, isFinal: true);
+  matcher.reset();
+  return total;
+}
+
+void main() {
+  group('fold', () {
+    test('spelling variants of a sound agree', () {
+      expect(MantraPhraseMatcher.fold('Hare'), MantraPhraseMatcher.fold('Hari'));
+      expect(MantraPhraseMatcher.fold('Kṛṣṇa'), 'KRSNA');
+      expect(MantraPhraseMatcher.fold('Krishna'), 'KRISNA');
+      expect(MantraPhraseMatcher.fold('Shivaya'), MantraPhraseMatcher.fold('Sivaya'));
+    });
+  });
+
+  group('counting', () {
+    test('one clean repetition is one', () {
+      expect(_heard(MantraPhraseMatcher([_maha]), _maha), 1);
+    });
+
+    test('two back to back are two, with no pause between', () {
+      expect(_heard(MantraPhraseMatcher([_maha]), '$_maha $_maha'), 2);
+    });
+
+    test('a recogniser that mishears the words still counts', () {
+      const mangled = 'HARI KRISHNA HARI CHRISTINA KRISHNA KRISHNA HARI HARI '
+          'HARI RAMA HARI RAMA RAMA RAMA HARI';
+      expect(_heard(MantraPhraseMatcher([_maha]), mangled), 1);
+    });
+
+    test('fast chanting that drops letters counts each time through', () {
+      const fast = 'ARE KRISNA ARE KRISNA KRISNA ARE ARE ARE RAMA ARE RAMA RAMA ARE ARE';
+      expect(_heard(MantraPhraseMatcher([_maha]), '$fast $fast $fast'), 3);
+    });
+
+    test('a quarter of the mantra does not count', () {
+      expect(_heard(MantraPhraseMatcher([_maha]), 'hare krishna hare'), 0);
+    });
+
+    test('half a repetition is not counted twice as the rest arrives', () {
+      final matcher = MantraPhraseMatcher([_maha]);
+      final words = '$_maha $_maha'.split(' ');
+      var total = 0;
+      for (var i = 1; i <= words.length; i++) {
+        total += matcher.update(words.take(i).join(' '));
+      }
+      expect(total, 2);
+    });
+
+    test('another mantra, or plain speech, does not count', () {
+      final matcher = MantraPhraseMatcher([_maha]);
+      expect(_heard(matcher, 'om namah shivaya om namah shivaya'), 0);
+      expect(_heard(matcher, 'the quick brown fox jumps over the lazy dog'), 0);
+    });
+
+    test('any of a mantra\'s phrases will do, the best one wins', () {
+      final matcher = MantraPhraseMatcher(['Om Namah Shivaya', 'Om Namaha Shivay']);
+      expect(_heard(matcher, 'om namaha shivay om namah shivaya'), 2);
+    });
+
+    test('a very short mantra needs more than half to match', () {
+      final matcher = MantraPhraseMatcher(['Om Namah Shivaya']);
+      expect(_heard(matcher, 'om namah shivaya'), 1);
+      expect(_heard(matcher, 'hare krishna hare krishna'), 0);
+    });
+
+    test('no phrases means nothing is ever heard', () {
+      final matcher = MantraPhraseMatcher(const []);
+      expect(matcher.hasPhrases, isFalse);
+      expect(matcher.update('hare krishna', isFinal: true), 0);
+    });
+  });
+}
