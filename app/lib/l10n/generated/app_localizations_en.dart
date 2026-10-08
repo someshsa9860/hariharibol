@@ -1107,7 +1107,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantDetectWordsPermission =>
-      'Microphone and speech access are needed';
+      'Microphone access is needed';
 
   @override
   String get chantDetectWordsUnavailable =>
@@ -1115,7 +1115,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantDetectWordsNote =>
-      'What is heard is kept for 7 days, then deleted.';
+      'Words are recognised on your phone, and audio is never recorded. The text is kept for 7 days, then deleted.';
+
+  @override
+  String get chantDetectWordsStarting => 'Getting ready…';
+
+  @override
+  String get chantSetupTitle => 'Chanting helpers';
+
+  @override
+  String get chantSetupSubtitle => 'Choose how this sitting is counted and noted. Listening happens on your phone.';
+
+  @override
+  String get chantSetupButton => 'Auto count & words';
+
+  @override
+  String get chantSetupNoneOn => 'Set up';
+
+  @override
+  String get chantSetupDone => 'Done';
+
+  @override
+  String chantSetupOn(int count) {
+    return '$count on';
+  }
 
   @override
   String get chantAnalyticsTitle => 'Chant analytics';

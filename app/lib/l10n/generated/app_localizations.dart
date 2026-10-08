@@ -1933,7 +1933,7 @@ abstract class AppLocalizations {
   /// No description provided for @chantDetectWordsPermission.
   ///
   /// In en, this message translates to:
-  /// **'Microphone and speech access are needed'**
+  /// **'Microphone access is needed'**
   String get chantDetectWordsPermission;
 
   /// No description provided for @chantDetectWordsUnavailable.
@@ -1945,8 +1945,50 @@ abstract class AppLocalizations {
   /// No description provided for @chantDetectWordsNote.
   ///
   /// In en, this message translates to:
-  /// **'What is heard is kept for 7 days, then deleted.'**
+  /// **'Words are recognised on your phone, and audio is never recorded. The text is kept for 7 days, then deleted.'**
   String get chantDetectWordsNote;
+
+  /// No description provided for @chantDetectWordsStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready…'**
+  String get chantDetectWordsStarting;
+
+  /// No description provided for @chantSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting helpers'**
+  String get chantSetupTitle;
+
+  /// No description provided for @chantSetupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how this sitting is counted and noted. Listening happens on your phone.'**
+  String get chantSetupSubtitle;
+
+  /// No description provided for @chantSetupButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto count & words'**
+  String get chantSetupButton;
+
+  /// No description provided for @chantSetupNoneOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get chantSetupNoneOn;
+
+  /// No description provided for @chantSetupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get chantSetupDone;
+
+  /// No description provided for @chantSetupOn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on'**
+  String chantSetupOn(int count);
 
   /// No description provided for @chantAnalyticsTitle.
   ///

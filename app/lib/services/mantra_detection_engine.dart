@@ -93,7 +93,7 @@ class MantraDetectionEngine {
   // ── Asset preparation (main isolate — needs the Flutter asset bundle) ──
 
   Future<sherpa_onnx.VadModelConfig> _prepareVadConfig() async {
-    final model = await _copyAsset(AutoChantConfig.vadModelAsset);
+    final model = await copyAsset(AutoChantConfig.vadModelAsset);
     return sherpa_onnx.VadModelConfig(
       sileroVad: sherpa_onnx.SileroVadModelConfig(
         model: model,
@@ -109,10 +109,10 @@ class MantraDetectionEngine {
   }
 
   Future<sherpa_onnx.KeywordSpotterConfig> _prepareKwsConfig(MantraKeyword keyword) async {
-    final encoder = await _copyAsset(AutoChantConfig.kwsEncoderAsset);
-    final decoder = await _copyAsset(AutoChantConfig.kwsDecoderAsset);
-    final joiner = await _copyAsset(AutoChantConfig.kwsJoinerAsset);
-    final tokens = await _copyAsset(AutoChantConfig.kwsTokensAsset);
+    final encoder = await copyAsset(AutoChantConfig.kwsEncoderAsset);
+    final decoder = await copyAsset(AutoChantConfig.kwsDecoderAsset);
+    final joiner = await copyAsset(AutoChantConfig.kwsJoinerAsset);
+    final tokens = await copyAsset(AutoChantConfig.kwsTokensAsset);
 
     return sherpa_onnx.KeywordSpotterConfig(
       model: sherpa_onnx.OnlineModelConfig(
@@ -136,7 +136,7 @@ class MantraDetectionEngine {
   /// Copies one asset to app-support storage and returns its real filesystem
   /// path — the native side needs a path, not an asset bundle key. Skips the
   /// copy when a file of the same size is already there.
-  static Future<String> _copyAsset(String assetPath) async {
+  static Future<String> copyAsset(String assetPath) async {
     final dir = await getApplicationSupportDirectory();
     final target = p.join(dir.path, assetPath);
     final data = await rootBundle.load(assetPath);
