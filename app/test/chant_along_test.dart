@@ -386,6 +386,10 @@ void main() {
       await tapPlay(tester);
       expect(fake.plays, 1);
 
+      await tester.ensureVisible(find.text('Auto count & words · Set up'));
+      await tester.tap(find.text('Auto count & words · Set up'));
+      await tester.pumpAndSettle();
+
       final words = find.descendant(
         of: find.byType(WordDetectSwitch),
         matching: find.byType(Switch),

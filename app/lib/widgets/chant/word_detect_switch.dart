@@ -4,8 +4,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../services/chant_speech_listener.dart';
 import 'chant_toggle_row.dart';
 
-/// Switches on word detection: the device's speech recogniser listens while
-/// the user chants, and what it hears is kept beside each tap.
+/// Switches on word detection: the phone listens (on-device, with the same engine
+/// as auto-count) while the user chants, and what it hears is kept beside each tap.
 class WordDetectSwitch extends StatelessWidget {
   const WordDetectSwitch({super.key, required this.state, required this.onChanged});
 
@@ -18,6 +18,7 @@ class WordDetectSwitch extends StatelessWidget {
 
     final status = switch (state) {
       ChantSpeechState.off => text.chantDetectWordsOff,
+      ChantSpeechState.starting => text.chantDetectWordsStarting,
       ChantSpeechState.listening => text.chantDetectWordsListening,
       ChantSpeechState.permissionDenied => text.chantDetectWordsPermission,
       ChantSpeechState.unavailable => text.chantDetectWordsUnavailable,
@@ -27,7 +28,7 @@ class WordDetectSwitch extends StatelessWidget {
       icon: Icons.record_voice_over_rounded,
       title: text.chantDetectWords,
       status: status,
-      value: state == ChantSpeechState.listening,
+      value: state == ChantSpeechState.listening || state == ChantSpeechState.starting,
       onChanged: onChanged,
     );
   }

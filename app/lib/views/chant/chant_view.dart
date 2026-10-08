@@ -22,12 +22,11 @@ import '../../services/chant_speech_listener.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/sadhana_service.dart';
-import '../../widgets/chant/auto_chant_switch.dart';
 import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
 import '../../widgets/chant/chant_recent_taps.dart';
 import '../../widgets/chant/chant_summary_header.dart';
-import '../../widgets/chant/word_detect_switch.dart';
+import '../../widgets/chant/chant_setup_sheet.dart';
 import 'chant_analytics_view.dart';
 
 /// The counter. Tap-driven, one bead at a time, the way a thumb moves along a
@@ -89,6 +88,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   ChantSpeechListener? _speech;
   ChantSpeechState _speechState = ChantSpeechState.off;
 
+  /// Bumped when either helper's status changes, so the setup sheet — which
+  /// can be open over the counter — redraws without the whole screen doing so.
+  final ValueNotifier<int> _setupChanged = ValueNotifier(0);
+
   /// Null when the mantra has no recording of a mala to chant along to.
   ChantMalaPlayer? _mala;
   StreamSubscription<int>? _malaChantsSub;
@@ -102,6 +105,13 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// Bumped by the clock; only the header listens, so the ring and the lists
   /// are not redrawn twice a second.
   final ValueNotifier<int> _clock = ValueNotifier(0);
+
+  /// How many of the two listening helpers are running, for the button.
+  int get _helpersOn =>
+      (_autoChantStatus.enabled ? 1 : 0) +
+      (_speechState == ChantSpeechState.listening || _speechState == ChantSpeechState.starting
+          ? 1
+          : 0);
 
   int get _totalRounds => _roundsBefore + _recorder.completedMalas;
 
@@ -131,7 +141,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
     _autoChant = session;
     _autoChantStatusSub = session.statusStream.listen((status) {
-      if (mounted) setState(() => _autoChantStatus = status);
+      if (!mounted) return;
+      setState(() => _autoChantStatus = status);
+      _setupChanged.value += 1;
     });
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
   }
@@ -192,6 +204,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _syncDebounce?.cancel();
     _clockTicker?.cancel();
     _clock.dispose();
+    _setupChanged.dispose();
     _stopwatch.stop();
     _autoChantStatusSub?.cancel();
     _autoChantRepetitionSub?.cancel();
@@ -271,17 +284,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       return;
     }
     await _mala?.pause();
-    final speech = _speech ??
-        (ChantSpeechListener(
-          contextualPhrases: widget.mantra == null ? null : [widget.mantra!.text],
-        )..state.addListener(_onSpeechState));
+    final speech = _speech ?? (ChantSpeechListener()..state.addListener(_onSpeechState));
     _speech = speech;
     await speech.start();
   }
 
   void _onSpeechState() {
     final state = _speech?.state.value;
-    if (state != null && mounted) setState(() => _speechState = state);
+    if (state == null || !mounted) return;
+    setState(() => _speechState = state);
+    _setupChanged.value += 1;
   }
 
   void _scheduleSync({bool immediate = false}) {
@@ -350,6 +362,23 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     unawaited(ref.read(sadhanaTodayProvider.notifier).refresh());
     unawaited(ref.read(homeFeedProvider.notifier).refresh());
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void _openSetup() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => ListenableBuilder(
+        listenable: _setupChanged,
+        builder: (_, _) => ChantSetupSheet(
+          autoChantStatus: _autoChant == null ? null : _autoChantStatus,
+          speechState: _speechState,
+          onAutoChant: _autoChant == null ? null : _toggleAutoChant,
+          onWords: _toggleWords,
+        ),
+      ),
+    );
   }
 
   void _openAnalytics() {
@@ -454,25 +483,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                 const SizedBox(height: AppSpacing.md),
                 ChantRecentTaps(taps: _recorder.taps),
                 const SizedBox(height: AppSpacing.xl),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Column(
-                      children: [
-                        if (_autoChant != null) ...[
-                          AutoChantSwitch(status: _autoChantStatus, onChanged: _toggleAutoChant),
-                          const Divider(),
-                        ],
-                        WordDetectSwitch(state: _speechState, onChanged: _toggleWords),
-                      ],
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: _openSetup,
+                    icon: const Icon(Icons.tune_rounded),
+                    label: Text(
+                      _helpersOn == 0
+                          ? '${text.chantSetupButton} · ${text.chantSetupNoneOn}'
+                          : '${text.chantSetupButton} · ${text.chantSetupOn(_helpersOn)}',
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  text.chantDetectWordsNote,
-                  textAlign: TextAlign.center,
-                  style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
                 ),
               ],
             ),

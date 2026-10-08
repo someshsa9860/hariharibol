@@ -126,12 +126,16 @@ has none and every average leaves it out.
 - **Server record.** Changed rounds go up with the existing 2-second session sync
   (`PUT …/chant/session/:id/detail`, idempotent per round); a failed send is put back on the
   recorder. History is read from `GET …/chant/sessions` and `…/chant/session/:id`.
-- **Word detection** (`services/chant_speech_listener.dart`, the `speech_to_text` plugin) is a
-  separate switch from auto-count. Each tap takes the words heard since the tap before it;
-  they are sent to `…/transcripts`, which the server **deletes after 7 days**. Audio is not
-  recorded or uploaded — an S3 upload for later server-side transcription is the unbuilt
-  alternative (`ChantTapTranscript.audioKey` is reserved for it).
-- **Mic sharing.** Auto-count (`record`) and word detection (the OS recogniser) both want the
+- **Word detection** (`services/chant_speech_listener.dart` over `services/chant_word_engine.dart`) is a
+  separate switch from auto-count, and runs **on the phone with sherpa-onnx** — the same library
+  and the same bundled model as auto-count (the keyword zipformer is a small streaming recogniser,
+  run through `OnlineRecognizer`), so it needs no Google/Apple speech service and works offline.
+  English-trained, so Sanskrit comes out approximate. Each tap takes the words heard since the tap
+  before it; they are sent to `…/transcripts`, which the server **deletes after 7 days**. Audio is
+  not recorded or uploaded.
+- **Setup is one sheet.** Both switches live in `widgets/chant/chant_setup_sheet.dart`, opened from
+  the "Auto count & words" button under the ring; its label shows how many are on.
+- **Mic sharing.** Auto-count and word detection (both use `record`, each with its own recorder) both want the
   microphone. Whether they can run together is a per-device question — check it on hardware
   before promising both at once.
 - **Chant along** (a mantra's mala recording). A mantra can carry one recording of a whole
