@@ -60,6 +60,45 @@ widen it.
 - `set-book-cover.js <book-slug> <path-to-image>` — sets one book's cover
   image. Uploads through `services/s3.js`, so it lands on S3 in production and
   under `storage/` locally, same as everything else that service handles.
+- `recount-books.js [--dry-run] [book-slug …]` — rebuilds the verse, chapter and
+  canto counts from the rows that are there. See "Counts" below.
+
+### A new database, start to finish
+
+```bash
+npx prisma migrate deploy     # the schema
+npm run seed                  # roles, languages, issues, plans, settings, the books and their cantos
+node scripts/import-bg.js     # the Gita's chapters and verses
+node scripts/import-sb.js     # the Bhagavatam's chapters and verses
+npm run seed                  # again — the stories point at the chapters just imported
+```
+
+The seed makes the books and cantos but not their chapters or verses; the importers
+do. Stories point at chapters, so on a database with no chapters yet the first
+seed prints "4 stories wait for chapters that are not imported yet", finishes
+everything else, and the second run creates them. Every step is idempotent, so a
+step run twice does no harm, and an importer run before the seed stops with a
+message that the book row is missing. On the server, run each through the api
+container: `docker compose exec api node scripts/import-sb.js`.
+
+### Counts
+
+A chapter's verse count, a canto's chapter and verse counts and a book's totals
+are what the reading screens show. They are **rebuilt from the rows by
+`services/book-counts.js`, never copied from a file**: at the end of both
+importers, and by the admin panel whenever a verse, chapter or canto is added
+or removed. (Copying `meta.totalVerses` out of the source JSON is what left 134
+chapters of Bhagavatam cantos 10–12 showing "0 verses" — those files carried no
+total.) A recount writes only the rows that are wrong, so a healthy database
+comes back "All counts correct".
+
+```bash
+npm run recount:books                       # fix whatever is wrong, every book
+npm run recount:books -- --dry-run          # say what would change, write nothing
+npm run recount:books -- srimad-bhagavatam  # just this book
+```
+
+`npm run test:book-counts` walks it against a running API.
 
 ## Legacy media migration (callvcal bucket)
 
@@ -111,3 +150,12 @@ set **and** `NODE_ENV` is `development` — real S3 credentials, or a
 production environment, always win. Nothing about the scripts changes either
 way; they call the same `services/s3.js` functions regardless of which mode
 is active.
+
+**The trap in that fallback:** a file saved under `backend/storage/` exists on
+that machine only, while the database stores just its key (`books/covers/…`,
+`deities/images/…`). A database copied to a server brings the keys and none of
+the files, and nothing complains until a phone asks for the image — the signed
+link is made without checking that the object exists. So before moving a database
+that was built locally, make sure each key it names is in the bucket (a HEAD
+request per key shows the gaps), and upload the missing files without overwriting
+what is already there. The seed names deity images but does not upload any.

@@ -7,6 +7,11 @@
 // Every write is an upsert, so this is safe to run repeatedly — on a fresh
 // database, after a migration, or in a deploy step. It never touches user data.
 //
+// A brand-new database takes it twice, with the importers between:
+//   migrate → seed → import-bg → import-sb → seed
+// The books and cantos are made here; their chapters and verses by the importers
+// (scripts/README.md); and the stories, which point at those chapters, by the second run.
+//
 // One thing it deliberately does not do: create an admin account. That happens
 // once, by hand, by promoting a real signed-in user — a seeded admin with a
 // known email is a credential sitting in version control.
@@ -179,10 +184,28 @@ async function seedBooks() {
 }
 
 async function seedStories() {
+  const waiting = [];
+
   for (const story of data.stories) {
     const { book: bookSlug, canto, parts, dailyEligible, ...fields } = story;
 
     const book = await prisma.book.findUnique({ where: { slug: bookSlug } });
+
+    // A part points at a chapter, and a book's chapters come from its import
+    // (scripts/import-sb.js), not from this seed — so on a database that has not been
+    // imported yet there is nothing to point at. The story then waits, whole: saving it
+    // anyway would publish a story with no parts. Run the seed again after the import.
+    const chapterRows = new Map();
+    for (const { chapter } of parts) {
+      const row = await prisma.chapter.findUnique({
+        where: { bookId_cantoNumber_number: { bookId: book.id, cantoNumber: canto, number: chapter } },
+      });
+      if (row) chapterRows.set(chapter, row);
+    }
+    if (chapterRows.size < new Set(parts.map((part) => part.chapter)).size) {
+      waiting.push(story.slug);
+      continue;
+    }
 
     const saved = await prisma.story.upsert({
       where: { slug: story.slug },
@@ -192,10 +215,7 @@ async function seedStories() {
 
     for (const part of parts) {
       const { chapter, verseStart, verseEnd, issue, ...partFields } = part;
-
-      const chapterRow = await prisma.chapter.findUnique({
-        where: { bookId_cantoNumber_number: { bookId: book.id, cantoNumber: canto, number: chapter } },
-      });
+      const chapterRow = chapterRows.get(chapter);
 
       const savedPart = await prisma.storyPart.upsert({
         where: { storyId_number: { storyId: saved.id, number: part.number } },
@@ -228,7 +248,12 @@ async function seedStories() {
       }
     }
   }
-  log(`${data.stories.length} stories, ${data.stories.reduce((n, s) => n + s.parts.length, 0)} parts`);
+  const made = data.stories.filter((story) => !waiting.includes(story.slug));
+  log(`${made.length} stories, ${made.reduce((n, s) => n + s.parts.length, 0)} parts`);
+  if (waiting.length > 0) {
+    log(`${waiting.length} stories wait for chapters that are not imported yet (${waiting.join(', ')})`);
+    log('→ after `import-bg.js` and `import-sb.js`, run `npm run seed` again and they are created');
+  }
 }
 
 async function seedPlansAndTopics() {

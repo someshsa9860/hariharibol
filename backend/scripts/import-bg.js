@@ -7,8 +7,12 @@
 // Idempotent and resumable — run it again any time. A re-run also corrects
 // existing rows whose text differs from the source (see lib/import-verses.js).
 // SOURCE_LOCAL_DIR (see lib/source-s3.js) reads a local copy instead of S3.
+//
+// The verse counts on the chapters and the book are rebuilt from the rows at the
+// end (services/book-counts.js), never taken from the source files.
 
 import { prisma } from '../config/database.js';
+import { recountBook } from '../services/book-counts.js';
 import { getJson } from './lib/source-s3.js';
 import { SOURCE_SLUG_TO_TRANSLATOR_SLUG } from './lib/translators.js';
 import { buildTranslationRows } from './lib/commentaries.js';
@@ -54,7 +58,7 @@ async function run() {
     const chapter = existingChapter
       ? await prisma.chapter.update({
           where: { id: existingChapter.id },
-          data: { title: sa.meta.chapterName, titleI18n: titleI18n(existingChapter.titleI18n), totalVerses: sa.verses.length },
+          data: { title: sa.meta.chapterName, titleI18n: titleI18n(existingChapter.titleI18n) },
         })
       : await prisma.chapter.create({
           data: {
@@ -64,7 +68,6 @@ async function run() {
             number: chapterNumber,
             title: sa.meta.chapterName,
             titleI18n: titleI18n(null),
-            totalVerses: sa.verses.length,
           },
         });
 
@@ -114,13 +117,11 @@ async function run() {
     console.log(`Chapter ${chapterNumber}/${CHAPTER_COUNT}: ${result.versesWritten} verses`);
   }
 
-  const totalVerses = await prisma.verse.count({ where: { bookId: book.id } });
-  await prisma.book.update({
-    where: { id: book.id },
-    data: { totalChapters: CHAPTER_COUNT, totalVerses, isPublished: true },
-  });
+  const recounted = await recountBook(book.id);
+  await prisma.book.update({ where: { id: book.id }, data: { isPublished: true } });
+  console.log(`\nCounts rebuilt: ${recounted.chapters} chapters${recounted.book ? ' and the book' : ''} updated.`);
 
-  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
+  console.log(`Done. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
   if (skippedSlugs.size > 0) {
     console.log('Skipped (not on the approved Vaishnav-sampradaya list):');
     for (const [slug, count] of skippedSlugs) console.log(`  ${slug}: ${count}`);

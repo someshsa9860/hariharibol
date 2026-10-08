@@ -1,43 +1,18 @@
 // Books, cantos and chapters, from the admin side.
 //
-// The counts on Book and Canto (`totalVerses`, `totalChapters`) are rollups the
-// reading screens depend on. `recountBook` is the only thing that writes them,
-// and it runs after any structural change — a wrong count shows up as a
-// progress bar that never reaches the end.
+// The counts on Book, Canto and Chapter (`totalVerses`, `totalChapters`,
+// `totalCantos`) are rollups the reading screens depend on. `recountBook`
+// (services/book-counts.js) is the only thing that writes them, and it runs
+// after any structural change — a wrong count shows up as a progress bar that
+// never reaches the end.
 
 import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
+import { recountBook } from '../../services/book-counts.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest, conflict } from '../../utils/errors.js';
-
-/** Recomputes a book's structural counts from what is actually in it. */
-async function recountBook(bookId) {
-  const [cantos, chapters, verses] = await Promise.all([
-    prisma.canto.count({ where: { bookId } }),
-    prisma.chapter.count({ where: { bookId } }),
-    prisma.verse.count({ where: { bookId } }),
-  ]);
-
-  await prisma.book.update({
-    where: { id: bookId },
-    data: { totalCantos: cantos, totalChapters: chapters, totalVerses: verses },
-  });
-
-  // Cantos carry their own counts so a canto index does not have to aggregate.
-  const cantoRows = await prisma.canto.findMany({ where: { bookId }, select: { id: true, number: true } });
-  for (const canto of cantoRows) {
-    const [chapterCount, verseCount] = await Promise.all([
-      prisma.chapter.count({ where: { cantoId: canto.id } }),
-      prisma.verse.count({ where: { bookId, cantoNumber: canto.number } }),
-    ]);
-    await prisma.canto.update({
-      where: { id: canto.id },
-      data: { totalChapters: chapterCount, totalVerses: verseCount },
-    });
-  }
-}
 
 // Columns the books table can be sorted by — see readSort.
 export const SORT_COLUMNS = {
@@ -269,6 +244,3 @@ export const linkTranslator = async (req, res) => {
 
   return ok(res, link);
 };
-
-// Exported for the verse importer, which changes a book's structure in bulk.
-export { recountBook };

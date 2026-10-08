@@ -7,8 +7,13 @@
 // SOURCE_LOCAL_DIR (see lib/source-s3.js) reads a local copy instead of S3. Canto rows themselves are not created
 // here — they are standing content structure, seeded ahead of time — this
 // only fills in their chapters and verses.
+//
+// The verse counts on chapters, cantos and the book are not taken from the
+// source files — they are rebuilt from the rows at the end (services/book-counts.js),
+// so a file with a missing or wrong `meta.totalVerses` cannot put a zero on screen.
 
 import { prisma } from '../config/database.js';
+import { recountBook } from '../services/book-counts.js';
 import { getJson, listKeys } from './lib/source-s3.js';
 import { SOURCE_SLUG_TO_TRANSLATOR_SLUG } from './lib/translators.js';
 import { buildTranslationRows } from './lib/commentaries.js';
@@ -57,20 +62,18 @@ async function run() {
     // Titles come from vedabase via scripts/repair-verse-source.js; a source
     // without one keeps a plain positional name.
     const title = data.meta.chapterName || `Canto ${cantoNumber}, Chapter ${chapterNumber}`;
-    const totalVerses = data.verses.length;
 
     const chapter = await prisma.chapter.upsert({
       where: {
         bookId_cantoNumber_number: { bookId: book.id, cantoNumber, number: chapterNumber },
       },
-      update: { title, totalVerses },
+      update: { title },
       create: {
         bookId: book.id,
         cantoId: canto.id,
         cantoNumber,
         number: chapterNumber,
         title,
-        totalVerses,
       },
     });
 
@@ -109,26 +112,16 @@ async function run() {
     }
   }
 
-  // Roll up counts on cantos and the book itself, the same way SadhanaDay's
-  // recountDay does — computed from the child rows, not accumulated in place.
-  for (const canto of cantos) {
-    const [totalChapters, totalVerses] = await Promise.all([
-      prisma.chapter.count({ where: { cantoId: canto.id } }),
-      prisma.verse.count({ where: { chapter: { cantoId: canto.id } } }),
-    ]);
-    await prisma.canto.update({ where: { id: canto.id }, data: { totalChapters, totalVerses } });
+  // Counts on every chapter, canto and the book — computed from the rows that are
+  // there now, not accumulated in place.
+  const recounted = await recountBook(book.id);
+  await prisma.book.update({ where: { id: book.id }, data: { isPublished: true } });
+  console.log(`\nCounts rebuilt: ${recounted.chapters} chapters, ${recounted.cantos} cantos${recounted.book ? ' and the book' : ''} updated.`);
+
+  console.log(`Done. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
+  if ((await prisma.story.count({ where: { bookId: book.id } })) === 0) {
+    console.log('No stories yet — run `npm run seed` again; they point at the chapters imported just now.');
   }
-
-  const [totalChapters, totalVerses] = await Promise.all([
-    prisma.chapter.count({ where: { bookId: book.id } }),
-    prisma.verse.count({ where: { bookId: book.id } }),
-  ]);
-  await prisma.book.update({
-    where: { id: book.id },
-    data: { totalCantos: cantos.length, totalChapters, totalVerses, isPublished: true },
-  });
-
-  console.log(`\nDone. ${versesWritten} verses, ${translationsWritten} new translations; corrected ${versesUpdated} verses and ${translationsUpdated} translations.`);
   if (skippedSlugs.size > 0) {
     console.log('Skipped (not on the approved Vaishnav-sampradaya list):');
     for (const [slug, count] of skippedSlugs) console.log(`  ${slug}: ${count}`);

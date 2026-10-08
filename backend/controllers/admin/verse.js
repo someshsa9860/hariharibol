@@ -11,10 +11,15 @@
 //      separate tables is what makes it impossible for generated text to appear
 //      under an acharya's name, and that separation is the point — not an
 //      implementation detail to tidy away later.
+//
+// Creating or deleting a verse changes the counts the reading screens show, so
+// both recount the book (services/book-counts.js). Updating one cannot — the
+// patch has no field that moves a verse between chapters.
 
 import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
+import { recountBook } from '../../services/book-counts.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
@@ -96,6 +101,7 @@ export const create = async (req, res) => {
   const verse = await prisma.verse.create({
     data: { ...body, bookNumber: book.bookNumber },
   });
+  await recountBook(book.id);
 
   await audit.record(req, {
     action: 'verse.create',
@@ -134,6 +140,7 @@ export const remove = async (req, res) => {
   if (!verse) throw notFound('Verse');
 
   await prisma.verse.delete({ where: { id: verse.id } });
+  await recountBook(verse.bookId);
   await audit.record(req, {
     action: 'verse.delete',
     entityType: 'Verse',
