@@ -44,7 +44,7 @@ jobs:
     permissions:
       contents: read
     env:
-      AWS_REGION: ap-south-1
+      AWS_REGION: ${{ vars.AWS_REGION }}
       ECR_REPOSITORY: hariharibol-admin
       IMAGE_TAG: ${{ github.sha }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -62,12 +62,31 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # The AWS keys decide which account receives the image, so stop if they
+      # belong to any account other than the one in the ECR_REGISTRY variable.
+      - name: Check the AWS account
+        env:
+          LOGGED_IN_TO: ${{ steps.login-ecr.outputs.registry }}
+          EXPECTED: ${{ vars.ECR_REGISTRY }}
+        run: |
+          if [ "$LOGGED_IN_TO" != "$EXPECTED" ]; then
+            echo "::error::AWS keys are for $LOGGED_IN_TO but the ECR_REGISTRY variable is '$EXPECTED'"
+            exit 1
+          fi
+
+      # Both values are public (Vite writes them into the bundle), so they are
+      # variables, not secrets. Empty ones build fine and give a panel that
+      # cannot reach the API or sign anyone in, so refuse to build without them.
       - name: Build and push admin image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
         run: |
+          if [ -z "$VITE_API_URL" ] || [ -z "$VITE_GOOGLE_CLIENT_ID" ]; then
+            echo "::error::Set the VITE_API_URL and VITE_GOOGLE_CLIENT_ID Actions variables"
+            exit 1
+          fi
           docker build \
             --build-arg VITE_API_URL="$VITE_API_URL" \
             --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
@@ -87,4 +106,5 @@ jobs:
           script: |
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
-            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh admin
+            EXPECT_ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh admin
+            ./server/prune.sh || true

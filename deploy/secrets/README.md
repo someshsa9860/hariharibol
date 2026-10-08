@@ -3,7 +3,7 @@
 This directory is created beside `server/` on the deployment host:
 
 ```text
-/opt/hariharibol/
+/var/www/hariharibol/
 ├── server/
 │   ├── .env
 │   └── docker-compose.yml

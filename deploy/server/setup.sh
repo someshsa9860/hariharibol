@@ -19,6 +19,10 @@ if [[ ! -f .env ]]; then
   echo "Created .env. Fill in its values, then run ./deploy.sh."
 fi
 
+# Docker would create a missing bind-mount folder as root, and the website
+# workflow (which uploads as this user) could then no longer write to it.
+mkdir -p "$SCRIPT_DIR/../website"
+
 mkdir -p "$SCRIPT_DIR/../secrets"
 chmod 700 "$SCRIPT_DIR/../secrets"
 echo "Place Google service-account JSON and other credential files in:"

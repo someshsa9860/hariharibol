@@ -41,7 +41,7 @@ jobs:
     permissions:
       contents: read
     env:
-      AWS_REGION: ap-south-1
+      AWS_REGION: ${{ vars.AWS_REGION }}
       ECR_REPOSITORY: hariharibol-backend
       IMAGE_TAG: ${{ github.sha }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -58,6 +58,18 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      # The AWS keys decide which account receives the image, so stop if they
+      # belong to any account other than the one in the ECR_REGISTRY variable.
+      - name: Check the AWS account
+        env:
+          LOGGED_IN_TO: ${{ steps.login-ecr.outputs.registry }}
+          EXPECTED: ${{ vars.ECR_REGISTRY }}
+        run: |
+          if [ "$LOGGED_IN_TO" != "$EXPECTED" ]; then
+            echo "::error::AWS keys are for $LOGGED_IN_TO but the ECR_REGISTRY variable is '$EXPECTED'"
+            exit 1
+          fi
 
       - name: Build and push backend image
         env:
@@ -80,4 +92,5 @@ jobs:
           script: |
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
-            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh backend
+            EXPECT_ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh backend
+            ./server/prune.sh || true
