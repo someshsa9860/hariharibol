@@ -10,9 +10,14 @@ The rules this is built to are in [CLAUDE.md](CLAUDE.md). This file is how to ru
 cp .env.example .env          # then fill in DATABASE_URL and JWT_SECRET
 npm install
 npx prisma migrate dev        # creates the schema
-npm run seed                  # roles, languages, issues, deities, plans, settings
+npm run seed                  # roles, languages, issues, deities, plans, settings, the books
 npm run dev                   # http://localhost:4000
 ```
+
+The books come with no chapters or verses yet. Those are loaded by the importers,
+which read the scripture source bucket, and then the seed runs once more for the
+stories that point at those chapters — the order is in
+[scripts/README.md](scripts/README.md#a-new-database-start-to-finish).
 
 Then open **http://localhost:4000/docs** — every endpoint, with what it does and
 what it needs.
@@ -106,6 +111,7 @@ A plain default import of a module that has no default export gives you
 | `npm run websocket` | Realtime server |
 | `npm run deeplink` | Deeplink server |
 | `npm run seed` | Reference data (safe to re-run) |
+| `npm run recount:books` | Rebuild verse / chapter / canto counts from the rows (`-- --dry-run` to look first) |
 | `npm run prisma:migrate` | Create and apply a migration |
 | `npm run prisma:studio` | Browse the database |
 | `npm run docs:export` | Write `docs/openapi.json` |

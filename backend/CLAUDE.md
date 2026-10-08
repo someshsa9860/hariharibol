@@ -26,6 +26,7 @@ backend/
 │   ├── s3.js              # uploads + presigned URLs (bucket is private)
 │   ├── auth.js            # tokens, google/apple verification, permission cache
 │   ├── entitlement.js     # who is Premium, and why
+│   ├── book-counts.js     # verse / chapter / canto counts, rebuilt from the rows
 │   ├── fcm.js  notify.js  otp.js  mailer.js  websocket.js
 │   ├── setting.js         # AppSetting reads, encrypted secrets
 │   └── audit.js
@@ -215,6 +216,24 @@ splitting them would mean maintaining two of everything.
 every provider retries webhooks — without that constraint a retry credits the
 user twice. Store money as integer minor units (paise, cents); floats drift.
 
+## Book, canto and chapter counts
+
+`Book.totalCantos/totalChapters/totalVerses`, `Canto.totalChapters/totalVerses` and
+`Chapter.totalVerses` are **derived**: the reading screens show them and
+`controllers/app/book.js` branches on them, but the rows are the truth.
+
+- **One writer: `recountBook()` in `services/book-counts.js`.** It reads the rows, compares,
+  and writes only what is wrong. Both importers call it when they finish, and the admin
+  controllers call it after a verse, chapter or canto is created or deleted. Nothing keeps
+  a running tally with `increment`, and nothing copies a total out of a file — a source
+  without `meta.totalVerses` is what put "0 verses" on 134 chapters of Bhagavatam cantos 10–12.
+- **A change to where a verse lives is a recount too.** The admin verse PATCH cannot move a
+  verse today; if it ever can, it recounts both the old and the new book.
+- `npm run recount:books [-- --dry-run]` repairs a database whose counts drifted;
+  `npm run test:book-counts` walks the rules over real HTTP.
+- **A new database takes the seed twice** (migrate → seed → importers → seed): stories
+  point at chapters, and chapters come from `scripts/import-*.js`. See `scripts/README.md`.
+
 ## Mantra mala recording
 
 A mantra can carry one recording of a whole mala and the stretch of it that is chanting; the
@@ -235,6 +254,36 @@ Three nullable columns on `Mantra`: `malaAudioPath` (an S3 **key**, under `mantr
   API **and** the script must run with `AWS_ACCESS_KEY_ID=` and `AWS_SECRET_ACCESS_KEY=` blank:
   the dev `.env` points at the real bucket, and blank keys make storage fall back to
   `backend/storage/`.
+
+## Sampradaya from chanting
+
+Which tradition someone follows is **worked out from what they chant**, never chosen.
+`User.sampradaya` (null, `shaiva`, `vaishnav`, … whatever `Mantra.sampradaya` carries) is a cache
+owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` — and can be rebuilt from
+`ChantSession` at any time.
+
+- **A day counts for a tradition** when a bead or round was counted on one of its mantras. Opening
+  the counter and leaving does not count, and neither does a sitting with **no mantra attached** —
+  the chant screen opens on the mahamantra with nothing chosen, and the manual-rounds sheet has no
+  mantra picker, so most chanting says nothing about tradition. Several sittings on one day are one day.
+- **Three separate days hold a tradition** (`SAMPRADAYA_MIN_DAYS`), not necessarily in a row, with
+  no expiry.
+- **The most recent holder wins.** When more than one tradition has three days, the one whose latest
+  three days are the later set is the person's. That is what lets it change at any time: three days of
+  Vishnu's mantras make a Shaiva Vaishnav, three of Shiva's afterwards make them Shaiva again. It
+  goes by the date chanted, not when it was entered, so backfilling old days cannot unseat a recent habit.
+- **A dead heat changes nothing** — they keep whoever they were if that is one of the tied, otherwise
+  no one yet.
+- **Recomputed when a day first gets chanting**, not on every bead: `logManualRounds`, and the first
+  bead or round of a live session in `updateSession`. A failure is logged and never fails the request
+  that saved the rounds.
+- **Mantras are tagged by `sampradaya`, and the default is `vaishnav`.** A universal mantra (the
+  seeded `pranava-om` is one) counts as Vaishnav unless its `sampradaya` is changed, so tag it
+  deliberately. The admin **Mantras** form has a Sampradaya field for this; blank on a new mantra
+  leaves the default.
+- Sent on sign-in, token refresh and `GET /api/app/me`. The app does not use it yet.
+- `npm run backfill:sampradaya` fills it in for people who chanted before it existed.
+  `npm run test:sampradaya` walks the rule over real HTTP with throwaway users.
 
 ## Client attestation on signup
 
