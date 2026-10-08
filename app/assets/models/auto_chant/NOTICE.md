@@ -6,7 +6,7 @@ Two bundled ONNX models, both Apache-2.0, both from
 | Path | Model | Size |
 |---|---|---|
 | `vad/silero_vad.onnx` | Silero VAD | 0.6 MB |
-| `kws/{encoder,decoder,joiner}.onnx`, `kws/tokens.txt` | `sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01` (mobile/int8 build) | 5.2 MB |
+| `kws/{encoder,decoder,joiner}.onnx`, `kws/tokens.txt` | `sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01` (int8 encoder and joiner from the full release; **not** the `-mobile` archive) | 6.0 MB |
 
 The KWS model is a small English-BPE streaming Zipformer transducer, repurposed
 as an **open-vocabulary keyword spotter** — it can spot any phrase expressible
@@ -37,8 +37,13 @@ print(' '.join(sp.encode('YOUR PHRASE IN CAPS', out_type=str)))
 "
 ```
 
-`bpe.model` and the full (non-mobile) model files are in the release tarball:
-<https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01-mobile.tar.bz2>
+`bpe.model` and the model files are in the release tarball:
+<https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01.tar.bz2>
+
+**Do not swap in the `-mobile` archive's encoder.** Its `encoder-…int8.onnx` fails on its own
+declared input (`Reshape '/downsample/Reshape_1'`, input `{17,1,128}` vs `{8,2,1,128}`), and
+sherpa-onnx reports that as an uncaught C++ exception, which aborts the whole app
+(SIGABRT) — Dart cannot catch it. The full release's encoder runs cleanly.
 
 Paste the printed token string into a new `MantraKeyword` entry in
 `auto_chant_config.dart`, keyed by the mantra's slug. Prefer spotting a short,
