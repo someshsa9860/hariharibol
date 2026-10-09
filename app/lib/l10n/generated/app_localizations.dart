@@ -664,6 +664,60 @@ abstract class AppLocalizations {
   /// **'Auto count isn\'t available right now'**
   String get sadhanaAutoCountUnavailable;
 
+  /// No description provided for @chantModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharper listening'**
+  String get chantModelTitle;
+
+  /// No description provided for @chantModelOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Understands Sanskrit far better. One download of {megabytes} MB — use Wi-Fi.'**
+  String chantModelOffer(int megabytes);
+
+  /// No description provided for @chantModelDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get chantModelDownload;
+
+  /// No description provided for @chantModelDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading… {percent}%'**
+  String chantModelDownloading(int percent);
+
+  /// No description provided for @chantModelCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get chantModelCancel;
+
+  /// No description provided for @chantModelInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded — used the next time you switch auto count on'**
+  String get chantModelInstalled;
+
+  /// No description provided for @chantModelRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get chantModelRemove;
+
+  /// No description provided for @chantModelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The download didn\'t finish'**
+  String get chantModelFailed;
+
+  /// No description provided for @chantModelRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get chantModelRetry;
+
   /// No description provided for @mantraAllCategories.
   ///
   /// In en, this message translates to:

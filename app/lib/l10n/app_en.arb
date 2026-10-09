@@ -159,6 +159,18 @@
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
   "sadhanaAutoCountUnavailable": "Auto count isn't available right now",
 
+  "chantModelTitle": "Sharper listening",
+  "chantModelOffer": "Understands Sanskrit far better. One download of {megabytes} MB — use Wi-Fi.",
+  "@chantModelOffer": { "placeholders": { "megabytes": { "type": "int" } } },
+  "chantModelDownload": "Download",
+  "chantModelDownloading": "Downloading… {percent}%",
+  "@chantModelDownloading": { "placeholders": { "percent": { "type": "int" } } },
+  "chantModelCancel": "Cancel",
+  "chantModelInstalled": "Downloaded — used the next time you switch auto count on",
+  "chantModelRemove": "Remove",
+  "chantModelFailed": "The download didn't finish",
+  "chantModelRetry": "Try again",
+
   "mantraAllCategories": "All",
   "mantraNoneInCategory": "No mantras in this category yet.",
   "mantraStandardRounds": "{rounds} rounds",

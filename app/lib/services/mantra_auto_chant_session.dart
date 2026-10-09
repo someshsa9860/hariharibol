@@ -45,7 +45,11 @@ class MantraAutoChantSession {
         _counter = MantraRepetitionCounter(cooldown: AutoChantConfig.defaultCooldown);
 
   final Mantra mantra;
-  final MantraPhraseMatcher _matcher;
+
+  /// Rebuilt in [enable] when the sharper recogniser turns out to be in use,
+  /// because it is matched against more (the mantra's own script) and held to a
+  /// higher bar.
+  MantraPhraseMatcher _matcher;
   final MantraRepetitionCounter _counter;
 
   final MantraAudioCapture _capture = MantraAudioCapture();
@@ -97,6 +101,17 @@ class MantraAutoChantSession {
 
     try {
       await _engine.start();
+      if (_engine.isAccurate) {
+        final script = mantra.scriptPhrase;
+        _matcher = MantraPhraseMatcher(
+          [...mantra.spokenPhrases, ?script],
+          threshold: AutoChantConfig.accurateMatchThreshold,
+        );
+        AutoChantLog.info(
+          'using the downloaded sharper recogniser — it needs ${(AutoChantConfig.accurateMatchThreshold * 100).round()}% '
+          'to count, phrases as compared: ${_matcher.foldedPhrases}',
+        );
+      }
       final audio = await _capture.start();
       AutoChantLog.info('microphone is streaming (${AutoChantConfig.sampleRate} Hz, mono)');
       _enabled = true;

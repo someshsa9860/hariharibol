@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/chant_speech_listener.dart';
 import '../../services/mantra_auto_chant_session.dart';
+import 'auto_chant_model_row.dart';
 import 'auto_chant_switch.dart';
 import 'word_detect_switch.dart';
 
@@ -52,6 +53,7 @@ class ChantSetupSheet extends StatelessWidget {
                   children: [
                     if (autoChantStatus != null && onAutoChant != null) ...[
                       AutoChantSwitch(status: autoChantStatus!, onChanged: onAutoChant!),
+                      const AutoChantModelRow(),
                       const Divider(),
                     ],
                     WordDetectSwitch(state: speechState, onChanged: onWords),

@@ -75,6 +75,7 @@ dependencies:
   record: ^6.2.0
   sherpa_onnx: ^1.13.8
   path_provider: ^2.1.3
+  crypto: ^3.0.7
   path: ^1.9.0
 
   # Keeps the screen on while a mala recording plays. The recording counts the
