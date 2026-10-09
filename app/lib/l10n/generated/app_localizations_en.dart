@@ -346,6 +346,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Auto count isn\'t available right now';
 
   @override
+  String get chantModelTitle => 'Sharper listening';
+
+  @override
+  String chantModelOffer(int megabytes) {
+    return 'Understands Sanskrit far better. One download of $megabytes MB — use Wi-Fi.';
+  }
+
+  @override
+  String get chantModelDownload => 'Download';
+
+  @override
+  String chantModelDownloading(int percent) {
+    return 'Downloading… $percent%';
+  }
+
+  @override
+  String get chantModelCancel => 'Cancel';
+
+  @override
+  String get chantModelInstalled =>
+      'Downloaded — used the next time you switch auto count on';
+
+  @override
+  String get chantModelRemove => 'Remove';
+
+  @override
+  String get chantModelFailed => 'The download didn\'t finish';
+
+  @override
+  String get chantModelRetry => 'Try again';
+
+  @override
   String get mantraAllCategories => 'All';
 
   @override

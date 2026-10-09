@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hariharibol/core/constants/auto_chant_config.dart';
 import 'package:hariharibol/services/mantra_phrase_matcher.dart';
 
 const _maha = 'Hare Krishna Hare Krishna Krishna Krishna Hare Hare '
@@ -24,6 +25,47 @@ void main() {
       expect(MantraPhraseMatcher.fold('Kṛṣṇa'), 'KRSNA');
       expect(MantraPhraseMatcher.fold('Krishna'), 'KRISNA');
       expect(MantraPhraseMatcher.fold('Shivaya'), MantraPhraseMatcher.fold('Sivaya'));
+    });
+  });
+
+  group('the sharper recogniser writes Sanskrit in Devanagari', () {
+    const rama = ['श्री राम जय राम जय जय राम', 'Shri Ram Jai Ram Jai Jai Ram'];
+    const bar = AutoChantConfig.accurateMatchThreshold;
+
+    test('what it wrote for a chant counts, in whichever script it chose', () {
+      // Taken from the offline bench: the real output for the same chant.
+      for (final heard in ['श्री राम जै राम जै जय राम', 'શ્રી રામ જય રામ જય જય રામ', 'ശ്രീ രാമ ജയ രാമ ജയ ജയ രാമ']) {
+        expect(_heard(MantraPhraseMatcher(rama, threshold: bar), heard), 1, reason: heard);
+      }
+    });
+
+    test('three in a row are three', () {
+      const once = 'श्री राम जय राम जय जय राम';
+      expect(_heard(MantraPhraseMatcher(rama, threshold: bar), '$once $once $once'), 3);
+    });
+
+    test('ordinary Hindi is not a chant, though half-way it would have been', () {
+      const sentence = 'आज मौसम बहुत अच्छा है और हम बाजार जा रही हैं';
+      expect(_heard(MantraPhraseMatcher(rama, threshold: bar), sentence), 0);
+    });
+
+    test('a different mantra is not this one', () {
+      const other = 'ॐ नमः शिवाय ॐ नमः शिवाय';
+      expect(_heard(MantraPhraseMatcher(rama, threshold: bar), other), 0);
+    });
+  });
+
+  group('a one-syllable mantra', () {
+    test('"Om" is counted when it is what was said', () {
+      expect(_heard(MantraPhraseMatcher(['Om', 'Aum']), 'OM'), 1);
+      expect(_heard(MantraPhraseMatcher(['ॐ']), 'ओम'), 1);
+    });
+
+    test('the same sound inside a sentence is not', () {
+      // Transcripts of ordinary speech from the bench: "um"/"om" turns up in them.
+      for (final sentence in ['ADD MASSAM BOHETA OR HUMBAIJAR JAM', 'GODS OF AMAZA JUMPAPER HAD ABOUT THE SUMMER']) {
+        expect(_heard(MantraPhraseMatcher(['Om', 'Aum']), sentence), 0, reason: sentence);
+      }
     });
   });
 

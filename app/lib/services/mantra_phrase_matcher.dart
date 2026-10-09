@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../core/constants/auto_chant_config.dart';
+import 'indic_sounds.dart';
 
 /// Counts how many times a mantra was chanted in a running transcript, by
 /// ear rather than by exact words.
@@ -13,13 +14,18 @@ import '../core/constants/auto_chant_config.dart';
 /// the next starts where that one ended, so fast back-to-back chanting counts
 /// each time through. Pure Dart, no audio — `test/mantra_phrase_matcher_test.dart`.
 class MantraPhraseMatcher {
-  MantraPhraseMatcher(List<String> phrases)
+  MantraPhraseMatcher(List<String> phrases, {this.threshold = AutoChantConfig.matchThreshold})
       : _targets = [
           for (final phrase in phrases)
             if (fold(phrase).isNotEmpty) fold(phrase),
         ];
 
   final List<String> _targets;
+
+  /// The least a chant must resemble a phrase to count. A recogniser that writes
+  /// Sanskrit near-correctly can be held to a higher bar than one that guesses
+  /// at English words, so the session sets it from the recogniser in use.
+  double threshold;
 
   /// How much of the current transcript earlier repetitions have used up.
   int _consumed = 0;
@@ -43,7 +49,7 @@ class MantraPhraseMatcher {
       final rest = heard.substring(_consumed);
       _Match? best;
       for (final target in _targets) {
-        final match = _match(target, rest);
+        final match = _match(target, rest, threshold);
         if (match != null && (best == null || match.ratio > best.ratio)) best = match;
       }
       if (best == null) break;
@@ -63,10 +69,10 @@ class MantraPhraseMatcher {
 
   /// What a phrase has to match by, by its folded length: the floor for a
   /// normal mantra, higher for one so short that half is easy to reach.
-  static double needed(int letters) {
+  static double needed(int letters, {double threshold = AutoChantConfig.matchThreshold}) {
     final shortBy =
         letters >= AutoChantConfig.shortPhraseLetters ? 0 : AutoChantConfig.shortPhraseLetters - letters;
-    return AutoChantConfig.matchThreshold +
+    return threshold +
         AutoChantConfig.shortPhraseExtra * shortBy / AutoChantConfig.shortPhraseLetters;
   }
 
@@ -81,7 +87,7 @@ class MantraPhraseMatcher {
     ({double ratio, double needed})? best;
     for (final target in _targets) {
       final ratio = _bestRatio(target, rest);
-      if (best == null || ratio > best.ratio) best = (ratio: ratio, needed: needed(target.length));
+      if (best == null || ratio > best.ratio) best = (ratio: ratio, needed: needed(target.length, threshold: threshold));
     }
     return best;
   }
@@ -124,8 +130,10 @@ class MantraPhraseMatcher {
 
   /// Best approximate match of [target] anywhere in [text] (free start, free
   /// end). Returns where the earliest good-enough one ends, or null when none
-  /// reaches [needed].
-  static _Match? _match(String target, String text) {
+  /// reaches [needed]. A short phrase must also end near the start of [text]:
+  /// "Om" is two sounds, and found anywhere in a sentence it is just a sound
+  /// the sentence happens to contain.
+  static _Match? _match(String target, String text, double threshold) {
     final n = target.length;
     final m = text.length;
     if (m == 0) return null;
@@ -135,14 +143,17 @@ class MantraPhraseMatcher {
     for (var j = 1; j <= m; j++) {
       if (prev[j] < lowest) lowest = prev[j];
     }
-    final floor = needed(n);
+    final floor = needed(n, threshold: threshold);
     final bestRatio = (n - lowest) / n;
     if (bestRatio < floor) return null;
 
     final cutoff = bestRatio - AutoChantConfig.matchSlack > floor ? bestRatio - AutoChantConfig.matchSlack : floor;
     for (var j = 1; j <= m; j++) {
       final ratio = (n - prev[j]) / n;
-      if (ratio >= cutoff) return _Match(ratio, j, n);
+      if (ratio >= cutoff) {
+        final tooLate = n < AutoChantConfig.shortPhraseLetters && j > AutoChantConfig.shortPhraseReach * n;
+        return tooLate ? null : _Match(ratio, j, n);
+      }
     }
     return null;
   }
@@ -167,13 +178,13 @@ class MantraPhraseMatcher {
     'Ñ': 'N', 'ñ': 'N', 'Ṅ': 'N', 'ṅ': 'N',
   };
 
-  /// Letters only, spelling variants folded to one sound: "Hare" and "Hari"
-  /// agree, "Krishna" and "Kṛṣṇa" agree, doubled letters collapse, the
+  /// Letters only, spelling variants folded to one sound, in any script: "Hare"
+  /// and "Hari" agree, `राम` and `રામ` and "Ram" agree (see [indicToRoman]), "Krishna" and "Kṛṣṇa" agree, doubled letters collapse, the
   /// aspirate H is dropped, and the vowels fall into three families (A, I, U)
   /// because an English recogniser is least sure about exactly those.
   static String fold(String input) {
     final plain = StringBuffer();
-    for (final rune in input.runes) {
+    for (final rune in indicToRoman(input).runes) {
       final char = String.fromCharCode(rune);
       plain.write(_diacritics[char] ?? char);
     }

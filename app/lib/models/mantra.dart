@@ -93,6 +93,15 @@ class Mantra {
     return fallback.isEmpty ? const [] : [fallback];
   }
 
+  /// The mantra's own text when it is written in an Indic script — what the
+  /// sharper recogniser writes its answer in, so it is matched against that too.
+  String? get scriptPhrase {
+    final written = text.trim();
+    return _indicLetters.hasMatch(written) ? written : null;
+  }
+
+  static final _indicLetters = RegExp(r'[\u0900-\u0D7F]');
+
   Duration get duration => Duration(milliseconds: durationMs);
   bool get hasAudio => (audioUrl ?? '').isNotEmpty;
 

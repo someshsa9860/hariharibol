@@ -12,6 +12,7 @@ import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa_onnx;
 import '../core/constants/auto_chant_config.dart';
 import 'auto_chant_log.dart';
 import 'chant_word_engine.dart' show WordTranscript;
+import 'mantra_accurate_model.dart';
 
 /// Runs Silero VAD and an on-device speech recogniser on a background isolate
 /// and exposes their output as plain streams: when a voice starts and stops,
@@ -27,6 +28,7 @@ import 'chant_word_engine.dart' show WordTranscript;
 class MantraDetectionEngine {
   Isolate? _isolate;
   SendPort? _workerPort;
+  bool _accurate = false;
   ReceivePort? _receivePort;
 
   final _voiceActiveController = StreamController<bool>.broadcast();
@@ -43,13 +45,24 @@ class MantraDetectionEngine {
 
   Stream<String> get errors => _errorController.stream;
 
+  /// Whether this run uses the downloaded recogniser (decides what a transcript
+  /// has to match by). Known once [start] has completed.
+  bool get isAccurate => _accurate;
+
   /// Copies the bundled models to disk and starts the worker isolate.
   /// Completes once the native engines are built and ready for audio.
   Future<void> start() async {
     final clock = Stopwatch()..start();
-    AutoChantLog.info('engine: copying the bundled models to disk');
+    final accurateFiles = await MantraAccurateModel().installed();
+    _accurate = accurateFiles != null;
+    AutoChantLog.info(
+      _accurate
+          ? 'engine: using the downloaded sharper recogniser'
+          : 'engine: copying the bundled models to disk',
+    );
     final vadConfig = await _prepareVadConfig();
-    final asrConfig = await _prepareRecognizerConfig();
+    final asrConfig = accurateFiles == null ? await _prepareRecognizerConfig() : null;
+    final accurateConfig = accurateFiles == null ? null : _accurateRecognizerConfig(accurateFiles);
     AutoChantLog.info('engine: models on disk after ${clock.elapsedMilliseconds} ms, starting the worker isolate');
 
     final receivePort = ReceivePort();
@@ -68,7 +81,7 @@ class MantraDetectionEngine {
     receivePort.listen((message) {
       if (message is SendPort) {
         _workerPort = message;
-        message.send(_InitRequest(vadConfig, asrConfig));
+        message.send(_InitRequest(vadConfig, asrConfig, accurateConfig));
       } else if (message is _Ready) {
         AutoChantLog.info('engine: ready after ${clock.elapsedMilliseconds} ms');
         if (!ready.isCompleted) ready.complete();
@@ -156,6 +169,17 @@ class MantraDetectionEngine {
     );
   }
 
+  sherpa_onnx.OfflineRecognizerConfig _accurateRecognizerConfig(AccurateModelFiles files) {
+    return sherpa_onnx.OfflineRecognizerConfig(
+      model: sherpa_onnx.OfflineModelConfig(
+        omnilingual: sherpa_onnx.OfflineOmnilingualAsrCtcModelConfig(model: files.model),
+        tokens: files.tokens,
+        numThreads: AutoChantConfig.accurateThreads,
+        debug: false,
+      ),
+    );
+  }
+
   /// Copies one asset to app-support storage and returns its real filesystem
   /// path — the native side needs a path, not an asset bundle key. Skips the
   /// copy when a file of the same size is already there.
@@ -180,9 +204,14 @@ class MantraDetectionEngine {
 // itself, from the config carried by [_InitRequest], never passed in.
 
 class _InitRequest {
-  const _InitRequest(this.vad, this.asr);
+  const _InitRequest(this.vad, this.asr, this.accurate);
   final sherpa_onnx.VadModelConfig vad;
-  final sherpa_onnx.OnlineRecognizerConfig asr;
+
+  /// The bundled streaming recogniser — or, when [accurate] is set, null.
+  final sherpa_onnx.OnlineRecognizerConfig? asr;
+
+  /// The downloaded recogniser, which decodes a stretch of voice once it ends.
+  final sherpa_onnx.OfflineRecognizerConfig? accurate;
 }
 
 class _AudioChunk {
@@ -229,11 +258,17 @@ void _workerMain(SendPort mainSendPort) {
   sherpa_onnx.VoiceActivityDetector? vad;
   sherpa_onnx.OnlineRecognizer? recognizer;
   sherpa_onnx.OnlineStream? stream;
+  sherpa_onnx.OfflineRecognizer? offline;
   var voiceWasActive = false;
   var lastText = '';
 
   final preRoll = Queue<Float32List>();
   var preRollSamples = 0;
+
+  // The downloaded recogniser's voice so far, waiting for the voice to stop.
+  final voiced = <Float32List>[];
+  var voicedSamples = 0;
+  const maxVoicedSamples = AutoChantConfig.accurateMaxUtteranceSeconds * AutoChantConfig.sampleRate;
 
   // What the worker has done since it last reported, for the log.
   final clock = Stopwatch()..start();
@@ -295,6 +330,40 @@ void _workerMain(SendPort mainSendPort) {
     if (text.length > AutoChantConfig.maxTranscriptLetters) closeUtterance();
   }
 
+  /// Decodes what has been heard since the voice began, as one final transcript.
+  void decodeVoiced() {
+    if (voiced.isEmpty) return;
+    final samples = Float32List(voicedSamples);
+    var at = 0;
+    for (final chunk in voiced) {
+      samples.setAll(at, chunk);
+      at += chunk.length;
+    }
+    voiced.clear();
+    voicedSamples = 0;
+
+    final decodeClock = Stopwatch()..start();
+    final decodeStream = offline!.createStream();
+    decodeStream.acceptWaveform(samples: samples, sampleRate: AutoChantConfig.sampleRate);
+    offline!.decode(decodeStream);
+    final text = offline!.getResult(decodeStream).text.trim();
+    decodeStream.free();
+    log('worker: decoded ${samples.length * 1000 ~/ AutoChantConfig.sampleRate} ms of voice in ${decodeClock.elapsedMilliseconds} ms');
+    if (text.isNotEmpty) mainSendPort.send(WordTranscript(text, isFinal: true));
+  }
+
+  /// Voice that the recogniser should hear: streamed to the bundled one as it
+  /// comes, gathered for the downloaded one.
+  void hear(Float32List chunk) {
+    if (offline == null) {
+      feedRecognizer(chunk);
+      return;
+    }
+    voiced.add(chunk);
+    voicedSamples += chunk.length;
+    if (voicedSamples >= maxVoicedSamples) decodeVoiced();
+  }
+
   receivePort.listen((message) {
     if (message is _InitRequest) {
       try {
@@ -302,14 +371,18 @@ void _workerMain(SendPort mainSendPort) {
         log('worker: native library loaded after ${clock.elapsedMilliseconds} ms');
         vad = sherpa_onnx.VoiceActivityDetector(config: message.vad, bufferSizeInSeconds: 30);
         log('worker: voice detector built after ${clock.elapsedMilliseconds} ms');
-        recognizer = sherpa_onnx.OnlineRecognizer(message.asr);
-        stream = recognizer!.createStream();
+        if (message.accurate != null) {
+          offline = sherpa_onnx.OfflineRecognizer(message.accurate!);
+        } else {
+          recognizer = sherpa_onnx.OnlineRecognizer(message.asr!);
+          stream = recognizer!.createStream();
+        }
         log('worker: recogniser built after ${clock.elapsedMilliseconds} ms');
         mainSendPort.send(const _Ready());
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
       }
-    } else if (message is _AudioChunk && vad != null && recognizer != null) {
+    } else if (message is _AudioChunk && vad != null && (recognizer != null || offline != null)) {
       try {
         chunksIn += 1;
         chunkMs = message.samples.length * 1000 ~/ AutoChantConfig.sampleRate;
@@ -335,18 +408,22 @@ void _workerMain(SendPort mainSendPort) {
           mainSendPort.send(_VoiceActiveChanged(active));
           if (active) {
             for (final chunk in preRoll) {
-              feedRecognizer(chunk);
+              hear(chunk);
             }
             preRoll.clear();
             preRollSamples = 0;
           } else {
-            // The recogniser holds back its last few syllables until it has
-            // heard a little more; silence lets them out.
-            feedRecognizer(Float32List(AutoChantConfig.endPaddingSamples));
-            closeUtterance();
+            if (offline != null) {
+              decodeVoiced();
+            } else {
+              // The recogniser holds back its last few syllables until it has
+              // heard a little more; silence lets them out.
+              feedRecognizer(Float32List(AutoChantConfig.endPaddingSamples));
+              closeUtterance();
+            }
           }
         } else if (active) {
-          feedRecognizer(message.samples);
+          hear(message.samples);
         }
       } catch (error) {
         mainSendPort.send(_WorkerError('$error'));
@@ -355,9 +432,11 @@ void _workerMain(SendPort mainSendPort) {
     } else if (message is _DisposeRequest) {
       stream?.free();
       recognizer?.free();
+      offline?.free();
       vad?.free();
       stream = null;
       recognizer = null;
+      offline = null;
       vad = null;
       receivePort.close();
     }
