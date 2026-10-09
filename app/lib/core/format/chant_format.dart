@@ -1,7 +1,10 @@
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
-/// How the counter writes times. Numbers only, so none of it needs a
-/// translation — the words around them come from l10n.
+/// How the counter writes times. The clock and the seconds are bare numbers, so
+/// none of that needs a translation — the words around them come from l10n. The
+/// two wall-clock helpers at the bottom take the context because month names
+/// and 12/24-hour habits belong to the reader's locale.
 
 /// `m:ss`, or `h:mm:ss` once a sitting passes the hour.
 String formatClock(Duration duration) {
@@ -20,11 +23,10 @@ String formatSeconds(double seconds) => seconds.toStringAsFixed(1);
 /// The same, from milliseconds.
 String formatMillisAsSeconds(int milliseconds) => formatSeconds(milliseconds / 1000);
 
-final DateFormat _timeFormat = DateFormat.Hms();
-final DateFormat _dateTimeFormat = DateFormat.yMMMd().add_jm();
-
 /// Wall-clock time of a tap, to the second — `10:42:31`.
-String formatTimeOfDay(DateTime time) => _timeFormat.format(time);
+String formatTimeOfDay(BuildContext context, DateTime time) =>
+    DateFormat.Hms(Localizations.localeOf(context).toString()).format(time);
 
 /// A sitting's start in the history list — `Oct 6, 2026 6:12 AM`.
-String formatDateTime(DateTime time) => _dateTimeFormat.format(time);
+String formatDateTime(BuildContext context, DateTime time) =>
+    DateFormat.yMMMd(Localizations.localeOf(context).toString()).add_jm().format(time);

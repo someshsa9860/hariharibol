@@ -294,7 +294,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
 /// "Canto 1 · Chapter 1", or just "Chapter 1" for a book with no cantos —
 /// shared by the header card and the app bar title so the two never drift.
 String _chapterNumbering(AppLocalizations text, BookSection chapter) => chapter.cantoNumber != null
-    ? '${text.labelCanto(chapter.cantoNumber!)} · ${text.labelChapter(chapter.number)}'
+    ? text.labelCantoChapter(chapter.cantoNumber!, chapter.number)
     : text.labelChapter(chapter.number);
 
 /// The app bar title while a chapter is loaded: the book name as an eyebrow

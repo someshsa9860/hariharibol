@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/format/failure_text.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -34,7 +35,7 @@ class AppErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              failure.message.isEmpty ? text.errorGeneric : failure.message,
+              failure.describe(text),
               textAlign: TextAlign.center,
               style: context.texts.bodyMedium,
             ),

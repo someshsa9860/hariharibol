@@ -21,6 +21,9 @@
   "errorNetwork": "No connection. Check your internet and try again.",
   "errorTimeout": "That took too long. Please try again.",
   "errorSessionExpired": "Your session has ended. Please sign in again.",
+  "errorSignIn": "We could not sign you in. Please try again.",
+  "errorInsecureConnection": "The connection is not secure.",
+  "errorCancelled": "Request cancelled.",
   "errorEmptyTitle": "Nothing here yet",
   "errorRouteNotFound": "That screen does not exist.",
   "actionGoHome": "Go to home",
@@ -52,6 +55,13 @@
 
   "homeGreeting": "Hari Bol",
   "homeGreetingNamed": "Hari Bol, {name}",
+  "homeDateLine": "{date}",
+  "@homeDateLine": {
+    "description": "Today's date under the greeting, e.g. \"Saturday · 27 April\". The pattern is fixed by the template; a translation changes only the month and weekday names, which follow the locale.",
+    "placeholders": {
+      "date": { "type": "DateTime", "format": "EEEE · d MMMM", "isCustomDateFormat": "true" }
+    }
+  },
   "@homeGreetingNamed": {
     "description": "The dashboard greeting. The devotional greeting is the point, so it is not swapped for a time-of-day one.",
     "placeholders": { "name": { "type": "String" } }
@@ -82,6 +92,11 @@
   "searchShortcutLabel": "Or jump straight to a verse:",
   "searchNoResults": "No results. Try a different word, or a reference like BG 2.47.",
   "searchSectionVerses": "Verses",
+  "searchResultsTitle": "{kind} · {query}",
+  "@searchResultsTitle": {
+    "description": "App bar title of a results page: which kind of result, then what was searched for.",
+    "placeholders": { "kind": { "type": "String" }, "query": { "type": "String" } }
+  },
 
   "labelCanto": "Canto {number}",
   "@labelCanto": { "placeholders": { "number": { "type": "int" } } },
@@ -89,6 +104,18 @@
   "@labelChapter": { "placeholders": { "number": { "type": "int" } } },
   "labelVerse": "Verse {number}",
   "@labelVerse": { "placeholders": { "number": { "type": "int" } } },
+  "labelCantoChapter": "Canto {canto} · Chapter {chapter}",
+  "@labelCantoChapter": { "placeholders": { "canto": { "type": "int" }, "chapter": { "type": "int" } } },
+  "labelQuotedMeaning": "“{meaning}”",
+  "@labelQuotedMeaning": {
+    "description": "A verse's translation set off as a quotation. Use the quotation marks of the language.",
+    "placeholders": { "meaning": { "type": "String" } }
+  },
+  "labelTranslatorCredit": "— {name}",
+  "@labelTranslatorCredit": {
+    "description": "The line crediting whoever translated the verse, under the quotation.",
+    "placeholders": { "name": { "type": "String" } }
+  },
 
   "sadhanaRoundsProgress": "{done} of {target} rounds",
   "@sadhanaRoundsProgress": {
@@ -205,6 +232,11 @@
   "settingsVersion": "Version {version}",
   "@settingsVersion": { "placeholders": { "version": { "type": "String" } } },
   "settingsMadeWith": "Made with reverence",
+  "settingsFooter": "{version} · {madeWith}",
+  "@settingsFooter": {
+    "description": "The last line of settings: the version line and the sign-off, side by side.",
+    "placeholders": { "version": { "type": "String" }, "madeWith": { "type": "String" } }
+  },
   "themeSystem": "Auto",
   "themeLight": "Light",
   "themeDark": "Dark",
@@ -440,6 +472,11 @@
   "chantSetupNoneOn": "Set up",
   "chantSetupOn": "{count} on",
   "@chantSetupOn": { "placeholders": { "count": { "type": "int" } } },
+  "chantSetupButtonState": "{button} · {state}",
+  "@chantSetupButtonState": {
+    "description": "The setup button's label followed by how many helpers are on, e.g. \"Auto count & words · 1 on\".",
+    "placeholders": { "button": { "type": "String" }, "state": { "type": "String" } }
+  },
   "chantSetupDone": "Done",
   "chantAnalyticsTitle": "Chant analytics",
   "chantTabThisSitting": "This sitting",

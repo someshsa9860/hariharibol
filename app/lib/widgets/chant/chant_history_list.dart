@@ -88,7 +88,7 @@ class _SessionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(formatDateTime(session.startedAt), style: context.texts.titleMedium),
+                    Text(formatDateTime(context, session.startedAt), style: context.texts.titleMedium),
                     if (session.mantraName != null) ...[
                       const SizedBox(height: AppSpacing.xxs),
                       Text(session.mantraName!, style: muted),

@@ -236,8 +236,10 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xxl),
           Center(
             child: Text(
-              '${text.settingsVersion(DeviceService.instance.appVersion)} · '
-              '${text.settingsMadeWith}',
+              text.settingsFooter(
+                text.settingsVersion(DeviceService.instance.appVersion),
+                text.settingsMadeWith,
+              ),
               style: context.texts.bodySmall,
             ),
           ),

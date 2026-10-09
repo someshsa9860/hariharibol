@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
@@ -240,7 +239,7 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_formatted(date), style: context.texts.bodySmall),
+              Text(_formatted(text, date), style: context.texts.bodySmall),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 name == null ? text.homeGreeting : text.homeGreetingNamed(name),
@@ -261,11 +260,11 @@ class _Header extends StatelessWidget {
 
   /// "Saturday · 27 April". Falls back to nothing rather than to a raw
   /// `2026-04-27`, which would read as a bug on the first line of the screen.
-  String _formatted(String date) {
+  String _formatted(AppLocalizations text, String date) {
     final parsed = DateTime.tryParse(date);
     if (parsed == null) return '';
     try {
-      return DateFormat('EEEE · d MMMM').format(parsed);
+      return text.homeDateLine(parsed);
     } catch (_) {
       return '';
     }

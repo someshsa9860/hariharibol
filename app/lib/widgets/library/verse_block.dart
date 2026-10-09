@@ -121,11 +121,14 @@ class VerseBlock extends StatelessWidget {
           ],
           if (meaning != null && meaning.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('“$meaning”', style: _scaled(context.texts.bodyLarge, fontScale)),
+            Text(
+              text.labelQuotedMeaning(meaning),
+              style: _scaled(context.texts.bodyLarge, fontScale),
+            ),
           ],
           if (translatorName != null && translatorName.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
-            Text('— $translatorName', style: context.texts.bodySmall),
+            Text(text.labelTranslatorCredit(translatorName), style: context.texts.bodySmall),
           ],
           if (rendering?.hasPurport ?? false) ...[
             const SizedBox(height: AppSpacing.md),

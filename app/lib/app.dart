@@ -7,6 +7,7 @@ import 'core/navigation/app_navigator.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 
 /// The root widget.
@@ -34,6 +35,7 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ref.watch(themeModeProvider),
+      locale: ref.watch(appLocaleProvider),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

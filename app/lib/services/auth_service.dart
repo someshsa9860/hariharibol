@@ -56,20 +56,14 @@ class AuthService {
     } on GoogleSignInException catch (error) {
       if (error.code == GoogleSignInExceptionCode.canceled) throw const SignInCancelled();
       debugPrint('Google sign-in failed: ${error.code} ${error.description}');
-      throw const ApiFailure(
-        kind: FailureKind.unknown,
-        message: 'We could not sign you in. Please try again.',
-      );
+      throw const ApiFailure.signIn();
     }
 
     final idToken = account.authentication.idToken;
     if (idToken == null || idToken.isEmpty) {
       // Almost always a configuration problem: no serverClientId on Android, or
       // a SHA-1 that is not registered with the Firebase project.
-      throw const ApiFailure(
-        kind: FailureKind.unknown,
-        message: 'We could not sign you in. Please try again.',
-      );
+      throw const ApiFailure.signIn();
     }
 
     return _exchange(provider: 'GOOGLE', idToken: idToken, name: account.displayName);
@@ -84,18 +78,12 @@ class AuthService {
     } on SignInWithAppleAuthorizationException catch (error) {
       if (error.code == AuthorizationErrorCode.canceled) throw const SignInCancelled();
       debugPrint('Apple sign-in failed: ${error.code} ${error.message}');
-      throw const ApiFailure(
-        kind: FailureKind.unknown,
-        message: 'We could not sign you in. Please try again.',
-      );
+      throw const ApiFailure.signIn();
     }
 
     final idToken = credential.identityToken;
     if (idToken == null || idToken.isEmpty) {
-      throw const ApiFailure(
-        kind: FailureKind.unknown,
-        message: 'We could not sign you in. Please try again.',
-      );
+      throw const ApiFailure.signIn();
     }
 
     // Apple hands over the name exactly once, on the very first sign-in, and

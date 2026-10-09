@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format/failure_text.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -131,7 +132,7 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
         SnackBar(
           content: Text(
             lastFailure?.statusCode == 404
-                ? lastFailure!.message
+                ? lastFailure!.describe(text)
                 : text.errorGeneric,
           ),
         ),

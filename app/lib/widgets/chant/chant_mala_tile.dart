@@ -75,12 +75,12 @@ class _ChantMalaTileState extends State<ChantMalaTile> {
                       _Fact(
                         icon: Icons.play_arrow_rounded,
                         label: text.chantMalaStart,
-                        value: start == null ? text.chantNoValue : formatTimeOfDay(start),
+                        value: start == null ? text.chantNoValue : formatTimeOfDay(context, start),
                       ),
                       _Fact(
                         icon: Icons.stop_rounded,
                         label: text.chantMalaEnd,
-                        value: end == null ? text.chantNoValue : formatTimeOfDay(end),
+                        value: end == null ? text.chantNoValue : formatTimeOfDay(context, end),
                       ),
                       _Fact(
                         icon: Icons.timer_outlined,

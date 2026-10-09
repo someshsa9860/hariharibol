@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
+import '../format/failure_text.dart';
 import '../theme/app_spacing.dart';
 import 'loading_handler.dart';
 
@@ -61,8 +62,12 @@ class AppNavigator {
   void showMessage(String message) => _snack(message, isError: false);
 
   /// Shows what went wrong, in the words the API used where they are meant for
-  /// people, and a generic line where they are not.
-  void showFailure(ApiFailure failure) => _snack(failure.message, isError: true);
+  /// people, and the app's own line, in the reader's language, where they are not.
+  void showFailure(ApiFailure failure) {
+    final context = messengerKey.currentContext;
+    if (context == null) return;
+    _snack(failure.describe(AppLocalizations.of(context)), isError: true);
+  }
 
   void _snack(String message, {required bool isError}) {
     final messenger = messengerKey.currentState;

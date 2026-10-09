@@ -96,7 +96,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
       body: catalog.when(
         loading: () => const AppLoader(),
         error: (error, _) => AppErrorView(
-          failure: error is ApiFailure ? error : ApiFailure(kind: FailureKind.unknown, message: ''),
+          failure: error is ApiFailure ? error : const ApiFailure(kind: FailureKind.unknown),
           onRetry: _reload,
         ),
         data: (data) => RefreshIndicator(

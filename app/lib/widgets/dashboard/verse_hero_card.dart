@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/verse.dart';
 import '../common/animations.dart';
 import '../common/eyebrow.dart';
@@ -43,6 +44,7 @@ class VerseHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
     final sanskrit = verse.sanskrit?.trim();
     final transliteration = verse.transliteration?.trim();
     final meaning = verse.translation?.meaning?.trim();
@@ -120,7 +122,7 @@ class VerseHeroCard extends StatelessWidget {
                   ],
                   if (meaning != null && meaning.isNotEmpty) ...[
                     Text(
-                      '“$meaning”',
+                      text.labelQuotedMeaning(meaning),
                       style: context.texts.bodyLarge,
                       maxLines: 4,
                       overflow: TextOverflow.ellipsis,
@@ -132,7 +134,7 @@ class VerseHeroCard extends StatelessWidget {
                   // acharya's name is not something to show as "Swam…".
                   if (translator != null && translator.isNotEmpty) ...[
                     Text(
-                      '\u2014 $translator',
+                      text.labelTranslatorCredit(translator),
                       style: context.texts.bodySmall,
                     ),
                     const SizedBox(height: AppSpacing.md),

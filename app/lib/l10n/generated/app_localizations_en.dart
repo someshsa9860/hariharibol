@@ -56,6 +56,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your session has ended. Please sign in again.';
 
   @override
+  String get errorSignIn => 'We could not sign you in. Please try again.';
+
+  @override
+  String get errorInsecureConnection => 'The connection is not secure.';
+
+  @override
+  String get errorCancelled => 'Request cancelled.';
+
+  @override
   String get errorEmptyTitle => 'Nothing here yet';
 
   @override
@@ -132,6 +141,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String homeGreetingNamed(String name) {
     return 'Hari Bol, $name';
+  }
+
+  @override
+  String homeDateLine(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat(
+      'EEEE · d MMMM',
+      localeName,
+    );
+    final String dateString = dateDateFormat.format(date);
+
+    return '$dateString';
   }
 
   @override
@@ -229,6 +249,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSectionVerses => 'Verses';
 
   @override
+  String searchResultsTitle(String kind, String query) {
+    return '$kind · $query';
+  }
+
+  @override
   String labelCanto(int number) {
     return 'Canto $number';
   }
@@ -241,6 +266,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String labelVerse(int number) {
     return 'Verse $number';
+  }
+
+  @override
+  String labelCantoChapter(int canto, int chapter) {
+    return 'Canto $canto · Chapter $chapter';
+  }
+
+  @override
+  String labelQuotedMeaning(String meaning) {
+    return '“$meaning”';
+  }
+
+  @override
+  String labelTranslatorCredit(String name) {
+    return '— $name';
   }
 
   @override
@@ -553,6 +593,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsMadeWith => 'Made with reverence';
+
+  @override
+  String settingsFooter(String version, String madeWith) {
+    return '$version · $madeWith';
+  }
 
   @override
   String get themeSystem => 'Auto';
@@ -1135,6 +1180,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chantSetupOn(int count) {
     return '$count on';
+  }
+
+  @override
+  String chantSetupButtonState(String button, String state) {
+    return '$button · $state';
   }
 
   @override

@@ -35,23 +35,41 @@ enum FailureKind {
   unknown,
 }
 
+/// The [ApiFailure.code]s the app gives to failures it makes itself. The
+/// server's own codes are its business; these carry a `CLIENT_` prefix so the
+/// two never meet.
+///
+/// A failure made on the phone has no text of its own: it has no `BuildContext`
+/// to look the words up with, and English written here would never be
+/// translated. The screen that shows it asks `describe` (core/format/
+/// failure_text.dart), which reads the code and the [FailureKind].
+abstract final class ClientFailureCode {
+  static const String signIn = 'CLIENT_SIGN_IN';
+  static const String insecureConnection = 'CLIENT_INSECURE_CONNECTION';
+  static const String cancelled = 'CLIENT_CANCELLED';
+}
+
 class ApiFailure implements Exception {
   const ApiFailure({
     required this.kind,
-    required this.message,
+    this.message = '',
     this.code,
     this.statusCode,
     this.details,
     this.retryAfter,
   });
 
+  /// Sign-in did not produce a usable identity token.
+  const ApiFailure.signIn() : this(kind: FailureKind.unknown, code: ClientFailureCode.signIn);
+
   final FailureKind kind;
 
-  /// Safe to show. The backend writes these for humans; anything that is not
-  /// gets replaced with a generic string before it reaches a view.
+  /// The words the backend sent, which it writes for humans. Empty for a
+  /// failure the app made itself or a reply with no message — never show this
+  /// directly; go through `describe`, which falls back to the app's own text.
   final String message;
 
-  /// The backend's machine-readable code, when it sent one.
+  /// The backend's machine-readable code, or a [ClientFailureCode].
   final String? code;
 
   final int? statusCode;

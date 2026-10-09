@@ -113,7 +113,10 @@ class _PriceRow extends StatelessWidget {
     // The store's price is what will be charged, in the buyer's own currency;
     // the catalogue's is only a fallback while the store has not answered.
     final amount = product?.price ??
-        NumberFormat.simpleCurrency(name: price.currency).format(price.priceMinor / 100);
+        NumberFormat.simpleCurrency(
+          locale: Localizations.localeOf(context).toString(),
+          name: price.currency,
+        ).format(price.priceMinor / 100);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),

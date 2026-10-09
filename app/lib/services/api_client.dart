@@ -246,25 +246,19 @@ class ApiClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return const ApiFailure(
-          kind: FailureKind.timeout,
-          message: 'That took too long. Please try again.',
-        );
+        return const ApiFailure(kind: FailureKind.timeout);
       case DioExceptionType.connectionError:
       case DioExceptionType.unknown:
         if (error.error is SocketException || error.error is HttpException) {
-          return const ApiFailure(
-            kind: FailureKind.network,
-            message: 'No connection. Check your internet and try again.',
-          );
+          return const ApiFailure(kind: FailureKind.network);
         }
         break;
       case DioExceptionType.cancel:
-        return const ApiFailure(kind: FailureKind.unknown, message: 'Request cancelled.');
+        return const ApiFailure(kind: FailureKind.unknown, code: ClientFailureCode.cancelled);
       case DioExceptionType.badCertificate:
         return const ApiFailure(
           kind: FailureKind.network,
-          message: 'The connection is not secure.',
+          code: ClientFailureCode.insecureConnection,
         );
       case DioExceptionType.badResponse:
       default:
@@ -278,7 +272,7 @@ class ApiClient {
 
     return ApiFailure(
       kind: _kindFor(status),
-      message: asString(detail?['message'], 'Something went wrong. Please try again.'),
+      message: asString(detail?['message']),
       code: asStringOrNull(detail?['code']),
       statusCode: status,
       details: detail?['details'],

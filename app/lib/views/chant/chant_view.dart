@@ -520,9 +520,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     onPressed: _openSetup,
                     icon: const Icon(Icons.tune_rounded),
                     label: Text(
-                      _helpersOn == 0
-                          ? '${text.chantSetupButton} · ${text.chantSetupNoneOn}'
-                          : '${text.chantSetupButton} · ${text.chantSetupOn(_helpersOn)}',
+                      text.chantSetupButtonState(
+                        text.chantSetupButton,
+                        _helpersOn == 0 ? text.chantSetupNoneOn : text.chantSetupOn(_helpersOn),
+                      ),
                     ),
                   ),
                 ),

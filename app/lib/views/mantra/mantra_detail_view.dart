@@ -107,7 +107,7 @@ class _MantraDetail extends StatelessWidget {
         ],
         if (meaning != null && meaning.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xl),
-          Text('“$meaning”', style: context.texts.bodyLarge),
+          Text(text.labelQuotedMeaning(meaning), style: context.texts.bodyLarge),
         ],
         if (purport != null && purport.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xl),

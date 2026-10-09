@@ -27,7 +27,7 @@ class ChantSessionView extends ConsumerWidget {
         title: Text(
           detail.value == null
               ? text.chantSessionTitle
-              : formatDateTime(detail.value!.summary.startedAt),
+              : formatDateTime(context, detail.value!.summary.startedAt),
         ),
       ),
       body: detail.when(

@@ -14,13 +14,13 @@ class CurrentPlanCard extends StatelessWidget {
 
   final Entitlement entitlement;
 
-  String? _status(AppLocalizations text) {
+  String? _status(AppLocalizations text, String locale) {
     if (!entitlement.isPremium) return null;
     if (entitlement.isDonor) return text.plansPermanent;
 
     final end = entitlement.premiumUntil;
     if (end == null) return null;
-    final date = DateFormat.yMMMd().format(end);
+    final date = DateFormat.yMMMd(locale).format(end);
     return (entitlement.subscription?.autoRenew ?? false)
         ? text.plansRenews(date)
         : text.plansEnds(date);
@@ -29,7 +29,7 @@ class CurrentPlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final status = _status(text);
+    final status = _status(text, Localizations.localeOf(context).toString());
 
     return Card(
       child: Padding(

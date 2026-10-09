@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format/failure_text.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -122,7 +123,7 @@ class _BodyState extends ConsumerState<_Body> {
               child: Padding(
                 padding: AppSpacing.card,
                 child: EmptyState(
-                  message: error is ApiFailure ? error.message : text.reelsFailed,
+                  message: error is ApiFailure ? error.describe(text) : text.reelsFailed,
                   icon: Icons.error_outline_rounded,
                 ),
               ),

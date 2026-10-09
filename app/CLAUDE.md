@@ -6,6 +6,15 @@ Flutter app (iOS + Android). Clean, simple, conventional. No clever architecture
 
 1. **Nothing is hardcoded.** No magic strings, colors, sizes, durations or endpoints inline. Everything comes from l10n, theme tokens, or config.
 2. **Standard localization.** Use Flutter's own l10n (ARB files + generated delegates). Every user-facing string goes through it from day one — never added retroactively.
+   - **Services write no words.** A failure made on the phone (`api_client`, `auth_service`) has an
+     empty `message` and a `FailureKind` or a `ClientFailureCode`; the screen shows it with
+     `failure.describe(AppLocalizations.of(context))` (`core/format/failure_text.dart`), which prefers
+     the server's own message and otherwise reads the ARB. Never show `failure.message` directly.
+   - **Quotes, dashes and joins are copy too** (`labelQuotedMeaning`, `labelTranslatorCredit`,
+     `searchResultsTitle`, …) — marks and word order differ by language. Dates and money take the
+     reader's locale (`Localizations.localeOf(context)`), never the device default.
+   - **The account's app language drives the UI locale** (`providers/locale_provider.dart`), but only for
+     a language that ships an ARB file. Adding `app_hi.arb` is all it takes for Hindi to switch on.
 3. **Standard color system.** One palette defined in the theme, used everywhere.
 4. **This is not styled as a "spiritual app."** No ancient/ornamental theming. Follow standard design patterns with consistent color, padding and spacing throughout.
 

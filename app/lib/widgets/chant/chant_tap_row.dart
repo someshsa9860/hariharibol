@@ -41,7 +41,7 @@ class ChantTapRow extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: AppSpacing.sm,
                   children: [
-                    Text(formatTimeOfDay(tap.at), style: context.texts.bodyMedium),
+                    Text(formatTimeOfDay(context, tap.at), style: context.texts.bodyMedium),
                     if (tap.auto)
                       Icon(
                         Icons.mic_rounded,

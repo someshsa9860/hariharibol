@@ -184,6 +184,24 @@ abstract class AppLocalizations {
   /// **'Your session has ended. Please sign in again.'**
   String get errorSessionExpired;
 
+  /// No description provided for @errorSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not sign you in. Please try again.'**
+  String get errorSignIn;
+
+  /// No description provided for @errorInsecureConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection is not secure.'**
+  String get errorInsecureConnection;
+
+  /// No description provided for @errorCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled.'**
+  String get errorCancelled;
+
   /// No description provided for @errorEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -328,6 +346,12 @@ abstract class AppLocalizations {
   /// **'Hari Bol, {name}'**
   String homeGreetingNamed(String name);
 
+  /// Today's date under the greeting, e.g. "Saturday · 27 April". The pattern is fixed by the template; a translation changes only the month and weekday names, which follow the locale.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}'**
+  String homeDateLine(DateTime date);
+
   /// No description provided for @homeMoodPrompt.
   ///
   /// In en, this message translates to:
@@ -442,6 +466,12 @@ abstract class AppLocalizations {
   /// **'Verses'**
   String get searchSectionVerses;
 
+  /// App bar title of a results page: which kind of result, then what was searched for.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · {query}'**
+  String searchResultsTitle(String kind, String query);
+
   /// No description provided for @labelCanto.
   ///
   /// In en, this message translates to:
@@ -459,6 +489,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verse {number}'**
   String labelVerse(int number);
+
+  /// No description provided for @labelCantoChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Canto {canto} · Chapter {chapter}'**
+  String labelCantoChapter(int canto, int chapter);
+
+  /// A verse's translation set off as a quotation. Use the quotation marks of the language.
+  ///
+  /// In en, this message translates to:
+  /// **'“{meaning}”'**
+  String labelQuotedMeaning(String meaning);
+
+  /// The line crediting whoever translated the verse, under the quotation.
+  ///
+  /// In en, this message translates to:
+  /// **'— {name}'**
+  String labelTranslatorCredit(String name);
 
   /// No description provided for @sadhanaRoundsProgress.
   ///
@@ -975,6 +1023,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Made with reverence'**
   String get settingsMadeWith;
+
+  /// The last line of settings: the version line and the sign-off, side by side.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} · {madeWith}'**
+  String settingsFooter(String version, String madeWith);
 
   /// No description provided for @themeSystem.
   ///
@@ -1983,6 +2037,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} on'**
   String chantSetupOn(int count);
+
+  /// The setup button's label followed by how many helpers are on, e.g. "Auto count & words · 1 on".
+  ///
+  /// In en, this message translates to:
+  /// **'{button} · {state}'**
+  String chantSetupButtonState(String button, String state);
 
   /// No description provided for @chantSetupDone.
   ///

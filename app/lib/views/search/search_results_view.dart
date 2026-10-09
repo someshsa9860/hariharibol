@@ -82,7 +82,7 @@ class _SearchResultsViewState extends ConsumerState<SearchResultsView> {
     final text = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text('${_kindLabel(text)} · ${widget.query}')),
+      appBar: AppBar(title: Text(text.searchResultsTitle(_kindLabel(text), widget.query))),
       body: switch (widget.scope) {
         SearchScope.verse => _VerseResults(query: widget.query, controller: _scroll),
         SearchScope.mantra => _MantraResults(query: widget.query, controller: _scroll),
