@@ -152,6 +152,20 @@ has none and every average leaves it out.
   match is settled so half a chant is never counted twice). Phrases come from the API per mantra (seeded
   in `backend/prisma/seed/chant-phrases.js`, fallback `transliteration`), so any mantra opened works with
   no app change. Tuning is in `AutoChantConfig`; `test/mantra_phrase_matcher_test.dart`.
+  - **Two recognisers.** The bundled English one (above) is the default and always the fallback. A person
+    can instead download **Omnilingual ASR 300M** (365 MB, `services/mantra_accurate_model.dart`, a row in the
+    setup sheet — `widgets/chant/auto_chant_model_row.dart`, `providers/auto_chant_model_provider.dart`),
+    which writes the chant in Devanagari. `MantraDetectionEngine.start` uses it when it is on disk: the worker
+    then gathers a stretch of voice and decodes it once, as it ends or after `accurateMaxUtteranceSeconds`, where
+    the bundled one streams. It is held to `accurateMatchThreshold` (65%) and is also matched against the
+    mantra's own script (`Mantra.scriptPhrase`). **Nothing is offered until `AUTO_CHANT_MODEL_URL` is set** at
+    build time, and not on a phone with under `accurateMinRamMegabytes`. Every Indic script is folded to
+    the same sounds first (`services/indic_sounds.dart`) because the model picks a script itself.
+    The offline numbers, and why, are in `tool/auto_chant_bench/` and `assets/models/auto_chant/NOTICE.md`.
+    **Not yet tried on a phone:** latency (about 0.35x real time on one desktop thread, so a 3 s chant may be
+    counted 1-3 s after it ends) and memory.
+  - **A short phrase must end near the start of what was heard** (`shortPhraseReach`), or a lone "Om" counted in
+    any sentence containing the sound — 99 false counts in 24 minutes of ordinary speech, now 1.
   - **It logs what it is doing** (`services/auto_chant_log.dart`): every line starts `[AutoChant hh:mm:ss.mmm]`,
     so filtering the console on `AutoChant` shows only this. On in debug and profile builds, off in release
     unless built with `--dart-define=AUTO_CHANT_LOG=true` (`AutoChantConfig.logging`). The lines carry what
