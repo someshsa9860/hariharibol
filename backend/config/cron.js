@@ -47,6 +47,13 @@ const schedules = [
     description: 'Delete chant speech transcripts past their 7-day expiry.',
   },
   {
+    name: 's3.temp.prune',
+    queue: 'maintenance',
+    // 1st of the month, 04:00 UTC.
+    cron: '0 4 1 * *',
+    description: 'Delete uploads left in temp/ for over a month — files nobody ever saved.',
+  },
+  {
     name: 'audit.prune',
     queue: 'maintenance',
     cron: '0 3 * * 0',

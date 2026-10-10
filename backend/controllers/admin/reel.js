@@ -55,7 +55,7 @@ const EDIT_INCLUDE = {
 // bucket carry keys that predate the generated format.
 export function assertKey(key, kinds, current = []) {
   if (!key || current.includes(key)) return;
-  const inKind = kinds.some((kind) => key.startsWith(`${s3.PREFIXES[kind]}/`));
+  const inKind = kinds.some((kind) => s3.keyHasPrefix(key, s3.PREFIXES[kind]));
   if (!s3.isGeneratedKey(key) || !inKind) throw badRequest(`Not a reel upload key: ${key}`);
 }
 

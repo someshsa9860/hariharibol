@@ -10,7 +10,16 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  HeadObjectCommand,
+  CopyObjectCommand,
+  ListObjectsV2Command,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 
@@ -55,8 +64,21 @@ function localPath(key) {
   return path.join(LOCAL_STORAGE_ROOT, key);
 }
 
-// Where each kind of media lives. One list, so keys stay predictable and a
-// stray upload cannot land at the bucket root.
+// Everything lives under one parent folder, so the bucket shows one project
+// rather than a pile of loose prefixes.
+//
+//   hariharibol/<kind prefix>/<id>.<ext>             saved — what rows point at
+//   temp/<DD-MM-YY>/hariharibol/<kind prefix>/…      uploaded, not yet saved
+//
+// A presigned upload always lands in temp/. The key the client gets back is that
+// temp key; when a row is saved with it (see commitKeys), the object is moved to
+// its permanent home and the row stores the permanent key. Anything never saved
+// is swept by the monthly `s3.temp.prune` job.
+const ROOT = 'hariharibol';
+const TEMP = 'temp';
+
+// Where each kind of media lives inside ROOT. One list, so keys stay predictable
+// and a stray upload cannot land at the bucket root.
 const PREFIXES = {
   mantraAudio: 'mantras/audio',
   mantraMalaAudio: 'mantras/mala',
@@ -78,6 +100,24 @@ const PREFIXES = {
   reelTemplateBackground: 'reel-templates/backgrounds',
   reelTemplateLogo: 'reel-templates/logos',
 };
+
+// DD-MM-YY, UTC — the same clock the scheduled jobs run on.
+function tempDay(date = new Date()) {
+  const dd = String(date.getUTCDate()).padStart(2, '0');
+  const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const yy = String(date.getUTCFullYear()).slice(-2);
+  return `${dd}-${mm}-${yy}`;
+}
+
+const TEMP_PREFIX_RE = /^temp\/\d{2}-\d{2}-\d{2}\//;
+const isTempKey = (key) => typeof key === 'string' && TEMP_PREFIX_RE.test(key);
+
+// The key without its temp/<date>/ and hariharibol/ parts: `books/covers/x.jpg`.
+// Keys from before this layout have no root and come back unchanged.
+const bareKey = (key) => key.replace(TEMP_PREFIX_RE, '').replace(`${ROOT}/`, '');
+
+// True when the key sits under this kind prefix — temp, saved or legacy.
+const keyHasPrefix = (key, prefix) => typeof key === 'string' && bareKey(key).startsWith(`${prefix}/`);
 
 const ALLOWED_CONTENT_TYPES = new Set([
   'image/jpeg',
@@ -115,7 +155,7 @@ function buildKey(kind, contentType) {
     throw badRequest(`Unsupported content type: ${contentType}`);
   }
   const id = crypto.randomBytes(16).toString('hex');
-  return `${prefix}/${id}.${EXTENSIONS[contentType]}`;
+  return `${TEMP}/${tempDay()}/${ROOT}/${prefix}/${id}.${EXTENSIONS[contentType]}`;
 }
 
 // ── Reading ────────────────────────────────────────────────────────────────
@@ -159,7 +199,7 @@ const presignList = (rows, fields) =>
 // True only for a key buildKey could have produced. The local-upload route
 // writes wherever its key says, so it has to be able to refuse `../../.env`.
 const GENERATED_KEY = new RegExp(
-  `^(?:${Object.values(PREFIXES).join('|')})/[0-9a-f]{32}\\.(?:${Object.values(EXTENSIONS).join('|')})$`
+  `^(?:temp/\\d{2}-\\d{2}-\\d{2}/)?(?:${ROOT}/)?(?:${Object.values(PREFIXES).join('|')})/[0-9a-f]{32}\\.(?:${Object.values(EXTENSIONS).join('|')})$`
 );
 const isGeneratedKey = (key) => typeof key === 'string' && GENERATED_KEY.test(key);
 
@@ -238,8 +278,108 @@ async function objectExists(key) {
   }
 }
 
+// ── Saving and cleaning up ─────────────────────────────────────────────────
+
+// Moves a temp upload to its permanent key and returns that key. Anything that
+// is not a temp key — already saved, or from before this layout — is returned
+// as it came. Called by the database client when a row is written (see
+// config/database.js), so no controller has to remember to do it.
+async function commitKey(key) {
+  if (!isTempKey(key)) return key;
+  const dest = key.replace(TEMP_PREFIX_RE, '');
+
+  if (useLocalStorage) {
+    try {
+      await fs.mkdir(path.dirname(localPath(dest)), { recursive: true });
+      await fs.rename(localPath(key), localPath(dest));
+    } catch (err) {
+      // Already moved by an earlier attempt at this same save.
+      if (!(await objectExists(dest))) throw badRequest('That upload has expired — upload it again');
+    }
+    return dest;
+  }
+
+  try {
+    await client.send(
+      new CopyObjectCommand({ Bucket: BUCKET, Key: dest, CopySource: `${BUCKET}/${key}` })
+    );
+  } catch (err) {
+    if (!(await objectExists(dest))) throw badRequest('That upload has expired — upload it again');
+    return dest;
+  }
+  await deleteObject(key);
+  return dest;
+}
+
+// Walks a value about to be written and commits every temp key in it — a plain
+// column, or a path inside a JSON column such as a reel recipe's config. Returns
+// the value with permanent keys in their place; the input is not changed.
+async function commitKeys(value) {
+  if (typeof value === 'string') return isTempKey(value) && isGeneratedKey(value) ? commitKey(value) : value;
+  if (Array.isArray(value)) return Promise.all(value.map(commitKeys));
+  if (value && Object.getPrototypeOf(value) === Object.prototype) {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = await commitKeys(v);
+    return out;
+  }
+  return value; // Date, Decimal, Buffer, null …
+}
+
+// Deletes everything under temp/ that was uploaded before `before` and never
+// saved. The date folder is the upload day, so it decides, not LastModified.
+async function pruneTemp(before) {
+  const cutoff = tempDay(before);
+  const toDate = (day) => {
+    const [dd, mm, yy] = day.split('-').map(Number);
+    return Date.UTC(2000 + yy, mm - 1, dd);
+  };
+  const cutoffTime = toDate(cutoff);
+  let deleted = 0;
+
+  if (useLocalStorage) {
+    const base = path.join(LOCAL_STORAGE_ROOT, TEMP);
+    for (const day of await fs.readdir(base).catch(() => [])) {
+      if (!/^\d{2}-\d{2}-\d{2}$/.test(day) || toDate(day) >= cutoffTime) continue;
+      await fs.rm(path.join(base, day), { recursive: true, force: true });
+      deleted += 1;
+    }
+    return { deleted };
+  }
+
+  let ContinuationToken;
+  do {
+    const page = await client.send(
+      new ListObjectsV2Command({ Bucket: BUCKET, Prefix: `${TEMP}/`, ContinuationToken, MaxKeys: 1000 })
+    );
+    const old = (page.Contents ?? []).filter((obj) => {
+      const day = obj.Key.split('/')[1];
+      return /^\d{2}-\d{2}-\d{2}$/.test(day) && toDate(day) < cutoffTime;
+    });
+    if (old.length) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: BUCKET,
+          Delete: { Objects: old.map((obj) => ({ Key: obj.Key })), Quiet: true },
+        })
+      );
+      deleted += old.length;
+    }
+    ContinuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+  } while (ContinuationToken);
+
+  return { deleted };
+}
+
 export {
+  ROOT,
+  TEMP,
   PREFIXES,
+  isTempKey,
+  bareKey,
+  keyHasPrefix,
+  commitKey,
+  commitKeys,
+  pruneTemp,
   ALLOWED_CONTENT_TYPES,
   buildKey,
   isGeneratedKey,

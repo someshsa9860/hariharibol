@@ -30,7 +30,8 @@ router.post(
     summary: 'Get a presigned upload URL',
     description:
       'PUT the file to the returned URL, then save the returned `key` — not the URL — onto ' +
-      'the row. The bucket is private and links are signed at read time, so a stored URL ' +
+      'the row. The key is a `temp/<DD-MM-YY>/hariharibol/…` one; saving the row moves the ' +
+      'file to `hariharibol/…` and stores that, and unsaved uploads are swept monthly. The bucket is private and links are signed at read time, so a stored URL ' +
       'would expire. The key is generated here and never taken from the client: a ' +
       'client-supplied key is how one upload overwrites another’s file.',
     permission: 'media.upload',

@@ -210,7 +210,7 @@ async function makeVideo(deitySlug, seconds = 8) {
 // re-run overwrites its own file instead of littering.
 async function putMedia(kind, slug, filePath, contentType) {
   const extension = contentType === 'video/mp4' ? 'mp4' : 'jpg';
-  const key = `${s3.PREFIXES[kind]}/${slug}.${extension}`;
+  const key = `${s3.ROOT}/${s3.PREFIXES[kind]}/${slug}.${extension}`;
   await s3.putObject(key, await fs.readFile(filePath), contentType);
   return key;
 }

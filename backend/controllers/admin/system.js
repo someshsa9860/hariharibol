@@ -52,20 +52,21 @@ const STORAGE_CACHE_TTL = 600; // 10 minutes — a full bucket listing is not fr
 async function localStorageSummary() {
   const byKind = [];
   for (const [kind, prefix] of Object.entries(s3.PREFIXES)) {
-    const dir = path.join(s3.LOCAL_STORAGE_ROOT, prefix);
     let sizeBytes = 0;
     let count = 0;
-    try {
-      const files = await readdir(dir);
-      for (const file of files) {
-        const stats = await stat(path.join(dir, file));
-        if (stats.isFile()) {
-          sizeBytes += stats.size;
-          count += 1;
+    // The saved location, and the one from before everything moved under hariharibol/.
+    for (const dir of [path.join(s3.LOCAL_STORAGE_ROOT, s3.ROOT, prefix), path.join(s3.LOCAL_STORAGE_ROOT, prefix)]) {
+      try {
+        for (const file of await readdir(dir)) {
+          const stats = await stat(path.join(dir, file));
+          if (stats.isFile()) {
+            sizeBytes += stats.size;
+            count += 1;
+          }
         }
+      } catch {
+        // Directory doesn't exist yet — nothing uploaded of this kind.
       }
-    } catch {
-      // Prefix directory doesn't exist yet — nothing uploaded of this kind.
     }
     byKind.push({ kind, sizeBytes, count });
   }
@@ -82,7 +83,8 @@ async function s3StorageSummary() {
       new ListObjectsV2Command({ Bucket: s3.BUCKET, ContinuationToken, MaxKeys: 1000 })
     );
     for (const obj of page.Contents ?? []) {
-      const topPrefix = [...prefixToKind.keys()].find((p) => obj.Key.startsWith(`${p}/`));
+      if (s3.isTempKey(obj.Key)) continue; // unsaved uploads are not content
+      const topPrefix = [...prefixToKind.keys()].find((p) => s3.keyHasPrefix(obj.Key, p));
       const kind = topPrefix ? prefixToKind.get(topPrefix) : null;
       const bucket = kind ? totals.get(kind) : null;
       if (bucket) {

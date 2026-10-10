@@ -9,6 +9,7 @@
 
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
+import * as s3 from '../../services/s3.js';
 
 const RETENTION_DAYS = {
   // Who changed what. The longest, because this is the one that answers
@@ -33,6 +34,14 @@ export default async function maintenanceProcessor(job) {
       .count;
     logger.info({ count }, 'chant transcript prune finished');
     return { chantTranscript: count };
+  }
+
+  // Monthly: uploads that were never saved onto a row. Anything younger than a
+  // month is kept — a form left open over a weekend must still be saveable.
+  if (job.name === 's3.temp.prune') {
+    const { deleted } = await s3.pruneTemp(cutoff(30));
+    logger.info({ deleted }, 's3 temp prune finished');
+    return { s3Temp: deleted };
   }
 
   const results = {};

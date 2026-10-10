@@ -31,6 +31,7 @@ const JOBS = {
   ENTITLEMENT_SWEEP: 'entitlement.sweep',
   AUDIT_PRUNE: 'audit.prune',
   CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',
+  S3_TEMP_PRUNE: 's3.temp.prune',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
 };

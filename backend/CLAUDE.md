@@ -23,7 +23,7 @@ backend/
 ├── services/              # shared infra only
 │   ├── ai/                # provider-agnostic AI: index.js, gemini.js, openai.js
 │   ├── payments/          # google.js, apple.js, razorpay.js, index.js (the ledger)
-│   ├── s3.js              # uploads + presigned URLs (bucket is private)
+│   ├── s3.js              # uploads, temp→saved moves, presigned URLs (bucket is private)
 │   ├── auth.js            # tokens, google/apple verification, permission cache
 │   ├── entitlement.js     # who is Premium, and why
 │   ├── book-counts.js     # verse / chapter / canto counts, rebuilt from the rows
@@ -319,3 +319,18 @@ A code-build-graph package should be wired up and re-run periodically so the str
 
 - **`code-build-graph`** — still not installed, and no package by that name was
   found on npm. Confirm which tool is meant.
+
+## Storage layout (S3)
+
+One parent folder, `hariharibol/`, holds every saved file: `hariharibol/<kind prefix>/<id>.<ext>`
+(prefixes are `PREFIXES` in `services/s3.js`).
+
+A presigned upload never lands there directly. It goes to
+`temp/<DD-MM-YY>/hariharibol/<kind prefix>/<id>.<ext>` and that temp key is what the
+client gets back. When the client saves a row with it, `config/database.js` (a Prisma
+client extension on create/update/upsert) moves the object to the same path without
+`temp/<DD-MM-YY>/` and stores the permanent key — plain columns and keys inside JSON
+columns alike, so no controller has to call anything. The monthly `s3.temp.prune` job
+(`config/cron.js`, 1st of the month 04:00 UTC) deletes temp days older than 30 days —
+uploads nobody saved. Keys saved before this layout have no `hariharibol/` root and
+still work; nothing rewrites them.
