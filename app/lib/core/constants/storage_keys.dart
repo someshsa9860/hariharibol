@@ -22,6 +22,12 @@ abstract final class BoxKeys {
 
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
+
+  /// The three independent language settings (LanguageSettings). Each is its
+  /// own key so changing one cannot touch the others.
+  static const String languageApp = 'settings.language.app';
+  static const String languageReading = 'settings.language.reading';
+  static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
 
   /// Hold the silent book sync to Wi-Fi. Off by default: it is small, and

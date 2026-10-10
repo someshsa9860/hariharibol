@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "note": "Voices the app may offer. An entry is installable only when it is enabled and carries url, sizeBytes and sha256 — a voice without a checksum is never downloaded. Candidates are listed with enabled=false until someone has confirmed the file exists and recorded its checksum. Until then the phone's own voice is used. See app/CLAUDE.md, 'Spoken meaning and purport'.",
+  "models": [
+    {
+      "id": "vits-piper-en_US-lessac-medium",
+      "name": "English (US) — Lessac",
+      "languages": ["en"],
+      "engine": "sherpa-vits",
+      "enabled": false,
+      "url": "",
+      "sizeBytes": 0,
+      "sha256": "",
+      "archive": "tar.bz2",
+      "license": "MIT (Piper voice; dataset Blizzard/LJ-style, check the model card)",
+      "files": { "model": "en_US-lessac-medium.onnx", "tokens": "tokens.txt", "dataDir": "espeak-ng-data" }
+    },
+    {
+      "id": "vits-piper-hi_IN-pratham-medium",
+      "name": "हिन्दी — Pratham",
+      "languages": ["hi"],
+      "engine": "sherpa-vits",
+      "enabled": false,
+      "url": "",
+      "sizeBytes": 0,
+      "sha256": "",
+      "archive": "tar.bz2",
+      "license": "Check the Piper voice card before enabling",
+      "files": { "model": "hi_IN-pratham-medium.onnx", "tokens": "tokens.txt", "dataDir": "espeak-ng-data" }
+    },
+    {
+      "id": "vits-piper-te_IN-venkatesh-medium",
+      "name": "తెలుగు — Venkatesh",
+      "languages": ["te"],
+      "engine": "sherpa-vits",
+      "enabled": false,
+      "url": "",
+      "sizeBytes": 0,
+      "sha256": "",
+      "archive": "tar.bz2",
+      "license": "Check the Piper voice card before enabling",
+      "files": { "model": "te_IN-venkatesh-medium.onnx", "tokens": "tokens.txt", "dataDir": "espeak-ng-data" }
+    },
+    {
+      "id": "vits-mms-tam",
+      "name": "தமிழ் — MMS",
+      "languages": ["ta"],
+      "engine": "sherpa-vits",
+      "enabled": false,
+      "url": "",
+      "sizeBytes": 0,
+      "sha256": "",
+      "archive": "tar.bz2",
+      "license": "CC-BY-NC 4.0 (Meta MMS) — non-commercial; do not enable in a commercial build without a licence decision",
+      "files": { "model": "model.onnx", "tokens": "tokens.txt" }
+    }
+  ]
+}

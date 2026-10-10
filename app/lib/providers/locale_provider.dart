@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/generated/app_localizations.dart';
-import 'session_provider.dart';
+import 'language_settings_provider.dart';
 
 /// The shipped locale that matches an account's app language, or null.
 ///
@@ -18,12 +18,10 @@ Locale? shippedLocaleFor(String? languageCode) {
   return null;
 }
 
-/// The language the interface is written in: the one the account chose.
-///
-/// Null until someone is signed in — sign-in and the language picker are the
-/// first screens anyone sees, and they follow the phone. Changing the language
-/// in settings updates the session's user, which lands here and redraws the
-/// app without a restart.
+/// The language the interface is written in: the app language setting
+/// (`languageSettingsProvider`), which defaults to the phone's language when it
+/// has an ARB file and English when it does not. Changing it redraws the app
+/// without a restart, and touches neither the reading nor the speaking language.
 final appLocaleProvider = Provider<Locale?>((ref) {
-  return shippedLocaleFor(ref.watch(currentUserProvider)?.appLanguage);
+  return shippedLocaleFor(ref.watch(languageSettingsProvider.select((s) => s.app)));
 });

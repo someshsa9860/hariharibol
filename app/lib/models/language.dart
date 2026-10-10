@@ -34,6 +34,8 @@ class Language {
         LanguageSlot.app => isAppLanguage,
         LanguageSlot.mantra => isMantraLanguage,
         LanguageSlot.reading => isReadingLanguage,
+        // What can be spoken is what there is text to read aloud in.
+        LanguageSlot.speaking => isReadingLanguage,
       };
 
   factory Language.fromJson(Json json) => Language(
@@ -48,4 +50,4 @@ class Language {
 }
 
 /// The three independent settings an account holds.
-enum LanguageSlot { app, mantra, reading }
+enum LanguageSlot { app, mantra, reading, speaking }

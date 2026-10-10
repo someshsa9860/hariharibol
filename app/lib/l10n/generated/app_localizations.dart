@@ -2253,6 +2253,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The recording couldn\'t be loaded.'**
   String get chantAlongLoadFailed;
+
+  /// No description provided for @settingsSectionLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get settingsSectionLanguages;
+
+  /// No description provided for @settingsLanguageApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App language'**
+  String get settingsLanguageApp;
+
+  /// No description provided for @settingsLanguageAppHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Menus, buttons and labels'**
+  String get settingsLanguageAppHint;
+
+  /// No description provided for @settingsLanguageReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading language'**
+  String get settingsLanguageReading;
+
+  /// No description provided for @settingsLanguageReadingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation, meaning and purport'**
+  String get settingsLanguageReadingHint;
+
+  /// No description provided for @settingsLanguageSpeaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking and hearing language'**
+  String get settingsLanguageSpeaking;
+
+  /// No description provided for @settingsLanguageSpeakingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio and spoken meaning'**
+  String get settingsLanguageSpeakingHint;
+
+  /// No description provided for @settingsLanguagePickerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the app language'**
+  String get settingsLanguagePickerApp;
+
+  /// No description provided for @settingsLanguagePickerReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the reading language'**
+  String get settingsLanguagePickerReading;
+
+  /// No description provided for @settingsLanguagePickerSpeaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the speaking language'**
+  String get settingsLanguagePickerSpeaking;
+
+  /// No description provided for @settingsLanguageSanskritNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sanskrit verses always stay in Sanskrit.'**
+  String get settingsLanguageSanskritNote;
 }
 
 class _AppLocalizationsDelegate

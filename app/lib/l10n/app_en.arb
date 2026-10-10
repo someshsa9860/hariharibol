@@ -1,12 +1,13 @@
 {
   "@@locale": "en",
-
   "appName": "HariHariBol",
-  "@appName": { "description": "The application name." },
-
+  "@appName": {
+    "description": "The application name."
+  },
   "splashTagline": "Read · Chant · Practice",
-  "@splashTagline": { "description": "The line under the logo while the app opens. Shown in capitals, so write it in ordinary case." },
-
+  "@splashTagline": {
+    "description": "The line under the logo while the app opens. Shown in capitals, so write it in ordinary case."
+  },
   "actionRetry": "Try again",
   "actionCancel": "Cancel",
   "actionOk": "OK",
@@ -16,7 +17,6 @@
   "actionSignOut": "Sign out",
   "actionDeleteAccount": "Delete account",
   "actionContinue": "Continue",
-
   "errorGeneric": "Something went wrong. Please try again.",
   "errorNetwork": "No connection. Check your internet and try again.",
   "errorTimeout": "That took too long. Please try again.",
@@ -27,7 +27,6 @@
   "errorEmptyTitle": "Nothing here yet",
   "errorRouteNotFound": "That screen does not exist.",
   "actionGoHome": "Go to home",
-
   "signInTitle": "Welcome",
   "signInSubtitle": "Read, chant and keep your daily practice in one place.",
   "signInWithGoogle": "Continue with Google",
@@ -35,43 +34,67 @@
   "signInCancelled": "Sign-in was cancelled.",
   "signInFailed": "We could not sign you in. Please try again.",
   "signInLegal": "By continuing you agree to our Terms and Privacy Policy.",
-
   "languageStepOf": "Step {current} of {total}",
   "@languageStepOf": {
-    "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "languageAppTitle": "Which language feels like home?",
   "languageAppSubtitle": "You can change this anytime in settings.",
   "languageMantraTitle": "Which script do you chant in?",
   "languageMantraSubtitle": "Mantras appear in this script. Their meaning stays in your own language.",
   "actionBack": "Back",
-
   "tabHome": "Home",
   "tabSadhana": "Jap",
   "tabLibrary": "Read",
   "tabRoutine": "Routine",
   "reelsTitle": "Reels",
   "tabSearch": "Search",
-
   "homeGreeting": "Hari Bol",
   "homeGreetingNamed": "Hari Bol, {name}",
   "homeDateLine": "{date}",
   "@homeDateLine": {
     "description": "Today's date under the greeting, e.g. \"Saturday · 27 April\". The pattern is fixed by the template; a translation changes only the month and weekday names, which follow the locale.",
     "placeholders": {
-      "date": { "type": "DateTime", "format": "EEEE · d MMMM", "isCustomDateFormat": "true" }
+      "date": {
+        "type": "DateTime",
+        "format": "EEEE · d MMMM",
+        "isCustomDateFormat": "true"
+      }
     }
   },
   "@homeGreetingNamed": {
     "description": "The dashboard greeting. The devotional greeting is the point, so it is not swapped for a time-of-day one.",
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "homeMoodPrompt": "How are you today?",
   "homeMoodAnsweredToday": "You've shared how you're feeling today. Come back tomorrow to share something new.",
   "homeMoodViewToday": "{count, plural, =1{Read today's verse again} other{Read today's {count} verses again}}",
-  "@homeMoodViewToday": { "placeholders": { "count": { "type": "int" } } },
+  "@homeMoodViewToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeMoodSubmit": "{count, plural, =1{Show me a verse} other{Show me {count} verses}}",
-  "@homeMoodSubmit": { "placeholders": { "count": { "type": "int" } } },
+  "@homeMoodSubmit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeVerseOfTheDay": "Verse of the day",
   "homeSlokaForYou": "For you today",
   "homeTodaysSadhana": "Today's sadhana",
@@ -80,13 +103,29 @@
   "homeMantras": "Mantras",
   "homeStartYourDay": "Set today's target",
   "homeChantMantra": "Chant {mantra}",
-  "@homeChantMantra": { "placeholders": { "mantra": { "type": "String" } } },
-
+  "@homeChantMantra": {
+    "placeholders": {
+      "mantra": {
+        "type": "String"
+      }
+    }
+  },
   "bookChapterCount": "{count, plural, =1{1 chapter} other{{count} chapters}}",
-  "@bookChapterCount": { "placeholders": { "count": { "type": "int" } } },
+  "@bookChapterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "bookVerseCount": "{count, plural, =1{1 verse} other{{count} verses}}",
-  "@bookVerseCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@bookVerseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchHint": "Search verses, mantras, books",
   "searchPrompt": "Search across the whole library, straight from the server.",
   "searchShortcutLabel": "Or jump straight to a verse:",
@@ -95,44 +134,107 @@
   "searchResultsTitle": "{kind} · {query}",
   "@searchResultsTitle": {
     "description": "App bar title of a results page: which kind of result, then what was searched for.",
-    "placeholders": { "kind": { "type": "String" }, "query": { "type": "String" } }
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
   },
-
   "labelCanto": "Canto {number}",
-  "@labelCanto": { "placeholders": { "number": { "type": "int" } } },
+  "@labelCanto": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelChapter": "Chapter {number}",
-  "@labelChapter": { "placeholders": { "number": { "type": "int" } } },
+  "@labelChapter": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelVerse": "Verse {number}",
-  "@labelVerse": { "placeholders": { "number": { "type": "int" } } },
+  "@labelVerse": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelCantoChapter": "Canto {canto} · Chapter {chapter}",
-  "@labelCantoChapter": { "placeholders": { "canto": { "type": "int" }, "chapter": { "type": "int" } } },
+  "@labelCantoChapter": {
+    "placeholders": {
+      "canto": {
+        "type": "int"
+      },
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
   "labelQuotedMeaning": "“{meaning}”",
   "@labelQuotedMeaning": {
     "description": "A verse's translation set off as a quotation. Use the quotation marks of the language.",
-    "placeholders": { "meaning": { "type": "String" } }
+    "placeholders": {
+      "meaning": {
+        "type": "String"
+      }
+    }
   },
   "labelTranslatorCredit": "— {name}",
   "@labelTranslatorCredit": {
     "description": "The line crediting whoever translated the verse, under the quotation.",
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
-
   "sadhanaRoundsProgress": "{done} of {target} rounds",
   "@sadhanaRoundsProgress": {
-    "placeholders": { "done": { "type": "int" }, "target": { "type": "int" } }
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
   },
   "sadhanaTasksProgress": "{done} of {total} tasks done",
   "@sadhanaTasksProgress": {
-    "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "sadhanaStreak": "{days, plural, =0{No streak yet} =1{1 day streak} other{{days} day streak}}",
   "@sadhanaStreak": {
-    "placeholders": { "days": { "type": "int" } }
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
-
   "sadhanaGenericChant": "Japa",
   "sadhanaRoundsShort": "{rounds} rounds",
-  "@sadhanaRoundsShort": { "placeholders": { "rounds": { "type": "int" } } },
+  "@sadhanaRoundsShort": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
   "sadhanaTodaysSessions": "Today's chanting",
   "sadhanaNoSessionsYet": "Nothing logged yet today.",
   "sadhanaRoundsEyebrow": "Rounds today",
@@ -141,16 +243,33 @@
   "sadhanaLogRounds": "Log rounds",
   "sadhanaLogRoundsSubtitle": "Rounds chanted on your beads, added to today's total.",
   "sadhanaLogRoundsSubmit": "Log {rounds} rounds",
-  "@sadhanaLogRoundsSubmit": { "placeholders": { "rounds": { "type": "int" } } },
+  "@sadhanaLogRoundsSubmit": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
   "sadhanaTargetReached": "Today's target reached",
   "sadhanaUndoBead": "Undo last bead",
   "sadhanaElapsedEyebrow": "Elapsed",
   "sadhanaPaceEyebrow": "Pace",
   "sadhanaElapsedSeconds": "{seconds}s",
-  "@sadhanaElapsedSeconds": { "placeholders": { "seconds": { "type": "String" } } },
+  "@sadhanaElapsedSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "sadhanaPacePerMantra": "{seconds}s each",
-  "@sadhanaPacePerMantra": { "placeholders": { "seconds": { "type": "String" } } },
-
+  "@sadhanaPacePerMantra": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "sadhanaAutoCount": "Auto count",
   "sadhanaAutoCountOff": "Off — tap a bead yourself",
   "sadhanaAutoCountIdle": "Waiting for chanting",
@@ -158,38 +277,64 @@
   "sadhanaAutoCountCounted": "Counted — listening for the next one",
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
   "sadhanaAutoCountUnavailable": "Auto count isn't available right now",
-
   "chantModelTitle": "Sharper listening",
   "chantModelOffer": "Understands Sanskrit far better. One download of {megabytes} MB — use Wi-Fi.",
-  "@chantModelOffer": { "placeholders": { "megabytes": { "type": "int" } } },
+  "@chantModelOffer": {
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      }
+    }
+  },
   "chantModelDownload": "Download",
   "chantModelDownloading": "Downloading… {percent}%",
-  "@chantModelDownloading": { "placeholders": { "percent": { "type": "int" } } },
+  "@chantModelDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "chantModelCancel": "Cancel",
   "chantModelInstalled": "Downloaded — used the next time you switch auto count on",
   "chantModelRemove": "Remove",
   "chantModelFailed": "The download didn't finish",
   "chantModelRetry": "Try again",
-
   "mantraAllCategories": "All",
   "mantraNoneInCategory": "No mantras in this category yet.",
   "mantraStandardRounds": "{rounds} rounds",
-  "@mantraStandardRounds": { "placeholders": { "rounds": { "type": "int" } } },
+  "@mantraStandardRounds": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
   "mantraStandardCount": "{count} times",
-  "@mantraStandardCount": { "placeholders": { "count": { "type": "int" } } },
+  "@mantraStandardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mantraHasAudio": "Recitation available",
   "mantraPurport": "Purport",
   "mantraMyRounds": "You've chanted {rounds} rounds of this",
-  "@mantraMyRounds": { "placeholders": { "rounds": { "type": "int" } } },
+  "@mantraMyRounds": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
   "mantraChantThis": "Chant this",
-
   "profileStatVersesSaved": "Verses saved",
   "profileStatTotalRounds": "Total rounds",
   "profileStatChantingDays": "Chanting days",
   "profileStatSlokasRead": "Slokas read",
   "profileRecentFavorites": "Recent favourites",
   "profileNoFavorites": "Nothing saved yet. Bookmark a verse and it will be here.",
-
   "settingsTitle": "Settings",
   "settingsSectionPractice": "Practice",
   "settingsSectionAccount": "Account",
@@ -198,7 +343,13 @@
   "settingsDailyGoal": "Daily goal",
   "settingsDailyGoalSubtitle": "Rounds to aim for each day. Sets what every new day starts at.",
   "settingsDailyGoalSubmit": "Set daily goal to {rounds}",
-  "@settingsDailyGoalSubmit": { "placeholders": { "rounds": { "type": "int" } } },
+  "@settingsDailyGoalSubmit": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
   "settingsPreferredMantra": "Preferred mantra",
   "settingsPreferredMantraNone": "Not set",
   "settingsChooseMantraTitle": "Choose your mantra",
@@ -211,14 +362,35 @@
   "plansCurrent": "Current plan",
   "plansFreeForEveryone": "Free for everyone",
   "plansPricePer": "{price} / {period}",
-  "@plansPricePer": { "placeholders": { "price": { "type": "String" }, "period": { "type": "String" } } },
+  "@plansPricePer": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "plansPeriodWeek": "week",
   "plansPeriodMonth": "month",
   "plansPeriodYear": "year",
   "plansPeriodDays": "{days} days",
-  "@plansPeriodDays": { "placeholders": { "days": { "type": "int" } } },
+  "@plansPeriodDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "plansTrial": "{days}-day free trial",
-  "@plansTrial": { "placeholders": { "days": { "type": "int" } } },
+  "@plansTrial": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "plansSubscribe": "Subscribe",
   "plansStartTrial": "Start free trial",
   "plansRestore": "Restore purchases",
@@ -229,85 +401,122 @@
   "plansPurchaseFailed": "The purchase did not go through.",
   "plansPurchaseCancelled": "Purchase cancelled.",
   "plansRenews": "Renews on {date}",
-  "@plansRenews": { "placeholders": { "date": { "type": "String" } } },
+  "@plansRenews": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "plansEnds": "Access until {date}",
-  "@plansEnds": { "placeholders": { "date": { "type": "String" } } },
+  "@plansEnds": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "plansPermanent": "Yours permanently — thank you for supporting HariHariBol.",
   "plansIncluded": "Included",
   "plansNotIncluded": "Not included",
   "plansUnlimited": "Unlimited",
   "plansLimit": "{limit} {unit}",
-  "@plansLimit": { "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } } },
+  "@plansLimit": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "plansNoFeatures": "No extra benefits yet — more are on the way.",
   "plansRestoreDone": "Purchases restored.",
   "settingsPrivacy": "Privacy policy",
   "settingsVersion": "Version {version}",
-  "@settingsVersion": { "placeholders": { "version": { "type": "String" } } },
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "settingsMadeWith": "Made with reverence",
   "settingsFooter": "{version} · {madeWith}",
   "@settingsFooter": {
     "description": "The last line of settings: the version line and the sign-off, side by side.",
-    "placeholders": { "version": { "type": "String" }, "madeWith": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "madeWith": {
+        "type": "String"
+      }
+    }
   },
   "themeSystem": "Auto",
   "themeLight": "Light",
   "themeDark": "Dark",
-
   "profileSignedInAs": "Signed in as {email}",
   "@profileSignedInAs": {
-    "placeholders": { "email": { "type": "String" } }
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   },
   "profilePremium": "Premium",
   "profileFree": "Free",
   "signOutConfirm": "You will need to sign in again to reach your practice history.",
   "deleteAccountTitle": "Delete your account?",
   "deleteAccountBody": "This removes your practice history, favourites and notifications. It cannot be undone.",
-
   "comingSoon": "Coming soon",
   "libraryNoBooks": "No books published yet.",
   "actionEdit": "Edit",
   "actionDelete": "Delete",
-
   "libraryDownloadBook": "Download for offline reading",
   "libraryDownloading": "Downloading…",
   "libraryDownloaded": "Downloaded for offline reading",
   "libraryDownloadFailed": "Could not download this book. Please try again.",
-
   "bookCantoCount": "{count, plural, =1{1 canto} other{{count} cantos}}",
-  "@bookCantoCount": { "placeholders": { "count": { "type": "int" } } },
+  "@bookCantoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "bookByTranslators": "Renderings by {names}",
   "@bookByTranslators": {
     "description": "e.g. \"Renderings by Prabhupada, Ramanuja\"",
-    "placeholders": { "names": { "type": "String" } }
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
   },
-
   "chapterPrevious": "Previous chapter",
   "chapterNext": "Next chapter",
-
   "actionBookmark": "Bookmark",
   "actionRemoveBookmark": "Remove bookmark",
   "actionHighlight": "Highlight",
   "actionRemoveHighlight": "Remove highlight",
-
   "verseExplanationLabel": "Explanation",
   "verseExplanationAiLabel": "Explanation (AI-assisted)",
-
   "verseCompareTranslations": "Compare translations",
   "verseTranslationsEmpty": "No other renderings published yet.",
-
   "verseRelatedTitle": "Related verses",
   "verseRelatedEmpty": "No related verses yet.",
   "relationSameConcept": "Same concept",
   "relationExpandsOn": "Expands on",
   "relationQuotedIn": "Quoted in",
   "relationContrastsWith": "Contrasts with",
-
   "verseNotesTitle": "My notes",
   "verseNoteHint": "Write a note…",
   "verseNoteAdd": "Add note",
   "verseNoteEmpty": "No notes yet on this verse.",
   "verseNoteDeleteConfirm": "Delete this note?",
-
   "readingSettingsTitle": "Reading settings",
   "readingFontSizeLabel": "Text size",
   "readingFontSizeSmall": "Small",
@@ -315,11 +524,17 @@
   "readingFontSizeLarge": "Large",
   "readingFontSizeExtraLarge": "Extra large",
   "readingLanguageLabel": "Reading language",
-
   "routineSubtitle": "Devotion, work and the ordinary in between.",
   "routineProgress": "{done} of {total} done today",
   "@routineProgress": {
-    "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "routineEmptyBody": "Add a round of japa, an errand, a chore — build today with intention.",
   "routineAddTask": "Add task",
@@ -337,7 +552,6 @@
   "routineSaveAction": "Add to today",
   "routineTaskRemoved": "Removed from today's list",
   "routineUndo": "Undo",
-
   "reelsEmpty": "No reels yet",
   "reelsEmptyBody": "When creators start posting, their reels will appear here.",
   "reelsFailed": "Could not load reels",
@@ -363,32 +577,52 @@
   "reelSimilarEmpty": "No similar reels yet.",
   "reelSlideOf": "{current} of {total}",
   "@reelSlideOf": {
-    "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "reelVerseRef": "{book} {chapter}.{verse}",
   "@reelVerseRef": {
     "description": "A verse reference on a reel, e.g. BG 2.47",
     "placeholders": {
-      "book": { "type": "String" },
-      "chapter": { "type": "int" },
-      "verse": { "type": "int" }
+      "book": {
+        "type": "String"
+      },
+      "chapter": {
+        "type": "int"
+      },
+      "verse": {
+        "type": "int"
+      }
     }
   },
   "reelBookGita": "BG",
   "reelBookBhagavatam": "SB",
   "reelCaptionMore": "more",
   "reelCaptionLess": "less",
-
   "reelCommentsTitle": "Comments",
   "reelCommentsCount": "{count, plural, =0{No comments yet} =1{1 comment} other{{count} comments}}",
   "@reelCommentsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "reelCommentsEmpty": "Be the first to say something.",
   "reelCommentHint": "Add a comment…",
   "reelReplyHint": "Reply to {name}…",
   "@reelReplyHint": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "reelCommentSend": "Post",
   "reelCommentReply": "Reply",
@@ -404,11 +638,14 @@
   "reelCommentCancelReply": "Cancel reply",
   "reelViewReplies": "{count, plural, =1{View 1 reply} other{View {count} replies}}",
   "@reelViewReplies": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "reelHideReplies": "Hide replies",
   "reelLoadMoreComments": "Load more comments",
-
   "reelReportTitle": "Report this reel",
   "reelReportCommentTitle": "Report this comment",
   "reelReportBody": "Tell us what is wrong with it. A moderator will review it.",
@@ -421,30 +658,44 @@
   "reelReportNoteHint": "Anything else we should know? (optional)",
   "reelReportSubmit": "Report",
   "reelReportThanks": "Thank you. A moderator will look at this.",
-
   "reelShareTitle": "Share this reel",
   "reelShareMessage": "{caption}\n\nWatch on HariHariBol: {link}",
   "@reelShareMessage": {
     "placeholders": {
-      "caption": { "type": "String" },
-      "link": { "type": "String" }
+      "caption": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
     }
   },
   "reelCopyLink": "Copy link",
   "reelLinkCopied": "Link copied",
-
   "creatorTitle": "Creator",
   "creatorFollowers": "{count, plural, =1{1 follower} other{{count} followers}}",
   "@creatorFollowers": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "creatorReelCount": "{count, plural, =1{1 reel} other{{count} reels}}",
   "@creatorReelCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "creatorViews": "{count, plural, =1{1 view} other{{count} views}}",
   "@creatorViews": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "creatorStatFollowers": "Followers",
   "creatorStatReels": "Reels",
@@ -452,11 +703,16 @@
   "creatorVerified": "Verified creator",
   "creatorNoReels": "Nothing posted yet.",
   "creatorNotFound": "That creator is no longer here.",
-
   "chantAnalyticsTooltip": "Analytics and history",
   "chantSittingTime": "Sitting time",
   "chantMalaTime": "Mala {number} time",
-  "@chantMalaTime": { "placeholders": { "number": { "type": "int" } } },
+  "@chantMalaTime": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "chantStatCurrentMala": "Current mala",
   "chantStatCount": "Count",
   "chantStatMalasDone": "Malas done",
@@ -469,7 +725,13 @@
   "chantRecentTitle": "Recent chants",
   "chantRecentEmpty": "Tap the ring to begin.",
   "chantTapNumber": "#{seq}",
-  "@chantTapNumber": { "placeholders": { "seq": { "type": "int" } } },
+  "@chantTapNumber": {
+    "placeholders": {
+      "seq": {
+        "type": "int"
+      }
+    }
+  },
   "chantAutoBadge": "Auto",
   "chantDetectWords": "Detect words",
   "chantDetectWordsOff": "Off — words aren't recorded",
@@ -483,40 +745,84 @@
   "chantSetupButton": "Auto count & words",
   "chantSetupNoneOn": "Set up",
   "chantSetupOn": "{count} on",
-  "@chantSetupOn": { "placeholders": { "count": { "type": "int" } } },
+  "@chantSetupOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chantSetupButtonState": "{button} · {state}",
   "@chantSetupButtonState": {
     "description": "The setup button's label followed by how many helpers are on, e.g. \"Auto count & words · 1 on\".",
-    "placeholders": { "button": { "type": "String" }, "state": { "type": "String" } }
+    "placeholders": {
+      "button": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
   },
   "chantSetupDone": "Done",
   "chantAnalyticsTitle": "Chant analytics",
   "chantTabThisSitting": "This sitting",
   "chantTabHistory": "History",
   "chantMalaTitle": "Mala {number}",
-  "@chantMalaTitle": { "placeholders": { "number": { "type": "int" } } },
+  "@chantMalaTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "chantMalaInProgress": "In progress",
   "chantMalaStart": "Start",
   "chantMalaEnd": "End",
   "chantMalaDuration": "Duration",
   "chantMalaChants": "{count, plural, =1{1 chant} other{{count} chants}}",
-  "@chantMalaChants": { "placeholders": { "count": { "type": "int" } } },
+  "@chantMalaChants": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chantTapsHeader": "Every chant",
   "chantHeardLabel": "Heard",
   "chantNoMalasYet": "No chants yet this sitting. Each mala you complete will be listed here, with its start, end and time taken.",
   "chantHistoryEmpty": "No earlier sittings yet.",
   "chantHistorySummary": "{malas} malas · {chants} chants",
-  "@chantHistorySummary": { "placeholders": { "malas": { "type": "int" }, "chants": { "type": "int" } } },
+  "@chantHistorySummary": {
+    "placeholders": {
+      "malas": {
+        "type": "int"
+      },
+      "chants": {
+        "type": "int"
+      }
+    }
+  },
   "chantHistoryNoDetail": "Counted before chant timing was recorded",
   "chantSessionTitle": "Sitting",
   "chantSessionNoMalas": "No timed malas were recorded for this sitting.",
   "chantHeardExpiry": "Words heard are removed from your account 7 days after the sitting.",
-
   "chantAlongTitle": "Chant along",
   "chantAlongCaption": "The counter counts with the recording. Auto count and word detection rest while it plays.",
   "chantAlongPlay": "Play recording",
   "chantAlongPause": "Pause recording",
   "chantAlongPosition": "Position in the recording",
   "chantAlongLoading": "Loading the recording…",
-  "chantAlongLoadFailed": "The recording couldn't be loaded."
+  "chantAlongLoadFailed": "The recording couldn't be loaded.",
+  "settingsSectionLanguages": "Languages",
+  "settingsLanguageApp": "App language",
+  "settingsLanguageAppHint": "Menus, buttons and labels",
+  "settingsLanguageReading": "Reading language",
+  "settingsLanguageReadingHint": "Translation, meaning and purport",
+  "settingsLanguageSpeaking": "Speaking and hearing language",
+  "settingsLanguageSpeakingHint": "Audio and spoken meaning",
+  "settingsLanguagePickerApp": "Choose the app language",
+  "settingsLanguagePickerReading": "Choose the reading language",
+  "settingsLanguagePickerSpeaking": "Choose the speaking language",
+  "settingsLanguageSanskritNote": "Sanskrit verses always stay in Sanskrit."
 }

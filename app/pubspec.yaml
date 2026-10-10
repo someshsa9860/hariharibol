@@ -88,6 +88,7 @@ dependencies:
   audio_service: ^0.18.19
   just_audio_background: ^0.0.1-beta.17
   audio_session: ^0.2.4
+  archive: ^4.4.0
 
 dev_dependencies:
   flutter_test:
@@ -107,6 +108,7 @@ flutter:
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/models/auto_chant/kws/
+    - assets/tts/
 
   # Playfair Display, for headings and the big counters. Bundled rather than
   # downloaded at runtime: a webfont fetch means a flash of the wrong type on

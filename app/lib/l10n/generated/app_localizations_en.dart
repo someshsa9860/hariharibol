@@ -1312,4 +1312,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantAlongLoadFailed => 'The recording couldn\'t be loaded.';
+
+  @override
+  String get settingsSectionLanguages => 'Languages';
+
+  @override
+  String get settingsLanguageApp => 'App language';
+
+  @override
+  String get settingsLanguageAppHint => 'Menus, buttons and labels';
+
+  @override
+  String get settingsLanguageReading => 'Reading language';
+
+  @override
+  String get settingsLanguageReadingHint => 'Translation, meaning and purport';
+
+  @override
+  String get settingsLanguageSpeaking => 'Speaking and hearing language';
+
+  @override
+  String get settingsLanguageSpeakingHint => 'Audio and spoken meaning';
+
+  @override
+  String get settingsLanguagePickerApp => 'Choose the app language';
+
+  @override
+  String get settingsLanguagePickerReading => 'Choose the reading language';
+
+  @override
+  String get settingsLanguagePickerSpeaking => 'Choose the speaking language';
+
+  @override
+  String get settingsLanguageSanskritNote =>
+      'Sanskrit verses always stay in Sanskrit.';
 }

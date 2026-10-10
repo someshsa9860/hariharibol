@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/navigation/app_navigator.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
-import '../../models/api_failure.dart';
 import '../../models/language.dart';
 import '../../providers/languages_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
-import '../../providers/session_provider.dart';
-import '../../services/user_service.dart';
+import '../../providers/language_settings_provider.dart';
 
 /// Font size and reading language, applied live as they're picked — there is
 /// nothing to submit, so the sheet needs no confirm button. [onLanguageChanged]
@@ -46,15 +43,12 @@ class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
   bool _savingLanguage = false;
 
   Future<void> _pickLanguage(String code) async {
-    final current = ref.read(currentUserProvider)?.readingLanguage;
-    if (code == current || _savingLanguage) return;
+    if (code == ref.read(languageSettingsProvider).reading || _savingLanguage) return;
 
     setState(() => _savingLanguage = true);
     try {
-      await UserService.instance.updateLanguages(readingLanguage: code);
+      await ref.read(languageSettingsProvider.notifier).setReading(code);
       widget.onLanguageChanged();
-    } on ApiFailure catch (failure) {
-      AppNavigator.instance.showFailure(failure);
     } finally {
       if (mounted) setState(() => _savingLanguage = false);
     }
@@ -73,7 +67,7 @@ class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
     final text = AppLocalizations.of(context);
     final fontSize = ref.watch(readingFontSizeProvider);
     final languages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
-    final currentLanguage = ref.watch(currentUserProvider)?.readingLanguage;
+    final currentLanguage = ref.watch(languageSettingsProvider.select((s) => s.reading));
 
     return SafeArea(
       top: false,

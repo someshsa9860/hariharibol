@@ -10,6 +10,7 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/language.dart';
+import '../../providers/language_settings_provider.dart';
 import '../../providers/languages_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../services/local_store.dart';
@@ -75,6 +76,13 @@ class _LanguageViewState extends ConsumerState<LanguageView> {
         // Meanings follow the app language unless someone changes it later.
         readingLanguage: _appLanguage,
       );
+
+      // The device keeps its own copy of the three languages; onboarding set the
+      // app and reading ones, and the speaking language is left to its default.
+      await ref.read(languageSettingsProvider.notifier).adopt(
+            app: _appLanguage!,
+            reading: _appLanguage!,
+          );
 
       // Written only after the API accepted the choice, so a failed save leaves
       // the account on the picker rather than in the app with nothing set.

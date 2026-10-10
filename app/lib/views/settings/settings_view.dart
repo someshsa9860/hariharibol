@@ -7,7 +7,6 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
-import '../../providers/languages_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -17,6 +16,7 @@ import '../../services/sadhana_service.dart';
 import '../../widgets/settings/daily_goal_sheet.dart';
 import '../../widgets/settings/identity_header.dart';
 import '../../widgets/settings/mantra_picker_sheet.dart';
+import '../../widgets/settings/language_section.dart';
 import '../../widgets/settings/settings_group.dart';
 
 /// Everything the account can change about itself.
@@ -147,14 +147,6 @@ class SettingsView extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final profile = ref.watch(sadhanaTodayProvider).value?.profile;
 
-    // The language is shown by its own name, not its code — "hi" means nothing
-    // to the person who chose हिन्दी.
-    final languages = ref.watch(languagesProvider).value ?? const [];
-    final appLanguage = languages
-        .where((language) => language.code == user?.appLanguage)
-        .map((language) => language.nativeName)
-        .firstOrNull;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(text.settingsTitle, style: context.texts.headlineSmall),
@@ -167,16 +159,12 @@ class SettingsView extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xl),
           ],
 
+          const LanguageSection(),
+          const SizedBox(height: AppSpacing.xl),
+
           SettingsGroup(
             title: text.settingsSectionPractice,
             children: [
-              SettingsRow(
-                icon: Icons.language_rounded,
-                label: text.settingsLanguage,
-                value: appLanguage ?? user?.appLanguage,
-                onTap: () =>
-                    AppNavigator.instance.push(AppRoutes.languageSetup),
-              ),
               SettingsRow(
                 icon: Icons.track_changes_rounded,
                 label: text.settingsDailyGoal,
