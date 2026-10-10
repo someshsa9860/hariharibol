@@ -30,6 +30,9 @@ abstract final class BoxKeys {
   static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
 
+  /// Chapter → the verse the audio last played there.
+  static const String readingLastPlayed = 'reading.last_played';
+
   /// Hold the silent book sync to Wi-Fi. Off by default: it is small, and
   /// the point is that the reader never has to think about it.
   static const String syncWifiOnly = 'settings.sync_wifi_only';

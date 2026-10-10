@@ -1346,4 +1346,133 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsLanguageSanskritNote =>
       'Sanskrit verses always stay in Sanskrit.';
+
+  @override
+  String get readingAudioPlayAll => 'Read aloud';
+
+  @override
+  String get readingAudioPlayVerse => 'Play this verse';
+
+  @override
+  String get readingAudioPause => 'Pause';
+
+  @override
+  String get readingAudioResume => 'Resume';
+
+  @override
+  String get readingAudioStop => 'Stop';
+
+  @override
+  String get readingAudioNext => 'Next verse';
+
+  @override
+  String get readingAudioPrevious => 'Previous verse';
+
+  @override
+  String get readingAudioFromStart => 'From the beginning';
+
+  @override
+  String readingAudioResumeFrom(int number) {
+    return 'Resume from verse $number';
+  }
+
+  @override
+  String readingAudioNowPlaying(String section, int number) {
+    return '$section · verse $number';
+  }
+
+  @override
+  String get readingAudioLoading => 'Loading…';
+
+  @override
+  String get readingAudioChannel => 'Reading aloud';
+
+  @override
+  String get readingSectionVerse => 'Verse';
+
+  @override
+  String get readingSectionMeaning => 'Meaning';
+
+  @override
+  String get readingSectionPurport => 'Purport';
+
+  @override
+  String get settingsVoices => 'Voices';
+
+  @override
+  String settingsVoicesValue(int count) {
+    return '$count installed';
+  }
+
+  @override
+  String get voicesTitle => 'Voices';
+
+  @override
+  String get voicesIntro =>
+      'Meanings and purports are read aloud in your speaking language. Until a voice is downloaded your phone\'s own voice is used, so reading never waits.';
+
+  @override
+  String voicesStorage(String size) {
+    return 'Using $size on this phone';
+  }
+
+  @override
+  String get voicesEmpty =>
+      'No voices are available to download yet. Your phone\'s own voice is used.';
+
+  @override
+  String get voiceDownload => 'Download';
+
+  @override
+  String get voiceDelete => 'Delete';
+
+  @override
+  String get voiceCancel => 'Cancel';
+
+  @override
+  String get voiceRetry => 'Try again';
+
+  @override
+  String voiceInstalled(String size) {
+    return 'Installed · $size';
+  }
+
+  @override
+  String voiceNotInstalled(String size) {
+    return 'Not downloaded · $size';
+  }
+
+  @override
+  String voiceDownloading(int percent) {
+    return 'Downloading $percent%';
+  }
+
+  @override
+  String get voiceVerifying => 'Checking…';
+
+  @override
+  String get voiceExtracting => 'Installing…';
+
+  @override
+  String get voiceFailed => 'Could not install this voice';
+
+  @override
+  String get voiceUnavailable => 'Not available yet · uses your phone\'s voice';
+
+  @override
+  String get voiceDeleteTitle => 'Delete this voice?';
+
+  @override
+  String get voiceDeleteBody =>
+      'It can be downloaded again. Until then your phone\'s own voice is used.';
+
+  @override
+  String voiceLanguages(String languages) {
+    return 'Speaks $languages';
+  }
+
+  @override
+  String labelVerseWithSection(int number, String section) {
+    return 'Verse $number · $section';
+  }
 }

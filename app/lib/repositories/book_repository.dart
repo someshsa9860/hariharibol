@@ -8,6 +8,7 @@ import '../db/daos/download_state_dao.dart';
 import '../models/book.dart';
 import '../models/book_cache.dart';
 import '../models/verse.dart';
+import '../services/audio/reading_item.dart';
 import '../services/book_service.dart';
 import '../services/book_sync_manager.dart';
 
@@ -208,6 +209,21 @@ class BookRepository {
       version: 0,
       hash: '',
     );
+  }
+
+  // ── Speech ────────────────────────────────────────────────────────────
+
+  /// Every stored rendering of [verseIds], reduced to what speech needs. The
+  /// spoken language is the *speaking* setting, so this returns all languages
+  /// and the caller picks — whatever is on screen does not decide what is said.
+  Future<Map<String, List<SpokenRendering>>> spokenRenderings(Iterable<String> verseIds) async {
+    final rows = await _books.translationsFor(verseIds);
+    return {
+      for (final entry in rows.entries)
+        entry.key: [
+          for (final t in entry.value) SpokenRendering(language: t.languageCode, meaning: t.meaning, purport: t.purport),
+        ],
+    };
   }
 
   // ── Search ────────────────────────────────────────────────────────────

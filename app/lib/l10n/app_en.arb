@@ -824,5 +824,110 @@
   "settingsLanguagePickerApp": "Choose the app language",
   "settingsLanguagePickerReading": "Choose the reading language",
   "settingsLanguagePickerSpeaking": "Choose the speaking language",
-  "settingsLanguageSanskritNote": "Sanskrit verses always stay in Sanskrit."
+  "settingsLanguageSanskritNote": "Sanskrit verses always stay in Sanskrit.",
+  "readingAudioPlayAll": "Read aloud",
+  "readingAudioPlayVerse": "Play this verse",
+  "readingAudioPause": "Pause",
+  "readingAudioResume": "Resume",
+  "readingAudioStop": "Stop",
+  "readingAudioNext": "Next verse",
+  "readingAudioPrevious": "Previous verse",
+  "readingAudioFromStart": "From the beginning",
+  "readingAudioResumeFrom": "Resume from verse {number}",
+  "@readingAudioResumeFrom": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "readingAudioNowPlaying": "{section} · verse {number}",
+  "@readingAudioNowPlaying": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "readingAudioLoading": "Loading…",
+  "readingAudioChannel": "Reading aloud",
+  "readingSectionVerse": "Verse",
+  "readingSectionMeaning": "Meaning",
+  "readingSectionPurport": "Purport",
+  "settingsVoices": "Voices",
+  "settingsVoicesValue": "{count} installed",
+  "@settingsVoicesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesTitle": "Voices",
+  "voicesIntro": "Meanings and purports are read aloud in your speaking language. Until a voice is downloaded your phone's own voice is used, so reading never waits.",
+  "voicesStorage": "Using {size} on this phone",
+  "@voicesStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesEmpty": "No voices are available to download yet. Your phone's own voice is used.",
+  "voiceDownload": "Download",
+  "voiceDelete": "Delete",
+  "voiceCancel": "Cancel",
+  "voiceRetry": "Try again",
+  "voiceInstalled": "Installed · {size}",
+  "@voiceInstalled": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceNotInstalled": "Not downloaded · {size}",
+  "@voiceNotInstalled": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceDownloading": "Downloading {percent}%",
+  "@voiceDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceVerifying": "Checking…",
+  "voiceExtracting": "Installing…",
+  "voiceFailed": "Could not install this voice",
+  "voiceUnavailable": "Not available yet · uses your phone's voice",
+  "voiceDeleteTitle": "Delete this voice?",
+  "voiceDeleteBody": "It can be downloaded again. Until then your phone's own voice is used.",
+  "voiceLanguages": "Speaks {languages}",
+  "@voiceLanguages": {
+    "placeholders": {
+      "languages": {
+        "type": "String"
+      }
+    }
+  },
+  "labelVerseWithSection": "Verse {number} · {section}",
+  "@labelVerseWithSection": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "section": {
+        "type": "String"
+      }
+    }
+  }
 }

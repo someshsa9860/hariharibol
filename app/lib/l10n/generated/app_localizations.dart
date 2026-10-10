@@ -2319,6 +2319,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sanskrit verses always stay in Sanskrit.'**
   String get settingsLanguageSanskritNote;
+
+  /// No description provided for @readingAudioPlayAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud'**
+  String get readingAudioPlayAll;
+
+  /// No description provided for @readingAudioPlayVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Play this verse'**
+  String get readingAudioPlayVerse;
+
+  /// No description provided for @readingAudioPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get readingAudioPause;
+
+  /// No description provided for @readingAudioResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get readingAudioResume;
+
+  /// No description provided for @readingAudioStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get readingAudioStop;
+
+  /// No description provided for @readingAudioNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next verse'**
+  String get readingAudioNext;
+
+  /// No description provided for @readingAudioPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous verse'**
+  String get readingAudioPrevious;
+
+  /// No description provided for @readingAudioFromStart.
+  ///
+  /// In en, this message translates to:
+  /// **'From the beginning'**
+  String get readingAudioFromStart;
+
+  /// No description provided for @readingAudioResumeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume from verse {number}'**
+  String readingAudioResumeFrom(int number);
+
+  /// No description provided for @readingAudioNowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'{section} · verse {number}'**
+  String readingAudioNowPlaying(String section, int number);
+
+  /// No description provided for @readingAudioLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get readingAudioLoading;
+
+  /// No description provided for @readingAudioChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading aloud'**
+  String get readingAudioChannel;
+
+  /// No description provided for @readingSectionVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse'**
+  String get readingSectionVerse;
+
+  /// No description provided for @readingSectionMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get readingSectionMeaning;
+
+  /// No description provided for @readingSectionPurport.
+  ///
+  /// In en, this message translates to:
+  /// **'Purport'**
+  String get readingSectionPurport;
+
+  /// No description provided for @settingsVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices'**
+  String get settingsVoices;
+
+  /// No description provided for @settingsVoicesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} installed'**
+  String settingsVoicesValue(int count);
+
+  /// No description provided for @voicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices'**
+  String get voicesTitle;
+
+  /// No description provided for @voicesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Meanings and purports are read aloud in your speaking language. Until a voice is downloaded your phone\'s own voice is used, so reading never waits.'**
+  String get voicesIntro;
+
+  /// No description provided for @voicesStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {size} on this phone'**
+  String voicesStorage(String size);
+
+  /// No description provided for @voicesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No voices are available to download yet. Your phone\'s own voice is used.'**
+  String get voicesEmpty;
+
+  /// No description provided for @voiceDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get voiceDownload;
+
+  /// No description provided for @voiceDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get voiceDelete;
+
+  /// No description provided for @voiceCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get voiceCancel;
+
+  /// No description provided for @voiceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get voiceRetry;
+
+  /// No description provided for @voiceInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed · {size}'**
+  String voiceInstalled(String size);
+
+  /// No description provided for @voiceNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded · {size}'**
+  String voiceNotInstalled(String size);
+
+  /// No description provided for @voiceDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {percent}%'**
+  String voiceDownloading(int percent);
+
+  /// No description provided for @voiceVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get voiceVerifying;
+
+  /// No description provided for @voiceExtracting.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing…'**
+  String get voiceExtracting;
+
+  /// No description provided for @voiceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not install this voice'**
+  String get voiceFailed;
+
+  /// No description provided for @voiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet · uses your phone\'s voice'**
+  String get voiceUnavailable;
+
+  /// No description provided for @voiceDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this voice?'**
+  String get voiceDeleteTitle;
+
+  /// No description provided for @voiceDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It can be downloaded again. Until then your phone\'s own voice is used.'**
+  String get voiceDeleteBody;
+
+  /// No description provided for @voiceLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaks {languages}'**
+  String voiceLanguages(String languages);
+
+  /// No description provided for @labelVerseWithSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {number} · {section}'**
+  String labelVerseWithSection(int number, String section);
 }
 
 class _AppLocalizationsDelegate

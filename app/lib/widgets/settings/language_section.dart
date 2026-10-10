@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/navigation/app_navigator.dart';
+import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/language.dart';
+import '../../models/tts_model.dart';
+import '../../providers/reading_audio_provider.dart';
 import '../../providers/language_settings_provider.dart';
 import '../../providers/languages_provider.dart';
 import 'settings_group.dart';
@@ -46,6 +52,14 @@ class LanguageSection extends ConsumerWidget {
           onTap: () =>
               _pick(context, ref, LanguageSlot.speaking, text.settingsLanguagePickerSpeaking, settings.speaking),
         ),
+        SettingsRow(
+          icon: Icons.graphic_eq_rounded,
+          label: text.settingsVoices,
+          value: text.settingsVoicesValue(
+            (ref.watch(ttsVoiceStatusesProvider).value ?? const {}).values.whereType<TtsInstalled>().length,
+          ),
+          onTap: () => AppNavigator.instance.push(AppRoutes.voices),
+        ),
       ],
     );
   }
@@ -67,6 +81,8 @@ class LanguageSection extends ConsumerWidget {
         await notifier.setReading(chosen);
       case LanguageSlot.speaking:
         await notifier.setSpeaking(chosen);
+        // A voice for it, if there is one and the phone is on Wi-Fi.
+        unawaited(ref.read(voiceRequestsProvider).onSpeakingLanguage(chosen));
       case LanguageSlot.mantra:
         break;
     }

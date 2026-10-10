@@ -13,8 +13,8 @@ Flutter app (iOS + Android). Clean, simple, conventional. No clever architecture
    - **Quotes, dashes and joins are copy too** (`labelQuotedMeaning`, `labelTranslatorCredit`,
      `searchResultsTitle`, …) — marks and word order differ by language. Dates and money take the
      reader's locale (`Localizations.localeOf(context)`), never the device default.
-   - **The account's app language drives the UI locale** (`providers/locale_provider.dart`), but only for
-     a language that ships an ARB file. Adding `app_hi.arb` is all it takes for Hindi to switch on.
+   - **The app language setting drives the UI locale** (`providers/locale_provider.dart`, see "Three languages"),
+     but only for a language that ships an ARB file. Adding `app_hi.arb` is all it takes for Hindi to switch on.
 3. **Standard color system.** One palette defined in the theme, used everywhere.
 4. **This is not styled as a "spiritual app."** No ancient/ornamental theming. Follow standard design patterns with consistent color, padding and spacing throughout.
 
@@ -354,6 +354,95 @@ book opened ─► BookSyncManager.syncBook ─► GET manifest ─► BookSyncP
 - **Tests**: `test/book_db_test.dart` (transaction, FTS, migration), `book_sync_planner_test.dart`,
   `book_sync_manager_test.dart` (queue, priority, dedupe, pause, restart), `book_unit_downloader_test.dart`
   (resume, refresh, backoff, hash), `book_repository_test.dart`. Fakes in `test/support/`.
+
+## Three languages
+
+Three settings, each its own, stored on the device (`providers/language_settings_provider.dart`,
+`models/language_settings.dart`). Changing one never changes another.
+
+| Setting | Drives | Default |
+|---|---|---|
+| **App** | menus, buttons, labels — the UI locale (`appLocaleProvider`); only a language with an ARB file | device language if shipped, else English |
+| **Reading** | translation, meaning, purport on screen (`readingChainProvider`: reading → app → en) | device language, else English |
+| **Speaking** | verse audio and spoken meaning/purport (`speakingChainProvider`: speaking → en) | device language, else English |
+
+First value: stored → the account's own choice (app and reading only) → the phone's language → English.
+App and reading are also sent to the account, best effort (the server shapes some responses by them);
+speaking has no server field. Sanskrit verse text is always Sanskrit — it is not one of the three.
+Settings → **Languages** has a row and picker for each. `test/language_settings_test.dart`.
+
+## Reading aloud
+
+A play button on each verse (only where there is something to play) and **Read aloud** at the top of
+the page. Each verse is: its recitation (if it has audio) → the meaning → the purport.
+
+```
+ReadingAudio ─► ReadingPlaybackController ─┬─ VerseAudioCache ─► AudioLinkResolver ─► POST /audio-urls
+ (prepare, session,   (run-numbered loop:  ├─ JustAudioFilePlayer           (key → link, remembered 50 min)
+  lock screen)         verse→meaning→      └─ AdaptiveTtsEngine ─► SherpaTtsEngine (installed voice)
+                       purport, next verse)                     └► PlatformTtsEngine (flutter_tts)
+```
+
+- **What is said follows the *speaking* language**, not what is on screen: the offline files hold every
+  language, so `BookRepository.spokenRenderings` + `ReadingItems.build` pick the meaning and the purport
+  per speaking chain. A section carries candidates (hi meaning, en purport — common), and the first one
+  a voice exists for is spoken. The meaning is the translation; `wordMeanings: true` puts the word-for-word
+  breakdown before it.
+- **Recitations** are downloaded on first play and kept (`VerseAudioCache`, keyed by storage key, 200 MB LRU),
+  and the next verse is fetched while this one plays. A verse with no audio, or one that will not load, is
+  skipped silently and reading goes on to the meaning.
+- **Highlight and section**: the verse being read is outlined and its eyebrow says which part is heard
+  ("Verse 7 · Purport"); `ReadingPlayerBar` shows previous / pause / next / stop. Auto-play scrolls to the verse.
+- **Remembers the last verse** per chapter (`ReadingMemory`); the button offers "Resume from verse N".
+- **Background and the lock screen**: `audio_service` with our own `AudioHandler` (`ReadingAudioHandler`)
+  over the controller. **`just_audio_background` is not used**: it makes *every* `AudioPlayer` in the app
+  require a `MediaItem` tag, which would break the chant-along player and the reels soundtrack. Android:
+  `AudioServiceActivity`, the service + receiver and media-playback foreground permissions are in
+  `AndroidManifest.xml`; iOS: `UIBackgroundModes` has `audio`.
+- **Focus and interruptions** (`InterruptionPolicy`, over `audio_session`): a call or another app's audio
+  pauses and resumes when the system allows; headphones unplugged pauses and never auto-resumes; a reader's
+  own pause is never undone.
+- **Not yet tried on a phone**: the lock-screen controls, the foreground service, audio focus with a real
+  call. The logic is covered by `test/reading_playback_test.dart` and `test/reading_audio_ui_test.dart`
+  with fake players; the platform wiring is not.
+
+## Spoken meaning and purport (voices)
+
+**One interface** — `TtsEngine` (`speak`, `pause`, `resume`, `stop`, a `progress` stream, `canSpeak`) — so an
+engine can be swapped. Three implementations: `SherpaTtsEngine` (offline neural), `PlatformTtsEngine`
+(`flutter_tts`), and `AdaptiveTtsEngine`, which the player uses: neural when a voice is installed for the
+language, the phone's voice otherwise (and again from the failed chunk if the neural one dies part-way).
+**Speech never waits on a download.**
+
+- **Chunks, no gap.** `TextChunker` splits at sentence ends (`.?!` and the danda `।॥`), then clauses, then
+  words, never over 220 characters. `ChunkedSpeaker` asks for chunk N+1 *before* awaiting chunk N's playback.
+- **Off the UI thread.** `SherpaSynthesizer` loads the model once in its own isolate; only finished PCM comes
+  back (`TransferableTypedData`). Played through just_audio as a small WAV per chunk, deleted after.
+- **`TtsModelManager`** maps each language to a voice from a manifest — the bundled
+  `assets/tts/tts_models.json`, replaced at run time by `--dart-define=TTS_MODELS_MANIFEST_URL=…` (cached
+  for offline). It downloads on demand with `Range` resume (the `.part` file survives a restart), backoff,
+  **SHA-256 check before anything is unpacked**, extraction in an isolate (top folder stripped, path-escaping
+  entries skipped), install by renaming a finished folder into place, delete, and a status stream for the UI.
+  Downloads start on their own only on Wi-Fi (when the speaking language is chosen, or a language is first
+  spoken without a voice); Settings → Voices downloads and deletes by hand anywhere.
+- **A voice with no checksum is never installed.** The bundled manifest lists candidates as
+  `enabled: false` with empty url/sha256, **because I could not confirm the files exist or compute their
+  checksums** (GitHub releases and Hugging Face were unreachable from the build environment). Until someone
+  does, every language uses the phone's voice. To enable one: download the model archive, `shasum -a 256` it,
+  fill `url`, `sizeBytes`, `sha256`, set `enabled: true`.
+
+### Which model — and why this engine
+
+| Option | Offline | Indic coverage | Size | Licence | Verdict |
+|---|---|---|---|---|---|
+| **sherpa-onnx + Piper (VITS)** | yes | Hindi, Telugu, Malayalam, Nepali voices exist; English very good | ~60 MB (medium) | Apache-2.0 engine; **each voice has its own card** | **Chosen engine.** `sherpa_onnx` is already in the app (auto-count), so no new native runtime; runs in an isolate; Android + iOS |
+| sherpa-onnx + MMS-TTS (VITS) | yes | Hindi, Bengali, Tamil, Telugu, Kannada, Marathi, Gujarati, Malayalam… | tens of MB each | **CC-BY-NC 4.0 — non-commercial** | Listed, **disabled**: do not ship in a commercial build without a licence decision |
+| sherpa-onnx + Kokoro | yes | mostly English | 80–300 MB | Apache-2.0 | Too big for the gain; English only needs Piper |
+| AI4Bharat IndicTTS / Indic-Parler | yes | the best Indic quality | large; not packaged for sherpa | MIT / Apache | Worth a later look: needs ONNX export |
+| Platform voice (`flutter_tts`) | usually | whatever the phone has (Google TTS has hi/bn/ta/te/kn/ml/mr/gu packs) | 0 | — | **Always the fallback** |
+
+These are from my knowledge of the projects, not from checking their release pages today — verify a voice
+before enabling it. Quality and latency (real-time factor on a mid-range phone) are **not measured**.
 
 ## Session and tokens
 

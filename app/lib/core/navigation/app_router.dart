@@ -25,6 +25,7 @@ import '../../views/reels/reels_view.dart';
 import '../../views/search/search_results_view.dart';
 import '../../views/search/search_view.dart';
 import '../../views/premium/plans_view.dart';
+import '../../views/settings/voices_view.dart';
 import '../../views/settings/settings_view.dart';
 import '../../views/splash/splash_view.dart';
 import '../constants/storage_keys.dart';
@@ -120,6 +121,11 @@ GoRouter createRouter() {
         path: AppRoutes.plans,
         name: RouteNames.plans,
         builder: (context, state) => const PlansView(),
+      ),
+      GoRoute(
+        path: AppRoutes.voices,
+        name: RouteNames.voices,
+        builder: (context, state) => const VoicesView(),
       ),
       GoRoute(
         path: AppRoutes.search,

@@ -5,6 +5,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/verse.dart';
+import '../../services/audio/reading_item.dart';
+import 'reading_audio_controls.dart';
 
 /// One verse in the reading screen: script, transliteration, translation,
 /// commentary, and the action row (favourite, highlight, notes, compare
@@ -28,6 +30,9 @@ class VerseBlock extends StatelessWidget {
     required this.onOpenRelated,
     this.translation,
     this.onCompareTranslations,
+    this.onPlay,
+    this.playing,
+    this.playingSection,
   });
 
   final Verse verse;
@@ -49,6 +54,14 @@ class VerseBlock extends StatelessWidget {
   /// Null when the verse has only one rendering — nothing to compare.
   final VoidCallback? onCompareTranslations;
 
+  /// Plays this verse (recitation, meaning, purport). Null when there is
+  /// nothing to play, so the button is not shown rather than shown dead.
+  final VoidCallback? onPlay;
+
+  /// This verse is the one being read aloud, and which part of it is heard.
+  final bool? playing;
+  final ReadingSection? playingSection;
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -69,6 +82,9 @@ class VerseBlock extends StatelessWidget {
         // alone).
         color: isHighlighted ? context.colors.primaryContainer : Colors.transparent,
         borderRadius: AppRadius.mdAll,
+        // The verse being read aloud is outlined; the part being heard is
+        // also named in words under the number, since an outline is only colour.
+        border: playing == true ? Border.all(color: context.colors.primary, width: 1.5) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,9 +92,17 @@ class VerseBlock extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (onPlay != null)
+                _ActionIcon(
+                  icon: playing == true ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+                  tooltip: text.readingAudioPlayVerse,
+                  onPressed: onPlay!,
+                ),
               Expanded(
                 child: Text(
-                  text.labelVerse(verse.verseNumber ?? 0),
+                  playing == true && playingSection != null
+                      ? text.labelVerseWithSection(verse.verseNumber ?? 0, readingSectionLabel(text, playingSection!))
+                      : text.labelVerse(verse.verseNumber ?? 0),
                   style: AppTypography.eyebrow(context, color: context.colors.primary),
                 ),
               ),

@@ -1,5 +1,7 @@
 package com.sss.ramkrishnahari
 
-import io.flutter.embedding.android.FlutterActivity
+import com.ryanheise.audioservice.AudioServiceActivity
 
-class MainActivity : FlutterActivity()
+// AudioServiceActivity (not FlutterActivity) so the audio_service plugin can
+// share this activity's Flutter engine for lock-screen controls.
+class MainActivity : AudioServiceActivity()
