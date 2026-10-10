@@ -109,6 +109,37 @@ class VerseChapterRef {
       );
 }
 
+/// One word of the word-for-word breakdown: the Sanskrit [word] (null when the
+/// source did not split it out) and what it means.
+class WordMeaning {
+  const WordMeaning({this.word, required this.meaning});
+
+  final String? word;
+  final String meaning;
+
+  /// "om — O my Lord".
+  String get text => word == null || word!.isEmpty ? meaning : '$word \u2014 $meaning';
+
+  factory WordMeaning.fromJson(Json json) =>
+      WordMeaning(word: asStringOrNull(json['word']), meaning: asString(json['meaning']));
+
+  Json toJson() => {'word': word, 'meaning': meaning};
+
+  /// The API sends a list of `{ word, meaning }`; an older shape sent one
+  /// string. Either is read; anything else is empty.
+  static List<WordMeaning> parse(dynamic value) {
+    if (value is List) {
+      return value
+          .whereType<Map>()
+          .map((m) => WordMeaning.fromJson(Map<String, dynamic>.from(m)))
+          .where((w) => w.meaning.isNotEmpty || (w.word ?? '').isNotEmpty)
+          .toList();
+    }
+    if (value is String && value.trim().isNotEmpty) return [WordMeaning(meaning: value.trim())];
+    return const [];
+  }
+}
+
 /// A verse, already resolved into the reader's languages by the API.
 class Verse {
   const Verse({
@@ -122,8 +153,9 @@ class Verse {
     this.verseNumberEnd,
     this.sanskrit,
     this.transliteration,
-    this.wordMeanings,
+    this.wordMeanings = const [],
     this.audioUrl,
+    this.audioPath,
     this.tags = const [],
     this.book,
     this.chapter,
@@ -154,8 +186,21 @@ class Verse {
 
   final String? sanskrit;
   final String? transliteration;
-  final String? wordMeanings;
+  final List<WordMeaning> wordMeanings;
+
+  /// A playable link, when the API sent one with the verse.
   final String? audioUrl;
+
+  /// The storage key of the verse's recitation, when the verse came from the
+  /// offline files (which carry keys, never links). A link for it is fetched
+  /// when it is about to play — see `VerseAudioLinks`.
+  final String? audioPath;
+
+  /// Whether there is a recitation to play, now or after fetching its link.
+  bool get hasAudio => (audioUrl ?? '').isNotEmpty || (audioPath ?? '').isNotEmpty;
+
+  /// The word-for-word meaning as one passage: "om — O my Lord; namah — …".
+  String get wordMeaningsText => wordMeanings.map((w) => w.text).join('; ');
   final List<String> tags;
 
   final VerseBookRef? book;
@@ -233,8 +278,9 @@ class Verse {
         verseNumberEnd: asIntOrNull(json['verseNumberEnd']),
         sanskrit: asStringOrNull(json['sanskrit']),
         transliteration: asStringOrNull(json['transliteration']),
-        wordMeanings: asStringOrNull(json['wordMeanings']),
+        wordMeanings: WordMeaning.parse(json['wordMeanings']),
         audioUrl: asStringOrNull(json['audioUrl']),
+        audioPath: asStringOrNull(json['audioPath']),
         tags: asStringList(json['tags']),
         book: asJson(json['book']) == null ? null : VerseBookRef.fromJson(asJson(json['book'])!),
         chapter: asJson(json['chapter']) == null

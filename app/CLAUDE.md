@@ -80,6 +80,8 @@ app/lib/
 │   ├── navigation/              # go_router config + navigation singleton + loading handler
 │   └── session/                 # session singleton — owns tokens
 ├── models/                      # every model lives here, plus json.dart's parse helpers
+├── db/                          # Drift: tables, DAOs, the offline library
+├── repositories/                # BookRepository — what screens ask for book text (local first)
 ├── providers/                   # Riverpod providers, one file per feature
 ├── views/
 │   ├── splash/
@@ -308,6 +310,50 @@ Why it fits here:
 - **Original `hive`** — effectively unmaintained. Use `hive_ce` (the community fork) where key-value storage is wanted.
 
 ObjectBox is the only other serious option, and is worth revisiting **only** if we later need built-in device sync — which we do not, since the backend owns sync.
+
+## Silent offline books
+
+Opening a book makes it readable offline, with no prompt and no progress screen. The server
+exports each chapter (Gita) or canto (Bhagavatam) to S3 weekly; the app downloads only what
+it lacks, straight from S3 — see [backend/README.md](../backend/README.md#book-cache--silent-offline-books).
+
+```
+book opened ─► BookSyncManager.syncBook ─► GET manifest ─► BookSyncPlanner (what is missing / newer / different hash,
+                                                              the unit being read first, then neighbours)
+            ─► queue (2 at once, de-duplicated, paused offline) ─► BookUnitDownloader
+                  POST download-url ─► GET S3 (timeouts, backoff, Range resume, one link refresh)
+                  ─► isolate: gunzip + SHA-256 + parse ─► BookDao.replaceUnit (ONE transaction)
+```
+
+- **`db/`** — Drift v2: `books`, `units` (cantos and chapters), `verses`, `verse_translations`
+  (every language of every verse), `download_state`, and the FTS5 table `verse_fts` (created in
+  `SearchDao.createIndex`, not a Drift table). Written by **one** method, `BookDao.replaceUnit`:
+  old verses, translations and search rows out, new ones in, and `download_state` set to `done`
+  at the downloaded version and hash — all in one transaction, so a unit is never half-updated.
+  Version 1 (a one-language cache) is dropped on upgrade; the sync refills it.
+- **`repositories/book_repository.dart`** — the only thing screens ask for book text. Local first;
+  a unit not on the phone is queued at the front and awaited (`readerWait`), and only then does
+  it fall back to the ordinary API. Short works (no chapters) are not exported: they come from the
+  API and are saved whole (`unitType: 'book'`).
+- **Language is chosen at read time**, not download time: every language is on the phone, so changing
+  the reading language needs no download. `BookRepository.pickTranslation` is the server's
+  `language.pick` against local rows.
+- **The file carries audio keys, never links** (a link would change the hash hourly).
+  `Verse.audioPath` is a key; `Verse.audioUrl` a link. Links come from `/audio-urls`.
+- **Background**: `book_sync_background.dart` asks the OS (workmanager) to finish unfinished
+  units when the app is backgrounded — network connected, battery not low. The sync endpoints are
+  public, so the background isolate needs no sign-in. `resumePending()` also runs at launch.
+  **iOS and Android registration is not exercised here** (no device or Xcode in CI): Android needs
+  nothing extra; iOS has `BGTaskSchedulerPermittedIdentifiers`, `UIBackgroundModes: processing` and
+  `WorkmanagerPlugin.registerBGProcessingTask` in `AppDelegate.swift`. Try it on a device before relying on it.
+- **A `done` unit keeps its old text** while a newer version downloads, and keeps it if that fails.
+  A failed unit is retried each time its book opens, when the network returns, and at launch until
+  `BookSyncConfig.autoRetryLimit`.
+- **UI**: `bookSyncSummaryProvider(bookId)` / `bookUnitStatesProvider(bookId)` expose "n of m"; the
+  only visible trace is the quiet icon in `BookDownloadAction`.
+- **Tests**: `test/book_db_test.dart` (transaction, FTS, migration), `book_sync_planner_test.dart`,
+  `book_sync_manager_test.dart` (queue, priority, dedupe, pause, restart), `book_unit_downloader_test.dart`
+  (resume, refresh, backoff, hash), `book_repository_test.dart`. Fakes in `test/support/`.
 
 ## Session and tokens
 

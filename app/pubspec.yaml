@@ -82,6 +82,12 @@ dependencies:
   # sitting for the user, so there are no taps to hold the screen awake — and a
   # locked screen pauses the app, and with it the audio and the count.
   wakelock_plus: ^1.8.1
+  connectivity_plus: ^7.3.2
+  workmanager: ^0.10.10
+  flutter_tts: ^4.2.5
+  audio_service: ^0.18.19
+  just_audio_background: ^0.0.1-beta.17
+  audio_session: ^0.2.4
 
 dev_dependencies:
   flutter_test:

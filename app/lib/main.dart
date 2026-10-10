@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'core/session/app_session.dart';
+import 'services/book_sync_background.dart';
+import 'services/book_sync_manager.dart';
 import 'services/device_service.dart';
 import 'services/fcm_service.dart';
 import 'services/firebase_service.dart';
@@ -32,6 +34,11 @@ Future<void> main() async {
   // Purchases finish on their own schedule — pending approvals, ones made while
   // the app was closed — so the store's stream is listened to from boot.
   PurchaseService.instance.start();
+
+  // Pick up any book downloads a previous run left unfinished, and let the OS
+  // finish them if the app goes to the background. Neither shows anything.
+  unawaited(BookSyncBackground.instance.start());
+  unawaited(BookSyncManager.instance.resumePending());
 
   runApp(const ProviderScope(child: HariHariBolApp()));
 }

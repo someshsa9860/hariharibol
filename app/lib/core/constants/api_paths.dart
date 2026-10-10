@@ -42,6 +42,12 @@ abstract final class ApiPaths {
   static String bookChaptersBulk(String slug) => '$_app/books/$slug/chapters/bulk';
   static String bookVerses(String slug) => '$_app/books/$slug/verses';
 
+  // Offline sync: what can be downloaded, a short-lived link to it, and links
+  // for verse audio (the downloaded files carry audio keys, not links).
+  static String bookManifest(String book) => '$_app/books/$book/manifest';
+  static String bookDownloadUrl(String book) => '$_app/books/$book/download-url';
+  static String bookAudioUrls(String book) => '$_app/books/$book/audio-urls';
+
   static const String verses = '$_app/verses';
   static String verse(String verseId) => '$_app/verses/$verseId';
   static String verseTranslations(String verseId) => '$_app/verses/$verseId/translations';

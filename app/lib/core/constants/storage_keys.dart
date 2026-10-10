@@ -23,6 +23,10 @@ abstract final class BoxKeys {
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
   static const String readingFontSize = 'settings.reading_font_size';
+
+  /// Hold the silent book sync to Wi-Fi. Off by default: it is small, and
+  /// the point is that the reader never has to think about it.
+  static const String syncWifiOnly = 'settings.sync_wifi_only';
   static const String onboardingSeen = 'onboarding.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
