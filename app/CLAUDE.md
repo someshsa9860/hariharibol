@@ -126,6 +126,7 @@ Light has no grey — the neutrals are all tints and shades of the one orange hu
 - **Never `ColorScheme.fromSeed`.** It always derives a tertiary by rotating the hue, which is exactly the fourth colour this design does not have. Both schemes state every role explicitly.
 - **Never `Colors.<anything>`** except `Colors.transparent`. No `Color(0xFF…)` outside `app_colors.dart` — including the gradients behind motifs, which are `AppColors.panelFrom`/`panelTo`.
 - **Saffron is a fill, never text.** It is about 2:1 on white. What sits on saffron is `ink`.
+- **One deliberate exception: the weekday initials** in the routine tab's date strip are each printed in a colour of their own (`AppColors.weekdayLight` / `weekdayDark`, Thursday yellow, Saturday black, Wednesday red). Decoration only — see "The routine tab". Nothing else breaks the rule.
 - **Colour never carries meaning on its own.** There is no green for success and no red for danger — light mode can only vary tone, and dark mode cannot even do that. Every state needs an icon or a word too. This is why the destructive actions in `profile_tab.dart` carry both an icon and a confirmation.
 
 `test/palette_test.dart` enforces all of this: every role in both schemes is checked for hue, and body and muted text are checked for 4.5:1 contrast. Retune the palette and the test tells you what drifted.
@@ -218,6 +219,17 @@ has none and every average leaves it out.
     `FakeWakelock` from `test/fake_audio_player.dart`. Under `testWidgets` a stream `cancel()`
     does not finish during `pump`, which is why `dispose` does not wait on one; and frames stop
     once the lifecycle is `paused`, so a test resumes it before leaving the screen.
+
+## The routine tab
+
+`views/dashboard/routine_tab.dart`. A strip of days (`widgets/routine/routine_date_strip.dart`, 120 days back and 60 ahead — `RoutineConfig`) sits under the title; the day picked there is the day listed below. Scrolling back is how old routines are read.
+
+- **Each day has its own list.** A task is added *for* a day (`RoutineTask.day`) and stays on it. The optional **daily routine** (`DailyRoutineItem`, managed in `daily_routine_sheet.dart` from the repeat button) shows on every day from the day it was added, and each day keeps its own check (`routine.checks`, `{day: [ids]}`). Removing a daily item sets its `until` instead of deleting it, so past days still show it. Days are `yyyy-MM-dd` keys (`routineDayKey`).
+- **Device-only**, in `LocalStore` (`routine.tasks`, `routine.daily`, `routine.checks`). Tasks saved before they had a day are dated to the old `routine.date` the first time they are read.
+- **A date chip** (`routine_day_chip.dart`) is: the weekday initial (`DateFormat('EEEEE')`, so it follows the locale) in the weekday's colour; the date number inside a ring that fills as the day is checked off (a filled disc once complete, a tick under it); and the Vaishnava tilak under it on Ekadashi. The full date, "Ekadashi" and "n of m done" are the semantic label — colour is never the only signal.
+- **The weekday colours are decoration**, the one exception to the colour rule, and are tokens in `app_colors.dart`. Saturday is black in light mode and white in dark.
+- **Ekadashi is computed on the phone** (`services/ekadashi_calendar.dart`, Meeus's low-precision sun and moon): the 11th tithi of either fortnight, judged at 06:00 local. It matches the 2025 almanac dates (`test/routine_test.dart`) but **can differ from a temple's printed date by a day** — the Vaishnava Dvadashi rules are not applied. The heading badge says so in its tooltip. A day that holds two sunrises of the tithi is marked on both.
+- **The tilak and the peacock feather are drawn, not shipped** (`widgets/common/vaishnava_tilak_icon.dart`, `peacock_feather_icon.dart`), like the motifs. The feather is the Reels button beside the tab bar (`NavAction.iconBuilder`).
 
 ## The launch animation
 

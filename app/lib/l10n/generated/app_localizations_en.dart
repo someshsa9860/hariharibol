@@ -792,7 +792,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String routineProgress(int done, int total) {
-    return '$done of $total done today';
+    return '$done of $total done';
   }
 
   @override
@@ -836,13 +836,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routineSlotAnytime => 'Anytime';
 
   @override
-  String get routineSaveAction => 'Add to today';
+  String get routineSaveAction => 'Add to this day';
 
   @override
-  String get routineTaskRemoved => 'Removed from today\'s list';
+  String get routineTaskRemoved => 'Removed from this day';
 
   @override
   String get routineUndo => 'Undo';
+
+  @override
+  String get routineToday => 'Today';
+
+  @override
+  String get routineJumpToToday => 'Jump to today';
+
+  @override
+  String get routineEkadashi => 'Ekadashi';
+
+  @override
+  String get routineEkadashiNote =>
+      'Approximate — a temple\'s almanac can differ by a day.';
+
+  @override
+  String routineDayLabel(String date, String ekadashi, int done, int total) {
+    String _temp0 = intl.Intl.selectLogic(ekadashi, {
+      'yes': ' · Ekadashi',
+      'other': '',
+    });
+    String _temp1 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: ' · $done of $total done',
+      zero: '',
+    );
+    return '$date$_temp0$_temp1';
+  }
+
+  @override
+  String get routineNothingPlanned => 'Nothing planned for this day.';
+
+  @override
+  String get routineManageDaily => 'Daily routine';
+
+  @override
+  String get routineDailyTitle => 'Daily routine';
+
+  @override
+  String get routineDailyBody =>
+      'Optional. These repeat every day, with a fresh check each day.';
+
+  @override
+  String get routineDailyEmpty => 'No daily routine yet.';
+
+  @override
+  String get routineDailyAdd => 'Add to daily routine';
+
+  @override
+  String get routineDailySaveAction => 'Add to every day';
+
+  @override
+  String get routineDailyBadge => 'Daily';
+
+  @override
+  String get routineDailyRemove => 'Remove from daily routine';
+
+  @override
+  String get routineDailyRemoved => 'Removed from your daily routine';
 
   @override
   String get reelsEmpty => 'No reels yet';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
@@ -8,12 +9,19 @@ import '../../models/routine_task.dart';
 import '../../providers/routine_provider.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/eyebrow.dart';
+import '../../widgets/common/vaishnava_tilak_icon.dart';
 import '../../widgets/routine/add_routine_task_sheet.dart';
+import '../../widgets/routine/daily_routine_sheet.dart';
+import '../../widgets/routine/routine_date_strip.dart';
 import '../../widgets/routine/routine_style.dart';
 import '../../widgets/routine/routine_task_tile.dart';
 
-/// Today's routine: devotion, work and the ordinary errands around them —
-/// the life-management half of practice, not the verses.
+/// The routine: devotion, work and the ordinary errands around them — the
+/// life-management half of practice, not the verses.
+///
+/// A strip of days sits at the top; the day chosen there is the day below. Each
+/// day has its own list — what was added for it, plus the optional daily
+/// routine — so earlier days can be opened and read back.
 ///
 /// Device-only for now: there is no backend model for a personal task list
 /// yet, so this is a real screen rather than a placeholder, built on local
@@ -26,7 +34,12 @@ class RoutineTab extends ConsumerWidget {
     if (draft == null) return;
     await ref
         .read(routineProvider.notifier)
-        .add(title: draft.title, category: draft.category, slot: draft.slot);
+        .addTask(
+          day: ref.read(selectedRoutineDayProvider),
+          title: draft.title,
+          category: draft.category,
+          slot: draft.slot,
+        );
   }
 
   Future<void> _remove(
@@ -54,8 +67,11 @@ class RoutineTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
-    final tasks = ref.watch(routineProvider);
-    final done = tasks.where((task) => task.isDone).length;
+    final day = ref.watch(selectedRoutineDayProvider);
+    final tasks = ref.watch(routineDayProvider(routineDayKey(day)));
+    final progress = routineProgressOf(tasks);
+    final isToday = day == routineDay(DateTime.now());
+    final isEkadashi = ref.watch(ekadashiCalendarProvider).isEkadashi(day);
 
     return Scaffold(
       body: SafeArea(
@@ -64,11 +80,27 @@ class RoutineTab extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: AppSpacing.page.copyWith(bottom: AppSpacing.lg),
+              padding: AppSpacing.screenH.copyWith(top: AppSpacing.lg),
               child: _Header(
-                doneCount: done,
-                totalCount: tasks.length,
+                onManageDaily: () => showDailyRoutineSheet(context),
                 onAdd: () => _addTask(context, ref),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const RoutineDateStrip(),
+            Padding(
+              padding: AppSpacing.screenH.copyWith(
+                top: AppSpacing.sm,
+                bottom: AppSpacing.md,
+              ),
+              child: _DayHeading(
+                day: day,
+                progress: progress,
+                isToday: isToday,
+                isEkadashi: isEkadashi,
+                onJumpToToday: () => ref
+                    .read(selectedRoutineDayProvider.notifier)
+                    .select(DateTime.now()),
               ),
             ),
             Expanded(
@@ -77,10 +109,21 @@ class RoutineTab extends ConsumerWidget {
                       child: EmptyState(
                         message: text.routineEmptyBody,
                         icon: Icons.checklist_outlined,
-                        action: FilledButton.icon(
-                          onPressed: () => _addTask(context, ref),
-                          icon: const Icon(Icons.add_rounded),
-                          label: Text(text.routineAddTask),
+                        action: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: () => _addTask(context, ref),
+                              icon: const Icon(Icons.add_rounded),
+                              label: Text(text.routineAddTask),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextButton.icon(
+                              onPressed: () => showDailyRoutineSheet(context),
+                              icon: const Icon(Icons.repeat_rounded),
+                              label: Text(text.routineManageDaily),
+                            ),
+                          ],
                         ),
                       ),
                     )
@@ -94,9 +137,8 @@ class RoutineTab extends ConsumerWidget {
                               tasks: tasks
                                   .where((task) => task.slot == slot)
                                   .toList(),
-                              onToggle: (task) => ref
-                                  .read(routineProvider.notifier)
-                                  .toggle(task.id),
+                              onToggle: (task) =>
+                                  ref.read(routineProvider.notifier).toggle(task),
                               onDismissed: (task) =>
                                   _remove(context, ref, task),
                             ),
@@ -111,48 +153,126 @@ class RoutineTab extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({
-    required this.doneCount,
-    required this.totalCount,
-    required this.onAdd,
-  });
+  const _Header({required this.onManageDaily, required this.onAdd});
 
-  final int doneCount;
-  final int totalCount;
+  final VoidCallback onManageDaily;
   final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(text.tabRoutine, style: context.texts.headlineMedium),
-            ),
-            Semantics(
-              button: true,
-              label: text.routineAddTask,
-              child: IconButton(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add_circle_outline_rounded),
-              ),
-            ),
-          ],
+        Expanded(
+          child: Text(text.tabRoutine, style: context.texts.headlineMedium),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          totalCount > 0
-              ? text.routineProgress(doneCount, totalCount)
-              : text.routineSubtitle,
-          style: context.texts.bodyMedium?.copyWith(
-            color: context.colors.onSurfaceVariant,
+        IconButton(
+          tooltip: text.routineManageDaily,
+          onPressed: onManageDaily,
+          icon: const Icon(Icons.repeat_rounded),
+        ),
+        IconButton(
+          tooltip: text.routineAddTask,
+          onPressed: onAdd,
+          icon: const Icon(Icons.add_circle_outline_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+/// Which day is open: its full date, whether it is Ekadashi, how much is done,
+/// and a way back to today from anywhere in the strip.
+class _DayHeading extends StatelessWidget {
+  const _DayHeading({
+    required this.day,
+    required this.progress,
+    required this.isToday,
+    required this.isEkadashi,
+    required this.onJumpToToday,
+  });
+
+  final DateTime day;
+  final RoutineProgress progress;
+  final bool isToday;
+  final bool isEkadashi;
+  final VoidCallback onJumpToToday;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final muted = context.texts.bodyMedium?.copyWith(
+      color: context.colors.onSurfaceVariant,
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      DateFormat.MMMMEEEEd(locale).format(day),
+                      style: context.texts.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isEkadashi) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    Tooltip(
+                      message: text.routineEkadashiNote,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xxs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            VaishnavaTilakIcon(
+                              size: AppSizes.iconSm,
+                              color: context.colors.onPrimaryContainer,
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(
+                              text.routineEkadashi,
+                              style: context.texts.labelMedium?.copyWith(
+                                color: context.colors.onPrimaryContainer,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                progress.total > 0
+                    ? text.routineProgress(progress.done, progress.total)
+                    : text.routineNothingPlanned,
+                style: muted,
+              ),
+            ],
           ),
         ),
+        if (!isToday)
+          TextButton(
+            onPressed: onJumpToToday,
+            child: Text(text.routineJumpToToday),
+          ),
       ],
     );
   }
@@ -186,6 +306,7 @@ class _SlotSection extends StatelessWidget {
           ),
           for (final task in tasks)
             RoutineTaskTile(
+              key: ValueKey('${task.isDaily}-${task.id}'),
               task: task,
               onToggle: () => onToggle(task),
               onDismissed: () => onDismissed(task),

@@ -1375,7 +1375,7 @@ abstract class AppLocalizations {
   /// No description provided for @routineProgress.
   ///
   /// In en, this message translates to:
-  /// **'{done} of {total} done today'**
+  /// **'{done} of {total} done'**
   String routineProgress(int done, int total);
 
   /// No description provided for @routineEmptyBody.
@@ -1459,13 +1459,13 @@ abstract class AppLocalizations {
   /// No description provided for @routineSaveAction.
   ///
   /// In en, this message translates to:
-  /// **'Add to today'**
+  /// **'Add to this day'**
   String get routineSaveAction;
 
   /// No description provided for @routineTaskRemoved.
   ///
   /// In en, this message translates to:
-  /// **'Removed from today\'s list'**
+  /// **'Removed from this day'**
   String get routineTaskRemoved;
 
   /// No description provided for @routineUndo.
@@ -1473,6 +1473,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get routineUndo;
+
+  /// No description provided for @routineToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get routineToday;
+
+  /// No description provided for @routineJumpToToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to today'**
+  String get routineJumpToToday;
+
+  /// No description provided for @routineEkadashi.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi'**
+  String get routineEkadashi;
+
+  /// No description provided for @routineEkadashiNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate — a temple\'s almanac can differ by a day.'**
+  String get routineEkadashiNote;
+
+  /// No description provided for @routineDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}{ekadashi, select, yes{ · Ekadashi} other{}}{total, plural, =0{} other{ · {done} of {total} done}}'**
+  String routineDayLabel(String date, String ekadashi, int done, int total);
+
+  /// No description provided for @routineNothingPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned for this day.'**
+  String get routineNothingPlanned;
+
+  /// No description provided for @routineManageDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily routine'**
+  String get routineManageDaily;
+
+  /// No description provided for @routineDailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily routine'**
+  String get routineDailyTitle;
+
+  /// No description provided for @routineDailyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. These repeat every day, with a fresh check each day.'**
+  String get routineDailyBody;
+
+  /// No description provided for @routineDailyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No daily routine yet.'**
+  String get routineDailyEmpty;
+
+  /// No description provided for @routineDailyAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to daily routine'**
+  String get routineDailyAdd;
+
+  /// No description provided for @routineDailySaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to every day'**
+  String get routineDailySaveAction;
+
+  /// No description provided for @routineDailyBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get routineDailyBadge;
+
+  /// No description provided for @routineDailyRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from daily routine'**
+  String get routineDailyRemove;
+
+  /// No description provided for @routineDailyRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your daily routine'**
+  String get routineDailyRemoved;
 
   /// No description provided for @reelsEmpty.
   ///

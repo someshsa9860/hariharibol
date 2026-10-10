@@ -135,6 +135,42 @@ abstract final class AppColors {
   static const Color reelTextShadow = Color(0x99000000);
   static const Color reelTextGlow = Color(0x66FFFFFF);
 
+  // ── The days of the week ───────────────────────────────────────────────────
+
+  /// The one place the palette rule bends. The routine tab's date strip prints
+  /// each weekday's initial in a colour of its own — Thursday yellow, Saturday
+  /// black, Wednesday red — so a week can be read at a glance, the way a
+  /// printed almanac colours its days.
+  ///
+  /// It is **decoration only**, which is what keeps it inside the rule's
+  /// reason: the letter says which day it is, the full day name is the screen
+  /// reader's label, and the colour never carries a state. Indexed by
+  /// `DateTime.weekday % 7`, so Sunday is 0. Dark mode has its own, lighter
+  /// set (Saturday is white there; black on black would vanish).
+  static const List<Color> weekdayLight = [
+    Color(0xFFEA580C), // Sunday: orange
+    Color(0xFF2563EB), // Monday: blue
+    Color(0xFF15803D), // Tuesday: green
+    Color(0xFFDC2626), // Wednesday: red
+    Color(0xFFCA8A04), // Thursday: yellow
+    Color(0xFF9333EA), // Friday: violet
+    Color(0xFF171717), // Saturday: black
+  ];
+
+  static const List<Color> weekdayDark = [
+    Color(0xFFFB923C),
+    Color(0xFF60A5FA),
+    Color(0xFF4ADE80),
+    Color(0xFFF87171),
+    Color(0xFFFACC15),
+    Color(0xFFC084FC),
+    white,
+  ];
+
+  /// The colour of [weekday] (`DateTime.monday` … `DateTime.sunday`).
+  static Color forWeekday(int weekday, {required bool isLight}) =>
+      (isLight ? weekdayLight : weekdayDark)[weekday % DateTime.daysPerWeek];
+
   static const Color panelFrom = Color(0xFFFDF0DC);
   static const Color panelTo = Color(0xFFF6D9AE);
   static const Color panelFromDark = Color(0xFF141414);

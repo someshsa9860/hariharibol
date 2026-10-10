@@ -40,10 +40,18 @@ abstract final class BoxKeys {
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
 
-  /// The routine list, device-only until a backend model exists for it.
+  /// The tasks added for a particular day, device-only until a backend model
+  /// exists for them. Each carries the day it belongs to.
   static const String routineTasks = 'routine.tasks';
 
-  /// The last calendar day the routine list was opened on, so a new day can
-  /// drop what was finished and carry over what was not.
+  /// The optional daily routine: items that repeat every day from the day they
+  /// were added.
+  static const String routineDaily = 'routine.daily';
+
+  /// Which daily items were checked on which day: `{ '2026-10-11': [id, …] }`.
+  static const String routineChecks = 'routine.checks';
+
+  /// Legacy. Before tasks carried their own day this held the one day the list
+  /// belonged to; it is read once, to date tasks saved by that version.
   static const String routineDate = 'routine.date';
 }

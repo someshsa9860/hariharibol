@@ -5,6 +5,7 @@ import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../widgets/common/glass_nav_bar.dart';
+import '../../widgets/common/peacock_feather_icon.dart';
 
 /// The dashboard shell: the four tabs and the bar that switches them.
 ///
@@ -60,7 +61,8 @@ class DashboardView extends StatelessWidget {
               // leaving the tab you're on, so it gets the circle of its own
               // rather than a fifth tab.
               action: NavAction(
-                icon: Icons.smart_display_rounded,
+                iconBuilder: (colour, size) =>
+                    PeacockFeatherIcon(color: colour, size: size),
                 label: text.reelsTitle,
                 onTap: () => AppNavigator.instance.push(AppRoutes.reels),
               ),

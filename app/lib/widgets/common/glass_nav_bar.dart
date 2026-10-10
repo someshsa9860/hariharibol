@@ -16,9 +16,15 @@ class NavItem {
 
 /// The single action that sits in its own circle beside the bar.
 class NavAction {
-  const NavAction({required this.icon, required this.label, required this.onTap});
+  const NavAction({
+    required this.iconBuilder,
+    required this.label,
+    required this.onTap,
+  });
 
-  final IconData icon;
+  /// Draws the icon at the size and colour the bar chose — a builder rather
+  /// than an [IconData] so the action can be a drawn glyph, not just a font one.
+  final Widget Function(Color colour, double size) iconBuilder;
 
   /// Not drawn — it is the accessible name and the tooltip.
   final String label;
@@ -129,10 +135,11 @@ class GlassNavBar extends StatelessWidget {
                     child: Semantics(
                       button: true,
                       label: action!.label,
-                      child: Icon(
-                        action!.icon,
-                        size: AppSizes.iconMd,
-                        color: context.colors.primary,
+                      child: Center(
+                        child: action!.iconBuilder(
+                          context.colors.primary,
+                          AppSizes.iconMd,
+                        ),
                       ),
                     ),
                   ),

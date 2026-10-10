@@ -28,19 +28,26 @@ class RoutineTaskDraft {
 /// own nested `Navigator`, which `DashboardView` paints underneath the
 /// frosted `GlassNavBar` — a sheet opened on that navigator renders behind
 /// the bar instead of over it, with no way to dismiss it.
-Future<RoutineTaskDraft?> showAddRoutineTaskSheet(BuildContext context) {
+///
+/// [daily] words it for the daily routine ("Add to every day").
+Future<RoutineTaskDraft?> showAddRoutineTaskSheet(
+  BuildContext context, {
+  bool daily = false,
+}) {
   return showModalBottomSheet<RoutineTaskDraft>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     useRootNavigator: true,
     backgroundColor: context.colors.surface,
-    builder: (context) => const _AddRoutineTaskSheet(),
+    builder: (context) => _AddRoutineTaskSheet(daily: daily),
   );
 }
 
 class _AddRoutineTaskSheet extends StatefulWidget {
-  const _AddRoutineTaskSheet();
+  const _AddRoutineTaskSheet({required this.daily});
+
+  final bool daily;
 
   @override
   State<_AddRoutineTaskSheet> createState() => _AddRoutineTaskSheetState();
@@ -82,7 +89,10 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(text.routineAddTask, style: context.texts.titleLarge),
+            Text(
+              widget.daily ? text.routineDailyAdd : text.routineAddTask,
+              style: context.texts.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.lg),
             TextField(
               controller: _controller,
@@ -131,7 +141,11 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
               height: AppSizes.buttonHeight,
               child: FilledButton(
                 onPressed: _submit,
-                child: Text(text.routineSaveAction),
+                child: Text(
+                  widget.daily
+                      ? text.routineDailySaveAction
+                      : text.routineSaveAction,
+                ),
               ),
             ),
           ],

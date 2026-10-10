@@ -525,7 +525,7 @@
   "readingFontSizeExtraLarge": "Extra large",
   "readingLanguageLabel": "Reading language",
   "routineSubtitle": "Devotion, work and the ordinary in between.",
-  "routineProgress": "{done} of {total} done today",
+  "routineProgress": "{done} of {total} done",
   "@routineProgress": {
     "placeholders": {
       "done": {
@@ -549,9 +549,40 @@
   "routineSlotAfternoon": "Afternoon",
   "routineSlotEvening": "Evening",
   "routineSlotAnytime": "Anytime",
-  "routineSaveAction": "Add to today",
-  "routineTaskRemoved": "Removed from today's list",
+  "routineSaveAction": "Add to this day",
+  "routineTaskRemoved": "Removed from this day",
   "routineUndo": "Undo",
+  "routineToday": "Today",
+  "routineJumpToToday": "Jump to today",
+  "routineEkadashi": "Ekadashi",
+  "routineEkadashiNote": "Approximate — a temple's almanac can differ by a day.",
+  "routineDayLabel": "{date}{ekadashi, select, yes{ · Ekadashi} other{}}{total, plural, =0{} other{ · {done} of {total} done}}",
+  "@routineDayLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "ekadashi": {
+        "type": "String"
+      },
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "routineNothingPlanned": "Nothing planned for this day.",
+  "routineManageDaily": "Daily routine",
+  "routineDailyTitle": "Daily routine",
+  "routineDailyBody": "Optional. These repeat every day, with a fresh check each day.",
+  "routineDailyEmpty": "No daily routine yet.",
+  "routineDailyAdd": "Add to daily routine",
+  "routineDailySaveAction": "Add to every day",
+  "routineDailyBadge": "Daily",
+  "routineDailyRemove": "Remove from daily routine",
+  "routineDailyRemoved": "Removed from your daily routine",
   "reelsEmpty": "No reels yet",
   "reelsEmptyBody": "When creators start posting, their reels will appear here.",
   "reelsFailed": "Could not load reels",
