@@ -13,6 +13,7 @@ import deviceRoutes from './device.js';
 import userRoutes from './user.js';
 import homeRoutes from './home.js';
 import bookRoutes from './book.js';
+import bookCacheRoutes from './book-cache.js';
 import verseRoutes from './verse.js';
 import mantraRoutes from './mantra.js';
 import reelRoutes from './reel.js';
@@ -38,6 +39,7 @@ const routers = [
   userRoutes,
   homeRoutes,
   bookRoutes,
+  bookCacheRoutes,
   verseRoutes,
   mantraRoutes,
   reelRoutes,

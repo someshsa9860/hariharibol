@@ -61,6 +61,14 @@ const schema = z.object({
   S3_BUCKET: z.string().default('hariharibol-media'),
   S3_PRESIGN_TTL_SECONDS: z.coerce.number().default(3600),
 
+  // Weekly export of every book's text to S3 for the app's silent offline sync.
+  // See config/book-cache.js and the "Book cache" section of backend/README.md.
+  BOOK_CACHE_ENABLED: flag(true),
+  BOOK_CACHE_CRON: z.string().default('0 0 * * 0'), // Sunday 00:00
+  BOOK_CACHE_TZ: z.string().default('Asia/Kolkata'),
+  BOOK_CACHE_PREFIX: z.string().default('books/caches'),
+  BOOK_CACHE_DOWNLOAD_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
+
   AI_PROVIDER: z.enum(['GEMINI', 'OPENAI']).default('GEMINI'),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),

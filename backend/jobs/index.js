@@ -1,6 +1,6 @@
 // The queues.
 //
-// Six of them rather than one, because they fail differently and should not
+// Seven of them rather than one, because they fail differently and should not
 // block each other: an AI batch pass that takes twenty minutes must not sit in
 // front of a chanting reminder, and a payment retry storm must not delay the
 // morning slokas.
@@ -13,7 +13,7 @@ import { Queue } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { defaultJobOptions } from '../config/cron.js';
 
-const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance'];
+const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content'];
 
 const queues = Object.fromEntries(
   QUEUE_NAMES.map((name) => [
@@ -32,6 +32,7 @@ const JOBS = {
   AUDIT_PRUNE: 'audit.prune',
   CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',
   S3_TEMP_PRUNE: 's3.temp.prune',
+  BOOK_CACHE_EXPORT: 'book.cache.export',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
 };

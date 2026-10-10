@@ -244,6 +244,21 @@ from `prisma/seed/chant-phrases.js` (every run, like the rest of a mantra's seed
 admin create/update, and sent on every mantra as `chantPhrases`. The admin panel has no field for it yet.
 A mantra with none falls back to `transliteration` in the app.
 
+## Book cache (offline books)
+
+Weekly export of book text to `s3://<bucket>/books/caches/` and the manifest / download-url
+endpoints the app syncs from — see [README.md](README.md#book-cache--silent-offline-books).
+Rules worth knowing before changing it:
+
+- **Only a hash decides an upload.** `utils/book-cache.js` canonicalises (sorted keys, ordered
+  verses and translations); anything non-deterministic put in a unit — a presigned URL, a
+  `generatedAt` — makes every unit "changed" every week. Audio is a key, links come from `/audio-urls`.
+- **Nothing under `books/caches/` is ever deleted**, and no lifecycle rule may touch it. Only
+  `books/staging/` is cleaned.
+- **Bump `SCHEMA_VERSION`** (config/book-cache.js) when the file shape changes; it is hashed, so
+  the next run rewrites every unit.
+- Work goes through the `content` queue; the export holds a Redis lock.
+
 ## Mantra mala recording
 
 A mantra can carry one recording of a whole mala and the stretch of it that is chanting; the

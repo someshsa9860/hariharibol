@@ -27,7 +27,7 @@ async function registerSchedules() {
     await queue.add(
       entry.name,
       { scheduled: true },
-      { repeat: { pattern: entry.cron, tz: 'UTC' }, jobId: entry.name }
+      { repeat: { pattern: entry.cron, tz: entry.tz || 'UTC' }, jobId: entry.name }
     );
 
     logger.info({ job: entry.name, cron: entry.cron, queue: entry.queue }, 'schedule registered');

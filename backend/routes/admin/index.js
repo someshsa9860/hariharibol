@@ -29,6 +29,7 @@ import aiRoutes from './ai.js';
 import auditRoutes from './audit.js';
 import uploadRoutes from './upload.js';
 import jobRoutes from './job.js';
+import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 
 const routers = [
@@ -52,6 +53,7 @@ const routers = [
   auditRoutes,
   uploadRoutes,
   jobRoutes,
+  bookCacheRoutes,
   systemRoutes,
 ];
 

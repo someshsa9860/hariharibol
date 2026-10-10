@@ -9,7 +9,7 @@ const router = createRouter({
     'same thing drift, and the queue is the one that decides what actually runs.',
 });
 
-const queueName = z.enum(['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance']);
+const queueName = z.enum(['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content']);
 
 // '/run/:name' is registered before '/:queue/...' so a queue named "run" could
 // not shadow it.

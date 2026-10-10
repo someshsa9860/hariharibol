@@ -116,6 +116,89 @@ A plain default import of a module that has no default export gives you
 | `npm run prisma:studio` | Browse the database |
 | `npm run docs:export` | Write `docs/openapi.json` |
 
+## Book cache — silent offline books
+
+The app makes a book readable offline without ever asking the API for its text. Once a
+week the worker exports every book to S3; the app reads a manifest, then downloads only
+the files it lacks, straight from S3.
+
+```
+ weekly cron ─► services/book-cache.js ─► s3://<bucket>/books/caches/…      (gzipped JSON)
+                      │                         ▲
+                      └─► BookCacheUnit table   │ presigned link (15 min)
+                              ▲                 │
+ app ─► GET  /api/app/books/:book/manifest      │   what exists, version, hash
+     ─► POST /api/app/books/:book/download-url ─┘   { unitId } → link
+```
+
+### S3 layout
+
+```
+books/caches/manifest.json                        every unit, all books
+books/caches/bhagavad-gita/chapter-<n>.json       one per chapter
+books/caches/srimad-bhagavatam/canto-<n>.json     one per canto (all its chapters)
+books/staging/<book>/…                            uploads in flight (this, and only this, is deleted)
+```
+
+The cut is per book in `config/book-cache.js` (`UNIT_TYPES`); a scripture not listed is cut
+by canto if it has cantos, else by chapter. Short works are not exported — the API returns
+them in one call. **The job never deletes anything under `books/caches/`, and no S3
+lifecycle rule may expire that prefix**: a phone that last synced a year ago must still
+find its file. Not under `hariharibol/` like uploaded media: these are generated, not
+referenced by a row's media key.
+
+Each file holds, per verse: `id`, `verseId`, numbers, `sanskrit`, `transliteration`,
+`wordMeanings`, `audioPath` (a key — a link in the file would change its hash every hour;
+the app trades keys for links at `/audio-urls`), and every **published** translation in
+every language (`meaning`, `purport`, translator, `languageCode`, `type`); plus book, unit
+and chapter metadata, `schemaVersion` and `updatedAt`.
+
+### How a run decides what to upload
+
+1. Build the unit; serialise with sorted keys (`utils/book-cache.js`) and hash the bytes (SHA-256).
+2. Compare with `BookCacheUnit.hash`. Same hash and the file exists → **skip** (no transfer, no write).
+3. New or different → gzip, upload to `books/staging/`, copy over the live key, delete the staging copy,
+   then upsert the row with `version + 1`. File missing but hash unchanged → re-upload at the same version.
+4. If anything changed, rewrite `manifest.json` from the table.
+
+A Redis lock (`lock:book-cache:export`, renewed while running, expires on its own) means two
+workers — or a worker and a manual trigger — never export at once; the second reports
+`locked: true`. Each unit retries 3× with exponential backoff, then the queue retries the
+job; finished units are skipped by hash, so a retry is cheap. The report: checked, created,
+changed, repaired, skipped, failed, bytes uploaded.
+
+### Configuration
+
+| Variable | Default | |
+|---|---|---|
+| `BOOK_CACHE_ENABLED` | `true` | `false` removes the schedule |
+| `BOOK_CACHE_CRON` | `0 0 * * 0` | Sunday 00:00 |
+| `BOOK_CACHE_TZ` | `Asia/Kolkata` | IANA zone the cron is read in (other jobs are UTC) |
+| `BOOK_CACHE_PREFIX` | `books/caches` | |
+| `BOOK_CACHE_DOWNLOAD_TTL_SECONDS` | `900` | life of a download link |
+
+### Running it by hand
+
+```bash
+npm run cache:books                           # what the cron does
+npm run cache:books -- --dry-run              # report only, write nothing
+npm run cache:books -- --book bhagavad-gita   # one book
+npm run cache:books -- --force                # re-upload everything, bump versions
+
+# or as an admin (permission job.manage): queue it, or run it in the request
+POST /api/admin/book-cache/run   { "wait": true, "dryRun": true, "books": ["bhagavad-gita"] }
+GET  /api/admin/book-cache       # what is exported, per book
+```
+
+With no AWS keys in development the files land in `backend/storage/books/caches/`.
+
+### Tests
+
+```bash
+npm test                  # hashing, canonical JSON, diff decision, retry, lock (no services needed)
+npm run test:book-cache   # the export and all four endpoints over HTTP (API running, AWS keys blank)
+```
+
 ## First admin
 
 The seed deliberately creates no admin — a seeded account with a known email is

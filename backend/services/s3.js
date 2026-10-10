@@ -230,18 +230,64 @@ async function presignUpload(kind, contentType) {
 
 // For files the server itself produces — generated sloka artwork, exports —
 // and for the import scripts that seed book covers and media locally.
-async function putObject(key, body, contentType) {
+// `options.contentEncoding` / `options.cacheControl` are set on the object, so a
+// gzipped JSON is served as gzip and a client's HTTP stack unpacks it itself.
+async function putObject(key, body, contentType, options = {}) {
   if (useLocalStorage) {
     const dest = localPath(key);
     await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.writeFile(dest, body);
+    // Written to a sibling and renamed, so a reader never sees half a file.
+    const part = `${dest}.${crypto.randomBytes(4).toString('hex')}.part`;
+    await fs.writeFile(part, body);
+    await fs.rename(part, dest);
     return key;
   }
 
   await client.send(
-    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType })
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ...(options.contentEncoding ? { ContentEncoding: options.contentEncoding } : {}),
+      ...(options.cacheControl ? { CacheControl: options.cacheControl } : {}),
+    })
   );
   return key;
+}
+
+// Server-side copy, overwriting [to]. The second half of an atomic replace: the
+// new bytes are uploaded to a staging key first, then copied over the live key
+// in one request.
+async function copyObject(from, to) {
+  if (useLocalStorage) {
+    await fs.mkdir(path.dirname(localPath(to)), { recursive: true });
+    const part = `${localPath(to)}.${crypto.randomBytes(4).toString('hex')}.part`;
+    await fs.copyFile(localPath(from), part);
+    await fs.rename(part, localPath(to));
+    return to;
+  }
+  await client.send(new CopyObjectCommand({ Bucket: BUCKET, Key: to, CopySource: `${BUCKET}/${from}` }));
+  return to;
+}
+
+// A link that is signed fresh, for a short time, and never cached — unlike
+// presignGet, whose cached URLs are meant to be stable. A download link that
+// outlives its ten minutes is a link someone can pass around.
+async function presignDownload(key, expiresIn) {
+  if (useLocalStorage) return `${env.API_BASE_URL}/media/${key}`;
+  return getSignedUrl(client, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn });
+}
+
+// The whole object as a Buffer, or null if it is not there.
+async function getObjectBuffer(key) {
+  if (useLocalStorage) return fs.readFile(localPath(key)).catch(() => null);
+  try {
+    const res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+    return Buffer.from(await res.Body.transformToByteArray());
+  } catch {
+    return null;
+  }
 }
 
 async function deleteObject(key) {
@@ -388,6 +434,9 @@ export {
   presignList,
   presignUpload,
   putObject,
+  copyObject,
+  presignDownload,
+  getObjectBuffer,
   deleteObject,
   objectExists,
   // For controllers/admin/system.js's storage summary — everything else here

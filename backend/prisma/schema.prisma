@@ -424,6 +424,7 @@ model Book {
   translators     BookTranslator[]
   favorites       Favorite[]
   readingProgress ReadingProgress[]
+  cacheUnits      BookCacheUnit[]
 
   @@index([type])
   @@index([sampradaya])
@@ -483,6 +484,41 @@ model Chapter {
   @@unique([bookId, cantoNumber, number])
   @@index([bookId])
   @@index([cantoId])
+}
+
+// One exported file of the weekly book cache (services/book-cache.js): a chapter
+// of the Gita, a canto of the Bhagavatam. This table mirrors
+// books/caches/manifest.json — the app learns what to download from the
+// manifest endpoint, which reads here, so it costs no S3 call.
+//
+// `hash` is the SHA-256 of the unit's canonical JSON; `version` goes up by one
+// each time the hash changes. A run that finds the same hash touches nothing.
+model BookCacheUnit {
+  id String @id @default(cuid())
+
+  bookId     String
+  unitType   String @db.VarChar(10) // "chapter" | "canto"
+  unitId     String // Chapter.id or Canto.id
+  unitNumber Int
+
+  hash            String @db.VarChar(64)
+  version         Int    @default(1)
+  sizeBytes       Int // uncompressed
+  compressedBytes Int
+  verseCount      Int    @default(0)
+  schemaVersion   Int
+  s3Key           String
+
+  // Newest updatedAt among the rows the unit was built from.
+  contentUpdatedAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, unitType, unitId])
+  @@index([bookId])
 }
 
 // The canonical source text, translation-neutral. Renderings by particular

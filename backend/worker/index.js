@@ -22,6 +22,7 @@ import preferencesProcessor from '../jobs/processors/preferences.js';
 import paymentProcessor from '../jobs/processors/payment.js';
 import aiProcessor from '../jobs/processors/ai.js';
 import maintenanceProcessor from '../jobs/processors/maintenance.js';
+import contentProcessor from '../jobs/processors/content.js';
 
 // One processor per queue. The queue name is the key, so worker/ and jobs/
 // cannot disagree about which processor runs what.
@@ -32,6 +33,7 @@ const processors = {
   payment: paymentProcessor,
   ai: aiProcessor,
   maintenance: maintenanceProcessor,
+  content: contentProcessor,
 };
 
 // How many jobs of each kind may run at once.
@@ -47,6 +49,8 @@ const CONCURRENCY = {
   payment: 2,
   ai: 1,
   maintenance: 1,
+  // One export at a time per worker; the Redis lock covers several workers.
+  content: 1,
 };
 
 const workers = [];

@@ -1,3 +1,5 @@
+import { bookCache } from './book-cache.js';
+
 // Every scheduled job in the system, declared in one list.
 //
 // These are BullMQ repeatable jobs, not OS crontabs — the worker container adds
@@ -53,6 +55,19 @@ const schedules = [
     cron: '0 4 1 * *',
     description: 'Delete uploads left in temp/ for over a month — files nobody ever saved.',
   },
+  // Optional `tz` (default UTC). Off with BOOK_CACHE_ENABLED=false.
+  ...(bookCache.enabled
+    ? [
+        {
+          name: 'book.cache.export',
+          queue: 'content',
+          cron: bookCache.cron,
+          tz: bookCache.tz,
+          description:
+            'Export every book to books/caches/ on S3 as one JSON per chapter or canto — only the ones that changed.',
+        },
+      ]
+    : []),
   {
     name: 'audit.prune',
     queue: 'maintenance',
