@@ -29,6 +29,7 @@ import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
 import * as language from '../../utils/language.js';
 import { verseTags, verseLabel, slug } from '../../utils/reel-tags.js';
+import { verseAudioPath } from '../../utils/verse-audio.js';
 import { ok, created, noContent } from '../../utils/respond.js';
 import { notFound, badRequest, forbidden } from '../../utils/errors.js';
 import { assertKey, syncReelCount } from './reel.js';
@@ -208,8 +209,9 @@ function whereFor(selection, { templateId, useVerseAudio }) {
       ? { verseNumber: { ...(verseFrom != null ? { gte: verseFrom } : {}), ...(verseTo != null ? { lte: verseTo } : {}) } }
       : {}),
     ...(tag ? { tags: { has: tag } } : {}),
-    // Asking for the recitation means a verse without one is not a candidate.
-    ...(useVerseAudio ? { audioPath: { not: null } } : {}),
+    // Asking for the recitation means a verse without one is not a candidate: it has
+    // its own, or its book keeps one recording per verse in a recitation folder.
+    ...(useVerseAudio ? { OR: [{ audioPath: { not: null } }, { book: { recitationParent: { not: null } } }] } : {}),
     ...(templateId ? { NOT: { reels: { some: { templateId } } } } : {}),
     ...(and.length ? { AND: and } : {}),
   };
@@ -218,7 +220,7 @@ function whereFor(selection, { templateId, useVerseAudio }) {
 const ORDER = [{ cantoNumber: 'asc' }, { chapterNumber: 'asc' }, { verseNumber: 'asc' }];
 
 const VERSE_INCLUDE = (languageCode) => ({
-  book: { select: { id: true, slug: true, title: true, deityId: true, sampradaya: true } },
+  book: { select: { id: true, slug: true, title: true, deityId: true, sampradaya: true, recitationParent: true } },
   chapter: { select: { number: true, title: true } },
   translations: {
     where: { isPublished: true, languageCode: { in: [languageCode, language.readingChain(null)[0]] } },
@@ -255,7 +257,7 @@ export const preview = async (req, res) => {
       id: verse.id,
       verseId: verse.verseId,
       ...textsOf(verse, selection.languageCode),
-      hasAudio: Boolean(verse.audioPath),
+      hasAudio: Boolean(verseAudioPath(verse, verse.book)),
     })),
   });
 };
@@ -304,9 +306,10 @@ export const generate = async (req, res) => {
   const cantos = new Map(cantoRows.map((c) => [c.number, c]));
 
   // The recitation has to exist, or the reel is a silent frame.
+  const audioKeys = new Map(verses.map((v) => [v.id, verseAudioPath(v, v.book)]));
   const audioOk = new Map();
   if (useVerseAudio) {
-    await Promise.all(verses.map(async (v) => audioOk.set(v.id, await s3.objectExists(v.audioPath))));
+    await Promise.all(verses.map(async (v) => audioOk.set(v.id, Boolean(audioKeys.get(v.id)) && (await s3.objectExists(audioKeys.get(v.id))))));
   }
 
   const hints = [...new Set([...selection.hints, ...extraTags].map(slug).filter(Boolean))];
@@ -330,7 +333,7 @@ export const generate = async (req, res) => {
           creatorId,
           mediaType: config.mediaType,
           videoPath: config.mediaType === 'VIDEO' ? config.videoPath : null,
-          audioTrackPath: useVerseAudio ? verse.audioPath : (config.audioPath ?? null),
+          audioTrackPath: useVerseAudio ? audioKeys.get(verse.id) : (config.audioPath ?? null),
           thumbnailPath: config.thumbnailPath ?? images[0] ?? null,
           durationMs: config.durationMs ?? null,
           width: config.width ?? null,

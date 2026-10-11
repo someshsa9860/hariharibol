@@ -403,6 +403,12 @@ model Book {
   coverImagePath String?
   audioPath      String? // full recitation, for short works sung end to end
 
+  // The S3 folder that holds one recording per verse, laid out beneath it as
+  // <parent>/[<canto>/][<chapter>/]<verse>.mp3 — utils/verse-audio.js builds the key.
+  // A verse's own Verse.audioPath wins when set; null means the book has no
+  // per-verse recitations. Set once for a book and every verse in it is covered.
+  recitationParent String?
+
   totalCantos   Int @default(0)
   totalChapters Int @default(0)
   totalVerses   Int @default(0)

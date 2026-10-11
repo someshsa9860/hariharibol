@@ -8,12 +8,13 @@ import { bookCache } from '../../config/book-cache.js';
 import * as s3 from '../../services/s3.js';
 import { ok } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
+import { verseAudioPath } from '../../utils/verse-audio.js';
 
 // A book is named by slug or id — the app has both, and neither is secret.
 async function findBook(ref) {
   const book = await prisma.book.findFirst({
     where: { isPublished: true, OR: [{ slug: ref }, { id: ref }] },
-    select: { id: true, slug: true },
+    select: { id: true, slug: true, recitationParent: true },
   });
   if (!book) throw notFound('Book');
   return book;
@@ -90,10 +91,15 @@ async function unitKey(bookId, unitId) {
 export const audioUrls = async (req, res) => {
   const book = await findBook(req.valid.params.book);
   const rows = await prisma.verse.findMany({
-    where: { bookId: book.id, id: { in: req.valid.body.verseIds }, audioPath: { not: null } },
-    select: { id: true, audioPath: true },
+    where: { bookId: book.id, id: { in: req.valid.body.verseIds } },
+    select: { id: true, audioPath: true, cantoNumber: true, chapterNumber: true, verseNumber: true },
   });
   const urls = {};
-  await Promise.all(rows.map(async (r) => (urls[r.id] = await s3.presignGet(r.audioPath))));
+  await Promise.all(
+    rows.map(async (r) => {
+      const key = verseAudioPath(r, book);
+      if (key) urls[r.id] = await s3.presignGet(key);
+    })
+  );
   return ok(res, { urls });
 };

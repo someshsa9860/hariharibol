@@ -216,6 +216,28 @@ async function main() {
     const au = await call('POST', `/api/app/books/${cantoBook.slug}/audio-urls`, { body: { verseIds: [aVerse.id, 'nope'] } });
     check('returns a link for a verse with audio and omits the rest', au.status === 200 && Object.keys(au.json.data.urls).join() === aVerse.id);
     check('rejects an empty list', (await call('POST', `/api/app/books/${cantoBook.slug}/audio-urls`, { body: { verseIds: [] } })).status === 400);
+
+    // ── a book's recitation folder ──────────────────────────────────────────
+    // Setting the folder on the book covers every verse in it; a verse's own
+    // recording still wins.
+    console.log('\nRecitation folder');
+    const folder = `e2e/${TAG}`;
+    await prisma.book.update({ where: { id: cantoBook.id }, data: { recitationParent: folder } });
+    const bare = await prisma.verse.findFirst({ where: { bookId: cantoBook.id, id: { not: aVerse.id } } });
+    const bareKey = `${folder}/${bare.cantoNumber}/${bare.chapterNumber}/${bare.verseNumber}.mp3`;
+    const viaFolder = await call('POST', `/api/app/books/${cantoBook.slug}/audio-urls`, { body: { verseIds: [bare.id, aVerse.id] } });
+    check('a verse with no recording of its own gets one from the folder', viaFolder.json?.data?.urls?.[bare.id]?.includes(bareKey), JSON.stringify(viaFolder.json));
+    check('a verse with its own recording keeps it', viaFolder.json?.data?.urls?.[aVerse.id]?.includes(`verses/audio/${TAG}.mp3`));
+
+    const afterFolder = await run();
+    const rep = afterFolder.json?.data?.report;
+    check('the export re-uploads only the book whose folder changed (its 2 cantos)', rep?.changed === 2 && rep?.skipped === 3, JSON.stringify(rep));
+    const dl2 = await call('POST', `/api/app/books/${cantoBook.slug}/download-url`, { body: { unitId: canto1Row.unitId } });
+    let unitBytes = Buffer.from(await (await fetch(dl2.json.data.presignedUrl)).arrayBuffer());
+    if (unitBytes[0] === 0x1f && unitBytes[1] === 0x8b) unitBytes = zlib.gunzipSync(unitBytes);
+    const unitVerses = JSON.parse(unitBytes.toString('utf8')).verses;
+    check('the cached file carries the folder key for that verse', unitVerses.find((x) => x.id === bare.id)?.audioPath === bareKey);
+    check('and the verse\'s own key for the other', unitVerses.find((x) => x.id === aVerse.id)?.audioPath === `verses/audio/${TAG}.mp3`);
   } finally {
     for (const book of books) {
       await prisma.book.delete({ where: { id: book.id } }).catch(() => {});

@@ -508,6 +508,8 @@ const books = [
     title: 'Bhagavad Gita',
     titleI18n: { hi: 'भगवद्गीता', mr: 'भगवद्गीता' },
     description: 'The song of the Lord, spoken to Arjuna on the field of Kurukshetra.',
+    // One recording per verse: <folder>/<chapter>/<verse>.mp3 (utils/verse-audio.js).
+    recitationParent: 'legacy/bhagvat-gita/mp3/chpaters-sloks',
     displayOrder: 1,
   },
   {

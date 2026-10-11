@@ -259,6 +259,35 @@ Rules worth knowing before changing it:
   the next run rewrites every unit.
 - Work goes through the `content` queue; the export holds a Redis lock.
 
+## Verse recitations
+
+A verse's recitation is one MP3 in storage, and where it is looked for is decided in **one place**:
+`verseAudioPath(verse, book)` in `utils/verse-audio.js`.
+
+- **The verse's own `Verse.audioPath` wins.** Failing that, a book with a `Book.recitationParent` (nullable;
+  the **Recitation folder** field on the admin Books page) keeps one recording per verse beneath that
+  folder — `<parent>/<chapter>/<verse>.mp3`, with the canto ahead of the chapter in a book that has cantos
+  and just `<parent>/<verse>.mp3` in a short work. A compound verse (13–14) is filed under its first
+  number. Set the folder once and every verse in the book is covered; nothing is written per verse.
+- **It builds a key and checks nothing.** A missing file is a failed download, which the app skips
+  silently. `test/verse-audio.test.js` holds the layout.
+- **Everything that sends or plays a recitation goes through it**: the reader API (`present.verse`), the
+  website (`controllers/web/content.js`), the offline export (`services/book-cache.js` puts the key in the
+  unit file) and `/audio-urls` (`controllers/app/book-cache.js`), and the reel recipe's "each verse's
+  recitation" audio (`controllers/admin/reel-recipe.js`, which also confirms the file exists). A query
+  that feeds it must select the verse's `cantoNumber`, `chapterNumber` and `verseNumber` and the book's
+  `recitationParent`.
+- **The Gita is set by the migration, not only the seed.** `prisma migrate deploy` runs on every release
+  and the seed does not, so `20261011000000_book_recitation_parent` sets
+  `legacy/bhagvat-gita/mp3/chpaters-sloks` — 701 recordings, one per verse, copied from the old bucket by
+  `scripts/import-legacy-media.js`. The seed sets it for a database that has no Gita row yet.
+- **Phones get it after the next book export.** The folder changes the Gita's unit files, so the weekly
+  export (or `npm run cache:books -- --book bhagavad-gita` on the server, right after the deploy) rewrites
+  just those and the app re-syncs them. The dev `.env` points at the real bucket: do not run the export
+  locally.
+- The app needed no change — it plays a verse's `audioUrl` / `audioPath` whenever it has one.
+  `npm run test:book-cache` and `npm run test:reel-recipes` each cover a book that keeps its recitations in a folder.
+
 ## Mantra mala recording
 
 A mantra can carry one recording of a whole mala and the stretch of it that is chanting; the

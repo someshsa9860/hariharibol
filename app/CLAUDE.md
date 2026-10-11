@@ -402,7 +402,11 @@ ReadingAudio ─► ReadingPlaybackController ─┬─ VerseAudioCache ─► A
   breakdown before it.
 - **Recitations** are downloaded on first play and kept (`VerseAudioCache`, keyed by storage key, 200 MB LRU),
   and the next verse is fetched while this one plays. A verse with no audio, or one that will not load, is
-  skipped silently and reading goes on to the meaning.
+  skipped silently and reading goes on to the meaning. **Which file a verse has is the server's decision**:
+  its own `audioPath`, or the recording in its book's `recitationParent` folder (the Gita's — see "Verse
+  recitations" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The app only sees a key, so it has no folder
+  logic and a book gains recitations without an app release; a phone shows them once its copy of the book
+  has synced again.
 - **Highlight and section**: the verse being read is outlined and its eyebrow says which part is heard
   ("Verse 7 · Purport"); `ReadingPlayerBar` shows previous / pause / next / stop. Auto-play scrolls to the verse.
 - **Remembers the last verse** per chapter (`ReadingMemory`); the button offers "Resume from verse N".

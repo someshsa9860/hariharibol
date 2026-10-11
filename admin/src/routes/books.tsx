@@ -34,12 +34,13 @@ type Book = {
   totalCantos: number;
   totalChapters: number;
   totalVerses: number;
+  recitationParent: string | null;
   createdAt: string;
   deity: { slug: string; name: string } | null;
 };
 
 const TYPES = ['SCRIPTURE', 'STOTRA', 'AARTI', 'PRAYER', 'POEM', 'TEXT'];
-const EMPTY_FORM = { slug: '', title: '', type: 'SCRIPTURE', bookNumber: '', displayOrder: '', description: '' };
+const EMPTY_FORM = { slug: '', title: '', type: 'SCRIPTURE', bookNumber: '', displayOrder: '', description: '', recitationParent: '' };
 
 export function BooksPage() {
   const { hasPermission } = useAuth();
@@ -70,6 +71,7 @@ export function BooksPage() {
         bookNumber: String(editing.bookNumber),
         displayOrder: String(editing.displayOrder),
         description: editing.description ?? '',
+        recitationParent: editing.recitationParent ?? '',
       });
     }
   }, [editing]);
@@ -80,6 +82,8 @@ export function BooksPage() {
       title: form.title,
       type: form.type,
       description: form.description || undefined,
+      // null clears it: the book then has no recitation folder.
+      recitationParent: form.recitationParent.trim() || null,
       ...(form.displayOrder !== '' ? { displayOrder: Number(form.displayOrder) } : {}),
     };
     try {
@@ -284,6 +288,21 @@ export function BooksPage() {
               <Label>Description</Label>
               <Textarea className="mt-1" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
+            <div>
+              <Label>Recitation folder</Label>
+              <Input
+                className="mt-1 font-mono text-xs"
+                placeholder="legacy/bhagvat-gita/mp3/chpaters-sloks"
+                value={form.recitationParent}
+                onChange={(e) => setForm({ ...form, recitationParent: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Optional. The storage folder holding one recording per verse, laid out as{' '}
+                <span className="font-mono">folder/chapter/verse.mp3</span> (with a canto:{' '}
+                <span className="font-mono">folder/canto/chapter/verse.mp3</span>). Every verse in the book then plays
+                its recitation in the reader. A verse's own audio file wins over the folder.
+              </p>
+            </div>
             {formError && <p className="text-sm text-destructive">{formError}</p>}
           </div>
           <DialogFooter>
@@ -313,6 +332,7 @@ export function BooksPage() {
                 { label: 'Sampradaya', value: viewing.sampradaya },
                 { label: 'Source language', value: viewing.sourceLanguage },
                 { label: 'Display order', value: viewing.displayOrder },
+                { label: 'Recitation folder', value: viewing.recitationParent ? <span className="font-mono text-xs">{viewing.recitationParent}</span> : '—' },
                 { label: 'Created', value: formatDateOnly(viewing.createdAt) },
                 ...(viewing.description ? [{ label: 'Description', value: viewing.description, full: true }] : []),
                 { label: 'Book ID', value: <span className="font-mono text-xs">{viewing.id}</span> },

@@ -15,6 +15,7 @@
 
 import * as s3 from '../services/s3.js';
 import * as language from './language.js';
+import { verseAudioPath } from './verse-audio.js';
 import { DEFAULT_LANGUAGE } from '../config/constants.js';
 
 // Prisma `include` blocks for the joins a shaped verse needs. Kept next to the
@@ -28,7 +29,7 @@ const includes = {
    * verses" has anything behind it, without a second round trip per verse.
    */
   verse: (readingChain, userId) => ({
-    book: { select: { id: true, slug: true, title: true, bookNumber: true, type: true } },
+    book: { select: { id: true, slug: true, title: true, bookNumber: true, type: true, recitationParent: true } },
     chapter: { select: { id: true, number: true, title: true } },
     translations: {
       where: { isPublished: true, languageCode: { in: readingChain } },
@@ -125,6 +126,8 @@ async function verse(row, user) {
 
   const translation = language.pick(row.translations, chain);
   const explanation = language.pick(row.explanations, chain);
+  // Its own recording, else the one in its book's recitation folder.
+  const audioKey = verseAudioPath(row, row.book);
 
   return {
     id: row.id,
@@ -138,7 +141,7 @@ async function verse(row, user) {
     sanskrit: row.sanskrit,
     transliteration: row.transliteration,
     wordMeanings: row.wordMeanings,
-    audioUrl: row.audioPath ? await s3.presignGet(row.audioPath) : null,
+    audioUrl: audioKey ? await s3.presignGet(audioKey) : null,
     tags: row.tags,
 
     // Present only when the verse was fetched with a signed-in `userId` in its

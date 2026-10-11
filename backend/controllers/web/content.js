@@ -75,7 +75,7 @@ export const verse = async (req, res) => {
   const verse = await prisma.verse.findUnique({
     where: { verseId: req.valid.params.verseId },
     include: {
-      book: { select: { slug: true, title: true, bookNumber: true, isPublished: true } },
+      book: { select: { slug: true, title: true, bookNumber: true, isPublished: true, recitationParent: true } },
       chapter: { select: { number: true, title: true } },
       translations: {
         where: { isPublished: true },
@@ -128,7 +128,7 @@ export const slokaOfTheDay = async (req, res) => {
     include: {
       verse: {
         include: {
-          book: { select: { slug: true, title: true } },
+          book: { select: { slug: true, title: true, recitationParent: true } },
           translations: {
             where: { isPublished: true, languageCode: 'en' },
             include: { translator: { select: { slug: true, name: true } } },

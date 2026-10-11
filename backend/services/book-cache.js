@@ -22,6 +22,7 @@ import { bookCache, SCHEMA_VERSION, UNIT_TYPES, unitFileKey } from '../config/bo
 import * as s3 from './s3.js';
 import { withLock } from './redis-lock.js';
 import * as cache from '../utils/book-cache.js';
+import { verseAudioPath } from '../utils/verse-audio.js';
 import crypto from 'node:crypto';
 
 // ── Building a unit ────────────────────────────────────────────────────────
@@ -61,7 +62,7 @@ const byTranslationOrder = (a, b) =>
   a.type.localeCompare(b.type) ||
   a.id.localeCompare(b.id);
 
-const shapeVerse = (v) => ({
+const shapeVerse = (v, book) => ({
   id: v.id,
   verseId: v.verseId,
   chapterId: v.chapterId,
@@ -73,7 +74,7 @@ const shapeVerse = (v) => ({
   sanskrit: v.sanskrit,
   transliteration: v.transliteration,
   wordMeanings: v.wordMeanings,
-  audioPath: v.audioPath,
+  audioPath: verseAudioPath(v, book),
   tags: v.tags,
   translations: [...v.translations].sort(byTranslationOrder).map(shapeTranslation),
 });
@@ -119,7 +120,7 @@ async function buildUnit(book, unit) {
     });
     for (const row of rows) {
       stamps.push(row.updatedAt, ...row.translations.map((t) => t.updatedAt));
-      verses.push(shapeVerse(row));
+      verses.push(shapeVerse(row, book));
     }
   }
   if (verses.length === 0) return null;
@@ -294,7 +295,7 @@ async function runExport({ books, dryRun = false, force = false } = {}) {
     const bookRows = await prisma.book.findMany({
       where: { isPublished: true, ...(books?.length ? { slug: { in: books } } : {}) },
       select: {
-        id: true, slug: true, bookNumber: true, title: true, titleI18n: true, sourceLanguage: true,
+        id: true, slug: true, bookNumber: true, title: true, titleI18n: true, sourceLanguage: true, recitationParent: true,
         _count: { select: { cantos: true, chapters: true } },
       },
       orderBy: { bookNumber: 'asc' },

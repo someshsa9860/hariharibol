@@ -170,6 +170,8 @@ async function seedBooks() {
         titleI18n: fields.titleI18n,
         description: fields.description,
         deityId: deityRow?.id ?? null,
+        // Only where the seed names a folder — an admin-set one on another book stays.
+        ...(fields.recitationParent ? { recitationParent: fields.recitationParent } : {}),
       },
       create: { ...fields, deityId: deityRow?.id ?? null, isPublished: false },
     });

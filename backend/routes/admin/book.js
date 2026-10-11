@@ -24,6 +24,7 @@ const bookBody = {
   deityId: z.string().nullable().optional(),
   coverImagePath: z.string().max(500).nullable().optional(),
   audioPath: z.string().max(500).nullable().optional(),
+  recitationParent: z.string().trim().max(500).nullable().optional(),
   tags: z.array(z.string().max(50)).optional(),
   displayOrder: z.coerce.number().int().optional(),
 };

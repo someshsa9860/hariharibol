@@ -5,7 +5,8 @@
 //
 // It builds its own little book (a canto, two chapters, five verses with
 // translations and recitation files) so it does not depend on what has been
-// imported, and deletes all of it again.
+// imported, and deletes all of it again. A second, two-verse book keeps its
+// recitations in a folder (Book.recitationParent) instead, the way the Gita does.
 //
 // What it is checking is the part that fails quietly: that a reel made from a
 // verse is tagged the standard way, that its bound text follows the *reader's*
@@ -76,6 +77,11 @@ const box = (id, bind, extra = {}) => ({
   ...extra,
 });
 
+// An upload is handed back under a temp/<day>/ key; the row that holds it is written
+// with the permanent key (config/database.js moves it), which is what a row is
+// compared to.
+const saved = (key) => key.replace(/^temp\/\d{2}-\d{2}-\d{2}\//, '');
+
 async function main() {
   const health = await fetch(`${BASE}/health`).catch(() => null);
   if (!health?.ok) {
@@ -116,6 +122,7 @@ async function main() {
   const files = [];
   const made = [];
   let book = null;
+  let folderBook = null;
   let templateId = null;
   let translator = null;
   const slug = `e2e-recipe-book-${STAMP}`;
@@ -245,8 +252,8 @@ async function main() {
     const row = await prisma.reel.findFirst({ where: { id: made[0] }, include: { media: true } });
     check('they are drafts', row?.status === 'DRAFT');
     check('they remember their verse and template', row?.verseId === verses[0].id && row?.templateId === templateId);
-    check('the verse recitation is the soundtrack', row?.audioTrackPath === goodAudio);
-    check('the background is attached', row?.media?.length === 1 && row.media[0].imagePath === bg && row.mediaType === 'IMAGE');
+    check('the verse recitation is the soundtrack', row?.audioTrackPath === saved(goodAudio), row?.audioTrackPath);
+    check('the background is attached', row?.media?.length === 1 && row.media[0].imagePath === saved(bg) && row.mediaType === 'IMAGE');
     check('the caption is the verse reference', row?.caption === 'E2E Recipe Book 1.1.1', row?.caption);
     for (const want of [`book:${slug}`, `canto:${slug}-1`, `chapter:${slug}-1-1`, `karma-yoga-${STAMP}`, `creation-${STAMP}`, 'e2e-recipe-book', 'gita-wisdom']) {
       check(`tagged ${want}`, row?.tags?.includes(want), JSON.stringify(row?.tags));
@@ -269,7 +276,7 @@ async function main() {
     made.push(...(second.json?.data?.reels ?? []).map((r) => r.id));
     const live = await prisma.reel.findMany({ where: { id: { in: second.json.data.reels.map((r) => r.id) } }, orderBy: { createdAt: 'asc' } });
     check('they are live', live.every((r) => r.status === 'PUBLISHED' && r.publishedAt));
-    check('without the recitation they play the template music', live.every((r) => r.audioTrackPath === music));
+    check('without the recitation they play the template music', live.every((r) => r.audioTrackPath === saved(music)));
     const hindi = live.find((r) => r.verseId === verses[3].id);
     check('the stored translation is in the language the run asked for', hindi?.overlays.find((o) => o.id === 'o-tr')?.text.includes('मेरी शरण'));
     const bare = live.find((r) => r.verseId === verses[4].id);
@@ -321,7 +328,55 @@ async function main() {
     check('a reel with no tags has no similar reels, so the app can hide the option', none.status === 200 && none.json.data.length === 0);
 
     // ── 10 ──────────────────────────────────────────────────────────────────
-    console.log('\n10. Removing the template');
+    console.log('\n10. A book that keeps its recitations in a folder');
+    // How the Gita is filed: no verse has an audioPath of its own, the book names a
+    // folder (Book.recitationParent) and each recording is <folder>/<chapter>/<verse>.mp3.
+    const folder = `e2e-recitations-${STAMP}`;
+    folderBook = await prisma.book.create({
+      data: {
+        bookNumber: 9_900_000 + (STAMP % 90_000),
+        slug: `${slug}-folder`,
+        type: 'SCRIPTURE',
+        title: 'E2E Folder Book',
+        totalVerses: 2,
+        deityId: null,
+        recitationParent: folder,
+      },
+    });
+    const folderChapter = await prisma.chapter.create({ data: { bookId: folderBook.id, number: 1, title: `Folder chapter ${STAMP}` } });
+    for (const n of [1, 2]) {
+      await prisma.verse.create({
+        data: {
+          verseId: `E2E.${STAMP}.F.1.${n}`,
+          bookId: folderBook.id,
+          bookNumber: folderBook.bookNumber,
+          chapterId: folderChapter.id,
+          chapterNumber: 1,
+          verseNumber: n,
+          sanskrit: `संस्कृत F.${n}`,
+          transliteration: `sanskrit f.${n}`,
+        },
+      });
+    }
+    // Only the first verse's recording is in storage.
+    const recording = `${folder}/1/1.mp3`;
+    await s3.putObject(recording, Buffer.from('not really media'), 'audio/mpeg');
+    files.push(recording);
+
+    const folderSel = { bookId: folderBook.id, hints: [], limit: 20, languageCode: 'en' };
+    const folderPreview = await prev(folderSel, { useVerseAudio: true });
+    check('every verse of the book is a candidate for the recitation', folderPreview.json?.data?.total === 2, JSON.stringify(folderPreview.json?.data?.total));
+    check('and the preview says they have one', folderPreview.json?.data?.sample?.length === 2 && folderPreview.json.data.sample.every((s) => s.hasAudio));
+
+    const folderRun = await gen({ selection: folderSel, useVerseAudio: true });
+    check('a run makes a reel for the verse whose recording is there', folderRun.status === 201 && folderRun.json?.data?.created === 1, JSON.stringify(folderRun.json?.data?.created));
+    check('and skips the one whose recording is not, with the reason', folderRun.json?.data?.skipped?.length === 1 && /recitation/.test(folderRun.json.data.skipped[0].reason));
+    made.push(...(folderRun.json?.data?.reels ?? []).map((r) => r.id));
+    const folderReel = await prisma.reel.findFirst({ where: { id: folderRun.json?.data?.reels?.[0]?.id } });
+    check('the soundtrack is the recording from the folder', folderReel?.audioTrackPath === recording, folderReel?.audioTrackPath);
+
+    // ── 11 ──────────────────────────────────────────────────────────────
+    console.log('\n11. Removing the template');
     const del = await call('DELETE', `/api/admin/reel-recipes/templates/${templateId}`, as);
     check('a template can be deleted', del.status === 204, `HTTP ${del.status}`);
     const orphan = await prisma.reel.findUnique({ where: { id: made[0] } });
@@ -330,6 +385,7 @@ async function main() {
   } finally {
     await prisma.reel.deleteMany({ where: { id: { in: made.filter(Boolean) } } });
     if (templateId) await prisma.reelTemplate.deleteMany({ where: { id: templateId } });
+    if (folderBook) await prisma.book.delete({ where: { id: folderBook.id } });
     if (book) await prisma.book.delete({ where: { id: book.id } }); // cascades cantos, chapters, verses
     if (translator) await prisma.translator.delete({ where: { id: translator.id } });
     await prisma.user.delete({ where: { id: reader.id } }).catch(() => {});
