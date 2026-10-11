@@ -17,6 +17,7 @@ import { notFound } from '../../utils/errors.js';
 export const list = async (req, res) => {
   const { category, deity, guru, tag, q } = req.valid.query;
   const user = req.auth.user;
+  const readingChain = language.readingChain(user);
 
   const where = {
     isPublished: true,
@@ -24,13 +25,13 @@ export const list = async (req, res) => {
     ...(deity ? { deity: { slug: deity } } : {}),
     ...(guru ? { guru: { slug: guru } } : {}),
     ...(tag ? { tags: { has: tag } } : {}),
-    ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
+    ...(q ? { OR: language.mantraNameClauses(q, readingChain) } : {}),
   };
 
   const { items, page } = await paginate(prisma.mantra, {
     where,
     orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
-    include: present.includes.mantra(language.mantraChain(user), language.readingChain(user)),
+    include: present.includes.mantra(language.mantraChain(user), readingChain),
     query: req.valid.query,
   });
 

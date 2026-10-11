@@ -3,6 +3,8 @@
 import { prisma } from '../../config/database.js';
 import * as authService from '../../services/auth.js';
 import * as audit from '../../services/audit.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
 import { ok } from '../../utils/respond.js';
 import { badRequest, notFound } from '../../utils/errors.js';
 import { isValidTimezone } from '../../utils/date.js';
@@ -149,7 +151,7 @@ export const updateSadhanaProfile = async (req, res) => {
     where: { userId },
     update: data,
     create: { userId, ...data },
-    include: { preferredMantra: { select: { id: true, slug: true, name: true } } },
+    include: { preferredMantra: present.includes.mantraStub(language.readingChain(req.auth.user)) },
   });
 
   await audit.record(req, {
@@ -159,5 +161,5 @@ export const updateSadhanaProfile = async (req, res) => {
     after: { dailyRoundTarget, reminderTime, preferredMantraId },
   });
 
-  return ok(res, profile);
+  return ok(res, { ...profile, preferredMantra: present.mantraStub(profile.preferredMantra, req.auth.user) });
 };

@@ -25,6 +25,8 @@
     "backfill:sampradaya": "node scripts/backfill-sampradaya.js",
     "recount:books": "node scripts/recount-books.js",
     "cache:books": "node scripts/export-book-cache.js",
+    "fill:prabhupada": "node scripts/fill-prabhupada-source.js",
+    "fill:status": "node scripts/fill-status.js",
     "docs:export": "node docs/export.js",
     "graph": "node scripts/code-graph.js",
     "test": "node --test \"test/*.test.js\"",

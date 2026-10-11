@@ -1,5 +1,6 @@
 import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/verse.js';
+import { wordMeaningsSchema } from '../../utils/word-meanings-schema.js';
 
 const router = createRouter({
   tag: 'Admin · Verses',
@@ -65,11 +66,11 @@ router.post(
       type: z.enum(['SHLOKA', 'PROSE', 'LINE', 'REFRAIN', 'MANTRA']).optional(),
       sanskrit: z.string().optional(),
       transliteration: z.string().optional(),
-      wordMeanings: z.any().optional(),
+      wordMeanings: wordMeaningsSchema.optional(),
       audioPath: z.string().max(500).nullable().optional(),
       tags: z.array(z.string().max(50)).optional(),
     }),
-    responds: { 201: 'The verse', 404: 'No such book' },
+    responds: { 201: 'The verse', 400: 'Invalid body, such as a malformed `wordMeanings`', 404: 'No such book' },
   },
   controller.create
 );
@@ -78,14 +79,17 @@ router.patch(
   '/:verseId',
   {
     summary: 'Update a verse',
-    description: '`verseId` itself cannot be changed — links that already exist point at it.',
+    description:
+      '`verseId` itself cannot be changed — links that already exist point at it. ' +
+      '`wordMeanings` is the whole word-for-word list, `[{ word, meaning }]`, and replaces what is ' +
+      'there: `word` may be null, `meaning` may not be empty. Send `[]` to clear it.',
     permission: 'verse.write',
     limit: 'write',
     params: verseIdParam,
     body: z.object({
       sanskrit: z.string().optional(),
       transliteration: z.string().optional(),
-      wordMeanings: z.any().optional(),
+      wordMeanings: wordMeaningsSchema.optional(),
       audioPath: z.string().max(500).nullable().optional(),
       tags: z.array(z.string().max(50)).optional(),
       type: z.enum(['SHLOKA', 'PROSE', 'LINE', 'REFRAIN', 'MANTRA']).optional(),

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../common/eyebrow.dart';
+import 'mantra_category_label.dart';
 
 /// A mantra in the dashboard's horizontal row.
 ///
@@ -30,7 +32,13 @@ class MantraCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (mantra.category != null) ...[
-                  Eyebrow(mantra.category!, color: context.colors.primary),
+                  Eyebrow(
+                    mantraCategoryLabel(
+                      AppLocalizations.of(context),
+                      mantra.category!,
+                    ),
+                    color: context.colors.primary,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                 ],
                 Text(

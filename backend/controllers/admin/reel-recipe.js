@@ -225,13 +225,13 @@ const VERSE_INCLUDE = (languageCode) => ({
   translations: {
     where: { isPublished: true, languageCode: { in: [languageCode, language.readingChain(null)[0]] } },
     orderBy: { displayOrder: 'asc' },
-    select: { languageCode: true, meaning: true },
+    select: { languageCode: true, type: true, meaning: true },
   },
 });
 
 // The text each binding puts on the frame for one verse.
 function textsOf(verse, languageCode) {
-  const translation = language.pick(verse.translations, [languageCode, 'en']) ?? verse.translations[0] ?? null;
+  const translation = language.pickTranslation(verse.translations, [languageCode, 'en']) ?? verse.translations[0] ?? null;
   return {
     sanskrit: verse.sanskrit,
     transliteration: verse.transliteration,

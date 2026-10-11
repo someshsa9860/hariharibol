@@ -47,9 +47,10 @@ class MantraPhraseMatcher {
     var completed = 0;
     while (true) {
       final rest = heard.substring(_consumed);
+      final further = _consumed > 0;
       _Match? best;
       for (final target in _targets) {
-        final match = _match(target, rest, threshold);
+        final match = _match(target, rest, threshold, further: further);
         if (match != null && (best == null || match.ratio > best.ratio)) best = match;
       }
       if (best == null) break;
@@ -67,13 +68,20 @@ class MantraPhraseMatcher {
   /// The utterance ended; the next transcript starts from nothing.
   void reset() => _consumed = 0;
 
-  /// What a phrase has to match by, by its folded length: the floor for a
-  /// normal mantra, higher for one so short that half is easy to reach.
-  static double needed(int letters, {double threshold = AutoChantConfig.matchThreshold}) {
+  /// What a phrase has to match by, by its folded length. On the plain floor
+  /// ([AutoChantConfig.matchThreshold]) the first repetition of a stretch needs
+  /// exactly that, whatever the mantra; a [further] one in the same stretch needs
+  /// more when the phrase is so short that the floor is easy to reach, and a
+  /// recogniser held to a higher bar keeps that rise on every count.
+  static double needed(
+    int letters, {
+    double threshold = AutoChantConfig.matchThreshold,
+    bool further = false,
+  }) {
+    if (!further && threshold <= AutoChantConfig.matchThreshold) return threshold;
     final shortBy =
         letters >= AutoChantConfig.shortPhraseLetters ? 0 : AutoChantConfig.shortPhraseLetters - letters;
-    return threshold +
-        AutoChantConfig.shortPhraseExtra * shortBy / AutoChantConfig.shortPhraseLetters;
+    return threshold + AutoChantConfig.shortPhraseExtra * shortBy / AutoChantConfig.shortPhraseLetters;
   }
 
   /// How near the not-yet-counted part of [transcript] comes to the mantra, for
@@ -87,7 +95,7 @@ class MantraPhraseMatcher {
     ({double ratio, double needed})? best;
     for (final target in _targets) {
       final ratio = _bestRatio(target, rest);
-      if (best == null || ratio > best.ratio) best = (ratio: ratio, needed: needed(target.length, threshold: threshold));
+      if (best == null || ratio > best.ratio) best = (ratio: ratio, needed: needed(target.length, threshold: threshold, further: _consumed > 0));
     }
     return best;
   }
@@ -133,7 +141,7 @@ class MantraPhraseMatcher {
   /// reaches [needed]. A short phrase must also end near the start of [text]:
   /// "Om" is two sounds, and found anywhere in a sentence it is just a sound
   /// the sentence happens to contain.
-  static _Match? _match(String target, String text, double threshold) {
+  static _Match? _match(String target, String text, double threshold, {required bool further}) {
     final n = target.length;
     final m = text.length;
     if (m == 0) return null;
@@ -143,7 +151,7 @@ class MantraPhraseMatcher {
     for (var j = 1; j <= m; j++) {
       if (prev[j] < lowest) lowest = prev[j];
     }
-    final floor = needed(n, threshold: threshold);
+    final floor = needed(n, threshold: threshold, further: further);
     final bestRatio = (n - lowest) / n;
     if (bestRatio < floor) return null;
 

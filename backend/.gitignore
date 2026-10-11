@@ -14,3 +14,7 @@ docs/openapi.json
 # Local fallback for S3 media when no AWS credentials are configured — see
 # services/s3.js. Never the real store; production always uses S3.
 /storage/
+
+# Working folder of scripts/fill-prabhupada-source.js: downloaded source, scraped
+# pages, progress. Large and rebuildable; the filled JSON lives in the bucket.
+/.fill-work/

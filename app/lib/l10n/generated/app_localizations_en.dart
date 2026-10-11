@@ -424,6 +424,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mantraNoneInCategory => 'No mantras in this category yet.';
 
   @override
+  String get mantraCategoryBeej => 'Beej';
+
+  @override
+  String get mantraCategoryGayatri => 'Gayatri';
+
+  @override
+  String get mantraCategoryMahamantra => 'Mahamantra';
+
+  @override
+  String get mantraCategoryName => 'Name';
+
+  @override
   String mantraStandardRounds(int rounds) {
     return '$rounds rounds';
   }
@@ -726,6 +738,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verseExplanationAiLabel => 'Explanation (AI-assisted)';
+
+  @override
+  String get verseWordMeanings => 'Word meanings';
 
   @override
   String get verseCompareTranslations => 'Compare translations';
@@ -1349,6 +1364,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chantHeardExpiry =>
       'Words heard are removed from your account 7 days after the sitting.';
+
+  @override
+  String get chantHeardTitle => 'Heard live';
+
+  @override
+  String get chantHeardHearing => 'Hearing you…';
+
+  @override
+  String get chantHeardWaiting => 'Waiting for your voice';
+
+  @override
+  String get chantHeardPlaceholder =>
+      'Chant out loud. The words your phone hears will appear here.';
+
+  @override
+  String get chantHeardLast => 'Last heard';
+
+  @override
+  String chantHeardCounted(int count) {
+    return 'Counted +$count';
+  }
+
+  @override
+  String get chantHeardNotCounted => 'Not counted';
+
+  @override
+  String chantHeardMatch(int percent, int needed) {
+    return '$percent% match · needs $needed%';
+  }
+
+  @override
+  String chantHeardMatchShort(int percent) {
+    return '$percent% match';
+  }
+
+  @override
+  String get chantHeardEarlier => 'Earlier';
 
   @override
   String get chantAlongTitle => 'Chant along';

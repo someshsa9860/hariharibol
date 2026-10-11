@@ -302,6 +302,22 @@
   "chantModelRetry": "Try again",
   "mantraAllCategories": "All",
   "mantraNoneInCategory": "No mantras in this category yet.",
+  "mantraCategoryBeej": "Beej",
+  "@mantraCategoryBeej": {
+    "description": "A mantra category: bīja (\"seed\") mantras, the one-syllable sounds such as Klīm. Shown as a filter chip above the mantra list and as a small label on each mantra. Where the bare word means something else in the language, write \"bīja mantra\"."
+  },
+  "mantraCategoryGayatri": "Gayatri",
+  "@mantraCategoryGayatri": {
+    "description": "A mantra category: Gāyatrī mantras (Krishna, Vishnu and Shiva Gayatri). Shown wherever Beej is."
+  },
+  "mantraCategoryMahamantra": "Mahamantra",
+  "@mantraCategoryMahamantra": {
+    "description": "A mantra category: the Hare Krishna Mahamantra and the other great mantras. Shown wherever Beej is."
+  },
+  "mantraCategoryName": "Name",
+  "@mantraCategoryName": {
+    "description": "A mantra category: mantras that are a deity's Name (nāma), such as Rama Taraka and Nrisimha. The Divine Name, not a person's name; where the bare word could be misread, write \"Name mantra\". Shown wherever Beej is."
+  },
   "mantraStandardRounds": "{rounds} rounds",
   "@mantraStandardRounds": {
     "placeholders": {
@@ -504,6 +520,7 @@
   "actionRemoveHighlight": "Remove highlight",
   "verseExplanationLabel": "Explanation",
   "verseExplanationAiLabel": "Explanation (AI-assisted)",
+  "verseWordMeanings": "Word meanings",
   "verseCompareTranslations": "Compare translations",
   "verseTranslationsEmpty": "No other renderings published yet.",
   "verseRelatedTitle": "Related verses",
@@ -838,6 +855,43 @@
   "chantSessionTitle": "Sitting",
   "chantSessionNoMalas": "No timed malas were recorded for this sitting.",
   "chantHeardExpiry": "Words heard are removed from your account 7 days after the sitting.",
+  "chantHeardTitle": "Heard live",
+  "chantHeardHearing": "Hearing you…",
+  "chantHeardWaiting": "Waiting for your voice",
+  "chantHeardPlaceholder": "Chant out loud. The words your phone hears will appear here.",
+  "chantHeardLast": "Last heard",
+  "chantHeardCounted": "Counted +{count}",
+  "@chantHeardCounted": {
+    "description": "A stretch of chanting that was counted; the number is how many chants it added, e.g. \"Counted +1\".",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chantHeardNotCounted": "Not counted",
+  "chantHeardMatch": "{percent}% match · needs {needed}%",
+  "@chantHeardMatch": {
+    "description": "How near what was heard came to the mantra, and the least it needed, e.g. \"72% match · needs 50%\".",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "needed": {
+        "type": "int"
+      }
+    }
+  },
+  "chantHeardMatchShort": "{percent}% match",
+  "@chantHeardMatchShort": {
+    "description": "How near what was heard came to the mantra, e.g. \"72% match\".",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "chantHeardEarlier": "Earlier",
   "chantAlongTitle": "Chant along",
   "chantAlongCaption": "The counter counts with the recording. Auto count and word detection rest while it plays.",
   "chantAlongPlay": "Play recording",

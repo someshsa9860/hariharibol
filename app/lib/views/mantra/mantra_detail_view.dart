@@ -13,6 +13,7 @@ import '../../providers/mantra_provider.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/eyebrow.dart';
+import '../../widgets/dashboard/mantra_category_label.dart';
 
 /// One mantra: the script to chant, its meaning, and the way into the counter
 /// already carrying it — so "chant this" never means re-finding it there.
@@ -64,7 +65,11 @@ class _MantraDetail extends StatelessWidget {
         bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
       ),
       children: [
-        if (mantra.category != null) Eyebrow(mantra.category!, color: context.colors.primary),
+        if (mantra.category != null)
+          Eyebrow(
+            mantraCategoryLabel(text, mantra.category!),
+            color: context.colors.primary,
+          ),
         const SizedBox(height: AppSpacing.md),
         Text(mantra.name, style: context.texts.headlineMedium),
         const SizedBox(height: AppSpacing.lg),

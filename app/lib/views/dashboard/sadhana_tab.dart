@@ -21,6 +21,7 @@ import '../../widgets/common/eyebrow.dart';
 import '../../widgets/common/motif.dart';
 import '../../widgets/common/section_header.dart';
 import '../../widgets/dashboard/log_rounds_sheet.dart';
+import '../../widgets/dashboard/mantra_category_label.dart';
 import '../../widgets/dashboard/mantra_list_tile.dart';
 import '../../widgets/dashboard/open_chant.dart';
 
@@ -304,7 +305,7 @@ class _MantraBrowserState extends ConsumerState<_MantraBrowser> {
                   const SizedBox(width: AppSpacing.sm),
                   _CategoryChip(
                     key: ValueKey(category.slug),
-                    label: category.label,
+                    label: mantraCategoryLabel(text, category.slug),
                     selected: _category == category.slug,
                     onTap: () => setState(() => _category = category.slug),
                   ),

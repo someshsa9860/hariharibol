@@ -239,10 +239,33 @@ user twice. Store money as integer minor units (paise, cents); floats drift.
 `Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted: plain Roman
 spellings, one full repetition each — the standard transliteration plus looser spellings of what an
 English-trained recogniser writes down. The app's auto count matches the live transcript against them
-(≥ ~50%, stricter for very short mantras), so fast or slurred chanting still counts. Written by the seed
+(≥ 36% — `AutoChantConfig.matchThreshold` in the app — stricter for a further repetition of a very short mantra), so fast or slurred chanting still counts. Written by the seed
 from `prisma/seed/chant-phrases.js` (every run, like the rest of a mantra's seed fields), accepted by the
 admin create/update, and sent on every mantra as `chantPhrases`. The admin panel has no field for it yet.
 A mantra with none falls back to `transliteration` in the app.
+
+## Mantra names and translations
+
+A seeded mantra has a name, meaning and purport in every reading language: one file per language in
+`prisma/seed/mantra-translations/`, one entry per slug. `en` is written in `seed/data.js`; `sa` is a
+deliberate gap (a Sanskrit row carries the original `text` and no prose). The seed **only fills what a row
+lacks** — an admin's edit is never overwritten, and a corrected seed file does not reach a database that
+already holds the old text (fix that row in the admin Mantras page). `test/mantra-translations.test.js`
+fails on a missing language, a missing or extra slug, or text in the wrong script. The translations are
+AI-drafted and **not yet read by a native speaker**.
+
+- **A mantra's title follows the *reading* language; its script follows the mantra language.** `present.mantra`
+  picks `name` with `language.pickName` (reading → app → en, then `Mantra.name`; it stops at English, so
+  someone reading English is not handed their app language's name). Wherever a mantra is named in passing — a
+  reel, a chant session, the profile's preferred mantra — use `includes.mantraStub` / `present.mantraStub`,
+  never a bare `include: { mantra: true }`. `test/pick-name.test.js`.
+- **Search finds the title a reader is shown.** The mantra list's `q` and `/search` match the English `name`
+  or a published translated `name` in the reader's reading chain (`language.mantraNameClauses`, the search
+  side of `pickName`) — not the name in a language they do not read. Keep the two together.
+- **`Mantra.category` is a free-text slug** and the API sends no display name. The app words the four the seed
+  uses (`beej`, `gayatri`, `mahamantra`, `name`) from its ARB files (`mantraCategoryLabel`) and shows any other
+  title-cased, untranslated — to name a new one, add a `mantraCategory*` key to all twelve ARBs and a line to
+  `mantraCategoryLabel` (an app release).
 
 ## Book cache (offline books)
 
@@ -258,6 +281,19 @@ Rules worth knowing before changing it:
 - **Bump `SCHEMA_VERSION`** (config/book-cache.js) when the file shape changes; it is hashed, so
   the next run rewrites every unit.
 - Work goes through the `content` queue; the export holds a Redis lock.
+
+## Verse word meanings and the default translation
+
+- `Verse.wordMeanings` is `[{ word: string | null, meaning: string }]`, the shape `utils/word-meanings-schema.js`
+  enforces on admin create and update (`word` ≤ 200 chars and may be null, `meaning` required and ≤ 400,
+  ≤ 300 entries; `[]` clears). Kept in its own file so a test can load it without starting the route.
+  **`scripts/lib/import-verses.js` overwrites it from S3 on a re-import**, so an admin edit does not survive one.
+- **`language.pickTranslation(rows, chain)` decides which rendering a verse opens with**, and a
+  `POETIC_EXPANSION` (Dnyaneshwari's ovis on the Gita) is never chosen while any other row exists in the
+  chain. A Marathi reader gets the next language until a standard Marathi translation is added; the ovi stays
+  in `GET /verses/:id/translations`. Use it, not `pick`, wherever a verse's meaning is chosen (`present.js`,
+  the reel recipe). The app mirrors it in `BookRepository.pickTranslation`; `test/pick-translation.test.js`
+  and the app's `pick_translation_test.dart` hold the same cases.
 
 ## Verse recitations
 

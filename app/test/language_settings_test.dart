@@ -121,11 +121,15 @@ void main() {
       final n = c.read(languageSettingsProvider.notifier);
       await n.setApp('en');
       expect(c.read(appLocaleProvider)?.languageCode, 'en');
-      await n.setApp('bn'); // no app_bn.arb
+      await n.setApp('hi');
+      expect(c.read(appLocaleProvider)?.languageCode, 'hi');
+      // A language the backend may list before its app_ne.arb exists. Every
+      // language the app offers today ships an ARB, so this one is made up.
+      await n.setApp('ne');
       expect(c.read(appLocaleProvider), isNull);
-      await n.setReading('bn');
-      await n.setSpeaking('bn');
-      expect(c.read(languageSettingsProvider).app, 'bn', reason: 'the choice is kept; the UI just stays in a shipped language');
+      await n.setReading('ne');
+      await n.setSpeaking('ne');
+      expect(c.read(languageSettingsProvider).app, 'ne', reason: 'the choice is kept; the UI just stays in a shipped language');
     });
 
     test('adopt takes the account languages for app and reading only', () async {

@@ -246,6 +246,12 @@ const translators = [
 //
 // Meanings and purports below are written plainly for a first-time reader,
 // not quoted from any published commentary.
+//
+// What is below is the English, and the source the other languages follow. The
+// name, meaning and purport in every other reading language live in
+// mantra-translations/ (one file per language, one entry per slug) — a
+// sentence changed here needs the same change there, and a mantra added here
+// needs an entry in each file. test/mantra-translations.test.js checks both.
 
 const mantras = [
   {
@@ -335,7 +341,7 @@ const mantras = [
           "Victory to Sri Rama, victory, victory to Rama — the taraka-mantra, the 'mantra that "
           + "carries across', said to have carried Hanuman over the ocean to Lanka.",
         purport:
-          'Sixteen syllables, said by tradition to hold the weight of the Vishnu-sahasranama, the '
+          'Thirteen syllables, said by tradition to hold the weight of the Vishnu-sahasranama, the '
           + "thousand names, within it — Parvati is told this by Shiva in the story that gives the "
           + 'mantra its name.',
       },

@@ -49,6 +49,46 @@ function pick(rows, chain, field = 'languageCode') {
   return null;
 }
 
+// A name from translation rows: the first language in the chain that has one.
+// Not `pick`, which returns the first row whatever it holds — a mantra's Sanskrit
+// row carries the text and no name. English is the row's own base column, passed
+// as `fallback`, so a chain that reaches it stops there: someone who reads English
+// with the app in Marathi has asked for English, not for a gap to fill in Marathi.
+function pickName(rows, chain, fallback) {
+  for (const code of chain) {
+    const name = Array.isArray(rows) ? rows.find((row) => row.languageCode === code)?.name : null;
+    if (name) return name;
+    if (code === DEFAULT_LANGUAGE) break;
+  }
+  return fallback;
+}
+
+// The search side of `pickName`: clauses for an `OR` that match a mantra whose name
+// contains `q` — the English one (the base column) or one in a language the chain
+// reads. Those are the names a reader can be shown, so typing the title they see
+// finds it.
+function mantraNameClauses(q, chain) {
+  const contains = { contains: q, mode: 'insensitive' };
+  return [
+    { name: contains },
+    { translations: { some: { isPublished: true, languageCode: { in: chain }, name: contains } } },
+  ];
+}
+
+// The rendering a verse opens with. A poetic expansion (Dnyaneshwari's Marathi
+// ovis on the Gita) retells a verse rather than translating it, so it is never
+// the default while a translation exists anywhere in the chain: a Marathi reader
+// gets the standard translation first and finds the ovi under "Compare
+// translations". Only when it is all there is does it stand in.
+//
+// The app applies the same rule to what it holds offline — keep the two together
+// (BookRepository.pickTranslation).
+function pickTranslation(rows, chain) {
+  if (!Array.isArray(rows)) return null;
+  const standard = rows.filter((row) => row.type !== 'POETIC_EXPANSION');
+  return pick(standard, chain) ?? pick(rows, chain);
+}
+
 // Localised JSON columns (`titleI18n`, `nameI18n`) fall back to the plain
 // column when the chain misses.
 function localised(row, baseField, i18nField, chain) {
@@ -69,4 +109,14 @@ function fromHeader(header) {
   return first.split('-')[0].toLowerCase();
 }
 
-export { mantraChain, readingChain, appChain, pick, localised, fromHeader };
+export {
+  mantraChain,
+  readingChain,
+  appChain,
+  pick,
+  pickName,
+  mantraNameClauses,
+  pickTranslation,
+  localised,
+  fromHeader,
+};

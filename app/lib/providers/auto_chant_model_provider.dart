@@ -41,6 +41,9 @@ class AutoChantModelNotifier extends Notifier<AutoChantModelState> {
   MantraAccurateModel get _service => ref.read(autoChantModelServiceProvider);
 
   Future<void> _refresh() async {
+    // A debug build may carry the recogniser inside the app; unpack it first so
+    // the sheet says it is on rather than offering a download of what is there.
+    await _service.adoptBundled();
     if (await _service.installed() != null) {
       state = const AutoChantModelState(AutoChantModelPhase.installed);
     } else if (_service.hasHost && await _service.deviceCanRun()) {

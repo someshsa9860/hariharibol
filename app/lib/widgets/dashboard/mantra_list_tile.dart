@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/reference_item.dart';
 import '../common/app_image.dart';
 import '../common/motif.dart';
+import 'mantra_category_label.dart';
 
 /// A mantra in the tab's browsable list — full width, for scanning a category
 /// rather than the dashboard's horizontal row of them.
@@ -22,6 +24,8 @@ class MantraListTile extends StatelessWidget {
 
   final String name;
   final String text;
+
+  /// The category's slug; the tile writes its name in the reader's language.
   final String? category;
 
   /// Whose mantra this is. Most have one; the portrait is skipped rather than
@@ -98,7 +102,10 @@ class MantraListTile extends StatelessWidget {
                           borderRadius: AppRadius.smAll,
                         ),
                         child: Text(
-                          category!,
+                          mantraCategoryLabel(
+                            AppLocalizations.of(context),
+                            category!,
+                          ),
                           style: context.texts.bodySmall?.copyWith(
                             color: context.colors.onPrimaryContainer,
                           ),

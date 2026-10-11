@@ -53,8 +53,17 @@ class MantraDetectionEngine {
   /// Completes once the native engines are built and ready for audio.
   Future<void> start() async {
     final clock = Stopwatch()..start();
-    final accurateFiles = await MantraAccurateModel().installed();
+    final model = MantraAccurateModel();
+    // In a debug build that carries the recogniser, make sure it has been unpacked
+    // even if the setup sheet was never opened.
+    await model.adoptBundled();
+    // Not just "installed": a phone short of memory runs the bundled recogniser
+    // even if the big one's files are there, rather than be ended by the system.
+    final accurateFiles = await model.usable();
     _accurate = accurateFiles != null;
+    if (!_accurate && await model.installed() != null) {
+      AutoChantLog.warn('engine: the sharper recogniser is downloaded but this phone has too little memory for it — using the bundled one');
+    }
     AutoChantLog.info(
       _accurate
           ? 'engine: using the downloaded sharper recogniser'

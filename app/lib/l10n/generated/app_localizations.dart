@@ -5,7 +5,18 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_as.dart';
+import 'app_localizations_bn.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_gu.dart';
+import 'app_localizations_hi.dart';
+import 'app_localizations_kn.dart';
+import 'app_localizations_ml.dart';
+import 'app_localizations_mr.dart';
+import 'app_localizations_or.dart';
+import 'app_localizations_pa.dart';
+import 'app_localizations_ta.dart';
+import 'app_localizations_te.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +103,20 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('as'),
+    Locale('bn'),
+    Locale('en'),
+    Locale('gu'),
+    Locale('hi'),
+    Locale('kn'),
+    Locale('ml'),
+    Locale('mr'),
+    Locale('or'),
+    Locale('pa'),
+    Locale('ta'),
+    Locale('te'),
+  ];
 
   /// The application name.
   ///
@@ -730,6 +754,30 @@ abstract class AppLocalizations {
   /// **'No mantras in this category yet.'**
   String get mantraNoneInCategory;
 
+  /// A mantra category: bīja ("seed") mantras, the one-syllable sounds such as Klīm. Shown as a filter chip above the mantra list and as a small label on each mantra. Where the bare word means something else in the language, write "bīja mantra".
+  ///
+  /// In en, this message translates to:
+  /// **'Beej'**
+  String get mantraCategoryBeej;
+
+  /// A mantra category: Gāyatrī mantras (Krishna, Vishnu and Shiva Gayatri). Shown wherever Beej is.
+  ///
+  /// In en, this message translates to:
+  /// **'Gayatri'**
+  String get mantraCategoryGayatri;
+
+  /// A mantra category: the Hare Krishna Mahamantra and the other great mantras. Shown wherever Beej is.
+  ///
+  /// In en, this message translates to:
+  /// **'Mahamantra'**
+  String get mantraCategoryMahamantra;
+
+  /// A mantra category: mantras that are a deity's Name (nāma), such as Rama Taraka and Nrisimha. The Divine Name, not a person's name; where the bare word could be misread, write "Name mantra". Shown wherever Beej is.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get mantraCategoryName;
+
   /// No description provided for @mantraStandardRounds.
   ///
   /// In en, this message translates to:
@@ -1245,6 +1293,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Explanation (AI-assisted)'**
   String get verseExplanationAiLabel;
+
+  /// No description provided for @verseWordMeanings.
+  ///
+  /// In en, this message translates to:
+  /// **'Word meanings'**
+  String get verseWordMeanings;
 
   /// No description provided for @verseCompareTranslations.
   ///
@@ -2302,6 +2356,66 @@ abstract class AppLocalizations {
   /// **'Words heard are removed from your account 7 days after the sitting.'**
   String get chantHeardExpiry;
 
+  /// No description provided for @chantHeardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heard live'**
+  String get chantHeardTitle;
+
+  /// No description provided for @chantHeardHearing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hearing you…'**
+  String get chantHeardHearing;
+
+  /// No description provided for @chantHeardWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your voice'**
+  String get chantHeardWaiting;
+
+  /// No description provided for @chantHeardPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant out loud. The words your phone hears will appear here.'**
+  String get chantHeardPlaceholder;
+
+  /// No description provided for @chantHeardLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last heard'**
+  String get chantHeardLast;
+
+  /// A stretch of chanting that was counted; the number is how many chants it added, e.g. "Counted +1".
+  ///
+  /// In en, this message translates to:
+  /// **'Counted +{count}'**
+  String chantHeardCounted(int count);
+
+  /// No description provided for @chantHeardNotCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted'**
+  String get chantHeardNotCounted;
+
+  /// How near what was heard came to the mantra, and the least it needed, e.g. "72% match · needs 50%".
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% match · needs {needed}%'**
+  String chantHeardMatch(int percent, int needed);
+
+  /// How near what was heard came to the mantra, e.g. "72% match".
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% match'**
+  String chantHeardMatchShort(int percent);
+
+  /// No description provided for @chantHeardEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get chantHeardEarlier;
+
   /// No description provided for @chantAlongTitle.
   ///
   /// In en, this message translates to:
@@ -2637,8 +2751,20 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'as',
+    'bn',
+    'en',
+    'gu',
+    'hi',
+    'kn',
+    'ml',
+    'mr',
+    'or',
+    'pa',
+    'ta',
+    'te',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2647,8 +2773,30 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'as':
+      return AppLocalizationsAs();
+    case 'bn':
+      return AppLocalizationsBn();
     case 'en':
       return AppLocalizationsEn();
+    case 'gu':
+      return AppLocalizationsGu();
+    case 'hi':
+      return AppLocalizationsHi();
+    case 'kn':
+      return AppLocalizationsKn();
+    case 'ml':
+      return AppLocalizationsMl();
+    case 'mr':
+      return AppLocalizationsMr();
+    case 'or':
+      return AppLocalizationsOr();
+    case 'pa':
+      return AppLocalizationsPa();
+    case 'ta':
+      return AppLocalizationsTa();
+    case 'te':
+      return AppLocalizationsTe();
   }
 
   throw FlutterError(

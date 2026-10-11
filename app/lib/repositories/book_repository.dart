@@ -286,9 +286,21 @@ class BookRepository {
     return fallback;
   }
 
-  /// The first stored rendering in the earliest language of [chain] — the same
-  /// rule the server applies (`language.pick`), against what is on the device.
+  /// The rendering a verse opens with: the first stored one in the earliest
+  /// language of [chain] — the same rule the server applies
+  /// (`language.pickTranslation`), against what is on the device.
+  ///
+  /// A poetic expansion (Dnyaneshwari's ovis on the Gita) retells a verse rather
+  /// than translating it, so it is never the default while any other rendering
+  /// exists in the chain; it is still there under "Compare translations", and
+  /// stands in when it is all there is.
   static TranslationRecord? pickTranslation(List<TranslationRecord> rows, List<String> chain) {
+    return _firstInChain(rows.where((row) => row.type != _poeticExpansion), chain) ?? _firstInChain(rows, chain);
+  }
+
+  static const _poeticExpansion = 'POETIC_EXPANSION';
+
+  static TranslationRecord? _firstInChain(Iterable<TranslationRecord> rows, List<String> chain) {
     for (final code in chain) {
       for (final row in rows) {
         if (row.languageCode == code) return row;

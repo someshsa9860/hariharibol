@@ -4,68 +4,57 @@ Flutter app (iOS + Android). Clean, simple, conventional. No clever architecture
 
 ## Non-negotiables
 
-1. **Nothing is hardcoded.** No magic strings, colors, sizes, durations or endpoints inline. Everything comes from l10n, theme tokens, or config.
-2. **Standard localization.** Use Flutter's own l10n (ARB files + generated delegates). Every user-facing string goes through it from day one — never added retroactively.
-   - **Services write no words.** A failure made on the phone (`api_client`, `auth_service`) has an
-     empty `message` and a `FailureKind` or a `ClientFailureCode`; the screen shows it with
-     `failure.describe(AppLocalizations.of(context))` (`core/format/failure_text.dart`), which prefers
-     the server's own message and otherwise reads the ARB. Never show `failure.message` directly.
+1. **Nothing is hardcoded.** No magic strings, colors, sizes, durations or endpoints inline — everything comes from l10n, theme tokens, or config.
+2. **Standard localization.** Flutter's own l10n (ARB files + generated delegates). Every user-facing string goes through it from day one, never retroactively.
+   - **The one rule: text added to `lib/l10n/app_en.arb` is translated into every other `app_*.arb`
+     in the same change** (`hi mr gu bn ta te kn or pa ml as`; Sanskrit has no UI file). Same keys in
+     the same order, no `@key` metadata (English alone has it), same placeholders and ICU shape, Latin
+     digits. Then `tool/flutter.sh gen-l10n` and commit `lib/l10n/generated/`. If an English text's
+     *meaning* changes, re-translate it everywhere or give it a new key — key parity can't see a
+     changed value. `gen-l10n` only warns and the app then silently shows English, so
+     **`test/l10n_parity_test.dart` enforces it**. CI doesn't run the app's tests — run it. New
+     language, house style, devotional glossary: [lib/l10n/README.md](lib/l10n/README.md).
+   - **Services write no words.** A failure made on the phone (`api_client`, `auth_service`) has an empty
+     `message` and a `FailureKind` or `ClientFailureCode`; screens show
+     `failure.describe(AppLocalizations.of(context))` (`core/format/failure_text.dart`: the server's own
+     message if there is one, else the ARB). Never show `failure.message`.
    - **Quotes, dashes and joins are copy too** (`labelQuotedMeaning`, `labelTranslatorCredit`,
-     `searchResultsTitle`, …) — marks and word order differ by language. Dates and money take the
-     reader's locale (`Localizations.localeOf(context)`), never the device default.
-   - **The app language setting drives the UI locale** (`providers/locale_provider.dart`, see "Three languages"),
-     but only for a language that ships an ARB file. Adding `app_hi.arb` is all it takes for Hindi to switch on.
+     `searchResultsTitle`, …): marks and word order differ by language. Dates and money take the reader's
+     locale (`Localizations.localeOf(context)`), never the device default.
+   - **The app-language setting drives the UI locale** (`providers/locale_provider.dart`, see "Three
+     languages") for a language that ships an ARB file — all twelve do today.
 3. **Standard color system.** One palette defined in the theme, used everywhere.
-4. **This is not styled as a "spiritual app."** No ancient/ornamental theming. Follow standard design patterns with consistent color, padding and spacing throughout.
+4. **This is not styled as a "spiritual app."** No ancient/ornamental theming. Standard design patterns with consistent color, padding and spacing.
 
 ## Toolchain
 
-**Flutter 3.44.2 / Dart 3.12.2**, pinned in `.flutter-version`. The first `flutter`
-on `PATH` is usually a different one (several SDKs are installed here), and
-`drift_dev` will not resolve against an older analyzer.
+**Flutter 3.44.2 / Dart 3.12.2**, pinned in `.flutter-version`. The first `flutter` on `PATH` is usually a
+different SDK, and `drift_dev` won't resolve against an older analyzer, so run everything through
+[tool/flutter.sh](tool/flutter.sh): `tool/flutter.sh test | analyze | pub get | gen-l10n` (`./run.sh`,
+`./build_bundle.sh`, `./build_ipa.sh` already do). It finds the pinned SDK on `PATH`, or `FLUTTER_SDK=` in `config.sh`.
 
-`./run.sh`, `./build_bundle.sh` and `./build_ipa.sh` go through
-[tool/flutter.sh](tool/flutter.sh), which finds the pinned SDK on `PATH` itself
-(or `FLUTTER_SDK=` in `config.sh`) — no `export PATH` needed. Use it for anything
-else too: `tool/flutter.sh test`, `tool/flutter.sh pub get`, `tool/flutter.sh analyze`.
-
-A build with the wrong SDK leaves `.dart_tool` unusable for the right one: the
-native-asset hook cache (`.dart_tool/hooks_runner/*/*/hook.dill`) is not keyed by SDK,
-and an IDE's Dart daemon can re-point `package_config.json` at its own SDK. Both end
-in `Invalid kernel binary format version` or `ui.HitTestResponse` not found, and
-neither is a code bug. `tool/flutter.sh` deletes the hook dirs another SDK built and
-re-runs `pub get` when the framework path is wrong, so it heals itself. A bare
-`flutter` run in a terminal or IDE skips that; the next script run cleans up after it.
-For VS Code set `dart.flutterSdkPath` to the pinned SDK in `.vscode/settings.json`.
-
-To move to a new SDK, change `.flutter-version` and `pubspec.yaml` together.
-`pubspec.yaml` pins `sdk: ^3.12.2`, so an older SDK fails loudly at `pub get`
-rather than quietly somewhere else.
+A build with the wrong SDK (a bare `flutter`, an IDE's Dart daemon) leaves `.dart_tool` unusable for the
+right one: `Invalid kernel binary format version` or `ui.HitTestResponse` not found. Not a code bug — the
+next `tool/flutter.sh` run deletes the stale native-asset hook dirs and re-runs `pub get`. VS Code: set
+`dart.flutterSdkPath` to the pinned SDK in `.vscode/settings.json`. To move SDK, change `.flutter-version`
+and `pubspec.yaml` (`sdk: ^3.12.2`) together.
 
 ## Build-time configuration
 
-Nothing that differs per environment is committed. Four `--dart-define`s cover
-it, all with working defaults:
+Nothing that differs per environment is committed. Every `--dart-define` has a working default:
 
 | Define | Default | Why |
 |---|---|---|
 | `API_BASE_URL` | `https://api.hariharibol.com` | Point a debug build at a laptop. Android emulators reach the host at `10.0.2.2`. |
 | `GOOGLE_SERVER_CLIENT_ID` | — | The **web** client id. Android needs it as `serverClientId` or Google returns no ID token. |
-| `GOOGLE_IOS_CLIENT_ID` | — | Normally read from `GoogleService-Info.plist`; this exists because that file is a secret. |
+| `GOOGLE_IOS_CLIENT_ID` | — | Normally read from `GoogleService-Info.plist`; exists because that file is a secret. |
+| `TTS_MODELS_MANIFEST_URL` | bundled `assets/tts/tts_models.json` | Replaces the voice manifest at run time ("Spoken meaning and purport"). |
+| `AUTO_CHANT_MODEL_URL` | — | Without it the optional 365 MB recogniser is never offered ("The chant counter"). |
+| `AUTO_CHANT_LOG` | on in debug/profile, off in release | Auto-count console log. |
 
-```
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000 \
-            --dart-define=GOOGLE_SERVER_CLIENT_ID=…
-```
-
-**Firebase is optional at boot.** The config files are secrets and are not in
-the repository, so `FirebaseService.init()` catches its own failure: push and
-analytics go quiet, App Check returns no token, everything else works. The
-backend's `APP_CHECK_ENABLED=false` in development is the other half of that.
-
-**Bundle id: `com.sss.ramkrishnahari`** on both platforms — the same as the
-existing store listings, which is what keeps the Play upload and the irreplaceable
-keystore usable. Do not let `flutter create` reset it.
+**Firebase is optional at boot.** Its config files are secrets and not in the repository, so
+`FirebaseService.init()` catches its own failure: push and analytics go quiet, App Check returns no token,
+everything else works (the backend's `APP_CHECK_ENABLED=false` in development is the other half).
 
 ## Structure
 
@@ -73,7 +62,7 @@ keystore usable. Do not let `flutter create` reset it.
 app/lib/
 ├── main.dart                    # boot only — storage, device, firebase, session, runApp
 ├── app.dart                     # MaterialApp.router: theme, l10n, router
-├── l10n/                        # app_en.arb + generated/ (written by `flutter gen-l10n`)
+├── l10n/                        # app_en.arb + 11 app_xx.arb + README.md + generated/ (`flutter gen-l10n`)
 ├── core/
 │   ├── theme/                   # colors, typography, spacing, padding — the single source
 │   ├── constants/               # api paths, app config, storage keys
@@ -94,414 +83,178 @@ app/lib/
 └── services/                    # api_client, auth, user, home, fcm, tracking, device, …
 ```
 
-`providers/` is not a layer — it holds the Riverpod objects that connect a
-service to a view. Services do the work; providers make the result watchable.
+`providers/` is not a layer — it holds the Riverpod objects that connect a service to a view. Services do
+the work; providers make the result watchable.
 
 ## Files and widgets
 
-- **500 lines maximum per dart file.** Aim well below it.
-- **`views/` is one level deep.** A single subdir per module — `auth`, `dashboard`. No nesting beyond that.
-- **Dashboard tabs each get their own dart file.**
-- **Custom widgets live in `widgets/{module}/{widget_name}.dart`**, never inside the view file. The only exception is a widget small enough that extracting it would cost more than it saves.
-- Views stay thin: layout and wiring, not widget definitions.
+- **500 lines maximum per dart file**; aim well below it.
+- **`views/` is one level deep** — a single subdir per module (`auth`, `dashboard`), and each dashboard tab its own dart file. Views stay thin: layout and wiring, not widget definitions.
+- **Custom widgets live in `widgets/{module}/{widget_name}.dart`**, never in the view file — unless extracting one would cost more than it saves.
 
 ## Design language
 
-The app is an **editorial layout on warm paper**, not a Material dashboard. Every screen is built from the same handful of pieces, and none of them are re-invented per view.
+An **editorial layout on warm paper**, not a Material dashboard. Every screen is built from the same few pieces; don't re-invent them per view.
 
-| Piece | Where | What it is |
-|---|---|---|
-| Palette | `core/theme/app_colors.dart` | See the colour rule below. Both `ColorScheme`s are **written out by hand** in `AppTheme._scheme`. |
-| Heading serif | `AppTypography.serif` | Georgia, falling back to Noto Serif on Android. **Nothing is bundled** — a downloaded face is another asset and a flash of unstyled text on every cold start. Applied to `display*` and `headline*` at **regular weight**: hierarchy comes from size and space, not bold. |
-| `AppTypography.eyebrow` | via `widgets/common/eyebrow.dart` | The letterspaced small caps that name a block — `VERSE OF THE DAY`, `PRACTICE`. Pass sentence case; the widget uppercases. |
-| `AppTypography.numeral` | anywhere a number is looked at | Serif figures for counts and streaks. The UI font's lining figures read as a spreadsheet at that size. |
-| `Motif` / `MotifPanel` | `widgets/common/motif.dart` | Lotus, sun and crescent line art, **drawn not shipped**: a few strokes each, so a painter beats an asset, scales to any size and takes its colour from the card it lands on. Ornamental, so `ExcludeSemantics`. |
+- **Palette** — `core/theme/app_colors.dart`; both `ColorScheme`s are written out by hand in `AppTheme._scheme`.
+- **Heading serif** — `AppTypography.serif` (Georgia, Noto Serif on Android; **nothing bundled**) on `display*` and `headline*` at **regular weight**: hierarchy comes from size and space, not bold. `AppTypography.numeral` is serif figures for counts and streaks.
+- **`AppTypography.eyebrow`** (`widgets/common/eyebrow.dart`) — letterspaced small caps naming a block. Pass sentence case; the widget uppercases.
+- **`Motif` / `MotifPanel`** (`widgets/common/motif.dart`) — lotus, sun, crescent line art, **drawn not shipped**, coloured by the card it lands on. It is the fallback for a missing image, never a grey box.
 
 ### The colour rule
 
-**Light mode is dark orange, saffron and white. Dark mode is black and white. There is no fourth colour, in either.**
+**Light mode is dark orange, saffron and white. Dark mode is black and white. There is no fourth colour, in either.** Light has no grey (neutrals are tints and shades of the one orange hue); dark has no orange (it glows on black and pulls the eye off the verse, so the accent is white).
 
-Light has no grey — the neutrals are all tints and shades of the one orange hue, so a "grey" caption is really the palest brown-orange and near-black body text is really the darkest. Dark has no orange — on a black ground the brand orange glows and pulls the eye off the verse, which is the one thing on the screen meant to be read, so the accent there is simply white.
+- **Never `ColorScheme.fromSeed`** — it derives a tertiary by rotating the hue. Both schemes state every role.
+- **Never `Colors.*`** except `Colors.transparent`; no `Color(0xFF…)` outside `app_colors.dart` (motif gradients are `AppColors.panelFrom`/`panelTo`).
+- **Saffron is a fill, never text** (about 2:1 on white); what sits on it is `ink`.
+- **One exception:** the weekday initials in the routine date strip (`AppColors.weekdayLight`/`weekdayDark`). Decoration only.
+- **Colour never carries meaning alone.** No green for success or red for danger; every state also has an icon or a word.
 
-- **Never `ColorScheme.fromSeed`.** It always derives a tertiary by rotating the hue, which is exactly the fourth colour this design does not have. Both schemes state every role explicitly.
-- **Never `Colors.<anything>`** except `Colors.transparent`. No `Color(0xFF…)` outside `app_colors.dart` — including the gradients behind motifs, which are `AppColors.panelFrom`/`panelTo`.
-- **Saffron is a fill, never text.** It is about 2:1 on white. What sits on saffron is `ink`.
-- **One deliberate exception: the weekday initials** in the routine tab's date strip are each printed in a colour of their own (`AppColors.weekdayLight` / `weekdayDark`, Thursday yellow, Saturday black, Wednesday red). Decoration only — see "The routine tab". Nothing else breaks the rule.
-- **Colour never carries meaning on its own.** There is no green for success and no red for danger — light mode can only vary tone, and dark mode cannot even do that. Every state needs an icon or a word too. This is why the destructive actions in `profile_tab.dart` carry both an icon and a confirmation.
+`test/palette_test.dart` checks the hue of every role in both schemes and 4.5:1 contrast for body and muted text.
 
-`test/palette_test.dart` enforces all of this: every role in both schemes is checked for hue, and body and muted text are checked for 4.5:1 contrast. Retune the palette and the test tells you what drifted.
-
-Rules that follow from it:
-
-- **Cards are a lighter plane with a hairline, never a shadow.** Elevation on a warm ground reads as dirt. The `cardTheme` already does this — don't hand-roll a `BoxDecoration`.
-- **Devanagari never takes the serif.** None of those faces cover it. Verse text uses `AppTypography.verse`, which stays on the platform font and carries the extra leading matras need.
-- **A motif is the fallback for a missing image**, not a grey box. Most of the library has no cover art and never will; absence should look deliberate.
-- **No control that does nothing.** The verse card's arrow appears only when there is a screen to open; a play button waits on audio existing. Ship the section without the affordance rather than with a dead one.
+Also: **cards are a lighter plane with a hairline, never a shadow** (the `cardTheme` does it — no hand-rolled `BoxDecoration`); **Devanagari never takes the serif** (verse text uses `AppTypography.verse`, which carries the extra leading matras need); **no control that does nothing** — ship the section without the affordance.
 
 ## The chant counter
 
-`views/chant/chant_view.dart` is the tap counter. Every tap is stamped by a `ChantRecorder`
-(`services/chant_recorder.dart`, pure Dart, clock injected — `test/chant_recorder_test.dart`):
-a round is simply the next `beadsPerRound` taps, so which round a tap belongs to, and a
-round's start, end and duration, are read off the taps rather than stored beside them. A
-chant's duration is its **gap** — time since the tap before it; the first tap of a sitting
-has none and every average leaves it out.
+`views/chant/chant_view.dart`. A `ChantRecorder` (`services/chant_recorder.dart`, pure Dart, clock injected) stamps every tap: a round is the next `beadsPerRound` taps, so a round's start, end and duration are read off the taps, not stored. A chant's duration is its **gap** since the tap before it; the first tap of a sitting has none and every average leaves it out. Changed rounds go up with the 2-second session sync (`PUT …/chant/session/:id/detail`, idempotent per round); a failed send is put back on the recorder.
 
-- **Server record.** Changed rounds go up with the existing 2-second session sync
-  (`PUT …/chant/session/:id/detail`, idempotent per round); a failed send is put back on the
-  recorder. History is read from `GET …/chant/sessions` and `…/chant/session/:id`.
-- **Word detection** (`services/chant_speech_listener.dart` over `services/chant_word_engine.dart`) is a
-  separate switch from auto-count, and runs **on the phone with sherpa-onnx** — the same library
-  and the same bundled model as auto-count (the keyword zipformer is a small streaming recogniser,
-  run through `OnlineRecognizer`), so it needs no Google/Apple speech service and works offline.
-  English-trained, so Sanskrit comes out approximate. Each tap takes the words heard since the tap
-  before it; they are sent to `…/transcripts`, which the server **deletes after 7 days**. Audio is
-  not recorded or uploaded.
-- **Auto-count** (`services/mantra_auto_chant_session.dart`) listens, transcribes on the phone
-  (VAD gates the recogniser, `mantra_detection_engine.dart`) and counts a repetition when the
-  transcript matches one of the open mantra's `chantPhrases` by **≥ 50%** (`mantra_phrase_matcher.dart`:
-  spellings folded to a rough sound, edit distance, stricter for very short mantras, held back until a
-  match is settled so half a chant is never counted twice). Phrases come from the API per mantra (seeded
-  in `backend/prisma/seed/chant-phrases.js`, fallback `transliteration`), so any mantra opened works with
-  no app change. Tuning is in `AutoChantConfig`; `test/mantra_phrase_matcher_test.dart`.
-  - **Two recognisers.** The bundled English one (above) is the default and always the fallback. A person
-    can instead download **Omnilingual ASR 300M** (365 MB, `services/mantra_accurate_model.dart`, a row in the
-    setup sheet — `widgets/chant/auto_chant_model_row.dart`, `providers/auto_chant_model_provider.dart`),
-    which writes the chant in Devanagari. `MantraDetectionEngine.start` uses it when it is on disk: the worker
-    then gathers a stretch of voice and decodes it once, as it ends or after `accurateMaxUtteranceSeconds`, where
-    the bundled one streams. It is held to `accurateMatchThreshold` (65%) and is also matched against the
-    mantra's own script (`Mantra.scriptPhrase`). **Nothing is offered until `AUTO_CHANT_MODEL_URL` is set** at
-    build time, and not on a phone with under `accurateMinRamMegabytes`. Every Indic script is folded to
-    the same sounds first (`services/indic_sounds.dart`) because the model picks a script itself.
-    The offline numbers, and why, are in `tool/auto_chant_bench/` and `assets/models/auto_chant/NOTICE.md`.
-    **Not yet tried on a phone:** latency (about 0.35x real time on one desktop thread, so a 3 s chant may be
-    counted 1-3 s after it ends) and memory.
-  - **A short phrase must end near the start of what was heard** (`shortPhraseReach`), or a lone "Om" counted in
-    any sentence containing the sound — 99 false counts in 24 minutes of ordinary speech, now 1.
-  - **It logs what it is doing** (`services/auto_chant_log.dart`): every line starts `[AutoChant hh:mm:ss.mmm]`,
-    so filtering the console on `AutoChant` shows only this. On in debug and profile builds, off in release
-    unless built with `--dart-define=AUTO_CHANT_LOG=true` (`AutoChantConfig.logging`). The lines carry what
-    was heard, so they are for the developer's console, not for analytics. Read them top to bottom:
-    `enabling` → `microphone is streaming` → `engine: ready` → `LISTENING` → `alive:` every 5 s (audio
-    chunks and level — `no audio` / `delivering silence` warnings point at the mic) → `voice detected` →
-    `heard: "…"` → `COUNTED +1` → `bead #N added to the counter`. A miss logs `NOT counted … matched 38%,
-    needs 50%`; a voice with no words logs `produced no words`; a dead worker logs `worker isolate crashed`
-    or `exited`. `worker:` lines come from the background isolate and say whether the recogniser keeps up.
-- **Setup is one sheet.** Both switches live in `widgets/chant/chant_setup_sheet.dart`, opened from
-  the "Auto count & words" button under the ring; its label shows how many are on.
-- **Mic sharing.** Auto-count and word detection (both use `record`, each with its own recorder) both want the
-  microphone. Whether they can run together is a per-device question — check it on hardware
-  before promising both at once.
-- **Chant along** (a mantra's mala recording). A mantra can carry one recording of a whole
-  mala and where the chanting starts and ends in it (`Mantra.malaAudioUrl` / `malaAudioStartMs`
-  / `malaAudioEndMs`; `hasMalaAudio` is false unless the end is after the start). With one, the
-  screen shows `widgets/chant/chant_along_card.dart` — play / pause and a bar that can be
-  dragged — and the counter counts with the voice: the stretch is split evenly into one
-  round's beads, and a chant is counted as it **finishes**. The arithmetic is
-  `services/chant_mala_timing.dart` (pure — `test/chant_mala_timing_test.dart`);
-  `services/chant_mala_player.dart` is the `just_audio` player around it; `chant_view.dart`
-  turns each finished chant into a bead tap. The other halves are in
-  [backend/CLAUDE.md](../backend/CLAUDE.md) and [admin/CLAUDE.md](../admin/CLAUDE.md).
-  - **Only listening counts.** A seek — the bar, or any reading that jumps more than
-    `ChantAudioConfig.continuousStep` — finds its place and counts nothing, so dragging to the
-    middle adds no fifty chants and dragging back takes none away. Playing a stretch again
-    counts it again: that is another time through.
-  - **The mic features rest while it plays.** The speaker would be heard as chanting, so
-    starting the recording switches auto-count and word detection off, and turning either on
-    pauses the recording.
-  - **It stops when the person does.** Paused when the app goes to the background and when the
-    sitting is closed (nothing is counted after the last sync). While it plays the screen is
-    held awake (`wakelock_plus`) — nobody is tapping, and a locked screen stops the audio and
-    the count. `ChantMalaPlayer.dispose` lets the screen go *first*, before awaiting anything.
-  - **A stale link is asked for again once.** It is signed for an hour by default; a recording
-    that will not open is re-fetched (`MantraService.get`) before the card says it failed.
-  - **Tests.** `malaAudioPlayerProvider` is the seam: tests swap in `FakeAudioPlayer` and
-    `FakeWakelock` from `test/fake_audio_player.dart`. Under `testWidgets` a stream `cancel()`
-    does not finish during `pump`, which is why `dispose` does not wait on one; and frames stop
-    once the lifecycle is `paused`, so a test resumes it before leaving the screen.
+- **Word detection** (`chant_speech_listener.dart`) is a separate switch from auto-count. It runs on the phone with sherpa-onnx and the same bundled model — offline, no Google/Apple speech service — and is English-trained, so Sanskrit is approximate. Each tap's words go to `…/transcripts`, which the server **deletes after 7 days**. Audio is never recorded or uploaded.
+- **Auto-count** (`mantra_auto_chant_session.dart`): a VAD gates the recogniser, and a repetition counts when the transcript matches one of the mantra's `chantPhrases` by **≥ 36%** (`AutoChantConfig.matchThreshold` — the one number to change; `mantra_phrase_matcher.dart`), and it counts as soon as it settles, **without waiting for a pause**, so an unbroken chant is counted as it goes. The bundled English model writes Sanskrit as loose syllables, so the old 50% left real chanting uncounted; the price is that other speech reaches the bar more easily (plain English scored 18–27% against the Mahamantra in the tests). The first count in a stretch needs the 36% whatever the mantra; a further one in the same stretch needs more when the phrase is very short. The downloadable recogniser keeps its own 65% bar. Phrases come from the API per mantra (seed `backend/prisma/seed/chant-phrases.js`, fallback `transliteration`), so a new mantra needs no app change. Tuning is in `AutoChantConfig`. A short phrase must end near the start of what was heard (`shortPhraseReach`), or a lone "Om" is counted inside any sentence containing the sound (99 false counts in 24 minutes of speech, now 1).
+  - **Two recognisers.** The bundled English one (6 MB) is the default and the fallback. A person can instead download **Omnilingual ASR 300M** (365 MB, `mantra_accurate_model.dart`), which writes Devanagari, is held to 65% (`accurateMatchThreshold`) and is also matched against `Mantra.scriptPhrase`; every Indic script is folded to the same sounds first (`indic_sounds.dart`). **Not offered until `AUTO_CHANT_MODEL_URL` is set**, nor on a phone under `accurateMinRamMegabytes`. Numbers and why: `tool/auto_chant_bench/`, `assets/models/auto_chant/NOTICE.md`. **Not yet tried on a phone:** latency (about 0.35x real time on one desktop thread, so a 3 s chant may be counted 1–3 s after it ends) and memory.
+  - **It logs** (`auto_chant_log.dart`; lines start `[AutoChant hh:mm:ss.mmm]`; on in debug/profile, off in release unless `AUTO_CHANT_LOG=true`). The lines carry what was heard — developer console only, never analytics. Auto-count prints `heard: "…"` with how much of the mantra it was and what it needed (`— 62% of the mantra, needs 50%`) next to `COUNTED +n` / `NOT counted`; word detection prints `words heard: "…"`.
+- **"Heard live" card** (`widgets/chant/chant_heard_card.dart`, under the undo button): the words the phone is hearing as they come, a bar for how near they came to the mantra with a tick at the mark they had to reach (`heard_match_meter.dart`), *Counted +n* / *Not counted* (icon and words, not colour), and the few stretches before. It reads a `HeardWords` notifier (`services/heard_words.dart`, pure Dart) that **`MantraAutoChantSession.hearing`** and **`ChantSpeechListener.hearing`** each own and fill from their transcripts; it takes no part in counting. Auto-count's is shown when both are on (it also knows the match); the card is absent when neither is. The running line keeps its last `AutoChantConfig.heardLiveWords` words so a long unbroken chant doesn't grow it. "Not counted" waits for the stretch to end. The words are the recogniser's own, in whatever script it writes — with the bundled English model a Sanskrit mantra shows as English-sounding words; that is the model, not a bug. `test/heard_words_test.dart`, `test/chant_heard_card_test.dart`.
+- **Setup is one sheet** (`widgets/chant/chant_setup_sheet.dart`). Auto-count and word detection each have their own `record` recorder and both want the microphone; whether they can run together is per device — check on hardware before promising both.
+- **Chant along** (a mantra's mala recording): `Mantra.malaAudioUrl` / `malaAudioStartMs` / `malaAudioEndMs`, and `hasMalaAudio` is false unless the end is after the start. `widgets/chant/chant_along_card.dart` plays it; the stretch is split evenly into one round's beads and a chant is counted as it **finishes** (`chant_mala_timing.dart`, pure; `chant_mala_player.dart`, `just_audio`). Other halves: [backend/CLAUDE.md](../backend/CLAUDE.md), [admin/CLAUDE.md](../admin/CLAUDE.md).
+  - **Only listening counts.** A seek (the bar, or a jump of more than `ChantAudioConfig.continuousStep`) counts nothing; playing a stretch again counts it again.
+  - **The mic features rest while it plays** (the speaker would be heard as chanting): starting the recording switches them off, and turning either on pauses it.
+  - **It stops when the person does** (background, sitting closed). While it plays the screen is held awake (`wakelock_plus`) — a locked screen stops the audio and the count. `ChantMalaPlayer.dispose` lets the screen go *first*.
+  - **A stale link is asked for again once** (signed for an hour): `MantraService.get` re-fetches before the card says it failed.
+  - **Tests** swap `malaAudioPlayerProvider` for `FakeAudioPlayer` / `FakeWakelock` (`test/fake_audio_player.dart`). Under `testWidgets` a stream `cancel()` doesn't finish during `pump`, and frames stop once the lifecycle is `paused` — resume before leaving the screen. **Not yet tried by hand on a phone:** playback itself.
 
 ## The routine tab
 
-`views/dashboard/routine_tab.dart`. A strip of days (`widgets/routine/routine_date_strip.dart`, 120 days back and 60 ahead — `RoutineConfig`) sits under the title; the day picked there is the day listed below. Scrolling back is how old routines are read.
+`views/dashboard/routine_tab.dart`: a strip of days (`widgets/routine/routine_date_strip.dart`; 120 back, 60 ahead — `RoutineConfig`) over the list for the day picked.
 
-- **Each day has its own list.** A task is added *for* a day (`RoutineTask.day`) and stays on it. The optional **daily routine** (`DailyRoutineItem`, managed in `daily_routine_sheet.dart` from the repeat button) shows on every day from the day it was added, and each day keeps its own check (`routine.checks`, `{day: [ids]}`). Removing a daily item sets its `until` instead of deleting it, so past days still show it. Days are `yyyy-MM-dd` keys (`routineDayKey`).
-- **Device-only**, in `LocalStore` (`routine.tasks`, `routine.daily`, `routine.checks`). Tasks saved before they had a day are dated to the old `routine.date` the first time they are read.
-- **A date chip** (`routine_day_chip.dart`) is: the weekday initial (`DateFormat('EEEEE')`, so it follows the locale) in the weekday's colour; the date number inside a ring that fills as the day is checked off (a filled disc once complete, a tick under it); and the Vaishnava tilak under it on Ekadashi. The full date, "Ekadashi" and "n of m done" are the semantic label — colour is never the only signal.
-- **The weekday colours are decoration**, the one exception to the colour rule, and are tokens in `app_colors.dart`. Saturday is black in light mode and white in dark.
-- **Ekadashi is computed on the phone** (`services/ekadashi_calendar.dart`, Meeus's low-precision sun and moon): the 11th tithi of either fortnight, judged at 06:00 local. It matches the 2025 almanac dates (`test/routine_test.dart`) but **can differ from a temple's printed date by a day** — the Vaishnava Dvadashi rules are not applied. The heading badge says so in its tooltip. A day that holds two sunrises of the tithi is marked on both.
-- **The tilak and the peacock feather are drawn, not shipped** (`widgets/common/vaishnava_tilak_icon.dart`, `peacock_feather_icon.dart`), like the motifs. The feather is the Reels button beside the tab bar (`NavAction.iconBuilder`).
+- **Each day has its own list.** A task is added *for* a day (`RoutineTask.day`). The optional **daily routine** (`DailyRoutineItem`) shows on every day from the day it was added, each day keeping its own check (`routine.checks`, `{day: [ids]}`). Removing a daily item sets its `until` rather than deleting it, so past days still show it. Days are `yyyy-MM-dd` keys (`routineDayKey`).
+- **Device-only**, in `LocalStore` (`routine.tasks`, `routine.daily`, `routine.checks`); tasks saved before they had a day are dated to the old `routine.date` on first read.
+- **Ekadashi is computed on the phone** (`services/ekadashi_calendar.dart`, Meeus's low-precision sun and moon: the 11th tithi of either fortnight, judged at 06:00 local). It matches the 2025 almanac (`test/routine_test.dart`) but **can differ from a temple's printed date by a day** — the Vaishnava Dvadashi rules aren't applied. A day holding two sunrises of the tithi is marked on both.
+- A date chip's weekday initial follows the locale (`DateFormat('EEEEE')`) and its semantic label carries the full date, "Ekadashi" and "n of m done" — colour is never the only signal. The tilak and the peacock feather (the Reels button, `NavAction.iconBuilder`) are drawn, not shipped.
 
 ## The launch animation
 
-`views/splash/splash_view.dart` plays a 2.6 s sequence over `widgets/splash/`: a soft light and
-expanding rings behind (`splash_backdrop.dart`), the logo coming into focus (`splash_logo.dart`),
-and the tagline tightening into place (`splash_tagline.dart`, ARB key `splashTagline`). **Every
-number — each beat's start, end and curve, sizes, alphas — is in
-`core/constants/splash_config.dart`**; retime it there, not in the widgets.
+`views/splash/splash_view.dart` plays a 2.6 s sequence over `widgets/splash/`. **Every number — beat timings, curves, sizes, alphas — is in `core/constants/splash_config.dart`**; retime it there, not in the widgets.
 
-- **The router holds the splash.** The session is restored before `runApp`, so without a hold the
-  splash would last one frame. `SplashGate` (`core/navigation/`) is shut at launch; the redirect
-  leaves `/splash` alone until the view opens it, then sends the person on as usual. A tap opens
-  it early. Deep links are untouched — only the splash location waits.
-- **Reduce-motion** shows the finished logo for `reducedMotionHold` and moves nothing.
-- **One picture, one arrival.** The logo is a single image, so `SplashLogo` does not assemble it
-  from parts: it is uncovered outward from the eye of the feather in a soft-edged circle
-  (`bloom`), comes into focus — a little small, low and blurred, sharpening as it settles
-  (`focus`) — and one sheen crosses it (`glint`). At the end of the timeline each of those has
-  wound back to doing nothing, so the last frame, and the reduce-motion frame, is exactly the
-  asset. The widget tree is identical on every frame, otherwise the image would be re-mounted when
-  a layer was added or dropped. The blur wraps the reveal rather than sitting under it: a blur
-  spills past the picture's edge and a mask only covers the picture, so blurred ink would leak
-  round a reveal that had not reached it.
-- **The eye.** The light behind the logo, the rings and the reveal all spread from the heart of the
-  feather's eye, `SplashConfig.logoEye` — a fraction of the logo's width and height, measured off
-  `assets/hariharibol_trprt.png`. `SplashView` turns it into a screen position for the backdrop.
-  **A different picture means measuring it again**, or the light spreads from the wrong place.
-  `logoWidth` and `logoLift` place the logo; on a screen too narrow it shrinks inside the margins.
-- **Colour.** The light and rings take scheme colours, so they follow the palette rule. The logo
-  keeps its own colours in both themes — it is artwork, not UI, and was drawn to sit on cream and
-  on black alike.
-- **The native screens are plain ground, no logo** — a static one would pop when Flutter's first
-  frame replaced it. iOS: `LaunchScreen.storyboard` over the `LaunchGround` colour set (light and
-  dark). Android: `launch_ground` in `values/` and `values-night/`, used by both
-  `launch_background.xml` files. All three **must equal `AppColors.paper` / `paperDark`**; native
-  files cannot import a Dart constant, so retuning the palette means editing them by hand.
-  Android 12+ draws its own system splash (icon on that colour) regardless.
-- **Tests.** `SplashGate.instance.open()` in `setUp` is what lets router tests reach their screen;
-  the `launch animation` group in `test/auth_flow_test.dart` closes it again to test the hold.
-  `test/splash_logo_test.dart` checks the picture is in the bundle, that every moment of the
-  timeline can be drawn without an exception, and that the last frame matches the plain asset
-  pixel for pixel.
+- **The router holds the splash.** The session is restored before `runApp`, so without a hold the splash would last one frame. `SplashGate` (`core/navigation/`) is shut at launch; the redirect leaves `/splash` alone until the view opens it (a tap opens it early). Deep links are untouched. **Reduce-motion** shows the finished logo for `reducedMotionHold` and moves nothing.
+- **The last frame is exactly the asset.** The logo is uncovered outward from the eye of the feather (`bloom`), comes into focus (`focus`) and takes one sheen (`glint`), and each winds back to nothing. Keep the widget tree identical on every frame — adding or dropping a layer re-mounts the image.
+- **The eye** (`SplashConfig.logoEye`, a fraction of the logo's size, measured off `assets/hariharibol_trprt.png`) is where the light, rings and reveal spread from. **A different picture means measuring it again.** The logo keeps its own colours in both themes — artwork, not UI.
+- **The native launch screens are plain ground, no logo** (a static one would pop when Flutter's first frame replaced it): iOS `LaunchScreen.storyboard` over the `LaunchGround` colour set, Android `launch_ground` in `values/` and `values-night/`. All three **must equal `AppColors.paper` / `paperDark`**; native files can't import a Dart constant, so retuning the palette means editing them by hand.
+- **Tests.** `SplashGate.instance.open()` in `setUp` lets router tests reach their screen (the `launch animation` group in `test/auth_flow_test.dart` closes it to test the hold). `test/splash_logo_test.dart` checks the last frame equals the plain asset pixel for pixel.
 
 ## Logos and app icons
 
-There are two pictures, and each has one job. Nothing else is a logo — don't add a third.
+Two pictures, one job each — don't add a third.
 
-- **`assets/hariharibol_trprt.png`** (transparent) is the logo the app *shows*: the splash and the
-  sign-in screen. Everything reaches it through `AppAssets.logo` (`core/constants/app_assets.dart`),
-  so a new picture is one path to change. It is the only logo listed under `assets:` in
-  `pubspec.yaml`.
-- **`assets/hariharibol.png`** (square, on white) is the *icon master*. The launcher icons are cut
-  from it and it ships as those, not as a file the app loads — so it is deliberately **not** in
-  `pubspec.yaml` and adds nothing to the bundle.
+- **`assets/hariharibol_trprt.png`** (transparent) is the logo the app *shows* (splash, sign-in), always through `AppAssets.logo`. It is the only logo under `assets:` in `pubspec.yaml`.
+- **`assets/hariharibol.png`** (square, on white) is the *icon master*: launcher icons are cut from it and it ships as those, so it is deliberately **not** in `pubspec.yaml`.
 
-`python3 tool/generate_app_icons.py` (needs Pillow) rewrites every launcher icon from the master:
-the whole of iOS `AppIcon.appiconset` (flattened to opaque RGB, because the App Store rejects an
-icon with alpha) and on Android the legacy `mipmap-*/ic_launcher.png` plus the adaptive icon's
-`ic_launcher_foreground.png`. The adaptive icon's XML (`mipmap-anydpi-v26/ic_launcher.xml`) and its
-white background (`ic_launcher_background` in `values/colors.xml`) are written by hand and the
-script leaves them alone.
+`python3 tool/generate_app_icons.py` (needs Pillow) rewrites every launcher icon from the master: all of iOS `AppIcon.appiconset` (flattened to opaque RGB — the App Store rejects alpha) and Android's legacy `mipmap-*/ic_launcher.png` plus the adaptive `ic_launcher_foreground.png`. The adaptive XML and its white background (`ic_launcher_background` in `values/colors.xml`) are hand-written; the script leaves them alone.
 
-- **A launcher crops an adaptive icon to its own mask** (circle, squircle, …); only a circle 66/108
-  across is never cut. The artwork is shrunk (`ADAPTIVE_INSET`) so its farthest point stays inside
-  that circle. Change the shape of the master and recheck it against a circular mask before
-  trusting the inset.
-- **There is no monochrome (themed-icon) layer.** The logo is multi-colour artwork; a themed icon
-  would need a single-colour silhouette drawn for the purpose.
-- **Native launch screens carry no logo** — see above.
+- A launcher crops an adaptive icon to its own mask; only a circle 66/108 across is never cut, so the artwork is shrunk (`ADAPTIVE_INSET`) to keep its farthest point inside. Change the master's shape and recheck it against a circular mask.
+- There is no monochrome (themed-icon) layer: the logo is multi-colour and a themed icon needs a single-colour silhouette.
 
-## State management
+## State and storage
 
-**Riverpod.** Used everywhere — no second state solution alongside it.
-
-Chosen for less boilerplate than Bloc, compile-time safety, and because it pairs naturally with Drift's stream queries: a database stream becomes a provider directly, so offline data and UI state share one mechanism. It also keeps view files small, which the 500-line rule depends on.
-
-## Offline storage
-
-**Drift.** SQLite with a type-safe Dart API, actively maintained, and the default recommendation for new Flutter apps in 2026.
-
-Why it fits here:
-- Our content is relational — books → cantos → chapters → verses, plus translations and mantras. That is SQL's home ground.
-- Type-safe queries catch mistakes at compile time instead of runtime.
-- Reactive `Stream` queries drive the UI directly, so offline reads and live updates use one mechanism.
-- FTS5 gives real full-text search for verse lookup, without bolting on a search library.
-
-**Do not use:**
-- **Realm** — MongoDB deprecated the Atlas Device SDKs in September 2024; support ended September 2025.
-- **Isar** — development has stalled; treat as legacy.
-- **Original `hive`** — effectively unmaintained. Use `hive_ce` (the community fork) where key-value storage is wanted.
-
-ObjectBox is the only other serious option, and is worth revisiting **only** if we later need built-in device sync — which we do not, since the backend owns sync.
+- **Riverpod** everywhere — no second state solution. A Drift stream becomes a provider directly, so offline data and UI state share one mechanism, and views stay small (the 500-line rule depends on it).
+- **Drift** (SQLite: type-safe, reactive streams, FTS5 for verse search) holds the offline library — the content is relational (books → cantos → chapters → verses, translations, mantras). ObjectBox is the only other serious option; revisit it only if device sync is ever needed (the backend owns sync).
+- **Do not use** Realm (Atlas Device SDKs deprecated Sept 2024, support ended Sept 2025), Isar (stalled), or original `hive` (unmaintained — use `hive_ce` for key-value storage).
 
 ## Silent offline books
 
-Opening a book makes it readable offline, with no prompt and no progress screen. The server
-exports each chapter (Gita) or canto (Bhagavatam) to S3 weekly; the app downloads only what
-it lacks, straight from S3 — see [backend/README.md](../backend/README.md#book-cache--silent-offline-books).
+Opening a book makes it readable offline, with no prompt and no progress screen. The server exports each chapter (Gita) or canto (Bhagavatam) to S3 weekly; the app downloads only what it lacks, straight from S3 — see [backend/README.md](../backend/README.md#book-cache--silent-offline-books).
 
-```
-book opened ─► BookSyncManager.syncBook ─► GET manifest ─► BookSyncPlanner (what is missing / newer / different hash,
-                                                              the unit being read first, then neighbours)
-            ─► queue (2 at once, de-duplicated, paused offline) ─► BookUnitDownloader
-                  POST download-url ─► GET S3 (timeouts, backoff, Range resume, one link refresh)
-                  ─► isolate: gunzip + SHA-256 + parse ─► BookDao.replaceUnit (ONE transaction)
-```
+`BookSyncManager.syncBook` → manifest → `BookSyncPlanner` (missing / newer / different hash; the unit being read first, then neighbours) → queue (2 at once, de-duplicated, paused offline) → `BookUnitDownloader` (S3 with timeouts, backoff, `Range` resume, one link refresh) → isolate (gunzip + SHA-256 + parse) → `BookDao.replaceUnit`.
 
-- **`db/`** — Drift v2: `books`, `units` (cantos and chapters), `verses`, `verse_translations`
-  (every language of every verse), `download_state`, and the FTS5 table `verse_fts` (created in
-  `SearchDao.createIndex`, not a Drift table). Written by **one** method, `BookDao.replaceUnit`:
-  old verses, translations and search rows out, new ones in, and `download_state` set to `done`
-  at the downloaded version and hash — all in one transaction, so a unit is never half-updated.
-  Version 1 (a one-language cache) is dropped on upgrade; the sync refills it.
-- **`repositories/book_repository.dart`** — the only thing screens ask for book text. Local first;
-  a unit not on the phone is queued at the front and awaited (`readerWait`), and only then does
-  it fall back to the ordinary API. Short works (no chapters) are not exported: they come from the
-  API and are saved whole (`unitType: 'book'`).
-- **Language is chosen at read time**, not download time: every language is on the phone, so changing
-  the reading language needs no download. `BookRepository.pickTranslation` is the server's
-  `language.pick` against local rows.
-- **The file carries audio keys, never links** (a link would change the hash hourly).
-  `Verse.audioPath` is a key; `Verse.audioUrl` a link. Links come from `/audio-urls`.
-- **Background**: `book_sync_background.dart` asks the OS (workmanager) to finish unfinished
-  units when the app is backgrounded — network connected, battery not low. The sync endpoints are
-  public, so the background isolate needs no sign-in. `resumePending()` also runs at launch.
-  **iOS and Android registration is not exercised here** (no device or Xcode in CI): Android needs
-  nothing extra; iOS has `BGTaskSchedulerPermittedIdentifiers`, `UIBackgroundModes: processing` and
-  `WorkmanagerPlugin.registerBGProcessingTask` in `AppDelegate.swift`. Try it on a device before relying on it.
-- **A `done` unit keeps its old text** while a newer version downloads, and keeps it if that fails.
-  A failed unit is retried each time its book opens, when the network returns, and at launch until
-  `BookSyncConfig.autoRetryLimit`.
-- **UI**: `bookSyncSummaryProvider(bookId)` / `bookUnitStatesProvider(bookId)` expose "n of m"; the
-  only visible trace is the quiet icon in `BookDownloadAction`.
-- **Tests**: `test/book_db_test.dart` (transaction, FTS, migration), `book_sync_planner_test.dart`,
-  `book_sync_manager_test.dart` (queue, priority, dedupe, pause, restart), `book_unit_downloader_test.dart`
-  (resume, refresh, backoff, hash), `book_repository_test.dart`. Fakes in `test/support/`.
+- **`db/`** — Drift v2: `books`, `units` (cantos and chapters), `verses`, `verse_translations` (every language of every verse), `download_state`, and the FTS5 table `verse_fts` (made in `SearchDao.createIndex`, not a Drift table). `BookDao.replaceUnit` is the **one** writer and works in one transaction, so a unit is never half-updated. Version 1 (a one-language cache) is dropped on upgrade; the sync refills it.
+- **`repositories/book_repository.dart`** is the only thing screens ask for book text: local first; a unit not on the phone is queued at the front and awaited (`readerWait`), and only then does it fall back to the API. Short works (no chapters) aren't exported; they come from the API and are saved whole (`unitType: 'book'`).
+- **Language is chosen at read time**, not download time — every language is on the phone (`BookRepository.pickTranslation`).
+- **The file carries audio keys, never links** (a link would change the hash hourly): `Verse.audioPath` is a key, `Verse.audioUrl` a link, and links come from `/audio-urls`.
+- **A `done` unit keeps its old text** while a newer version downloads, and if that fails. A failed unit is retried when its book opens, when the network returns, and at launch, until `BookSyncConfig.autoRetryLimit`.
+- **Background** (`book_sync_background.dart`, workmanager) finishes unfinished units when the app is backgrounded (network connected, battery not low); the sync endpoints are public, so no sign-in is needed. **Not exercised on a device:** iOS needs `BGTaskSchedulerPermittedIdentifiers`, `UIBackgroundModes: processing` and `WorkmanagerPlugin.registerBGProcessingTask` in `AppDelegate.swift` — try it before relying on it.
+- Tests: `test/book_*_test.dart`, fakes in `test/support/`.
 
 ## Three languages
 
-Three settings, each its own, stored on the device (`providers/language_settings_provider.dart`,
-`models/language_settings.dart`). Changing one never changes another.
+Three settings, each its own, stored on the device (`providers/language_settings_provider.dart`, `models/language_settings.dart`); changing one never changes another.
 
 | Setting | Drives | Default |
 |---|---|---|
-| **App** | menus, buttons, labels — the UI locale (`appLocaleProvider`); only a language with an ARB file | device language if shipped, else English |
+| **App** | menus, buttons, labels — the UI locale (`appLocaleProvider`); only a language with an ARB file (otherwise the choice is kept and the UI stays in a shipped language) | device language if shipped, else English |
 | **Reading** | translation, meaning, purport on screen (`readingChainProvider`: reading → app → en) | device language, else English |
 | **Speaking** | verse audio and spoken meaning/purport (`speakingChainProvider`: speaking → en) | device language, else English |
 
-First value: stored → the account's own choice (app and reading only) → the phone's language → English.
-App and reading are also sent to the account, best effort (the server shapes some responses by them);
-speaking has no server field. Sanskrit verse text is always Sanskrit — it is not one of the three.
-Settings → **Languages** has a row and picker for each. `test/language_settings_test.dart`.
+First value: stored → the account's own choice (app and reading only) → the phone's language → English. App and reading are also sent to the account, best effort (the server shapes some responses by them); speaking has no server field. Sanskrit verse text is always Sanskrit — it is not one of the three. Settings → **Languages** has a row and picker for each. `test/language_settings_test.dart`.
+
+## A verse on the reading screen
+
+`widgets/library/verse_block.dart` draws every verse (the chapter reader and short works alike), top to bottom: Devanagari → transliteration → **Word meanings** → translation → purport.
+
+- **Word meanings** (`word_meanings_section.dart`) is closed until opened. Open or closed is **one setting for every verse**, kept on the device (`wordMeaningsOpenProvider`, `BoxKeys.wordMeaningsOpen`), not per verse. One row to a word — the Sanskrit left, its meaning right; a word with no Sanskrit shows only its meaning. A verse with no word-for-word draws **nothing**, not a heading over an empty list; likewise a verse with no Devanagari just starts at the transliteration.
+- The purport and "Word meanings" share `collapsible_section.dart`. The purport is shut again each time a verse is built; only Word meanings is remembered.
+- **A poetic expansion is never the default rendering** (`BookRepository.pickTranslation`, mirrored on the server by `language.pickTranslation`): Dnyaneshwari's Marathi ovis on the Gita are the *secondary* version, reached through "Compare translations", and open by default only when a verse has nothing else in the reader's chain. A Marathi reader therefore gets the next language (English) until a standard Marathi translation is added. `test/pick_translation_test.dart`, `test/verse_word_meanings_test.dart`. (A widget test cannot await a `LocalStore` write under its fake clock — the word-meanings widget tests swap the provider for an in-memory one.)
+- **Spoken meaning is not covered by that rule yet:** `spokenRenderings` hands over every language and the speaking chain picks, so a Marathi speaking language would read the ovi as the meaning.
 
 ## Reading aloud
 
-A play button on each verse (only where there is something to play) and **Read aloud** at the top of
-the page. Each verse is: its recitation (if it has audio) → the meaning → the purport.
+A play button on each verse (only where there is something to play) and **Read aloud** at the top of the page. Each verse is: its recitation (if it has audio) → the meaning → the purport. `ReadingAudio` → `ReadingPlaybackController` (run-numbered loop) → `VerseAudioCache` + `AudioLinkResolver` (`POST /audio-urls`, link remembered 50 min) for recitations, `AdaptiveTtsEngine` for speech.
 
-```
-ReadingAudio ─► ReadingPlaybackController ─┬─ VerseAudioCache ─► AudioLinkResolver ─► POST /audio-urls
- (prepare, session,   (run-numbered loop:  ├─ JustAudioFilePlayer           (key → link, remembered 50 min)
-  lock screen)         verse→meaning→      └─ AdaptiveTtsEngine ─► SherpaTtsEngine (installed voice)
-                       purport, next verse)                     └► PlatformTtsEngine (flutter_tts)
-```
-
-- **What is said follows the *speaking* language**, not what is on screen: the offline files hold every
-  language, so `BookRepository.spokenRenderings` + `ReadingItems.build` pick the meaning and the purport
-  per speaking chain. A section carries candidates (hi meaning, en purport — common), and the first one
-  a voice exists for is spoken. The meaning is the translation; `wordMeanings: true` puts the word-for-word
-  breakdown before it.
-- **Recitations** are downloaded on first play and kept (`VerseAudioCache`, keyed by storage key, 200 MB LRU),
-  and the next verse is fetched while this one plays. A verse with no audio, or one that will not load, is
-  skipped silently and reading goes on to the meaning. **Which file a verse has is the server's decision**:
-  its own `audioPath`, or the recording in its book's `recitationParent` folder (the Gita's — see "Verse
-  recitations" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The app only sees a key, so it has no folder
-  logic and a book gains recitations without an app release; a phone shows them once its copy of the book
-  has synced again.
-- **Highlight and section**: the verse being read is outlined and its eyebrow says which part is heard
-  ("Verse 7 · Purport"); `ReadingPlayerBar` shows previous / pause / next / stop. Auto-play scrolls to the verse.
-- **Remembers the last verse** per chapter (`ReadingMemory`); the button offers "Resume from verse N".
-- **Background and the lock screen**: `audio_service` with our own `AudioHandler` (`ReadingAudioHandler`)
-  over the controller. **`just_audio_background` is not used**: it makes *every* `AudioPlayer` in the app
-  require a `MediaItem` tag, which would break the chant-along player and the reels soundtrack. Android:
-  `AudioServiceActivity`, the service + receiver and media-playback foreground permissions are in
-  `AndroidManifest.xml`; iOS: `UIBackgroundModes` has `audio`.
-- **Focus and interruptions** (`InterruptionPolicy`, over `audio_session`): a call or another app's audio
-  pauses and resumes when the system allows; headphones unplugged pauses and never auto-resumes; a reader's
-  own pause is never undone.
-- **Not yet tried on a phone**: the lock-screen controls, the foreground service, audio focus with a real
-  call. The logic is covered by `test/reading_playback_test.dart` and `test/reading_audio_ui_test.dart`
-  with fake players; the platform wiring is not.
+- **What is said follows the *speaking* language**, not what is on screen: `BookRepository.spokenRenderings` + `ReadingItems.build` pick the meaning and purport per speaking chain, and the first candidate a voice exists for is spoken. `wordMeanings: true` puts the word-for-word breakdown before the meaning.
+- **Recitations** download on first play and are kept (`VerseAudioCache`, 200 MB LRU); the next verse is fetched while this one plays. A verse with no audio, or one that won't load, is skipped silently. The last verse per chapter is remembered (`ReadingMemory`). **Which file a verse has is the server's decision**: its own `audioPath`, or the recording in its book's `recitationParent` folder (the Gita's — see "Verse recitations" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The app only sees a key, so it has no folder logic and a book gains recitations without an app release; a phone shows them once its copy of the book has synced again.
+- **Background and the lock screen:** `audio_service` with our own `ReadingAudioHandler`. **`just_audio_background` is not used** — it makes *every* `AudioPlayer` require a `MediaItem` tag, which would break the chant-along player and the reels soundtrack. Android: `AudioServiceActivity`, the service + receiver and media-playback foreground permissions are in `AndroidManifest.xml`; iOS: `UIBackgroundModes` has `audio`.
+- **Interruptions** (`InterruptionPolicy`, over `audio_session`): a call or another app's audio pauses and resumes when the system allows; unplugged headphones pause and never auto-resume; a reader's own pause is never undone.
+- **Not yet tried on a phone:** the lock-screen controls, the foreground service, audio focus with a real call. The logic is covered with fake players (`test/reading_playback_test.dart`, `reading_audio_ui_test.dart`); the platform wiring is not.
 
 ## Spoken meaning and purport (voices)
 
-**One interface** — `TtsEngine` (`speak`, `pause`, `resume`, `stop`, a `progress` stream, `canSpeak`) — so an
-engine can be swapped. Three implementations: `SherpaTtsEngine` (offline neural), `PlatformTtsEngine`
-(`flutter_tts`), and `AdaptiveTtsEngine`, which the player uses: neural when a voice is installed for the
-language, the phone's voice otherwise (and again from the failed chunk if the neural one dies part-way).
-**Speech never waits on a download.**
+One interface, `TtsEngine`, so an engine can be swapped: `SherpaTtsEngine` (offline neural), `PlatformTtsEngine` (`flutter_tts`) and `AdaptiveTtsEngine`, which the player uses — neural when a voice is installed for the language, the phone's voice otherwise (and again from the failed chunk if the neural one dies part-way). **Speech never waits on a download.** Text is split into chunks of at most 220 characters (`TextChunker`) and chunk N+1 is requested before N finishes (`ChunkedSpeaker`); `SherpaSynthesizer` runs in its own isolate, so the UI thread only receives finished audio.
 
-- **Chunks, no gap.** `TextChunker` splits at sentence ends (`.?!` and the danda `।॥`), then clauses, then
-  words, never over 220 characters. `ChunkedSpeaker` asks for chunk N+1 *before* awaiting chunk N's playback.
-- **Off the UI thread.** `SherpaSynthesizer` loads the model once in its own isolate; only finished PCM comes
-  back (`TransferableTypedData`). Played through just_audio as a small WAV per chunk, deleted after.
-- **`TtsModelManager`** maps each language to a voice from a manifest — the bundled
-  `assets/tts/tts_models.json`, replaced at run time by `--dart-define=TTS_MODELS_MANIFEST_URL=…` (cached
-  for offline). It downloads on demand with `Range` resume (the `.part` file survives a restart), backoff,
-  **SHA-256 check before anything is unpacked**, extraction in an isolate (top folder stripped, path-escaping
-  entries skipped), install by renaming a finished folder into place, delete, and a status stream for the UI.
-  Downloads start on their own only on Wi-Fi (when the speaking language is chosen, or a language is first
-  spoken without a voice); Settings → Voices downloads and deletes by hand anywhere.
-- **A voice with no checksum is never installed.** The bundled manifest lists candidates as
-  `enabled: false` with empty url/sha256, **because I could not confirm the files exist or compute their
-  checksums** (GitHub releases and Hugging Face were unreachable from the build environment). Until someone
-  does, every language uses the phone's voice. To enable one: download the model archive, `shasum -a 256` it,
-  fill `url`, `sizeBytes`, `sha256`, set `enabled: true`.
-
-### Which model — and why this engine
-
-| Option | Offline | Indic coverage | Size | Licence | Verdict |
-|---|---|---|---|---|---|
-| **sherpa-onnx + Piper (VITS)** | yes | Hindi, Telugu, Malayalam, Nepali voices exist; English very good | ~60 MB (medium) | Apache-2.0 engine; **each voice has its own card** | **Chosen engine.** `sherpa_onnx` is already in the app (auto-count), so no new native runtime; runs in an isolate; Android + iOS |
-| sherpa-onnx + MMS-TTS (VITS) | yes | Hindi, Bengali, Tamil, Telugu, Kannada, Marathi, Gujarati, Malayalam… | tens of MB each | **CC-BY-NC 4.0 — non-commercial** | Listed, **disabled**: do not ship in a commercial build without a licence decision |
-| sherpa-onnx + Kokoro | yes | mostly English | 80–300 MB | Apache-2.0 | Too big for the gain; English only needs Piper |
-| AI4Bharat IndicTTS / Indic-Parler | yes | the best Indic quality | large; not packaged for sherpa | MIT / Apache | Worth a later look: needs ONNX export |
-| Platform voice (`flutter_tts`) | usually | whatever the phone has (Google TTS has hi/bn/ta/te/kn/ml/mr/gu packs) | 0 | — | **Always the fallback** |
-
-These are from my knowledge of the projects, not from checking their release pages today — verify a voice
-before enabling it. Quality and latency (real-time factor on a mid-range phone) are **not measured**.
+- **`TtsModelManager`** maps each language to a voice from a manifest — the bundled `assets/tts/tts_models.json`, replaced at run time by `TTS_MODELS_MANIFEST_URL` (cached for offline). Downloads resume (`Range`), back off, **check SHA-256 before anything is unpacked** and install by renaming a finished folder into place. They start on their own only on Wi-Fi; Settings → Voices downloads and deletes by hand anywhere.
+- **A voice with no checksum is never installed.** The bundled manifest lists candidates as `enabled: false` with empty url/sha256, because their files could not be confirmed to exist or checksummed when this was written (GitHub releases and Hugging Face were unreachable from the build environment). Until someone downloads an archive, runs `shasum -a 256` on it, fills `url`, `sizeBytes`, `sha256` and sets `enabled: true`, every language uses the phone's voice.
+- **Why this engine.** sherpa-onnx + Piper (VITS): `sherpa_onnx` is already in the app for auto-count, it is offline, runs on Android and iOS, and the engine is Apache-2.0 (**each voice has its own licence card**). MMS-TTS covers more Indic languages but is **CC-BY-NC, non-commercial** — listed, disabled, not for a commercial build without a licence decision. Kokoro is too big for the gain; AI4Bharat IndicTTS / Indic-Parler have the best Indic quality but need an ONNX export. The platform voice is always the fallback. This is from knowledge of the projects, not a check of their release pages — verify a voice before enabling it. Quality and latency on a mid-range phone are **not measured**.
 
 ## Session and tokens
 
-- **One session singleton class** owns both tokens. Nothing else reads or writes them.
-- Tokens are persisted with **`flutter_secure_storage`** (iOS Keychain / Android Keystore) — they are credentials, so they belong in platform secure storage rather than a plain database file. Non-sensitive session state (last user, preferences, cached flags) uses **`hive_ce`**.
-- **Refresh token: 1 year**, re-issued every time it is used.
-- **Access token: 7 days**, rotated **silently** in the background — the user must never see an auth interruption, a re-login prompt, or a failed request caused by rotation.
-- Requests that fail on an expired access token are retried transparently after refresh.
+- **One session singleton** owns both tokens; nothing else reads or writes them. They are persisted with **`flutter_secure_storage`** (Keychain / Keystore) — credentials don't belong in a plain database file. Non-sensitive session state (last user, preferences, cached flags) uses **`hive_ce`**.
+- **Refresh token: 1 year**, re-issued every time it is used. **Access token: 7 days**, rotated **silently** — the user must never see an auth interruption, a re-login prompt, or a failed request caused by rotation. A request that fails on an expired access token is retried transparently after refresh.
 
 ## Authentication
 
-- **Google and Apple sign-in only.** No email/password, no OTP.
-- **Sign-in must be fast** — pick the best-maintained packages and keep the flow to the minimum number of round trips.
-- The backend requires proof that account creation came from a real client, so sign-up carries a client attestation token. See [backend/CLAUDE.md](../backend/CLAUDE.md).
+- **Google and Apple sign-in only** — no email/password, no OTP. Keep it fast: the best-maintained packages and the fewest round trips.
+- The backend requires proof that account creation came from a real client, so sign-up carries a client attestation token — see [backend/CLAUDE.md](../backend/CLAUDE.md).
 
-## Services
+## Services and navigation
 
-`services/` holds all of them — FCM, socket, tracking (Firebase Analytics), and any that follow. One file per service, each self-contained.
-
-## Navigation
-
-- **go_router** for routing.
-- **A single navigation singleton** manages all navigation. Views call it; they do not touch `Navigator` directly.
-- That singleton also owns the **loading handler** so loading dialogs show and dismiss consistently, without leaks or stuck overlays.
+- `services/` holds all services (FCM, socket, tracking/Firebase Analytics, …) — one self-contained file each.
+- **go_router** through **a single navigation singleton**: views call it and never touch `Navigator`. It also owns the **loading handler**, so loading dialogs show and dismiss consistently, without leaks or stuck overlays.
 
 ## Decisions needed
 
-- **Access token lifetime** — 7 days is long for an access token (typical is minutes to hours). It means a stolen token stays valid for a week and cannot be easily revoked. The 1-year rotating refresh token already delivers the "never asked to log in again" experience, so a shorter access token costs nothing in UX. Worth reconsidering.
+- **Access token lifetime.** 7 days is long for an access token (typical is minutes to hours): a stolen token stays valid for a week and can't easily be revoked. The 1-year rotating refresh token already gives "never asked to log in again", so a shorter access token costs nothing in UX. Worth reconsidering.
 
 ## Firebase and signing
 
-Both are secrets and neither is in the repository, so a fresh clone has to build without them: the google-services Gradle plugin is applied only when `android/app/google-services.json` exists, the release signing config is created only when `android/key.properties` does, and `FirebaseService` records a failed init rather than crashing. Nothing here is optional in a real build — it is arranged so a checkout is not dead on arrival.
+Both are secrets and neither is in the repository, so a fresh clone must build without them: the google-services Gradle plugin is applied only when `android/app/google-services.json` exists, the release signing config only when `android/key.properties` does, and `FirebaseService` records a failed init rather than crashing. Nothing here is optional in a real build.
 
 | What | Where it comes from | Lands at |
 |---|---|---|
 | Firebase config | `flutterfire configure --project=hari-hari-bol` | `android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`, `lib/firebase_options.dart` |
 | Signing keystore | `../hariharibol-local-secrets/` (identical copy in the old `sadhana` app) | `android/app/key.jks`, `android/key.properties` |
 
-- **Identity is fixed**: `com.sss.ramkrishnahari` on both platforms, Firebase project `hari-hari-bol`. It matches the existing Play listing — changing it orphans the listing and every installed copy.
-- **Google Sign-In needs the signing SHA registered with Firebase**, or Android sign-in fails with a bare `DEVELOPER_ERROR`. Release and debug SHA-1 and SHA-256 are registered; add a machine's own debug SHA with `firebase apps:android:sha:create <androidAppId> <sha>`. **Play App Signing re-signs the upload**, so the SHA-1 from the Play Console must be registered too before sign-in works on a store build.
-- The Gradle plugin turns `google-services.json` into `default_web_client_id`, which is the `serverClientId` google_sign_in needs to get an ID token at all. iOS reads its client id from `GoogleService-Info.plist`, and needs the `REVERSED_CLIENT_ID` as a URL scheme in `Info.plist`.
-- The backend verifies the ID token's audience against `GOOGLE_CLIENT_IDS` and `APPLE_BUNDLE_IDS`. Those must list these same client ids, or every sign-in is rejected as unverifiable.
-- **iOS minimum is 15.0** — the Firebase iOS SDK requires it. It is set in `Runner.xcodeproj` and the `Podfile`; both have to agree.
+- **Identity is fixed:** `com.sss.ramkrishnahari` on both platforms, Firebase project `hari-hari-bol`. It matches the existing store listings, which is what keeps the Play upload and the irreplaceable keystore usable — changing it orphans the listing and every installed copy. Don't let `flutter create` reset it.
+- **Google Sign-In needs the signing SHA registered with Firebase**, or Android fails with a bare `DEVELOPER_ERROR`. Release and debug SHA-1 and SHA-256 are registered; add a machine's own debug SHA with `firebase apps:android:sha:create <androidAppId> <sha>`. **Play App Signing re-signs the upload**, so the SHA-1 from the Play Console must be registered too before sign-in works on a store build.
+- The Gradle plugin turns `google-services.json` into `default_web_client_id`, the `serverClientId` google_sign_in needs to get an ID token at all. iOS reads its client id from `GoogleService-Info.plist` and needs `REVERSED_CLIENT_ID` as a URL scheme in `Info.plist`.
+- The backend verifies the ID token's audience against `GOOGLE_CLIENT_IDS` and `APPLE_BUNDLE_IDS`; they must list these same client ids or every sign-in is rejected as unverifiable.
+- **iOS minimum is 15.0** — the Firebase iOS SDK requires it. It is set in `Runner.xcodeproj` and the `Podfile`; both must agree.
 
 ## Notes carried over
 

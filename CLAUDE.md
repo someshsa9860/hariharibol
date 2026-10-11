@@ -34,6 +34,8 @@ Each part carries its own rules file. Read the relevant one before writing code 
 
 **Secrets** — never committed. `.env`, Firebase configs (`google-services.json`, `GoogleService-Info.plist`, `firebase_options.dart`) and Android signing keys (`key.jks`, `key.properties`) are gitignored. Local copies of the previous project's are backed up outside the repo at `../hariharibol-local-secrets/` — the Android keystore there is irreplaceable.
 
+**App text** — a string added to `app/lib/l10n/app_en.arb` is translated into every other `app_*.arb` in the same change. `app/test/l10n_parity_test.dart` fails when one is missing; see [app/CLAUDE.md](app/CLAUDE.md).
+
 **CI** — `.github/workflows/` is preserved from the previous setup (ECR build+push). Trigger branches and paths will need updating when the new structure lands.
 
 ## Status

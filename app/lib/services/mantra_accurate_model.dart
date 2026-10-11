@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart' show MethodChannel, MissingPluginException;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -40,10 +41,12 @@ class MantraAccurateModel {
     this.tokens = _tokens,
     Future<Directory> Function()? folder,
     Future<int?> Function()? memoryMegabytes,
+    Future<bool> Function(String name, String destination)? bundledCopy,
   })  : _dio = dio ?? Dio(),
         _baseUrl = baseUrl ?? AutoChantConfig.accurateModelBaseUrl,
         _folder = folder ?? _supportFolder,
-        _memoryMegabytes = memoryMegabytes ?? _deviceMemoryMegabytes;
+        _memoryMegabytes = memoryMegabytes ?? _deviceMemoryMegabytes,
+        _bundledCopy = bundledCopy ?? _copyFromApp;
 
   static const _model = AccurateModelPart(
     name: AutoChantConfig.accurateModelFile,
@@ -62,6 +65,7 @@ class MantraAccurateModel {
   final Dio _dio;
   final Future<Directory> Function() _folder;
   final Future<int?> Function() _memoryMegabytes;
+  final Future<bool> Function(String name, String destination) _bundledCopy;
 
   /// Whether a host was configured at build time. Without one there is nothing
   /// to download, so nothing is shown.
@@ -81,6 +85,18 @@ class MantraAccurateModel {
     return megabytes == null || megabytes >= AutoChantConfig.accurateMinRamMegabytes;
   }
 
+  /// The files to run the recogniser from: [installed], but only on a phone with
+  /// the memory for it. The recogniser holds about 1 GB while decoding, and the
+  /// system ends an app that asks for more than the phone has — nothing in the
+  /// app can catch that. Files can be on a phone that cannot run them (restored
+  /// from a backup, moved to a smaller phone), so this is checked at the point
+  /// of use, not only when the download is offered. Null means use the bundled one.
+  Future<AccurateModelFiles?> usable() async {
+    final files = await installed();
+    if (files == null) return null;
+    return await deviceCanRun() ? files : null;
+  }
+
   /// The files, when a complete download is in place; otherwise null.
   Future<AccurateModelFiles?> installed() async {
     final dir = await _folder();
@@ -89,6 +105,70 @@ class MantraAccurateModel {
     if (!await modelFile.exists() || !await tokensFile.exists()) return null;
     if (await modelFile.length() != model.bytes || await tokensFile.length() != tokens.bytes) return null;
     return AccurateModelFiles(model: modelFile.path, tokens: tokensFile.path);
+  }
+
+  static Future<void>? _adopting;
+
+  /// A debug build can carry the recogniser inside the app itself (see
+  /// `AutoChantConfig.bundledModelChannel`). This copies it out to the folder
+  /// [installed] looks in, checked byte for byte like a download, so nothing
+  /// else needs to know where it came from. A no-op in a build that carries
+  /// none, on a phone too small to run it, and once the copy has been made —
+  /// including after the person removes it, which must stay removed. Never
+  /// throws: the worst outcome is the bundled English recogniser, as before.
+  Future<void> adoptBundled() => _adopting ??= _adoptBundled().whenComplete(() => _adopting = null);
+
+  Future<void> _adoptBundled() async {
+    try {
+      final dir = await _folder();
+      // Beside the folder, not in it: removing the model deletes the folder, and
+      // that must not bring the model back on the next start.
+      final marker = File('${dir.path}.adopted');
+      if (await marker.exists()) return;
+      if (await installed() != null) {
+        await marker.create(recursive: true);
+        return;
+      }
+      if (!await deviceCanRun()) return;
+
+      await dir.create(recursive: true);
+      for (final wanted in [tokens, model]) {
+        final target = File(p.join(dir.path, wanted.name));
+        if (await target.exists() && await target.length() == wanted.bytes) continue;
+        final part = File('${target.path}.part');
+        try {
+          if (!await _bundledCopy(wanted.name, part.path)) return; // this build carries none
+          await _keepIfIntact(part, wanted, target);
+        } finally {
+          if (await part.exists()) await part.delete();
+        }
+      }
+      await marker.create(recursive: true);
+      AutoChantLog.info('model: the sharper recogniser was carried in the app and is ready');
+    } catch (error, stack) {
+      AutoChantLog.error('model: could not unpack the recogniser carried in the app', error, stack);
+    }
+  }
+
+  static Future<bool> _copyFromApp(String name, String destination) async {
+    try {
+      return await const MethodChannel(AutoChantConfig.bundledModelChannel)
+              .invokeMethod<bool>('copy', {'name': name, 'destination': destination}) ??
+          false;
+    } on MissingPluginException {
+      return false; // iOS, desktop, a test: there is no native side to ask
+    }
+  }
+
+  /// Keeps [part] as [target] only if it is exactly [wanted]; otherwise deletes
+  /// it and throws.
+  Future<void> _keepIfIntact(File part, AccurateModelPart wanted, File target) async {
+    final digest = await sha256.bind(part.openRead()).first;
+    if (await part.length() != wanted.bytes || digest.toString() != wanted.sha256) {
+      await part.delete();
+      throw StateError('${wanted.name} did not arrive intact');
+    }
+    await part.rename(target.path);
   }
 
   /// Fetches both files, calling [onProgress] with 0–1 as bytes arrive. A
@@ -140,12 +220,7 @@ class MantraAccurateModel {
       onReceiveProgress: (received, _) => onBytes(have + received),
     );
 
-    final digest = await sha256.bind(part.openRead()).first;
-    if (await part.length() != wanted.bytes || digest.toString() != wanted.sha256) {
-      await part.delete();
-      throw StateError('${wanted.name} did not download intact');
-    }
-    await part.rename(target.path);
+    await _keepIfIntact(part, wanted, target);
   }
 
   static Future<Directory> _supportFolder() async {

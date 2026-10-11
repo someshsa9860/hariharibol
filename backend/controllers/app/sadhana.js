@@ -17,6 +17,8 @@ import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
+import * as present from '../../utils/present.js';
+import * as language from '../../utils/language.js';
 import { notFound, badRequest, forbidden } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString } from '../../utils/date.js';
 import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET, CHANT_TRANSCRIPT_TTL_DAYS } from '../../config/constants.js';
@@ -118,6 +120,7 @@ export const today = async (req, res) => {
   const user = req.auth.user;
   const date = req.valid.query.date || localDateString(user.timezone);
   const day = await ensureDay(user, date);
+  const mantraStub = present.includes.mantraStub(language.readingChain(user));
 
   const [tasks, sessions, profile, streak] = await Promise.all([
     prisma.sadhanaTask.findMany({
@@ -127,11 +130,11 @@ export const today = async (req, res) => {
     prisma.chantSession.findMany({
       where: { sadhanaDayId: day.id },
       orderBy: { startedAt: 'desc' },
-      include: { mantra: { select: { id: true, slug: true, name: true } } },
+      include: { mantra: mantraStub },
     }),
     prisma.sadhanaProfile.findUnique({
       where: { userId: user.id },
-      include: { preferredMantra: { select: { id: true, slug: true, name: true } } },
+      include: { preferredMantra: mantraStub },
     }),
     currentStreak(user.id, user.timezone),
   ]);
@@ -147,8 +150,8 @@ export const today = async (req, res) => {
       note: day.note,
     },
     tasks,
-    sessions,
-    profile,
+    sessions: sessions.map((session) => ({ ...session, mantra: present.mantraStub(session.mantra, user) })),
+    profile: profile && { ...profile, preferredMantra: present.mantraStub(profile.preferredMantra, user) },
     streak,
     beadsPerRound: BEADS_PER_ROUND,
   });
@@ -367,7 +370,7 @@ export const listChantSessions = async (req, res) => {
       skip,
       take,
       include: {
-        mantra: { select: { id: true, slug: true, name: true } },
+        mantra: present.includes.mantraStub(language.readingChain(user)),
         malas: { select: { index: true, durationMs: true, complete: true } },
       },
     }),
@@ -378,6 +381,7 @@ export const listChantSessions = async (req, res) => {
     const finished = malas.filter((mala) => mala.complete);
     return {
       ...session,
+      mantra: present.mantraStub(session.mantra, user),
       malaCount: malas.length,
       avgMalaMs: finished.length
         ? Math.round(finished.reduce((sum, mala) => sum + mala.durationMs, 0) / finished.length)
@@ -397,7 +401,7 @@ export const getChantSession = async (req, res) => {
   const [session, malas, transcripts] = await Promise.all([
     prisma.chantSession.findUnique({
       where: { id },
-      include: { mantra: { select: { id: true, slug: true, name: true } } },
+      include: { mantra: present.includes.mantraStub(language.readingChain(user)) },
     }),
     prisma.chantMala.findMany({ where: { sessionId: id }, orderBy: { index: 'asc' } }),
     // Expired rows may still be on disk until the nightly sweep; they are gone
@@ -409,7 +413,11 @@ export const getChantSession = async (req, res) => {
     }),
   ]);
 
-  return ok(res, { session, malas, transcripts });
+  return ok(res, {
+    session: session && { ...session, mantra: present.mantraStub(session.mantra, user) },
+    malas,
+    transcripts,
+  });
 };
 
 /** GET /api/app/sadhana/days — history for a date range, for the calendar view. */

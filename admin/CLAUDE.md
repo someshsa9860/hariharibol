@@ -204,3 +204,15 @@ is visible before it is saved.
 - **108 is not decided here.** The app splits the stretch by one round's beads, which the API
   sends it; `CHANTS_PER_MALA` in the component only has to be the same number for the preview.
 - **Uploads are never deleted** from storage when a recording is replaced, as with reels.
+
+## Verse word meanings
+
+The verse dialog on `routes/verses.tsx` hosts `components/verse-word-meanings.tsx`: a verse's
+word-for-word as a list of word / meaning rows — add, remove, move up and down — saved on its own
+with **Save word meanings** (`PATCH /api/admin/verses/:id`, `{ wordMeanings }`), separately from the
+rest of the verse form.
+
+- **A blank word is saved as no word**, and a row left wholly blank is dropped. A row with a word
+  but no meaning is refused (Save is disabled and the row is named), as the API does.
+- Read-only without `verse.write`: inputs disabled, no row controls.
+- A re-import (`backend/scripts/lib/import-verses.js`) replaces these edits from the source files.

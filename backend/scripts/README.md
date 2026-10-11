@@ -53,6 +53,25 @@ widen it.
 - `upload-verse-source.js <dir> --yes` — puts that corrected copy into the
   bucket. The bucket has no versioning, so it first copies every object it will
   replace to `json-backup-<date>/` and checks each copy.
+- `fill-prabhupada-source.js [--only bg,sb:3] [--upload]` — fills the source JSON
+  from Prabhupada's own text on vedabase.io (BBT), and nothing else: the Gita's
+  word-by-word (the source had none), the Bhagavatam's Devanagari for cantos 1–9
+  (it never had it), clean word-by-word for cantos 10–12 (the source's has each
+  verse's translation and purport pasted into its last entry), and any Prabhupada
+  translation, purport or transliteration a verse lacks. Built to run for an hour
+  or two in the background and be stopped and started again — scraped pages are
+  cached in `.fill-work/`, finished chapters are skipped (`--redo` repeats them).
+  `npm run fill:status` shows progress from another terminal (bar per book, what
+  was added, what is uploaded, every verse that could not be filled and why).
+  `--upload` backs up each chapter's objects to `json-backup-<date>/`, checks the
+  copy, replaces the object and checks what landed, **as soon as the chapter is
+  done**; without it nothing leaves the machine. A fill is only written if it
+  changes nothing that was already there, and a page is accepted as a verse only
+  if it matches that verse's own text. The rules are in `lib/fill-verse.js`
+  (`npm test` covers them); a Gita chapter's word-by-word is cut by the Sanskrit's
+  verses, not the BBT's, because the two end verses in different places.
+  The filled copy is `.fill-work/source/`: point the importers at it with
+  `SOURCE_LOCAL_DIR` to check it locally before (or after) it is uploaded.
 - The importers **correct** existing rows when the source differs (not just add
   new ones), so after a source repair, running `import-bg.js` then
   `import-sb.js` on the server is what brings the live database up to date.

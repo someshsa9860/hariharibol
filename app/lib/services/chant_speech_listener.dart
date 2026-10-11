@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 
+import 'auto_chant_log.dart';
 import 'chant_word_engine.dart';
+import 'heard_words.dart';
 import 'mantra_audio_capture.dart';
 
 /// Why word detection is or is not running. Reasons rather than message
@@ -36,6 +38,10 @@ class ChantSpeechListener {
   final ChantWordEngine _engine = ChantWordEngine();
   final ValueNotifier<ChantSpeechState> state = ValueNotifier(ChantSpeechState.off);
 
+  /// The words as they are heard, for the card on the counter. This engine has
+  /// no voice detector and compares nothing, so it only ever carries text.
+  final HeardWords hearing = HeardWords();
+
   StreamSubscription<Float32List>? _audioSub;
   StreamSubscription<WordTranscript>? _transcriptSub;
   StreamSubscription<String>? _errorSub;
@@ -56,6 +62,7 @@ class ChantSpeechListener {
   Future<void> start() async {
     if (_wanted) return;
     _wanted = true;
+    hearing.clear();
     _emit(ChantSpeechState.starting);
 
     try {
@@ -98,6 +105,7 @@ class ChantSpeechListener {
     _disposed = true;
     await _capture.dispose();
     await _engine.dispose();
+    hearing.dispose();
     state.dispose();
   }
 
@@ -115,6 +123,8 @@ class ChantSpeechListener {
 
   void _onTranscript(WordTranscript transcript) {
     if (!_wanted) return;
+    AutoChantLog.info('words heard${transcript.isFinal ? ' (final)' : ''}: "${transcript.text}"');
+    hearing.hear(transcript.text, isFinal: transcript.isFinal);
     _words = transcript.text.isEmpty ? const [] : transcript.text.split(RegExp(r'\s+'));
     // A pause ended the utterance: the next transcript starts from zero, so
     // what no tap has taken yet is kept aside first.

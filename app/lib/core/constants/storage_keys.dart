@@ -30,6 +30,11 @@ abstract final class BoxKeys {
   static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
 
+  /// Whether each verse's "Word meanings" is left open. One answer for every
+  /// verse, the way the font size is: someone who studies word by word wants it
+  /// open everywhere, and someone who does not wants it out of the way.
+  static const String wordMeaningsOpen = 'settings.word_meanings_open';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 

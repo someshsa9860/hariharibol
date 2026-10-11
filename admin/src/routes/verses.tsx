@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VerseWordMeanings } from '@/components/verse-word-meanings';
 import { formatDateOnly } from '@/lib/utils';
 
 type Verse = {
@@ -28,6 +29,8 @@ type Verse = {
 
 type VerseDetail = Verse & {
   transliteration: string | null;
+  /** `[{ word, meaning }]`, edited by `VerseWordMeanings`. */
+  wordMeanings: unknown;
   translations: { id: string; languageCode: string; type: string; meaning: string; translator: { name: string } }[];
   explanations: { id: string; languageCode: string; text: string }[];
 };
@@ -47,6 +50,7 @@ export function VersesPage() {
   const detail = useResource<VerseDetail>(['verse', open], `/api/admin/verses/${open}`, undefined, { enabled: !!open });
 
   const canCurate = hasPermission('sloka.manage');
+  const canWrite = hasPermission('verse.write');
 
   const setEligible = (verses: Verse[], isSlokaEligible: boolean) =>
     table.runOnce(verses, isSlokaEligible ? 'Added to the sloka pool:' : 'Removed from the sloka pool:', () =>
@@ -132,7 +136,7 @@ export function VersesPage() {
       />
 
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
-        <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{open}</DialogTitle>
             {detail.data && (
@@ -157,6 +161,13 @@ export function VersesPage() {
               {detail.data.transliteration && (
                 <p className="italic text-muted-foreground">{detail.data.transliteration}</p>
               )}
+
+              <VerseWordMeanings
+                key={detail.data.verseId}
+                verseId={detail.data.verseId}
+                value={detail.data.wordMeanings}
+                canWrite={canWrite}
+              />
 
               <div>
                 <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">

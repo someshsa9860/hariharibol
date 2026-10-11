@@ -25,6 +25,14 @@ abstract final class AutoChantConfig {
   /// reads well above it, a muted or taken-over one reads exactly zero.
   static const double logSilentPeak = 0.001;
 
+  // ── What the counter shows of what was heard ────────────────────────────
+  /// How many finished stretches of voice `HeardWords` remembers for the card.
+  static const int heardKept = 6;
+
+  /// The running line shows only its last this many words, like a live caption:
+  /// a long unbroken chant would otherwise push the rest of the card off screen.
+  static const int heardLiveWords = 14;
+
   // ── Bundled model assets ──────────────────────────────────────────────
   static const String vadModelAsset = 'assets/models/auto_chant/vad/silero_vad.onnx';
   static const String kwsEncoderAsset = 'assets/models/auto_chant/kws/encoder.onnx';
@@ -52,6 +60,13 @@ abstract final class AutoChantConfig {
   /// Where the files live, under the app's support folder.
   static const String accurateModelFolder = 'auto_chant_omnilingual';
 
+  /// An Android **debug** build can carry the same two files in its own package
+  /// (`tool/fetch_auto_chant_model.sh`), so a test phone has the recogniser with
+  /// no download. The native side (`MainActivity.kt`, which repeats both names)
+  /// copies a file out of the package's assets folder to a path the app gives it.
+  static const String bundledModelChannel = 'com.sss.ramkrishnahari/bundled_model';
+  static const String bundledModelAssetFolder = 'auto_chant';
+
   /// It reads a chant far more truly than the bundled model, so it is held to a
   /// higher bar: at this one no false count appeared in 24 minutes of ordinary
   /// speech, where half (the bundled model's bar) let a Hindi sentence through.
@@ -78,14 +93,25 @@ abstract final class AutoChantConfig {
 
   // ── Matching what was heard to the mantra ───────────────────────────────
   /// The least a chant must resemble one of the mantra's phrases to count as a
-  /// repetition: half of its letters, once spellings are folded together (see
-  /// `MantraPhraseMatcher`). Deliberately a floor, not a target — a fast chant
-  /// or a recogniser that drops letters still counts, and a different mantra
-  /// does not reach it.
-  static const double matchThreshold = 0.5;
+  /// repetition: 36% of its letters, once spellings are folded together (see
+  /// `MantraPhraseMatcher`). **This is the number to change** to make auto-count
+  /// stricter (higher) or more forgiving (lower), as a fraction: 0.36 is 36%.
+  ///
+  /// A floor, not a target. The bundled recogniser is English-trained and writes
+  /// Sanskrit as a few loose syllables, so a bar of half (the earlier 0.5) left
+  /// real chanting uncounted. The price is that other speech reaches it more
+  /// easily too. A match counts as soon as it is settled — it does not wait for
+  /// a pause — so a chant that never stops is counted as it goes.
+  ///
+  /// It is the bar for the bundled recogniser; the downloadable one has its own
+  /// ([accurateMatchThreshold]).
+  static const double matchThreshold = 0.36;
 
-  /// Very short mantras (an "Om") would reach half by chance, so below
-  /// [shortPhraseLetters] folded letters the bar rises, by up to this much.
+  /// Very short mantras (an "Om") would reach the bar by chance, so for a
+  /// further repetition in the same unbroken stretch, below [shortPhraseLetters]
+  /// folded letters the bar rises, by up to this much. The first repetition of a
+  /// stretch is held to [matchThreshold] alone, whatever the mantra, so the
+  /// percentage shown beside "needs" is the one that counts.
   static const double shortPhraseExtra = 0.25;
   static const int shortPhraseLetters = 24;
 

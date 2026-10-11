@@ -21,11 +21,13 @@ import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
 import '../../services/chant_recorder.dart';
 import '../../services/chant_speech_listener.dart';
+import '../../services/heard_words.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/sadhana_service.dart';
 import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
+import '../../widgets/chant/chant_heard_card.dart';
 import '../../widgets/chant/chant_recent_taps.dart';
 import '../../widgets/chant/chant_summary_header.dart';
 import '../../widgets/chant/chant_setup_sheet.dart';
@@ -126,6 +128,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _screenHeld = want;
     unawaited(WakelockPlus.toggle(enable: want).catchError((_) {}));
   }
+
+  /// What the "Heard live" card shows: auto-count's words (it also knows how near
+  /// each came to the mantra) if it is on, else word detection's, else nothing.
+  HeardWords? get _hearing => _autoChantStatus.enabled
+      ? _autoChant?.hearing
+      : (_speechState == ChantSpeechState.listening ? _speech?.hearing : null);
 
   int get _totalRounds => _roundsBefore + _recorder.completedMalas;
 
@@ -513,6 +521,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
+                ChantHeardCard(heard: _hearing),
                 ChantRecentTaps(taps: _recorder.taps),
                 const SizedBox(height: AppSpacing.xl),
                 Center(

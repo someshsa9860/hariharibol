@@ -18,7 +18,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
-import { meanings } from './mantra-meanings.js';
+import { translations } from './mantra-translations/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
@@ -103,27 +103,45 @@ async function seedReference() {
   log(`${data.translators.length} translators`);
 }
 
-// The mantra written out in every language's script, generated from the
-// Devanagari source, plus Hindi and Marathi meanings. Create-only: once an
-// editor has corrected a row in the admin panel, re-seeding must not undo it.
+// The mantra written out in every language's script (generated from the
+// Devanagari source) and its name, meaning and purport in every reading
+// language (mantra-translations/). English is hand-written in data.js and
+// Sanskrit carries the original text and no prose, so neither takes anything
+// from there.
+//
+// Fill-only: a missing row is created whole; an existing one has just the
+// fields it still lacks filled in. A value already there is never replaced, so
+// a correction an editor made in the admin panel survives re-seeding.
 async function seedMantraScripts(mantra, sanskrit) {
   const languages = await prisma.language.findMany({ where: { isMantraLanguage: true } });
-  const meaning = meanings[mantra.slug] ?? {};
 
   for (const { code } of languages) {
     if (code === 'en') continue; // hand-written, with its own meaning and purport
 
-    await prisma.mantraTranslation.upsert({
-      where: { mantraId_languageCode: { mantraId: mantra.id, languageCode: code } },
-      update: {},
-      create: {
-        mantraId: mantra.id,
-        languageCode: code,
-        text: isDevanagari(code) ? sanskrit : fromDevanagari(sanskrit, code),
-        meaning: meaning[code] ?? null,
-        isPublished: true,
-      },
-    });
+    const prose = translations[code]?.[mantra.slug];
+    const wanted = {
+      text: isDevanagari(code) ? sanskrit : fromDevanagari(sanskrit, code),
+      name: prose?.name ?? null,
+      meaning: prose?.meaning ?? null,
+      purport: prose?.purport ?? null,
+    };
+
+    const where = { mantraId_languageCode: { mantraId: mantra.id, languageCode: code } };
+    const existing = await prisma.mantraTranslation.findUnique({ where });
+
+    if (!existing) {
+      await prisma.mantraTranslation.create({
+        data: { mantraId: mantra.id, languageCode: code, ...wanted, isPublished: true },
+      });
+      continue;
+    }
+
+    const missing = Object.fromEntries(
+      Object.entries(wanted).filter(([field, value]) => value && !existing[field]),
+    );
+    if (Object.keys(missing).length) {
+      await prisma.mantraTranslation.update({ where, data: missing });
+    }
   }
 }
 

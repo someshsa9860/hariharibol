@@ -70,11 +70,11 @@ function verseWhere(q, readingChain) {
   };
 }
 
-function mantraWhere(q) {
+function mantraWhere(q, readingChain) {
   return {
     isPublished: true,
     OR: [
-      { name: { contains: q, mode: 'insensitive' } },
+      ...language.mantraNameClauses(q, readingChain),
       { sanskrit: { contains: q, mode: 'insensitive' } },
       { transliteration: { contains: q, mode: 'insensitive' } },
       { tags: { has: q.toLowerCase() } },
@@ -132,7 +132,7 @@ export const search = async (req, res) => {
 
   if (type === 'mantra') {
     const { items, page } = await paginate(prisma.mantra, {
-      where: mantraWhere(q),
+      where: mantraWhere(q, readingChain),
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
       include: present.includes.mantra(language.mantraChain(user), readingChain),
       query: req.valid.query,
@@ -159,7 +159,7 @@ export const search = async (req, res) => {
       include: present.includes.verse(readingChain),
     }),
     prisma.mantra.findMany({
-      where: mantraWhere(q),
+      where: mantraWhere(q, readingChain),
       take: PREVIEW_LIMIT,
       include: present.includes.mantra(language.mantraChain(user), readingChain),
     }),

@@ -82,11 +82,11 @@ const includes = {
         translations: {
           where: { isPublished: true, languageCode: { in: readingChain } },
           orderBy: { displayOrder: 'asc' },
-          select: { languageCode: true, meaning: true },
+          select: { languageCode: true, type: true, meaning: true },
         },
       },
     },
-    mantra: { select: { id: true, slug: true, name: true } },
+    mantra: includes.mantraStub(readingChain),
     deity: { select: { id: true, slug: true, name: true, imagePath: true } },
     likes: { where: { userId }, select: { userId: true } },
     favorites: { where: { userId }, select: { id: true } },
@@ -111,6 +111,23 @@ const includes = {
       },
     },
   }),
+
+  /**
+   * A mantra named in passing — on a reel, in the chant history, as the
+   * standing choice on the profile — rather than shown whole. What `mantraStub`
+   * reads: the name in each language of the reading chain, so it can be chosen.
+   */
+  mantraStub: (readingChain) => ({
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      translations: {
+        where: { isPublished: true, languageCode: { in: readingChain } },
+        select: { languageCode: true, name: true },
+      },
+    },
+  }),
 };
 
 /**
@@ -124,7 +141,7 @@ async function verse(row, user) {
   if (!row) return null;
   const chain = language.readingChain(user);
 
-  const translation = language.pick(row.translations, chain);
+  const translation = language.pickTranslation(row.translations, chain);
   const explanation = language.pick(row.explanations, chain);
   // Its own recording, else the one in its book's recitation folder.
   const audioKey = verseAudioPath(row, row.book);
@@ -201,6 +218,24 @@ async function malaRecording(row) {
 }
 
 /**
+ * A mantra's name in the reader's language.
+ *
+ * The name is prose, like the meaning, so it follows the *reading* language and
+ * not the script the mantra is chanted in: someone who chants in Devanagari and
+ * reads Marathi expects a Marathi title above Devanagari text. The mantra's own
+ * `name` is the English one and what is left when no language has a name.
+ */
+function mantraName(row, user) {
+  return language.pickName(row.translations, language.readingChain(user), row.name);
+}
+
+/** `{ id, slug, name }` for a mantra named in passing — see `includes.mantraStub`. */
+function mantraStub(row, user) {
+  if (!row) return null;
+  return { id: row.id, slug: row.slug, name: mantraName(row, user) };
+}
+
+/**
  * One mantra.
  *
  * The script and the meaning are chosen by *different* settings — mantraLanguage
@@ -223,7 +258,7 @@ async function mantra(row, user) {
   return {
     id: row.id,
     slug: row.slug,
-    name: script?.name || row.name,
+    name: mantraName(row, user),
     description: meaning?.description || row.description,
     category: row.category,
     sampradaya: row.sampradaya,
@@ -340,7 +375,7 @@ function bindOverlays(overlays, verse, user) {
   if (!Array.isArray(overlays) || !overlays.some((o) => o?.bind)) return overlays ?? [];
   if (!verse) return overlays;
 
-  const translation = language.pick(verse.translations, language.readingChain(user));
+  const translation = language.pickTranslation(verse.translations, language.readingChain(user));
   const fields = {
     sanskrit: verse.sanskrit,
     transliteration: verse.transliteration,
@@ -461,7 +496,7 @@ async function reel(row, user) {
           label: reelVerseLabel(row.verse),
         }
       : null,
-    mantra: row.mantra ? { id: row.mantra.id, slug: row.mantra.slug, name: row.mantra.name } : null,
+    mantra: mantraStub(row.mantra, user),
     deity: row.deity
       ? { id: row.deity.id, slug: row.deity.slug, name: row.deity.name, imageUrl: deityImageUrl }
       : null,
@@ -542,6 +577,7 @@ export {
   verses,
   mantra,
   mantras,
+  mantraStub,
   book,
   books,
   section,

@@ -1,0 +1,1593 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Oriya (`or`).
+class AppLocalizationsOr extends AppLocalizations {
+  AppLocalizationsOr([String locale = 'or']) : super(locale);
+
+  @override
+  String get appName => 'HariHariBol';
+
+  @override
+  String get splashTagline => 'ପଢ଼ନ୍ତୁ · ଜପ କରନ୍ତୁ · ସାଧନା କରନ୍ତୁ';
+
+  @override
+  String get actionRetry => 'ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ';
+
+  @override
+  String get actionCancel => 'ବାତିଲ୍ କରନ୍ତୁ';
+
+  @override
+  String get actionOk => 'ଠିକ୍ ଅଛି';
+
+  @override
+  String get actionDone => 'ହୋଇଗଲା';
+
+  @override
+  String get actionSave => 'ସେଭ୍ କରନ୍ତୁ';
+
+  @override
+  String get actionViewAll => 'ସବୁ ଦେଖନ୍ତୁ';
+
+  @override
+  String get actionSignOut => 'ସାଇନ୍ ଆଉଟ୍';
+
+  @override
+  String get actionDeleteAccount => 'ଖାତା ଡିଲିଟ୍ କରନ୍ତୁ';
+
+  @override
+  String get actionContinue => 'ଜାରି ରଖନ୍ତୁ';
+
+  @override
+  String get errorGeneric => 'କିଛି ଭୁଲ ହୋଇଗଲା। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get errorNetwork =>
+      'ସଂଯୋଗ ନାହିଁ। ଆପଣଙ୍କ ଇଣ୍ଟରନେଟ୍ ଯାଞ୍ଚ କରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get errorTimeout =>
+      'ଏଥିରେ ଅଧିକ ସମୟ ଲାଗିଲା। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get errorSessionExpired =>
+      'ଆପଣଙ୍କ ସେସନ୍ ସମାପ୍ତ ହୋଇଛି। ଦୟାକରି ପୁଣି ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।';
+
+  @override
+  String get errorSignIn =>
+      'ଆମେ ଆପଣଙ୍କୁ ସାଇନ୍ ଇନ୍ କରାଇପାରିଲୁ ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get errorInsecureConnection => 'ସଂଯୋଗ ସୁରକ୍ଷିତ ନୁହେଁ।';
+
+  @override
+  String get errorCancelled => 'ଅନୁରୋଧ ବାତିଲ୍ ହୋଇଛି।';
+
+  @override
+  String get errorEmptyTitle => 'ଏପର୍ଯ୍ୟନ୍ତ ଏଠାରେ କିଛି ନାହିଁ';
+
+  @override
+  String get errorRouteNotFound => 'ସେହି ସ୍କ୍ରିନ୍ ଅସ୍ତିତ୍ୱରେ ନାହିଁ।';
+
+  @override
+  String get actionGoHome => 'ହୋମକୁ ଯାଆନ୍ତୁ';
+
+  @override
+  String get signInTitle => 'ସ୍ୱାଗତ';
+
+  @override
+  String get signInSubtitle =>
+      'ଆପଣଙ୍କ ପଠନ, ଜପ ଓ ଦୈନିକ ସାଧନା ଗୋଟିଏ ସ୍ଥାନରେ ରଖନ୍ତୁ।';
+
+  @override
+  String get signInWithGoogle => 'Google ସହ ଜାରି ରଖନ୍ତୁ';
+
+  @override
+  String get signInWithApple => 'Apple ସହ ଜାରି ରଖନ୍ତୁ';
+
+  @override
+  String get signInCancelled => 'ସାଇନ୍ ଇନ୍ ବାତିଲ୍ ହୋଇଛି।';
+
+  @override
+  String get signInFailed =>
+      'ଆମେ ଆପଣଙ୍କୁ ସାଇନ୍ ଇନ୍ କରାଇପାରିଲୁ ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get signInLegal =>
+      'ଜାରି ରଖିବା ଦ୍ୱାରା ଆପଣ ଆମର ସର୍ତ୍ତାବଳୀ ଓ ଗୋପନୀୟତା ନୀତିକୁ ସହମତ ହୁଅନ୍ତି।';
+
+  @override
+  String languageStepOf(int current, int total) {
+    return 'ଧାପ $current / $total';
+  }
+
+  @override
+  String get languageAppTitle => 'କେଉଁ ଭାଷା ଘର ପରି ଲାଗେ?';
+
+  @override
+  String get languageAppSubtitle =>
+      'ଆପଣ ଯେକୌଣସି ସମୟରେ ସେଟିଂସ୍‌ରେ ଏହା ବଦଳାଇପାରିବେ।';
+
+  @override
+  String get languageMantraTitle => 'ଆପଣ କେଉଁ ଲିପିରେ ଜପ କରନ୍ତି?';
+
+  @override
+  String get languageMantraSubtitle =>
+      'ମନ୍ତ୍ର ଏହି ଲିପିରେ ଦେଖାଯିବ। ଏହାର ଅର୍ଥ ଆପଣଙ୍କ ନିଜ ଭାଷାରେ ରହିବ।';
+
+  @override
+  String get actionBack => 'ପଛକୁ';
+
+  @override
+  String get tabHome => 'ହୋମ୍';
+
+  @override
+  String get tabSadhana => 'ଜପ';
+
+  @override
+  String get tabLibrary => 'ପଢ଼ନ୍ତୁ';
+
+  @override
+  String get tabRoutine => 'ଦିନଚର୍ଯ୍ୟା';
+
+  @override
+  String get reelsTitle => 'ରିଲ୍ସ';
+
+  @override
+  String get tabSearch => 'ଖୋଜନ୍ତୁ';
+
+  @override
+  String get homeGreeting => 'ହରି ବୋଲ';
+
+  @override
+  String homeGreetingNamed(String name) {
+    return 'ହରି ବୋଲ, $name';
+  }
+
+  @override
+  String homeDateLine(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat(
+      'EEEE · d MMMM',
+      localeName,
+    );
+    final String dateString = dateDateFormat.format(date);
+
+    return '$dateString';
+  }
+
+  @override
+  String get homeMoodPrompt => 'ଆଜି ଆପଣ କେମିତି ଅଛନ୍ତି?';
+
+  @override
+  String get homeMoodAnsweredToday =>
+      'ଆଜି ଆପଣ କିପରି ଅନୁଭବ କରୁଛନ୍ତି ତାହା ଆପଣ ଜଣାଇସାରିଛନ୍ତି। ନୂଆ କିଛି ଜଣାଇବାକୁ କାଲି ପୁଣି ଆସନ୍ତୁ।';
+
+  @override
+  String homeMoodViewToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ଆଜିର $count ଶ୍ଳୋକ ପୁଣି ପଢ଼ନ୍ତୁ',
+      one: 'ଆଜିର ଶ୍ଳୋକ ପୁଣି ପଢ଼ନ୍ତୁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeMoodSubmit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ମୋତେ $count ଶ୍ଳୋକ ଦେଖାନ୍ତୁ',
+      one: 'ମୋତେ ଗୋଟିଏ ଶ୍ଳୋକ ଦେଖାନ୍ତୁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeVerseOfTheDay => 'ଆଜିର ଶ୍ଳୋକ';
+
+  @override
+  String get homeSlokaForYou => 'ଆଜି ଆପଣଙ୍କ ପାଇଁ';
+
+  @override
+  String get homeTodaysSadhana => 'ଆଜିର ସାଧନା';
+
+  @override
+  String get homeContinueReading => 'ପଢ଼ିବା ଜାରି ରଖନ୍ତୁ';
+
+  @override
+  String get homeBooks => 'ପୁସ୍ତକ';
+
+  @override
+  String get homeMantras => 'ମନ୍ତ୍ର';
+
+  @override
+  String get homeStartYourDay => 'ଆଜିର ଲକ୍ଷ୍ୟ ସ୍ଥିର କରନ୍ତୁ';
+
+  @override
+  String homeChantMantra(String mantra) {
+    return '$mantra ଜପ କରନ୍ତୁ';
+  }
+
+  @override
+  String bookChapterCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଅଧ୍ୟାୟ',
+      one: '1 ଅଧ୍ୟାୟ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String bookVerseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଶ୍ଳୋକ',
+      one: '1 ଶ୍ଳୋକ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get searchHint => 'ଶ୍ଳୋକ, ମନ୍ତ୍ର, ପୁସ୍ତକ ଖୋଜନ୍ତୁ';
+
+  @override
+  String get searchPrompt => 'ସମଗ୍ର ଲାଇବ୍ରେରୀରେ, ସିଧାସଳଖ ସର୍ଭରରୁ ଖୋଜନ୍ତୁ।';
+
+  @override
+  String get searchShortcutLabel => 'କିମ୍ବା ସିଧା ଏକ ଶ୍ଳୋକକୁ ଯାଆନ୍ତୁ:';
+
+  @override
+  String get searchNoResults =>
+      'କୌଣସି ଫଳାଫଳ ନାହିଁ। ଅନ୍ୟ ଏକ ଶବ୍ଦ, କିମ୍ବା BG 2.47 ପରି ରେଫରେନ୍ସ ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get searchSectionVerses => 'ଶ୍ଳୋକ';
+
+  @override
+  String searchResultsTitle(String kind, String query) {
+    return '$kind · $query';
+  }
+
+  @override
+  String labelCanto(int number) {
+    return 'ସ୍କନ୍ଧ $number';
+  }
+
+  @override
+  String labelChapter(int number) {
+    return 'ଅଧ୍ୟାୟ $number';
+  }
+
+  @override
+  String labelVerse(int number) {
+    return 'ଶ୍ଳୋକ $number';
+  }
+
+  @override
+  String labelCantoChapter(int canto, int chapter) {
+    return 'ସ୍କନ୍ଧ $canto · ଅଧ୍ୟାୟ $chapter';
+  }
+
+  @override
+  String labelQuotedMeaning(String meaning) {
+    return '“$meaning”';
+  }
+
+  @override
+  String labelTranslatorCredit(String name) {
+    return '— $name';
+  }
+
+  @override
+  String sadhanaRoundsProgress(int done, int target) {
+    return '$target ମଧ୍ୟରୁ $done ମାଳା';
+  }
+
+  @override
+  String sadhanaTasksProgress(int done, int total) {
+    return '$total ମଧ୍ୟରୁ $done କାମ ସମାପ୍ତ';
+  }
+
+  @override
+  String sadhanaStreak(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ଦିନର ନିରନ୍ତରତା',
+      one: '1 ଦିନର ନିରନ୍ତରତା',
+      zero: 'ଏପର୍ଯ୍ୟନ୍ତ ନିରନ୍ତରତା ନାହିଁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sadhanaGenericChant => 'ଜପ';
+
+  @override
+  String sadhanaRoundsShort(int rounds) {
+    return '$rounds ମାଳା';
+  }
+
+  @override
+  String get sadhanaTodaysSessions => 'ଆଜିର ଜପ';
+
+  @override
+  String get sadhanaNoSessionsYet => 'ଆଜି ଏପର୍ଯ୍ୟନ୍ତ କିଛି ଲଗ୍ ହୋଇନାହିଁ।';
+
+  @override
+  String get sadhanaRoundsEyebrow => 'ଆଜିର ମାଳା';
+
+  @override
+  String get sadhanaRoundsCaption => 'ମାଳା';
+
+  @override
+  String get sadhanaChantNow => 'ଏବେ ଜପ କରନ୍ତୁ';
+
+  @override
+  String get sadhanaLogRounds => 'ମାଳା ଲଗ୍ କରନ୍ତୁ';
+
+  @override
+  String get sadhanaLogRoundsSubtitle =>
+      'ଆପଣଙ୍କ ଜପମାଳାରେ ଜପ କରାଯାଇଥିବା ମାଳା, ଆଜିର ମୋଟରେ ଯୋଡ଼ାଯିବ।';
+
+  @override
+  String sadhanaLogRoundsSubmit(int rounds) {
+    return '$rounds ମାଳା ଲଗ୍ କରନ୍ତୁ';
+  }
+
+  @override
+  String get sadhanaTargetReached => 'ଆଜିର ଲକ୍ଷ୍ୟ ପୂରଣ ହୋଇଛି';
+
+  @override
+  String get sadhanaUndoBead => 'ଶେଷ ମଣିକୁ ପୂର୍ବବତ୍ କରନ୍ତୁ';
+
+  @override
+  String get sadhanaElapsedEyebrow => 'ବିତିଥିବା ସମୟ';
+
+  @override
+  String get sadhanaPaceEyebrow => 'ଗତି';
+
+  @override
+  String sadhanaElapsedSeconds(String seconds) {
+    return '$seconds ସେ';
+  }
+
+  @override
+  String sadhanaPacePerMantra(String seconds) {
+    return 'ପ୍ରତିଟି ପାଇଁ $seconds ସେ';
+  }
+
+  @override
+  String get sadhanaAutoCount => 'ସ୍ୱୟଂ ଗଣନା';
+
+  @override
+  String get sadhanaAutoCountOff => 'ବନ୍ଦ — ମଣି ନିଜେ ଟ୍ୟାପ୍ କରନ୍ତୁ';
+
+  @override
+  String get sadhanaAutoCountIdle => 'ଜପ ପାଇଁ ଅପେକ୍ଷା କରୁଛି';
+
+  @override
+  String get sadhanaAutoCountListening => 'ଶୁଣୁଛି…';
+
+  @override
+  String get sadhanaAutoCountCounted => 'ଗଣାଗଲା — ପରବର୍ତ୍ତୀ ପାଇଁ ଶୁଣୁଛି';
+
+  @override
+  String get sadhanaAutoCountPermissionDenied =>
+      'ସ୍ୱୟଂ ଗଣନା ପାଇଁ ମାଇକ୍ରୋଫୋନ୍ ଅନୁମତି ଆବଶ୍ୟକ';
+
+  @override
+  String get sadhanaAutoCountUnavailable => 'ସ୍ୱୟଂ ଗଣନା ଏବେ ଉପଲବ୍ଧ ନାହିଁ';
+
+  @override
+  String get chantModelTitle => 'ଅଧିକ ସଠିକ୍ ଶ୍ରବଣ';
+
+  @override
+  String chantModelOffer(int megabytes) {
+    return 'ସଂସ୍କୃତକୁ ବହୁତ ଭଲ ଭାବେ ବୁଝେ। ଥରେ $megabytes MB ଡାଉନଲୋଡ୍ — Wi-Fi ବ୍ୟବହାର କରନ୍ତୁ।';
+  }
+
+  @override
+  String get chantModelDownload => 'ଡାଉନଲୋଡ୍';
+
+  @override
+  String chantModelDownloading(int percent) {
+    return 'ଡାଉନଲୋଡ୍ ହେଉଛି… $percent%';
+  }
+
+  @override
+  String get chantModelCancel => 'ବାତିଲ୍ କରନ୍ତୁ';
+
+  @override
+  String get chantModelInstalled =>
+      'ଡାଉନଲୋଡ୍ ହୋଇଛି — ପରବର୍ତ୍ତୀ ଥର ସ୍ୱୟଂ ଗଣନା ଚାଲୁ କଲେ ବ୍ୟବହାର ହେବ';
+
+  @override
+  String get chantModelRemove => 'ହଟାନ୍ତୁ';
+
+  @override
+  String get chantModelFailed => 'ଡାଉନଲୋଡ୍ ସମ୍ପୂର୍ଣ୍ଣ ହେଲା ନାହିଁ';
+
+  @override
+  String get chantModelRetry => 'ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ';
+
+  @override
+  String get mantraAllCategories => 'ସବୁ';
+
+  @override
+  String get mantraNoneInCategory => 'ଏହି ବିଭାଗରେ ଏପର୍ଯ୍ୟନ୍ତ ମନ୍ତ୍ର ନାହିଁ।';
+
+  @override
+  String get mantraCategoryBeej => 'ବୀଜ ମନ୍ତ୍ର';
+
+  @override
+  String get mantraCategoryGayatri => 'ଗାୟତ୍ରୀ';
+
+  @override
+  String get mantraCategoryMahamantra => 'ମହାମନ୍ତ୍ର';
+
+  @override
+  String get mantraCategoryName => 'ନାମ ମନ୍ତ୍ର';
+
+  @override
+  String mantraStandardRounds(int rounds) {
+    return '$rounds ମାଳା';
+  }
+
+  @override
+  String mantraStandardCount(int count) {
+    return '$count ଥର';
+  }
+
+  @override
+  String get mantraHasAudio => 'ପାରାୟଣ ଉପଲବ୍ଧ';
+
+  @override
+  String get mantraPurport => 'ତାତ୍ପର୍ଯ୍ୟ';
+
+  @override
+  String mantraMyRounds(int rounds) {
+    return 'ଆପଣ ଏହାର $rounds ମାଳା ଜପ କରିସାରିଛନ୍ତି';
+  }
+
+  @override
+  String get mantraChantThis => 'ଏହାକୁ ଜପ କରନ୍ତୁ';
+
+  @override
+  String get profileStatVersesSaved => 'ସେଭ୍ ହୋଇଥିବା ଶ୍ଳୋକ';
+
+  @override
+  String get profileStatTotalRounds => 'ମୋଟ ମାଳା';
+
+  @override
+  String get profileStatChantingDays => 'ଜପ ଦିନ';
+
+  @override
+  String get profileStatSlokasRead => 'ପଠିତ ଶ୍ଳୋକ';
+
+  @override
+  String get profileRecentFavorites => 'ସାମ୍ପ୍ରତିକ ପସନ୍ଦ';
+
+  @override
+  String get profileNoFavorites =>
+      'ଏପର୍ଯ୍ୟନ୍ତ କିଛି ସେଭ୍ ହୋଇନାହିଁ। ଏକ ଶ୍ଳୋକକୁ ବୁକ୍‌ମାର୍କ କଲେ ତାହା ଏଠାରେ ରହିବ।';
+
+  @override
+  String get settingsTitle => 'ସେଟିଂସ୍';
+
+  @override
+  String get settingsSectionPractice => 'ସାଧନା';
+
+  @override
+  String get settingsSectionAccount => 'ଖାତା';
+
+  @override
+  String get settingsLanguage => 'ଭାଷା';
+
+  @override
+  String get settingsTheme => 'ଥିମ୍';
+
+  @override
+  String get settingsDailyGoal => 'ଦୈନିକ ଲକ୍ଷ୍ୟ';
+
+  @override
+  String get settingsDailyGoalSubtitle =>
+      'ପ୍ରତିଦିନ ଲକ୍ଷ୍ୟ କରିବାକୁ ମାଳା। ପ୍ରତ୍ୟେକ ନୂଆ ଦିନ ଏହାଠାରୁ ଆରମ୍ଭ ହୁଏ।';
+
+  @override
+  String settingsDailyGoalSubmit(int rounds) {
+    return 'ଦୈନିକ ଲକ୍ଷ୍ୟ $rounds ସେଟ୍ କରନ୍ତୁ';
+  }
+
+  @override
+  String get settingsPreferredMantra => 'ପସନ୍ଦର ମନ୍ତ୍ର';
+
+  @override
+  String get settingsPreferredMantraNone => 'ସେଟ୍ ହୋଇନାହିଁ';
+
+  @override
+  String get settingsChooseMantraTitle => 'ଆପଣଙ୍କ ମନ୍ତ୍ର ବାଛନ୍ତୁ';
+
+  @override
+  String get settingsChooseMantraSubtitle =>
+      '“ଏବେ ଜପ କରନ୍ତୁ” କେଉଁଥିରେ ଖୋଲିବ ତାହା। ଅନ୍ୟ ଯେକୌଣସି ମନ୍ତ୍ରକୁ ଏହାର ନିଜ ପୃଷ୍ଠାରୁ ଜପ କରିପାରିବେ।';
+
+  @override
+  String get settingsNoMantraPreference =>
+      'କୌଣସି ପସନ୍ଦ ନାହିଁ — ପ୍ରତିଥର ମୋତେ ପଚାରନ୍ତୁ';
+
+  @override
+  String get settingsPlans => 'ପ୍ଲାନ୍ ଓ ପ୍ରିମିୟମ୍';
+
+  @override
+  String get plansTitle => 'ପ୍ଲାନ୍';
+
+  @override
+  String get plansSubtitle =>
+      'ସମ୍ପୂର୍ଣ୍ଣ ଆପ୍ ମାଗଣା। ଏକ ଦେୟଯୁକ୍ତ ପ୍ଲାନ୍ ଏହା ଉପରେ ଟିକେ ଅଧିକ ଯୋଡ଼େ।';
+
+  @override
+  String get plansYourPlan => 'ଆପଣଙ୍କ ପ୍ଲାନ୍';
+
+  @override
+  String get plansCurrent => 'ବର୍ତ୍ତମାନର ପ୍ଲାନ୍';
+
+  @override
+  String get plansFreeForEveryone => 'ସମସ୍ତଙ୍କ ପାଇଁ ମାଗଣା';
+
+  @override
+  String plansPricePer(String price, String period) {
+    return '$price / $period';
+  }
+
+  @override
+  String get plansPeriodWeek => 'ସପ୍ତାହ';
+
+  @override
+  String get plansPeriodMonth => 'ମାସ';
+
+  @override
+  String get plansPeriodYear => 'ବର୍ଷ';
+
+  @override
+  String plansPeriodDays(int days) {
+    return '$days ଦିନ';
+  }
+
+  @override
+  String plansTrial(int days) {
+    return '$days ଦିନର ମାଗଣା ଟ୍ରାଏଲ୍';
+  }
+
+  @override
+  String get plansSubscribe => 'ସବ୍‌ସ୍କ୍ରାଇବ୍ କରନ୍ତୁ';
+
+  @override
+  String get plansStartTrial => 'ମାଗଣା ଟ୍ରାଏଲ୍ ଆରମ୍ଭ କରନ୍ତୁ';
+
+  @override
+  String get plansRestore => 'କ୍ରୟ ପୁନରୁଦ୍ଧାର କରନ୍ତୁ';
+
+  @override
+  String get plansStoreUnavailable => 'ଏହି ଡିଭାଇସରେ ଷ୍ଟୋର୍ ଉପଲବ୍ଧ ନାହିଁ।';
+
+  @override
+  String get plansProductMissing => 'ଏହି ପ୍ଲାନ୍ ଏବେ ଷ୍ଟୋରରେ ଉପଲବ୍ଧ ନାହିଁ।';
+
+  @override
+  String get plansPurchasePending => 'ଆପଣଙ୍କ କ୍ରୟ ପ୍ରକ୍ରିୟାକରଣ ହେଉଛି…';
+
+  @override
+  String get plansPurchaseSuccess => 'ଧନ୍ୟବାଦ — ଆପଣଙ୍କ ପ୍ଲାନ୍ ସକ୍ରିୟ ଅଛି।';
+
+  @override
+  String get plansPurchaseFailed => 'କ୍ରୟ ସମ୍ପୂର୍ଣ୍ଣ ହେଲା ନାହିଁ।';
+
+  @override
+  String get plansPurchaseCancelled => 'କ୍ରୟ ବାତିଲ୍ ହୋଇଛି।';
+
+  @override
+  String plansRenews(String date) {
+    return '$date ଦିନ ନବୀକରଣ ହେବ';
+  }
+
+  @override
+  String plansEnds(String date) {
+    return '$date ପର୍ଯ୍ୟନ୍ତ ଆକ୍ସେସ୍';
+  }
+
+  @override
+  String get plansPermanent =>
+      'ସବୁଦିନ ପାଇଁ ଆପଣଙ୍କର — HariHariBolକୁ ସମର୍ଥନ କରିଥିବାରୁ ଧନ୍ୟବାଦ।';
+
+  @override
+  String get plansIncluded => 'ଅନ୍ତର୍ଭୁକ୍ତ';
+
+  @override
+  String get plansNotIncluded => 'ଅନ୍ତର୍ଭୁକ୍ତ ନୁହେଁ';
+
+  @override
+  String get plansUnlimited => 'ଅସୀମିତ';
+
+  @override
+  String plansLimit(int limit, String unit) {
+    return '$limit $unit';
+  }
+
+  @override
+  String get plansNoFeatures =>
+      'ଏପର୍ଯ୍ୟନ୍ତ ଅତିରିକ୍ତ ସୁବିଧା ନାହିଁ — ଆହୁରି ଆସୁଛି।';
+
+  @override
+  String get plansRestoreDone => 'କ୍ରୟ ପୁନରୁଦ୍ଧାର ହୋଇଛି।';
+
+  @override
+  String get settingsPrivacy => 'ଗୋପନୀୟତା ନୀତି';
+
+  @override
+  String settingsVersion(String version) {
+    return 'ସଂସ୍କରଣ $version';
+  }
+
+  @override
+  String get settingsMadeWith => 'ଭକ୍ତିଭାବରେ ନିର୍ମିତ';
+
+  @override
+  String settingsFooter(String version, String madeWith) {
+    return '$version · $madeWith';
+  }
+
+  @override
+  String get themeSystem => 'ସ୍ୱୟଂ';
+
+  @override
+  String get themeLight => 'ଲାଇଟ୍';
+
+  @override
+  String get themeDark => 'ଡାର୍କ୍';
+
+  @override
+  String profileSignedInAs(String email) {
+    return 'ସାଇନ୍ ଇନ୍ ଖାତା: $email';
+  }
+
+  @override
+  String get profilePremium => 'ପ୍ରିମିୟମ୍';
+
+  @override
+  String get profileFree => 'ମାଗଣା';
+
+  @override
+  String get signOutConfirm =>
+      'ଆପଣଙ୍କ ସାଧନା ଇତିହାସ ଦେଖିବାକୁ ଆପଣଙ୍କୁ ପୁଣି ସାଇନ୍ ଇନ୍ କରିବାକୁ ପଡ଼ିବ।';
+
+  @override
+  String get deleteAccountTitle => 'ଆପଣଙ୍କ ଖାତା ଡିଲିଟ୍ କରିବେ?';
+
+  @override
+  String get deleteAccountBody =>
+      'ଏହା ଆପଣଙ୍କ ସାଧନା ଇତିହାସ, ପସନ୍ଦ ଓ ବିଜ୍ଞପ୍ତିଗୁଡ଼ିକୁ ହଟାଇଦେବ। ଏହାକୁ ଫେରାଇ ହେବ ନାହିଁ।';
+
+  @override
+  String get comingSoon => 'ଶୀଘ୍ର ଆସୁଛି';
+
+  @override
+  String get libraryNoBooks => 'ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ପୁସ୍ତକ ପ୍ରକାଶିତ ହୋଇନାହିଁ।';
+
+  @override
+  String get actionEdit => 'ସମ୍ପାଦନ';
+
+  @override
+  String get actionDelete => 'ଡିଲିଟ୍';
+
+  @override
+  String get libraryDownloadBook => 'ଅଫଲାଇନ୍ ପଠନ ପାଇଁ ଡାଉନଲୋଡ୍ କରନ୍ତୁ';
+
+  @override
+  String get libraryDownloading => 'ଡାଉନଲୋଡ୍ ହେଉଛି…';
+
+  @override
+  String get libraryDownloaded => 'ଅଫଲାଇନ୍ ପଠନ ପାଇଁ ଡାଉନଲୋଡ୍ ହୋଇଛି';
+
+  @override
+  String get libraryDownloadFailed =>
+      'ଏହି ପୁସ୍ତକ ଡାଉନଲୋଡ୍ କରିହେଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String bookCantoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ସ୍କନ୍ଧ',
+      one: '1 ସ୍କନ୍ଧ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String bookByTranslators(String names) {
+    return 'ଅନୁବାଦ: $names';
+  }
+
+  @override
+  String get chapterPrevious => 'ପୂର୍ବ ଅଧ୍ୟାୟ';
+
+  @override
+  String get chapterNext => 'ପରବର୍ତ୍ତୀ ଅଧ୍ୟାୟ';
+
+  @override
+  String get actionBookmark => 'ବୁକ୍‌ମାର୍କ';
+
+  @override
+  String get actionRemoveBookmark => 'ବୁକ୍‌ମାର୍କ ହଟାନ୍ତୁ';
+
+  @override
+  String get actionHighlight => 'ହାଇଲାଇଟ୍';
+
+  @override
+  String get actionRemoveHighlight => 'ହାଇଲାଇଟ୍ ହଟାନ୍ତୁ';
+
+  @override
+  String get verseExplanationLabel => 'ବ୍ୟାଖ୍ୟା';
+
+  @override
+  String get verseExplanationAiLabel => 'ବ୍ୟାଖ୍ୟା (AI ସହାୟତାରେ)';
+
+  @override
+  String get verseWordMeanings => 'ଶବ୍ଦାର୍ଥ';
+
+  @override
+  String get verseCompareTranslations => 'ଅନୁବାଦ ତୁଳନା କରନ୍ତୁ';
+
+  @override
+  String get verseTranslationsEmpty =>
+      'ଏପର୍ଯ୍ୟନ୍ତ ଅନ୍ୟ କୌଣସି ଅନୁବାଦ ପ୍ରକାଶିତ ହୋଇନାହିଁ।';
+
+  @override
+  String get verseRelatedTitle => 'ସମ୍ବନ୍ଧିତ ଶ୍ଳୋକ';
+
+  @override
+  String get verseRelatedEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ସମ୍ବନ୍ଧିତ ଶ୍ଳୋକ ନାହିଁ।';
+
+  @override
+  String get relationSameConcept => 'ଏକା ଧାରଣା';
+
+  @override
+  String get relationExpandsOn => 'ବିସ୍ତାର କରେ';
+
+  @override
+  String get relationQuotedIn => 'ଉଦ୍ଧୃତ ହୋଇଥିବା ସ୍ଥାନ';
+
+  @override
+  String get relationContrastsWith => 'ଭିନ୍ନ ଅଟେ';
+
+  @override
+  String get verseNotesTitle => 'ମୋର ଟିପ୍ପଣୀ';
+
+  @override
+  String get verseNoteHint => 'ଟିପ୍ପଣୀ ଲେଖନ୍ତୁ…';
+
+  @override
+  String get verseNoteAdd => 'ଟିପ୍ପଣୀ ଯୋଡ଼ନ୍ତୁ';
+
+  @override
+  String get verseNoteEmpty => 'ଏହି ଶ୍ଳୋକରେ ଏପର୍ଯ୍ୟନ୍ତ ଟିପ୍ପଣୀ ନାହିଁ।';
+
+  @override
+  String get verseNoteDeleteConfirm => 'ଏହି ଟିପ୍ପଣୀ ଡିଲିଟ୍ କରିବେ?';
+
+  @override
+  String get readingSettingsTitle => 'ପଠନ ସେଟିଂସ୍';
+
+  @override
+  String get readingFontSizeLabel => 'ଅକ୍ଷର ଆକାର';
+
+  @override
+  String get readingFontSizeSmall => 'ଛୋଟ';
+
+  @override
+  String get readingFontSizeMedium => 'ମଧ୍ୟମ';
+
+  @override
+  String get readingFontSizeLarge => 'ବଡ଼';
+
+  @override
+  String get readingFontSizeExtraLarge => 'ଅତି ବଡ଼';
+
+  @override
+  String get readingLanguageLabel => 'ପଠନ ଭାଷା';
+
+  @override
+  String get routineSubtitle => 'ଭକ୍ତି, କାମ ଓ ମଝିରେ ଥିବା ସାଧାରଣ ଜିନିଷ।';
+
+  @override
+  String routineProgress(int done, int total) {
+    return '$total ମଧ୍ୟରୁ $done ସମ୍ପୂର୍ଣ୍ଣ';
+  }
+
+  @override
+  String get routineEmptyBody =>
+      'ଏକ ମାଳା ଜପ, ଏକ କାମ, ଏକ ଦାୟିତ୍ୱ ଯୋଡ଼ନ୍ତୁ — ଆଜିର ଦିନକୁ ଉଦ୍ଦେଶ୍ୟ ସହ ଗଢ଼ନ୍ତୁ।';
+
+  @override
+  String get routineAddTask => 'କାମ ଯୋଡ଼ନ୍ତୁ';
+
+  @override
+  String get routineTaskHint => 'କଣ କରିବାକୁ ହେବ?';
+
+  @override
+  String get routineCategoryLabel => 'ବର୍ଗ';
+
+  @override
+  String get routineCategoryDevotion => 'ଭକ୍ତି';
+
+  @override
+  String get routineCategoryWork => 'କାମ';
+
+  @override
+  String get routineCategoryHome => 'ଘର';
+
+  @override
+  String get routineCategoryErrand => 'ବାହାର କାମ';
+
+  @override
+  String get routineSlotLabel => 'ଦିନର ସମୟ';
+
+  @override
+  String get routineSlotMorning => 'ସକାଳ';
+
+  @override
+  String get routineSlotAfternoon => 'ଅପରାହ୍ନ';
+
+  @override
+  String get routineSlotEvening => 'ସନ୍ଧ୍ୟା';
+
+  @override
+  String get routineSlotAnytime => 'ଯେକୌଣସି ସମୟ';
+
+  @override
+  String get routineSaveAction => 'ଏହି ଦିନରେ ଯୋଡ଼ନ୍ତୁ';
+
+  @override
+  String get routineTaskRemoved => 'ଏହି ଦିନରୁ ହଟାଗଲା';
+
+  @override
+  String get routineUndo => 'ପୂର୍ବବତ୍ କରନ୍ତୁ';
+
+  @override
+  String get routineToday => 'ଆଜି';
+
+  @override
+  String get routineJumpToToday => 'ଆଜିକୁ ଯାଆନ୍ତୁ';
+
+  @override
+  String get routineEkadashi => 'ଏକାଦଶୀ';
+
+  @override
+  String get routineEkadashiNote =>
+      'ଆନୁମାନିକ — ମନ୍ଦିରର ପଞ୍ଜିକାରେ ଏକ ଦିନର ପାର୍ଥକ୍ୟ ଥାଇପାରେ।';
+
+  @override
+  String routineDayLabel(String date, String ekadashi, int done, int total) {
+    String _temp0 = intl.Intl.selectLogic(ekadashi, {
+      'yes': ' · ଏକାଦଶୀ',
+      'other': '',
+    });
+    String _temp1 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: ' · $total ମଧ୍ୟରୁ $done ସମ୍ପୂର୍ଣ୍ଣ',
+      zero: '',
+    );
+    return '$date$_temp0$_temp1';
+  }
+
+  @override
+  String get routineNothingPlanned => 'ଏହି ଦିନ ପାଇଁ କିଛି ଯୋଜନା ହୋଇନାହିଁ।';
+
+  @override
+  String get routineManageDaily => 'ଦୈନିକ ଦିନଚର୍ଯ୍ୟା';
+
+  @override
+  String get routineDailyTitle => 'ଦୈନିକ ଦିନଚର୍ଯ୍ୟା';
+
+  @override
+  String get routineDailyBody =>
+      'ଐଚ୍ଛିକ। ଏଗୁଡ଼ିକ ପ୍ରତିଦିନ ପୁନରାବୃତ୍ତ ହୁଏ, ପ୍ରତିଦିନ ନୂଆ କରି ଟିକ୍ କରାଯାଇପାରିବ।';
+
+  @override
+  String get routineDailyEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ଦୈନିକ ଦିନଚର୍ଯ୍ୟା ନାହିଁ।';
+
+  @override
+  String get routineDailyAdd => 'ଦୈନିକ ଦିନଚର୍ଯ୍ୟାରେ ଯୋଡ଼ନ୍ତୁ';
+
+  @override
+  String get routineDailySaveAction => 'ପ୍ରତିଦିନ ପାଇଁ ଯୋଡ଼ନ୍ତୁ';
+
+  @override
+  String get routineDailyBadge => 'ପ୍ରତିଦିନ';
+
+  @override
+  String get routineDailyRemove => 'ଦୈନିକ ଦିନଚର୍ଯ୍ୟାରୁ ହଟାନ୍ତୁ';
+
+  @override
+  String get routineDailyRemoved => 'ଆପଣଙ୍କ ଦୈନିକ ଦିନଚର୍ଯ୍ୟାରୁ ହଟାଗଲା';
+
+  @override
+  String get reelsEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ରିଲ୍ସ ନାହିଁ';
+
+  @override
+  String get reelsEmptyBody =>
+      'କ୍ରିଏଟରମାନେ ପୋଷ୍ଟ କରିବା ଆରମ୍ଭ କଲେ ସେମାନଙ୍କ ରିଲ୍ସ ଏଠାରେ ଦେଖାଯିବ।';
+
+  @override
+  String get reelsFailed => 'ରିଲ୍ସ ଲୋଡ୍ କରିହେଲା ନାହିଁ';
+
+  @override
+  String get reelsRetry => 'ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ';
+
+  @override
+  String get reelFollow => 'ଫଲୋ';
+
+  @override
+  String get reelFollowing => 'ଫଲୋ କରୁଛନ୍ତି';
+
+  @override
+  String get reelLike => 'ଲାଇକ୍';
+
+  @override
+  String get reelUnlike => 'ଲାଇକ୍ ହଟାନ୍ତୁ';
+
+  @override
+  String get reelComment => 'ମନ୍ତବ୍ୟ';
+
+  @override
+  String get reelShare => 'ସେୟାର୍';
+
+  @override
+  String get reelSave => 'ସେଭ୍';
+
+  @override
+  String get reelUnsave => 'ସେଭ୍ କରାଯାଇଥିବାରୁ ହଟାନ୍ତୁ';
+
+  @override
+  String get reelSaved => 'ସେଭ୍ ହୋଇଛି';
+
+  @override
+  String get reelRemovedFromSaved => 'ସେଭ୍ କରାଯାଇଥିବାରୁ ହଟାଗଲା';
+
+  @override
+  String get reelMore => 'ଅଧିକ ବିକଳ୍ପ';
+
+  @override
+  String get reelMuted => 'ସାଉଣ୍ଡ ବନ୍ଦ';
+
+  @override
+  String get reelUnmuted => 'ସାଉଣ୍ଡ ଚାଲୁ';
+
+  @override
+  String get reelPlay => 'ପ୍ଲେ';
+
+  @override
+  String get reelPause => 'ବିରାମ';
+
+  @override
+  String get reelVideoUnavailable => 'ଏହି ଭିଡିଓ ଏବେ ବି ପ୍ରକ୍ରିୟାକରଣ ହେଉଛି।';
+
+  @override
+  String get reelAudioUnavailable => 'ଏହି ପାରାୟଣ ଏବେ ବି ପ୍ରକ୍ରିୟାକରଣ ହେଉଛି।';
+
+  @override
+  String get reelSimilar => 'ଏହିପରି ଆହୁରି';
+
+  @override
+  String get reelSimilarEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ସମାନ ରିଲ୍ସ ନାହିଁ।';
+
+  @override
+  String reelSlideOf(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String reelVerseRef(String book, int chapter, int verse) {
+    return '$book $chapter.$verse';
+  }
+
+  @override
+  String get reelBookGita => 'BG';
+
+  @override
+  String get reelBookBhagavatam => 'SB';
+
+  @override
+  String get reelCaptionMore => 'ଅଧିକ';
+
+  @override
+  String get reelCaptionLess => 'କମ୍';
+
+  @override
+  String get reelCommentsTitle => 'ମନ୍ତବ୍ୟ';
+
+  @override
+  String reelCommentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ମନ୍ତବ୍ୟ',
+      one: '1 ମନ୍ତବ୍ୟ',
+      zero: 'ଏପର୍ଯ୍ୟନ୍ତ ମନ୍ତବ୍ୟ ନାହିଁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reelCommentsEmpty => 'ପ୍ରଥମେ ଆପଣ କିଛି କୁହନ୍ତୁ।';
+
+  @override
+  String get reelCommentHint => 'ମନ୍ତବ୍ୟ ଯୋଡ଼ନ୍ତୁ…';
+
+  @override
+  String reelReplyHint(String name) {
+    return 'ଉତ୍ତର: $name…';
+  }
+
+  @override
+  String get reelCommentSend => 'ପୋଷ୍ଟ';
+
+  @override
+  String get reelCommentReply => 'ଉତ୍ତର';
+
+  @override
+  String get reelCommentDelete => 'ଡିଲିଟ୍';
+
+  @override
+  String get reelCommentReport => 'ରିପୋର୍ଟ୍';
+
+  @override
+  String get reelCommentPin => 'ପିନ୍';
+
+  @override
+  String get reelCommentUnpin => 'ଅନ୍‌ପିନ୍';
+
+  @override
+  String get reelCommentPinned => 'ପିନ୍ କରାଯାଇଛି';
+
+  @override
+  String get reelCommentRemoved => 'ଏହି ମନ୍ତବ୍ୟ ହଟାଯାଇଛି।';
+
+  @override
+  String get reelCommentDeleted => 'ମନ୍ତବ୍ୟ ଡିଲିଟ୍ ହୋଇଛି';
+
+  @override
+  String get reelCommentDeleteTitle => 'ଏହି ମନ୍ତବ୍ୟ ଡିଲିଟ୍ କରିବେ?';
+
+  @override
+  String get reelCommentDeleteBody =>
+      'ଏହା ସମସ୍ତଙ୍କ ପାଇଁ ହଟାଯିବ, ଏହାର ଉତ୍ତରଗୁଡ଼ିକ ସହିତ।';
+
+  @override
+  String get reelCommentCancelReply => 'ଉତ୍ତର ବାତିଲ୍ କରନ୍ତୁ';
+
+  @override
+  String reelViewReplies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଉତ୍ତର ଦେଖନ୍ତୁ',
+      one: '1 ଉତ୍ତର ଦେଖନ୍ତୁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reelHideReplies => 'ଉତ୍ତର ଲୁଚାନ୍ତୁ';
+
+  @override
+  String get reelLoadMoreComments => 'ଆହୁରି ମନ୍ତବ୍ୟ ଲୋଡ୍ କରନ୍ତୁ';
+
+  @override
+  String get reelReportTitle => 'ଏହି ରିଲ୍ ରିପୋର୍ଟ୍ କରନ୍ତୁ';
+
+  @override
+  String get reelReportCommentTitle => 'ଏହି ମନ୍ତବ୍ୟ ରିପୋର୍ଟ୍ କରନ୍ତୁ';
+
+  @override
+  String get reelReportBody =>
+      'ଏଥିରେ କଣ ଭୁଲ ଅଛି ଆମକୁ କୁହନ୍ତୁ। ଜଣେ ମଡରେଟର୍ ଏହାକୁ ସମୀକ୍ଷା କରିବେ।';
+
+  @override
+  String get reelReportSpam => 'ସ୍ପାମ୍ କିମ୍ବା ଭ୍ରମାତ୍ମକ';
+
+  @override
+  String get reelReportHarassment => 'ହଇରାଣ କିମ୍ବା ଦୁର୍ବ୍ୟବହାର';
+
+  @override
+  String get reelReportNonDevotional => 'ଭକ୍ତିମୂଳକ ବିଷୟବସ୍ତୁ ନୁହେଁ';
+
+  @override
+  String get reelReportMisinformation => 'ଭୁଲ ସୂଚନା';
+
+  @override
+  String get reelReportSexualOrViolent => 'ଯୌନ କିମ୍ବା ହିଂସାତ୍ମକ';
+
+  @override
+  String get reelReportOther => 'ଅନ୍ୟ କିଛି';
+
+  @override
+  String get reelReportNoteHint => 'ଆମକୁ ଆଉ କିଛି ଜଣାଇବାର ଅଛି କି? (ଐଚ୍ଛିକ)';
+
+  @override
+  String get reelReportSubmit => 'ରିପୋର୍ଟ୍';
+
+  @override
+  String get reelReportThanks => 'ଧନ୍ୟବାଦ। ଜଣେ ମଡରେଟର୍ ଏହାକୁ ଦେଖିବେ।';
+
+  @override
+  String get reelShareTitle => 'ଏହି ରିଲ୍ ସେୟାର୍ କରନ୍ତୁ';
+
+  @override
+  String reelShareMessage(String caption, String link) {
+    return '$caption\n\nHariHariBolରେ ଦେଖନ୍ତୁ: $link';
+  }
+
+  @override
+  String get reelCopyLink => 'ଲିଙ୍କ୍ କପି କରନ୍ତୁ';
+
+  @override
+  String get reelLinkCopied => 'ଲିଙ୍କ୍ କପି ହୋଇଛି';
+
+  @override
+  String get creatorTitle => 'କ୍ରିଏଟର୍';
+
+  @override
+  String creatorFollowers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଫଲୋୟର୍',
+      one: '1 ଫଲୋୟର୍',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creatorReelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ରିଲ୍ସ',
+      one: '1 ରିଲ୍',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creatorViews(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଭ୍ୟୁ',
+      one: '1 ଭ୍ୟୁ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creatorStatFollowers => 'ଫଲୋୟର୍';
+
+  @override
+  String get creatorStatReels => 'ରିଲ୍ସ';
+
+  @override
+  String get creatorStatViews => 'ଭ୍ୟୁ';
+
+  @override
+  String get creatorVerified => 'ସତ୍ୟାପିତ କ୍ରିଏଟର୍';
+
+  @override
+  String get creatorNoReels => 'ଏପର୍ଯ୍ୟନ୍ତ କିଛି ପୋଷ୍ଟ ହୋଇନାହିଁ।';
+
+  @override
+  String get creatorNotFound => 'ସେହି କ୍ରିଏଟର୍ ଆଉ ଏଠାରେ ନାହାଁନ୍ତି।';
+
+  @override
+  String get chantAnalyticsTooltip => 'ବିଶ୍ଳେଷଣ ଓ ଇତିହାସ';
+
+  @override
+  String get chantSittingTime => 'ସେସନ୍ ସମୟ';
+
+  @override
+  String chantMalaTime(int number) {
+    return 'ମାଳା $number ସମୟ';
+  }
+
+  @override
+  String get chantStatCurrentMala => 'ବର୍ତ୍ତମାନର ମାଳା';
+
+  @override
+  String get chantStatCount => 'ଗଣନା';
+
+  @override
+  String get chantStatMalasDone => 'ସମାପ୍ତ ମାଳା';
+
+  @override
+  String get chantStatAvgMala => 'ପ୍ରତି ମାଳା ହାରାହାରି';
+
+  @override
+  String get chantStatAvgChant => 'ପ୍ରତି ଜପ ହାରାହାରି';
+
+  @override
+  String get chantStatTotalChants => 'ମୋଟ ଜପ';
+
+  @override
+  String get chantStatFastestMala => 'ସବୁଠାରୁ ଦ୍ରୁତ ମାଳା';
+
+  @override
+  String get chantStatTotalTime => 'ମୋଟ ସମୟ';
+
+  @override
+  String get chantNoValue => '—';
+
+  @override
+  String get chantRecentTitle => 'ସାମ୍ପ୍ରତିକ ଜପ';
+
+  @override
+  String get chantRecentEmpty => 'ଆରମ୍ଭ କରିବା ପାଇଁ ବୃତ୍ତକୁ ଟ୍ୟାପ୍ କରନ୍ତୁ।';
+
+  @override
+  String chantTapNumber(int seq) {
+    return '#$seq';
+  }
+
+  @override
+  String get chantAutoBadge => 'ସ୍ୱୟଂ';
+
+  @override
+  String get chantDetectWords => 'ଶବ୍ଦ ଚିହ୍ନଟ କରନ୍ତୁ';
+
+  @override
+  String get chantDetectWordsOff => 'ବନ୍ଦ — ଶବ୍ଦ ରେକର୍ଡ୍ ହୁଏ ନାହିଁ';
+
+  @override
+  String get chantDetectWordsListening => 'ଶବ୍ଦ ପାଇଁ ଶୁଣୁଛି…';
+
+  @override
+  String get chantDetectWordsPermission => 'ମାଇକ୍ରୋଫୋନ୍ ଅନୁମତି ଆବଶ୍ୟକ';
+
+  @override
+  String get chantDetectWordsStarting => 'ପ୍ରସ୍ତୁତ ହେଉଛି…';
+
+  @override
+  String get chantDetectWordsUnavailable =>
+      'ଏହି ଡିଭାଇସରେ ଶବ୍ଦ ଚିହ୍ନଟ ଉପଲବ୍ଧ ନାହିଁ';
+
+  @override
+  String get chantDetectWordsNote =>
+      'ଶବ୍ଦ ଆପଣଙ୍କ ଫୋନ୍‌ରେ ହିଁ ଚିହ୍ନଟ ହୁଏ, ଅଡିଓ କେବେ ରେକର୍ଡ୍ ହୁଏ ନାହିଁ। ଲେଖା 7 ଦିନ ରଖାଯାଏ, ତାପରେ ଡିଲିଟ୍ ହୁଏ।';
+
+  @override
+  String get chantSetupTitle => 'ଜପ ସହାୟକ';
+
+  @override
+  String get chantSetupSubtitle =>
+      'ଏହି ସେସନ୍ କିପରି ଗଣାଯିବ ଓ ଟିପାଯିବ ତାହା ବାଛନ୍ତୁ। ଶୁଣିବା ଆପଣଙ୍କ ଫୋନ୍‌ରେ ହିଁ ହୁଏ।';
+
+  @override
+  String get chantSetupButton => 'ସ୍ୱୟଂ ଗଣନା ଓ ଶବ୍ଦ';
+
+  @override
+  String get chantSetupNoneOn => 'ସେଟ୍ ଅପ୍';
+
+  @override
+  String chantSetupOn(int count) {
+    return '$count ଚାଲୁ';
+  }
+
+  @override
+  String chantSetupButtonState(String button, String state) {
+    return '$button · $state';
+  }
+
+  @override
+  String get chantSetupDone => 'ହୋଇଗଲା';
+
+  @override
+  String get chantAnalyticsTitle => 'ଜପ ବିଶ୍ଳେଷଣ';
+
+  @override
+  String get chantTabThisSitting => 'ଏହି ସେସନ୍';
+
+  @override
+  String get chantTabHistory => 'ଇତିହାସ';
+
+  @override
+  String chantMalaTitle(int number) {
+    return 'ମାଳା $number';
+  }
+
+  @override
+  String get chantMalaInProgress => 'ଚାଲିଛି';
+
+  @override
+  String get chantMalaStart => 'ଆରମ୍ଭ';
+
+  @override
+  String get chantMalaEnd => 'ସମାପ୍ତି';
+
+  @override
+  String get chantMalaDuration => 'ଅବଧି';
+
+  @override
+  String chantMalaChants(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଜପ',
+      one: '1 ଜପ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chantTapsHeader => 'ପ୍ରତ୍ୟେକ ଜପ';
+
+  @override
+  String get chantHeardLabel => 'ଶୁଣାଗଲା';
+
+  @override
+  String get chantNoMalasYet =>
+      'ଏହି ସେସନ୍‌ରେ ଏପର୍ଯ୍ୟନ୍ତ ଜପ ନାହିଁ। ଆପଣ ସମ୍ପୂର୍ଣ୍ଣ କରୁଥିବା ପ୍ରତ୍ୟେକ ମାଳା ଏହାର ଆରମ୍ଭ, ସମାପ୍ତି ଓ ଲାଗିଥିବା ସମୟ ସହ ଏଠାରେ ତାଲିକାଭୁକ୍ତ ହେବ।';
+
+  @override
+  String get chantHistoryEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ପୂର୍ବ ସେସନ୍ ନାହିଁ।';
+
+  @override
+  String chantHistorySummary(int malas, int chants) {
+    return '$malas ମାଳା · $chants ଜପ';
+  }
+
+  @override
+  String get chantHistoryNoDetail => 'ଜପ ସମୟ ରେକର୍ଡ୍ ହେବା ପୂର୍ବରୁ ଗଣାଯାଇଥିଲା';
+
+  @override
+  String get chantSessionTitle => 'ସେସନ୍';
+
+  @override
+  String get chantSessionNoMalas =>
+      'ଏହି ସେସନ୍ ପାଇଁ ସମୟ ସହ କୌଣସି ମାଳା ରେକର୍ଡ୍ ହୋଇନାହିଁ।';
+
+  @override
+  String get chantHeardExpiry =>
+      'ଶୁଣାଯାଇଥିବା ଶବ୍ଦ ସେସନ୍ ପରେ 7 ଦିନରେ ଆପଣଙ୍କ ଖାତାରୁ ହଟାଯାଏ।';
+
+  @override
+  String get chantHeardTitle => 'ବର୍ତ୍ତମାନ ଶୁଣାଗଲା';
+
+  @override
+  String get chantHeardHearing => 'ଆପଣଙ୍କୁ ଶୁଣୁଛି…';
+
+  @override
+  String get chantHeardWaiting => 'ଆପଣଙ୍କ ସ୍ୱରକୁ ଅପେକ୍ଷା କରୁଛି';
+
+  @override
+  String get chantHeardPlaceholder =>
+      'ଉଚ୍ଚ ସ୍ୱରରେ ଜପ କରନ୍ତୁ। ଆପଣଙ୍କ ଫୋନ୍ ଯେଉଁ ଶବ୍ଦ ଶୁଣିବ ତାହା ଏଠାରେ ଦେଖାଯିବ।';
+
+  @override
+  String get chantHeardLast => 'ଶେଷଥର ଶୁଣାଗଲା';
+
+  @override
+  String chantHeardCounted(int count) {
+    return 'ଗଣାଗଲା +$count';
+  }
+
+  @override
+  String get chantHeardNotCounted => 'ଗଣାଗଲା ନାହିଁ';
+
+  @override
+  String chantHeardMatch(int percent, int needed) {
+    return '$percent% ମେଳ · ଆବଶ୍ୟକ $needed%';
+  }
+
+  @override
+  String chantHeardMatchShort(int percent) {
+    return '$percent% ମେଳ';
+  }
+
+  @override
+  String get chantHeardEarlier => 'ପୂର୍ବର';
+
+  @override
+  String get chantAlongTitle => 'ସାଙ୍ଗରେ ଜପ କରନ୍ତୁ';
+
+  @override
+  String get chantAlongCaption =>
+      'ରେକର୍ଡିଂ ସହ କାଉଣ୍ଟର୍ ଗଣେ। ଏହା ଚାଲିବା ସମୟରେ ସ୍ୱୟଂ ଗଣନା ଓ ଶବ୍ଦ ଚିହ୍ନଟ ବିଶ୍ରାମ ନିଏ।';
+
+  @override
+  String get chantAlongPlay => 'ରେକର୍ଡିଂ ପ୍ଲେ କରନ୍ତୁ';
+
+  @override
+  String get chantAlongPause => 'ରେକର୍ଡିଂ ବିରାମ ଦିଅନ୍ତୁ';
+
+  @override
+  String get chantAlongPosition => 'ରେକର୍ଡିଂରେ ସ୍ଥାନ';
+
+  @override
+  String get chantAlongLoading => 'ରେକର୍ଡିଂ ଲୋଡ୍ ହେଉଛି…';
+
+  @override
+  String get chantAlongLoadFailed => 'ରେକର୍ଡିଂ ଲୋଡ୍ କରିହେଲା ନାହିଁ।';
+
+  @override
+  String get settingsSectionLanguages => 'ଭାଷା';
+
+  @override
+  String get settingsLanguageApp => 'ଆପ୍ ଭାଷା';
+
+  @override
+  String get settingsLanguageAppHint => 'ମେନୁ, ବଟନ୍ ଓ ଲେବଲ୍';
+
+  @override
+  String get settingsLanguageReading => 'ପଠନ ଭାଷା';
+
+  @override
+  String get settingsLanguageReadingHint => 'ଅନୁବାଦ, ଅର୍ଥ ଓ ତାତ୍ପର୍ଯ୍ୟ';
+
+  @override
+  String get settingsLanguageSpeaking => 'କହିବା ଓ ଶୁଣିବା ଭାଷା';
+
+  @override
+  String get settingsLanguageSpeakingHint => 'ଅଡିଓ ଓ ପଢ଼ି ଶୁଣାଯାଉଥିବା ଅର୍ଥ';
+
+  @override
+  String get settingsLanguagePickerApp => 'ଆପ୍ ଭାଷା ବାଛନ୍ତୁ';
+
+  @override
+  String get settingsLanguagePickerReading => 'ପଠନ ଭାଷା ବାଛନ୍ତୁ';
+
+  @override
+  String get settingsLanguagePickerSpeaking => 'କହିବା ଭାଷା ବାଛନ୍ତୁ';
+
+  @override
+  String get settingsLanguageSanskritNote =>
+      'ସଂସ୍କୃତ ଶ୍ଳୋକ ସର୍ବଦା ସଂସ୍କୃତରେ ହିଁ ରହେ।';
+
+  @override
+  String get readingAudioPlayAll => 'ପଢ଼ି ଶୁଣାନ୍ତୁ';
+
+  @override
+  String get readingAudioPlayVerse => 'ଏହି ଶ୍ଳୋକ ପ୍ଲେ କରନ୍ତୁ';
+
+  @override
+  String get readingAudioPause => 'ବିରାମ';
+
+  @override
+  String get readingAudioResume => 'ଜାରି ରଖନ୍ତୁ';
+
+  @override
+  String get readingAudioStop => 'ବନ୍ଦ କରନ୍ତୁ';
+
+  @override
+  String get readingAudioNext => 'ପରବର୍ତ୍ତୀ ଶ୍ଳୋକ';
+
+  @override
+  String get readingAudioPrevious => 'ପୂର୍ବ ଶ୍ଳୋକ';
+
+  @override
+  String get readingAudioFromStart => 'ଆରମ୍ଭରୁ';
+
+  @override
+  String readingAudioResumeFrom(int number) {
+    return 'ଶ୍ଳୋକ $number ଠାରୁ ଜାରି ରଖନ୍ତୁ';
+  }
+
+  @override
+  String readingAudioNowPlaying(String section, int number) {
+    return '$section · ଶ୍ଳୋକ $number';
+  }
+
+  @override
+  String get readingAudioLoading => 'ଲୋଡ୍ ହେଉଛି…';
+
+  @override
+  String get readingAudioChannel => 'ପଢ଼ି ଶୁଣାଇବା';
+
+  @override
+  String get readingSectionVerse => 'ଶ୍ଳୋକ';
+
+  @override
+  String get readingSectionMeaning => 'ଅର୍ଥ';
+
+  @override
+  String get readingSectionPurport => 'ତାତ୍ପର୍ଯ୍ୟ';
+
+  @override
+  String get settingsVoices => 'ସ୍ୱର';
+
+  @override
+  String settingsVoicesValue(int count) {
+    return '$count ଇନଷ୍ଟଲ୍ ହୋଇଛି';
+  }
+
+  @override
+  String get voicesTitle => 'ସ୍ୱର';
+
+  @override
+  String get voicesIntro =>
+      'ଅର୍ଥ ଓ ତାତ୍ପର୍ଯ୍ୟ ଆପଣଙ୍କ କହିବା ଭାଷାରେ ପଢ଼ି ଶୁଣାଯାଏ। ସ୍ୱର ଡାଉନଲୋଡ୍ ନହେବା ପର୍ଯ୍ୟନ୍ତ ଆପଣଙ୍କ ଫୋନ୍‌ର ନିଜ ସ୍ୱର ବ୍ୟବହାର ହୁଏ, ତେଣୁ ପଢ଼ିବା କେବେ ଅପେକ୍ଷା କରେ ନାହିଁ।';
+
+  @override
+  String voicesStorage(String size) {
+    return 'ଏହି ଫୋନ୍‌ରେ $size ବ୍ୟବହାର ହେଉଛି';
+  }
+
+  @override
+  String get voicesEmpty =>
+      'ଡାଉନଲୋଡ୍ ପାଇଁ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ସ୍ୱର ଉପଲବ୍ଧ ନାହିଁ। ଆପଣଙ୍କ ଫୋନ୍‌ର ନିଜ ସ୍ୱର ବ୍ୟବହାର ହୁଏ।';
+
+  @override
+  String get voiceDownload => 'ଡାଉନଲୋଡ୍';
+
+  @override
+  String get voiceDelete => 'ଡିଲିଟ୍';
+
+  @override
+  String get voiceCancel => 'ବାତିଲ୍ କରନ୍ତୁ';
+
+  @override
+  String get voiceRetry => 'ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ';
+
+  @override
+  String voiceInstalled(String size) {
+    return 'ଇନଷ୍ଟଲ୍ ହୋଇଛି · $size';
+  }
+
+  @override
+  String voiceNotInstalled(String size) {
+    return 'ଡାଉନଲୋଡ୍ ହୋଇନାହିଁ · $size';
+  }
+
+  @override
+  String voiceDownloading(int percent) {
+    return 'ଡାଉନଲୋଡ୍ ହେଉଛି $percent%';
+  }
+
+  @override
+  String get voiceVerifying => 'ଯାଞ୍ଚ ହେଉଛି…';
+
+  @override
+  String get voiceExtracting => 'ଇନଷ୍ଟଲ୍ ହେଉଛି…';
+
+  @override
+  String get voiceFailed => 'ଏହି ସ୍ୱର ଇନଷ୍ଟଲ୍ କରିହେଲା ନାହିଁ';
+
+  @override
+  String get voiceUnavailable =>
+      'ଏପର୍ଯ୍ୟନ୍ତ ଉପଲବ୍ଧ ନାହିଁ · ଆପଣଙ୍କ ଫୋନ୍‌ର ସ୍ୱର ବ୍ୟବହାର କରେ';
+
+  @override
+  String get voiceDeleteTitle => 'ଏହି ସ୍ୱର ଡିଲିଟ୍ କରିବେ?';
+
+  @override
+  String get voiceDeleteBody =>
+      'ଏହାକୁ ପୁଣି ଡାଉନଲୋଡ୍ କରାଯାଇପାରିବ। ସେପର୍ଯ୍ୟନ୍ତ ଆପଣଙ୍କ ଫୋନ୍‌ର ନିଜ ସ୍ୱର ବ୍ୟବହାର ହୁଏ।';
+
+  @override
+  String voiceLanguages(String languages) {
+    return '$languages କହେ';
+  }
+
+  @override
+  String labelVerseWithSection(int number, String section) {
+    return 'ଶ୍ଳୋକ $number · $section';
+  }
+}

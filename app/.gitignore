@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# The Omnilingual recogniser for debug builds (tool/fetch_auto_chant_model.sh); 365 MB, never committed
+/android/app/src/debug/assets/auto_chant/

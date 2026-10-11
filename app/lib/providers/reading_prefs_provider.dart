@@ -30,3 +30,18 @@ class ReadingFontSizeNotifier extends Notifier<ReadingFontSize> {
 
 final readingFontSizeProvider =
     NotifierProvider<ReadingFontSizeNotifier, ReadingFontSize>(ReadingFontSizeNotifier.new);
+
+/// Whether a verse's "Word meanings" is open. Closed until somebody opens one,
+/// and from then on open in every verse until somebody closes one — stored on
+/// the device, like the font size above.
+class WordMeaningsOpenNotifier extends Notifier<bool> {
+  @override
+  bool build() => LocalStore.instance.read<bool>(BoxKeys.wordMeaningsOpen) ?? false;
+
+  Future<void> set(bool open) async {
+    state = open;
+    await LocalStore.instance.write(BoxKeys.wordMeaningsOpen, open);
+  }
+}
+
+final wordMeaningsOpenProvider = NotifierProvider<WordMeaningsOpenNotifier, bool>(WordMeaningsOpenNotifier.new);

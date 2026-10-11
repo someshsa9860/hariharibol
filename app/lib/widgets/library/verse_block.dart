@@ -6,16 +6,20 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/verse.dart';
 import '../../services/audio/reading_item.dart';
+import 'collapsible_section.dart';
 import 'reading_audio_controls.dart';
+import 'word_meanings_section.dart';
 
-/// One verse in the reading screen: script, transliteration, translation,
-/// commentary, and the action row (favourite, highlight, notes, compare
-/// translations, related verses).
+/// One verse in the reading screen: script, transliteration, word meanings,
+/// translation, commentary, and the action row (favourite, highlight, notes,
+/// compare translations, related verses).
 ///
-/// Purely presentational — every action is a callback, and the favourite,
-/// highlight and note counts it shows are passed in explicitly rather than
-/// read straight off [verse], so the screen holding it can apply an
-/// optimistic update the moment someone taps, without waiting on a refetch.
+/// Presentational — every action is a callback, and the favourite, highlight
+/// and note counts it shows are passed in explicitly rather than read straight
+/// off [verse], so the screen holding it can apply an optimistic update the
+/// moment someone taps, without waiting on a refetch. The one thing it holds
+/// itself is whether "Word meanings" is open, which is remembered across every
+/// verse (see [WordMeaningsSection]).
 class VerseBlock extends StatelessWidget {
   const VerseBlock({
     super.key,
@@ -143,6 +147,10 @@ class VerseBlock extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(transliteration, style: AppTypography.transliteration(context, scale: fontScale)),
           ],
+          if (verse.wordMeanings.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            WordMeaningsSection(words: verse.wordMeanings, fontScale: fontScale),
+          ],
           if (meaning != null && meaning.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -207,6 +215,7 @@ class _ActionIcon extends StatelessWidget {
 
 /// A collapsible purport or explanation — long text that would otherwise push
 /// the next verse well down the screen before anyone has decided to read it.
+/// Shut again every time the verse is built; only the word meanings are remembered.
 class _Commentary extends StatefulWidget {
   const _Commentary({required this.label, required this.text, required this.scale});
 
@@ -223,48 +232,18 @@ class _CommentaryState extends State<_Commentary> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          borderRadius: AppRadius.smAll,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.label,
-                  style: context.texts.labelLarge?.copyWith(color: context.colors.primary),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                AnimatedRotation(
-                  turns: _expanded ? 0.5 : 0,
-                  duration: AppDurations.fast,
-                  child: Icon(
-                    Icons.expand_more_rounded,
-                    size: AppSizes.iconSm,
-                    color: context.colors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return CollapsibleSection(
+      label: widget.label,
+      expanded: _expanded,
+      onToggle: () => setState(() => _expanded = !_expanded),
+      child: Text(
+        widget.text,
+        style: TextStyle(
+          fontSize: (context.texts.bodyMedium?.fontSize ?? 14) * widget.scale,
+          height: context.texts.bodyMedium?.height,
+          color: context.texts.bodyMedium?.color,
         ),
-        if (_expanded)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: Text(
-              widget.text,
-              style: TextStyle(
-                fontSize: (context.texts.bodyMedium?.fontSize ?? 14) * widget.scale,
-                height: context.texts.bodyMedium?.height,
-                color: context.texts.bodyMedium?.color,
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

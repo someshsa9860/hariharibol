@@ -5,6 +5,7 @@ import '../core/constants/auto_chant_config.dart';
 import '../models/mantra.dart';
 import 'auto_chant_log.dart';
 import 'chant_word_engine.dart' show WordTranscript;
+import 'heard_words.dart';
 import 'mantra_audio_capture.dart';
 import 'mantra_detection_engine.dart';
 import 'mantra_phrase_matcher.dart';
@@ -54,6 +55,10 @@ class MantraAutoChantSession {
 
   final MantraAudioCapture _capture = MantraAudioCapture();
   final MantraDetectionEngine _engine = MantraDetectionEngine();
+
+  /// What is being heard and what was, for the card on the counter. Shown while
+  /// the switch is on; it takes no part in counting.
+  final HeardWords hearing = HeardWords();
 
   final _statusController = StreamController<AutoChantStatus>.broadcast();
   final _repetitionController = StreamController<void>.broadcast();
@@ -122,6 +127,7 @@ class MantraAutoChantSession {
       _wordsThisVoice = false;
       _countedThisSitting = 0;
       _lastLoggedStatus = null;
+      hearing.clear();
 
       _voiceSub = _engine.voiceActive.listen(_onVoice);
       _transcriptSub = _engine.transcripts.listen(_onTranscript);
@@ -158,6 +164,7 @@ class MantraAutoChantSession {
 
   void _onVoice(bool active) {
     _counter.onVoiceActive(active);
+    hearing.voice(active);
     if (active) {
       _voiceSince = DateTime.now();
       _wordsThisVoice = false;
@@ -178,12 +185,22 @@ class MantraAutoChantSession {
 
   void _onTranscript(WordTranscript transcript) {
     if (transcript.text.isNotEmpty) _wordsThisVoice = true;
-    AutoChantLog.info('heard${transcript.isFinal ? ' (final)' : ''}: "${transcript.text}"');
 
     // Read before the matcher consumes it, so a miss can say how near it came.
-    final near = AutoChantLog.enabled ? _matcher.closest(transcript.text) : null;
+    final near = _matcher.closest(transcript.text);
+    AutoChantLog.info(
+      'heard${transcript.isFinal ? ' (final)' : ''}: "${transcript.text}"'
+      '${near == null ? '' : ' — ${_percent(near.ratio)} of the mantra, needs ${_percent(near.needed)}'}',
+    );
     final heard = _matcher.update(transcript.text, isFinal: transcript.isFinal);
     if (transcript.isFinal) _matcher.reset();
+    hearing.hear(
+      transcript.text,
+      isFinal: transcript.isFinal,
+      counted: heard,
+      match: near?.ratio,
+      needed: near?.needed,
+    );
 
     if (heard > 0) {
       _counter.onRepetitionsHeard(heard);
@@ -235,10 +252,12 @@ class MantraAutoChantSession {
     await _teardown();
     await _statusController.close();
     await _repetitionController.close();
+    hearing.dispose();
   }
 
   Future<void> _teardown() async {
     _enabled = false;
+    hearing.voice(false);
     _heartbeat?.cancel();
     _heartbeat = null;
     await _audioSub?.cancel();
