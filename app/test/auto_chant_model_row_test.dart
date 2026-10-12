@@ -25,6 +25,10 @@ class _FakeModel extends MantraAccurateModel {
   @override
   Future<bool> deviceCanRun() async => canRun;
 
+  // The real one touches the disk, which a widget test's clock never waits for.
+  @override
+  Future<void> adoptBundled() async {}
+
   @override
   Future<AccurateModelFiles?> installed() async => onDisk ? const AccurateModelFiles(model: 'm', tokens: 't') : null;
 

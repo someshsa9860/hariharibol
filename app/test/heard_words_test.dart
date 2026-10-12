@@ -104,6 +104,25 @@ void main() {
       expect(heard.voiceActive, isFalse);
     });
 
+    test('Urdu and other stray scripts never reach the card', () {
+      final heard = HeardWords();
+      heard.hear('um nome شوي', isFinal: false, match: 0.4, needed: 0.65);
+      expect(heard.live, 'um nome');
+
+      heard.hear('شويرام جيرام', isFinal: false);
+      expect(heard.live, isEmpty, reason: 'nothing readable in it');
+
+      heard.hear('हरे ہرے कृष्ण', isFinal: true, counted: 1, match: 0.8, needed: 0.65);
+      expect(heard.latest!.text, 'हरे कृष्ण');
+      expect(heard.latest!.counted, 1, reason: 'what it counted is not touched, only what it shows');
+    });
+
+    test('a stretch with nothing readable in it is not kept as a line', () {
+      final heard = HeardWords();
+      heard.hear('شويرام', isFinal: true, match: 0.3, needed: 0.65);
+      expect(heard.recent, isEmpty);
+    });
+
     test('listeners hear each change, and a voice that has not changed is not news', () {
       final heard = HeardWords();
       var calls = 0;

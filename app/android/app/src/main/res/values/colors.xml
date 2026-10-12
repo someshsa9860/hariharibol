@@ -8,4 +8,10 @@
     <!-- Behind the logo in the adaptive launcher icon. The logo sits on white,
          so this is white in both themes — there is no values-night entry. -->
     <color name="ic_launcher_background">#FFFFFF</color>
+
+    <!-- What Android tints a push notification's small icon with. Must equal
+         AppColors.saffron in lib/core/theme/app_colors.dart. The same in dark
+         mode: the tray is the system's, not the app's, and the icon there is
+         the brand mark. -->
+    <color name="notification_accent">#EA8C0C</color>
 </resources>

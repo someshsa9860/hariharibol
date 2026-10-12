@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../services/push_link.dart';
 import '../../widgets/common/glass_nav_bar.dart';
 import '../../widgets/common/peacock_feather_icon.dart';
 
@@ -18,10 +19,37 @@ import '../../widgets/common/peacock_feather_icon.dart';
 /// It holds no data of its own. Each tab is its own file and loads what it
 /// needs, which is what keeps this file three screens shorter than it would
 /// otherwise be.
-class DashboardView extends StatelessWidget {
+///
+/// It is also the first screen that is signed in, past the launch animation and
+/// past the language picker, so it is what tells [PushLinks] there is somewhere
+/// to open a tapped notification.
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key, required this.shell});
 
   final StatefulNavigationShell shell;
+
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
+  StatefulNavigationShell get shell => widget.shell;
+
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame, so the screen it opens lands over a dashboard that
+    // exists — and Home is what back returns to.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) PushLinks.instance.setReady(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    PushLinks.instance.setReady(false);
+    super.dispose();
+  }
 
   void _onTap(int index) {
     // Tapping the tab you are already on returns it to its first screen, which

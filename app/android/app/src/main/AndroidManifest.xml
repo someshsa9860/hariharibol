@@ -49,6 +49,16 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>
         </receiver>
+        <!-- How a push notification looks. Firebase shows the notification itself
+             while the app is closed or in the background, so without these it
+             falls back to the launcher icon, which Android draws as a plain
+             square. The icon is a single-colour shape — see ic_stat_feather.xml. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_feather" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

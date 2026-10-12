@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The small icon on a push notification. Android paints it as one flat colour
+     over its own background and ignores every other colour in it, so it has to
+     be a single-colour shape: the multi-colour launcher icon shows there as a
+     solid blob. This is the peacock feather the nav bar's Reels button draws
+     (lib/widgets/common/peacock_feather_icon.dart), filled rather than
+     outlined because 24dp is too small for line art. Named in
+     AndroidManifest.xml as the default notification icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- The plume, with the eye cut out of it: the second shape runs the other
+         way round, so it is a hole. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13.44,0.5 C23.5,4.9 22,14.9 12.5,19.5 C3.4,14.9 3.4,4.9 13.44,0.5 Z M9.4,8.2 a3.55,4.5 0 1,0 7.1,0 a3.55,4.5 0 1,0 -7.1,0 Z" />
+
+    <!-- The dark heart of the eye, standing in the hole. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11.2,8.2 a1.75,2.4 0 1,0 3.5,0 a1.75,2.4 0 1,0 -3.5,0 Z" />
+
+    <!-- The quill, from the foot of the plume out to the corner. -->
+    <path
+        android:pathData="M7.2,23 Q10.6,20.4 12.8,15.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round" />
+</vector>

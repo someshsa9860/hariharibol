@@ -212,15 +212,17 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // The mic has no business listening while the app cannot be seen. The
-    // switches themselves are left as the user set them — coming back to the
-    // app does not silently turn the mic back on. Only `paused` counts:
-    // `inactive` is also a pulled-down notification shade or a system dialog,
-    // and an hour's sitting should not end silently because of one.
+    // The mic has no business listening while the app cannot be seen, so
+    // auto-count stops — and starts again by itself when the app is back, if it
+    // was on, or the person would find it dead after every glance at another
+    // app. Only `paused` counts: `inactive` is also a pulled-down notification
+    // shade or a system dialog, and an hour's sitting should not end silently
+    // because of one. Word detection stays off until it is switched on again.
     if (state == AppLifecycleState.paused) {
-      if (_autoChantStatus.enabled) AutoChantLog.info('the app went to the background — switching auto-count off');
-      unawaited(_autoChant?.disable());
+      unawaited(_autoChant?.suspend());
       unawaited(_speech?.stop());
+    } else if (state == AppLifecycleState.resumed) {
+      unawaited(_autoChant?.resume());
     }
     // A recording cannot be counted along to from the background.
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {

@@ -32,6 +32,41 @@ void main() {
     });
   });
 
+  group('readableScripts', () {
+    test('Devanagari and Roman text come through as they are', () {
+      expect(readableScripts('हरे कृष्ण हरे राम'), 'हरे कृष्ण हरे राम');
+      expect(readableScripts('Hare Krishna 108'), 'Hare Krishna 108');
+      expect(readableScripts('Kṛṣṇa'), 'Kṛṣṇa');
+    });
+
+    test('Urdu is never shown, however it is mixed in', () {
+      expect(readableScripts('شويرام جيرام ججيرام'), '');
+      expect(readableScripts('um nome شوي'), 'um nome');
+      expect(readableScripts('اوم نمور بگبتے واسو دیوائ'), '');
+      expect(readableScripts('हरे ہرے कृष्ण'), 'हरे कृष्ण');
+    });
+
+    test('another Indic script is shown as its Devanagari twin', () {
+      expect(readableScripts('રામ'), 'राम');
+      expect(readableScripts('ഹരേ'), 'हरे');
+      expect(readableScripts('ಹರೇ ಕೃಷ್ಣ'), 'हरे कृष्ण');
+    });
+
+    test('other scripts are dropped and the spaces they leave are closed up', () {
+      expect(readableScripts('राम 你好 राम'), 'राम राम');
+      expect(readableScripts('рама ram'), 'ram');
+      expect(readableScripts('  \n राम \t  राम  '), 'राम राम');
+      expect(readableScripts(''), '');
+    });
+
+    test('nothing it lets through folds differently from what was heard', () {
+      // The card is told less than the matcher is, never something else.
+      for (final text in ['राम राम', 'રામ રામ', 'om namah shivaya']) {
+        expect(MantraPhraseMatcher.fold(readableScripts(text)), MantraPhraseMatcher.fold(text));
+      }
+    });
+  });
+
   group('fold agrees with the offline bench', () {
     // Real transcripts from the recogniser, and their folded form as produced by
     // the Python reference the bench numbers came from.

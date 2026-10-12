@@ -11,6 +11,7 @@ import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa_onnx;
 
 import '../core/constants/auto_chant_config.dart';
 import 'auto_chant_log.dart';
+import 'chant_virtual_pause.dart';
 import 'chant_word_engine.dart' show WordTranscript;
 import 'mantra_accurate_model.dart';
 
@@ -51,7 +52,11 @@ class MantraDetectionEngine {
 
   /// Copies the bundled models to disk and starts the worker isolate.
   /// Completes once the native engines are built and ready for audio.
-  Future<void> start() async {
+  ///
+  /// [standardChantMs] is how long one repetition of the open mantra takes; the
+  /// sharper recogniser is given what it hears in pieces about that long (see
+  /// `VirtualPause`). Zero means no such cutting.
+  Future<void> start({int standardChantMs = 0}) async {
     final clock = Stopwatch()..start();
     final model = MantraAccurateModel();
     // In a debug build that carries the recogniser, make sure it has been unpacked
@@ -90,7 +95,7 @@ class MantraDetectionEngine {
     receivePort.listen((message) {
       if (message is SendPort) {
         _workerPort = message;
-        message.send(_InitRequest(vadConfig, asrConfig, accurateConfig));
+        message.send(_InitRequest(vadConfig, asrConfig, accurateConfig, standardChantMs));
       } else if (message is _Ready) {
         AutoChantLog.info('engine: ready after ${clock.elapsedMilliseconds} ms');
         if (!ready.isCompleted) ready.complete();
@@ -213,8 +218,11 @@ class MantraDetectionEngine {
 // itself, from the config carried by [_InitRequest], never passed in.
 
 class _InitRequest {
-  const _InitRequest(this.vad, this.asr, this.accurate);
+  const _InitRequest(this.vad, this.asr, this.accurate, this.standardChantMs);
   final sherpa_onnx.VadModelConfig vad;
+
+  /// How long one repetition takes, for the virtual pause; zero for none.
+  final int standardChantMs;
 
   /// The bundled streaming recogniser — or, when [accurate] is set, null.
   final sherpa_onnx.OnlineRecognizerConfig? asr;
@@ -277,6 +285,7 @@ void _workerMain(SendPort mainSendPort) {
   // The downloaded recogniser's voice so far, waiting for the voice to stop.
   final voiced = <Float32List>[];
   var voicedSamples = 0;
+  VirtualPause? virtualPause;
   const maxVoicedSamples = AutoChantConfig.accurateMaxUtteranceSeconds * AutoChantConfig.sampleRate;
 
   // What the worker has done since it last reported, for the log.
@@ -350,6 +359,7 @@ void _workerMain(SendPort mainSendPort) {
     }
     voiced.clear();
     voicedSamples = 0;
+    virtualPause?.reset();
 
     final decodeClock = Stopwatch()..start();
     final decodeStream = offline!.createStream();
@@ -370,7 +380,18 @@ void _workerMain(SendPort mainSendPort) {
     }
     voiced.add(chunk);
     voicedSamples += chunk.length;
-    if (voicedSamples >= maxVoicedSamples) decodeVoiced();
+    // A chant with no pause never ends its stretch of voice, so one is made at
+    // the end of each repetition — in what is handed over, not in the recording.
+    final cut = virtualPause?.add(chunk);
+    if (cut != null) {
+      log(
+        'worker: virtual pause (${cut == VirtualPauseCut.dip ? 'a dip in the voice' : 'no dip came'}) '
+        'after ${voicedSamples * 1000 ~/ AutoChantConfig.sampleRate} ms',
+      );
+      decodeVoiced();
+    } else if (voicedSamples >= maxVoicedSamples) {
+      decodeVoiced();
+    }
   }
 
   receivePort.listen((message) {
@@ -382,6 +403,13 @@ void _workerMain(SendPort mainSendPort) {
         log('worker: voice detector built after ${clock.elapsedMilliseconds} ms');
         if (message.accurate != null) {
           offline = sherpa_onnx.OfflineRecognizer(message.accurate!);
+          if (message.standardChantMs > 0) {
+            virtualPause = VirtualPause(message.standardChantMs);
+            log(
+              'worker: virtual pause — one repetition takes about ${message.standardChantMs} ms, so a dip in the voice '
+              'after ${virtualPause!.from.inMilliseconds} ms ends a stretch, and ${virtualPause!.latest.inMilliseconds} ms at the most',
+            );
+          }
         } else {
           recognizer = sherpa_onnx.OnlineRecognizer(message.asr!);
           stream = recognizer!.createStream();

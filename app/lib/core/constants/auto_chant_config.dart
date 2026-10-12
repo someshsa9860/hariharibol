@@ -67,15 +67,36 @@ abstract final class AutoChantConfig {
   static const String bundledModelChannel = 'com.sss.ramkrishnahari/bundled_model';
   static const String bundledModelAssetFolder = 'auto_chant';
 
-  /// It reads a chant far more truly than the bundled model, so it is held to a
-  /// higher bar: at this one no false count appeared in 24 minutes of ordinary
-  /// speech, where half (the bundled model's bar) let a Hindi sentence through.
-  static const double accurateMatchThreshold = 0.65;
+  /// The bar for the downloadable recogniser. It was 0.65, the one at which no
+  /// false count appeared in 24 minutes of ordinary speech in the offline bench,
+  /// where 0.5 let a Hindi sentence through; it is 0.5 now so that more real
+  /// chanting counts. Not re-measured at 0.5 — watch for counts from plain talk.
+  static const double accurateMatchThreshold = 0.5;
 
   /// The recogniser is not streaming: a stretch of voice is decoded once it ends,
   /// or once it has run this long, so a chant that never pauses is still counted.
   static const int accurateMaxUtteranceSeconds = 12;
   static const int accurateThreads = 2;
+
+  // ── The virtual pause (see `VirtualPause`) ──────────────────────────────
+  /// Every mantra has a standard chanting time (`Mantra.durationMs`, set in the
+  /// admin panel); one that has none is taken to be this long per letter of its
+  /// standard phrase, as compared.
+  static const double chantSecondsPerLetter = 0.2;
+
+  /// Never shorter than this, so a one-syllable mantra is not cut every second.
+  static const double virtualPauseMinSeconds = 1.5;
+
+  /// After this share of the standard time the next dip in the voice ends the
+  /// stretch; after [virtualPauseLatest] times it, the stretch ends regardless.
+  static const double virtualPauseFrom = 0.8;
+  static const double virtualPauseLatest = 1.4;
+
+  /// A dip is a run of [virtualPauseDipMs] in which the voice stays below this
+  /// share of its own average level, measured in [virtualPauseFrameMs] frames.
+  static const double virtualPauseDipShare = 0.35;
+  static const int virtualPauseDipMs = 100;
+  static const int virtualPauseFrameMs = 20;
 
   /// It holds about 1 GB while decoding. A phone with less memory than this is
   /// not offered it, rather than offered a download that ends the app.

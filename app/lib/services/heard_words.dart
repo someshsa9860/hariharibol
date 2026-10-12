@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/auto_chant_config.dart';
+import 'indic_sounds.dart';
 
 /// One stretch of voice once it has ended: what the recogniser wrote and how it
 /// fared against the mantra.
@@ -82,7 +83,12 @@ class HeardWords extends ChangeNotifier {
   /// of voice, or its final text once the voice has stopped. [counted] is what
   /// *this* update added to the count; [match] and [needed] say how near the
   /// not-yet-counted text comes to the mantra.
-  void hear(String text, {required bool isFinal, int counted = 0, double? match, double? needed}) {
+  ///
+  /// [text] is cleaned for the screen here ([readableScripts]) — this is the one
+  /// door the card's words come through, so no Urdu or other stray script gets
+  /// past it, whoever the caller is.
+  void hear(String raw, {required bool isFinal, int counted = 0, double? match, double? needed}) {
+    final text = readableScripts(raw);
     _liveCounted += counted;
     if (match != null && (_liveMatch == null || match > _liveMatch!)) {
       _liveMatch = match;

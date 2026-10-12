@@ -234,6 +234,22 @@ user twice. Store money as integer minor units (paise, cents); floats drift.
 - **A new database takes the seed twice** (migrate → seed → importers → seed): stories
   point at chapters, and chapters come from `scripts/import-*.js`. See `scripts/README.md`.
 
+## The daily sloka push
+
+`deliver()` in `jobs/processors/sloka.js` pushes each user's sloka at their own hour. **The body is the
+verse** — Sanskrit first (so the collapsed notification shows it), then its meaning in the reader's
+language, then "Bhagavad Gita 2.47" — built by `slokaPush` in `utils/sloka-push.js` (pure; `npm test`). Why
+it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longer in the push; the app shows it.
+
+- **The data carries the verse's place in its book** — `bookSlug`, `cantoNumber`, `chapterNumber`,
+  `verseNumber` beside `verseId` and the `hariharibol://sloka/<verseId>` deeplink — so the app opens the
+  chapter at the verse without a lookup. The app reads those names from `PushConfig`
+  (`app/lib/core/constants/push_config.dart`); rename one and rename it there.
+- **The verse is read per push**, after the delivery-hour check, not with the pending rows: only the users
+  whose hour has come are sent anything, and which translations to fetch depends on who they are.
+- **The meaning is cut at 220 characters, the verse at 600** — a push is capped at 4 KB and a Devanagari
+  character is three bytes of it.
+
 ## Mantra chant phrases
 
 `Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted: plain Roman

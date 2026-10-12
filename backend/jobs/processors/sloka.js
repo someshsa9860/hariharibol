@@ -11,6 +11,8 @@ import * as notify from '../../services/notify.js';
 import * as settings from '../../services/setting.js';
 import * as websocket from '../../services/websocket.js';
 import * as slokaController from '../../controllers/app/sloka.js';
+import * as language from '../../utils/language.js';
+import { slokaPush } from '../../utils/sloka-push.js';
 import { localDateString, localHour, toDateColumn, shiftDays } from '../../utils/date.js';
 import { SETTING_KEYS } from '../../config/constants.js';
 
@@ -122,6 +124,33 @@ async function buildPersonal(job) {
 }
 
 /**
+ * The verse a push shows: its text, where it lives in its book, and the
+ * renderings in the languages this person reads.
+ *
+ * Read per push rather than with the pending rows — only the users whose hour
+ * has come are sent anything, and which translations to fetch depends on who.
+ */
+function loadVerseForPush(verseRowId, user) {
+  return prisma.verse.findUnique({
+    where: { id: verseRowId },
+    select: {
+      verseId: true,
+      sanskrit: true,
+      transliteration: true,
+      cantoNumber: true,
+      chapterNumber: true,
+      verseNumber: true,
+      verseNumberEnd: true,
+      book: { select: { slug: true, title: true } },
+      translations: {
+        where: { isPublished: true, languageCode: { in: language.readingChain(user) } },
+        select: { languageCode: true, type: true, meaning: true },
+      },
+    },
+  });
+}
+
+/**
  * Pushes the day's sloka to the users whose local delivery hour has arrived.
  *
  * Runs hourly. `notifiedAt` is what stops a second run in the same hour from
@@ -142,9 +171,15 @@ async function deliver() {
         id: true,
         userId: true,
         date: true,
-        reason: true,
-        user: { select: { timezone: true, preferences: { select: { bestDeliveryHour: true } } } },
-        verse: { select: { verseId: true } },
+        verseId: true,
+        user: {
+          select: {
+            timezone: true,
+            readingLanguage: true,
+            appLanguage: true,
+            preferences: { select: { bestDeliveryHour: true } },
+          },
+        },
       },
       orderBy: { id: 'asc' },
       take: BATCH_SIZE,
@@ -164,19 +199,19 @@ async function deliver() {
       // not sending it.
       if (row.date.toISOString().slice(0, 10) !== localDateString(row.user.timezone)) continue;
 
-      await notify.toUser(row.userId, {
-        type: 'SLOKA',
-        title: 'Your sloka for today',
-        body: row.reason || 'A verse chosen for you.',
-        data: { deeplink: `hariharibol://sloka/${row.verse.verseId}`, verseId: row.verse.verseId },
-      });
+      // The verse itself is the notification. Why it was chosen stays in the
+      // app (`reason` on the sloka), where there is room to say it.
+      const verse = await loadVerseForPush(row.verseId, row.user);
+      const { body, data } = slokaPush({ verse, user: row.user });
+
+      await notify.toUser(row.userId, { type: 'SLOKA', title: 'Your sloka for today', body, data });
 
       await prisma.userDailySloka.update({
         where: { id: row.id },
         data: { notifiedAt: new Date() },
       });
 
-      websocket.toUser(row.userId, websocket.EVENTS.SLOKA_READY, { verseId: row.verse.verseId });
+      websocket.toUser(row.userId, websocket.EVENTS.SLOKA_READY, { verseId: verse.verseId });
       sent += 1;
     }
   }

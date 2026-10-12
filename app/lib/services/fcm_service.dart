@@ -6,6 +6,7 @@ import '../core/session/app_session.dart';
 import 'api_client.dart';
 import 'device_service.dart';
 import 'firebase_service.dart';
+import 'push_link.dart';
 
 /// Push.
 ///
@@ -26,16 +27,30 @@ class FcmService {
   /// launch there is nobody signed in to attach a token to — the request would
   /// be spent on a person still looking at the sign-in screen, with the dialog
   /// covering it. Asking happens in [registerAfterSignIn], where there is a
-  /// user and a reason. All this does is listen for rotations.
+  /// user and a reason. All this does is listen for rotations, and for a
+  /// notification being tapped — handed to [PushLinks], which opens what it
+  /// pointed at once the dashboard is up.
+  ///
+  /// A tap reaches the app one of two ways: while it was running in the
+  /// background ([FirebaseMessaging.onMessageOpenedApp]), or it launched it from
+  /// closed (`getInitialMessage`, which holds that one message). While the app
+  /// is open Android shows no notification at all, so there is nothing to tap.
   Future<void> init() async {
     if (!FirebaseService.instance.isAvailable) return;
 
     try {
-      FirebaseMessaging.instance.onTokenRefresh.listen(_sendToken);
+      final messaging = FirebaseMessaging.instance;
+      messaging.onTokenRefresh.listen(_sendToken);
+      FirebaseMessaging.onMessageOpenedApp.listen(_tapped);
+
+      final launchedBy = await messaging.getInitialMessage();
+      if (launchedBy != null) _tapped(launchedBy);
     } catch (error) {
       debugPrint('Push setup failed: $error');
     }
   }
+
+  void _tapped(RemoteMessage message) => PushLinks.instance.tapped(message.data);
 
   Future<void> _sendToken(String token) async {
     if (!AppSession.instance.isSignedIn) return;

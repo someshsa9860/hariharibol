@@ -21,7 +21,7 @@ String indicToRoman(String input) {
   }
 
   for (final rune in input.runes) {
-    final char = String.fromCharCode(_toDevanagari(rune));
+    final char = String.fromCharCode(devanagariTwin(rune));
     if (_consonants.containsKey(char)) {
       flush();
       out.write(_consonants[char]);
@@ -56,10 +56,39 @@ String indicToRoman(String input) {
 
 /// Bengali to Malayalam sit at the same offsets from their block start as
 /// Devanagari does from its own, so a letter's Devanagari twin is a subtraction.
-int _toDevanagari(int rune) {
+/// A rune with no twin (or outside those blocks) comes back unchanged.
+int devanagariTwin(int rune) {
   if (rune < 0x0980 || rune > 0x0D7F) return rune;
   final twin = rune - ((rune & ~0x7F) - 0x0900);
   return twin >= 0x0900 && twin <= 0x097F ? twin : rune;
+}
+
+/// What of [input] is fit to show on screen. The recogniser writes a chant in
+/// whichever script it likes — Urdu `شوي`, Gujarati `રામ`, even Chinese — and the
+/// reader should only ever see Devanagari or Roman. Every other Indic script is
+/// moved onto Devanagari (`રામ` shows as `राम`); Roman letters, digits and plain
+/// punctuation stay; anything else (Urdu and the rest of Arabic script, Chinese,
+/// Cyrillic …) is dropped, and the spaces it leaves are closed up.
+///
+/// For display only. The phrase matcher is given the text as heard, because a
+/// short mantra is often the one that comes out in the "wrong" script and would
+/// not be counted without it.
+String readableScripts(String input) {
+  final out = StringBuffer();
+  for (final rune in input.runes) {
+    final twin = devanagariTwin(rune);
+    if (_showable(twin)) out.writeCharCode(twin);
+  }
+  return out.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+bool _showable(int rune) {
+  if (rune >= 0x0900 && rune <= 0x097F) return true; // Devanagari
+  if (rune == 0x200C || rune == 0x200D) return true; // joiners that belong to it
+  if (rune <= 0x20 || rune == 0xA0) return true; // spaces, tabs, newlines
+  if (rune < 0x7F) return true; // printable ASCII: Roman letters, digits, punctuation
+  if (rune >= 0xC0 && rune <= 0x24F) return true; // accented Roman letters (Ā, é)
+  return rune >= 0x1E00 && rune <= 0x1EFF; // dotted ones (Kṛṣṇa)
 }
 
 bool _isLetter(int rune) =>
