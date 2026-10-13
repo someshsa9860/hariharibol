@@ -20,6 +20,7 @@ import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
 import { translations } from './mantra-translations/index.js';
 import { chantPhrases } from './chant-phrases.js';
+import { chantWords } from './chant-words.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
@@ -160,6 +161,17 @@ async function seedMantras() {
       update: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null },
       create: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
     });
+
+    // A standard chanting time only for a mantra that has none yet.
+    const standard = data.standardChantMs[mantra.slug];
+    if (standard && !saved.durationMs) {
+      await prisma.mantra.update({ where: { id: saved.id }, data: { durationMs: standard } });
+    }
+
+    // Allowed English words only for a mantra that has none yet.
+    if (chantWords[mantra.slug]?.length && !saved.chantWords?.length) {
+      await prisma.mantra.update({ where: { id: saved.id }, data: { chantWords: chantWords[mantra.slug] } });
+    }
 
     for (const translation of translations) {
       await prisma.mantraTranslation.upsert({

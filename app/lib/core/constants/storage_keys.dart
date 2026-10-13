@@ -20,6 +20,10 @@ abstract final class BoxKeys {
   /// A stable per-install id sent as `X-Device-Id`. Generated once.
   static const String deviceId = 'device.id';
 
+  /// Whether auto count was left on. The chant counter opens already listening
+  /// when it was.
+  static const String autoChantEnabled = 'settings.auto_chant_enabled';
+
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
 

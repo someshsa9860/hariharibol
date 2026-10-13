@@ -1,68 +1,42 @@
-/// Tuning and asset locations for auto-count: listen to the mic, transcribe it
-/// on the phone, match the transcript to the open mantra's phrases, count each
-/// completed repetition — no cloud speech-to-text, no network.
+/// Tuning and asset locations for auto count. The microphone is listened to on the
+/// phone, with two small bundled models: a voice detector (Silero VAD) that says
+/// whether anyone is making sound, and a 6 MB English-only recogniser whose output
+/// is looked at for a mantra's allowed words. Nothing leaves the phone.
 ///
-/// See `assets/models/auto_chant/NOTICE.md` for where the bundled models come
-/// from. A mantra's phrases come from the API (`Mantra.chantPhrases`).
+/// A chant is counted when one of the mantra's allowed words is heard — at most one
+/// per standard chanting time. A mantra with no allowed words is counted by sound
+/// alone: one chant for each standard time of it.
+///
+/// See `assets/models/auto_chant/NOTICE.md` for where the model comes from.
 abstract final class AutoChantConfig {
   static const int sampleRate = 16000;
 
-  // ── Bundled model assets ──────────────────────────────────────────────
+  // ── Model asset ─────────────────────────────────────────────────────────
   static const String vadModelAsset = 'assets/models/auto_chant/vad/silero_vad.onnx';
   static const String kwsEncoderAsset = 'assets/models/auto_chant/kws/encoder.onnx';
   static const String kwsDecoderAsset = 'assets/models/auto_chant/kws/decoder.onnx';
   static const String kwsJoinerAsset = 'assets/models/auto_chant/kws/joiner.onnx';
   static const String kwsTokensAsset = 'assets/models/auto_chant/kws/tokens.txt';
 
-  // ── Voice activity detection (Silero VAD) ──────────────────────────────
-  static const double vadThreshold = 0.5;
+  // ── Is anyone making sound? (Silero VAD) ────────────────────────────────
+  /// How sure the detector must be that a stretch is a voice, as a fraction:
+  /// 0.08 is 8%. **The number to change.** Chanting is long, even and often soft,
+  /// which the detector scores far below ordinary speech, so the usual 0.5 would
+  /// miss it. The price of so low a bar is that a loud fan or a busy street can
+  /// read as a voice: raise it if auto count runs on in a noisy room.
+  static const double vadThreshold = 0.08;
+
+  /// Silence this long ends a stretch of sound. Shorter gaps (a breath between
+  /// two chants) do not break it.
   static const double vadMinSilenceDurationSeconds = 0.5;
+
+  /// Sound must last this long to be a voice at all, so a click is not one.
   static const double vadMinSpeechDurationSeconds = 0.25;
 
-  /// Generous on purpose: this is a safety cap on one continuous "speech"
-  /// stretch, not a pace limit. Fast chanting with almost no gaps between
-  /// repetitions must never hit it and have its own audio cut off mid-mantra.
+  /// A safety cap on one continuous stretch, not a pace limit.
   static const double vadMaxSpeechDurationSeconds = 20.0;
 
-  // ── Matching what was heard to the mantra ───────────────────────────────
-  /// The least a chant must resemble one of the mantra's phrases to count as a
-  /// repetition: 36% of its letters, once spellings are folded together (see
-  /// `MantraPhraseMatcher`). **This is the number to change** to make auto-count
-  /// stricter (higher) or more forgiving (lower), as a fraction: 0.36 is 36%.
-  ///
-  /// A floor, not a target. The bundled recogniser is English-trained and writes
-  /// Sanskrit as a few loose syllables, so a bar of half (the earlier 0.5) left
-  /// real chanting uncounted. The price is that other speech reaches it more
-  /// easily too. A match counts as soon as it is settled — it does not wait for
-  /// a pause — so a chant that never stops is counted as it goes.
-  static const double matchThreshold = 0.36;
-
-  /// Very short mantras (an "Om") would reach the bar by chance, so for a
-  /// further repetition in the same unbroken stretch, below [shortPhraseLetters]
-  /// folded letters the bar rises, by up to this much. The first repetition of a
-  /// stretch is held to [matchThreshold] alone, whatever the mantra, so the
-  /// percentage shown beside "needs" is the one that counts.
-  static const double shortPhraseExtra = 0.25;
-  static const int shortPhraseLetters = 24;
-
-  /// A short phrase counts only if it ends within this many phrase-lengths of
-  /// the start of the unheard text. Otherwise "Om" counts in any sentence that
-  /// happens to contain the sound (99 times in 24 minutes of ordinary speech).
-  static const double shortPhraseReach = 1.5;
-
-  /// A repetition is credited at the earliest point within this much of the
-  /// best match, so the next one starts where it really did — not after
-  /// whichever later stretch happened to score a little higher.
-  static const double matchSlack = 0.1;
-
-  /// Credit is held back while the transcript is still growing across a match,
-  /// or half a repetition would count and then its other half would count
-  /// again. A match is *settled* — and counted — once it is this good, once
-  /// [settleTrailing] of a phrase's length has been heard past it, or once the
-  /// voice stops.
-  static const double strongMatch = 0.85;
-  static const double settleTrailing = 0.3;
-
+  // ── What the English recogniser writes ──────────────────────────────────
   /// A running transcript this long is closed off and started afresh, so one
   /// unbroken hour of chanting never becomes one unbounded string.
   static const int maxTranscriptLetters = 400;
@@ -71,7 +45,24 @@ abstract final class AutoChantConfig {
   /// syllables it was still holding back.
   static const int endPaddingSamples = 6400;
 
-  // ── Repetition feedback ─────────────────────────────────────────────────
-  /// How long the status row says "counted" after a repetition.
+  // ── How long one chant takes ────────────────────────────────────────────
+  /// Every mantra carries its own standard time (`Mantra.durationMs`, set on the
+  /// admin **Mantras** page). One that has none is taken to be this long per
+  /// letter of its text.
+  static const double chantSecondsPerLetter = 0.2;
+
+  /// Never shorter than this, so a one-syllable mantra is not counted every blink.
+  static const double minChantSeconds = 1.0;
+
+  /// A last, unfinished chant still counts when sound stops if at least this
+  /// share of a standard time was chanted.
+  static const double partialChantShare = 0.6;
+
+  /// How often the clock is read while listening. Fine enough that a count lands
+  /// on time, coarse enough to cost nothing.
+  static const Duration countTick = Duration(milliseconds: 100);
+
+  // ── Feedback ────────────────────────────────────────────────────────────
+  /// How long the status row says "counted" after a chant.
   static const Duration defaultCooldown = Duration(milliseconds: 900);
 }

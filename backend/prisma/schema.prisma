@@ -1680,6 +1680,11 @@ model Mantra {
   // `transliteration`. Set in prisma/seed/chant-phrases.js.
   chantPhrases String[] @default([])
 
+  // The English words the phone's English-only recogniser writes when this mantra is
+  // chanted (it turns Sanskrit into the nearest English it knows). Hearing one counts a
+  // chant, at most one per durationMs. Empty: the app counts by sound alone.
+  chantWords String[] @default([])
+
   // Mantras are counted two different ways in practice, so both are kept and
   // either may be null: japa mantras in rounds of 108 beads (mahamantra: 16
   // rounds), others in plain repetitions (gayatri: 3, 11 or 108 times).

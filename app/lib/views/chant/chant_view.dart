@@ -7,6 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/constants/storage_keys.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
@@ -19,6 +20,7 @@ import '../../providers/sadhana_provider.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
 import '../../services/chant_recorder.dart';
+import '../../services/local_store.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/sadhana_service.dart';
@@ -26,7 +28,7 @@ import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
 import '../../widgets/chant/chant_recent_taps.dart';
 import '../../widgets/chant/chant_summary_header.dart';
-import '../../widgets/chant/chant_setup_sheet.dart';
+import '../../widgets/chant/auto_chant_switch.dart';
 import 'chant_analytics_view.dart';
 import 'chant_fullscreen_view.dart';
 
@@ -85,10 +87,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   StreamSubscription<AutoChantStatus>? _autoChantStatusSub;
   StreamSubscription<void>? _autoChantRepetitionSub;
 
-  /// Bumped when auto-count's status changes, so the setup sheet — which can be
-  /// open over the counter — redraws without the whole screen doing so.
-  final ValueNotifier<int> _setupChanged = ValueNotifier(0);
-
   /// Null when the mantra has no recording of a mala to chant along to.
   ChantMalaPlayer? _mala;
   StreamSubscription<int>? _malaChantsSub;
@@ -143,16 +141,21 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     final mantra = widget.mantra;
     if (mantra == null) return;
     final session = MantraAutoChantSession(mantra);
-    if (!session.isSupported) return;
 
     _autoChant = session;
     _autoChantStatusSub = session.statusStream.listen((status) {
       if (!mounted) return;
       setState(() => _autoChantStatus = status);
       _holdScreenForListening();
-      _setupChanged.value += 1;
     });
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
+
+    // Left on last time, it is on again now: the person chose it once.
+    if (_savedAutoChant) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_startAutoChant());
+      });
+    }
   }
 
   void _initMala() {
@@ -217,7 +220,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _clockTicker?.cancel();
     _clock.dispose();
     _counted.dispose();
-    _setupChanged.dispose();
     // Let the screen go first, before anything is awaited.
     if (_screenHeld) unawaited(WakelockPlus.toggle(enable: false).catchError((_) {}));
     _stopwatch.stop();
@@ -272,14 +274,40 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _scheduleSync();
   }
 
+  /// Whether auto count was left on. The store is not open in a test, and a
+  /// failed read is simply "off".
+  bool get _savedAutoChant {
+    try {
+      return LocalStore.instance.read<bool>(BoxKeys.autoChantEnabled) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _saveAutoChant(bool enabled) {
+    try {
+      unawaited(LocalStore.instance.write(BoxKeys.autoChantEnabled, enabled));
+    } catch (_) {
+      // Not remembering is better than failing to switch it.
+    }
+  }
+
+  /// The switch. The choice is remembered, so the counter opens listening.
   Future<void> _toggleAutoChant(bool enabled) async {
     final session = _autoChant;
     if (session == null) return;
+    _saveAutoChant(enabled);
     if (!enabled) return session.disable();
+    await _startAutoChant();
+  }
+
+  Future<void> _startAutoChant() async {
+    final session = _autoChant;
+    if (session == null) return;
     await _mala?.pause();
     if (!mounted) return;
-    // The recogniser takes a few seconds to load, and the switch would sit
-    // there looking dead: say what is happening until it is listening.
+    // The model takes a moment to load, and the switch would sit there looking
+    // dead: say what is happening until it is listening.
     unawaited(
       showDialog<void>(
         context: context,
@@ -360,21 +388,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     unawaited(ref.read(sadhanaTodayProvider.notifier).refresh());
     unawaited(ref.read(homeFeedProvider.notifier).refresh());
     if (mounted) Navigator.of(context).pop();
-  }
-
-  void _openSetup() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => ListenableBuilder(
-        listenable: _setupChanged,
-        builder: (_, _) => ChantSetupSheet(
-          autoChantStatus: _autoChantStatus,
-          onAutoChant: _toggleAutoChant,
-        ),
-      ),
-    );
   }
 
   void _openFullPicture(ReferenceItem deity) {
@@ -495,6 +508,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     tooltip: text.sadhanaUndoBead,
                   ),
                 ),
+                if (_autoChant != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: AutoChantSwitch(status: _autoChantStatus, onChanged: _toggleAutoChant),
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.sm),
                 if (widget.mantra?.deity?.fullImageUrl != null)
                   Center(
                     child: TextButton.icon(
@@ -505,20 +526,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                 const SizedBox(height: AppSpacing.md),
                 ChantRecentTaps(taps: _recorder.taps),
-                const SizedBox(height: AppSpacing.xl),
-                if (_autoChant != null)
-                  Center(
-                    child: OutlinedButton.icon(
-                      onPressed: _openSetup,
-                      icon: const Icon(Icons.graphic_eq_rounded),
-                      label: Text(
-                        text.chantSetupButtonState(
-                          text.sadhanaAutoCount,
-                          _autoChantStatus.enabled ? text.chantSetupOn(1) : text.chantSetupNoneOn,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

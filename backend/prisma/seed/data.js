@@ -253,6 +253,23 @@ const translators = [
 // sentence changed here needs the same change there, and a mantra added here
 // needs an entry in each file. test/mantra-translations.test.js checks both.
 
+// How long one chant takes at an ordinary pace, in milliseconds. Auto count in the
+// app counts one chant per this much sound. Only written to a mantra that has no
+// time yet, so an admin's edit on the Mantras page is never overwritten.
+const standardChantMs = {
+  'hare-krishna-mahamantra': 8000,
+  'panchatattva-mantra': 7000,
+  'om-namo-bhagavate-vasudevaya': 4000,
+  'rama-taraka-mantra': 3500,
+  'nrisimha-mantra': 7000,
+  'krishna-gayatri': 8000,
+  'pranava-om': 3000,
+  'om-namah-shivaya': 1500,
+  'maha-mrityunjaya-mantra': 12000,
+  'shiva-gayatri': 8000,
+  'datta-mala-mantra': 4000,
+};
+
 const mantras = [
   {
     slug: 'hare-krishna-mahamantra',
@@ -858,6 +875,7 @@ export {
   gurus,
   translators,
   mantras,
+  standardChantMs,
   books,
   cantos,
   stories,

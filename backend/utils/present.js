@@ -284,6 +284,7 @@ async function mantra(row, user) {
 
     // What auto count listens for — see Mantra.chantPhrases in the schema.
     chantPhrases: row.chantPhrases || [],
+    chantWords: row.chantWords || [],
 
     standardRounds: row.standardRounds,
     standardCount: row.standardCount,
