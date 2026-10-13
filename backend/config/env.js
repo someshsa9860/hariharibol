@@ -90,6 +90,14 @@ const schema = z.object({
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().default('HariHariBol <no-reply@hariharibol.com>'),
 
+  // Claude translating the Gita (scripts/translate-claude.js, and the admin panel's Translations page,
+  // which runs it in the worker). Without a key the page still opens and shows what is saved; a run
+  // pauses with a message saying the key is missing. TRANSLATION_VERSION is checked where it is used
+  // (versionFrom) — it ends up in file names.
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().optional(),
+  TRANSLATION_VERSION: z.string().optional(),
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 

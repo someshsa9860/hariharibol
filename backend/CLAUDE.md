@@ -249,6 +249,26 @@ it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longe
   whose hour has come are sent anything, and which translations to fetch depends on who they are.
 - **The meaning is cut at 220 characters, the verse at 600** — a push is capped at 4 KB and a Devanagari
   character is three bytes of it.
+- **A picture goes with it** — `services/sloka-card.js` draws a 4:3 card (1200×900): "Sloka of Day" on top,
+  the Sanskrit in the middle, "Srimad Bhagavatam · 1.1.1" along the bottom, over `public/g01-lotus-feet-820x547.jpg`
+  blurred and darkened. It is the push's `imageUrl` (Android's big picture; iOS ignores it until the app has a
+  notification service extension). **It holds nothing about who it is for**, so it is drawn once per verse, stored in
+  the media bucket (`slokas/images/cards/<design>/<verseId>.jpg`) and the same link goes to every reader; the
+  meaning stays in the body, in their language. The text work — stripping the verse's own number, one stanza per
+  verse of a compound, fitting size to length, cutting what cannot fit with "…" — is `utils/sloka-card-text.js`
+  (pure; `npm test`). Fonts are bundled in `assets/fonts/` (Noto Serif Devanagari, Playfair Display, both OFL):
+  the image is drawn with `@napi-rs/canvas`, which needs no system fonts and has a prebuilt musl binary for the
+  Alpine image.
+  - **Changing the photograph** — replace the file; the `<design>` folder in the key is a hash of its bytes
+    plus `LAYOUT_VERSION`, so cards are drawn again. Change the layout → bump `LAYOUT_VERSION`.
+  - **Title and footer sit in the middle ~70% of the height** because older Android crops the big picture to
+    about 17:9 around the centre. Only the thin frame is ever lost.
+  - **A card that fails is not a push that fails** — `cardUrl` returns null and the push goes without it. It also
+    returns null for any link that is not https (a laptop's `http://localhost` link): FCM refusing an image URL
+    comes back `invalid-argument`, which `services/fcm.js` treats as a dead token and clears.
+  - **Looking at it** — `node scripts/sloka-card-preview.js [verseId …]` writes JPEGs to
+    `storage/sloka-card-preview/` without sending anything. Careful: **`cardUrl` itself uploads**, and a dev
+    `.env` with AWS keys writes to the real bucket.
 
 ## Mantra chant phrases
 
@@ -390,6 +410,66 @@ owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` �
 - Sent on sign-in, token refresh and `GET /api/app/me`. The app does not use it yet.
 - `npm run backfill:sampradaya` fills it in for people who chanted before it existed.
   `npm run test:sampradaya` walks the rule over real HTTP with throwaway users.
+
+## Translation runs (admin panel)
+
+The admin **Translations** page translates Prabhupāda's Gita with Claude as a background job and shows it live.
+The pipeline is the same one `npm run translate:claude` uses (`scripts/lib/claude-translate-*.js`, described in
+[scripts/README.md](scripts/README.md#translating-the-gita-with-claude)); this section is the part that runs it
+inside the API, worker and websocket containers.
+
+| File | Job |
+|---|---|
+| `routes/admin/translation.js`, `controllers/admin/translation.js` | Ten routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter` and `output/:language/verses/:verseId`. `translation.read` for reads, `translation.run` for start / resume / cancel |
+| `services/translation.js` | Opens the S3 workspace, per-language coverage (cached 300 s), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
+| `jobs/processors/translation.js` | The BullMQ processor: runs the pipeline verse by verse, heartbeats, and decides what a stop means |
+| `utils/translation-run.js` | Pure functions, no I/O: `classifyError`, `retryDelayMs`, `presentRun`, how a pipeline event reads in the feed. `test/translation-run.test.js` holds them |
+| `config/translation.js` | Every timing and limit, with a comment each. Change a number here, not in the processor |
+| `prisma/migrations/20261013000000_translation_runs` | `TranslationRun` and the two permissions |
+
+Things to know before changing it:
+
+- **The `TranslationRun` row is the truth, not the queue.** Its `jobId` names the only BullMQ job allowed to work
+  it; a job whose id does not match does nothing. That is what makes a duplicate, a leftover or a resurrected job
+  harmless, and it is why a page refresh, an API restart or a Redis flush loses nothing: the page reads the row.
+- **The processor never fails the BullMQ job itself** (`attempts: 1`, concurrency 1 across all workers).
+  `classifyError` turns an error into one of three outcomes, written to the row with a plain-English
+  `statusMessage`:
+  - **PAUSED, tries again by itself** — Anthropic or S3 busy, the network, 429 / 529. Waits `retryBaseMs` (5 min),
+    doubling to `retryMaxMs` (60 min), at most `maxAutoRetries` (12) times *without a verse saved in between*;
+    then it waits for a person. Done with `DelayedError` + `moveToDelayed`.
+  - **PAUSED until someone presses Resume** — no credit (`credit`), a bad key (`auth`), a missing key or a model that
+    cannot do what is asked (`config`), no access to the bucket (`storage`), the budget reached (`budget`).
+    Waiting does not fix these; Resume does `job.promote()`.
+  - **FAILED** — something nobody foresaw. It gets `unknownRetries` (2) quiet retries first, then the message and
+    the verse it stopped on are shown. Resume still works.
+  Every verse saved to S3 stays saved, so a resumed run starts at the first verse that is not.
+- **One live run per language**, enforced twice: a Redis start-lock and a database check. A second start returns
+  409 with `error.details.runId`, which the page turns into "Open that run".
+- **A worker that dies mid-run is handled.** The row is touched every `heartbeatMs` (5 s); BullMQ hands the stalled
+  job to another worker (`maxStalledCount` 20), and the page warns when a RUNNING run has been quiet for 90 s.
+  On SIGTERM the worker hands the run back and exits (`docker compose` gives it `stop_grace_period: 40s`), so a
+  deploy does not cost a retry.
+- **`reconcileRuns` is the safety net**: every 2 min and on boot it re-queues any QUEUED / RUNNING / PAUSED run
+  whose BullMQ job is missing (a Redis flush, a crash between saving the row and queuing the job).
+- **Live progress is two websocket events**, published through Redis `ws:permission` by the API and the worker and
+  delivered by the websocket container to sockets whose role has `translation.read`: `translation.run` (the whole
+  presented run) and `translation.activity` (`{ runId, at, kind, level, text, verseId? }`, one feed line). The page
+  still works without the socket by polling.
+- **The two permissions are inserted by the migration** and given to `admin` and `super_admin`; any other role gets them on the
+  admin Roles page. Permissions are cached for about 5 minutes, so a new grant can take that long to show.
+- **Needs in the server `.env`** for the `api` and `worker` containers: `ANTHROPIC_API_KEY`, `TRANSLATION_VERSION`
+  (optional) and the `SOURCE_*` bucket settings (`deploy/server/.env.example`). Without a key the page says so and
+  the Start button is disabled.
+- **Do not run `npm run translate:claude` while the worker is working a run for the same language.** They write the
+  same chapter files; each write is conditional on the object not having changed, so one of them stops, but neither
+  knows about the other.
+- `npm run test:translation` (`scripts/translation-e2e.js`) walks it against the real database, Redis and a real
+  BullMQ worker with Claude faked: start, progress, credit pause and Resume, a 529 retry, cancel, a killed
+  worker, a flushed queue, permissions and the output endpoints. `npm test` needs Node ≥ 21 for its test glob; under
+  Node 20 run `node --test test/translation-run.test.js`.
+- **Not exercised:** a real Claude call and the real S3 path (the e2e uses `SOURCE_LOCAL_DIR`). Run
+  `npm run translate:claude:test` first.
 
 ## Client attestation on signup
 

@@ -23,6 +23,7 @@ import { SettingsPage } from '@/routes/settings';
 import { AiUsagePage } from '@/routes/ai-usage';
 import { AuditPage } from '@/routes/audit';
 import { JobsPage } from '@/routes/jobs';
+import { TranslationsPage } from '@/routes/translations';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
 
@@ -215,6 +216,14 @@ export function Router() {
         element={
           <Protected permission="audit.read">
             <AuditPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/translations"
+        element={
+          <Protected permission="translation.read">
+            <TranslationsPage />
           </Protected>
         }
       />

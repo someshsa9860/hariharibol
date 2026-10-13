@@ -8,6 +8,7 @@
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as notify from '../../services/notify.js';
+import * as slokaCard from '../../services/sloka-card.js';
 import * as settings from '../../services/setting.js';
 import * as websocket from '../../services/websocket.js';
 import * as slokaController from '../../controllers/app/sloka.js';
@@ -204,7 +205,11 @@ async function deliver() {
       const verse = await loadVerseForPush(row.verseId, row.user);
       const { body, data } = slokaPush({ verse, user: row.user });
 
-      await notify.toUser(row.userId, { type: 'SLOKA', title: 'Your sloka for today', body, data });
+      // The picture is the same for everyone who is sent this verse, so it is
+      // drawn the first time and found after that. No picture, still a push.
+      const image = await slokaCard.cardUrl(verse);
+
+      await notify.toUser(row.userId, { type: 'SLOKA', title: 'Your sloka for today', body, image, data });
 
       await prisma.userDailySloka.update({
         where: { id: row.id },

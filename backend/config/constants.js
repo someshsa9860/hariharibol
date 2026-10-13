@@ -39,6 +39,8 @@ const PERMISSIONS = {
   'reel.publish': { group: 'content', name: 'Publish and unpublish reels' },
   'reel.generate': { group: 'content', name: 'Generate reels from scripture verses' },
   'reel.delete': { group: 'content', name: 'Delete reels' },
+  'translation.read': { group: 'content', name: 'View Claude translation runs and their output' },
+  'translation.run': { group: 'content', name: 'Start, resume and cancel Claude translation runs' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },

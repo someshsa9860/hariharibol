@@ -1,5 +1,8 @@
 # Plan: translate Gita + Bhagavatam verses into 13 languages (7 AI languages now, 4 later)
 
+> **Alternative built 12 Oct 2026:** a Claude-based Gita pipeline exists (`translate-claude.js`,
+> see `README.md`, "Translating the Gita with Claude"). It writes `json/bhagavat-gita/<lang>/ch-<n>.json` beside the English and does not touch this plan.
+
 > **Status: planned on 11 Oct 2026, not started.** Nothing in this file is built: no script, no
 > change to `services/ai/`, no AI call made, nothing uploaded to S3. This is the agreed design, kept
 > here so the work can begin later; delete the file once `scripts/README.md` carries the finished

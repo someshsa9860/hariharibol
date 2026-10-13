@@ -83,6 +83,15 @@ enum AiProvider {
   OPENAI
 }
 
+enum TranslationRunStatus {
+  QUEUED // waiting for the worker (one run at a time)
+  RUNNING
+  PAUSED // stopped on something outside the run — no credit, a busy API; see pauseReason
+  COMPLETED
+  FAILED // broke on something unexpected; Resume tries again from the first unsaved verse
+  CANCELLED
+}
+
 enum NotificationType {
   SLOKA // the daily sloka
   SADHANA // chanting or task reminders
@@ -2265,4 +2274,61 @@ model ReelReport {
   @@index([reelId])
   @@index([commentId])
   @@index([reviewedAt])
+}
+
+// One job of the admin panel's Translations page: Claude translating the Gita into one
+// language. The translated verses themselves live in S3 (json/bhagavat-gita/<lang>/ch-<n>.json);
+// this row is only the job — what was asked, where it has got to, what it has cost and, when it
+// stopped, why. It is what the page shows after a refresh, while the BullMQ job (which carries
+// nothing but this row's id) does the work. See controllers/admin/translation.js.
+model TranslationRun {
+  id String @id @default(cuid())
+
+  language String @db.VarChar(10) // hi | mr | ta | bn | te | kn | ml
+  version  String @db.VarChar(40) // TRANSLATION_VERSION when it was started
+  model    String @db.VarChar(100)
+
+  // What the admin asked for. No chapters = all eighteen; no limit or budget = none.
+  chapters     Int[]
+  verseLimit   Int?
+  budgetMicros Int? // millionths of a USD, like AiUsageLog.costMicros
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30) // credit | auth | storage | config | rate_limit | unavailable | error
+  statusMessage   String? // the plain-English line the page shows under the status
+  stopReason      String?              @db.VarChar(30) // how a COMPLETED run ended: finished | limit | budget
+  errorVerseId    String? // the verse a FAILED run stopped on
+  resumeAt        DateTime? // set while a PAUSED run is going to try again by itself
+  cancelRequested Boolean              @default(false) // the worker polls this; a running job cannot be told directly
+  jobId           String? // the BullMQ job currently carrying it
+  attempts        Int                  @default(0) // times it has gone to RUNNING
+  retriesInARow   Int                  @default(0) // automatic retries since a verse was last saved
+
+  // Progress. totalVerses is fixed when the run first starts: what was left to do then, capped by
+  // verseLimit. doneVerses counts the verses this run has saved, across pauses and resumes.
+  totalVerses    Int     @default(0)
+  doneVerses     Int     @default(0)
+  currentVerseId String?
+  score1         Int     @default(0) // saved verses by correctness: 1 needs a second round, 3 is perfect
+  score2         Int     @default(0)
+  score3         Int     @default(0)
+
+  // Spend, summed from every call the run made — also the ones that failed.
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  costMicros    Int @default(0)
+  activeSeconds Int @default(0) // time spent translating, pauses excluded; what the time-left estimate uses
+
+  requestedById   String? // admin User.id; no relation, same as ReelTemplate.createdBy
+  requestedByName String? // their name when they asked, so the page can say who without a lookup
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime? // the worker touches it every few seconds while the job runs
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
 }

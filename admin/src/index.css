@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* `dark:` follows the `.dark` class the theme toggle sets, not the operating system's setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * A neutral, ordinary SaaS admin theme — deliberately not the app's saffron
  * palette (admin/CLAUDE.md). Slate-based, shadcn-style tokens so every

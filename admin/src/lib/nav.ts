@@ -17,6 +17,7 @@ import {
   ListTodo,
   Activity,
   TrendingUp,
+  Languages,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export const NAV: NavSection[] = [
       { label: 'Verses', path: '/verses', icon: ScrollText, permission: 'verse.read' },
       { label: 'Mantras', path: '/mantras', icon: Music, permission: 'mantra.read' },
       { label: 'Reels', path: '/reels', icon: Clapperboard, permission: 'reel.read' },
+      { label: 'Translations', path: '/translations', icon: Languages, permission: 'translation.read' },
       { label: 'Reference data', path: '/reference', icon: Library, permission: 'reference.manage' },
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
     ],

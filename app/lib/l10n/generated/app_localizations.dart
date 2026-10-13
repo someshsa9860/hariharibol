@@ -1480,12 +1480,6 @@ abstract class AppLocalizations {
   /// **'Errand'**
   String get routineCategoryErrand;
 
-  /// No description provided for @routineSlotLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Time of day'**
-  String get routineSlotLabel;
-
   /// No description provided for @routineSlotMorning.
   ///
   /// In en, this message translates to:
@@ -1509,6 +1503,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Anytime'**
   String get routineSlotAnytime;
+
+  /// No description provided for @routinePresetWakeUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake up'**
+  String get routinePresetWakeUp;
+
+  /// No description provided for @routinePresetMorningChant.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning chanting'**
+  String get routinePresetMorningChant;
+
+  /// No description provided for @routinePresetExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get routinePresetExercise;
+
+  /// No description provided for @routinePresetBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get routinePresetBreakfast;
+
+  /// No description provided for @routinePresetLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get routinePresetLunch;
+
+  /// No description provided for @routinePresetEveningChant.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening chanting'**
+  String get routinePresetEveningChant;
+
+  /// No description provided for @routinePresetDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get routinePresetDinner;
+
+  /// No description provided for @routinePresetScriptureReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Scripture reading'**
+  String get routinePresetScriptureReading;
+
+  /// No description provided for @routinePresetSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get routinePresetSleep;
+
+  /// No description provided for @routineTaskNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Task name'**
+  String get routineTaskNameLabel;
+
+  /// No description provided for @routineWindowHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard time'**
+  String get routineWindowHeading;
+
+  /// No description provided for @routineWindowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Done inside this range counts as on time; before it is early, after it is late.'**
+  String get routineWindowHint;
+
+  /// No description provided for @routineWindowSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a time range'**
+  String get routineWindowSet;
+
+  /// No description provided for @routineWindowClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove time range'**
+  String get routineWindowClear;
+
+  /// No description provided for @routineWindowFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get routineWindowFrom;
+
+  /// No description provided for @routineWindowTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get routineWindowTo;
+
+  /// No description provided for @routineWindowRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String routineWindowRange(String start, String end);
+
+  /// No description provided for @routineWindowInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The end must be after the start.'**
+  String get routineWindowInvalid;
+
+  /// No description provided for @routineStatusNotDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done'**
+  String get routineStatusNotDone;
+
+  /// No description provided for @routineStatusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get routineStatusDone;
+
+  /// No description provided for @routineStatusEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Early'**
+  String get routineStatusEarly;
+
+  /// No description provided for @routineStatusOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get routineStatusOnTime;
+
+  /// No description provided for @routineStatusLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get routineStatusLate;
+
+  /// No description provided for @routineStatusAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} · {time}'**
+  String routineStatusAtTime(String status, String time);
+
+  /// No description provided for @routineChangeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get routineChangeTime;
+
+  /// No description provided for @routinePickDoneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'When was this done?'**
+  String get routinePickDoneTime;
 
   /// No description provided for @routineSaveAction.
   ///

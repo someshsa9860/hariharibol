@@ -18,3 +18,6 @@ docs/openapi.json
 # Working folder of scripts/fill-prabhupada-source.js: downloaded source, scraped
 # pages, progress. Large and rebuildable; the filled JSON lives in the bucket.
 /.fill-work/
+
+# Working folder of scripts/translate-claude.js: its run log.
+/.translate-work/

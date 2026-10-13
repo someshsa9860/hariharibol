@@ -11,10 +11,12 @@
 
 import { Worker } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
-import { QUEUE_NAMES } from '../jobs/index.js';
+import { QUEUE_NAMES, queues } from '../jobs/index.js';
 import { registerSchedules } from '../jobs/schedules.js';
 import { connectDatabase, disconnectDatabase } from '../config/database.js';
 import logger from '../config/logger.js';
+import { translation } from '../config/translation.js';
+import { reconcileRuns } from '../services/translation.js';
 
 import slokaProcessor from '../jobs/processors/sloka.js';
 import notificationProcessor from '../jobs/processors/notification.js';
@@ -23,6 +25,7 @@ import paymentProcessor from '../jobs/processors/payment.js';
 import aiProcessor from '../jobs/processors/ai.js';
 import maintenanceProcessor from '../jobs/processors/maintenance.js';
 import contentProcessor from '../jobs/processors/content.js';
+import translationProcessor, { abortActiveRuns, onJobFailed } from '../jobs/processors/translation.js';
 
 // One processor per queue. The queue name is the key, so worker/ and jobs/
 // cannot disagree about which processor runs what.
@@ -34,6 +37,7 @@ const processors = {
   ai: aiProcessor,
   maintenance: maintenanceProcessor,
   content: contentProcessor,
+  translation: translationProcessor,
 };
 
 // How many jobs of each kind may run at once.
@@ -51,9 +55,13 @@ const CONCURRENCY = {
   maintenance: 1,
   // One export at a time per worker; the Redis lock covers several workers.
   content: 1,
+  // One run at a time, however many workers there are (set again below as a queue-wide limit): they
+  // are hours long, bill by the call, and two languages at once only meet the same rate limit sooner.
+  translation: 1,
 };
 
 const workers = [];
+let reconcileTimer = null;
 
 async function start() {
   await connectDatabase();
@@ -62,6 +70,8 @@ async function start() {
     const worker = new Worker(name, processors[name], {
       connection: bullConnection,
       concurrency: CONCURRENCY[name] || 1,
+      // A translation run whose worker died is handed to another many times over; the others, once.
+      ...(name === 'translation' && { maxStalledCount: translation.maxStalledCount }),
     });
 
     worker.on('completed', (job, result) => {
@@ -73,6 +83,9 @@ async function start() {
         { queue: name, job: job?.name, id: job?.id, attempt: job?.attemptsMade, err: err.message },
         'job failed'
       );
+      if (name === 'translation') {
+        onJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed translation job'));
+      }
     });
 
     worker.on('error', (err) => {
@@ -83,6 +96,14 @@ async function start() {
     logger.info({ queue: name, concurrency: CONCURRENCY[name] }, 'worker started');
   }
 
+  await queues.translation.setGlobalConcurrency(1);
+
+  // Runs live in the database; their jobs live in Redis. If the two disagree (Redis was flushed, a job was
+  // lost), put the run back in the queue. Once now, then every couple of minutes.
+  const reconcile = () => reconcileRuns().catch((err) => logger.error({ err: err.message }, 'translation reconcile failed'));
+  await reconcile();
+  reconcileTimer = setInterval(reconcile, translation.reconcileEveryMs);
+
   await registerSchedules();
   logger.info('worker ready');
 }
@@ -91,6 +112,11 @@ async function start() {
 // leaves some users with tomorrow's verse and some without.
 async function shutdown(signal) {
   logger.info({ signal }, 'worker shutting down');
+  clearInterval(reconcileTimer);
+  // A translation run is hours long, so it is not waited out: it stops after its current call, puts
+  // itself back in the queue, and the next worker carries on from the verse after the last one saved.
+  const stopped = abortActiveRuns('shutdown');
+  if (stopped) logger.info({ stopped }, 'translation runs handed back to the queue');
   await Promise.all(workers.map((worker) => worker.close()));
   await disconnectDatabase();
   process.exit(0);

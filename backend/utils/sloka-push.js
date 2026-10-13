@@ -22,12 +22,17 @@ function clip(text, max) {
   return `${clean.slice(0, max).trimEnd()}…`;
 }
 
-/** "Bhagavad Gita 2.47", or "Srimad Bhagavatam 10.1.5-7" — as a person cites it. */
-function verseLabel(verse) {
-  if (!verse?.book?.title) return null;
+/** Where the verse sits in its book, as a person cites it: "2.47", "10.1.5-7". */
+function versePlace(verse) {
   const numbers = [verse.cantoNumber, verse.chapterNumber].filter((n) => n != null);
   const own = verse.verseNumberEnd ? `${verse.verseNumber}-${verse.verseNumberEnd}` : `${verse.verseNumber}`;
-  return `${verse.book.title} ${[...numbers, own].join('.')}`;
+  return [...numbers, own].join('.');
+}
+
+/** "Bhagavad Gita 2.47", or "Srimad Bhagavatam 10.1.5-7". */
+function verseLabel(verse) {
+  if (!verse?.book?.title) return null;
+  return `${verse.book.title} ${versePlace(verse)}`;
 }
 
 /**
@@ -64,4 +69,4 @@ function slokaPush({ verse, user }) {
   };
 }
 
-export { slokaPush, verseLabel };
+export { slokaPush, verseLabel, versePlace };

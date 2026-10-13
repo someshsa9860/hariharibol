@@ -51,6 +51,19 @@ function sendToUser(userId, event, payload) {
   return sockets.size;
 }
 
+// Every socket whose user's role carries `permission` (read once, at connect).
+function sendToPermission(permission, event, payload) {
+  let count = 0;
+  for (const sockets of connections.values()) {
+    for (const socket of sockets) {
+      if (!socket.permissions?.has(permission)) continue;
+      send(socket, event, payload);
+      count += 1;
+    }
+  }
+  return count;
+}
+
 function broadcast(event, payload) {
   let count = 0;
   for (const sockets of connections.values()) {
@@ -92,6 +105,7 @@ async function start() {
     }
 
     let userId;
+    let permissions;
     try {
       const payload = authService.verifyAccessToken(token);
       const loaded = await authService.loadAuthUser(payload.sub);
@@ -100,12 +114,14 @@ async function start() {
         return;
       }
       userId = loaded.user.id;
+      permissions = loaded.permissions;
     } catch {
       socket.close(4001, 'Invalid token');
       return;
     }
 
     socket.userId = userId;
+    socket.permissions = permissions;
     socket.isAlive = true;
     add(userId, socket);
 
@@ -153,7 +169,7 @@ async function start() {
 
   // Fan-in from the API containers.
   const subscriber = createClient('subscriber');
-  await subscriber.subscribe(channels.userEvent, channels.broadcast);
+  await subscriber.subscribe(channels.userEvent, channels.broadcast, channels.permissionEvent);
 
   subscriber.on('message', (channel, raw) => {
     try {
@@ -162,6 +178,8 @@ async function start() {
         sendToUser(message.userId, message.event, message.payload);
       } else if (channel === channels.broadcast) {
         broadcast(message.event, message.payload);
+      } else if (channel === channels.permissionEvent) {
+        sendToPermission(message.permission, message.event, message.payload);
       }
     } catch (err) {
       logger.warn({ err: err.message, channel }, 'bad message on redis channel');

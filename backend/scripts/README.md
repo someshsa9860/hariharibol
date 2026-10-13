@@ -79,6 +79,10 @@ widen it.
 - `set-book-cover.js <book-slug> <path-to-image>` — sets one book's cover
   image. Uploads through `services/s3.js`, so it lands on S3 in production and
   under `storage/` locally, same as everything else that service handles.
+- `sloka-card-preview.js [verse-id …]` — draws the daily sloka push's picture
+  for some verses (a spread of short, long and compound ones when none are
+  named) into `storage/sloka-card-preview/`. Uploads nothing and sends nothing;
+  see "The daily sloka push" in `../CLAUDE.md`.
 - `recount-books.js [--dry-run] [book-slug …]` — rebuilds the verse, chapter and
   canto counts from the rows that are there. See "Counts" below.
 
@@ -178,3 +182,186 @@ link is made without checking that the object exists. So before moving a databas
 that was built locally, make sure each key it names is in the bucket (a HEAD
 request per key shows the gaps), and upload the missing files without overwriting
 what is already there. The seed names deity images but does not upload any.
+
+## Translating the Gita with Claude
+
+`translate-claude.js` translates Prabhupāda's Gita into **Marathi, Hindi and Tamil** (default `--langs hi,mr,ta`;
+all seven app languages are available) with the Anthropic API, one verse at a time, saving each verse to S3
+before the next begins. It is standalone (not `services/ai/`) and independent of the Gemini plan in
+`translate-verses-PLAN.md`.
+
+**The same pipeline also runs from the admin panel.** The **Translations** page (Content → Translations) picks
+a language, shows an estimate, starts the run as a BullMQ job in the worker container, and follows it live over
+the websocket — progress, a spend counter, an activity feed, and a reader that shows the saved verses beside the
+English. It survives a page refresh, pauses (and Resumes) on out-of-credit or a bad key, retries on its own when
+Anthropic is busy, and keeps every verse already saved. It writes the same files, with the same scores, as this
+script. See "Translation runs" in [../CLAUDE.md](../CLAUDE.md). **Use one or the other for a language at a time**:
+if the worker is working a run, do not start the command line for that language.
+
+**What is sent:** only Prabhupāda — his English translation and purport, the verse's Roman transliteration
+and its word-by-word list (each Sanskrit word in Roman letters with its English meaning), read from the
+`en/` and `sa/` chapter files. Never the Devanagari verse or Sivananda's (or anyone else's) text.
+**What comes back, per language — four items per verse:**
+
+1. `translation` — the meaning
+2. `transliteration` — the verse in that language's script, same number of lines as the Roman one
+3. `wordMeanings` — `[{ word, meaning }]` in the same order: the word in the script, the meaning translated
+4. `purport` — paragraph for paragraph
+
+**The goal is Prabhupāda's words, as they are.** The instructions tell Claude to add nothing, drop nothing
+and explain nothing — no other author's words, no commentary — and also that the result must be
+grammatically perfect, natural and respectful to a native reader (honorifics and forms of address as a devout
+speaker of that language would write them). Sanskrit terms and names are transcribed into the language's
+script, not translated.
+
+**Every verse is accepted, and every item has a correctness score, 1 to 3.**
+
+| score | meaning |
+|---|---|
+| **3** | perfect — complete, faithful, grammatical, respectful |
+| **2** | good — complete, but a wording or a term is doubtful |
+| **1** | needs a second round — something is missing or wrong |
+
+Each part (`translation`, `transliteration`, `wordMeanings`, `purport`) gets a score, and the verse's
+`correctness` is the lowest of its parts. A part's score is the lower of two things: **Claude's own rating**
+of it (asked for in the same answer, with a one-sentence `note` when anything is below 3) and **the free
+checks the script runs** — a missing paragraph, a list or transliteration of the wrong length, English left
+in, a wrong number, the wrong script, Hindi written for Marathi (these cap the part at 1); unmatched
+brackets or quotes, a line break, a text noticeably too long (these cap it at 2). The checks can lower what
+Claude said but never raise it. A part the English does not have (a verse with no purport) is not scored.
+
+**All four items are asked for every time, and an answer is not rejected for looking incomplete.** An answer
+that comes back is saved as it is, with the findings as `aiTranslation.warnings` and the lower score. Two
+kinds of answer are asked again, for that language alone, with the reason: one with nothing to save (invalid
+JSON, or no translation text), and one that leaves a **whole item out** — the English has a purport, a word
+list or a transliteration and the answer has none (empty, or blank entries). If every round (`--max-rounds`)
+leaves the item out, the best answer is saved without it and that item is scored 1, so the verse shows up in
+the `--status` second-round list; the file's own text for it (the Roman transliteration in `hi/`) is not
+blanked. A short purport, a missing word entry, English left in are warnings and a 1, not a re-ask.
+
+**Where it lands.** The same layout as the English (`en/`) and Sanskrit (`sa/`): **one file per language per
+chapter**, `sanatan-db/json/bhagavat-gita/<lang>/ch-<n>.json` — `hi/ch-2.json`, `mr/ch-2.json`,
+`ta/ch-2.json`. Nothing is named after Claude. A verse in it has the same shape as in the English file:
+
+```jsonc
+{ "verseId": "1.2.47", "globalVerseNumber": 87, …,
+  "transliteration": "कर्मण्येवाधिकारस्ते …",            // 2. in this language's script
+  "wordMeanings": [{ "word": "…", "meaning": "…" }],      // 3.
+  "commentaries": [                                       // 1. and 4., Prabhupāda's rows
+    { "translatorSlug": "prabhupada", "type": "translation", "language": "mr", "displayOrder": 1, "text": "…",
+      "translatedBy": "claude", "version": "1.0-12-10-26", "correctness": 3 },
+    { "translatorSlug": "prabhupada", "type": "purport", …, "translatedBy": "claude", "version": "1.0-12-10-26", "correctness": 2 } ],
+  "aiTranslation": { "translatedBy": "claude", "version": "1.0-12-10-26", "model": "claude-sonnet-5-5", "effort": "off",
+                     "promptVersion": "6", "sourceHash": "…", "generatedAt": "…",
+                     "correctness": 2,                                        // the lowest part
+                     "partScores": { "translation": 3, "transliteration": 3, "wordMeanings": 3, "purport": 2 },
+                     "note": "…",                                             // only when Claude had a doubt
+                     "warnings": ["purport: rated 2 by Claude"] } }
+```
+
+The score is on **every `commentaries` row** (its own part) and on the verse (`aiTranslation.correctness`, the
+lowest part, with each part in `partScores`), so a row read on its own still says how far to trust it. The
+verse-level `transliteration` and `wordMeanings` have no row of their own; their scores are in `partScores`.
+
+**Version.** `TRANSLATION_VERSION` in `backend/.env` (default `1.0-12-10-26`) is fixed for a run and written
+on **every item**: each `commentaries` row and the verse's `aiTranslation`. Change it before a later
+re-translation and the old and new verses can be told apart (and compared, with `--status`, which lists the
+versions found per language). The checkpoint is per version too.
+
+**An existing language file is merged into, never replaced.** `hi/ch-N.json` already exists (other translators'
+rows and a Roman `transliteration`). A run keeps every other row and verse, replaces only Prabhupāda's rows
+of that language, adds new rows after the last `displayOrder`, and replaces the verse-level `transliteration`
+with the one in the script. Before the **first** change to a file that was not written by this script, an exact
+copy goes to `json-backup-<date>/json/bhagavat-gita/<lang>/ch-<n>.json` (checked, and an earlier backup the
+same day is kept). Every write is conditional on the object not having changed since it was read (S3
+`If-Match` / `If-None-Match`), and is read back and compared before the run moves on.
+
+**Setup**
+
+1. Put a key in `backend/.env`: `ANTHROPIC_API_KEY=sk-ant-…` (`ANTHROPIC_MODEL` is optional;
+   default `claude-sonnet-5-5`; `TRANSLATION_VERSION` as above). The script never prints the key.
+2. The English is read from, and the output written to, the source bucket in `.env.scripts`
+   (`SOURCE_*`). Those credentials must be allowed to **write** under `json/bhagavat-gita/` and
+   `json/reports/`, and to copy to `json-backup-*/`; the first checkpoint write checks the bookkeeping
+   permission before any Claude call is paid for.
+
+**Commands** (run from `backend/`)
+
+| | |
+|---|---|
+| `npm run translate:claude:dry` | what is left per language, calls, tokens, estimated cost. Calls nothing, writes nothing |
+| `npm run translate:claude:status` | saved verses per chapter and language, versions found, last verse, total spend. `-- --verify` re-checks every saved verse against the English |
+| `npm run translate:claude:test` | **one** random verse (or `-- --verse 2.47`), all languages, written under `_test/<time>/` in the bucket and printed in full. The real chapter files are not touched. Do this first and read it |
+| `npm run translate:claude -- --chapters 2 --limit 3` | a small real pilot |
+| `npm run translate:claude` | everything; resumes by itself at the first verse and language not saved |
+
+Other flags: `--verse 1.2.47`, `--langs hi,mr,bn,ta,te,kn,ml`, `--model`, `--effort`, `--group-budget`,
+`--max-spend <usd>`, `--max-tokens`, `--max-rounds`, `--local-store <dir>` (write to a folder laid out like
+the bucket, not S3), `--force`. `--help` lists them all. A language added later (`--langs ta` after hi and mr
+are done) translates only that language.
+
+**Finding the verses that need a second round.** `npm run translate:claude:status` prints, per language, how
+many saved verses scored 3, 2 and 1 (and how many have no score), and lists the verses scored 1. There is no
+second-round pass yet (it was left out on purpose); the list is what one would work from.
+
+**Thinking is off.** Translation needs no reasoning, and thinking tokens are billed as output. The way to turn
+it off differs by model, so the script chooses: Sonnet 5.5 (the default) takes `thinking: between_tools`,
+its lowest setting, which with no tools means a plain text answer; Sonnet 5, Opus 5 and Haiku 5.5 take
+`disabled`; the 4.x models are sent nothing. **Opus 5.5, Fable and Mythos cannot turn thinking off** — the
+script says so before any call and suggests `--effort low`. Any other `--effort` lets the model think at that
+level, which costs more and uses up `--max-tokens`.
+
+**How it runs.** Verses go in order, one at a time, and each is saved before the next begins. **Each language
+of a verse is written in a call of its own** (so a verse is three calls for hi, mr, ta) and the verse is saved
+once all of them are in. Claude's answer is **accepted as written** (see above). The prompt asks for it right
+the first time; there is no checking round. An answer with nothing to save is asked again for that language
+alone, with the reason, up to `--max-rounds`; after that the run **stops** on the verse (nothing of it is
+written in any language). An answer that left a whole item out is asked again the same way, but after the
+last round it is saved with that item missing and scored 1 rather than stopping the run. A call that runs out of `--max-tokens` is a hard error for a single language
+(raise `--max-tokens`). A refusal or a 400/401/403 also stops it. 429 / 5xx / network errors wait and retry. Ctrl-C
+stops cleanly. After a hard kill the checkpoint still says "running" for 20 minutes; pass `--force` to start
+sooner. The log is `backend/.translate-work/claude.log` (ids, languages, tokens, scores, warnings, errors —
+never the model's text). Done is read from the chapter files themselves, so the checkpoint
+(`json/reports/translate-bhagavat-gita-<version>.json`: totals, last verse, last error, spend) is only a summary.
+`--status --verify` re-checks every saved verse strictly (any finding, even a minor one, is reported) and that
+its scores are present and agree.
+
+**Cost.** `--dry-run` estimates about **$51** for all 701 verses × hi, mr, ta (~2,100 calls) on Sonnet 5.5 with thinking off
+($2 per million tokens in, $10 out; the instructions, ~2,400 tokens, ride on every call and are priced at the
+cached rate, $0.10). Almost all of it is output (~4.7M tokens). The token-per-word figures are estimates —
+read the real spend after the pilot; `--max-spend` stops the run before the next verse once it is reached.
+Spend is recorded in the checkpoint and per-verse log, **not** in `AiUsageLog`.
+
+**Why one language per call.** The output is the same either way, so the time is the same (the run is
+sequential) and one call per language costs only about 5% more — the English is sent again for each language
+and the instructions are read again from the cache. It was chosen because a language cannot lean on the one
+written just before it in the same answer (Marathi after Hindi shares a script and many words), the last
+language of a long answer (Tamil) is less likely to be shortened, and a failed call loses one language, not
+three. (That is reasoning, not a measurement; read a sample.) `--group-budget 40000` puts a verse's languages
+together in one call again (~706 calls, ~$48): languages share a call while their estimated output fits the
+budget, and a verse too large for it splits.
+
+**Batch API.** Anthropic's Message Batches API is half price ($1 in / $5 out on Sonnet 5.5; most batches finish
+within an hour, 24 hours at most), which would bring this to roughly $25–30. It is **not built**: it needs a
+submit / poll / collect step and gives up the verse-by-verse, saved-before-the-next behaviour above.
+
+**Getting it into the database.** The saved files are laid out like `en/ch-N.json`: the same `meta`, the same
+verse fields, `transliteration` as one string (lines joined by a line break), Prabhupāda's translation and
+purport as `commentaries` rows (`translatorSlug`, `type`, `language`, `displayOrder`, `text`; a purport's
+paragraphs joined by a line break), and `wordMeanings` as `[{ word, meaning }]` — the list `lib/word-meanings.js`
+already expects. The extra keys (`translatedBy`, `version`, `correctness`, `aiTranslation`) are ignored by
+the importer's helpers. What the database can take today:
+
+| in the file | goes to | state |
+|---|---|---|
+| `commentaries` translation + purport rows | `VerseTranslation` (translator `prabhupada`, `languageCode`, `meaning`, `purport`) | `buildTranslationRows` in `lib/commentaries.js` already turns these rows into one row per language — a test runs a saved verse through it. **`import-bg.js` does not read `hi/`, `mr/`, `ta/` files yet** (it reads `sa/`, `en/` and `dnyaneshwari/mr/`), so a small addition there is all the import needs |
+| `transliteration`, `wordMeanings` | nowhere yet | `Verse.transliteration` and `Verse.wordMeanings` are single, language-neutral columns holding the Roman text and the English meanings. An importer that copied these in would **overwrite them with Hindi, Marathi or Tamil**, so it must not. They need their own home first (for example two nullable columns on the `TRANSLATION` row of `VerseTranslation`) |
+
+Until that is decided the files hold all four items, and the importer addition would read only
+`commentaries`. Re-doing a verse with a new version overwrites it in place in its language file (the earlier
+text survives only in the dated backup); keeping both versions side by side would need a history field.
+
+**Review.** The checks catch structure, omissions and wrong script, not reverence or subtle meaning, and
+Claude's own 3 is only as reliable as its sense of the language. A native reader should review a sample per
+language — Tamil especially — and the verses scored 1 or 2, before this goes in the app. **Not yet run live:**
+no real call has been made with this version; start with `npm run translate:claude:test`.

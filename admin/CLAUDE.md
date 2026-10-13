@@ -216,3 +216,51 @@ rest of the verse form.
   but no meaning is refused (Save is disabled and the row is named), as the API does.
 - Read-only without `verse.write`: inputs disabled, no row controls.
 - A re-import (`backend/scripts/lib/import-verses.js`) replaces these edits from the source files.
+
+## Translations
+
+`routes/translations.tsx` (`/translations`, Content section, permission `translation.read`) is where an admin
+starts, follows and reads Claude's translation of the Gita. The work happens in the backend's worker — see
+"Translation runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md) — so this page is a window onto it and holds
+nothing that matters itself.
+
+| File | Job |
+|---|---|
+| `lib/translation.ts` | Types, the queries and mutations, and `useTranslationLive()`, which patches the query cache from socket events |
+| `lib/socket.ts` | The one shared websocket: `useSocketEvent`, `useSocketStatus`, `useOnReconnect` |
+| `routes/translations.tsx` | The page: health strip, **Runs** / **Output** tabs, in-progress cards, the language grid, history |
+| `components/translation-run-panel.tsx` | One run in full: progress, spend, activity feed, Resume / Cancel (`PAUSE` maps a pause reason to what to tell the admin) |
+| `components/translation-start-dialog.tsx` | New translation: language, chapters, verse limit, spending limit, a live estimate, and what blocks a start |
+| `components/translation-output.tsx` | The reader: language pills, an 18-chapter strip, a verse list with scores, and English beside the translation |
+| `components/translation-bits.tsx` | Small shared pieces: status and score badges, progress bar, durations, money |
+
+- **Nothing on the page is state worth losing.** The tab, the open run, the language, chapter and verse live in the
+  URL (`?tab=runs|output`, `?run=`, `?lang=`, `?chapter=`, `?verse=`), the rest on the server, so a refresh or a pasted
+  link lands on the same view. The only local preference is side-by-side vs. translation only
+  (`hhb_admin_translation_view`).
+- **The socket makes it live; polling makes it correct.** `translation.run` and `translation.activity` events patch the
+  query cache directly, and a reconnect invalidates it. Polling is every 30 s while the socket is live, otherwise every
+  4 s with a run in progress and 15 s without — so a dead websocket (a proxy that does not forward `/ws`) costs
+  latency, not correctness. The header says **Live**, **Connecting…** or **Updating every few seconds**.
+- **`lib/socket.ts` connects to `VITE_WS_URL`**, or when that is blank works the address out from `VITE_API_URL`:
+  `/ws` on the API host (how production nginx serves it) and port 4001 on localhost, where the websocket is its own
+  process (`WS_PORT`). So `VITE_WS_URL` is only for a setup that differs. It reconnects with backoff and jitter,
+  renews the access token on close code 4001, pings every 25 s, and gives up quietly on 4003 (this role may not
+  listen).
+- **Start is gated by the server's overview**, not guessed: no `ANTHROPIC_API_KEY`, a bucket that cannot be reached
+  or a bad `TRANSLATION_VERSION` disable it with the reason; "no worker online" only warns (the run waits in the
+  queue). A second start for a language that has a live run gets a 409 and an "Open that run" link.
+- **Without `translation.run` the page is read-only**: no Start, Resume / Try again or Cancel; View output stays.
+
+Two shared changes were made for this page and apply everywhere:
+
+- `index.css` declares `@custom-variant dark (&:where(.dark, .dark *))`. Tailwind 4's `dark:` follows the OS setting
+  by default; the panel's theme switch sets the `.dark` class on `<html>`, so without this a `dark:` utility ignored the
+  switch. (Warning-coloured *text* on a tinted background uses `text-amber-800 dark:text-amber-300`; the
+  `text-warning-foreground` token is for text on a solid warning fill and is unreadable on dark otherwise.)
+- `components/page-header.tsx` stacks the title above the actions on a phone and lets the actions wrap, instead of
+  squeezing the title into a narrow column.
+
+Not done: the translated transliteration and word meanings are saved to S3 but have no database column yet, so the
+reader shows them from the files and the app cannot (see "Getting it into the database" in
+[../backend/scripts/README.md](../backend/scripts/README.md)).

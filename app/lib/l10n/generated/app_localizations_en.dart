@@ -836,9 +836,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routineCategoryErrand => 'Errand';
 
   @override
-  String get routineSlotLabel => 'Time of day';
-
-  @override
   String get routineSlotMorning => 'Morning';
 
   @override
@@ -849,6 +846,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routineSlotAnytime => 'Anytime';
+
+  @override
+  String get routinePresetWakeUp => 'Wake up';
+
+  @override
+  String get routinePresetMorningChant => 'Morning chanting';
+
+  @override
+  String get routinePresetExercise => 'Exercise';
+
+  @override
+  String get routinePresetBreakfast => 'Breakfast';
+
+  @override
+  String get routinePresetLunch => 'Lunch';
+
+  @override
+  String get routinePresetEveningChant => 'Evening chanting';
+
+  @override
+  String get routinePresetDinner => 'Dinner';
+
+  @override
+  String get routinePresetScriptureReading => 'Scripture reading';
+
+  @override
+  String get routinePresetSleep => 'Sleep';
+
+  @override
+  String get routineTaskNameLabel => 'Task name';
+
+  @override
+  String get routineWindowHeading => 'Standard time';
+
+  @override
+  String get routineWindowHint =>
+      'Done inside this range counts as on time; before it is early, after it is late.';
+
+  @override
+  String get routineWindowSet => 'Set a time range';
+
+  @override
+  String get routineWindowClear => 'Remove time range';
+
+  @override
+  String get routineWindowFrom => 'From';
+
+  @override
+  String get routineWindowTo => 'To';
+
+  @override
+  String routineWindowRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get routineWindowInvalid => 'The end must be after the start.';
+
+  @override
+  String get routineStatusNotDone => 'Not done';
+
+  @override
+  String get routineStatusDone => 'Done';
+
+  @override
+  String get routineStatusEarly => 'Early';
+
+  @override
+  String get routineStatusOnTime => 'On time';
+
+  @override
+  String get routineStatusLate => 'Late';
+
+  @override
+  String routineStatusAtTime(String status, String time) {
+    return '$status · $time';
+  }
+
+  @override
+  String get routineChangeTime => 'Change time';
+
+  @override
+  String get routinePickDoneTime => 'When was this done?';
 
   @override
   String get routineSaveAction => 'Add to this day';

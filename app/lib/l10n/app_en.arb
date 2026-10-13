@@ -561,11 +561,56 @@
   "routineCategoryWork": "Work",
   "routineCategoryHome": "Home",
   "routineCategoryErrand": "Errand",
-  "routineSlotLabel": "Time of day",
   "routineSlotMorning": "Morning",
   "routineSlotAfternoon": "Afternoon",
   "routineSlotEvening": "Evening",
   "routineSlotAnytime": "Anytime",
+  "routinePresetWakeUp": "Wake up",
+  "routinePresetMorningChant": "Morning chanting",
+  "routinePresetExercise": "Exercise",
+  "routinePresetBreakfast": "Breakfast",
+  "routinePresetLunch": "Lunch",
+  "routinePresetEveningChant": "Evening chanting",
+  "routinePresetDinner": "Dinner",
+  "routinePresetScriptureReading": "Scripture reading",
+  "routinePresetSleep": "Sleep",
+  "routineTaskNameLabel": "Task name",
+  "routineWindowHeading": "Standard time",
+  "routineWindowHint": "Done inside this range counts as on time; before it is early, after it is late.",
+  "routineWindowSet": "Set a time range",
+  "routineWindowClear": "Remove time range",
+  "routineWindowFrom": "From",
+  "routineWindowTo": "To",
+  "routineWindowRange": "{start} – {end}",
+  "@routineWindowRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWindowInvalid": "The end must be after the start.",
+  "routineStatusNotDone": "Not done",
+  "routineStatusDone": "Done",
+  "routineStatusEarly": "Early",
+  "routineStatusOnTime": "On time",
+  "routineStatusLate": "Late",
+  "routineStatusAtTime": "{status} · {time}",
+  "@routineStatusAtTime": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "routineChangeTime": "Change time",
+  "routinePickDoneTime": "When was this done?",
   "routineSaveAction": "Add to this day",
   "routineTaskRemoved": "Removed from this day",
   "routineUndo": "Undo",

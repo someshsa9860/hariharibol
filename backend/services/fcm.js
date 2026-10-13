@@ -22,9 +22,12 @@ const DEAD_TOKEN_CODES = new Set([
   'messaging/invalid-argument',
 ]);
 
-function buildMessage({ title, body, data }) {
+function buildMessage({ title, body, image, data }) {
   return {
-    notification: { title, body },
+    // `imageUrl` is the big picture on Android. It must be a link a phone can
+    // open — one FCM refuses fails the whole send, and an invalid-argument
+    // failure reads as a dead token below, so callers pass only https links.
+    notification: { title, body, ...(image ? { imageUrl: image } : {}) },
     // FCM data values must all be strings — a number here fails the whole send.
     data: Object.fromEntries(
       Object.entries(data || {}).map(([key, value]) => [key, String(value ?? '')])

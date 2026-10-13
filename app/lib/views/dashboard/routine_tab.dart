@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/constants/routine_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -38,8 +39,54 @@ class RoutineTab extends ConsumerWidget {
           day: ref.read(selectedRoutineDayProvider),
           title: draft.title,
           category: draft.category,
-          slot: draft.slot,
+          window: draft.window,
         );
+  }
+
+  /// Ticks a task, noting when. Today's is ticked at the time it is now; a
+  /// task on another day asks, since "now" means nothing there, starting the
+  /// picker at the opening of its range. A done task is unticked, and the time
+  /// goes with the tick.
+  Future<void> _toggle(
+    BuildContext context,
+    WidgetRef ref,
+    RoutineTask task,
+  ) async {
+    final notifier = ref.read(routineProvider.notifier);
+    if (task.isDone) return notifier.unmark(task);
+
+    final isToday = task.day == routineDayKey(DateTime.now());
+    final minute = isToday
+        ? routineMinuteOf(DateTime.now())
+        : await _askTime(
+            context,
+            task.window?.start ?? RoutineConfig.otherDayPickerMinute,
+          );
+    if (minute == null) return;
+    await notifier.markDone(task, minute: minute);
+  }
+
+  /// Changes the time a done task was done at.
+  Future<void> _editTime(
+    BuildContext context,
+    WidgetRef ref,
+    RoutineTask task,
+  ) async {
+    final minute = await _askTime(
+      context,
+      task.doneAt ?? routineMinuteOf(DateTime.now()),
+    );
+    if (minute == null) return;
+    await ref.read(routineProvider.notifier).markDone(task, minute: minute);
+  }
+
+  Future<int?> _askTime(BuildContext context, int initial) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: routineTimeOf(initial),
+      helpText: AppLocalizations.of(context).routinePickDoneTime,
+    );
+    return picked == null ? null : routineMinuteOfTime(picked);
   }
 
   Future<void> _remove(
@@ -74,6 +121,9 @@ class RoutineTab extends ConsumerWidget {
     final isEkadashi = ref.watch(ekadashiCalendarProvider).isEkadashi(day);
 
     return Scaffold(
+      // The keyboard belongs to the sheets opened from here; the page behind
+      // them stays as it is instead of being squeezed into what is left.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -105,25 +155,36 @@ class RoutineTab extends ConsumerWidget {
             ),
             Expanded(
               child: tasks.isEmpty
-                  ? Center(
-                      child: EmptyState(
-                        message: text.routineEmptyBody,
-                        icon: Icons.checklist_outlined,
-                        action: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FilledButton.icon(
-                              onPressed: () => _addTask(context, ref),
-                              icon: const Icon(Icons.add_rounded),
-                              label: Text(text.routineAddTask),
+                  // Scrolls, so a short screen never overflows it.
+                  ? LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: EmptyState(
+                              message: text.routineEmptyBody,
+                              icon: Icons.checklist_outlined,
+                              action: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FilledButton.icon(
+                                    onPressed: () => _addTask(context, ref),
+                                    icon: const Icon(Icons.add_rounded),
+                                    label: Text(text.routineAddTask),
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  TextButton.icon(
+                                    onPressed: () =>
+                                        showDailyRoutineSheet(context),
+                                    icon: const Icon(Icons.repeat_rounded),
+                                    label: Text(text.routineManageDaily),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            TextButton.icon(
-                              onPressed: () => showDailyRoutineSheet(context),
-                              icon: const Icon(Icons.repeat_rounded),
-                              label: Text(text.routineManageDaily),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     )
@@ -137,8 +198,9 @@ class RoutineTab extends ConsumerWidget {
                               tasks: tasks
                                   .where((task) => task.slot == slot)
                                   .toList(),
-                              onToggle: (task) =>
-                                  ref.read(routineProvider.notifier).toggle(task),
+                              onToggle: (task) => _toggle(context, ref, task),
+                              onEditTime: (task) =>
+                                  _editTime(context, ref, task),
                               onDismissed: (task) =>
                                   _remove(context, ref, task),
                             ),
@@ -283,12 +345,14 @@ class _SlotSection extends StatelessWidget {
     required this.slot,
     required this.tasks,
     required this.onToggle,
+    required this.onEditTime,
     required this.onDismissed,
   });
 
   final RoutineSlot slot;
   final List<RoutineTask> tasks;
   final ValueChanged<RoutineTask> onToggle;
+  final ValueChanged<RoutineTask> onEditTime;
   final ValueChanged<RoutineTask> onDismissed;
 
   @override
@@ -309,6 +373,7 @@ class _SlotSection extends StatelessWidget {
               key: ValueKey('${task.isDaily}-${task.id}'),
               task: task,
               onToggle: () => onToggle(task),
+              onEditTime: () => onEditTime(task),
               onDismissed: () => onDismissed(task),
             ),
         ],

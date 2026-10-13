@@ -171,6 +171,36 @@ abstract final class AppColors {
   static Color forWeekday(int weekday, {required bool isLight}) =>
       (isLight ? weekdayLight : weekdayDark)[weekday % DateTime.daysPerWeek];
 
+  // ── How on time a routine task was ─────────────────────────────────────────
+
+  /// The second place the palette rule bends, and by a decision of the
+  /// product, not a drift: a ticked routine task is coloured by when it was
+  /// done against its standard time — **early yellow, on time green, late red**
+  /// — and one not yet ticked is the muted grey of the theme.
+  ///
+  /// The rule's reason still holds, so the colour is never the only thing that
+  /// says it: every one of these sits next to the word *Early*, *On time* or
+  /// *Late* and the time itself. Used for the status icon and the pill's
+  /// border and wash; the words are in the ordinary ink, so the contrast of
+  /// the text never depends on these. Each is at least 3:1 on its card in its
+  /// own theme (`test/routine_status_test.dart`), the bar for a graphic.
+  ///
+  /// Dark mode has its own, lighter set, for the same reason the weekday ones
+  /// do.
+  static const Color earlyLight = Color(0xFFB07A00);
+  static const Color onTimeLight = Color(0xFF15803D);
+  static const Color lateLight = Color(0xFFDC2626);
+
+  static const Color earlyDark = Color(0xFFFACC15);
+  static const Color onTimeDark = Color(0xFF4ADE80);
+  static const Color lateDark = Color(0xFFF87171);
+
+  static Color early({required bool isLight}) =>
+      isLight ? earlyLight : earlyDark;
+  static Color onTime({required bool isLight}) =>
+      isLight ? onTimeLight : onTimeDark;
+  static Color late({required bool isLight}) => isLight ? lateLight : lateDark;
+
   static const Color panelFrom = Color(0xFFFDF0DC);
   static const Color panelTo = Color(0xFFF6D9AE);
   static const Color panelFromDark = Color(0xFF141414);

@@ -839,9 +839,6 @@ class AppLocalizationsAs extends AppLocalizations {
   String get routineCategoryErrand => 'বাহিৰৰ কাম';
 
   @override
-  String get routineSlotLabel => 'দিনৰ সময়';
-
-  @override
   String get routineSlotMorning => 'ৰাতিপুৱা';
 
   @override
@@ -852,6 +849,89 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get routineSlotAnytime => 'যিকোনো সময়ত';
+
+  @override
+  String get routinePresetWakeUp => 'সাৰ পোৱা';
+
+  @override
+  String get routinePresetMorningChant => 'ৰাতিপুৱাৰ জপ';
+
+  @override
+  String get routinePresetExercise => 'ব্যায়াম';
+
+  @override
+  String get routinePresetBreakfast => 'ৰাতিপুৱাৰ জলপান';
+
+  @override
+  String get routinePresetLunch => 'দুপৰীয়াৰ আহাৰ';
+
+  @override
+  String get routinePresetEveningChant => 'সন্ধ্যাৰ জপ';
+
+  @override
+  String get routinePresetDinner => 'ৰাতিৰ আহাৰ';
+
+  @override
+  String get routinePresetScriptureReading => 'শাস্ত্ৰ পাঠ';
+
+  @override
+  String get routinePresetSleep => 'টোপনি';
+
+  @override
+  String get routineTaskNameLabel => 'কামৰ নাম';
+
+  @override
+  String get routineWindowHeading => 'নিৰ্ধাৰিত সময়';
+
+  @override
+  String get routineWindowHint =>
+      'এই সময়সীমাৰ ভিতৰত কৰিলে ঠিক সময়ত, তাৰ আগতে কৰিলে আগতীয়া আৰু তাৰ পাছত কৰিলে পলমকৈ গণ্য কৰা হয়।';
+
+  @override
+  String get routineWindowSet => 'সময়সীমা ঠিক কৰক';
+
+  @override
+  String get routineWindowClear => 'সময়সীমা আঁতৰাওক';
+
+  @override
+  String get routineWindowFrom => 'পৰা';
+
+  @override
+  String get routineWindowTo => 'লৈ';
+
+  @override
+  String routineWindowRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get routineWindowInvalid => 'শেষৰ সময় আৰম্ভণিৰ পাছত হব লাগিব।';
+
+  @override
+  String get routineStatusNotDone => 'সম্পন্ন হোৱা নাই';
+
+  @override
+  String get routineStatusDone => 'সম্পন্ন';
+
+  @override
+  String get routineStatusEarly => 'আগতীয়া';
+
+  @override
+  String get routineStatusOnTime => 'ঠিক সময়ত';
+
+  @override
+  String get routineStatusLate => 'পলমকৈ';
+
+  @override
+  String routineStatusAtTime(String status, String time) {
+    return '$status · $time';
+  }
+
+  @override
+  String get routineChangeTime => 'সময় সলনি কৰক';
+
+  @override
+  String get routinePickDoneTime => 'এইটো কেতিয়া সম্পন্ন হৈছিল?';
 
   @override
   String get routineSaveAction => 'এই দিনটোত যোগ কৰক';

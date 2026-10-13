@@ -131,7 +131,6 @@ void main() {
             day: tomorrow,
             title: 'Temple visit',
             category: RoutineCategory.devotion,
-            slot: RoutineSlot.morning,
           );
 
       expect(c.read(routineDayProvider(routineDayKey(tomorrow))), hasLength(1));
@@ -144,7 +143,6 @@ void main() {
       await notifier.addDaily(
         title: 'Japa',
         category: RoutineCategory.devotion,
-        slot: RoutineSlot.morning,
       );
 
       expect(c.read(routineDayProvider(routineDayKey(today))), hasLength(1));
@@ -158,10 +156,9 @@ void main() {
       await notifier.addDaily(
         title: 'Japa',
         category: RoutineCategory.devotion,
-        slot: RoutineSlot.morning,
       );
       final onToday = c.read(routineDayProvider(routineDayKey(today))).single;
-      await notifier.toggle(onToday);
+      await notifier.markDone(onToday, minute: 6 * 60);
 
       expect(c.read(routineDayProvider(routineDayKey(today))).single.isDone, isTrue);
       expect(
@@ -169,7 +166,7 @@ void main() {
         isFalse,
       );
 
-      await notifier.toggle(c.read(routineDayProvider(routineDayKey(today))).single);
+      await notifier.unmark(c.read(routineDayProvider(routineDayKey(today))).single);
       expect(c.read(routineDayProvider(routineDayKey(today))).single.isDone, isFalse);
     });
 
@@ -179,7 +176,6 @@ void main() {
       await notifier.addDaily(
         title: 'Japa',
         category: RoutineCategory.devotion,
-        slot: RoutineSlot.morning,
       );
       await notifier.removeDaily(c.read(routineProvider).daily.single.id);
 
@@ -193,16 +189,19 @@ void main() {
           .addDaily(
             title: 'Japa',
             category: RoutineCategory.devotion,
-            slot: RoutineSlot.morning,
           );
       await first
           .read(routineProvider.notifier)
-          .toggle(first.read(routineDayProvider(routineDayKey(today))).single);
+          .markDone(
+            first.read(routineDayProvider(routineDayKey(today))).single,
+            minute: 6 * 60 + 15,
+          );
 
       final second = container();
       final back = second.read(routineDayProvider(routineDayKey(today)));
       expect(back.single.title, 'Japa');
       expect(back.single.isDone, isTrue);
+      expect(back.single.doneAt, 6 * 60 + 15);
     });
 
     test('tasks saved before they had a day land on the day they were last open', () async {
@@ -336,6 +335,8 @@ void main() {
       await tester.tap(find.text('Add to daily routine'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Morning japa');
+      // Save is only live once there is a name, so it needs the frame.
+      await tester.pump();
       await tester.tap(find.text('Add to every day'));
       await tester.pumpAndSettle();
       // Close the daily sheet.

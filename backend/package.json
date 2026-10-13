@@ -27,6 +27,10 @@
     "cache:books": "node scripts/export-book-cache.js",
     "fill:prabhupada": "node scripts/fill-prabhupada-source.js",
     "fill:status": "node scripts/fill-status.js",
+    "translate:claude": "node scripts/translate-claude.js",
+    "translate:claude:status": "node scripts/translate-claude.js --status",
+    "translate:claude:test": "node scripts/translate-claude.js --test",
+    "translate:claude:dry": "node scripts/translate-claude.js --dry-run",
     "docs:export": "node docs/export.js",
     "graph": "node scripts/code-graph.js",
     "test": "node --test \"test/*.test.js\"",
@@ -39,14 +43,17 @@
     "test:chant": "node scripts/chant-e2e.js",
     "test:mantra-mala": "node scripts/mantra-mala-e2e.js",
     "test:sampradaya": "node scripts/sampradaya-e2e.js",
-    "test:book-counts": "node scripts/book-counts-e2e.js"
+    "test:book-counts": "node scripts/book-counts-e2e.js",
+    "test:translation": "node scripts/translation-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@aws-sdk/client-s3": "^3.658.0",
     "@aws-sdk/s3-request-presigner": "^3.658.0",
+    "@napi-rs/canvas": "^1.0.11",
     "@prisma/client": "^6.0.0",
     "@scalar/express-api-reference": "^0.4.0",
     "@smithy/node-http-handler": "^4.12.1",

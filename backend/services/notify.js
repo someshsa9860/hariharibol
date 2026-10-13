@@ -10,7 +10,7 @@ import logger from '../config/logger.js';
 import * as fcm from './fcm.js';
 import * as websocket from './websocket.js';
 
-async function toUser(userId, { type, title, body, data, push = true }) {
+async function toUser(userId, { type, title, body, image, data, push = true }) {
   const notification = await prisma.notification.create({
     data: { userId, type, title, body, data: data || null },
   });
@@ -30,6 +30,7 @@ async function toUser(userId, { type, title, body, data, push = true }) {
     const result = await fcm.sendToUser(userId, {
       title,
       body,
+      image,
       data: { ...(data || {}), notificationId: notification.id, type },
     });
     if (result.sent > 0) {

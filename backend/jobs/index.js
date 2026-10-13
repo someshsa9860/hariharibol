@@ -1,6 +1,6 @@
 // The queues.
 //
-// Seven of them rather than one, because they fail differently and should not
+// Eight of them rather than one, because they fail differently and should not
 // block each other: an AI batch pass that takes twenty minutes must not sit in
 // front of a chanting reminder, and a payment retry storm must not delay the
 // morning slokas.
@@ -13,12 +13,19 @@ import { Queue } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { defaultJobOptions } from '../config/cron.js';
 
-const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content'];
+const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation'];
+
+// A queue that needs different job options than the default says so here. A translation run is hours
+// long and costs money, so BullMQ never retries it by itself: the processor decides what a failure
+// means (jobs/processors/translation.js) and the TranslationRun row records it.
+const QUEUE_JOB_OPTIONS = {
+  translation: { attempts: 1 },
+};
 
 const queues = Object.fromEntries(
   QUEUE_NAMES.map((name) => [
     name,
-    new Queue(name, { connection: bullConnection, defaultJobOptions }),
+    new Queue(name, { connection: bullConnection, defaultJobOptions: { ...defaultJobOptions, ...QUEUE_JOB_OPTIONS[name] } }),
   ])
 );
 
@@ -35,6 +42,7 @@ const JOBS = {
   BOOK_CACHE_EXPORT: 'book.cache.export',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
+  TRANSLATION_RUN: 'translation.run',
 };
 
 async function closeQueues() {

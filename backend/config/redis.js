@@ -26,6 +26,8 @@ const bullConnection = { url: env.REDIS_URL, maxRetriesPerRequest: null };
 const channels = {
   userEvent: 'ws:user',
   broadcast: 'ws:broadcast',
+  // To every connected user whose role carries a permission (the admin panel's live pages).
+  permissionEvent: 'ws:permission',
 };
 
 export { redis, publisher, createClient, bullConnection, channels };

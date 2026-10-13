@@ -35,7 +35,7 @@ class _DailyRoutineSheet extends ConsumerWidget {
         .addDaily(
           title: draft.title,
           category: draft.category,
-          slot: draft.slot,
+          window: draft.window,
         );
   }
 
@@ -95,7 +95,11 @@ class _DailyRoutineSheet extends ConsumerWidget {
                                 color: context.colors.onSurfaceVariant,
                               ),
                               title: Text(item.title),
-                              subtitle: Text(routineSlotLabel(text, item.slot)),
+                              subtitle: Text(
+                                item.window == null
+                                    ? routineSlotLabel(text, item.slot)
+                                    : routineWindowLabel(context, item.window!),
+                              ),
                               trailing: IconButton(
                                 tooltip: text.routineDailyRemove,
                                 icon: const Icon(Icons.delete_outline_rounded),

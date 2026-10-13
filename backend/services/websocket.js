@@ -28,6 +28,12 @@ function broadcast(event, payload) {
   publish(channels.broadcast, { event, payload, at: Date.now() });
 }
 
+// To everyone connected whose role carries `permission` — the admin panel's live pages, which
+// must not be broadcast to the app's users.
+function toPermission(permission, event, payload) {
+  publish(channels.permissionEvent, { permission, event, payload, at: Date.now() });
+}
+
 // The events the app knows how to handle. Listed so both sides of the wire
 // agree on the names without one of them guessing.
 const EVENTS = {
@@ -36,6 +42,9 @@ const EVENTS = {
   CHANT_PROGRESS: 'chant.progress',
   ENTITLEMENT_CHANGED: 'entitlement.changed',
   ANNOUNCEMENT: 'announcement',
+  // Admin panel, to `translation.read`: a run's whole state, and one line of its activity feed.
+  TRANSLATION_RUN: 'translation.run',
+  TRANSLATION_ACTIVITY: 'translation.activity',
 };
 
-export { toUser, broadcast, EVENTS };
+export { toUser, broadcast, toPermission, EVENTS };
