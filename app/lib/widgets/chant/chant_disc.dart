@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../common/animations.dart';
+import '../common/app_image.dart';
 import '../dashboard/mala_ring.dart';
 
 /// The thing that is tapped: the bead ring on a soft round panel, with a ring
@@ -21,6 +22,8 @@ class ChantDisc extends StatelessWidget {
     required this.beadsPerRound,
     required this.pulse,
     required this.onTap,
+    this.centerImageUrl,
+    this.centerImageKey,
   });
 
   final int beadsInRound;
@@ -30,10 +33,18 @@ class ChantDisc extends StatelessWidget {
   final int pulse;
   final VoidCallback onTap;
 
+  /// The deity, shown faintly in the middle of the ring behind the count. The
+  /// ring and the numbers are drawn exactly as they are without it.
+  final String? centerImageUrl;
+  final String? centerImageKey;
+
   /// The largest the disc grows; on a narrower screen it takes the width it
   /// is given instead.
   static const double _maxSize = 304;
   static const double _inset = 12;
+  /// Inside the ring of beads, faint enough that the count on top stays readable.
+  static const double _centerImageShare = 0.62;
+  static const double _centerImageOpacity = 0.28;
   static const double _rippleStart = 0.9;
   static const double _rippleGrow = 0.1;
   static const double _rippleOpacity = 0.5;
@@ -76,6 +87,21 @@ class ChantDisc extends StatelessWidget {
                 child: const SizedBox.expand(),
               ),
             ),
+            if (centerImageUrl != null && centerImageUrl!.isNotEmpty)
+              IgnorePointer(
+                child: Opacity(
+                  opacity: _centerImageOpacity,
+                  child: ClipOval(
+                    child: AppImage(
+                      url: centerImageUrl,
+                      cacheKey: centerImageKey,
+                      width: size * _centerImageShare,
+                      height: size * _centerImageShare,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                ),
+              ),
             if (pulse > 0)
               IgnorePointer(
                 child: TweenAnimationBuilder<double>(

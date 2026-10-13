@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "આપમેળે ગણતરી",
   "sadhanaAutoCountOff": "બંધ — મણકો જાતે ટેપ કરો",
   "sadhanaAutoCountIdle": "જપની રાહ જોઈ રહ્યું છે",
+  "chantAutoCountLoading": "ઑટો કાઉન્ટ તૈયાર થઈ રહ્યું છે…",
+  "chantFullPicture": "પૂર્ણ સ્ક્રીન ચિત્ર",
   "sadhanaAutoCountListening": "સાંભળી રહ્યું છે…",
   "sadhanaAutoCountCounted": "ગણાયું — આગળની રાહ જોઈ રહ્યું છે",
   "sadhanaAutoCountPermissionDenied": "આપમેળે ગણતરી માટે માઇક્રોફોનની પરવાનગી જોઈએ",

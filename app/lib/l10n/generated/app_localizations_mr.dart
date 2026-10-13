@@ -374,6 +374,12 @@ class AppLocalizationsMr extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'जपाची प्रतीक्षा आहे';
 
   @override
+  String get chantAutoCountLoading => 'स्वयंचलित मोजणी तयार होत आहे…';
+
+  @override
+  String get chantFullPicture => 'पूर्ण स्क्रीन चित्र';
+
+  @override
   String get sadhanaAutoCountListening => 'ऐकत आहे…';
 
   @override

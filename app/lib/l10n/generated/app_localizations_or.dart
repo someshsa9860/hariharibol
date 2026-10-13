@@ -375,6 +375,12 @@ class AppLocalizationsOr extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'ଜପ ପାଇଁ ଅପେକ୍ଷା କରୁଛି';
 
   @override
+  String get chantAutoCountLoading => 'ଅଟୋ ଗଣନା ପ୍ରସ୍ତୁତ ହେଉଛି…';
+
+  @override
+  String get chantFullPicture => 'ପୂର୍ଣ୍ଣ ସ୍କ୍ରିନ ଚିତ୍ର';
+
+  @override
   String get sadhanaAutoCountListening => 'ଶୁଣୁଛି…';
 
   @override

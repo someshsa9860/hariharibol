@@ -93,9 +93,14 @@ const namedBody = z.object({
   isPublished: z.boolean().optional(),
 });
 
+// A deity also has a full-screen picture (9:16) for the chant screen.
+const deityBody = namedBody.extend({
+  fullImagePath: z.string().max(500).nullable().optional(),
+});
+
 resource('deities', 'deities', controller.deity, {
-  create: namedBody,
-  update: namedBody.partial(),
+  create: deityBody,
+  update: deityBody.partial(),
 });
 
 resource('gurus', 'gurus', controller.guru, {

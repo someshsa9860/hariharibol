@@ -191,6 +191,8 @@ class SadhanaToday {
     required this.streak,
     required this.beadsPerRound,
     this.profile,
+    this.favoriteMantraSlug,
+    this.favoriteMantraName,
   });
 
   final String date;
@@ -205,6 +207,15 @@ class SadhanaToday {
 
   final SadhanaProfile? profile;
 
+  /// The mantra this person has chanted most lately, worked out by the server.
+  final String? favoriteMantraSlug;
+  final String? favoriteMantraName;
+
+  /// What "Chant now" opens: the mantra they chose, else the one they keep
+  /// coming back to, else nothing (the plain counter).
+  String? get chantMantraSlug => profile?.preferredMantraSlug ?? favoriteMantraSlug;
+  String? get chantMantraName => profile?.preferredMantraName ?? favoriteMantraName;
+
   factory SadhanaToday.fromJson(Json json) => SadhanaToday(
         date: asString(json['date']),
         day: SadhanaDay.fromJson(asJson(json['day']) ?? const {}),
@@ -215,5 +226,11 @@ class SadhanaToday {
         profile: asJson(json['profile']) == null
             ? null
             : SadhanaProfile.fromJson(asJson(json['profile'])!),
+        favoriteMantraSlug: asJson(json['favoriteMantra']) == null
+            ? null
+            : asStringOrNull(asJson(json['favoriteMantra'])!['slug']),
+        favoriteMantraName: asJson(json['favoriteMantra']) == null
+            ? null
+            : asStringOrNull(asJson(json['favoriteMantra'])!['name']),
       );
 }

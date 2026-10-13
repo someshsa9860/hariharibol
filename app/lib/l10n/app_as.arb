@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "স্বয়ংক্ৰিয় গণনা",
   "sadhanaAutoCountOff": "বন্ধ — নিজেই গুটিত টেপ কৰক",
   "sadhanaAutoCountIdle": "জপৰ বাবে অপেক্ষা কৰি আছে",
+  "chantAutoCountLoading": "স্বয়ংক্ৰিয় গণনা সাজু হৈ আছে…",
+  "chantFullPicture": "পূৰ্ণ পৰ্দাৰ ছবি",
   "sadhanaAutoCountListening": "শুনি আছে…",
   "sadhanaAutoCountCounted": "গণনা কৰা হৈছে — পৰৱৰ্তীটোৰ বাবে শুনি আছে",
   "sadhanaAutoCountPermissionDenied": "স্বয়ংক্ৰিয় গণনাৰ বাবে মাইক্ৰফোনৰ অনুমতি লাগিব",

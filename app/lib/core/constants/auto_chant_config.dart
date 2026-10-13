@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart' show kReleaseMode;
-
 /// Tuning and asset locations for auto-count: listen to the mic, transcribe it
 /// on the phone, match the transcript to the open mantra's phrases, count each
 /// completed repetition — no cloud speech-to-text, no network.
@@ -9,98 +7,12 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 abstract final class AutoChantConfig {
   static const int sampleRate = 16000;
 
-  // ── Logging ─────────────────────────────────────────────────────────────
-  /// Whether auto-count writes `[AutoChant …]` lines to the console (see
-  /// `AutoChantLog`). On in debug and profile builds, off in release; a release
-  /// build can turn it on with `--dart-define=AUTO_CHANT_LOG=true`. The lines
-  /// carry what was heard, so they are for the developer's console only.
-  static const bool logging = bool.fromEnvironment('AUTO_CHANT_LOG', defaultValue: !kReleaseMode);
-
-  /// How often a sitting reports that it is alive: audio received, how loud,
-  /// and whether the recogniser is keeping up.
-  static const Duration logHeartbeat = Duration(seconds: 5);
-
-  /// A heartbeat whose loudest sample is below this (on the samples' 0–1 scale)
-  /// is logged as a silent microphone: a working mic in a quiet room still
-  /// reads well above it, a muted or taken-over one reads exactly zero.
-  static const double logSilentPeak = 0.001;
-
-  // ── What the counter shows of what was heard ────────────────────────────
-  /// How many finished stretches of voice `HeardWords` remembers for the card.
-  static const int heardKept = 6;
-
-  /// The running line shows only its last this many words, like a live caption:
-  /// a long unbroken chant would otherwise push the rest of the card off screen.
-  static const int heardLiveWords = 14;
-
   // ── Bundled model assets ──────────────────────────────────────────────
   static const String vadModelAsset = 'assets/models/auto_chant/vad/silero_vad.onnx';
   static const String kwsEncoderAsset = 'assets/models/auto_chant/kws/encoder.onnx';
   static const String kwsDecoderAsset = 'assets/models/auto_chant/kws/decoder.onnx';
   static const String kwsJoinerAsset = 'assets/models/auto_chant/kws/joiner.onnx';
   static const String kwsTokensAsset = 'assets/models/auto_chant/kws/tokens.txt';
-
-  // ── The sharper recogniser (optional download) ─────────────────────────
-  /// Meta's Omnilingual ASR 300M CTC (Apache-2.0, int8), a recogniser that writes
-  /// Sanskrit and Hindi in Devanagari where the bundled English one guesses at
-  /// English words. Too big to bundle, so it is a download the person chooses,
-  /// from a folder holding [accurateModelFile] and [accurateTokensFile]. Empty
-  /// (the default) means no host is configured and nothing is offered:
-  /// `--dart-define=AUTO_CHANT_MODEL_URL=https://…/omnilingual-300m-int8`.
-  static const String accurateModelBaseUrl = String.fromEnvironment('AUTO_CHANT_MODEL_URL');
-  static const String accurateModelFile = 'model.int8.onnx';
-  static const String accurateTokensFile = 'tokens.txt';
-
-  /// What the two files must be, byte for byte, or the download is thrown away.
-  static const int accurateModelBytes = 365352120;
-  static const int accurateTokensBytes = 86423;
-  static const String accurateModelSha256 = 'e7c4e54ee4c4c47829cc6667d5d00ed8ea7bef1dcfeef0fce766f77752a2726c';
-  static const String accurateTokensSha256 = 'a7a044c52cb29cbe8b0dc1953e92cefd4ca16b0ed968177b6beab21f9a7d0b31';
-
-  /// Where the files live, under the app's support folder.
-  static const String accurateModelFolder = 'auto_chant_omnilingual';
-
-  /// An Android **debug** build can carry the same two files in its own package
-  /// (`tool/fetch_auto_chant_model.sh`), so a test phone has the recogniser with
-  /// no download. The native side (`MainActivity.kt`, which repeats both names)
-  /// copies a file out of the package's assets folder to a path the app gives it.
-  static const String bundledModelChannel = 'com.sss.ramkrishnahari/bundled_model';
-  static const String bundledModelAssetFolder = 'auto_chant';
-
-  /// The bar for the downloadable recogniser. It was 0.65, the one at which no
-  /// false count appeared in 24 minutes of ordinary speech in the offline bench,
-  /// where 0.5 let a Hindi sentence through; it is 0.5 now so that more real
-  /// chanting counts. Not re-measured at 0.5 — watch for counts from plain talk.
-  static const double accurateMatchThreshold = 0.5;
-
-  /// The recogniser is not streaming: a stretch of voice is decoded once it ends,
-  /// or once it has run this long, so a chant that never pauses is still counted.
-  static const int accurateMaxUtteranceSeconds = 12;
-  static const int accurateThreads = 2;
-
-  // ── The virtual pause (see `VirtualPause`) ──────────────────────────────
-  /// Every mantra has a standard chanting time (`Mantra.durationMs`, set in the
-  /// admin panel); one that has none is taken to be this long per letter of its
-  /// standard phrase, as compared.
-  static const double chantSecondsPerLetter = 0.2;
-
-  /// Never shorter than this, so a one-syllable mantra is not cut every second.
-  static const double virtualPauseMinSeconds = 1.5;
-
-  /// After this share of the standard time the next dip in the voice ends the
-  /// stretch; after [virtualPauseLatest] times it, the stretch ends regardless.
-  static const double virtualPauseFrom = 0.8;
-  static const double virtualPauseLatest = 1.4;
-
-  /// A dip is a run of [virtualPauseDipMs] in which the voice stays below this
-  /// share of its own average level, measured in [virtualPauseFrameMs] frames.
-  static const double virtualPauseDipShare = 0.35;
-  static const int virtualPauseDipMs = 100;
-  static const int virtualPauseFrameMs = 20;
-
-  /// It holds about 1 GB while decoding. A phone with less memory than this is
-  /// not offered it, rather than offered a download that ends the app.
-  static const int accurateMinRamMegabytes = 3500;
 
   // ── Voice activity detection (Silero VAD) ──────────────────────────────
   static const double vadThreshold = 0.5;
@@ -123,9 +35,6 @@ abstract final class AutoChantConfig {
   /// real chanting uncounted. The price is that other speech reaches it more
   /// easily too. A match counts as soon as it is settled — it does not wait for
   /// a pause — so a chant that never stops is counted as it goes.
-  ///
-  /// It is the bar for the bundled recogniser; the downloadable one has its own
-  /// ([accurateMatchThreshold]).
   static const double matchThreshold = 0.36;
 
   /// Very short mantras (an "Om") would reach the bar by chance, so for a

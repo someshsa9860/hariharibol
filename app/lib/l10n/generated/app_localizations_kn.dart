@@ -375,6 +375,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'ಜಪಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ';
 
   @override
+  String get chantAutoCountLoading => 'ಸ್ವಯಂ ಎಣಿಕೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…';
+
+  @override
+  String get chantFullPicture => 'ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ';
+
+  @override
   String get sadhanaAutoCountListening => 'ಆಲಿಸುತ್ತಿದೆ…';
 
   @override

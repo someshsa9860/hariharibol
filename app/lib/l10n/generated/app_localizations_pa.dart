@@ -375,6 +375,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'ਜਪ ਦੀ ਉਡੀਕ ਹੈ';
 
   @override
+  String get chantAutoCountLoading => 'ਆਟੋ ਗਿਣਤੀ ਤਿਆਰ ਹੋ ਰਹੀ ਹੈ…';
+
+  @override
+  String get chantFullPicture => 'ਪੂਰੀ ਸਕ੍ਰੀਨ ਤਸਵੀਰ';
+
+  @override
   String get sadhanaAutoCountListening => 'ਸੁਣ ਰਿਹਾ ਹੈ…';
 
   @override

@@ -111,6 +111,31 @@ async function currentStreak(userId, timezone) {
   return streak;
 }
 
+// "Chant now" opens the mantra a person keeps coming back to. Looked at over the
+// last stretch of days so it follows what they chant now, and rounds (not
+// sessions) decide it so one long sitting outweighs a few taps.
+const FAVOURITE_WINDOW_DAYS = 60;
+
+async function favouriteMantra(user, mantraStub) {
+  const since = new Date(Date.now() - FAVOURITE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const grouped = await prisma.chantSession.groupBy({
+    by: ['mantraId'],
+    where: { userId: user.id, mantraId: { not: null }, startedAt: { gte: since } },
+    _sum: { rounds: true },
+    _count: { _all: true },
+  });
+  const ranked = grouped
+    .map((g) => ({ id: g.mantraId, rounds: g._sum.rounds || 0, sessions: g._count._all }))
+    .sort((a, b) => b.rounds - a.rounds || b.sessions - a.sessions);
+
+  // The top one may have been unpublished since; fall through to the next.
+  for (const { id } of ranked.slice(0, 5)) {
+    const mantra = await prisma.mantra.findFirst({ where: { id, isPublished: true }, ...mantraStub });
+    if (mantra) return mantra;
+  }
+  return null;
+}
+
 /**
  * GET /api/app/sadhana/today
  * The whole practice screen in one call: the day, its tasks, its sessions, the
@@ -122,7 +147,7 @@ export const today = async (req, res) => {
   const day = await ensureDay(user, date);
   const mantraStub = present.includes.mantraStub(language.readingChain(user));
 
-  const [tasks, sessions, profile, streak] = await Promise.all([
+  const [tasks, sessions, profile, streak, favourite] = await Promise.all([
     prisma.sadhanaTask.findMany({
       where: { sadhanaDayId: day.id },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
@@ -137,6 +162,7 @@ export const today = async (req, res) => {
       include: { preferredMantra: mantraStub },
     }),
     currentStreak(user.id, user.timezone),
+    favouriteMantra(user, mantraStub),
   ]);
 
   return ok(res, {
@@ -153,6 +179,7 @@ export const today = async (req, res) => {
     sessions: sessions.map((session) => ({ ...session, mantra: present.mantraStub(session.mantra, user) })),
     profile: profile && { ...profile, preferredMantra: present.mantraStub(profile.preferredMantra, user) },
     streak,
+    favoriteMantra: present.mantraStub(favourite, user),
     beadsPerRound: BEADS_PER_ROUND,
   });
 };

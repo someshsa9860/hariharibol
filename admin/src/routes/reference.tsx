@@ -20,9 +20,13 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/auth';
+import { ImageUploadField } from '@/components/image-upload-field';
+import type { UploadKind } from '@/lib/upload';
 
 type Field = { key: string; label: string; multiline?: boolean; required?: boolean; options?: string[] };
 type Flag = { key: string; label: string };
+// A picture on the row: `key` is the stored object key, `urlKey` the signed link the API sends back.
+type ImageSlot = { key: string; urlKey: string; label: string; hint: string; kind: UploadKind; ratio: string };
 
 type Item = Record<string, unknown> & { id: string };
 
@@ -38,6 +42,7 @@ type ResourceConfig = {
   hasOrder?: boolean; // has a displayOrder column
   fields: Field[]; // editable text fields (identifier field always included first)
   flags?: Flag[]; // extra yes/no columns, edited as checkboxes
+  images?: ImageSlot[]; // pictures uploaded with the row
   usage?: { label: string; value: (item: Item) => number | undefined }; // how much of the app leans on this row
 };
 
@@ -48,6 +53,16 @@ const CONFIGS: ResourceConfig[] = [
     key: 'deities', path: '/api/admin/reference/deities', label: 'Deities', singular: 'deity', permission: 'reference.manage',
     idField: 'slug', titleField: 'name', activeField: 'isPublished', hasOrder: true,
     fields: [{ key: 'name', label: 'Name', required: true }, { key: 'description', label: 'Description', multiline: true }, { key: 'sampradaya', label: 'Sampradaya' }],
+    images: [
+      {
+        key: 'imagePath', urlKey: 'imageUrl', label: 'Picture', kind: 'deityImage', ratio: '1 / 1',
+        hint: 'Shown in lists, and in the middle of the chant counter. Square works best.',
+      },
+      {
+        key: 'fullImagePath', urlKey: 'fullImageUrl', label: 'Full-screen picture', kind: 'deityFullImage', ratio: '9 / 16',
+        hint: 'Fills the phone while chanting — 9:16 portrait (for example 1080 × 1920).',
+      },
+    ],
   },
   {
     key: 'gurus', path: '/api/admin/reference/gurus', label: 'Gurus', singular: 'guru', permission: 'reference.manage',
@@ -102,6 +117,8 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
   const [form, setForm] = useState<Form>({});
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  // What each picture slot shows: the signed link from the API, or the file just chosen.
+  const [previews, setPreviews] = useState<Record<string, string | null>>({});
 
   // Nothing here is paged past what the API offers: these endpoints take a page
   // and a search term and nothing else, so there is no server-side sort or status filter.
@@ -121,6 +138,12 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
     if (config.hasOrder) next.displayOrder = target === 'new' ? '' : text(target.displayOrder);
     for (const flag of config.flags ?? []) next[flag.key] = target === 'new' ? false : Boolean(target[flag.key]);
     if (active) next[active] = target === 'new' ? true : Boolean(target[active]);
+    const shown: Record<string, string | null> = {};
+    for (const slot of config.images ?? []) {
+      next[slot.key] = target === 'new' ? '' : text(target[slot.key]);
+      shown[slot.key] = target === 'new' ? null : (text(target[slot.urlKey]) || null);
+    }
+    setPreviews(shown);
     setForm(next);
     setFormError('');
     setEditing(target);
@@ -129,7 +152,7 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
   async function save() {
     if (!editing) return;
     const isNew = editing === 'new';
-    const body: Record<string, string | number | boolean> = {};
+    const body: Record<string, string | number | boolean | null> = {};
 
     if (isNew) body[config.idField] = String(form[config.idField]).trim();
     for (const f of config.fields) {
@@ -141,6 +164,11 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
     }
     if (config.hasOrder && String(form.displayOrder ?? '') !== '') body.displayOrder = Number(form.displayOrder);
     for (const flag of config.flags ?? []) body[flag.key] = Boolean(form[flag.key]);
+    for (const slot of config.images ?? []) {
+      const value = String(form[slot.key] ?? '');
+      if (value !== '') body[slot.key] = value;
+      else if (!isNew && text(editing[slot.key]) !== '') body[slot.key] = null; // removed
+    }
     if (active) body[active] = Boolean(form[active]);
 
     setSaving(true);
@@ -370,6 +398,25 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
                   <Input className="mt-1" value={String(form[f.key] ?? '')} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                 )}
               </div>
+            ))}
+            {config.images?.map((slot) => (
+              <ImageUploadField
+                key={slot.key}
+                label={slot.label}
+                hint={slot.hint}
+                kind={slot.kind}
+                ratio={slot.ratio}
+                previewUrl={previews[slot.key] ?? null}
+                hasImage={String(form[slot.key] ?? '') !== ''}
+                onUploaded={(key, localUrl) => {
+                  setForm((f) => ({ ...f, [slot.key]: key }));
+                  setPreviews((p) => ({ ...p, [slot.key]: localUrl }));
+                }}
+                onRemoved={() => {
+                  setForm((f) => ({ ...f, [slot.key]: '' }));
+                  setPreviews((p) => ({ ...p, [slot.key]: null }));
+                }}
+              />
             ))}
             {config.hasOrder && (
               <div>

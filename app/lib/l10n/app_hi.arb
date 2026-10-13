@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "स्वचालित गिनती",
   "sadhanaAutoCountOff": "बंद — मनका खुद टैप करें",
   "sadhanaAutoCountIdle": "जप की प्रतीक्षा है",
+  "chantAutoCountLoading": "स्वचालित गिनती तैयार हो रही है…",
+  "chantFullPicture": "पूरी स्क्रीन की तस्वीर",
   "sadhanaAutoCountListening": "सुन रहा है…",
   "sadhanaAutoCountCounted": "गिना गया — अगले की प्रतीक्षा है",
   "sadhanaAutoCountPermissionDenied": "स्वचालित गिनती के लिए माइक्रोफ़ोन की अनुमति चाहिए",

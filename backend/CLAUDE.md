@@ -381,6 +381,15 @@ Three nullable columns on `Mantra`: `malaAudioPath` (an S3 **key**, under `mantr
   the dev `.env` points at the real bucket, and blank keys make storage fall back to
   `backend/storage/`.
 
+## Deity pictures and the favourite mantra
+
+- A `Deity` has two pictures: `imagePath` (lists, and the middle of the chant counter) and `fullImagePath`
+  (9:16, fills the chant screen; upload kind `deityFullImage`, folder `deities/full`). Both are set on the admin
+  **Reference → Deities** tab and sent on a mantra's `deity` as `imageUrl` / `fullImageUrl`.
+- `GET /api/app/sadhana/today` also returns `favoriteMantra` (`{ id, slug, name }` or null): the published
+  mantra with the most rounds in the user's last 60 days of sessions. The app opens it from "Chant now" when
+  no preferred mantra is set.
+
 ## Sampradaya from chanting
 
 Which tradition someone follows is **worked out from what they chant**, never chosen.
