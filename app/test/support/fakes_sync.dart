@@ -14,6 +14,9 @@ class FakeCacheApi implements BookCacheApi {
   List<ManifestUnit> units;
   final String bookId;
   final String slug;
+
+  /// The server's book cache version, as the admin would set it.
+  int cacheVersion = 1;
   int manifestCalls = 0;
   Object? manifestError;
   final List<String> linkRequests = [];
@@ -24,7 +27,14 @@ class FakeCacheApi implements BookCacheApi {
   Future<CacheManifest> manifest(String book) async {
     manifestCalls++;
     if (manifestError != null) throw manifestError!;
-    return CacheManifest(bookId: bookId, bookSlug: slug, unitType: units.firstOrNull?.unitType, units: units, fetchedAt: DateTime.now());
+    return CacheManifest(
+      bookId: bookId,
+      bookSlug: slug,
+      unitType: units.firstOrNull?.unitType,
+      units: units,
+      fetchedAt: DateTime.now(),
+      cacheVersion: cacheVersion,
+    );
   }
 
   @override

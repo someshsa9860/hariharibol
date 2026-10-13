@@ -1,11 +1,15 @@
 // The app's silent offline sync: what is available to download, and a link to
 // download it. The files themselves are written weekly by services/book-cache.js
 // and fetched by the phone straight from S3, so none of the book text passes
-// through here. Both endpoints read the BookCacheUnit table only.
+// through here. The endpoints read the BookCacheUnit table, and the manifest one
+// runtime setting besides: the cache version.
 
 import { prisma } from '../../config/database.js';
 import { bookCache } from '../../config/book-cache.js';
+import { SETTING_KEYS } from '../../config/constants.js';
 import * as s3 from '../../services/s3.js';
+import * as settings from '../../services/setting.js';
+import { parseCacheVersion } from '../../utils/book-cache.js';
 import { ok } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
 import { verseAudioPath } from '../../utils/verse-audio.js';
@@ -32,6 +36,9 @@ export const manifest = async (req, res) => {
     bookId: book.id,
     bookSlug: book.slug,
     schemaVersion: bookCache.schemaVersion,
+    // Not the file shape (schemaVersion) but "throw away what you hold": a phone
+    // whose copy was made under a different number deletes it and downloads again.
+    cacheVersion: parseCacheVersion(await settings.get(SETTING_KEYS.BOOK_CACHE_VERSION)),
     unitType: rows[0]?.unitType ?? null,
     totalUnits: rows.length,
     updatedAt: rows.reduce((max, r) => (r.updatedAt > max ? r.updatedAt : max), new Date(0)).toISOString(),

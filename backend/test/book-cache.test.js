@@ -115,3 +115,16 @@ test('lock: release by a stale holder does not free someone else’s lock', asyn
   await first.release();
   assert.equal(await acquire('k', 1000, redis), null);
 });
+
+test('cache version: a whole number from 1 is taken as written', () => {
+  assert.equal(cache.parseCacheVersion('1'), 1);
+  assert.equal(cache.parseCacheVersion('7'), 7);
+  assert.equal(cache.parseCacheVersion(' 12 '), 12);
+  assert.equal(cache.parseCacheVersion(3), 3);
+});
+
+test('cache version: anything else is the baseline, never a bump', () => {
+  for (const bad of [null, undefined, '', '  ', 'abc', '0', '-2', '2.5', '1e0x', NaN]) {
+    assert.equal(cache.parseCacheVersion(bad), 1, `${JSON.stringify(bad)}`);
+  }
+});

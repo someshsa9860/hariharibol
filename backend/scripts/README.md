@@ -83,6 +83,11 @@ widen it.
   for some verses (a spread of short, long and compound ones when none are
   named) into `storage/sloka-card-preview/`. Uploads nothing and sends nothing;
   see "The daily sloka push" in `../CLAUDE.md`.
+- `sloka-push-demo.js <email> [verse-id …]` — sends the daily sloka push for
+  some verses (the preview's spread when none are named) to that person's own
+  devices, six seconds apart. Builds each push the way the hourly job does, but
+  writes no Notification row and marks no sloka delivered. Needs Firebase
+  credentials; draws and stores each verse's picture in the media bucket first.
 - `recount-books.js [--dry-run] [book-slug …]` — rebuilds the verse, chapter and
   canto counts from the rows that are there. See "Counts" below.
 

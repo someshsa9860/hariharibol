@@ -36,6 +36,14 @@ const KNOWN = {
     label: 'Signups open',
     help: 'true or false. Existing accounts keep working when off.',
   },
+  [SETTING_KEYS.BOOK_CACHE_VERSION]: {
+    label: 'Offline book cache version',
+    help:
+      'A whole number, 1 or more. Raise it and every phone deletes the offline books it holds and ' +
+      'downloads them again, the next time each book is opened. Leave it alone otherwise — an ' +
+      'edited verse already reaches phones by itself.',
+    integerMin: 1,
+  },
 };
 
 /** GET /api/admin/settings */
@@ -64,6 +72,14 @@ export const set = async (req, res) => {
   const meta = KNOWN[key];
   if (meta?.options && !meta.options.includes(value)) {
     throw badRequest(`${key} must be one of: ${meta.options.join(', ')}`);
+  }
+  // Refused rather than stored: a value the reader of this setting cannot use
+  // would be ignored without a word, and the admin would believe it had worked.
+  if (meta?.integerMin !== undefined) {
+    const n = Number(value);
+    if (value.trim() === '' || !Number.isInteger(n) || n < meta.integerMin) {
+      throw badRequest(`${key} must be a whole number, ${meta.integerMin} or more`);
+    }
   }
 
   const row = await settings.set(key, value, {

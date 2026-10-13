@@ -69,6 +69,8 @@ async function main() {
   const users = [admin.user.id, reader.user.id];
   const books = [];
   let translator = null;
+  const VERSION_KEY = 'book.cache_version';
+  const versionBefore = await prisma.appSetting.findUnique({ where: { key: VERSION_KEY } });
 
   try {
     // ── fixture ─────────────────────────────────────────────────────────────
@@ -193,6 +195,27 @@ async function main() {
     books.push(draft);
     check('an unpublished book is a 404', (await call('GET', `/api/app/books/${draft.slug}/manifest`)).status === 404);
 
+    // ── cache version ───────────────────────────────────────────────────────
+    console.log('\nCache version');
+    const putVersion = (value) => call('PUT', `/api/admin/settings/${VERSION_KEY}`, { token: admin.token, body: { value } });
+    const versionOf = async (slug) => (await call('GET', `/api/app/books/${slug}/manifest`)).json.data.cacheVersion;
+    await prisma.appSetting.deleteMany({ where: { key: VERSION_KEY } });
+    await redis.del(`setting:${VERSION_KEY}`);
+    check('unset is version 1', (await versionOf(cantoBook.slug)) === 1);
+    check('a reader may not change it', (await call('PUT', `/api/admin/settings/${VERSION_KEY}`, { token: reader.token, body: { value: '2' } })).status === 403);
+    check('an admin can set it', (await putVersion('5')).status === 200);
+    check('the manifest carries it at once', (await versionOf(cantoBook.slug)) === 5);
+    check('every book gets the same number, exported or not', (await versionOf(empty.slug)) === 5 && (await versionOf(chapterBook.slug)) === 5);
+    const afterBump = (await call('GET', `/api/app/books/${cantoBook.slug}/manifest`)).json.data.units;
+    check('a bump leaves the units alone: same versions, same hashes', JSON.stringify(afterBump) === JSON.stringify(mf.json.data.units));
+    for (const bad of ['0', '-1', '2.5', 'abc', '']) {
+      check(`"${bad}" is refused`, (await putVersion(bad)).status === 400);
+    }
+    check('and the refused values changed nothing', (await versionOf(cantoBook.slug)) === 5);
+    await prisma.appSetting.update({ where: { key: VERSION_KEY }, data: { value: 'garbage' } });
+    await redis.del(`setting:${VERSION_KEY}`);
+    check('a bad stored value reads as 1, not as a bump', (await versionOf(cantoBook.slug)) === 1);
+
     // ── download-url ────────────────────────────────────────────────────────
     console.log('\nDownload URL');
     const canto1Row = await prisma.bookCacheUnit.findFirst({ where: { bookId: cantoBook.id, unitNumber: 1 } });
@@ -248,6 +271,9 @@ async function main() {
     await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } }).catch(() => {});
     await prisma.user.deleteMany({ where: { id: { in: users } } }).catch(() => {});
     await redis.del(bookCache.lockKey);
+    await prisma.appSetting.deleteMany({ where: { key: VERSION_KEY } }).catch(() => {});
+    if (versionBefore) await prisma.appSetting.create({ data: versionBefore }).catch(() => {});
+    await redis.del(`setting:${VERSION_KEY}`).catch(() => {});
   }
 
   console.log(`\n${passed} passed, ${failed} failed\n`);

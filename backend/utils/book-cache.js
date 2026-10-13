@@ -84,4 +84,14 @@ async function withRetry(fn, { retries, baseMs, sleep = (ms) => new Promise((r) 
   throw lastError;
 }
 
-export { canonicalize, sha256, serialize, gzip, plan, nextVersion, backoffMs, withRetry };
+/**
+ * The cache version phones are told, from the raw AppSetting text. A whole
+ * number from 1 up; anything else (unset, blank, "abc", 0, 2.5) is the baseline,
+ * 1 — a bad value must never look like a bump and make every phone re-download.
+ */
+function parseCacheVersion(raw) {
+  const n = Number(raw);
+  return raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
+export { canonicalize, sha256, serialize, gzip, plan, nextVersion, backoffMs, withRetry, parseCacheVersion };

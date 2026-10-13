@@ -20,6 +20,9 @@ part 'app_database.g.dart';
 ///   2  every language per unit, written only by the sync (`BookDao.replaceUnit`);
 ///      per-unit `download_state`; FTS5 search. Version 1 held a cache that the
 ///      sync refills silently, so it is dropped, not converted.
+///   3  `download_state.cache_version`: which book cache version a unit was saved
+///      under, so the server can ask for the offline books to be deleted and fetched
+///      again. Existing rows get 1, the version before there was one.
 @DriftDatabase(
   tables: [Books, Units, Verses, VerseTranslations, DownloadStates],
   daos: [BookDao, DownloadStateDao, SearchDao],
@@ -31,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase(driftDatabase(name: 'hariharibol'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,8 +54,11 @@ class AppDatabase extends _$AppDatabase {
             ]) {
               await customStatement('DROP TABLE IF EXISTS $old');
             }
+            // Built at the newest shape, so it already has everything below.
             await m.createAll();
             await searchDao.createIndex();
+          } else if (from < 3) {
+            await m.addColumn(downloadStates, downloadStates.cacheVersion);
           }
         },
         beforeOpen: (details) async {

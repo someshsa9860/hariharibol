@@ -2957,6 +2957,18 @@ class $DownloadStatesTable extends DownloadStates
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cacheVersionMeta = const VerificationMeta(
+    'cacheVersion',
+  );
+  @override
+  late final GeneratedColumn<int> cacheVersion = GeneratedColumn<int>(
+    'cache_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _downloadedAtMeta = const VerificationMeta(
     'downloadedAt',
   );
@@ -3000,6 +3012,7 @@ class $DownloadStatesTable extends DownloadStates
     status,
     version,
     hash,
+    cacheVersion,
     downloadedAt,
     retryCount,
     lastError,
@@ -3064,6 +3077,15 @@ class $DownloadStatesTable extends DownloadStates
         hash.isAcceptableOrUnknown(data['hash']!, _hashMeta),
       );
     }
+    if (data.containsKey('cache_version')) {
+      context.handle(
+        _cacheVersionMeta,
+        cacheVersion.isAcceptableOrUnknown(
+          data['cache_version']!,
+          _cacheVersionMeta,
+        ),
+      );
+    }
     if (data.containsKey('downloaded_at')) {
       context.handle(
         _downloadedAtMeta,
@@ -3122,6 +3144,10 @@ class $DownloadStatesTable extends DownloadStates
         DriftSqlType.string,
         data['${effectivePrefix}hash'],
       ),
+      cacheVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cache_version'],
+      )!,
       downloadedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}downloaded_at'],
@@ -3156,6 +3182,12 @@ class DownloadStateRecord extends DataClass
   final String status;
   final int version;
   final String? hash;
+
+  /// The server's book cache version when this unit was saved. A manifest that
+  /// names another one means "delete what you hold" — see
+  /// `BookDao.dropOutdatedUnits`. 1 is the baseline: what a phone held before
+  /// the version existed counts as made under it.
+  final int cacheVersion;
   final DateTime? downloadedAt;
   final int retryCount;
   final String? lastError;
@@ -3167,6 +3199,7 @@ class DownloadStateRecord extends DataClass
     required this.status,
     required this.version,
     this.hash,
+    required this.cacheVersion,
     this.downloadedAt,
     required this.retryCount,
     this.lastError,
@@ -3183,6 +3216,7 @@ class DownloadStateRecord extends DataClass
     if (!nullToAbsent || hash != null) {
       map['hash'] = Variable<String>(hash);
     }
+    map['cache_version'] = Variable<int>(cacheVersion);
     if (!nullToAbsent || downloadedAt != null) {
       map['downloaded_at'] = Variable<DateTime>(downloadedAt);
     }
@@ -3202,6 +3236,7 @@ class DownloadStateRecord extends DataClass
       status: Value(status),
       version: Value(version),
       hash: hash == null && nullToAbsent ? const Value.absent() : Value(hash),
+      cacheVersion: Value(cacheVersion),
       downloadedAt: downloadedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(downloadedAt),
@@ -3225,6 +3260,7 @@ class DownloadStateRecord extends DataClass
       status: serializer.fromJson<String>(json['status']),
       version: serializer.fromJson<int>(json['version']),
       hash: serializer.fromJson<String?>(json['hash']),
+      cacheVersion: serializer.fromJson<int>(json['cacheVersion']),
       downloadedAt: serializer.fromJson<DateTime?>(json['downloadedAt']),
       retryCount: serializer.fromJson<int>(json['retryCount']),
       lastError: serializer.fromJson<String?>(json['lastError']),
@@ -3241,6 +3277,7 @@ class DownloadStateRecord extends DataClass
       'status': serializer.toJson<String>(status),
       'version': serializer.toJson<int>(version),
       'hash': serializer.toJson<String?>(hash),
+      'cacheVersion': serializer.toJson<int>(cacheVersion),
       'downloadedAt': serializer.toJson<DateTime?>(downloadedAt),
       'retryCount': serializer.toJson<int>(retryCount),
       'lastError': serializer.toJson<String?>(lastError),
@@ -3255,6 +3292,7 @@ class DownloadStateRecord extends DataClass
     String? status,
     int? version,
     Value<String?> hash = const Value.absent(),
+    int? cacheVersion,
     Value<DateTime?> downloadedAt = const Value.absent(),
     int? retryCount,
     Value<String?> lastError = const Value.absent(),
@@ -3266,6 +3304,7 @@ class DownloadStateRecord extends DataClass
     status: status ?? this.status,
     version: version ?? this.version,
     hash: hash.present ? hash.value : this.hash,
+    cacheVersion: cacheVersion ?? this.cacheVersion,
     downloadedAt: downloadedAt.present ? downloadedAt.value : this.downloadedAt,
     retryCount: retryCount ?? this.retryCount,
     lastError: lastError.present ? lastError.value : this.lastError,
@@ -3281,6 +3320,9 @@ class DownloadStateRecord extends DataClass
       status: data.status.present ? data.status.value : this.status,
       version: data.version.present ? data.version.value : this.version,
       hash: data.hash.present ? data.hash.value : this.hash,
+      cacheVersion: data.cacheVersion.present
+          ? data.cacheVersion.value
+          : this.cacheVersion,
       downloadedAt: data.downloadedAt.present
           ? data.downloadedAt.value
           : this.downloadedAt,
@@ -3301,6 +3343,7 @@ class DownloadStateRecord extends DataClass
           ..write('status: $status, ')
           ..write('version: $version, ')
           ..write('hash: $hash, ')
+          ..write('cacheVersion: $cacheVersion, ')
           ..write('downloadedAt: $downloadedAt, ')
           ..write('retryCount: $retryCount, ')
           ..write('lastError: $lastError')
@@ -3317,6 +3360,7 @@ class DownloadStateRecord extends DataClass
     status,
     version,
     hash,
+    cacheVersion,
     downloadedAt,
     retryCount,
     lastError,
@@ -3332,6 +3376,7 @@ class DownloadStateRecord extends DataClass
           other.status == this.status &&
           other.version == this.version &&
           other.hash == this.hash &&
+          other.cacheVersion == this.cacheVersion &&
           other.downloadedAt == this.downloadedAt &&
           other.retryCount == this.retryCount &&
           other.lastError == this.lastError);
@@ -3345,6 +3390,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
   final Value<String> status;
   final Value<int> version;
   final Value<String?> hash;
+  final Value<int> cacheVersion;
   final Value<DateTime?> downloadedAt;
   final Value<int> retryCount;
   final Value<String?> lastError;
@@ -3357,6 +3403,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
     this.status = const Value.absent(),
     this.version = const Value.absent(),
     this.hash = const Value.absent(),
+    this.cacheVersion = const Value.absent(),
     this.downloadedAt = const Value.absent(),
     this.retryCount = const Value.absent(),
     this.lastError = const Value.absent(),
@@ -3370,6 +3417,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
     this.status = const Value.absent(),
     this.version = const Value.absent(),
     this.hash = const Value.absent(),
+    this.cacheVersion = const Value.absent(),
     this.downloadedAt = const Value.absent(),
     this.retryCount = const Value.absent(),
     this.lastError = const Value.absent(),
@@ -3385,6 +3433,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
     Expression<String>? status,
     Expression<int>? version,
     Expression<String>? hash,
+    Expression<int>? cacheVersion,
     Expression<DateTime>? downloadedAt,
     Expression<int>? retryCount,
     Expression<String>? lastError,
@@ -3398,6 +3447,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
       if (status != null) 'status': status,
       if (version != null) 'version': version,
       if (hash != null) 'hash': hash,
+      if (cacheVersion != null) 'cache_version': cacheVersion,
       if (downloadedAt != null) 'downloaded_at': downloadedAt,
       if (retryCount != null) 'retry_count': retryCount,
       if (lastError != null) 'last_error': lastError,
@@ -3413,6 +3463,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
     Value<String>? status,
     Value<int>? version,
     Value<String?>? hash,
+    Value<int>? cacheVersion,
     Value<DateTime?>? downloadedAt,
     Value<int>? retryCount,
     Value<String?>? lastError,
@@ -3426,6 +3477,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
       status: status ?? this.status,
       version: version ?? this.version,
       hash: hash ?? this.hash,
+      cacheVersion: cacheVersion ?? this.cacheVersion,
       downloadedAt: downloadedAt ?? this.downloadedAt,
       retryCount: retryCount ?? this.retryCount,
       lastError: lastError ?? this.lastError,
@@ -3457,6 +3509,9 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
     if (hash.present) {
       map['hash'] = Variable<String>(hash.value);
     }
+    if (cacheVersion.present) {
+      map['cache_version'] = Variable<int>(cacheVersion.value);
+    }
     if (downloadedAt.present) {
       map['downloaded_at'] = Variable<DateTime>(downloadedAt.value);
     }
@@ -3482,6 +3537,7 @@ class DownloadStatesCompanion extends UpdateCompanion<DownloadStateRecord> {
           ..write('status: $status, ')
           ..write('version: $version, ')
           ..write('hash: $hash, ')
+          ..write('cacheVersion: $cacheVersion, ')
           ..write('downloadedAt: $downloadedAt, ')
           ..write('retryCount: $retryCount, ')
           ..write('lastError: $lastError, ')
@@ -4930,6 +4986,7 @@ typedef $$DownloadStatesTableCreateCompanionBuilder =
       Value<String> status,
       Value<int> version,
       Value<String?> hash,
+      Value<int> cacheVersion,
       Value<DateTime?> downloadedAt,
       Value<int> retryCount,
       Value<String?> lastError,
@@ -4944,6 +5001,7 @@ typedef $$DownloadStatesTableUpdateCompanionBuilder =
       Value<String> status,
       Value<int> version,
       Value<String?> hash,
+      Value<int> cacheVersion,
       Value<DateTime?> downloadedAt,
       Value<int> retryCount,
       Value<String?> lastError,
@@ -4991,6 +5049,11 @@ class $$DownloadStatesTableFilterComposer
 
   ColumnFilters<String> get hash => $composableBuilder(
     column: $table.hash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cacheVersion => $composableBuilder(
+    column: $table.cacheVersion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5054,6 +5117,11 @@ class $$DownloadStatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get cacheVersion => $composableBuilder(
+    column: $table.cacheVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get downloadedAt => $composableBuilder(
     column: $table.downloadedAt,
     builder: (column) => ColumnOrderings(column),
@@ -5101,6 +5169,11 @@ class $$DownloadStatesTableAnnotationComposer
 
   GeneratedColumn<String> get hash =>
       $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<int> get cacheVersion => $composableBuilder(
+    column: $table.cacheVersion,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get downloadedAt => $composableBuilder(
     column: $table.downloadedAt,
@@ -5160,6 +5233,7 @@ class $$DownloadStatesTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<String?> hash = const Value.absent(),
+                Value<int> cacheVersion = const Value.absent(),
                 Value<DateTime?> downloadedAt = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
@@ -5172,6 +5246,7 @@ class $$DownloadStatesTableTableManager
                 status: status,
                 version: version,
                 hash: hash,
+                cacheVersion: cacheVersion,
                 downloadedAt: downloadedAt,
                 retryCount: retryCount,
                 lastError: lastError,
@@ -5186,6 +5261,7 @@ class $$DownloadStatesTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<String?> hash = const Value.absent(),
+                Value<int> cacheVersion = const Value.absent(),
                 Value<DateTime?> downloadedAt = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
@@ -5198,6 +5274,7 @@ class $$DownloadStatesTableTableManager
                 status: status,
                 version: version,
                 hash: hash,
+                cacheVersion: cacheVersion,
                 downloadedAt: downloadedAt,
                 retryCount: retryCount,
                 lastError: lastError,

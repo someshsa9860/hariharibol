@@ -164,6 +164,7 @@ const SETTING_KEYS = {
   AI_MONTHLY_BUDGET_MICROS: 'ai.budget.monthly_micros',
   SLOKA_DELIVERY_HOUR: 'sloka.delivery.default_hour',
   SIGNUP_ENABLED: 'auth.signup.enabled',
+  BOOK_CACHE_VERSION: 'book.cache_version',
 };
 
 // ── Cache keys and TTLs ────────────────────────────────────────────────────

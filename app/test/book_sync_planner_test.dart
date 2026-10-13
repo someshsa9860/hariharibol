@@ -14,6 +14,7 @@ DownloadStateRecord local(String unitId, {String status = 'done', int version = 
       status: status,
       version: version,
       hash: hash,
+      cacheVersion: 1,
       retryCount: retry,
     );
 

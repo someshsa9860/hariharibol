@@ -198,6 +198,103 @@ void main() {
     expect(await upgraded.searchDao.search('purport'), isNotEmpty);
   });
 
+  group('book cache version', () {
+    Future<void> saveAt(int cacheVersion, {String bookId = 'book1', String unitId = 'canto1', int number = 1}) =>
+        db.bookDao.replaceUnit(
+          payloadOf(unitJson(bookId: bookId, unitId: unitId, unitNumber: number)),
+          version: 1,
+          hash: 'h$number',
+          cacheVersion: cacheVersion,
+        );
+
+    Future<int> count(String table) async =>
+        (await db.customSelect('SELECT COUNT(*) AS n FROM $table').getSingle()).read<int>('n');
+
+    test('a unit remembers the version it was saved under; the default is the baseline, 1', () async {
+      await save(unitJson());
+      expect((await db.downloadStateDao.stateOf('book1', 'canto1'))!.cacheVersion, 1);
+      await saveAt(6);
+      expect((await db.downloadStateDao.stateOf('book1', 'canto1'))!.cacheVersion, 6);
+    });
+
+    test('dropOutdatedUnits removes the verses, translations, search rows and state of other versions', () async {
+      await saveAt(1);
+      expect(await db.searchDao.search('purport'), isNotEmpty);
+
+      expect(await db.bookDao.dropOutdatedUnits('book1', 2), 1);
+
+      expect(await db.downloadStateDao.stateOf('book1', 'canto1'), isNull);
+      expect(await count('verses'), 0);
+      expect(await count('verse_translations'), 0);
+      expect(await count('units'), 0);
+      expect(await db.searchDao.search('purport'), isEmpty);
+    });
+
+    test('a unit already at the version is kept, a stale one next to it is not', () async {
+      await saveAt(2, unitId: 'canto1', number: 1);
+      await saveAt(1, unitId: 'canto2', number: 2);
+
+      expect(await db.bookDao.dropOutdatedUnits('book1', 2), 1);
+
+      expect(await db.downloadStateDao.stateOf('book1', 'canto1'), isNotNull);
+      expect(await db.downloadStateDao.stateOf('book1', 'canto2'), isNull);
+      expect(await db.bookDao.versesOfChapter('ch1-1'), isNotEmpty);
+      expect(await db.bookDao.versesOfChapter('ch2-1'), isEmpty);
+    });
+
+    test('nothing to drop at the same version', () async {
+      await saveAt(3);
+      expect(await db.bookDao.dropOutdatedUnits('book1', 3), 0);
+      expect(await db.bookDao.versesOfChapter('ch1-1'), isNotEmpty);
+    });
+
+    test('another book is not touched', () async {
+      await saveAt(1, bookId: 'book1');
+      await db.bookDao.replaceUnit(
+        payloadOf(unitJson(bookId: 'book2', bookSlug: 'other', unitId: 'chapterX', unitType: 'chapter', unitNumber: 1, chapters: const [1])),
+        version: 1,
+        hash: 'h',
+      );
+
+      expect(await db.bookDao.dropOutdatedUnits('book1', 2), 1);
+      expect(await db.downloadStateDao.stateOf('book2', 'chapterX'), isNotNull);
+      expect(await db.bookDao.versesOfChapter('chapterX'), isNotEmpty);
+    });
+
+    test('a short work, saved whole from the API, has no state row and is kept', () async {
+      await db.bookDao.replaceUnit(
+        payloadOf(unitJson(bookId: 'book1', unitType: 'book', unitId: 'short:book1', unitNumber: 0, chapters: const [1])),
+        version: 0,
+        hash: '',
+      );
+      expect(await db.bookDao.dropOutdatedUnits('book1', 9), 0);
+      expect(await count('verses'), greaterThan(0));
+    });
+
+    test('upgrading a version 2 database keeps its rows and counts them as version 1', () async {
+      final raw = NativeDatabase.memory(setup: (sqlite) {
+        sqlite.execute('''
+          CREATE TABLE download_state (
+            book_id TEXT NOT NULL, unit_id TEXT NOT NULL, unit_type TEXT NOT NULL,
+            unit_number INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending',
+            version INTEGER NOT NULL DEFAULT 0, hash TEXT, downloaded_at INTEGER,
+            retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
+            PRIMARY KEY (book_id, unit_id))
+        ''');
+        sqlite.execute("INSERT INTO download_state (book_id, unit_id, unit_type, unit_number, status, version, hash) VALUES ('b', 'u', 'canto', 4, 'done', 7, 'abc')");
+        sqlite.execute('PRAGMA user_version = 2');
+      });
+      final upgraded = AppDatabase(raw);
+      addTearDown(upgraded.close);
+
+      final state = await upgraded.downloadStateDao.stateOf('b', 'u');
+      expect((state!.version, state.hash, state.cacheVersion), (7, 'abc', 1));
+      // So a server still on version 1 does not make every phone download again.
+      expect(await upgraded.bookDao.dropOutdatedUnits('b', 1), 0);
+      expect(await upgraded.downloadStateDao.stateOf('b', 'u'), isNotNull);
+    });
+  });
+
   test('indexes exist for unit and language lookups', () async {
     final names = await db
         .customSelect("SELECT name FROM sqlite_master WHERE type = 'index'")

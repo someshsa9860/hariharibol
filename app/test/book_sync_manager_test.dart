@@ -267,6 +267,127 @@ void main() {
     expect(await statusOf('canto2'), UnitStatus.done);
   });
 
+  group('book cache version', () {
+    /// Puts a marker in canto 1's text, so a test can tell "still the copy that
+    /// was there" from "downloaded again": the fake server never sends it.
+    Future<void> scribbleOnCanto1() async {
+      final verse = (await db.bookDao.versesOfChapter('ch1-1')).first;
+      await db.customStatement("UPDATE verse_translations SET purport = 'old copy' WHERE verse_row_id = ?", [verse.id]);
+    }
+
+    Future<String?> purportOfCanto1() async {
+      final verse = (await db.bookDao.versesOfChapter('ch1-1')).first;
+      final translations = (await db.bookDao.translationsFor([verse.id]))[verse.id]!;
+      return translations.firstWhere((t) => t.languageCode == 'en').purport;
+    }
+
+    test('units are saved under the version the manifest named', () async {
+      api.cacheVersion = 4;
+      await manager.syncBook('srimad-bhagavatam');
+      final states = await db.downloadStateDao.statesFor('book1');
+      expect(states, hasLength(5));
+      expect(states.map((s) => s.cacheVersion).toSet(), {4});
+    });
+
+    test('the same version leaves the device alone, even if its text differs', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      await scribbleOnCanto1();
+      downloader.started.clear();
+
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(downloader.started, isEmpty);
+      expect(await purportOfCanto1(), 'old copy');
+    });
+
+    test('a new version deletes every unit of the book and downloads it again', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      await scribbleOnCanto1();
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+
+      expect(downloader.started.toSet(), {'canto1', 'canto2', 'canto3', 'canto4', 'canto5'});
+      expect(downloader.started, hasLength(5), reason: 'each once');
+      expect(await purportOfCanto1(), isNot('old copy'));
+      final states = await db.downloadStateDao.statesFor('book1');
+      expect(states.map((s) => (UnitStatus.parse(s.status), s.cacheVersion)).toSet(), {(UnitStatus.done, 2)});
+      expect((await db.downloadStateDao.summary('book1')).isComplete, isTrue);
+    });
+
+    test('once downloaded again, the next open does nothing more', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      api.cacheVersion = 2;
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(downloader.started, isEmpty);
+    });
+
+    test('lowering the version deletes and downloads again too', () async {
+      api.cacheVersion = 3;
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(downloader.started, hasLength(5));
+    });
+
+    test('with no network the old copy stays: nothing is deleted until the server has been asked', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      await scribbleOnCanto1();
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      api.manifestError = Exception('offline');
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+
+      expect(downloader.started, isEmpty);
+      expect(await purportOfCanto1(), 'old copy');
+      expect((await db.downloadStateDao.summary('book1')).downloaded, 5);
+    });
+
+    test('a reader asking for one unit gets a fresh copy, not the deleted one', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      await scribbleOnCanto1();
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      manager = build();
+      expect(await manager.ensureUnit('srimad-bhagavatam', 1), isTrue);
+      expect(downloader.started, ['canto1']);
+      expect(await purportOfCanto1(), isNot('old copy'));
+    });
+
+    test('a download that fails after the delete is picked up by the next open', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      downloader.failure = (id) => id == 'canto3' ? Exception('connection reset') : null;
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(await statusOf('canto3'), UnitStatus.failed);
+      expect(await db.bookDao.versesOfChapter('ch3-1'), isEmpty);
+
+      downloader
+        ..failure = null
+        ..started.clear();
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(downloader.started, ['canto3']);
+      expect((await db.downloadStateDao.summary('book1')).isComplete, isTrue);
+    });
+  });
+
   test('summary stream reports progress', () async {
     final seen = <int>[];
     final sub = manager.watchSummary('book1').listen((s) => seen.add(s.downloaded));

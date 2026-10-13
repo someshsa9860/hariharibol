@@ -26,27 +26,20 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
   /// and their translations and search rows are deleted and the new ones
   /// inserted in one transaction, and — for a real download unit — its
   /// `download_state` is set to `done` at [version] and [hash] in that same
-  /// transaction. If anything throws, none of it happened.
+  /// transaction. If anything throws, none of it happened. [cacheVersion] is the
+  /// server's book cache version the unit was fetched under.
   Future<void> replaceUnit(
     UnitPayload payload, {
     required int version,
     required String hash,
     int? totalUnits,
+    int cacheVersion = 1,
   }) {
     return transaction(() async {
       final unitId = payload.unit.id;
       final isBookUnit = payload.unitType == 'book';
 
-      // Old rows out, children before parents.
-      await db.searchDao.removeUnit(unitId);
-      await customUpdate(
-        'DELETE FROM verse_translations WHERE verse_row_id IN (SELECT id FROM verses WHERE unit_id = ?)',
-        variables: [Variable<String>(unitId)],
-        updates: {verseTranslations},
-        updateKind: UpdateKind.delete,
-      );
-      await (delete(verses)..where((v) => v.unitId.equals(unitId))).go();
-      await (delete(units)..where((u) => u.downloadUnitId.equals(unitId))).go();
+      await _removeUnitRows(unitId);
 
       await _upsertBook(payload, totalUnits: totalUnits);
 
@@ -157,12 +150,48 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
             status: Value(UnitStatus.done.name),
             version: Value(version),
             hash: Value(hash),
+            cacheVersion: Value(cacheVersion),
             downloadedAt: Value(DateTime.now()),
             retryCount: const Value(0),
             lastError: const Value(null),
           ),
         );
       }
+    });
+  }
+
+  /// A unit's verses, translations, search rows and unit rows — children before
+  /// parents. Not its `download_state` row, which the caller keeps or removes.
+  Future<void> _removeUnitRows(String unitId) async {
+    await db.searchDao.removeUnit(unitId);
+    await customUpdate(
+      'DELETE FROM verse_translations WHERE verse_row_id IN (SELECT id FROM verses WHERE unit_id = ?)',
+      variables: [Variable<String>(unitId)],
+      updates: {verseTranslations},
+      updateKind: UpdateKind.delete,
+    );
+    await (delete(verses)..where((v) => v.unitId.equals(unitId))).go();
+    await (delete(units)..where((u) => u.downloadUnitId.equals(unitId))).go();
+  }
+
+  /// Deletes every downloaded unit of [bookId] that was saved under a book cache
+  /// version other than [cacheVersion] — text, search rows and `download_state`
+  /// — in one transaction, so a book is wholly the old cache or wholly cleared.
+  /// What it leaves is fetched again by the next plan. Returns how many units went.
+  ///
+  /// Not equal rather than older: lowering the number takes the offline books
+  /// back just the same. A short work, saved whole from the API, has no
+  /// `download_state` row and is not touched.
+  Future<int> dropOutdatedUnits(String bookId, int cacheVersion) {
+    return transaction(() async {
+      final stale = await (select(downloadStates)
+            ..where((s) => s.bookId.equals(bookId) & s.cacheVersion.equals(cacheVersion).not()))
+          .get();
+      for (final state in stale) {
+        await _removeUnitRows(state.unitId);
+        await (delete(downloadStates)..where((s) => s.bookId.equals(bookId) & s.unitId.equals(state.unitId))).go();
+      }
+      return stale.length;
     });
   }
 

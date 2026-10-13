@@ -56,6 +56,7 @@ class CacheManifest {
     required this.unitType,
     required this.units,
     required this.fetchedAt,
+    this.cacheVersion = 1,
   });
 
   final String bookId;
@@ -63,6 +64,11 @@ class CacheManifest {
   final String? unitType;
   final List<ManifestUnit> units;
   final DateTime fetchedAt;
+
+  /// Set by the admin. A unit saved under another number is deleted and fetched
+  /// again; the same number leaves the device alone. A server that does not send
+  /// one is on 1, the baseline.
+  final int cacheVersion;
 
   int get totalUnits => units.length;
 
@@ -79,6 +85,7 @@ class CacheManifest {
         unitType: asStringOrNull(json['unitType']),
         units: asList(json['units'], ManifestUnit.fromJson),
         fetchedAt: now ?? DateTime.now(),
+        cacheVersion: asInt(json['cacheVersion'], 1),
       );
 }
 

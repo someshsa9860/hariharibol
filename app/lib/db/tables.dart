@@ -135,6 +135,12 @@ class DownloadStates extends Table {
   TextColumn get status => text().withDefault(const Constant('pending'))();
   IntColumn get version => integer().withDefault(const Constant(0))();
   TextColumn get hash => text().nullable()();
+
+  /// The server's book cache version when this unit was saved. A manifest that
+  /// names another one means "delete what you hold" — see
+  /// `BookDao.dropOutdatedUnits`. 1 is the baseline: what a phone held before
+  /// the version existed counts as made under it.
+  IntColumn get cacheVersion => integer().withDefault(const Constant(1))();
   DateTimeColumn get downloadedAt => dateTime().nullable()();
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();

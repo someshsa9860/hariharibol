@@ -187,12 +187,22 @@ class BookSyncManager {
   Future<CacheManifest> _manifest(String book) {
     final cached = _manifests[book];
     if (cached != null && _now().difference(cached.fetchedAt) < _manifestTtl) return Future.value(cached);
-    return _manifestInFlight[book] ??= _api.manifest(book).then((manifest) {
-      _manifests[book] = manifest;
-      return manifest;
-    }).whenComplete(() {
+    return _manifestInFlight[book] ??= _fetchManifest(book).whenComplete(() {
       _manifestInFlight.remove(book);
     });
+  }
+
+  /// A fresh manifest, with the book's cache cleared first if the server's
+  /// cache version is not the one the device's units were saved under. Done
+  /// here, before anything plans from the manifest or reads a unit off it, so
+  /// every path sees the cleared book. Offline there is no manifest, so
+  /// nothing is cleared and the old copy stays readable.
+  Future<CacheManifest> _fetchManifest(String book) async {
+    final manifest = await _api.manifest(book);
+    final dropped = await _db.bookDao.dropOutdatedUnits(manifest.bookId, manifest.cacheVersion);
+    if (dropped > 0) _log('$book: cache version is now ${manifest.cacheVersion}, deleted $dropped units');
+    _manifests[book] = manifest;
+    return manifest;
   }
 
   Future<DownloadStateRecord?> _stateOf(String bookId, String unitId) =>
@@ -264,6 +274,7 @@ class BookSyncManager {
         version: downloaded.version,
         hash: downloaded.hash,
         totalUnits: job.manifest.totalUnits,
+        cacheVersion: job.manifest.cacheVersion,
       );
       ok = true;
     } catch (error) {

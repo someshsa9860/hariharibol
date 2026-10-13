@@ -24,9 +24,11 @@ router.get(
     summary: 'List a book’s downloadable units',
     description:
       'Every exported chapter (or canto) with its version and content hash. The app compares ' +
-      'this with what it holds and fetches only what is missing or outdated. Reads one table; ' +
-      'cheap to call every time a book opens. A book that is not exported (a short work, or one ' +
-      'not yet exported) returns an empty list.',
+      'this with what it holds and fetches only what is missing or outdated. `cacheVersion` is ' +
+      'the admin-set number (setting `book.cache_version`): a phone whose copy was made under ' +
+      'another number deletes it and downloads again. Reads one table and one setting; cheap to ' +
+      'call every time a book opens. A book that is not exported (a short work, or one not yet ' +
+      'exported) returns an empty list.',
     public: true,
     limit: 'read',
     params: bookParam,

@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/api_paths.dart';
+import '../core/constants/app_config.dart';
 import '../core/session/app_session.dart';
 import 'api_client.dart';
 import 'device_service.dart';
@@ -42,6 +43,7 @@ class FcmService {
       final messaging = FirebaseMessaging.instance;
       messaging.onTokenRefresh.listen(_sendToken);
       FirebaseMessaging.onMessageOpenedApp.listen(_tapped);
+      if (kDebugMode) await _logDelivery(messaging);
 
       final launchedBy = await messaging.getInitialMessage();
       if (launchedBy != null) _tapped(launchedBy);
@@ -52,6 +54,34 @@ class FcmService {
 
   void _tapped(RemoteMessage message) => PushLinks.instance.tapped(message.data);
 
+  /// What `flutter run` shows about push, so "did it arrive?" has an answer.
+  ///
+  /// A message reaches this code only while the app is open, and Android draws
+  /// nothing then — so a line here means it arrived, and no notification is
+  /// expected. With the app in the background the system tray shows it without
+  /// running any of this; `adb logcat -s FirebaseMessaging` is where that shows.
+  ///
+  /// The token is what `backend/scripts/sloka-push-demo.js --token` sends to.
+  /// Debug builds only — a token has no business in a release build's log.
+  Future<void> _logDelivery(FirebaseMessaging messaging) async {
+    FirebaseMessaging.onMessage.listen((message) {
+      final notification = message.notification;
+      debugPrint(
+        '[push] arrived while the app is open — title: ${notification?.title}, '
+        'picture: ${notification?.android?.imageUrl ?? 'none'}, '
+        'data: ${message.data}',
+      );
+    });
+    messaging.onTokenRefresh.listen((token) => debugPrint('[push] token refreshed: $token'));
+
+    try {
+      debugPrint('[push] this build talks to ${AppConfig.apiBaseUrl}');
+      debugPrint('[push] token: ${await messaging.getToken()}');
+    } catch (error) {
+      debugPrint('[push] could not read the token: $error');
+    }
+  }
+
   Future<void> _sendToken(String token) async {
     if (!AppSession.instance.isSignedIn) return;
 
@@ -60,6 +90,7 @@ class FcmService {
         'deviceId': DeviceService.instance.deviceId,
         'fcmToken': token,
       });
+      if (kDebugMode) debugPrint('[push] token registered with ${AppConfig.apiBaseUrl}');
     } catch (error) {
       // A failed registration means one missed notification, not a broken app.
       debugPrint('FCM token registration failed: $error');

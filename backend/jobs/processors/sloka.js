@@ -250,4 +250,4 @@ export default async function slokaProcessor(job) {
   }
 }
 
-export { buildGlobal, deliver };
+export { buildGlobal, deliver, loadVerseForPush };
