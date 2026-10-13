@@ -1,11 +1,9 @@
 /// Tuning and asset locations for auto count. The microphone is listened to on the
-/// phone, with two small bundled models: a voice detector (Silero VAD) that says
-/// whether anyone is making sound, and a 6 MB English-only recogniser whose output
-/// is looked at for a mantra's allowed words. Nothing leaves the phone.
+/// phone, with one small bundled model: a voice detector (Silero VAD) that says
+/// whether anyone is making sound. Nothing is recognised and nothing leaves the phone.
 ///
-/// A chant is counted when one of the mantra's allowed words is heard — at most one
-/// per standard chanting time. A mantra with no allowed words is counted by sound
-/// alone: one chant for each standard time of it.
+/// A chant is counted for each standard chanting time of sound — see
+/// `VoiceChantCounter`.
 ///
 /// See `assets/models/auto_chant/NOTICE.md` for where the model comes from.
 abstract final class AutoChantConfig {
@@ -13,10 +11,6 @@ abstract final class AutoChantConfig {
 
   // ── Model asset ─────────────────────────────────────────────────────────
   static const String vadModelAsset = 'assets/models/auto_chant/vad/silero_vad.onnx';
-  static const String kwsEncoderAsset = 'assets/models/auto_chant/kws/encoder.onnx';
-  static const String kwsDecoderAsset = 'assets/models/auto_chant/kws/decoder.onnx';
-  static const String kwsJoinerAsset = 'assets/models/auto_chant/kws/joiner.onnx';
-  static const String kwsTokensAsset = 'assets/models/auto_chant/kws/tokens.txt';
 
   // ── Is anyone making sound? (Silero VAD) ────────────────────────────────
   /// How sure the detector must be that a stretch is a voice, as a fraction:
@@ -35,15 +29,6 @@ abstract final class AutoChantConfig {
 
   /// A safety cap on one continuous stretch, not a pace limit.
   static const double vadMaxSpeechDurationSeconds = 20.0;
-
-  // ── What the English recogniser writes ──────────────────────────────────
-  /// A running transcript this long is closed off and started afresh, so one
-  /// unbroken hour of chanting never becomes one unbounded string.
-  static const int maxTranscriptLetters = 400;
-
-  /// Silence fed after a stretch of voice so the recogniser flushes the last
-  /// syllables it was still holding back.
-  static const int endPaddingSamples = 6400;
 
   // ── How long one chant takes ────────────────────────────────────────────
   /// Every mantra carries its own standard time (`Mantra.durationMs`, set on the

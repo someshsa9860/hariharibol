@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
-
 import '../core/constants/auto_chant_config.dart';
 import '../models/mantra.dart';
 import 'mantra_audio_capture.dart';
 import 'mantra_detection_engine.dart';
 import 'mantra_repetition_counter.dart' show AutoChantPhase;
 import 'voice_chant_counter.dart';
-import 'word_chant_counter.dart';
 
 /// Why auto-count is not running. Kept as reasons rather than a message
 /// string so the screen can put its own, localised words to each one.
@@ -37,10 +34,9 @@ class AutoChantStatus {
 ///
 /// Owns the microphone and the voice-detector isolate, and reduces them to two
 /// things a screen needs: a status to show, and a tick each time a chant is
-/// counted. A chant is counted when the recogniser writes one of the mantra's
-/// allowed English words — at most one per standard time ([WordChantCounter]). A
-/// mantra with no allowed words is counted by sound alone, one chant per standard
-/// time ([VoiceChantCounter]).
+/// counted. Chants are counted by sound alone, one for each standard time of it
+/// ([VoiceChantCounter]) — nothing is recognised, so any mantra in any language
+/// is counted the same way.
 ///
 /// Scoped to one mantra for its whole life — switching mantras means a new
 /// session. Everything it holds (microphone, isolate, model) is released by
@@ -53,19 +49,11 @@ class MantraAutoChantSession {
           tail: Duration(milliseconds: (AutoChantConfig.vadMinSilenceDurationSeconds * 1000).round()),
           partialShare: AutoChantConfig.partialChantShare,
           countedFor: AutoChantConfig.defaultCooldown,
-        ),
-        _words = WordChantCounter(
-          allowed: mantra.chantWords,
-          standard: Duration(milliseconds: standardChantMsOf(mantra)),
         );
 
   final Mantra mantra;
 
-  /// Sound: drives the status row, and counts when the mantra has no words.
   final VoiceChantCounter _counter;
-
-  /// Words: counts when the mantra has some.
-  final WordChantCounter _words;
 
   final MantraAudioCapture _capture = MantraAudioCapture();
   final MantraDetectionEngine _engine = MantraDetectionEngine();
@@ -75,7 +63,6 @@ class MantraAutoChantSession {
 
   StreamSubscription<Float32List>? _audioSub;
   StreamSubscription<bool>? _voiceSub;
-  StreamSubscription<WordTranscript>? _transcriptSub;
   StreamSubscription<String>? _errorSub;
   Timer? _ticker;
 
@@ -141,10 +128,8 @@ class MantraAutoChantSession {
       _starting = false;
       _enabled = true;
       _counter.reset();
-      _words.reset();
 
       _voiceSub = _engine.voiceActive.listen(_onVoice);
-      _transcriptSub = _engine.transcripts.listen(_onTranscript);
       _errorSub = _engine.errors.listen((_) => _emitStatus(error: AutoChantError.unavailable));
       // The recorder can be taken away mid-sitting (a phone call, another app
       // opening the mic). Say so rather than sit "listening" to nothing.
@@ -153,9 +138,7 @@ class MantraAutoChantSession {
         onError: (Object error, StackTrace stack) => unawaited(_lostMicrophone()),
         onDone: () => unawaited(_lostMicrophone()),
       );
-      _ticker = Timer.periodic(AutoChantConfig.countTick, (_) {
-        if (!_words.hasWords) _count(_counter.tick());
-      });
+      _ticker = Timer.periodic(AutoChantConfig.countTick, (_) => _count(_counter.tick()));
       _emitStatus();
     } catch (_) {
       _starting = false;
@@ -173,21 +156,8 @@ class MantraAutoChantSession {
   }
 
   void _onVoice(bool active) {
-    final chants = _counter.onVoice(active);
-    if (!_words.hasWords) _count(chants);
+    _count(_counter.onVoice(active));
     _emitStatus();
-  }
-
-  void _onTranscript(WordTranscript transcript) {
-    // Only for finding the words a mantra should list: a debug build prints what
-    // the recogniser wrote. Release builds print and keep nothing.
-    if (kDebugMode && transcript.text.isNotEmpty) debugPrint('[auto count] heard: "${transcript.text}"');
-    if (!_words.hasWords) return;
-    final chants = _words.onTranscript(transcript.text, isFinal: transcript.isFinal);
-    if (chants > 0) {
-      _counter.noteCounted();
-      _count(chants);
-    }
   }
 
   void _count(int chants) {
@@ -242,14 +212,11 @@ class MantraAutoChantSession {
     _ticker?.cancel();
     _ticker = null;
     _counter.reset();
-    _words.reset();
     await _audioSub?.cancel();
     await _voiceSub?.cancel();
-    await _transcriptSub?.cancel();
     await _errorSub?.cancel();
     _audioSub = null;
     _voiceSub = null;
-    _transcriptSub = null;
     _errorSub = null;
     await _capture.stop();
     await _engine.stop();
