@@ -33,6 +33,7 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
   API_BASE_URL: z.string().default('http://localhost:4000'),
   WEB_BASE_URL: z.string().default('http://localhost:3000'),
+  ADMIN_BASE_URL: z.string().default('http://localhost:5183'),
   APP_SCHEME: z.string().default('hariharibol'),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),

@@ -7,8 +7,8 @@ const allowed = new Set(
   [
     env.WEB_BASE_URL,
     env.API_BASE_URL,
+    env.ADMIN_BASE_URL, // the admin panel; defaults to its dev server
     'http://localhost:3000', // website dev
-    'http://localhost:5183', // admin dev
   ].filter(Boolean)
 );
 
