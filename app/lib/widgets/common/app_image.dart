@@ -10,6 +10,13 @@ import '../../core/theme/app_theme.dart';
 /// responses. The cache is keyed on the URL, which means a re-signed link is a
 /// cache miss — [cacheKey] takes a stable id instead, so a cover is fetched
 /// once rather than on every refresh.
+///
+/// Given a width and a height, it decodes the picture at the size it will be
+/// drawn rather than at the size it was uploaded. A photo is stored as pixels —
+/// a 2000 px profile picture is 16 MB decoded — and an avatar or a grid tile
+/// only ever paints a few hundred of them; holding the rest makes a list of
+/// them heavy to scroll. Without a size (a picture that fills its parent) it
+/// is decoded whole.
 class AppImage extends StatelessWidget {
   const AppImage({
     super.key,
@@ -41,12 +48,30 @@ class AppImage extends StatelessWidget {
         cacheKey: cacheKey,
         width: width,
         height: height,
+        memCacheWidth: _decodeWidth(MediaQuery.devicePixelRatioOf(context)),
         fit: fit,
         fadeInDuration: AppDurations.fast,
         placeholder: (context, _) => placeholder,
         errorWidget: (context, _, _) => placeholder,
       ),
     );
+  }
+
+  /// The width, in pixels, to decode at — or null to decode the whole picture.
+  ///
+  /// Only the width is given, so the height follows the picture's own shape
+  /// and nothing is stretched. It is the *longer* side of the box, not the
+  /// width of it, because `cover` scales a picture until it fills both sides:
+  /// a picture shaped differently from its box (a landscape one in a portrait
+  /// tile) needs more width than the box has to stay sharp. A picture is never
+  /// enlarged to reach this, so a small original is simply used as it is.
+  int? _decodeWidth(double pixelRatio) {
+    final w = width;
+    final h = height;
+    if (w == null || h == null || !w.isFinite || !h.isFinite) return null;
+    final longest = w > h ? w : h;
+    if (longest <= 0) return null;
+    return (longest * pixelRatio).ceil();
   }
 }
 

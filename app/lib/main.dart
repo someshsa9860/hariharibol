@@ -20,13 +20,18 @@ import 'services/tracking_service.dart';
 /// store, the device facts every request carries, and the session. Push and
 /// analytics start in the background — neither is needed to draw a screen, and
 /// waiting on them would put a network call in front of the splash.
+///
+/// Those steps overlap rather than queue: each is a round trip to the platform,
+/// and the blank native launch screen is on show until the last one returns.
+/// Firebase needs nothing from the store, and the device facts and the session
+/// need only the store.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await LocalStore.instance.init();
-  await DeviceService.instance.init();
-  await FirebaseService.instance.init();
-  await AppSession.instance.restore();
+  await Future.wait([
+    FirebaseService.instance.init(),
+    _openStore(),
+  ]);
 
   unawaited(TrackingService.instance.init());
   unawaited(FcmService.instance.init());
@@ -41,4 +46,14 @@ Future<void> main() async {
   unawaited(BookSyncManager.instance.resumePending());
 
   runApp(const ProviderScope(child: HariHariBolApp()));
+}
+
+/// The store first — the other two read it — then the device facts and the
+/// session together.
+Future<void> _openStore() async {
+  await LocalStore.instance.init();
+  await Future.wait([
+    DeviceService.instance.init(),
+    AppSession.instance.restore(),
+  ]);
 }

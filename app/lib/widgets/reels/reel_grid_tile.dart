@@ -38,11 +38,17 @@ class ReelGridTile extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                AppImage(
-                  url: reel.thumbnailUrl,
-                  cacheKey: reel.id,
-                  borderRadius: BorderRadius.zero,
-                  fit: BoxFit.cover,
+                // The grid gives the cell its size; telling the image lets it
+                // decode a thumbnail at that size, not at the one uploaded.
+                LayoutBuilder(
+                  builder: (context, cell) => AppImage(
+                    url: reel.thumbnailUrl,
+                    cacheKey: reel.id,
+                    width: cell.maxWidth,
+                    height: cell.maxHeight,
+                    borderRadius: BorderRadius.zero,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 // Only over the bottom strip, where the count sits — a full
                 // wash would dull every thumbnail in the grid.
