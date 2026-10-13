@@ -2758,6 +2758,12 @@ abstract class AppLocalizations {
   /// **'Reading aloud'**
   String get readingAudioChannel;
 
+  /// Name of the Android notification channel the daily sloka and other pushes arrive on; shown in the phone's notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily sloka and updates'**
+  String get pushChannelName;
+
   /// No description provided for @readingSectionVerse.
   ///
   /// In en, this message translates to:

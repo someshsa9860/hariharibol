@@ -1587,6 +1587,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get readingAudioChannel => 'পড়ে শোনানো';
 
   @override
+  String get pushChannelName => 'দৈনিক শ্লোক ও বিজ্ঞপ্তি';
+
+  @override
   String get readingSectionVerse => 'শ্লোক';
 
   @override

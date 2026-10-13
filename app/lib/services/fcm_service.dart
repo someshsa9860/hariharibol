@@ -35,13 +35,17 @@ class FcmService {
   /// A tap reaches the app one of two ways: while it was running in the
   /// background ([FirebaseMessaging.onMessageOpenedApp]), or it launched it from
   /// closed (`getInitialMessage`, which holds that one message). While the app
-  /// is open Android shows no notification at all, so there is nothing to tap.
+  /// is open Android shows no notification at all — `PushForeground` draws one
+  /// then, and its tap is handled by [LocalPushService].
   Future<void> init() async {
     if (!FirebaseService.instance.isAvailable) return;
 
     try {
       final messaging = FirebaseMessaging.instance;
       messaging.onTokenRefresh.listen(_sendToken);
+      // iOS draws a push that arrives while the app is open only when asked to;
+      // Android never does, which is what `PushForeground` is for.
+      await messaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
       FirebaseMessaging.onMessageOpenedApp.listen(_tapped);
       if (kDebugMode) await _logDelivery(messaging);
 
@@ -57,9 +61,10 @@ class FcmService {
   /// What `flutter run` shows about push, so "did it arrive?" has an answer.
   ///
   /// A message reaches this code only while the app is open, and Android draws
-  /// nothing then — so a line here means it arrived, and no notification is
-  /// expected. With the app in the background the system tray shows it without
-  /// running any of this; `adb logcat -s FirebaseMessaging` is where that shows.
+  /// nothing by itself then — a line here means it arrived (`PushForeground`
+  /// then draws it). With the app in the background the system tray shows it
+  /// without running any of this; `adb logcat -s FirebaseMessaging` is where
+  /// that shows.
   ///
   /// The token is what `backend/scripts/sloka-push-demo.js --token` sends to.
   /// Debug builds only — a token has no business in a release build's log.

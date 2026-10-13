@@ -1600,6 +1600,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get readingAudioChannel => 'வாசித்துக் காட்டுதல்';
 
   @override
+  String get pushChannelName => 'தினசரி ஸ்லோகம் மற்றும் அறிவிப்புகள்';
+
+  @override
   String get readingSectionVerse => 'ஸ்லோகம்';
 
   @override

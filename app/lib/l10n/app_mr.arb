@@ -440,6 +440,7 @@
   "readingAudioNowPlaying": "{section} · श्लोक {number}",
   "readingAudioLoading": "लोड होत आहे…",
   "readingAudioChannel": "वाचून दाखवणे",
+  "pushChannelName": "दैनिक श्लोक आणि सूचना",
   "readingSectionVerse": "श्लोक",
   "readingSectionMeaning": "अर्थ",
   "readingSectionPurport": "तात्पर्य",

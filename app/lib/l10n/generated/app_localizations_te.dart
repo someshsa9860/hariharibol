@@ -1593,6 +1593,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingAudioChannel => 'చదివి వినిపించడం';
 
   @override
+  String get pushChannelName => 'రోజువారీ శ్లోకం మరియు సూచనలు';
+
+  @override
   String get readingSectionVerse => 'శ్లోకం';
 
   @override

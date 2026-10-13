@@ -986,6 +986,10 @@
   },
   "readingAudioLoading": "Loading…",
   "readingAudioChannel": "Reading aloud",
+  "pushChannelName": "Daily sloka and updates",
+  "@pushChannelName": {
+    "description": "Name of the Android notification channel the daily sloka and other pushes arrive on; shown in the phone's notification settings."
+  },
   "readingSectionVerse": "Verse",
   "readingSectionMeaning": "Meaning",
   "readingSectionPurport": "Purport",

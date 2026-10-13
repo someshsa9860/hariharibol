@@ -89,6 +89,7 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   audio_session: ^0.2.4
   archive: ^4.4.0
+  flutter_local_notifications: ^22.3.2
 
 dev_dependencies:
   flutter_test:

@@ -1588,6 +1588,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get readingAudioChannel => 'ਪੜ੍ਹ ਕੇ ਸੁਣਾਉਣਾ';
 
   @override
+  String get pushChannelName => 'ਰੋਜ਼ਾਨਾ ਸ਼ਲੋਕ ਅਤੇ ਸੂਚਨਾਵਾਂ';
+
+  @override
   String get readingSectionVerse => 'ਸ਼ਲੋਕ';
 
   @override

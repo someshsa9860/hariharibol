@@ -1590,6 +1590,9 @@ class AppLocalizationsAs extends AppLocalizations {
   String get readingAudioChannel => 'পঢ়ি শুনোৱা';
 
   @override
+  String get pushChannelName => 'দৈনিক শ্লোক আৰু জাননী';
+
+  @override
   String get readingSectionVerse => 'শ্লোক';
 
   @override

@@ -1591,6 +1591,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get readingAudioChannel => 'ಓದಿ ಹೇಳುವುದು';
 
   @override
+  String get pushChannelName => 'ದೈನಿಕ ಶ್ಲೋಕ ಮತ್ತು ಸೂಚನೆಗಳು';
+
+  @override
   String get readingSectionVerse => 'ಶ್ಲೋಕ';
 
   @override

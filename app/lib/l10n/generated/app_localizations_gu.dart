@@ -1583,6 +1583,9 @@ class AppLocalizationsGu extends AppLocalizations {
   String get readingAudioChannel => 'વાંચી સંભળાવવું';
 
   @override
+  String get pushChannelName => 'દૈનિક શ્લોક અને સૂચનાઓ';
+
+  @override
   String get readingSectionVerse => 'શ્લોક';
 
   @override

@@ -14,4 +14,21 @@ abstract final class PushConfig {
   static const String deeplinkScheme = 'hariharibol';
   static const String deeplinkSadhana = 'sadhana';
   static const String deeplinkPremium = 'premium';
+
+  // ── Drawing a push while the app is open (Android) ──────────────────────
+  /// The channel the backend names on every push (`backend/services/fcm.js`).
+  /// Creating it here is what gives it a name in the phone's settings, and the
+  /// importance that makes a push appear on screen; the notification drawn
+  /// while the app is open goes to the same channel.
+  static const String androidChannelId = 'default';
+
+  /// The small icon of a notification drawn by the app: the drawable the
+  /// manifest names as Firebase's default icon (`ic_stat_feather.xml`).
+  static const String androidSmallIcon = 'ic_stat_feather';
+
+  /// The push's picture is fetched by the app, so these bound that fetch. A
+  /// card is a ~100 KB JPEG; Android's own limit for a picture is 1 MB.
+  static const Duration imageConnectTimeout = Duration(seconds: 5);
+  static const Duration imageReceiveTimeout = Duration(seconds: 10);
+  static const int imageMaxBytes = 1024 * 1024;
 }

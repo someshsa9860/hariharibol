@@ -1588,6 +1588,9 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingAudioChannel => 'ପଢ଼ି ଶୁଣାଇବା';
 
   @override
+  String get pushChannelName => 'ଦୈନିକ ଶ୍ଳୋକ ଏବଂ ସୂଚନା';
+
+  @override
   String get readingSectionVerse => 'ଶ୍ଳୋକ';
 
   @override

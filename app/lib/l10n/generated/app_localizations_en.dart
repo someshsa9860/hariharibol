@@ -1585,6 +1585,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingAudioChannel => 'Reading aloud';
 
   @override
+  String get pushChannelName => 'Daily sloka and updates';
+
+  @override
   String get readingSectionVerse => 'Verse';
 
   @override

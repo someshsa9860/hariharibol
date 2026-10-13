@@ -1585,6 +1585,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get readingAudioChannel => 'पढ़कर सुनाना';
 
   @override
+  String get pushChannelName => 'दैनिक श्लोक और सूचनाएँ';
+
+  @override
   String get readingSectionVerse => 'श्लोक';
 
   @override
