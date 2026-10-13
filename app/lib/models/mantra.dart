@@ -25,6 +25,7 @@ class Mantra {
     this.malaAudioStartMs = 0,
     this.malaAudioEndMs = 0,
     this.chantPhrases = const [],
+    this.chantWords = const [],
     this.standardRounds = 0,
     this.standardCount = 0,
     this.deity,
@@ -69,6 +70,11 @@ class Mantra {
   /// Roman letters — what auto count matches the live transcript against.
   /// Empty for a mantra the API has none for; see [spokenPhrases].
   final List<String> chantPhrases;
+
+  /// The English words the phone's recogniser writes when this mantra is chanted.
+  /// Hearing one counts a chant (at most one per [durationMs]). Empty: counted by
+  /// sound alone.
+  final List<String> chantWords;
 
   final int standardRounds;
   final int standardCount;
@@ -129,6 +135,7 @@ class Mantra {
         malaAudioStartMs: asInt(json['malaAudioStartMs']),
         malaAudioEndMs: asInt(json['malaAudioEndMs']),
         chantPhrases: asStringList(json['chantPhrases']),
+        chantWords: asStringList(json['chantWords']),
         standardRounds: asInt(json['standardRounds']),
         standardCount: asInt(json['standardCount']),
         deity: asJson(json['deity']) == null ? null : ReferenceItem.fromJson(asJson(json['deity'])!),

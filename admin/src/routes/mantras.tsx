@@ -33,6 +33,7 @@ type Mantra = {
   sampradaya: string;
   audioPath: string | null;
   durationMs: number | null;
+  chantWords: string[] | null;
   malaAudioPath: string | null;
   malaAudioUrl: string | null;
   malaAudioStartMs: number | null;
@@ -55,7 +56,7 @@ const CATEGORIES = ['mahamantra', 'beej', 'name', 'gayatri'];
 // default (vaishnav) would count towards the wrong one. Free text on the model,
 // like category.
 const SAMPRADAYAS = ['vaishnav', 'shaiva', 'shakta', 'smarta'];
-const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '', chantMs: '' };
+const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '', chantMs: '', chantWords: '' };
 
 const formatDuration = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
 
@@ -101,6 +102,7 @@ export function MantrasPage() {
         description: editing.description ?? '',
         displayOrder: String(editing.displayOrder),
         chantMs: editing.durationMs ? String(editing.durationMs) : '',
+        chantWords: (editing.chantWords ?? []).join(', '),
       });
     }
   }, [editing]);
@@ -117,6 +119,8 @@ export function MantrasPage() {
       ...(form.displayOrder !== '' ? { displayOrder: Number(form.displayOrder) } : {}),
       // One chant at an ordinary pace, in ms; the app's auto count counts one chant per this much sound.
       ...(form.chantMs !== '' ? { durationMs: Number(form.chantMs) } : {}),
+      // Always sent, so clearing the box clears the list.
+      chantWords: [...new Set(form.chantWords.toLowerCase().split(/[^a-z]+/).filter((w) => w.length >= 2))],
       // Always sent, so removing the recording clears it — the API takes the span with it.
       malaAudioPath: mala.path,
       malaAudioStartMs: mala.path ? mala.startMs : null,
@@ -365,6 +369,21 @@ export function MantrasPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 How long one chant takes at an ordinary pace. Auto count in the app counts one chant for each this much
                 sound — Om Namah Shivaya about 1500, the mahamantra about 8000. Blank: the app works it out from the length of the text.
+              </p>
+            </div>
+            <div>
+              <Label>Allowed English words</Label>
+              <Textarea
+                className="mt-1"
+                rows={3}
+                placeholder="hare, krishna, rama, hairy, christmas"
+                value={form.chantWords}
+                onChange={(e) => setForm({ ...form, chantWords: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                The phone's speech model only knows English, so it writes Sanskrit as the nearest English words. List every
+                word it may write for this mantra — hearing any one counts a chant, at most one per standard time above.
+                Find them by chanting into a debug build of the app and reading the "[auto count] heard" lines in its console. Blank: the app counts by sound alone.
               </p>
             </div>
             <div>

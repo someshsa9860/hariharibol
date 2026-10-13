@@ -99,6 +99,9 @@ class VoiceChantCounter {
     return chants;
   }
 
+  /// A chant was counted elsewhere (by a heard word): let the phase say so.
+  void noteCounted() => _lastCountAt = _now();
+
   void reset() {
     _active = false;
     _since = null;

@@ -278,9 +278,16 @@ admin **Mantras** page ("Standard chanting time"); the seed (`standardChantMs` i
 migration `20261014000100_mantra_standard_chant_time` fill it for the seeded mantras **only where it is empty**, so
 an admin's value is never overwritten. A mantra with none falls back, in the app, to 0.2 s per letter (min 1 s).
 
-`Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted. It was what the old
-speech-recogniser auto count matched against; **the app no longer reads it**. Still written by the seed from
-`prisma/seed/chant-phrases.js` and sent on every mantra; safe to ignore or to remove later.
+`Mantra.chantWords` (`String[]`, default empty) is the set of **English words the phone's recogniser writes** when the
+mantra is chanted — it only knows English, so it turns Sanskrit into the nearest English. The app counts a chant when it
+hears one, at most one per `durationMs`. Edited on the admin **Mantras** page ("Allowed English words", lower-case
+letters, ≥ 2 each). The seed (`prisma/seed/chant-words.js`) and migration `20261014000200_mantra_chant_words` start each
+seeded mantra with the distinct words of its phrase spellings, **only where it has none** — a real list has to be found
+by chanting into a debug build and reading what it writes. Empty: the app counts by sound alone. Sent on every mantra
+as `chantWords`.
+
+`Mantra.chantPhrases` was what the earlier matcher used; **the app no longer reads it**. Still seeded and sent; safe to
+ignore or remove later.
 
 ## Mantra names and translations
 
