@@ -69,10 +69,9 @@ class _SadhanaContent extends ConsumerWidget {
 
   final SadhanaToday today;
 
-  /// Opens the counter already carrying the standing preferred mantra. With
-  /// nothing preferred, this is exactly the old generic "chant now".
-  Future<void> _chantNow(WidgetRef ref) =>
-      openChant(ref, mantraSlug: today.profile?.preferredMantraSlug);
+  /// Opens the counter already carrying the preferred mantra, or failing that
+  /// the one chanted most lately. With neither, the generic "chant now".
+  Future<void> _chantNow(WidgetRef ref) => openChant(ref, mantraSlug: today.chantMantraSlug);
 
   Future<void> _logRounds(BuildContext context, WidgetRef ref) async {
     final rounds = await showLogRoundsSheet(context);

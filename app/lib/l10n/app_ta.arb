@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "தானியங்கு எண்ணிக்கை",
   "sadhanaAutoCountOff": "முடக்கம் — மணியை நீங்களே தட்டுங்கள்",
   "sadhanaAutoCountIdle": "ஜபத்துக்காகக் காத்திருக்கிறது",
+  "chantAutoCountLoading": "தானியங்கி எண்ணிக்கை தயாராகிறது…",
+  "chantFullPicture": "முழுத்திரை படம்",
   "sadhanaAutoCountListening": "கேட்கிறது…",
   "sadhanaAutoCountCounted": "எண்ணப்பட்டது — அடுத்ததற்காகக் கேட்கிறது",
   "sadhanaAutoCountPermissionDenied": "தானியங்கு எண்ணிக்கைக்கு மைக்ரோஃபோன் அணுகல் தேவை",

@@ -111,7 +111,7 @@ class _HomeContent extends ConsumerWidget {
     // The standing preferred mantra lives on the sadhana profile, not the home
     // feed. Read as a value, not `.when`: a slow or failed load just leaves the
     // shortcut as a generic "Chant now" rather than holding the card back.
-    final profile = ref.watch(sadhanaTodayProvider).value?.profile;
+    final sadhanaToday = ref.watch(sadhanaTodayProvider).value;
 
     // Built as a list so each section can be handed its position and brought
     // in a beat after the one above it.
@@ -129,8 +129,8 @@ class _HomeContent extends ConsumerWidget {
         SadhanaCard(
           summary: feed.sadhana!,
           onTap: () => AppNavigator.instance.go(AppRoutes.sadhana),
-          mantraName: profile?.preferredMantraName,
-          onChant: () => openChant(ref, mantraSlug: profile?.preferredMantraSlug),
+          mantraName: sadhanaToday?.chantMantraName,
+          onChant: () => openChant(ref, mantraSlug: sadhanaToday?.chantMantraSlug),
         ),
 
       // Lifetime totals, right after today's practice — a separate request

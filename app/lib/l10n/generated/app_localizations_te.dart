@@ -375,6 +375,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'జపం కోసం వేచి ఉంది';
 
   @override
+  String get chantAutoCountLoading => 'ఆటో కౌంట్ సిద్ధమవుతోంది…';
+
+  @override
+  String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
+
+  @override
   String get sadhanaAutoCountListening => 'వింటోంది…';
 
   @override

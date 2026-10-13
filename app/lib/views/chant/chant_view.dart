@@ -11,27 +11,24 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
-import '../../models/chant_log.dart';
 import '../../models/mantra.dart';
+import '../../models/reference_item.dart';
 import '../../providers/chant_audio_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
-import '../../services/auto_chant_log.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
 import '../../services/chant_recorder.dart';
-import '../../services/chant_speech_listener.dart';
-import '../../services/heard_words.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/sadhana_service.dart';
 import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
-import '../../widgets/chant/chant_heard_card.dart';
 import '../../widgets/chant/chant_recent_taps.dart';
 import '../../widgets/chant/chant_summary_header.dart';
 import '../../widgets/chant/chant_setup_sheet.dart';
 import 'chant_analytics_view.dart';
+import 'chant_fullscreen_view.dart';
 
 /// The counter. Tap-driven, one bead at a time, the way a thumb moves along a
 /// physical mala — a ring rather than a stopwatch, because a round is a shape
@@ -88,12 +85,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   StreamSubscription<AutoChantStatus>? _autoChantStatusSub;
   StreamSubscription<void>? _autoChantRepetitionSub;
 
-  /// Created the first time word detection is switched on.
-  ChantSpeechListener? _speech;
-  ChantSpeechState _speechState = ChantSpeechState.off;
-
-  /// Bumped when either helper's status changes, so the setup sheet — which
-  /// can be open over the counter — redraws without the whole screen doing so.
+  /// Bumped when auto-count's status changes, so the setup sheet — which can be
+  /// open over the counter — redraws without the whole screen doing so.
   final ValueNotifier<int> _setupChanged = ValueNotifier(0);
 
   /// Null when the mantra has no recording of a mala to chant along to.
@@ -110,30 +103,21 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// are not redrawn twice a second.
   final ValueNotifier<int> _clock = ValueNotifier(0);
 
-  /// How many of the two listening helpers are running, for the button.
-  int get _helpersOn =>
-      (_autoChantStatus.enabled ? 1 : 0) +
-      (_speechState == ChantSpeechState.listening || _speechState == ChantSpeechState.starting
-          ? 1
-          : 0);
+  /// Bumped on every change to the count, so the full-screen picture (a route
+  /// of its own) keeps up with taps and with auto-count.
+  final ValueNotifier<int> _counted = ValueNotifier(0);
 
   /// Listening only works with the screen on — a locked phone pauses the app,
-  /// and with it the count — so the screen is held awake while either helper
+  /// and with it the count — so the screen is held awake while auto-count
   /// listens, as it is for the recording.
   bool _screenHeld = false;
 
   void _holdScreenForListening() {
-    final want = _helpersOn > 0;
+    final want = _autoChantStatus.enabled;
     if (want == _screenHeld) return;
     _screenHeld = want;
     unawaited(WakelockPlus.toggle(enable: want).catchError((_) {}));
   }
-
-  /// What the "Heard live" card shows: auto-count's words (it also knows how near
-  /// each came to the mantra) if it is on, else word detection's, else nothing.
-  HeardWords? get _hearing => _autoChantStatus.enabled
-      ? _autoChant?.hearing
-      : (_speechState == ChantSpeechState.listening ? _speech?.hearing : null);
 
   int get _totalRounds => _roundsBefore + _recorder.completedMalas;
 
@@ -169,7 +153,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       _setupChanged.value += 1;
     });
     _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
-    AutoChantLog.info('ready for "${mantra.name}" — switch it on from the setup sheet');
   }
 
   void _initMala() {
@@ -204,9 +187,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // Both listen on the microphone, which would hear the recording from the
     // speaker and count every chant a second time.
     if (playing) {
-      if (_autoChantStatus.enabled) AutoChantLog.info('the recording started playing — switching auto-count off');
       unawaited(_autoChant?.disable());
-      unawaited(_speech?.stop());
     }
   }
 
@@ -217,10 +198,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // was on, or the person would find it dead after every glance at another
     // app. Only `paused` counts: `inactive` is also a pulled-down notification
     // shade or a system dialog, and an hour's sitting should not end silently
-    // because of one. Word detection stays off until it is switched on again.
+    // because of one.
     if (state == AppLifecycleState.paused) {
       unawaited(_autoChant?.suspend());
-      unawaited(_speech?.stop());
     } else if (state == AppLifecycleState.resumed) {
       unawaited(_autoChant?.resume());
     }
@@ -236,6 +216,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _syncDebounce?.cancel();
     _clockTicker?.cancel();
     _clock.dispose();
+    _counted.dispose();
     _setupChanged.dispose();
     // Let the screen go first, before anything is awaited.
     if (_screenHeld) unawaited(WakelockPlus.toggle(enable: false).catchError((_) {}));
@@ -245,8 +226,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _malaChantsSub?.cancel();
     _mala?.state.removeListener(_onMalaState);
     unawaited(_mala?.dispose());
-    _speech?.state.removeListener(_onSpeechState);
-    unawaited(_speech?.dispose());
     unawaited(_autoChant?.dispose());
     // Best effort: dispose cannot be awaited, so a sync already in flight or
     // triggered here may not finish before the widget is gone. The explicit
@@ -270,30 +249,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
   void _tapBead({bool auto = false}) {
     HapticFeedback.selectionClick();
-    final tap = _recorder.tap(auto: auto);
-    if (auto && _autoChantStatus.enabled) {
-      AutoChantLog.info(
-        'bead #${tap.seq} added to the counter (round ${_recorder.currentMala}, '
-        '${_recorder.beadsInMala}/$_beadsPerRoundInUse)',
-      );
-    }
-
-    final heard = _speech?.takeHeard();
-    if (heard != null) {
-      _recorder.attachHeard(
-        ChantHeard(
-          seq: tap.seq,
-          malaIndex: _recorder.malaOf(tap.seq),
-          text: heard.text,
-          heardAt: tap.at,
-          confidence: heard.confidence,
-        ),
-      );
-    }
+    _recorder.tap(auto: auto);
 
     final roundCompleted = _recorder.beadsInMala == 0;
     if (roundCompleted) HapticFeedback.mediumImpact();
     setState(() => _pulse += 1);
+    _counted.value += 1;
 
     if (!_targetAnnounced && _target > 0 && _totalRounds >= _target) {
       _targetAnnounced = true;
@@ -307,35 +268,30 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     if (!_recorder.undo()) return;
     HapticFeedback.selectionClick();
     setState(() {});
+    _counted.value += 1;
     _scheduleSync();
   }
 
   Future<void> _toggleAutoChant(bool enabled) async {
     final session = _autoChant;
     if (session == null) return;
-    AutoChantLog.info('switch turned ${enabled ? 'on' : 'off'}');
     if (!enabled) return session.disable();
     await _mala?.pause();
-    await session.enable();
-  }
-
-  Future<void> _toggleWords(bool enabled) async {
-    if (!enabled) {
-      await _speech?.stop();
-      return;
+    if (!mounted) return;
+    // The recogniser takes a few seconds to load, and the switch would sit
+    // there looking dead: say what is happening until it is listening.
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const _AutoChantLoadingDialog(),
+      ),
+    );
+    try {
+      await session.enable();
+    } finally {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
     }
-    await _mala?.pause();
-    final speech = _speech ?? (ChantSpeechListener()..state.addListener(_onSpeechState));
-    _speech = speech;
-    await speech.start();
-  }
-
-  void _onSpeechState() {
-    final state = _speech?.state.value;
-    if (state == null || !mounted) return;
-    setState(() => _speechState = state);
-    _holdScreenForListening();
-    _setupChanged.value += 1;
   }
 
   void _scheduleSync({bool immediate = false}) {
@@ -414,10 +370,25 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       builder: (_) => ListenableBuilder(
         listenable: _setupChanged,
         builder: (_, _) => ChantSetupSheet(
-          autoChantStatus: _autoChant == null ? null : _autoChantStatus,
-          speechState: _speechState,
-          onAutoChant: _autoChant == null ? null : _toggleAutoChant,
-          onWords: _toggleWords,
+          autoChantStatus: _autoChantStatus,
+          onAutoChant: _toggleAutoChant,
+        ),
+      ),
+    );
+  }
+
+  void _openFullPicture(ReferenceItem deity) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => ChantFullscreenView(
+          imageUrl: deity.fullImageUrl!,
+          imageKey: 'deity-full-${deity.id}',
+          counts: _counted,
+          rounds: () => _totalRounds,
+          beads: () => _recorder.beadsInMala,
+          beadsPerRound: _beadsPerRoundInUse,
+          onTap: _tapBead,
         ),
       ),
     );
@@ -513,6 +484,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     beadsPerRound: _beadsPerRoundInUse,
                     pulse: _pulse,
                     onTap: _tapBead,
+                    centerImageUrl: widget.mantra?.deity?.imageUrl,
+                    centerImageKey: widget.mantra?.deity == null ? null : 'deity-${widget.mantra!.deity!.id}',
                   ),
                 ),
                 Align(
@@ -522,25 +495,54 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     tooltip: text.sadhanaUndoBead,
                   ),
                 ),
+                if (widget.mantra?.deity?.fullImageUrl != null)
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => _openFullPicture(widget.mantra!.deity!),
+                      icon: const Icon(Icons.fullscreen_rounded),
+                      label: Text(text.chantFullPicture),
+                    ),
+                  ),
                 const SizedBox(height: AppSpacing.md),
-                ChantHeardCard(heard: _hearing),
                 ChantRecentTaps(taps: _recorder.taps),
                 const SizedBox(height: AppSpacing.xl),
-                Center(
-                  child: OutlinedButton.icon(
-                    onPressed: _openSetup,
-                    icon: const Icon(Icons.tune_rounded),
-                    label: Text(
-                      text.chantSetupButtonState(
-                        text.chantSetupButton,
-                        _helpersOn == 0 ? text.chantSetupNoneOn : text.chantSetupOn(_helpersOn),
+                if (_autoChant != null)
+                  Center(
+                    child: OutlinedButton.icon(
+                      onPressed: _openSetup,
+                      icon: const Icon(Icons.graphic_eq_rounded),
+                      label: Text(
+                        text.chantSetupButtonState(
+                          text.sadhanaAutoCount,
+                          _autoChantStatus.enabled ? text.chantSetupOn(1) : text.chantSetupNoneOn,
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown over the counter while auto-count's recogniser loads.
+class _AutoChantLoadingDialog extends StatelessWidget {
+  const _AutoChantLoadingDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        content: Row(
+          children: [
+            const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 3)),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(child: Text(AppLocalizations.of(context).chantAutoCountLoading)),
+          ],
         ),
       ),
     );

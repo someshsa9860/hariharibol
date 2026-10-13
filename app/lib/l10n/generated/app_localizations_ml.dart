@@ -380,6 +380,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'ജപത്തിനായി കാത്തിരിക്കുന്നു';
 
   @override
+  String get chantAutoCountLoading => 'ഓട്ടോ കൗണ്ട് തയ്യാറാകുന്നു…';
+
+  @override
+  String get chantFullPicture => 'പൂർണ്ണ സ്ക്രീൻ ചിത്രം';
+
+  @override
   String get sadhanaAutoCountListening => 'കേൾക്കുന്നു…';
 
   @override

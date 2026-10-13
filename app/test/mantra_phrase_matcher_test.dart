@@ -30,7 +30,7 @@ void main() {
 
   group('the sharper recogniser writes Sanskrit in Devanagari', () {
     const rama = ['श्री राम जय राम जय जय राम', 'Shri Ram Jai Ram Jai Jai Ram'];
-    const bar = AutoChantConfig.accurateMatchThreshold;
+    const bar = 0.5;
 
     test('what it wrote for a chant counts, in whichever script it chose', () {
       // Taken from the offline bench: the real output for the same chant.
@@ -162,10 +162,10 @@ void main() {
       // A further repetition in the same stretch is held higher when short.
       expect(MantraPhraseMatcher.needed(60, further: true), AutoChantConfig.matchThreshold);
       expect(MantraPhraseMatcher.needed(12, further: true), greaterThan(AutoChantConfig.matchThreshold));
-      // The sharper recogniser keeps the short-phrase rise on every count.
+      // A stricter bar keeps the short-phrase rise on every count.
       expect(
-        MantraPhraseMatcher.needed(12, threshold: AutoChantConfig.accurateMatchThreshold),
-        greaterThan(AutoChantConfig.accurateMatchThreshold),
+        MantraPhraseMatcher.needed(12, threshold: 0.5),
+        greaterThan(0.5),
       );
     });
 

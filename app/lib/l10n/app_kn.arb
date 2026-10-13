@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "ಸ್ವಯಂ ಎಣಿಕೆ",
   "sadhanaAutoCountOff": "ಆಫ್ — ಮಣಿಯನ್ನು ನೀವೇ ಟ್ಯಾಪ್ ಮಾಡಿ",
   "sadhanaAutoCountIdle": "ಜಪಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ",
+  "chantAutoCountLoading": "ಸ್ವಯಂ ಎಣಿಕೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…",
+  "chantFullPicture": "ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ",
   "sadhanaAutoCountListening": "ಆಲಿಸುತ್ತಿದೆ…",
   "sadhanaAutoCountCounted": "ಎಣಿಸಲಾಯಿತು — ಮುಂದಿನದಕ್ಕಾಗಿ ಆಲಿಸುತ್ತಿದೆ",
   "sadhanaAutoCountPermissionDenied": "ಸ್ವಯಂ ಎಣಿಕೆಗೆ ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿ ಬೇಕು",

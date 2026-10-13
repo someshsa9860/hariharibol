@@ -86,6 +86,7 @@ const PREFIXES = {
   narrationAudio: 'narrations/audio',
   bookCover: 'books/covers',
   deityImage: 'deities/images',
+  deityFullImage: 'deities/full',
   guruImage: 'gurus/images',
   translatorImage: 'translators/images',
   issueImage: 'issues/images',

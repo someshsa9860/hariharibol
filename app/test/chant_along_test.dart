@@ -22,7 +22,6 @@ import 'package:hariharibol/services/chant_mala_timing.dart';
 import 'package:hariharibol/views/chant/chant_view.dart';
 import 'package:hariharibol/widgets/chant/chant_along_card.dart';
 import 'package:hariharibol/widgets/chant/chant_disc.dart';
-import 'package:hariharibol/widgets/chant/word_detect_switch.dart';
 
 import 'fake_audio_player.dart';
 
@@ -374,32 +373,6 @@ void main() {
       expect(find.text('1/4'), findsOneWidget);
       expect(fake.pauses, 0);
       expect(find.byTooltip('Pause recording'), findsOneWidget);
-
-      await leave(tester);
-    });
-
-    testWidgets('word detection and the recording take turns, so nothing is heard twice', (
-      tester,
-    ) async {
-      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
-      await pumpView(tester, mantra: withRecording, fake: fake);
-      await tapPlay(tester);
-      expect(fake.plays, 1);
-
-      await tester.ensureVisible(find.text('Auto count & words · Set up'));
-      await tester.tap(find.text('Auto count & words · Set up'));
-      await tester.pumpAndSettle();
-
-      final words = find.descendant(
-        of: find.byType(WordDetectSwitch),
-        matching: find.byType(Switch),
-      );
-      await tester.ensureVisible(words);
-      await tester.tap(words);
-      await tester.pump();
-
-      expect(fake.pauses, 1);
-      expect(find.byTooltip('Play recording'), findsOneWidget);
 
       await leave(tester);
     });

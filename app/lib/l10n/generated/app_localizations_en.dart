@@ -372,6 +372,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'Waiting for chanting';
 
   @override
+  String get chantAutoCountLoading => 'Getting auto count ready…';
+
+  @override
+  String get chantFullPicture => 'Full-screen picture';
+
+  @override
   String get sadhanaAutoCountListening => 'Listening…';
 
   @override

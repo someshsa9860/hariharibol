@@ -1577,7 +1577,8 @@ model Deity {
   nameI18n    Json? // { "hi": "…", "mr": "…" } — falls back to `name`
   description String? @db.Text
 
-  imagePath String? // S3 object key
+  imagePath     String? // S3 object key — the picture in lists and in the middle of the chant counter
+  fullImagePath String? // S3 object key — a 9:16 picture of the deity that fills the chant screen
 
   sampradaya   String  @default("vaishnav") @db.VarChar(50)
   displayOrder Int     @default(0)

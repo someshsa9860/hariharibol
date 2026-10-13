@@ -664,6 +664,18 @@ abstract class AppLocalizations {
   /// **'Waiting for chanting'**
   String get sadhanaAutoCountIdle;
 
+  /// No description provided for @chantAutoCountLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting auto count ready…'**
+  String get chantAutoCountLoading;
+
+  /// No description provided for @chantFullPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-screen picture'**
+  String get chantFullPicture;
+
   /// No description provided for @sadhanaAutoCountListening.
   ///
   /// In en, this message translates to:

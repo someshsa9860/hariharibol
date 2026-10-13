@@ -9,6 +9,7 @@ class ReferenceItem {
     required this.name,
     this.description,
     this.imageUrl,
+    this.fullImageUrl,
     this.displayOrder = 0,
   });
 
@@ -17,6 +18,10 @@ class ReferenceItem {
   final String name;
   final String? description;
   final String? imageUrl;
+
+  /// A 9:16 picture that fills the chant screen. Only deities have one, and
+  /// only where staff uploaded it.
+  final String? fullImageUrl;
   final int displayOrder;
 
   factory ReferenceItem.fromJson(Json json) => ReferenceItem(
@@ -25,6 +30,7 @@ class ReferenceItem {
         name: asString(json['name']),
         description: asStringOrNull(json['description']),
         imageUrl: asStringOrNull(json['imageUrl']),
+        fullImageUrl: asStringOrNull(json['fullImageUrl']),
         displayOrder: asInt(json['displayOrder']),
       );
 }

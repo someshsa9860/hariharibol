@@ -376,6 +376,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'ஜபத்துக்காகக் காத்திருக்கிறது';
 
   @override
+  String get chantAutoCountLoading => 'தானியங்கி எண்ணிக்கை தயாராகிறது…';
+
+  @override
+  String get chantFullPicture => 'முழுத்திரை படம்';
+
+  @override
   String get sadhanaAutoCountListening => 'கேட்கிறது…';
 
   @override

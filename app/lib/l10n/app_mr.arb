@@ -91,6 +91,8 @@
   "sadhanaAutoCount": "स्वयंचलित मोजणी",
   "sadhanaAutoCountOff": "बंद — मणी स्वतः टॅप करा",
   "sadhanaAutoCountIdle": "जपाची प्रतीक्षा आहे",
+  "chantAutoCountLoading": "स्वयंचलित मोजणी तयार होत आहे…",
+  "chantFullPicture": "पूर्ण स्क्रीन चित्र",
   "sadhanaAutoCountListening": "ऐकत आहे…",
   "sadhanaAutoCountCounted": "मोजले — पुढच्याची प्रतीक्षा आहे",
   "sadhanaAutoCountPermissionDenied": "स्वयंचलित मोजणीसाठी मायक्रोफोनची परवानगी हवी आहे",

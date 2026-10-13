@@ -18,7 +18,7 @@ export const deity = makeCrud({
   model: prisma.deity,
   entityType: 'Deity',
   searchFields: ['name', 'slug'],
-  mediaFields: ['imagePath'],
+  mediaFields: ['imagePath', 'fullImagePath'],
 });
 
 export const guru = makeCrud({

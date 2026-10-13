@@ -102,7 +102,7 @@ const includes = {
   }),
 
   mantra: (mantraChain, readingChain) => ({
-    deity: { select: { id: true, slug: true, name: true, imagePath: true } },
+    deity: { select: { id: true, slug: true, name: true, imagePath: true, fullImagePath: true } },
     guru: { select: { id: true, slug: true, name: true, imagePath: true } },
     translations: {
       where: {
@@ -288,7 +288,7 @@ async function mantra(row, user) {
     standardRounds: row.standardRounds,
     standardCount: row.standardCount,
 
-    deity: row.deity ? await s3.presignFields(row.deity, ['imagePath']) : null,
+    deity: row.deity ? await s3.presignFields(row.deity, ['imagePath', 'fullImagePath']) : null,
     guru: row.guru ? await s3.presignFields(row.guru, ['imagePath']) : null,
   };
 }

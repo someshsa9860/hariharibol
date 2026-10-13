@@ -373,6 +373,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get sadhanaAutoCountIdle => 'जप की प्रतीक्षा है';
 
   @override
+  String get chantAutoCountLoading => 'स्वचालित गिनती तैयार हो रही है…';
+
+  @override
+  String get chantFullPicture => 'पूरी स्क्रीन की तस्वीर';
+
+  @override
   String get sadhanaAutoCountListening => 'सुन रहा है…';
 
   @override
