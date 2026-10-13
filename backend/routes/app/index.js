@@ -21,6 +21,7 @@ import reelCommentRoutes from './reel-comment.js';
 import creatorRoutes from './creator.js';
 import sadhanaRoutes from './sadhana.js';
 import taskRoutes from './task.js';
+import routineRoutes from './routine.js';
 import slokaRoutes from './sloka.js';
 import issueRoutes from './issue.js';
 import favoriteRoutes from './favorite.js';
@@ -47,6 +48,7 @@ const routers = [
   creatorRoutes,
   sadhanaRoutes,
   taskRoutes,
+  routineRoutes,
   slokaRoutes,
   issueRoutes,
   favoriteRoutes,

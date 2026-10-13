@@ -2,75 +2,17 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/constants/routine_config.dart';
 import '../core/constants/storage_keys.dart';
+import '../models/routine_data.dart';
 import '../models/routine_task.dart';
 import '../services/ekadashi_calendar.dart';
 import '../services/local_store.dart';
+import 'routine_sync_provider.dart';
+import 'session_provider.dart';
 
-/// Which daily items were checked on a day, and the time each was checked at
-/// (minutes after midnight; null for a check made before times were kept).
-typedef DailyChecks = Map<String, Map<String, int?>>;
-
-/// Everything the routine tab keeps: tasks added for a particular day, the
-/// optional daily routine, and which daily items were checked on which day.
-class RoutineData {
-  const RoutineData({
-    this.tasks = const [],
-    this.daily = const [],
-    this.checks = const {},
-  });
-
-  final List<RoutineTask> tasks;
-  final List<DailyRoutineItem> daily;
-
-  /// Day key → the daily items checked that day, each with its time.
-  final DailyChecks checks;
-
-  RoutineData copyWith({
-    List<RoutineTask>? tasks,
-    List<DailyRoutineItem>? daily,
-    DailyChecks? checks,
-  }) => RoutineData(
-    tasks: tasks ?? this.tasks,
-    daily: daily ?? this.daily,
-    checks: checks ?? this.checks,
-  );
-
-  /// The routine of one day: its daily items, each with that day's check, then
-  /// whatever was added for that day — in the order of the day, tasks with a
-  /// time range by when the range opens and the rest after them, in the order
-  /// they were added.
-  List<RoutineTask> on(String day) {
-    final checked = checks[day] ?? const <String, int?>{};
-    final tasksOfTheDay = [
-      for (final item in daily)
-        if (item.appliesOn(day))
-          item.on(
-            day,
-            isDone: checked.containsKey(item.id),
-            doneAt: checked[item.id],
-          ),
-      for (final task in tasks)
-        if (task.day == day) task,
-    ];
-
-    // `List.sort` is not stable, so the position the task was added at breaks
-    // a tie.
-    final order = {
-      for (var index = 0; index < tasksOfTheDay.length; index++)
-        tasksOfTheDay[index]: index,
-    };
-    return tasksOfTheDay..sort((a, b) {
-      final byStart = (a.window?.start ?? RoutineConfig.minutesPerDay)
-          .compareTo(b.window?.start ?? RoutineConfig.minutesPerDay);
-      return byStart != 0 ? byStart : order[a]!.compareTo(order[b]!);
-    });
-  }
-}
-
-/// The routine, kept on the device: there is no backend model for a personal
-/// task list yet.
+/// The routine. It is kept on the device first — every change is written to
+/// local storage before anything else, so the tab never waits on the network —
+/// and mirrored to the account in the background (see [routineSyncerProvider]).
 ///
 /// Days do not leak into each other. A task is added *for* a day and stays on
 /// it, so scrolling back through the date strip shows what was planned and what
@@ -81,59 +23,72 @@ class RoutineNotifier extends Notifier<RoutineData> {
   RoutineData build() {
     final store = LocalStore.instance;
 
+    // Rebuilt when a different account signs in, not on every profile change.
+    final userId = ref.watch(currentUserProvider.select((user) => user?.id));
+    final owner = store.read<String>(BoxKeys.routineOwner);
+    if (userId != null && owner != null && owner != userId) {
+      // The list on this phone is another account's, and is on that account.
+      // It must not be uploaded into this one.
+      unawaited(_forgetOwnersRoutine(userId));
+      return const RoutineData();
+    }
+
     // Tasks saved before they carried a day all belonged to the day the list
     // was last opened on.
     final legacyDay = store.read<String>(BoxKeys.routineDate);
-    final fallbackDay = (legacyDay == null || legacyDay.isEmpty)
-        ? routineDayKey(DateTime.now())
-        : legacyDay;
+    final data = RoutineData.fromJson(
+      {
+        'tasks': store.read<List>(BoxKeys.routineTasks),
+        'daily': store.read<List>(BoxKeys.routineDaily),
+        'checks': store.read<Map>(BoxKeys.routineChecks),
+      },
+      legacyDay: (legacyDay == null || legacyDay.isEmpty)
+          ? routineDayKey(DateTime.now())
+          : legacyDay,
+    );
 
-    final tasks = _list(store.read<List>(BoxKeys.routineTasks))
-        .map(RoutineTask.fromJson)
-        .map((task) => task.day.isEmpty ? task.withDay(fallbackDay) : task)
-        .toList();
-    final daily = _list(
-      store.read<List>(BoxKeys.routineDaily),
-    ).map(DailyRoutineItem.fromJson).toList();
-
-    final checks = <String, Map<String, int?>>{};
-    final storedChecks = store.read<Map>(BoxKeys.routineChecks);
-    if (storedChecks != null) {
-      for (final entry in storedChecks.entries) {
-        final marks = entry.value;
-        if (marks is Map) {
-          checks['${entry.key}'] = {
-            for (final mark in marks.entries)
-              '${mark.key}': mark.value is int ? mark.value as int : null,
-          };
-        } else if (marks is List) {
-          // Saved before times were kept: a list of the ids checked that day.
-          checks['${entry.key}'] = {for (final id in marks) '$id': null};
-        }
-      }
+    // A list kept before accounts owned it belongs to whoever opens it first.
+    // An empty one has nothing to protect, so nothing is written for it: the
+    // owner goes down with the first change instead (see [_persist]).
+    if (userId != null && owner == null && !data.isEmpty) {
+      unawaited(store.write(BoxKeys.routineOwner, userId));
     }
-    return RoutineData(tasks: tasks, daily: daily, checks: checks);
+    return data;
   }
 
-  static Iterable<Map<String, dynamic>> _list(List? stored) =>
-      (stored ?? const []).whereType<Map>().map(
-        (json) => Map<String, dynamic>.from(json),
-      );
-
-  Future<void> _persist() async {
+  Future<void> _forgetOwnersRoutine(String newOwner) async {
     final store = LocalStore.instance;
-    await store.write(
+    for (final key in [
       BoxKeys.routineTasks,
-      state.tasks.map((task) => task.toJson()).toList(),
-    );
-    await store.write(
       BoxKeys.routineDaily,
-      state.daily.map((item) => item.toJson()).toList(),
-    );
-    await store.write(BoxKeys.routineChecks, {
-      for (final entry in state.checks.entries)
-        if (entry.value.isNotEmpty) entry.key: entry.value,
-    });
+      BoxKeys.routineChecks,
+      BoxKeys.routineDate,
+      BoxKeys.routineSynced,
+    ]) {
+      await store.delete(key);
+    }
+    await store.write(BoxKeys.routineOwner, newOwner);
+  }
+
+  /// Writes the routine to the phone, then asks for it to be sent to the
+  /// account.
+  Future<void> _persist({bool sync = true}) async {
+    final store = LocalStore.instance;
+    final stored = state.toJson();
+    final userId = ref.read(currentUserProvider)?.id;
+    if (userId != null) await store.write(BoxKeys.routineOwner, userId);
+    await store.write(BoxKeys.routineTasks, stored['tasks']);
+    await store.write(BoxKeys.routineDaily, stored['daily']);
+    await store.write(BoxKeys.routineChecks, stored['checks']);
+    if (sync) ref.read(routineSyncerProvider).schedule();
+  }
+
+  /// Takes what a sync produced as the routine. It is not sent again: it is
+  /// what the server holds, plus anything changed on the phone while the
+  /// request was on its way, and that change has its own sync waiting.
+  Future<void> adopt(RoutineData data) async {
+    state = data;
+    await _persist(sync: false);
   }
 
   static String _newId() => DateTime.now().microsecondsSinceEpoch.toString();
@@ -148,7 +103,7 @@ class RoutineNotifier extends Notifier<RoutineData> {
   }) async {
     final task = RoutineTask(
       id: _newId(),
-      title: title,
+      title: routineTitle(title),
       category: category,
       slot: window?.slot ?? RoutineSlot.anytime,
       window: window,
@@ -166,7 +121,7 @@ class RoutineNotifier extends Notifier<RoutineData> {
   }) async {
     final item = DailyRoutineItem(
       id: _newId(),
-      title: title,
+      title: routineTitle(title),
       category: category,
       slot: window?.slot ?? RoutineSlot.anytime,
       window: window,

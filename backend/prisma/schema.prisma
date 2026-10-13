@@ -259,6 +259,9 @@ model User {
   chantMalas       ChantMala[]
   chantTranscripts ChantTapTranscript[]
   sadhanaTasks     SadhanaTask[]
+  routineTasks     RoutineTask[]
+  routineDaily     RoutineDailyItem[]
+  routineChecks    RoutineCheck[]
   dailySlokas      UserDailySloka[]
   issues           UserIssue[]
   preferences      UserPreferenceProfile?
@@ -1929,6 +1932,86 @@ model SadhanaTask {
 
   @@index([sadhanaDayId])
   @@index([userId, status])
+}
+
+// ============================================================================
+// Routine — the app's Routine tab: a personal day list of devotion, work, home
+// and errands, plus an optional daily routine that repeats.
+//
+// Separate from SadhanaTask on purpose. That one is a plain checklist attached to
+// a SadhanaDay; the routine has categories, a standard time range per item and a
+// time it was done at, and its daily items are not rows of any one day.
+//
+// The phone keeps its own copy and mirrors it here (POST /api/app/routine/sync),
+// so these rows are keyed by the id the phone made, per user, and a day is the
+// user's own calendar date as `YYYY-MM-DD` — no zone, the way the phone keeps it.
+// Times are minutes after midnight. Nothing here is derived from anything else.
+// ============================================================================
+
+// Something added for one particular day.
+model RoutineTask {
+  userId String
+  id     String // made by the phone; unique per user only
+
+  day      String @db.VarChar(10) // YYYY-MM-DD
+  title    String
+  category String // devotion | work | home | errand
+  slot     String // morning | afternoon | evening | anytime
+
+  // The standard time range, both set or both null.
+  windowStart Int?
+  windowEnd   Int?
+
+  isDone Boolean @default(false)
+  doneAt Int? // minutes after midnight; null while not done, and on a tick with no time
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
+  @@index([userId, day])
+}
+
+// One item of the daily routine: shows on every day from `since` until `until`.
+// Never deleted — taking it out sets `until` so the days already lived keep it.
+model RoutineDailyItem {
+  userId String
+  id     String
+
+  title    String
+  category String
+  slot     String
+
+  windowStart Int?
+  windowEnd   Int?
+
+  since String @db.VarChar(10) // first day it applies, YYYY-MM-DD
+  until String @default("") @db.VarChar(10) // last day it applies; empty while it is still going
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
+}
+
+// A daily item ticked on a day. The row's existence is the tick.
+model RoutineCheck {
+  userId String
+  itemId String // RoutineDailyItem.id
+  day    String @db.VarChar(10)
+
+  doneAt Int? // minutes after midnight; null for a tick made before times were kept
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, itemId, day])
+  @@index([userId, day])
 }
 
 // ============================================================================

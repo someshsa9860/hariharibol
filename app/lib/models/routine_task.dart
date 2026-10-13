@@ -93,12 +93,24 @@ String routineDayKey(DateTime day) {
   return '${day.year}-$month-$date';
 }
 
+/// A name as the routine keeps it and sends it: trimmed, and no longer than
+/// the backend takes (counted in UTF-16 units, as it counts them).
+String routineTitle(String raw) {
+  final trimmed = raw.trim();
+  var end = RoutineConfig.maxTitleLength;
+  if (trimmed.length <= end) return trimmed;
+
+  // Not between the two halves of a character outside the basic plane.
+  final last = trimmed.codeUnitAt(end - 1);
+  if (last >= 0xD800 && last <= 0xDBFF) end -= 1;
+  return trimmed.substring(0, end).trimRight();
+}
+
 /// The day at midnight, local time — a date with the time of day taken off.
 DateTime routineDay(DateTime moment) =>
     DateTime(moment.year, moment.month, moment.day);
 
-/// One item on a day's routine — a round of japa, a chore, an errand. Kept on
-/// the device only: there is no backend model for this yet.
+/// One item on a day's routine — a round of japa, a chore, an errand.
 ///
 /// A task is either one a person added **for that day** (it has a [day]), or one
 /// of their daily routine, shown on every day it applies to ([isDaily]) with

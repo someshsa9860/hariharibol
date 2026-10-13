@@ -38,4 +38,21 @@ abstract final class RoutineConfig {
   static const double dayDisc = 36;
   static const double dayRing = 42;
   static const double ringStroke = 2.5;
+
+  /// The longest name a task or daily item can have: the backend refuses more,
+  /// and a refused row would be refused again on every sync.
+  static const int maxTitleLength = 200;
+
+  /// How long after a change the routine is sent, so a run of ticks goes up
+  /// as one request.
+  static const Duration syncDebounce = Duration(seconds: 3);
+
+  /// How long to wait before trying again after a failed sync, doubling each
+  /// time up to the longest.
+  static const Duration syncRetryFirst = Duration(seconds: 30);
+  static const Duration syncRetryLongest = Duration(minutes: 15);
+
+  /// Rows (tasks, daily items, ticks and removals together) in one request. A
+  /// phone with a year of history to upload sends it in pieces this size.
+  static const int syncChunkRows = 500;
 }

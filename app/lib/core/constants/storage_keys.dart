@@ -49,16 +49,26 @@ abstract final class BoxKeys {
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
 
-  /// The tasks added for a particular day, device-only until a backend model
-  /// exists for them. Each carries the day it belongs to.
+  /// The tasks added for a particular day. Each carries the day it belongs to.
+  /// Kept here first and mirrored to the account (see `routine_sync.dart`).
   static const String routineTasks = 'routine.tasks';
 
   /// The optional daily routine: items that repeat every day from the day they
   /// were added.
   static const String routineDaily = 'routine.daily';
 
-  /// Which daily items were checked on which day: `{ '2026-10-11': [id, …] }`.
+  /// Which daily items were checked on which day, each with the time it was
+  /// checked at: `{ '2026-10-11': { id: minute, … } }`.
   static const String routineChecks = 'routine.checks';
+
+  /// The id of the account the routine above belongs to. A different account
+  /// signing in starts with an empty routine and gets its own from the server;
+  /// without this, one person's list would be uploaded into another's account.
+  static const String routineOwner = 'routine.owner';
+
+  /// The routine as the server last answered it — what the next sync is
+  /// measured against to find what this phone has changed since.
+  static const String routineSynced = 'routine.synced';
 
   /// Legacy. Before tasks carried their own day this held the one day the list
   /// belonged to; it is read once, to date tasks saved by that version.

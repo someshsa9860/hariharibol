@@ -68,6 +68,14 @@ void main() {
       const MethodChannel('plugins.flutter.io/path_provider'),
       (call) async => hiveDir.path,
     );
+    // Someone signed in starts the routine's sync, which listens for the
+    // connection coming back. No plugin answers in a test; this one does, with
+    // nothing to say.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/connectivity_status'),
+      (call) async => null,
+    );
     await LocalStore.instance.init();
   });
 

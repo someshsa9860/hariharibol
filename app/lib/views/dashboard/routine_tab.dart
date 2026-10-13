@@ -24,9 +24,9 @@ import '../../widgets/routine/routine_task_tile.dart';
 /// day has its own list — what was added for it, plus the optional daily
 /// routine — so earlier days can be opened and read back.
 ///
-/// Device-only for now: there is no backend model for a personal task list
-/// yet, so this is a real screen rather than a placeholder, built on local
-/// storage until one arrives.
+/// The list is kept on the device and mirrored to the account in the
+/// background (see `routine_syncer.dart`), so the screen never waits on the
+/// network and still works offline.
 class RoutineTab extends ConsumerWidget {
   const RoutineTab({super.key});
 
@@ -120,6 +120,10 @@ class RoutineTab extends ConsumerWidget {
     final isToday = day == routineDay(DateTime.now());
     final isEkadashi = ref.watch(ekadashiCalendarProvider).isEkadashi(day);
 
+    // The floating nav bar is laid over this tab, and the dashboard passes its
+    // height down as the bottom padding: the last row has to scroll clear of it.
+    final bottomInset = MediaQuery.paddingOf(context).bottom + AppSpacing.xxl;
+
     return Scaffold(
       // The keyboard belongs to the sheets opened from here; the page behind
       // them stays as it is instead of being squeezed into what is left.
@@ -158,9 +162,11 @@ class RoutineTab extends ConsumerWidget {
                   // Scrolls, so a short screen never overflows it.
                   ? LayoutBuilder(
                       builder: (context, constraints) => SingleChildScrollView(
+                        padding: EdgeInsets.only(bottom: bottomInset),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
+                            minHeight: (constraints.maxHeight - bottomInset)
+                                .clamp(0.0, double.infinity),
                           ),
                           child: Center(
                             child: EmptyState(
@@ -189,7 +195,10 @@ class RoutineTab extends ConsumerWidget {
                       ),
                     )
                   : ListView(
-                      padding: AppSpacing.page.copyWith(top: 0),
+                      padding: AppSpacing.page.copyWith(
+                        top: 0,
+                        bottom: bottomInset,
+                      ),
                       children: [
                         for (final slot in RoutineSlot.values)
                           if (tasks.any((task) => task.slot == slot))

@@ -33,6 +33,10 @@ abstract final class ApiPaths {
   static const String subscriptionVerify = '$_app/subscription/verify';
   static const String subscriptionRestore = '$_app/subscription/restore';
 
+  // Routine
+  static const String routine = '$_app/routine';
+  static const String routineSync = '$_app/routine/sync';
+
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';

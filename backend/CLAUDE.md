@@ -399,6 +399,29 @@ Three nullable columns on `Mantra`: `malaAudioPath` (an S3 **key**, under `mantr
   mantra with the most rounds in the user's last 60 days of sessions. The app opens it from "Chant now" when
   no preferred mantra is set.
 
+## Routine (the app's Routine tab)
+
+The phone keeps its routine (tasks per day, the optional daily routine, and its ticks) in local storage and
+mirrors it here, so it follows someone to a new phone. Three tables — `RoutineTask`, `RoutineDailyItem`,
+`RoutineCheck` — separate from `SadhanaTask` on purpose: that one is a checklist on a `SadhanaDay`, the
+routine has categories, a standard time range, a time done at, and daily items that are not rows of any
+day. Nothing in `sadhana/tasks` changed.
+
+- **Keyed by the id the phone made**, per user (`@@id([userId, id])`), so two accounts can use the same id
+  and a request can only ever reach its own caller's rows. A day is the user's calendar date as
+  `YYYY-MM-DD` and times are minutes after midnight — no zone, the way the phone keeps them.
+- **One endpoint writes**, `POST /api/app/routine/sync`: removals, then upserts, in a single transaction,
+  then the routine as it now stands comes back. Repeating a request changes nothing; the last to arrive
+  wins. `GET /api/app/routine` is the same read on its own.
+- **`since` bounds the answer**, not what is stored: the whole daily routine always comes back, tasks and
+  ticks only from that day on (the app asks for the days its date strip can reach). Older rows are kept.
+- Limits are set to what the app can make (title 200, 1000 rows of each kind a request, a range ends after
+  it starts and inside the day). A row the server refuses would be refused on every retry, so the app's
+  own input limits have to stay inside these.
+- Un-ticking drops the time done at on the server too, so a row can never say "not done, at 06:42".
+
+`npm run test:routine` walks it against a running API.
+
 ## Sampradaya from chanting
 
 Which tradition someone follows is **worked out from what they chant**, never chosen.
