@@ -55,7 +55,7 @@ const CATEGORIES = ['mahamantra', 'beej', 'name', 'gayatri'];
 // default (vaishnav) would count towards the wrong one. Free text on the model,
 // like category.
 const SAMPRADAYAS = ['vaishnav', 'shaiva', 'shakta', 'smarta'];
-const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '' };
+const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '', chantMs: '' };
 
 const formatDuration = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
 
@@ -100,6 +100,7 @@ export function MantrasPage() {
         transliteration: editing.transliteration ?? '',
         description: editing.description ?? '',
         displayOrder: String(editing.displayOrder),
+        chantMs: editing.durationMs ? String(editing.durationMs) : '',
       });
     }
   }, [editing]);
@@ -114,6 +115,8 @@ export function MantrasPage() {
       transliteration: form.transliteration || undefined,
       description: form.description || undefined,
       ...(form.displayOrder !== '' ? { displayOrder: Number(form.displayOrder) } : {}),
+      // One chant at an ordinary pace, in ms; the app's auto count counts one chant per this much sound.
+      ...(form.chantMs !== '' ? { durationMs: Number(form.chantMs) } : {}),
       // Always sent, so removing the recording clears it — the API takes the span with it.
       malaAudioPath: mala.path,
       malaAudioStartMs: mala.path ? mala.startMs : null,
@@ -198,10 +201,10 @@ export function MantrasPage() {
     },
     {
       key: 'duration',
-      header: 'Duration',
+      header: 'Chant time',
       csv: (m) => m.durationMs,
       defaultHidden: true,
-      render: (m) => (m.durationMs ? formatDuration(m.durationMs) : '—'),
+      render: (m) => (m.durationMs ? `${(m.durationMs / 1000).toFixed(1)} s` : '—'),
     },
     {
       key: 'standard',
@@ -349,6 +352,22 @@ export function MantrasPage() {
               </p>
             </div>
             <div>
+              <Label>Standard chanting time (milliseconds)</Label>
+              <Input
+                className="mt-1 w-40"
+                type="number"
+                min={500}
+                step={100}
+                placeholder="1500"
+                value={form.chantMs}
+                onChange={(e) => setForm({ ...form, chantMs: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                How long one chant takes at an ordinary pace. Auto count in the app counts one chant for each this much
+                sound — Om Namah Shivaya about 1500, the mahamantra about 8000. Blank: the app works it out from the length of the text.
+              </p>
+            </div>
+            <div>
               <Label>Sanskrit</Label>
               <Textarea className="mt-1" value={form.sanskrit} onChange={(e) => setForm({ ...form, sanskrit: e.target.value })} />
             </div>
@@ -413,7 +432,7 @@ export function MantrasPage() {
                   ),
                 },
                 { label: 'Audio', value: viewing.audioPath ? 'Attached' : 'None' },
-                { label: 'Duration', value: viewing.durationMs ? formatDuration(viewing.durationMs) : '—' },
+                { label: 'Chant time', value: viewing.durationMs ? `${(viewing.durationMs / 1000).toFixed(1)} s` : '—' },
                 {
                   label: 'Mala recording',
                   value:

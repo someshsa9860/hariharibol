@@ -270,15 +270,17 @@ it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longe
     `storage/sloka-card-preview/` without sending anything. Careful: **`cardUrl` itself uploads**, and a dev
     `.env` with AWS keys writes to the real bucket.
 
-## Mantra chant phrases
+## Mantra standard chanting time and chant phrases
 
-`Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted: plain Roman
-spellings, one full repetition each — the standard transliteration plus looser spellings of what an
-English-trained recogniser writes down. The app's auto count matches the live transcript against them
-(≥ 36% — `AutoChantConfig.matchThreshold` in the app — stricter for a further repetition of a very short mantra), so fast or slurred chanting still counts. Written by the seed
-from `prisma/seed/chant-phrases.js` (every run, like the rest of a mantra's seed fields), accepted by the
-admin create/update, and sent on every mantra as `chantPhrases`. The admin panel has no field for it yet.
-A mantra with none falls back to `transliteration` in the app.
+`Mantra.durationMs` is how long **one chant takes at an ordinary pace**, in milliseconds. The app's auto count
+listens only for sound and counts one chant for each of these of it, so every mantra should have one. Set on the
+admin **Mantras** page ("Standard chanting time"); the seed (`standardChantMs` in `prisma/seed/data.js`) and the
+migration `20261014000100_mantra_standard_chant_time` fill it for the seeded mantras **only where it is empty**, so
+an admin's value is never overwritten. A mantra with none falls back, in the app, to 0.2 s per letter (min 1 s).
+
+`Mantra.chantPhrases` (`String[]`, default empty) is how a mantra may sound when chanted. It was what the old
+speech-recogniser auto count matched against; **the app no longer reads it**. Still written by the seed from
+`prisma/seed/chant-phrases.js` and sent on every mantra; safe to ignore or to remove later.
 
 ## Mantra names and translations
 

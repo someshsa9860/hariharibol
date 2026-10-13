@@ -161,6 +161,12 @@ async function seedMantras() {
       create: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
     });
 
+    // A standard chanting time only for a mantra that has none yet.
+    const standard = data.standardChantMs[mantra.slug];
+    if (standard && !saved.durationMs) {
+      await prisma.mantra.update({ where: { id: saved.id }, data: { durationMs: standard } });
+    }
+
     for (const translation of translations) {
       await prisma.mantraTranslation.upsert({
         where: { mantraId_languageCode: { mantraId: saved.id, languageCode: translation.languageCode } },

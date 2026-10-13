@@ -6,9 +6,8 @@ import '../../services/mantra_repetition_counter.dart';
 import 'chant_toggle_row.dart';
 
 /// The auto-count toggle: a switch plus one line of status underneath it —
-/// listening, just counted, or why it isn't running. Only ever shown for a
-/// mantra [MantraAutoChantSession.isSupported] is true for; a screen that
-/// cannot hear a mantra does not offer to.
+/// listening, just counted, or why it isn't running. Lives on the counter
+/// itself; the choice is remembered, so the counter opens already listening.
 class AutoChantSwitch extends StatelessWidget {
   const AutoChantSwitch({super.key, required this.status, required this.onChanged});
 

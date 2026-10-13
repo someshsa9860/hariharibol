@@ -5,8 +5,8 @@ import '../core/constants/auto_chant_config.dart';
 import '../models/mantra.dart';
 import 'mantra_audio_capture.dart';
 import 'mantra_detection_engine.dart';
-import 'mantra_phrase_matcher.dart';
-import 'mantra_repetition_counter.dart';
+import 'mantra_repetition_counter.dart' show AutoChantPhase;
+import 'voice_chant_counter.dart';
 
 /// Why auto-count is not running. Kept as reasons rather than a message
 /// string so the screen can put its own, localised words to each one.
@@ -14,7 +14,7 @@ enum AutoChantError {
   /// Microphone permission was denied.
   permissionDenied,
 
-  /// Anything else — model files missing or corrupt, the isolate failed to
+  /// Anything else — the model file missing or corrupt, the isolate failed to
   /// start, the recorder itself errored. Not actionable beyond "try again".
   unavailable,
 }
@@ -32,20 +32,26 @@ class AutoChantStatus {
 
 /// One chanting sitting's worth of "listen and count".
 ///
-/// Owns the microphone, the VAD+keyword-spotting isolate and the repetition
-/// state machine, and reduces all three to two things a screen actually
-/// needs: a status to show, and a tick each time a repetition completes.
+/// Owns the microphone and the voice-detector isolate, and reduces them to two
+/// things a screen needs: a status to show, and a tick each time a chant is
+/// counted. A chant is counted for each standard time of sound (see
+/// [VoiceChantCounter]); no words are recognised.
+///
 /// Scoped to one mantra for its whole life — switching mantras means a new
-/// session, not a mutation of this one.
+/// session. Everything it holds (microphone, isolate, model) is released by
+/// [disable] and [dispose], so leaving the counter leaves nothing running.
 class MantraAutoChantSession {
   MantraAutoChantSession(this.mantra)
-      : _matcher = MantraPhraseMatcher(mantra.spokenPhrases),
-        _counter = MantraRepetitionCounter(cooldown: AutoChantConfig.defaultCooldown);
+      : _counter = VoiceChantCounter(
+          standard: Duration(milliseconds: standardChantMsOf(mantra)),
+          lead: Duration(milliseconds: (AutoChantConfig.vadMinSpeechDurationSeconds * 1000).round()),
+          tail: Duration(milliseconds: (AutoChantConfig.vadMinSilenceDurationSeconds * 1000).round()),
+          partialShare: AutoChantConfig.partialChantShare,
+          countedFor: AutoChantConfig.defaultCooldown,
+        );
 
   final Mantra mantra;
-
-  final MantraPhraseMatcher _matcher;
-  final MantraRepetitionCounter _counter;
+  final VoiceChantCounter _counter;
 
   final MantraAudioCapture _capture = MantraAudioCapture();
   final MantraDetectionEngine _engine = MantraDetectionEngine();
@@ -55,8 +61,8 @@ class MantraAutoChantSession {
 
   StreamSubscription<Float32List>? _audioSub;
   StreamSubscription<bool>? _voiceSub;
-  StreamSubscription<WordTranscript>? _transcriptSub;
   StreamSubscription<String>? _errorSub;
+  Timer? _ticker;
 
   bool _enabled = false;
 
@@ -65,25 +71,30 @@ class MantraAutoChantSession {
   bool _resumeOnForeground = false;
 
   /// Counts the times it was switched off or sent to the background, so a start
-  /// still loading the recogniser can tell it was told to stop meanwhile.
+  /// still loading the model can tell it was told to stop meanwhile.
   int _stops = 0;
   bool _starting = false;
 
   /// Starting and stopping run one at a time, in the order they were asked for:
-  /// the recogniser takes seconds to load, and coming back to the app can ask for
+  /// the model takes a moment to load, and coming back to the app can ask for
   /// a start before the stop that the app leaving asked for has finished.
   Future<void> _queue = Future.value();
 
-  /// Whether this mantra has anything to listen for — phrases from the API,
-  /// or its transliteration. The switch is hidden entirely when this is
-  /// false, never shown disabled — this app does not ship controls that
-  /// cannot do anything.
-  bool get isSupported => _matcher.hasPhrases;
+  /// How long one chant of [mantra] takes: the standard time set for it, or —
+  /// for a mantra that has none — a length worked out from its text.
+  static int standardChantMsOf(Mantra mantra) {
+    if (mantra.durationMs > 0) return mantra.durationMs;
+    final letters = (mantra.transliteration ?? mantra.text).replaceAll(RegExp(r'\s'), '').length;
+    final seconds = letters * AutoChantConfig.chantSecondsPerLetter;
+    return ((seconds < AutoChantConfig.minChantSeconds ? AutoChantConfig.minChantSeconds : seconds) * 1000).round();
+  }
+
+  int get standardChantMs => standardChantMsOf(mantra);
 
   Stream<AutoChantStatus> get statusStream => _statusController.stream;
 
-  /// One event per completed repetition. The screen owning the bead count
-  /// treats each event exactly like a manual tap.
+  /// One event per counted chant. The screen owning the bead count treats each
+  /// event exactly like a manual tap.
   Stream<void> get repetitionDetected => _repetitionController.stream;
 
   Future<void> enable() => _inOrder(_start);
@@ -95,7 +106,7 @@ class MantraAutoChantSession {
   }
 
   Future<void> _start() async {
-    if (!isSupported || _enabled) return;
+    if (_enabled) return;
 
     if (!await _capture.hasPermission()) {
       _emitStatus(error: AutoChantError.permissionDenied);
@@ -115,10 +126,8 @@ class MantraAutoChantSession {
       _starting = false;
       _enabled = true;
       _counter.reset();
-      _matcher.reset();
 
       _voiceSub = _engine.voiceActive.listen(_onVoice);
-      _transcriptSub = _engine.transcripts.listen(_onTranscript);
       _errorSub = _engine.errors.listen((_) => _emitStatus(error: AutoChantError.unavailable));
       // The recorder can be taken away mid-sitting (a phone call, another app
       // opening the mic). Say so rather than sit "listening" to nothing.
@@ -127,6 +136,7 @@ class MantraAutoChantSession {
         onError: (Object error, StackTrace stack) => unawaited(_lostMicrophone()),
         onDone: () => unawaited(_lostMicrophone()),
       );
+      _ticker = Timer.periodic(AutoChantConfig.countTick, (_) => _count(_counter.tick()));
       _emitStatus();
     } catch (_) {
       _starting = false;
@@ -144,19 +154,14 @@ class MantraAutoChantSession {
   }
 
   void _onVoice(bool active) {
-    _counter.onVoiceActive(active);
+    _count(_counter.onVoice(active));
     _emitStatus();
   }
 
-  void _onTranscript(WordTranscript transcript) {
-    final heard = _matcher.update(transcript.text, isFinal: transcript.isFinal);
-    if (transcript.isFinal) _matcher.reset();
-
-    if (heard > 0) {
-      _counter.onRepetitionsHeard(heard);
-      for (var i = 0; i < heard; i++) {
-        _repetitionController.add(null);
-      }
+  void _count(int chants) {
+    if (chants <= 0) return;
+    for (var i = 0; i < chants; i++) {
+      _repetitionController.add(null);
     }
     _emitStatus();
   }
@@ -197,17 +202,19 @@ class MantraAutoChantSession {
     await _teardown();
     await _statusController.close();
     await _repetitionController.close();
+    await _engine.dispose();
   }
 
   Future<void> _teardown() async {
     _enabled = false;
+    _ticker?.cancel();
+    _ticker = null;
+    _counter.reset();
     await _audioSub?.cancel();
     await _voiceSub?.cancel();
-    await _transcriptSub?.cancel();
     await _errorSub?.cancel();
     _audioSub = null;
     _voiceSub = null;
-    _transcriptSub = null;
     _errorSub = null;
     await _capture.stop();
     await _engine.stop();
