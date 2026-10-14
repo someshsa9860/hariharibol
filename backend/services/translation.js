@@ -12,12 +12,13 @@ import { prisma } from '../config/database.js';
 import { translation } from '../config/translation.js';
 import { JOBS, queues } from '../jobs/index.js';
 import { EVENTS, toPermission } from './websocket.js';
+import { BUCKET as S3_BUCKET, client as s3Client } from './s3.js';
 import { describeEvent, presentRun } from '../utils/translation-run.js';
 
 import { DEFAULT_MODEL, costUsd } from '../scripts/lib/claude-translate-client.js';
 import { LANGUAGES, LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { dryRun, hasTranslation, verifyEntry } from '../scripts/lib/claude-translate-run.js';
-import { CHAPTERS, DEFAULT_GROUP_BUDGET, TRANSLATOR, loadChapter } from '../scripts/lib/claude-translate-source.js';
+import { CHAPTERS, DEFAULT_GROUP_BUDGET, TRANSLATOR, chapterKey, loadChapter } from '../scripts/lib/claude-translate-source.js';
 import { dirStore, langChapterKey, s3Store, versionFrom } from '../scripts/lib/claude-translate-store.js';
 
 const queue = queues.translation;
@@ -37,27 +38,49 @@ export const languages = () => LANGUAGES.map(({ code, name, endonym }) => ({ cod
 let workspaceOnce = null;
 
 /**
- * The store translations are saved to and the function that reads the English from — opened on first use,
- * because `source-s3.js` throws at import when its credentials are missing and the API must still boot
- * without them. Rejects, and keeps rejecting, until the process is restarted with them.
- * `SOURCE_LOCAL_DIR` (a folder laid out like the bucket) is used for both when set.
+ * The store translations are saved to and the function that reads the English from. On the server this is
+ * **the app's own bucket** (`S3_BUCKET`, with the credentials the API already has), where `json/bhagavat-gita/`
+ * already sits beside the book text. `SOURCE_S3_BUCKET` (the command line's setting, in `.env.scripts`) is
+ * honoured only when it is set, to point a server at some other bucket; `SOURCE_LOCAL_DIR` (a folder laid out
+ * like the bucket) is used for both when set, for tests. Opened on first use.
  */
 export function openWorkspace() {
   workspaceOnce ||= (async () => {
-    const source = await import('../scripts/lib/source-s3.js');
-    const store = process.env.SOURCE_LOCAL_DIR ? dirStore(process.env.SOURCE_LOCAL_DIR) : await s3Store();
-    return { store, getSource: memoised(source.getJson), describe: store.describe };
+    if (process.env.SOURCE_LOCAL_DIR) {
+      const source = await import('../scripts/lib/source-s3.js');
+      const store = dirStore(process.env.SOURCE_LOCAL_DIR);
+      return { store, getSource: memoised(source.getJson), describe: store.describe };
+    }
+    const store = process.env.SOURCE_S3_BUCKET ? await s3Store() : await s3Store({ client: s3Client, bucket: S3_BUCKET });
+    return { store, getSource: memoised(readFrom(store)), describe: store.describe };
   })();
   return workspaceOnce;
 }
 
-/** `{ ok, describe }` or `{ ok: false, error }` — for the page's checklist, never throws. */
+/** A source file read from the store; absent is an error, as the file reader expects. */
+const readFrom = (store) => async (key) => {
+  const file = await store.read(key);
+  if (!file) {
+    const err = new Error(`${key} is not in ${store.describe}`);
+    err.name = 'NoSuchKey';
+    throw err;
+  }
+  return file.json;
+};
+
+/**
+ * `{ ok, describe }` or `{ ok: false, error }` — for the page's checklist, never throws. It reads the first
+ * English chapter (kept for ten minutes, and needed by every estimate anyway), so a bucket the server cannot
+ * reach, or one without the scripture in it, shows up here and not as a page full of zeros.
+ */
 export async function storageStatus() {
   try {
-    const { describe } = await openWorkspace();
+    const { describe, getSource } = await openWorkspace();
+    await getSource(chapterKey(1));
     return { ok: true, describe };
   } catch (err) {
-    return { ok: false, error: String(err.message).replace(/ — see backend\/scripts\/README\.md.*$/, '') };
+    const why = err?.name === 'NoSuchKey' ? err.message : `${err?.name && err.name !== 'Error' ? `${err.name}: ` : ''}${err?.message || 'unknown problem'}`;
+    return { ok: false, error: why };
   }
 }
 

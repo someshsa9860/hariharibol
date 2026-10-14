@@ -285,10 +285,11 @@ same day is kept). Every write is conditional on the object not having changed s
 
 1. Put a key in `backend/.env`: `ANTHROPIC_API_KEY=sk-ant-…` (`ANTHROPIC_MODEL` is optional;
    default `claude-sonnet-5-5`; `TRANSLATION_VERSION` as above). The script never prints the key.
-2. The English is read from, and the output written to, the source bucket in `.env.scripts`
-   (`SOURCE_*`). Those credentials must be allowed to **write** under `json/bhagavat-gita/` and
-   `json/reports/`, and to copy to `json-backup-*/`; the first checkpoint write checks the bookkeeping
-   permission before any Claude call is paid for.
+2. The English is read from, and the output written to, the bucket in `.env.scripts` (`SOURCE_*`) — the
+   same bucket as the app's `S3_BUCKET`. Those credentials must be allowed to **write** under
+   `json/bhagavat-gita/` and `json/reports/`, and to copy to `json-backup-*/`; the first checkpoint write
+   checks the bookkeeping permission before any Claude call is paid for. (The admin page needs none of this:
+   the server uses its own `S3_BUCKET` and AWS keys.)
 
 **Commands** (run from `backend/`)
 

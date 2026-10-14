@@ -247,7 +247,7 @@ nothing that matters itself.
   process (`WS_PORT`). So `VITE_WS_URL` is only for a setup that differs. It reconnects with backoff and jitter,
   renews the access token on close code 4001, pings every 25 s, and gives up quietly on 4003 (this role may not
   listen).
-- **Start is gated by the server's overview**, not guessed: no `ANTHROPIC_API_KEY`, a bucket that cannot be reached
+- **Start is gated by the server's overview**, not guessed: no `ANTHROPIC_API_KEY`, the app's bucket not reachable (or without the Gita in it)
   or a bad `TRANSLATION_VERSION` disable it with the reason; "no worker online" only warns (the run waits in the
   queue). A second start for a language that has a live run gets a 409 and an "Open that run" link.
 - **Without `translation.run` the page is read-only**: no Start, Resume / Try again or Cancel; View output stays.

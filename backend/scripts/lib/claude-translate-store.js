@@ -1,7 +1,6 @@
 // Where the translated chapters, their backups and the run's bookkeeping live. Two
 // interchangeable stores with the same methods: S3 (the real thing: the bucket the scripture
-// JSON is read from, using the SOURCE_* credentials) and a plain folder (tests and dry local
-// runs).
+// JSON is read from) and a plain folder (tests and dry local runs).
 //
 // A translated chapter is one object per language beside the English and Sanskrit ones:
 //   json/bhagavat-gita/en/ch-2.json     the English (already there)
@@ -40,10 +39,13 @@ export const backupKey = (key, date = new Date()) => `json-backup-${date.toISOSt
 /** The object was changed (or created) by someone else since it was read. */
 export class ConflictError extends Error {}
 
-/** Store backed by S3, using the client and bucket from lib/source-s3.js. */
-export async function s3Store() {
+/**
+ * Store backed by S3. The command line uses the client and bucket from lib/source-s3.js (the SOURCE_*
+ * settings in .env.scripts); the server passes its own, the app's bucket (`S3_BUCKET`).
+ */
+export async function s3Store(location = null) {
   const { CopyObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand } = await import('@aws-sdk/client-s3');
-  const { client, bucket } = await import('./source-s3.js');
+  const { client, bucket } = location ?? (await import('./source-s3.js'));
   if (!client) throw new Error('SOURCE_LOCAL_DIR is set — S3 output needs the real bucket. Unset it, or use --local-store <dir>.');
 
   const missing = (err) => err.name === 'NoSuchKey' || err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404;

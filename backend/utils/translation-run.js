@@ -97,10 +97,10 @@ export function classifyError(err, retriesInARow = 0, cfg = translation) {
     return { action: 'fail', reason: 'error', verseId: err.verseId, message: text };
   }
 
-  // S3 - the bucket the English is read from and the translations are written to.
+  // S3 - the app's bucket, where the English is read from and the translations are written to.
   const s3Status = err?.$metadata?.httpStatusCode;
   if (S3_DENIED.includes(err?.name) || s3Status === 401 || s3Status === 403 || /S3 save of .* failed: .*(AccessDenied|Forbidden|InvalidAccessKeyId|SignatureDoesNotMatch)/.test(text)) {
-    return { action: 'pause', reason: 'storage', message: `The server is not allowed to read or write the translations bucket (${err?.name || 'access denied'}). Check SOURCE_AWS_* on the worker, then press Resume.` };
+    return { action: 'pause', reason: 'storage', message: `The server is not allowed to read or write the translations bucket (${err?.name || 'access denied'}). Check the server's AWS credentials and S3_BUCKET, then press Resume.` };
   }
   if (S3_BUSY.includes(err?.name) || (s3Status >= 500 && s3Status < 600) || /^S3 save of .* failed/.test(text)) {
     return retry('unavailable', 'S3 could not be reached.');

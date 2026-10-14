@@ -499,9 +499,14 @@ Things to know before changing it:
   still works without the socket by polling.
 - **The two permissions are inserted by the migration** and given to `admin` and `super_admin`; any other role gets them on the
   admin Roles page. Permissions are cached for about 5 minutes, so a new grant can take that long to show.
-- **Needs in the server `.env`** for the `api` and `worker` containers: `ANTHROPIC_API_KEY`, `TRANSLATION_VERSION`
-  (optional) and the `SOURCE_*` bucket settings (`deploy/server/.env.example`). Without a key the page says so and
-  the Start button is disabled.
+- **The bucket is the app's own** (`S3_BUCKET`, the AWS keys the API already has; `json/bhagavat-gita/` sits in it beside
+  the book text). Nothing separate to configure: `openWorkspace()` in `services/translation.js` uses
+  `services/s3.js`'s client. `SOURCE_S3_BUCKET` is read only if set (the command line's `.env.scripts` setting; it
+  would send the server to a different bucket) and `SOURCE_LOCAL_DIR` is for tests. The keys must be allowed to
+  **write** under `json/bhagavat-gita/` and `json/reports/`, and to copy to `json-backup-*/`. The page's checklist
+  reads the first English chapter, so a bucket it cannot reach or that lacks the scripture is reported there.
+- **Needs in the server `.env`** for the `api` and `worker` containers: `ANTHROPIC_API_KEY`, and `TRANSLATION_VERSION`
+  (optional). Without a key the page says so and the Start button is disabled.
 - **Do not run `npm run translate:claude` while the worker is working a run for the same language.** They write the
   same chapter files; each write is conditional on the object not having changed, so one of them stops, but neither
   knows about the other.
@@ -509,8 +514,8 @@ Things to know before changing it:
   BullMQ worker with Claude faked: start, progress, credit pause and Resume, a 529 retry, cancel, a killed
   worker, a flushed queue, permissions and the output endpoints. `npm test` needs Node ≥ 21 for its test glob; under
   Node 20 run `node --test test/translation-run.test.js`.
-- **Not exercised:** a real Claude call and the real S3 path (the e2e uses `SOURCE_LOCAL_DIR`). Run
-  `npm run translate:claude:test` first.
+- **Not exercised:** a real Claude call and a write to the real bucket (the e2e uses `SOURCE_LOCAL_DIR`; the app's
+  bucket has only been read, by the page's check and coverage). Run `npm run translate:claude:test` first.
 
 ## Client attestation on signup
 

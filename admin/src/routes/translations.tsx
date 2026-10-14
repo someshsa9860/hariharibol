@@ -224,7 +224,7 @@ function RefreshCoverage() {
 function Health({ settings, hasActive }: { settings: Overview['settings']; hasActive: boolean }) {
   const problems = [
     !settings.apiKeyConfigured && { fatal: true, text: 'ANTHROPIC_API_KEY is not set on the server, so Claude cannot be called. Add it to the server .env for the api and worker, then restart them.' },
-    !settings.storage.ok && { fatal: true, text: `The translations bucket cannot be used: ${settings.storage.error ?? 'unknown problem'}. Check the SOURCE_* settings on the server.` },
+    !settings.storage.ok && { fatal: true, text: `The translations bucket cannot be used: ${settings.storage.error ?? 'unknown problem'}. The server reads and writes the app's own bucket (S3_BUCKET), so check that and its AWS credentials.` },
     settings.versionError && { fatal: true, text: settings.versionError },
     !settings.workerOnline && {
       fatal: false,
