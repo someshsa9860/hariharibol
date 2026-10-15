@@ -20,7 +20,7 @@ import { translation } from '../../config/translation.js';
 import * as service from '../../services/translation.js';
 import { ConfigError, FINISHED_STATUSES, classifyError, microsOf, usdOf } from '../../utils/translation-run.js';
 
-import { createClaude, thinkingSettings } from '../../scripts/lib/claude-translate-client.js';
+import { createAsk, providerOf } from '../../scripts/lib/translate-providers.js';
 import { run as runPipeline } from '../../scripts/lib/claude-translate-run.js';
 import { DEFAULT_GROUP_BUDGET } from '../../scripts/lib/claude-translate-source.js';
 import { checkpointKey } from '../../scripts/lib/claude-translate-store.js';
@@ -39,9 +39,9 @@ export const realDeps = {
   workspace: service.openWorkspace,
   estimate: service.estimate,
   runPipeline,
-  makeAsk({ apiKey, model, effort, signal, onWait }) {
-    thinkingSettings(model, effort); // a model that cannot do what is asked fails here, as a config problem, not on the first verse
-    return createClaude({ apiKey, model, effort, signal, onWait }).ask;
+  makeAsk({ provider, apiKey, model, effort, signal, onWait }) {
+    // createAsk fails here, as a config problem, not on the first verse, when the model cannot do what is asked
+    return createAsk({ provider, apiKey, model, effort, signal, onWait }).ask;
   },
 };
 
@@ -73,6 +73,17 @@ export async function processRun(job, token, deps) {
   if (row.cancelRequested) {
     await finish(row, 'CANCELLED', { stopReason: 'cancelled', statusMessage: 'Cancelled before it started.' });
     return { cancelled: true };
+  }
+
+  // The queue lets one run per book work at once. Two runs of the same book would share a checkpoint, so a
+  // second one waits its turn here, a few seconds at a time.
+  const busy = await runs.findFirst({
+    where: { book: row.book, status: 'RUNNING', id: { not: runId }, heartbeatAt: { gt: new Date(Date.now() - translation.staleHeartbeatSeconds * 1000) } },
+    select: { id: true },
+  });
+  if (busy) {
+    await job.moveToDelayed(Date.now() + translation.sameBookWaitMs, token);
+    throw new DelayedError();
   }
 
   const now = new Date();
@@ -197,21 +208,21 @@ function makeContext(row, job) {
 
 async function execute(ctx, entry, deps) {
   const { row, state } = ctx;
-  const key = deps.apiKey();
-  if (!key) throw new ConfigError('ANTHROPIC_API_KEY is not set on the worker.');
+  const key = deps.apiKey(row.provider);
+  if (!key) throw new ConfigError(`${providerOf(row.provider).keyEnv} is not set on the worker.`);
   const { store, getSource } = await deps.workspace();
 
   // Which verses are left, so the progress bar is true after a pause as well as at the start. Left means
   // not yet translated under the run's own version: a verse made under another one counts as left.
   const verseLimit = row.verseLimit ? Math.max(0, row.verseLimit - state.doneVerses) : null;
   if (verseLimit === 0) return { kind: 'finished', stopReason: 'limit' };
-  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, model: row.model, version: row.version });
+  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, book: row.book, provider: row.provider, model: row.model, version: row.version });
   state.totalVerses = state.doneVerses + left.willTranslate;
   await ctx.flush();
   if (left.willTranslate === 0) return { kind: 'finished', stopReason: 'finished' };
 
   // The checkpoint's spend is the whole version's, across languages and runs; this run's budget is its own.
-  const checkpoint = await store.getJson(checkpointKey(row.version));
+  const checkpoint = await store.getJson(checkpointKey(row.version, row.book));
   let maxSpend = null;
   if (row.budgetMicros != null) {
     const remaining = usdOf(row.budgetMicros - state.costMicros);
@@ -220,11 +231,11 @@ async function execute(ctx, entry, deps) {
   }
 
   const ask = deps.makeAsk({
-    apiKey: key, model: row.model, effort: translation.effort, signal: entry.controller.signal,
+    provider: row.provider, apiKey: key, model: row.model, effort: translation.effort, signal: entry.controller.signal,
     onWait: (message) => service.pushFeed(row.id, { kind: 'wait', level: 'warn', text: message }),
   });
   const cfg = {
-    model: row.model, effort: translation.effort, version: row.version, langs: [row.language], chapters: row.chapters,
+    book: row.book, provider: row.provider, model: row.model, effort: translation.effort, version: row.version, langs: [row.language], chapters: row.chapters,
     only: null, limit: verseLimit ?? 0, maxSpend, maxTokens: translation.maxTokens, groupBudget: DEFAULT_GROUP_BUDGET,
     maxRounds: translation.maxRounds,
     // The pipeline refuses to start while the checkpoint says another run is active. Our own earlier attempt,

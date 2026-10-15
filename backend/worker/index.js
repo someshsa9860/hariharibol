@@ -9,6 +9,7 @@
 // config/cron.js. The API never does, so a rolling deploy of the API cannot
 // duplicate or drop a schedule.
 
+import { BOOK_IDS } from '../scripts/lib/claude-translate-source.js';
 import { Worker } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { QUEUE_NAMES, queues } from '../jobs/index.js';
@@ -96,7 +97,8 @@ async function start() {
     logger.info({ queue: name, concurrency: CONCURRENCY[name] }, 'worker started');
   }
 
-  await queues.translation.setGlobalConcurrency(1);
+  // One run at a time per book (the processor makes a second run of the same book wait), so both books can be translated together.
+  await queues.translation.setGlobalConcurrency(BOOK_IDS.length);
 
   // Runs live in the database; their jobs live in Redis. If the two disagree (Redis was flushed, a job was
   // lost), put the run back in the queue. Once now, then every couple of minutes.

@@ -2399,6 +2399,8 @@ model TranslationRun {
 
   language String @db.VarChar(10) // hi | mr | ta | bn | te | kn | ml
   version  String @db.VarChar(40) // TRANSLATION_VERSION when it was started
+  book     String @default("bhagavat-gita") @db.VarChar(40) // bhagavat-gita | srimad-bhagavatam; chapters[] are that book's chapter ids
+  provider String @default("anthropic") @db.VarChar(20) // anthropic | openai
   model    String @db.VarChar(100)
 
   // What the admin asked for. No chapters = all eighteen; no limit or budget = none.

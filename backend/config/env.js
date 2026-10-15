@@ -97,6 +97,10 @@ const schema = z.object({
   // (versionFrom) — it ends up in file names.
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().optional(),
+  // The other provider a run can use, and which one the Translations page offers first (anthropic | openai).
+  OPENAI_API_KEY: z.string().optional(),
+  TRANSLATION_OPENAI_MODEL: z.string().optional(),
+  TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
   WS_PORT: z.coerce.number().default(4001),

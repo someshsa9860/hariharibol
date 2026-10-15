@@ -5,6 +5,8 @@
 import { translation } from '../config/translation.js';
 import { language } from '../scripts/lib/claude-translate-languages.js';
 import { FatalApiError, RefusalError } from '../scripts/lib/claude-translate-client.js';
+import { chapterLabel } from '../scripts/lib/claude-translate-source.js';
+import { providerOf } from '../scripts/lib/translate-providers.js';
 import { TooLongError, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
 
 export const ACTIVE_STATUSES = ['QUEUED', 'RUNNING', 'PAUSED'];
@@ -39,7 +41,7 @@ const S3_BUSY = ['SlowDown', 'ServiceUnavailable', 'InternalError', 'RequestTime
 /**
  * Decides what a run does about an error that stopped it.
  *
- *   pause + retryInMs  - probably temporary (Anthropic or S3 busy, the network): try again by itself
+ *   pause + retryInMs  - probably temporary (the AI provider or S3 busy, the network): try again by itself
  *   pause              - needs a person (no credit, a bad key, no access to the bucket): Resume afterwards
  *   fail               - something broke that waiting will not mend: the message says what, Resume tries again
  *
@@ -52,6 +54,7 @@ const S3_BUSY = ['SlowDown', 'ServiceUnavailable', 'InternalError', 'RequestTime
  */
 export function classifyError(err, retriesInARow = 0, cfg = translation) {
   const text = String(err?.message || err || 'unknown error');
+  const p = providerOf(err?.provider || 'anthropic');
   const retry = (reason, message) =>
     retriesInARow < cfg.maxAutoRetries
       ? { action: 'pause', reason, message, retryInMs: retryDelayMs(retriesInARow, cfg) }
@@ -64,13 +67,13 @@ export function classifyError(err, retriesInARow = 0, cfg = translation) {
   if (err instanceof FatalApiError) {
     const status = err.status;
     if (status === 401 || status === 403) {
-      return { action: 'pause', reason: 'auth', message: `Anthropic rejected the API key (${status}). Check ANTHROPIC_API_KEY on the server, then press Resume.` };
+      return { action: 'pause', reason: 'auth', message: `${p.company} rejected the API key (${status}). Check ${p.keyEnv} on the server, then press Resume.` };
     }
     if (status === 402 || CREDIT.test(text)) {
-      return { action: 'pause', reason: 'credit', message: `Anthropic credit has run out or a spend limit was reached. Add credit in the Anthropic console, then press Resume. (${text.slice(0, 200)})` };
+      return { action: 'pause', reason: 'credit', message: `${p.company} credit has run out or a spend limit was reached. Add credit in the ${p.company} console, then press Resume. (${text.slice(0, 200)})` };
     }
     if (status === 404) {
-      return { action: 'pause', reason: 'config', message: `Anthropic does not know the configured model. Check ANTHROPIC_MODEL, then press Resume. (${text.slice(0, 200)})` };
+      return { action: 'pause', reason: 'config', message: `${p.company} does not know the configured model. Check ${p.modelEnv} (or the model chosen for the run), then press Resume. (${text.slice(0, 200)})` };
     }
     return { action: 'fail', reason: 'error', message: text };
   }
@@ -79,15 +82,15 @@ export function classifyError(err, retriesInARow = 0, cfg = translation) {
   const status = err?.status;
   if (status === 429) {
     return CREDIT.test(text)
-      ? { action: 'pause', reason: 'credit', message: `Anthropic's usage limit was reached. Add credit or wait for the limit to reset, then press Resume. (${text.slice(0, 200)})` }
-      : retry('rate_limit', 'Anthropic is rate-limiting this key.');
+      ? { action: 'pause', reason: 'credit', message: `${p.company}'s usage limit was reached. Add credit or wait for the limit to reset, then press Resume. (${text.slice(0, 200)})` }
+      : retry('rate_limit', `${p.company} is rate-limiting this key.`);
   }
   if (status === 529 || (status >= 500 && status < 600) || err?.name === 'APIConnectionError' || err?.name === 'APIConnectionTimeoutError' || NETWORK_CODES.includes(err?.code)) {
-    return retry('unavailable', 'Anthropic could not be reached or is overloaded.');
+    return retry('unavailable', `${p.company} could not be reached or is overloaded.`);
   }
 
   if (err instanceof RefusalError) {
-    return { action: 'fail', reason: 'error', message: `Claude declined to translate this verse (${text}).` };
+    return { action: 'fail', reason: 'error', message: `The model declined to translate this verse (${text}).` };
   }
   if (err instanceof VerseFailedError) {
     const why = Object.values(err.problems || {}).flat().slice(0, 3).join('; ');
@@ -135,9 +138,12 @@ export function presentRun(row, now = new Date()) {
   return {
     id: row.id,
     language: row.language,
+    book: row.book,
+    chapterLabels: (row.chapters || []).map((id) => chapterLabel(id, row.book)),
     languageName: lang.name,
     endonym: lang.endonym,
     version: row.version,
+    provider: row.provider,
     model: row.model,
     status: row.status,
     pauseReason: row.pauseReason,

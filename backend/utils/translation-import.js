@@ -49,7 +49,7 @@ export function rowFromEntry(entry, language) {
  * mis-numbered entry is reported and left alone instead of overwriting another verse's text.
  * → null when they are the same verse, else why not.
  */
-export function placeProblem(entry, verse, chapterNumber) {
+export function placeProblem(entry, verse, chapterNumber, cantoNumber = verse.cantoNumber ?? null) {
   const checks = [
     ['book', entry.bookNumber, verse.bookNumber],
     ['canto', entry.cantoNumber ?? null, verse.cantoNumber ?? null],
@@ -60,6 +60,7 @@ export function placeProblem(entry, verse, chapterNumber) {
   for (const [what, inFile, inDatabase] of checks) {
     if (inFile !== inDatabase) return `${what} is ${show(inFile)} in the file but ${show(inDatabase)} in the database`;
   }
+  if ((entry.cantoNumber ?? null) !== (cantoNumber ?? null)) return `it is in the file for canto ${show(cantoNumber)} but says canto ${show(entry.cantoNumber)}`;
   if (entry.chapterNumber !== chapterNumber) return `it is in the file for chapter ${chapterNumber} but says chapter ${show(entry.chapterNumber)}`;
   return null;
 }

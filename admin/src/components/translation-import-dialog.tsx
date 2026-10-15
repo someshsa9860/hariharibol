@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label, Select } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiRequestError } from '@/lib/api';
-import { useImportPreview, useImportTranslations, type ImportChapter, type ImportResult, type Overview } from '@/lib/translation';
+import { chapterName, useImportPreview, useImportTranslations, type ImportChapter, type ImportResult, type Overview, type BookId } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { formatCount } from './translation-bits';
 
@@ -22,7 +22,7 @@ const hasProblem = (line: ImportChapter) => !!line.error || line.conflicts.lengt
 
 // Mounted only while it is open, so every opening starts from the language that was clicked with nothing left
 // over, and the first look at the database is for that language rather than for the last one.
-export function ImportDialog({ onClose, overview, language: initial, canPublish }: { onClose: () => void; overview: Overview; language: string; canPublish: boolean }) {
+export function ImportDialog({ onClose, overview, book, language: initial, canPublish }: { onClose: () => void; overview: Overview; book: BookId; language: string; canPublish: boolean }) {
   const { languages } = overview;
   const [language, setLanguage] = useState(initial);
   const [publish, setPublish] = useState(false);
@@ -39,7 +39,7 @@ export function ImportDialog({ onClose, overview, language: initial, canPublish 
     importer.reset();
   };
 
-  const preview = useImportPreview(language, publish, !result);
+  const preview = useImportPreview(book, language, publish, !result);
   const plan = preview.data;
 
   // The chapters that have something to change are the ones ticked to begin with.
@@ -53,7 +53,7 @@ export function ImportDialog({ onClose, overview, language: initial, canPublish 
   const problems = rows.filter(hasProblem);
   const totals = shown?.totals;
   const name = languages.find((item) => item.code === language)?.name ?? language;
-  const activeRun = overview.active.find((run) => run.language === language);
+  const activeRun = overview.active.find((run) => run.language === language && run.book === book);
 
   const toImport = plan ? plan.chapters.filter((line) => picked.has(line.chapter) && hasWork(line)) : [];
   const willChange = toImport.reduce((n, line) => n + line.created + line.updated, 0);
@@ -70,7 +70,7 @@ export function ImportDialog({ onClose, overview, language: initial, canPublish 
   const submit = () => {
     setError(null);
     importer.mutate(
-      { language, chapters: toImport.map((line) => line.chapter), publish },
+      { language, book, chapters: toImport.map((line) => line.chapter), publish },
       {
         onSuccess: setResult,
         onError: (err) => setError(err instanceof ApiRequestError ? err.message : 'The request did not go through.'),
@@ -160,7 +160,7 @@ export function ImportDialog({ onClose, overview, language: initial, canPublish 
                               <Checkbox aria-label={`Import chapter ${line.chapter}`} checked={picked.has(line.chapter) && hasWork(line)} disabled={!hasWork(line) || importer.isPending} onChange={() => toggle(line.chapter)} />
                             </TableCell>
                           )}
-                          <TableCell className="font-medium tabular-nums">{line.chapter}</TableCell>
+                          <TableCell className="font-medium tabular-nums">{chapterName(book, line.chapter)}</TableCell>
                           <TableCell className="text-right tabular-nums">{formatCount(line.inStorage)}</TableCell>
                           <TableCell className="text-right tabular-nums">{formatCount(line.created)}</TableCell>
                           <TableCell className="text-right tabular-nums">{formatCount(line.updated)}</TableCell>
@@ -175,13 +175,13 @@ export function ImportDialog({ onClose, overview, language: initial, canPublish 
                 </div>
               )}
 
-              {withoutFile.length > 0 && rows.length > 0 && <p className="text-xs text-muted-foreground">No translation saved yet for chapter{withoutFile.length === 1 ? '' : 's'} {withoutFile.join(', ')}.</p>}
+              {withoutFile.length > 0 && rows.length > 0 && <p className="text-xs text-muted-foreground">No translation saved yet for chapter{withoutFile.length === 1 ? '' : 's'} {withoutFile.map((id) => chapterName(book, id)).join(', ')}.</p>}
 
               {problems.length > 0 && (
                 <ul className="space-y-1 rounded-md border border-warning/50 bg-warning/15 px-3 py-2 text-xs">
                   {problems.map((line) => (
                     <li key={line.chapter}>
-                      <b>Chapter {line.chapter}</b>
+                      <b>Chapter {chapterName(book, line.chapter)}</b>
                       {line.error && <> — {line.error}</>}
                       {line.conflicts.length > 0 && (
                         <>

@@ -28,11 +28,13 @@ const HELP = `Usage: node scripts/translate-claude.js [options]
   --status             progress per chapter and language, the versions found, the correctness scores and the checkpoint; add --verify to re-check every saved verse
   (no mode flag)       translate, resuming automatically: only the verses and languages not yet translated under this version (--resume is accepted)
 
-  --chapters 2,3       chapters to work on (default: all 18)
+  --book <id>          bhagavat-gita (default) or srimad-bhagavatam
+  --chapters 2,3       chapters to work on (default: all). Bhagavatam: canto*100+chapter, e.g. 1047 = SB 1.47
   --verse 1.2.47       one verse only (with --chapters or alone)
   --limit N            stop after N verses translated in this run
   --langs hi,mr,...    languages (default: hi,mr,ta; all seven: hi,mr,bn,ta,te,kn,ml)
-  --model ID           default claude-sonnet-5-5 (or ANTHROPIC_MODEL)
+  --provider NAME      anthropic (default; or TRANSLATION_PROVIDER) | openai
+  --model ID           default claude-sonnet-5-5 for anthropic (or ANTHROPIC_MODEL), gpt-6-luna for openai (or TRANSLATION_OPENAI_MODEL)
   --effort LEVEL       off | low | medium | high | xhigh | max  (default off: no thinking; Opus 5.5, Fable and Mythos cannot turn it off — use low)
   --max-tokens N       output ceiling per call (default 64000)
   --group-budget N     estimated output tokens a call may carry before languages are split. Default 1: each language in its own call.
@@ -51,7 +53,7 @@ a language, change the version. Text that Claude did not translate (a human tran
 const { values } = parseArgs({
   options: {
     'dry-run': { type: 'boolean' }, status: { type: 'boolean' }, verify: { type: 'boolean' }, resume: { type: 'boolean' },
-    chapters: { type: 'string' }, verse: { type: 'string' }, limit: { type: 'string' }, langs: { type: 'string' },
+    book: { type: 'string' }, provider: { type: 'string' }, chapters: { type: 'string' }, verse: { type: 'string' }, limit: { type: 'string' }, langs: { type: 'string' },
     model: { type: 'string' }, effort: { type: 'string' }, 'max-tokens': { type: 'string' }, 'group-budget': { type: 'string' },
     'max-rounds': { type: 'string' }, 'max-spend': { type: 'string' }, 'local-store': { type: 'string' },
     force: { type: 'boolean' }, test: { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
@@ -64,8 +66,8 @@ if (values.help) {
 }
 
 const { LANGUAGE_CODES } = await import('./lib/claude-translate-languages.js');
-const { CHAPTERS, DEFAULT_GROUP_BUDGET, loadChapter } = await import('./lib/claude-translate-source.js');
-const { DEFAULT_MODEL, costUsd, createClaude, thinkingSettings } = await import('./lib/claude-translate-client.js');
+const { BOOK, BOOK_IDS, DEFAULT_GROUP_BUDGET, bookOf, bookOfVerseId, chapterIdOfVerse, chapterLabel, loadChapter } = await import('./lib/claude-translate-source.js');
+const { DEFAULT_PROVIDER, costFor, createAsk, providerOf } = await import('./lib/translate-providers.js');
 const { dirStore, langChapterKey, s3Store, testStore, versionFrom } = await import('./lib/claude-translate-store.js');
 const { dryRun, run, status } = await import('./lib/claude-translate-run.js');
 
@@ -81,20 +83,27 @@ const DEFAULT_LANGS = ['hi', 'mr', 'ta'];
 const langs = values.langs ? values.langs.split(',').map((s) => s.trim()) : DEFAULT_LANGS;
 for (const l of langs) if (!LANGUAGE_CODES.includes(l)) throw new Error(`Unknown language "${l}" — use ${LANGUAGE_CODES.join(', ')}`);
 
+const book = values.book || (values.verse ? bookOfVerseId(values.verse) : BOOK);
+if (!BOOK_IDS.includes(book)) throw new Error(`--book must be one of ${BOOK_IDS.join(', ')}`);
+const CHAPTERS = bookOf(book).chapters;
 const chapters = values.chapters
   ? values.chapters.split(',').map((s) => Number(s.trim()))
   : values.verse
-    ? [Number(values.verse.split('.')[1])]
+    ? [chapterIdOfVerse(values.verse)]
     : CHAPTERS;
-for (const c of chapters) if (!CHAPTERS.includes(c)) throw new Error(`Chapter ${c} is not 1–18`);
+for (const c of chapters) if (!CHAPTERS.includes(c)) throw new Error(`Chapter ${c} is not one of ${book}'s chapters`);
 
 // "off" = no thinking: the job is a faithful rendering of given text, and thinking only adds cost.
 const EFFORTS = ['off', 'low', 'medium', 'high', 'xhigh', 'max'];
 const effort = values.effort || 'off';
 if (!EFFORTS.includes(effort)) throw new Error(`--effort must be one of ${EFFORTS.join(', ')}`);
 
+const provider = values.provider || process.env.TRANSLATION_PROVIDER || DEFAULT_PROVIDER;
+const providerInfo = providerOf(provider);
 const cfg = {
-  model: values.model || process.env.ANTHROPIC_MODEL || DEFAULT_MODEL,
+  book,
+  provider,
+  model: values.model || process.env[providerInfo.modelEnv] || providerInfo.defaultModel,
   effort,
   version: versionFrom(process.env.TRANSLATION_VERSION),
   langs,
@@ -107,7 +116,7 @@ const cfg = {
   maxRounds: intFlag('max-rounds', 4),
   force: !!values.force,
 };
-thinkingSettings(cfg.model, cfg.effort); // throws now, before anything is read or spent, if this model cannot do what --effort asks
+providerInfo.check(cfg.model, cfg.effort); // throws now, before anything is read or spent, if this model cannot do what --effort asks
 
 // The English source and the output store. SOURCE_LOCAL_DIR reads the English from a folder.
 const { getJson: getSource } = await import('./lib/source-s3.js');
@@ -118,14 +127,14 @@ if (values.test) {
   // One verse, chosen at random unless --verse says which, written under a throwaway prefix of its own.
   const want = values.verse;
   const pool = [];
-  for (const n of want ? CHAPTERS : chapters) pool.push(...(await loadChapter(getSource, n)).units);
+  for (const n of want ? CHAPTERS : chapters) pool.push(...(await loadChapter(getSource, n, book)).units);
   const matches = want ? pool.filter((u) => u.verseId === want || u.ref === want) : pool;
   if (!matches.length) throw new Error(`No verse "${want}" in the source`);
   const unit = matches[Math.floor(Math.random() * matches.length)];
   Object.assign(cfg, { chapters: [unit.chapterNumber], only: unit.verseId, limit: 1, force: true });
   testRoot = `_test/${new Date().toISOString().replace(/[:.]/g, '-')}/`;
   store = testStore(store, testRoot);
-  console.log(`Test verse: Bhagavad-gītā ${unit.ref} (${unit.verseId}) → ${store.describe}\n`);
+  console.log(`Test verse: ${bookOf(book).title} ${unit.ref} (${unit.verseId}) → ${store.describe}\n`);
 }
 
 const logFile = resolve(backend, '.translate-work', 'claude.log');
@@ -141,11 +150,11 @@ const pad = (v, w) => String(v).padStart(w);
 
 if (values['dry-run']) {
   const { rows, totals } = await dryRun({ store, getSource, cfg });
-  console.log(`Dry run — ${cfg.model}, ${cfg.langs.join(' ')}, version ${cfg.version}\nOutput: ${store.describe}json/bhagavat-gita/<lang>/ch-<n>.json\n`);
+  console.log(`Dry run — ${cfg.model}, ${cfg.langs.join(' ')}, version ${cfg.version}\nOutput: ${store.describe}json/${book}/<lang>/${book === 'srimad-bhagavatam' ? 'c<canto>-ch-<n>' : 'ch-<n>'}.json\n`);
   console.log(`chapter  verses  ${cfg.langs.map((l) => pad(l, 5)).join(' ')}  to do  calls   words`);
   for (const r of rows) console.log(`${pad(r.chapter, 7)}  ${pad(r.verses, 6)}  ${cfg.langs.map((l) => pad(r.byLang[l], 5)).join(' ')}  ${pad(r.todo, 5)}  ${pad(r.calls, 5)}  ${pad(r.words, 6)}`);
   // The instructions ride on every call but are cached after the first, so they are priced as cache reads.
-  const cost = costUsd(cfg.model, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
+  const cost = costFor(cfg.provider, cfg.model, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
   console.log(`\nTo do: ${totals.todo} of ${totals.verses} verses (a verse is to do while any language lacks it, or has it from another version), about ${totals.calls} calls, ${(totals.words / 1000).toFixed(0)}k English words.`);
   console.log(`Up to date for ${cfg.version}: ${cfg.langs.map((l) => `${l} ${totals.byLang[l]}/${totals.verses}`).join('   ')}`);
   if (totals.outdated) console.log(`Made under another version, so translated again: ${totals.outdated} (verses × languages). --status lists the versions found.`);
@@ -193,8 +202,8 @@ if (values.status) {
 
 // ---- a real run ----
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('ANTHROPIC_API_KEY is not set. Add it to backend/.env (ANTHROPIC_API_KEY=sk-ant-...) and run again.');
+if (!process.env[providerInfo.keyEnv]) {
+  console.error(`${providerInfo.keyEnv} is not set. Add it to backend/.env (${providerInfo.keyEnv}=...) and run again.`);
   process.exit(2);
 }
 
@@ -205,21 +214,21 @@ process.on('SIGINT', () => {
   controller.abort();
 });
 
-const { ask } = createClaude({ apiKey: process.env.ANTHROPIC_API_KEY, model: cfg.model, effort: cfg.effort, signal: controller.signal, onWait: (m) => { log.say(`        ${m}`); log.event('wait', { message: m }); } });
+const { ask } = createAsk({ provider: cfg.provider, apiKey: process.env[providerInfo.keyEnv], model: cfg.model, effort: cfg.effort, signal: controller.signal, onWait: (m) => { log.say(`        ${m}`); log.event('wait', { message: m }); } });
 
-console.log(`Translating the Gita → ${cfg.langs.join(' ')}\nModel ${cfg.model} (${cfg.effort === 'off' ? 'thinking off' : `effort ${cfg.effort}`}) · version ${cfg.version} · output ${store.describe}json/bhagavat-gita/<lang>/ch-<n>.json\n`);
+console.log(`Translating ${bookOf(book).title} → ${cfg.langs.join(' ')}\nModel ${cfg.model} (${providerInfo.company}) (${cfg.effort === 'off' ? 'thinking off' : `effort ${cfg.effort}`}) · version ${cfg.version} · output ${store.describe}json/${book}/<lang>/${book === 'srimad-bhagavatam' ? 'c<canto>-ch-<n>' : 'ch-<n>'}.json\n`);
 try {
   const result = await run({ store, getSource, ask, cfg, log, signal: controller.signal });
   console.log(`\n${result.stopReason}: ${result.done} verse(s) translated this run, ${result.skipped} already up to date, ${usd(result.costUsd)} spent.`);
   if (result.stopReason === 'interrupted') process.exitCode = 130;
   if (testRoot && result.done) {
-    const { units } = await loadChapter(getSource, cfg.chapters[0]);
+    const { units } = await loadChapter(getSource, cfg.chapters[0], book);
     const en = units.find((u) => u.verseId === cfg.only);
     console.log(`\nEnglish: ${en.translation}`);
     console.log(`Verse sent (${en.transliteration.length} lines): ${en.transliteration[0] ?? ''} …`);
     console.log(`Word list sent (${en.wordMeanings.length}): ${en.wordMeanings.slice(0, 5).map((w) => `${w.word} — ${w.meaning}`).join(' ; ')}${en.wordMeanings.length > 5 ? ' …' : ''}\n`);
     for (const l of cfg.langs) {
-      const key = langChapterKey(l, cfg.chapters[0]);
+      const key = langChapterKey(l, cfg.chapters[0], book);
       const verse = (await store.getJson(key)).verses.find((v) => v.verseId === cfg.only);
       const rows = verse.commentaries.filter((c) => c.translatorSlug === 'prabhupada' && c.language === l);
       console.log(`[${l}] ${rows[0].text}`);

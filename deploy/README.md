@@ -51,11 +51,14 @@ run there. `apache/hariharibol.conf` (port 80, redirects to https) and
 file) go in `/etc/apache2/sites-available/`. Once DNS points at the server:
 
 ```bash
-sudo certbot certonly --apache -d hariharibol.com
+sudo a2ensite hariharibol && sudo systemctl reload apache2   # port 80 first: certbot answers its challenge through it
+sudo certbot certonly --apache -d hariharibol.com -d www.hariharibol.com
 sudo certbot certonly --apache -d api.hariharibol.com -d admin.hariharibol.com
-sudo a2ensite hariharibol hariharibol-le-ssl
+sudo a2ensite hariharibol-le-ssl
 sudo apache2ctl configtest && sudo systemctl reload apache2
 ```
+
+`www.hariharibol.com` is on the first certificate and is redirected to the bare domain.
 
 ### The database
 

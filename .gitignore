@@ -75,3 +75,6 @@ coverage/
 # Android signing
 **/key.jks
 **/key.properties
+
+# Retired speech model
+app/android/app/src/debug/assets/auto_chant/

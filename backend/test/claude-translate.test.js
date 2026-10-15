@@ -678,7 +678,7 @@ describe('run', () => {
       assert.deepEqual(
         { ...v1.aiTranslation, generatedAt: 'x', warnings: 'x' },
         {
-          translatedBy: 'claude', model: 'claude-sonnet-5-5', effort: 'off', version: VERSION, promptVersion: PROMPT_VERSION, sourceHash: sourceHash(units[0]), generatedAt: 'x',
+          translatedBy: 'claude', provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off', version: VERSION, promptVersion: PROMPT_VERSION, sourceHash: sourceHash(units[0]), generatedAt: 'x',
           correctness: 3, partScores: { translation: 3, transliteration: 3, wordMeanings: 3, purport: 3 }, warnings: 'x',
         },
         'no `note` key when Claude had nothing to say'

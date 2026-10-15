@@ -29,7 +29,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database.js';
 import { unprocessable } from '../utils/errors.js';
 import { changedColumns, emptyChapter, placeProblem, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
-import { BOOK, CHAPTERS, TRANSLATOR } from '../scripts/lib/claude-translate-source.js';
+import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 
 /** The Gita's `Book.bookNumber`, as scripts/import-bg.js has it. Its storage folder (`BOOK`) has another spelling than its slug. */
@@ -58,7 +58,12 @@ async function workspaceStore() {
  *
  * → { language, publish, dryRun, totals, chapters: [one `emptyChapter` line each] }
  */
-export async function importLanguage({ language, chapters = CHAPTERS, publish = false, dryRun = false, folder = BOOK, bookNumber = GITA_BOOK_NUMBER, store = null }) {
+export async function importLanguage({ language, book: bookId = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null }) {
+  // `folder` and `bookNumber` are for a test's throwaway book; a real one is named by `book`.
+  const named = folder == null && BOOKS[bookId] ? bookOf(bookId) : null;
+  chapters ??= named?.chapters ?? CHAPTERS;
+  folder ??= bookId;
+  bookNumber ??= named?.bookNumber ?? GITA_BOOK_NUMBER;
   const [book, translator] = await Promise.all([
     prisma.book.findUnique({ where: { bookNumber }, select: { id: true } }),
     prisma.translator.findUnique({ where: { slug: TRANSLATOR }, select: { id: true } }),
@@ -74,7 +79,7 @@ export async function importLanguage({ language, chapters = CHAPTERS, publish = 
   for (const number of picked) {
     const line = emptyChapter(number);
     lines.push(line);
-    const key = langChapterKey(language, number, folder);
+    const key = langChapterKey(language, number, named ? bookId : folder);
     try {
       const file = await files.getJson(key).catch((err) => {
         throw new Error(`Could not read ${key}: ${reasonOf(err)}`);
@@ -83,7 +88,7 @@ export async function importLanguage({ language, chapters = CHAPTERS, publish = 
         line.found = false;
         continue;
       }
-      await importChapter({ file, line, versions, language, publish, dryRun, bookId: book.id, translatorId: translator.id });
+      await importChapter({ file, line, versions, language, publish, dryRun, bookId: book.id, translatorId: translator.id, parts: chapterParts(number, named ? bookId : BOOK) });
     } catch (err) {
       line.error = reasonOf(err);
     }
@@ -93,7 +98,7 @@ export async function importLanguage({ language, chapters = CHAPTERS, publish = 
 }
 
 /** One chapter file → `line` (its counts), and the database unless `dryRun`. Throws if the database does. */
-async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId }) {
+async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId, parts }) {
   const entries = Array.isArray(file.verses) ? file.verses : [];
   const verses = await prisma.verse.findMany({
     where: { bookId, verseId: { in: entries.map((e) => e.verseId).filter(Boolean) } },
@@ -124,7 +129,7 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
       line.missing.push(entry.verseId);
       continue;
     }
-    const problem = seen.has(verse.id) ? 'the file has this verse twice' : placeProblem(entry, verse, line.chapter);
+    const problem = seen.has(verse.id) ? 'the file has this verse twice' : placeProblem(entry, verse, parts.chapter, parts.canto);
     if (problem) {
       line.conflicts.push({ verseId: entry.verseId, reason: problem });
       continue;
@@ -170,7 +175,7 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
  * What the database already holds from Claude's runs, per language: rows, how many were made under `version`
  * (the one a new run uses), how many readers can see, and when one last changed. For the Translations page.
  */
-export async function importStatus({ version = null, bookNumber = GITA_BOOK_NUMBER } = {}) {
+export async function importStatus({ version = null, book: bookId = BOOK, bookNumber = bookOf(bookId).bookNumber } = {}) {
   const groups = await prisma.verseTranslation.groupBy({
     by: ['languageCode', 'version', 'isPublished'],
     where: { type: 'TRANSLATION', translatedBy: 'claude', translator: { slug: TRANSLATOR }, verse: { bookNumber } },
@@ -190,5 +195,5 @@ export async function importStatus({ version = null, bookNumber = GITA_BOOK_NUMB
     if (at && (!entry.updatedAt || at > entry.updatedAt)) entry.updatedAt = at;
     byLanguage.set(g.languageCode, entry);
   }
-  return { version, languages: [...byLanguage.values()].map((l) => ({ ...l, updatedAt: l.updatedAt?.toISOString() ?? null })) };
+  return { version, book: bookId, languages: [...byLanguage.values()].map((l) => ({ ...l, updatedAt: l.updatedAt?.toISOString() ?? null })) };
 }

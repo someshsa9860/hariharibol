@@ -29,9 +29,9 @@
 //   * A verse that gets no usable answer after --max-rounds stops the run. It is never skipped.
 
 import { TruncatedError, addUsage, emptyUsage, costUsd } from './claude-translate-client.js';
-import { PROMPT_VERSION, SYSTEM_PROMPT, answerSchema, userPrompt } from './claude-translate-prompt.js';
+import { PROMPT_VERSION, answerSchema, systemPromptFor, userPrompt } from './claude-translate-prompt.js';
 import {
-  CHAPTERS, TRANSLATOR, estimateInputTokens, estimateOutputTokens, groupLanguages, loadChapter, sourceHash, unitWords,
+  BOOK, CHAPTERS, TRANSLATOR, chapterLabel, estimateInputTokens, estimateOutputTokens, groupLanguages, loadChapter, sourceHash, unitWords,
 } from './claude-translate-source.js';
 import { ConflictError, checkpointKey, langChapterKey } from './claude-translate-store.js';
 import { LANGUAGE_CODES } from './claude-translate-languages.js';
@@ -76,7 +76,7 @@ const callFigures = (err) => ({
  * paragraph, a short list, English left in — is kept as warnings and a lower correctness score on the
  * saved verse.
  */
-export async function translateVerse({ unit, langs, ask, maxTokens, groupBudget, maxRounds, log, signal }) {
+export async function translateVerse({ unit, langs, ask, maxTokens, groupBudget, maxRounds, log, signal, book = BOOK }) {
   const accepted = {}; // lang → assessLanguage result
   const incomplete = {}; // lang → the best answer so far that left a whole part out, kept in case every try does
   const problems = {};
@@ -89,8 +89,8 @@ export async function translateVerse({ unit, langs, ask, maxTokens, groupBudget,
     let result;
     try {
       result = await ask({
-        system: SYSTEM_PROMPT,
-        user: userPrompt(unit, group, problems),
+        system: systemPromptFor(book),
+        user: userPrompt(unit, group, problems, book),
         schema: answerSchema(group),
         maxTokens,
       });
@@ -183,7 +183,7 @@ export async function translateVerse({ unit, langs, ask, maxTokens, groupBudget,
  *
  * @param {{ scores: Record<string, number>, correctness: number, note?: string }} quality  from assessLanguage
  */
-export function buildEntry(unit, t, lang, { model, effort, version, warnings = [], generatedAt, quality }) {
+export function buildEntry(unit, t, lang, { provider = 'anthropic', model, effort, version, warnings = [], generatedAt, quality }) {
   const stamp = { translatedBy: 'claude', version };
   const row = (type, text) => ({ translatorSlug: TRANSLATOR, type, language: lang, displayOrder: 0, text, ...stamp, correctness: quality.scores[type] });
   const commentaries = [row('translation', t.translation)];
@@ -200,7 +200,7 @@ export function buildEntry(unit, t, lang, { model, effort, version, warnings = [
     ...(t.wordMeanings?.length ? { wordMeanings: t.wordMeanings } : {}),
     commentaries,
     aiTranslation: {
-      ...stamp, model, effort, promptVersion: PROMPT_VERSION, sourceHash: sourceHash(unit), generatedAt,
+      ...stamp, provider, model, effort, promptVersion: PROMPT_VERSION, sourceHash: sourceHash(unit), generatedAt,
       correctness: quality.correctness, partScores: quality.scores, ...(quality.note ? { note: quality.note } : {}), warnings,
     },
   };
@@ -334,22 +334,22 @@ async function saveEntry({ store, key, meta, lang, entry, state, log, retryDelay
 
 /* ---------- checkpoint ---------- */
 
-async function loadCheckpoint(store, version) {
-  return (await store.getJson(checkpointKey(version))) || {
-    schemaVersion: SCHEMA_VERSION, version, completedVerses: 0, usage: emptyUsage(), costUsd: 0, lastCompleted: null, lastError: null,
+async function loadCheckpoint(store, version, book = BOOK) {
+  return (await store.getJson(checkpointKey(version, book))) || {
+    schemaVersion: SCHEMA_VERSION, version, book, completedVerses: 0, usage: emptyUsage(), costUsd: 0, lastCompleted: null, lastError: null,
   };
 }
 
 async function writeCheckpoint(store, cp) {
   cp.updatedAt = new Date().toISOString();
-  await store.put(checkpointKey(cp.version), JSON.stringify(cp, null, 2));
+  await store.put(checkpointKey(cp.version, cp.book ?? BOOK), JSON.stringify(cp, null, 2));
 }
 
 /** Reads each language's chapter file: { lang: { file, tag, backedUp } }. A missing file is `file: null`. */
-async function readChapterFiles(store, langs, n) {
+async function readChapterFiles(store, langs, n, book = BOOK) {
   const states = {};
   for (const lang of langs) {
-    const found = await store.read(langChapterKey(lang, n));
+    const found = await store.read(langChapterKey(lang, n, book));
     states[lang] = { file: found?.json ?? null, tag: found?.tag ?? null, backedUp: false };
   }
   return states;
@@ -370,7 +370,8 @@ const pendingLangs = (states, langs, verseId, version) => langs.filter((l) => !i
  * @param {AbortSignal} [p.signal]
  */
 export async function run({ store, getSource, ask, cfg, log, signal }) {
-  const cp = await loadCheckpoint(store, cfg.version);
+  const book = cfg.book || BOOK;
+  const cp = await loadCheckpoint(store, cfg.version, book);
   if (cp.running && !cfg.force) {
     const age = Date.now() - new Date(cp.heartbeatAt || cp.updatedAt || 0).getTime();
     if (age < HEARTBEAT_STALE_MS) {
@@ -378,7 +379,7 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
     }
   }
   Object.assign(cp, {
-    running: true, runner: cfg.runner || `pid ${process.pid}`, model: cfg.model, effort: cfg.effort, version: cfg.version, promptVersion: PROMPT_VERSION,
+    running: true, runner: cfg.runner || `pid ${process.pid}`, provider: cfg.provider || 'anthropic', model: cfg.model, effort: cfg.effort, version: cfg.version, promptVersion: PROMPT_VERSION,
     langs: cfg.langs, startedAt: new Date().toISOString(), heartbeatAt: new Date().toISOString(),
   });
   // Doubles as the write-permission preflight: nothing is spent on Claude if the store is read-only.
@@ -389,9 +390,9 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
   let stopReason = 'finished';
   try {
     outer: for (const n of cfg.chapters) {
-      const { units, skipped, meta } = await loadChapter(getSource, n);
-      for (const s of skipped) log.say(`ch ${n}  ${s.verseId} skipped: ${s.reason}`);
-      const states = await readChapterFiles(store, cfg.langs, n);
+      const { units, skipped, meta } = await loadChapter(getSource, n, book);
+      for (const s of skipped) log.say(`ch ${chapterLabel(n, book)}  ${s.verseId} skipped: ${s.reason}`);
+      const states = await readChapterFiles(store, cfg.langs, n, book);
       let chapterDone = 0;
 
       for (const unit of units) {
@@ -408,7 +409,7 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
 
         const started = Date.now();
         log.event('verse-start', { verseId: unit.verseId, chapter: n, langs: pending });
-        const result = await translateVerse({ unit, langs: pending, ask, maxTokens: cfg.maxTokens, groupBudget: cfg.groupBudget, maxRounds: cfg.maxRounds, log, signal })
+        const result = await translateVerse({ unit, langs: pending, ask, maxTokens: cfg.maxTokens, groupBudget: cfg.groupBudget, maxRounds: cfg.maxRounds, log, signal, book })
           .catch((err) => {
             if (err.usage) {
               addUsage(cp.usage, err.usage);
@@ -426,9 +427,9 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
         let bytes = 0;
         for (const lang of pending) {
           const entry = buildEntry(unit, result.byLang[lang], lang, {
-            model: cfg.model, effort: cfg.effort, version: cfg.version, warnings: result.warningsByLang[lang], generatedAt, quality: result.qualityByLang[lang],
+            provider: cfg.provider, model: cfg.model, effort: cfg.effort, version: cfg.version, warnings: result.warningsByLang[lang], generatedAt, quality: result.qualityByLang[lang],
           });
-          const key = langChapterKey(lang, n);
+          const key = langChapterKey(lang, n, book);
           const saved = await saveEntry({ store, key, meta, lang, entry, state: states[lang], log, retryDelayMs });
           bytes += saved.bytes;
           log.event('saved', { verseId: unit.verseId, lang, key, bytes: saved.bytes, attempts: saved.attempts });
@@ -445,7 +446,7 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
         const correctness = Object.fromEntries(pending.map((l) => [l, result.qualityByLang[l].correctness]));
         log.event('verse', { verseId: unit.verseId, langs: pending, correctness, rounds: result.rounds, calls: result.usage.calls, costUsd: result.costUsd });
         log.say(
-          `ch ${String(n).padStart(2)}  ${unit.ref.padEnd(7)} ✓ ${pending.join(',')}` +
+          `ch ${chapterLabel(n, book).padStart(5)}  ${unit.ref.padEnd(9)} ✓ ${pending.join(',')}` +
             `  ${result.usage.calls} call${result.usage.calls === 1 ? '' : 's'}${result.rounds > 1 ? `, ${result.rounds} rounds` : ''}` +
             `  in ${k(result.usage.inputTokens + result.usage.cacheReadTokens)} out ${k(result.usage.outputTokens)}` +
             `  $${result.costUsd.toFixed(2)}  score ${pending.map((l) => `${l} ${correctness[l]}`).join(' · ')}  wrote ${pending.length} file${pending.length === 1 ? '' : 's'} (${(bytes / 1024).toFixed(0)} KB)` +
@@ -478,12 +479,13 @@ const k = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
  * part of `todo`, not extra to it.
  */
 export async function dryRun({ store, getSource, cfg, pricePerM = { input: 4, output: 20 } }) {
+  const book = cfg.book || BOOK;
   const rows = [];
-  const instructionTokens = Math.round(SYSTEM_PROMPT.length / 3.6); // what every call carries besides the verse; a guess
+  const instructionTokens = Math.round(systemPromptFor(book).length / 3.6); // what every call carries besides the verse; a guess
   const totals = { chapters: 0, verses: 0, done: 0, todo: 0, outdated: 0, calls: 0, words: 0, inTokens: 0, systemTokens: 0, outTokens: 0, byLang: Object.fromEntries(cfg.langs.map((l) => [l, 0])) };
   for (const n of cfg.chapters) {
-    const { units } = await loadChapter(getSource, n);
-    const states = await readChapterFiles(store, cfg.langs, n);
+    const { units } = await loadChapter(getSource, n, book);
+    const states = await readChapterFiles(store, cfg.langs, n, book);
     const byLang = Object.fromEntries(cfg.langs.map((l) => [l, 0]));
     let verses = 0, todo = 0, outdated = 0, calls = 0, words = 0, inTokens = 0, outTokens = 0;
     for (const unit of units) {
@@ -520,15 +522,16 @@ export async function dryRun({ store, getSource, cfg, pricePerM = { input: 4, ou
  * scored 1 (`redo`), the run's checkpoint, and — with `verify` — a strict re-check of every saved verse (`bad`).
  */
 export async function status({ store, getSource, cfg, verify = false }) {
-  const checkpoint = await store.getJson(checkpointKey(cfg.version));
+  const book = cfg.book || BOOK;
+  const checkpoint = await store.getJson(checkpointKey(cfg.version, book));
   const rows = [];
   const versions = {};
   const scores = Object.fromEntries(cfg.langs.map((l) => [l, { 1: 0, 2: 0, 3: 0, unscored: 0 }]));
   const redo = []; // saved with correctness 1 — the verses a second round would take
   const bad = [];
   for (const n of cfg.chapters) {
-    const { units } = await loadChapter(getSource, n);
-    const states = await readChapterFiles(store, cfg.langs, n);
+    const { units } = await loadChapter(getSource, n, book);
+    const states = await readChapterFiles(store, cfg.langs, n, book);
     const byLang = Object.fromEntries(cfg.langs.map((l) => [l, 0]));
     let all = 0;
     for (const unit of units) {

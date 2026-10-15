@@ -507,6 +507,8 @@ owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` �
 
 ## Translation runs (admin panel)
 
+**Providers and books (added later).** A run row also carries `provider` (`anthropic` | `openai`) and `book` (`bhagavat-gita` | `srimad-bhagavatam`); both default to the old behaviour. Providers live in `scripts/lib/translate-providers.js` (default models: `claude-sonnet-5-5`, and `gpt-6-luna` at $0.10 in / $0.01 cached / $0.50 out per 1M tokens, strict JSON schema output). Keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`; model overrides `ANTHROPIC_MODEL`, `TRANSLATION_OPENAI_MODEL` (not `OPENAI_MODEL`, which the AI features use); `TRANSLATION_PROVIDER` picks the default. Books are in `scripts/lib/claude-translate-source.js` (`BOOKS`): the Gita is `json/bhagavat-gita/<lang>/ch-N.json`; the Bhagavatam is English-only at the source and `json/srimad-bhagavatam/<lang>/c<canto>-ch-<n>.json`. A chapter id is the chapter number for the Gita and **canto × 100 + chapter** for the Bhagavatam (147 = SB 1.47). The worker runs one run per book at once (global concurrency 2); a second run of the same book waits, because they share a checkpoint. Start/import locks, coverage cache and the "one live run" rule are per book and language. "Up to date" is decided by version only, whatever the provider. Migration `20261019000000_translation_run_provider`. `npm run test:translation` and `node --test test/translate-*.test.js` cover it; no live OpenAI call has been made.
+
 The admin **Translations** page translates Prabhupāda's Gita with Claude as a background job and shows it live,
 and imports what was saved into the database. The pipeline is the same one `npm run translate:claude` uses
 (`scripts/lib/claude-translate-*.js`, described in

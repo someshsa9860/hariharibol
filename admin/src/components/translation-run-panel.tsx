@@ -26,7 +26,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { ACTIVE, useCancelRun, useNow, useResumeRun, useRun, type FeedLine, type PauseReason, type Run } from '@/lib/translation';
+import { ACTIVE, useCancelRun, useNow, useResumeRun, useRun, type FeedLine, type PauseReason, type Run, type BookId } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
 import {
   ProgressBar,
@@ -40,7 +40,11 @@ import {
   timeAgo,
 } from './translation-bits';
 
-export const chapterOf = (verseId: string) => Number(verseId.split('.')[1]);
+/** The chapter id a verse id belongs to: the Gita's chapter number, or a Bhagavatam canto × 100 + chapter. */
+export const chapterOf = (verseId: string) => {
+  const parts = verseId.split('.').map(Number);
+  return parts[0] === 2 ? parts[1] * 100 + parts[2] : parts[1];
+};
 
 const PAUSE: Record<PauseReason, { title: string; icon: LucideIcon; needsYou: boolean }> = {
   credit: { title: 'Out of Anthropic credit', icon: CircleDollarSign, needsYou: true },
@@ -151,7 +155,7 @@ export function RunPanel({
 }: {
   run: Run;
   chaptersInBook: number;
-  onOpenOutput: (language: string, chapter: number, verseId?: string) => void;
+  onOpenOutput: (book: BookId, language: string, chapter: number, verseId?: string) => void;
   feedHeight?: string;
 }) {
   const { hasPermission } = useAuth();
@@ -197,6 +201,7 @@ export function RunPanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">{run.book === 'srimad-bhagavatam' ? 'Śrīmad-Bhāgavatam' : 'Bhagavad-gītā'}</Badge>
             <h3 className="text-base font-semibold">{run.languageName}</h3>
             <span className="text-base text-muted-foreground" lang={run.language}>
               {run.endonym}
@@ -205,8 +210,8 @@ export function RunPanel({
             {run.cancelRequested && run.status === 'RUNNING' && <Badge variant="warning">Stopping…</Badge>}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            {describeChapters(run.chapters, chaptersInBook)}
-            {run.verseLimit ? ` · first ${run.verseLimit} verses` : ''} · version <span className="font-mono">{run.version}</span> · {run.model}
+            {describeChapters(run.chapters, chaptersInBook, run.book)}
+            {run.verseLimit ? ` · first ${run.verseLimit} verses` : ''} · version <span className="font-mono">{run.version}</span> · {run.provider === 'openai' ? 'OpenAI' : 'Claude'} {run.model}
           </p>
           <p className="text-xs text-muted-foreground">
             {run.requestedBy ? `Started by ${run.requestedBy.name}` : 'Started'} {timeAgo(run.createdAt, now)}
@@ -214,7 +219,7 @@ export function RunPanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => onOpenOutput(run.language, openChapter, progress.currentVerseId ?? undefined)}>
+          <Button size="sm" variant="outline" onClick={() => onOpenOutput(run.book, run.language, openChapter, progress.currentVerseId ?? undefined)}>
             <Eye /> View output
           </Button>
           {canRun && (run.status === 'PAUSED' || run.status === 'FAILED') && (
@@ -304,7 +309,7 @@ export function RunPanel({
           value={formatUsd(run.usage.costUsd)}
           hint={run.budgetUsd !== null ? `of ${formatUsd(run.budgetUsd)} budget` : 'no budget set'}
         />
-        <Stat label="Claude calls" value={formatCount(run.usage.calls)} hint={`${formatCount(run.usage.inputTokens + run.usage.outputTokens)} tokens`} />
+        <Stat label="Model calls" value={formatCount(run.usage.calls)} hint={`${formatCount(run.usage.inputTokens + run.usage.outputTokens)} tokens`} />
       </div>
 
       {run.budgetUsd !== null && run.budgetUsd > 0 && (
@@ -321,7 +326,7 @@ export function RunPanel({
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Activity</p>
           {detail.isFetching && !detail.isLoading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
         </div>
-        <ActivityFeed lines={feed} className={feedHeight} onOpenVerse={(verseId) => onOpenOutput(run.language, chapterOf(verseId), verseId)} />
+        <ActivityFeed lines={feed} className={feedHeight} onOpenVerse={(verseId) => onOpenOutput(run.book, run.language, chapterOf(verseId), verseId)} />
       </div>
 
       <ResumeDialog run={run} open={resumeOpen} onOpenChange={setResumeOpen} onResume={doResume} busy={resume.isPending} />

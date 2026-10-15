@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input, Label, Select } from '@/components/ui/input';
 import { ApiRequestError } from '@/lib/api';
-import { useEstimate, useStartRun, type Overview } from '@/lib/translation';
+import { cantoOf, chapterName, useEstimate, useStartRun, type BookInfo, type Overview } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { formatCount, formatUsd } from './translation-bits';
 
@@ -27,6 +27,7 @@ export function StartDialog({
   open,
   onOpenChange,
   overview,
+  book,
   language: preset,
   onStarted,
   onOpenRun,
@@ -34,11 +35,19 @@ export function StartDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   overview: Overview;
+  book: BookInfo;
   language: string | null;
   onStarted: (runId: string) => void;
   onOpenRun: (runId: string) => void;
 }) {
-  const { settings, languages, chapters: allChapters } = overview;
+  const { settings, languages } = overview;
+  const allChapters = book.chapters.map((c) => c.id);
+  const isSB = book.id === 'srimad-bhagavatam';
+  const [providerId, setProviderId] = useState<string>(settings.defaultProvider);
+  const [model, setModel] = useState('');
+  const [openCanto, setOpenCanto] = useState<number | null>(null);
+  const provider = settings.providers.find((p) => p.id === providerId) ?? settings.providers[0];
+  
   const [language, setLanguage] = useState(preset ?? languages[0]?.code ?? '');
   const [picked, setPicked] = useState<number[]>([]);
   const [limit, setLimit] = useState('');
@@ -50,12 +59,15 @@ export function StartDialog({
   useEffect(() => {
     if (!open) return;
     setLanguage(preset ?? languages[0]?.code ?? '');
+    setProviderId(settings.defaultProvider);
+    setModel('');
+    setOpenCanto(null);
     setPicked([]);
     setLimit('');
     setBudget('');
     setError(null);
     start.reset();
-  }, [open, preset]);
+  }, [open, preset, book.id]);
 
   const limitNumber = limit.trim() === '' ? 0 : Math.floor(Number(limit));
   const budgetNumber = budget.trim() === '' ? 0 : Number(budget);
@@ -64,10 +76,10 @@ export function StartDialog({
   const wanted = picked.length ? picked : allChapters;
   const debouncedChapters = useDebounced(wanted.join(','));
   const debouncedLimit = useDebounced(limitNumber);
-  const estimate = useEstimate(language, debouncedChapters ? debouncedChapters.split(',').map(Number) : [], debouncedLimit, open && inputsOk);
+  const estimate = useEstimate({ book: book.id, provider: providerId, model: model.trim() }, language, debouncedChapters ? debouncedChapters.split(',').map(Number) : [], debouncedLimit, open && inputsOk);
 
   const blockers = [
-    !settings.apiKeyConfigured && 'ANTHROPIC_API_KEY is not set on the server, so Claude cannot be called.',
+    !provider.apiKeyConfigured && `${provider.keyEnv} is not set on the server, so ${provider.company} cannot be called. Pick another provider or add the key to the server .env and restart the api and worker.`,
     !settings.storage.ok && `The translations bucket is not set up: ${settings.storage.error ?? 'unknown problem'}.`,
     settings.versionError && settings.versionError,
   ].filter(Boolean) as string[];
@@ -76,7 +88,15 @@ export function StartDialog({
   ].filter(Boolean) as string[];
 
   const toggle = (chapter: number) => setPicked((prev) => (prev.includes(chapter) ? prev.filter((c) => c !== chapter) : [...prev, chapter].sort((a, b) => a - b)));
-  const busyLanguage = overview.active.find((run) => run.language === language);
+  const busyLanguage = overview.active.find((run) => run.language === language && run.book === book.id);
+  const toggleCanto = (canto: number) => {
+    const ids = allChapters.filter((id) => cantoOf(id) === canto);
+    setPicked((prev) => {
+      const all = ids.every((id) => prev.includes(id));
+      const rest = prev.filter((id) => !ids.includes(id));
+      return (all ? rest : [...rest, ...ids]).sort((a, b) => a - b);
+    });
+  };
   const est = estimate.data;
   const nothingToDo = est !== undefined && est.willTranslate === 0;
 
@@ -85,6 +105,9 @@ export function StartDialog({
     start.mutate(
       {
         language,
+        book: book.id,
+        provider: providerId,
+        model: model.trim() || undefined,
         chapters: picked.length ? picked : undefined,
         verseLimit: limitNumber > 0 ? limitNumber : undefined,
         budgetUsd: budgetNumber > 0 ? budgetNumber : undefined,
@@ -106,9 +129,9 @@ export function StartDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New translation</DialogTitle>
+          <DialogTitle>New translation — {book.title}</DialogTitle>
           <DialogDescription>
-            Claude translates Prabhupāda's own words — translation, transliteration, word meanings and purport — into the language you pick. It runs on the server, so closing this page does not stop it.
+            {provider.label} translates Prabhupāda's own words — translation, transliteration, word meanings and purport — into the language you pick. It runs on the server, so closing this page does not stop it.
           </DialogDescription>
         </DialogHeader>
 
@@ -125,34 +148,101 @@ export function StartDialog({
               </Select>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="provider">AI provider</Label>
+                <Select id="provider" className="w-full" value={providerId} onChange={(e) => { setProviderId(e.target.value); setModel(''); }}>
+                  {settings.providers.map((item) => (
+                    <option key={item.id} value={item.id} disabled={!item.apiKeyConfigured}>
+                      {item.label} ({item.company}){item.apiKeyConfigured ? '' : ' — no API key'}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="model">Model</Label>
+                <Input id="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder={provider.defaultModel} />
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Chapters</Label>
+                <Label>{isSB ? 'Cantos' : 'Chapters'}</Label>
                 <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setPicked([])}>
-                  {picked.length === 0 ? 'All chapters' : 'Clear — use all'}
+                  {picked.length === 0 ? (isSB ? 'All cantos' : 'All chapters') : 'Clear — use all'}
                 </button>
               </div>
-              <div className="grid grid-cols-9 gap-1.5">
-                {allChapters.map((chapter) => {
-                  const on = picked.length === 0 || picked.includes(chapter);
-                  return (
-                    <button
-                      key={chapter}
-                      type="button"
-                      aria-pressed={picked.includes(chapter)}
-                      onClick={() => toggle(chapter)}
-                      className={cn(
-                        'h-8 rounded-md border text-xs font-medium tabular-nums transition-colors',
-                        picked.includes(chapter) ? 'border-primary bg-primary text-primary-foreground' : on ? 'bg-background hover:bg-accent' : 'text-muted-foreground'
-                      )}
-                    >
-                      {chapter}
-                    </button>
-                  );
-                })}
-              </div>
+              {isSB ? (
+                <>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((canto) => {
+                      const ids = allChapters.filter((id) => cantoOf(id) === canto);
+                      const count = ids.filter((id) => picked.includes(id)).length;
+                      const full = count === ids.length;
+                      return (
+                        <button
+                          key={canto}
+                          type="button"
+                          aria-pressed={count > 0}
+                          onClick={() => toggleCanto(canto)}
+                          onDoubleClick={() => setOpenCanto(openCanto === canto ? null : canto)}
+                          title={`Canto ${canto}: ${ids.length} chapters. Click to pick the whole canto; double-click to choose chapters.`}
+                          className={cn('h-8 rounded-md border text-xs font-medium tabular-nums transition-colors', full ? 'border-primary bg-primary text-primary-foreground' : count > 0 ? 'border-primary bg-primary/20' : picked.length === 0 ? 'bg-background hover:bg-accent' : 'text-muted-foreground hover:bg-accent')}
+                        >
+                          {canto}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Choose chapters of canto</span>
+                    <Select className="h-7 w-20 text-xs" value={openCanto ?? ''} onChange={(e) => setOpenCanto(e.target.value ? Number(e.target.value) : null)} aria-label="Canto to choose chapters from">
+                      <option value="">—</option>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((canto) => (
+                        <option key={canto} value={canto}>{canto}</option>
+                      ))}
+                    </Select>
+                  </div>
+                  {openCanto !== null && (
+                    <div className="grid grid-cols-10 gap-1">
+                      {allChapters.filter((id) => cantoOf(id) === openCanto).map((chapter) => (
+                        <button
+                          key={chapter}
+                          type="button"
+                          aria-pressed={picked.includes(chapter)}
+                          onClick={() => toggle(chapter)}
+                          className={cn('h-7 rounded border text-[11px] tabular-nums', picked.includes(chapter) ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:bg-accent')}
+                        >
+                          {chapter % 100}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {picked.length > 0 && <p className="text-xs text-muted-foreground">{picked.length} chapter{picked.length === 1 ? '' : 's'} chosen.</p>}
+                </>
+              ) : (
+                <div className="grid grid-cols-9 gap-1.5">
+                  {allChapters.map((chapter) => {
+                    const on = picked.length === 0 || picked.includes(chapter);
+                    return (
+                      <button
+                        key={chapter}
+                        type="button"
+                        aria-pressed={picked.includes(chapter)}
+                        onClick={() => toggle(chapter)}
+                        className={cn(
+                          'h-8 rounded-md border text-xs font-medium tabular-nums transition-colors',
+                          picked.includes(chapter) ? 'border-primary bg-primary text-primary-foreground' : on ? 'bg-background hover:bg-accent' : 'text-muted-foreground'
+                        )}
+                      >
+                        {chapterName(book.id, chapter)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <p className="text-xs text-muted-foreground">
-                Verses already translated under the current version{est?.version ? ` (${est.version})` : ''} are skipped. Only verses that are missing, or that Claude made under an older version, are sent to Claude.
+                Verses already translated under the current version{est?.version ? ` (${est.version})` : ''} are skipped. Only verses that are missing, or that an AI made under an older version, are sent to the model.
               </p>
             </div>
 
@@ -177,12 +267,12 @@ export function StartDialog({
                 <Row label="Already saved" value={formatCount(est.saved)} />
                 {est.outdated > 0 && <Row label="Older version" value={formatCount(est.outdated)} />}
                 <Row label="To translate" value={<b>{formatCount(est.willTranslate)}</b>} />
-                <Row label="Claude calls" value={`≈ ${formatCount(est.calls)}`} />
+                <Row label="Model calls" value={`≈ ${formatCount(est.calls)}`} />
                 <Row label="Tokens" value={`≈ ${formatCount(est.inputTokens + est.outputTokens)}`} />
                 <div className="border-t pt-2">
-                  <Row label="Cost" value={<b className="text-base">{est.costUsd ? `≈ ${formatUsd(est.costUsd)}` : '$0'}</b>} />
+                  <Row label="Cost" value={est.costUsd === null ? <b className="text-base">unknown</b> : <b className="text-base">{est.costUsd ? `≈ ${formatUsd(est.costUsd)}` : '$0'}</b>} />
                 </div>
-                <p className="pt-1 text-[11px] leading-snug text-muted-foreground">Model {est.model}. A guess from the length of the English text — the real cost is shown while it runs.</p>
+                <p className="pt-1 text-[11px] leading-snug text-muted-foreground">{provider.label} · {est.model}. {est.costUsd === null ? 'This model has no known price, so only tokens are estimated. ' : ''}A guess from the length of the English text — the real cost is shown while it runs.</p>
               </dl>
             ) : estimate.isError ? (
               <p className="text-sm text-muted-foreground">Could not work out an estimate right now. You can still start the run.</p>
@@ -201,7 +291,7 @@ export function StartDialog({
 
         {busyLanguage && (
           <p className="mt-4 rounded-md border border-warning/50 bg-warning/15 px-3 py-2 text-sm">
-            There is already a {busyLanguage.status.toLowerCase()} run for this language.{' '}
+            There is already a {busyLanguage.status.toLowerCase()} run for this language in this book.{' '}
             <button type="button" className="font-medium underline underline-offset-2" onClick={() => { onOpenChange(false); onOpenRun(busyLanguage.id); }}>
               Open it
             </button>

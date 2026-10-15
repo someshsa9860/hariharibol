@@ -15,18 +15,25 @@ import { EVENTS, toPermission } from './websocket.js';
 import { BUCKET as S3_BUCKET, client as s3Client } from './s3.js';
 import { describeEvent, presentRun } from '../utils/translation-run.js';
 
-import { DEFAULT_MODEL, costUsd } from '../scripts/lib/claude-translate-client.js';
+import { DEFAULT_PROVIDER, PROVIDERS, PROVIDER_IDS, costFor, providerOf } from '../scripts/lib/translate-providers.js';
 import { LANGUAGES, LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { dryRun, hasTranslation, isCurrent, verifyEntry } from '../scripts/lib/claude-translate-run.js';
-import { CHAPTERS, DEFAULT_GROUP_BUDGET, TRANSLATOR, chapterKey, loadChapter } from '../scripts/lib/claude-translate-source.js';
+import { BOOK, BOOKS, BOOK_IDS, DEFAULT_GROUP_BUDGET, TRANSLATOR, bookOf, bookOfVerseId, chapterIdOfVerse, chapterKey, chapterLabel, loadChapter } from '../scripts/lib/claude-translate-source.js';
 import { dirStore, langChapterKey, s3Store, versionFrom } from '../scripts/lib/claude-translate-store.js';
 
 const queue = queues.translation;
 
 /* ---------- what the server is set up with ---------- */
 
-export const apiKey = () => env.ANTHROPIC_API_KEY || '';
-export const model = () => env.ANTHROPIC_MODEL || DEFAULT_MODEL;
+/** The provider a run uses unless the admin picks another (TRANSLATION_PROVIDER, else Claude). */
+export const defaultProvider = () => (PROVIDER_IDS.includes(env.TRANSLATION_PROVIDER) ? env.TRANSLATION_PROVIDER : DEFAULT_PROVIDER);
+export const apiKey = (provider = defaultProvider()) => env[providerOf(provider).keyEnv] || '';
+/** The model a provider uses unless told otherwise: its env setting (ANTHROPIC_MODEL, TRANSLATION_OPENAI_MODEL), else its built-in default. */
+export const model = (provider = defaultProvider()) => env[providerOf(provider).modelEnv] || providerOf(provider).defaultModel;
+
+/** Every provider, with whether its key is set and the model it defaults to; what the start dialog offers. */
+export const providers = () =>
+  PROVIDER_IDS.map((id) => ({ id, label: PROVIDERS[id].label, company: PROVIDERS[id].company, keyEnv: PROVIDERS[id].keyEnv, apiKeyConfigured: Boolean(apiKey(id)), defaultModel: model(id) }));
 
 /** The version every verse of a new run is stamped with (TRANSLATION_VERSION, else the default). Throws if the setting is malformed. */
 export const currentVersion = () => versionFrom(env.TRANSLATION_VERSION);
@@ -123,7 +130,7 @@ async function mapLimit(items, limit, fn) {
 /* ---------- what is saved, and what a run would do ---------- */
 
 const emptyScores = () => ({ 1: 0, 2: 0, 3: 0, unscored: 0 });
-let coverageInFlight = null;
+const coverageInFlight = new Map();
 
 /** The version new runs use, or null when TRANSLATION_VERSION is malformed (the overview reports that; coverage just goes on). */
 function versionOrNull() {
@@ -141,25 +148,25 @@ function versionOrNull() {
  * Redis for `coverageCacheSeconds` and dropped when a run stops (`forgetCoverage`) — and when it was worked
  * out for another version, which is what a restart with a new TRANSLATION_VERSION leaves behind.
  */
-export async function coverage({ refresh = false } = {}) {
+export async function coverage({ book = BOOK, refresh = false } = {}) {
   if (!refresh) {
-    const cached = await redis.get(translation.coverageCacheKey).catch(() => null);
+    const cached = await redis.get(coverageKey(book)).catch(() => null);
     const found = cached ? JSON.parse(cached) : null;
     if (found && found.version === versionOrNull()) return found;
   }
-  coverageInFlight ||= computeCoverage().finally(() => { coverageInFlight = null; });
-  return coverageInFlight;
+  if (!coverageInFlight.has(book)) coverageInFlight.set(book, computeCoverage(book).finally(() => coverageInFlight.delete(book)));
+  return coverageInFlight.get(book);
 }
 
-async function computeCoverage() {
+async function computeCoverage(book) {
   const { store, getSource } = await openWorkspace();
   const version = versionOrNull();
   const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, chapters: [] }]));
   let total = 0;
 
-  const chapters = await mapLimit(CHAPTERS, translation.readConcurrency, async (n) => {
-    const { units } = await loadChapter(getSource, n);
-    const files = await Promise.all(LANGUAGE_CODES.map((code) => store.getJson(langChapterKey(code, n))));
+  const chapters = await mapLimit(bookOf(book).chapters, translation.readConcurrency, async (n) => {
+    const { units } = await loadChapter(getSource, n, book);
+    const files = await Promise.all(LANGUAGE_CODES.map((code) => store.getJson(langChapterKey(code, n, book))));
     return { n, units, files };
   });
 
@@ -187,12 +194,16 @@ async function computeCoverage() {
     });
   }
 
-  const result = { generatedAt: new Date().toISOString(), version, total, languages: Object.values(byLang) };
-  await redis.set(translation.coverageCacheKey, JSON.stringify(result), 'EX', translation.coverageCacheSeconds).catch(() => {});
+  const result = { book, generatedAt: new Date().toISOString(), version, total, languages: Object.values(byLang) };
+  await redis.set(coverageKey(book), JSON.stringify(result), 'EX', translation.coverageCacheSeconds).catch(() => {});
   return result;
 }
 
-export const forgetCoverage = () => redis.del(translation.coverageCacheKey).catch(() => {});
+const coverageKey = (book) => `${translation.coverageCacheKey}:${book}`;
+export const forgetCoverage = () => redis.del(...BOOK_IDS.map(coverageKey)).catch(() => {});
+
+/** Every book that can be translated, with its chapter ids and how to label them; what the page builds its book tabs from. */
+export const books = () => BOOK_IDS.map((id) => ({ id, title: BOOKS[id].title, chapters: BOOKS[id].chapters.map((chapter) => ({ id: chapter, label: chapterLabel(chapter, id) })) }));
 
 /**
  * What a run for `language` over `chapters` has left under `version`, and a guess at its cost: the
@@ -200,19 +211,21 @@ export const forgetCoverage = () => redis.del(translation.coverageCacheKey).catc
  * cost is scaled to match). A verse already translated under `version` is `saved` and costs nothing; one
  * Claude translated under another version is `outdated` and is left to do, like a verse never translated.
  */
-export async function estimate({ language, chapters, limit = 0, model: modelId = model(), version = currentVersion() }) {
+export async function estimate({ language, book = BOOK, chapters, limit = 0, provider = defaultProvider(), model: modelId = model(provider), version = currentVersion() }) {
   const { store, getSource } = await openWorkspace();
   const parts = await mapLimit(chapters, translation.readConcurrency, (n) =>
-    dryRun({ store, getSource, cfg: { langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET, version } })
+    dryRun({ store, getSource, cfg: { book, langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET, version } })
   );
   const sum = (pick) => parts.reduce((total, part) => total + pick(part.totals), 0);
   const totals = { verses: sum((t) => t.verses), done: sum((t) => t.done), todo: sum((t) => t.todo), outdated: sum((t) => t.outdated), calls: sum((t) => t.calls), inTokens: sum((t) => t.inTokens), outTokens: sum((t) => t.outTokens), systemTokens: sum((t) => t.systemTokens) };
   const verses = limit ? Math.min(limit, totals.todo) : totals.todo;
   const share = totals.todo ? verses / totals.todo : 0;
-  const cost = costUsd(modelId, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
+  const cost = costFor(provider, modelId, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
   return {
     language,
+    book,
     chapters,
+    provider,
     model: modelId,
     version,
     verses: totals.verses,
@@ -234,9 +247,9 @@ const ownRows = (verse, lang) => (verse?.commentaries || []).filter((c) => c.tra
 const rowText = (rows, type) => rows.find((r) => r.type === type)?.text ?? null;
 
 /** One chapter of one language, verse by verse: which are saved, by whom, how they scored, and the start of the translation. */
-export async function chapterIndex(language, chapter) {
+export async function chapterIndex(language, chapter, book = BOOK) {
   const { store, getSource } = await openWorkspace();
-  const [{ units, meta }, file] = await Promise.all([loadChapter(getSource, chapter), store.getJson(langChapterKey(language, chapter))]);
+  const [{ units, meta }, file] = await Promise.all([loadChapter(getSource, chapter, book), store.getJson(langChapterKey(language, chapter, book))]);
   const have = new Map((file?.verses || []).map((v) => [v.verseId, v]));
   const verses = units.map((unit) => {
     const verse = have.get(unit.verseId);
@@ -257,7 +270,9 @@ export async function chapterIndex(language, chapter) {
   });
   return {
     language,
+    book,
     chapter,
+    chapterLabel: chapterLabel(chapter, book),
     title: file?.meta?.chapterName ?? meta?.chapterName ?? null,
     titleEn: meta?.chapterTitleEn ?? null,
     total: units.length,
@@ -268,9 +283,10 @@ export async function chapterIndex(language, chapter) {
 
 /** One verse, the English beside what was saved: everything the output viewer shows. `translated` is null while it is not saved. */
 export async function verseOutput(language, verseId) {
-  const chapter = Number(verseId.split('.')[1]);
+  const book = bookOfVerseId(verseId);
+  const chapter = chapterIdOfVerse(verseId);
   const { store, getSource } = await openWorkspace();
-  const [{ units }, file] = await Promise.all([loadChapter(getSource, chapter), store.getJson(langChapterKey(language, chapter))]);
+  const [{ units }, file] = await Promise.all([loadChapter(getSource, chapter, book), store.getJson(langChapterKey(language, chapter, book))]);
   const unit = units.find((u) => u.verseId === verseId);
   if (!unit) return null;
 
@@ -283,6 +299,7 @@ export async function verseOutput(language, verseId) {
 
   return {
     verseId,
+    book,
     ref: unit.ref,
     chapter,
     language,
@@ -304,6 +321,7 @@ export async function verseOutput(language, verseId) {
       : null,
     ai: ai && {
       version: ai.version,
+      provider: ai.provider || 'anthropic',
       model: ai.model,
       effort: ai.effort,
       generatedAt: ai.generatedAt,

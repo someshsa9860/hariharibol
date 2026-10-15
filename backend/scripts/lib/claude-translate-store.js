@@ -13,7 +13,7 @@ import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-import { BOOK } from './claude-translate-source.js';
+import { BOOK, BOOKS, chapterFile } from './claude-translate-source.js';
 
 /** What a run is labelled with when TRANSLATION_VERSION is not set. */
 export const DEFAULT_VERSION = '1.0-12-10-26';
@@ -28,13 +28,15 @@ export function versionFrom(value) {
 }
 
 /**
- * `json/bhagavat-gita/<lang>/ch-<n>.json` — next to the English (`en/`) and Sanskrit (`sa/`) chapter files.
- * `book` is only ever given by the import's test, which reads a throwaway book instead of the Gita.
+ * `json/bhagavat-gita/<lang>/ch-<n>.json` — next to the English (`en/`) and Sanskrit (`sa/`) chapter files; the
+ * Bhagavatam's is `json/srimad-bhagavatam/<lang>/c<canto>-ch-<n>.json`. A `book` that is not a known book id is a
+ * folder name (the import's test reads a throwaway book that way).
  */
-export const langChapterKey = (lang, chapterNumber, book = BOOK) => `json/${book}/${lang}/ch-${chapterNumber}.json`;
+export const langChapterKey = (lang, chapterId, book = BOOK) =>
+  BOOKS[book] ? `json/${BOOKS[book].folder}/${lang}/${chapterFile(chapterId, book)}` : `json/${book}/${lang}/ch-${chapterId}.json`;
 
 /** The run's bookkeeping (spend, last verse, the "a run is active" flag), one per translation version. */
-export const checkpointKey = (version) => `json/reports/translate-${BOOK}-${version}.json`;
+export const checkpointKey = (version, book = BOOK) => `json/reports/translate-${BOOKS[book]?.folder ?? book}-${version}.json`;
 
 /** Where a copy of an existing object goes before it is first changed: the folder `upload-verse-source.js` uses. */
 export const backupKey = (key, date = new Date()) => `json-backup-${date.toISOString().slice(0, 10)}/${key}`;

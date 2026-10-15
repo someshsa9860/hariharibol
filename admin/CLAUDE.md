@@ -228,6 +228,8 @@ rest of the verse form.
 
 ## Translations
 
+**Two books, two providers.** The page has a book switcher (Bhagavad-gītā / Śrīmad-Bhāgavatam, `?book=`); each book has its own languages grid, runs, import and output reader, and both can run at once. The start dialog picks the provider (disabled when its API key is missing) and model (default from `settings.providers`), shows the estimate with approximate cost before Start ("unknown" when the model has no price), and for the Bhagavatam chooses by canto (double-click a canto to pick chapters). Chapter ids for the Bhagavatam are canto × 100 + chapter; use `chapterName` / `cantoOf` from `lib/translation.ts`.
+
 `routes/translations.tsx` (`/translations`, Content section, permission `translation.read`) is where an admin
 starts, follows and reads Claude's translation of the Gita. The work happens in the backend's worker — see
 "Translation runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md) — so this page is a window onto it and holds

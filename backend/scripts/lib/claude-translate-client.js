@@ -163,7 +163,7 @@ export function createClaude({ apiKey, model = DEFAULT_MODEL, effort = 'off', tr
         if (signal?.aborted) throw err;
         if (err instanceof Anthropic.APIError && !isTransient(err)) {
           // 400 (including "credit balance too low"), 401, 403, 404, 413 …
-          throw new FatalApiError(`Anthropic API ${err.status}: ${String(err.message).slice(0, 300)}`, err.status);
+          throw Object.assign(new FatalApiError(`Anthropic API ${err.status}: ${String(err.message).slice(0, 300)}`, err.status), { provider: 'anthropic' });
         }
         if (!isTransient(err) || attempt >= transientRetries) throw err;
         const wait = Math.min(30_000 * 2 ** attempt, 10 * 60_000);

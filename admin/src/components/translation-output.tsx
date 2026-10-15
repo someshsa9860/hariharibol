@@ -8,7 +8,8 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Radio, ShieldCheck, Sparkles 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useChapter, useVerse, type ChapterIndex, type Coverage, type Overview, type Run, type VerseOutput } from '@/lib/translation';
+import { Select } from '@/components/ui/input';
+import { cantoOf, chapterName, useChapter, useVerse, type BookId, type ChapterIndex, type Coverage, type Overview, type Run, type VerseOutput } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
 import { ProgressBar, ScoreBadge, ScoreDot, formatCount } from './translation-bits';
 import { chapterOf } from './translation-run-panel';
@@ -52,27 +53,33 @@ function useViewMode() {
 }
 
 export function TranslationOutput({
+  book,
   overview,
   coverage,
   selection,
   onSelect,
   liveRun,
 }: {
+  book: BookId;
   overview: Overview;
   coverage: Coverage | undefined;
   selection: OutputSelection;
   onSelect: (next: Partial<OutputSelection>) => void;
   liveRun: Run | undefined;
 }) {
-  const { languages, chapters } = overview;
+  const { languages } = overview;
+  const allChapters = overview.books.find((b) => b.id === book)?.chapters.map((c) => c.id) ?? overview.chapters;
+  const isSB = book === 'srimad-bhagavatam';
   const savedBy = useMemo(() => new Map(coverage?.languages.map((item) => [item.code, item])), [coverage]);
 
   const language = selection.language ?? languages.find((item) => (savedBy.get(item.code)?.saved ?? 0) > 0)?.code ?? languages[0]?.code ?? null;
   const languageCoverage = language ? savedBy.get(language) : undefined;
-  const chapter = selection.chapter ?? languageCoverage?.chapters.find((item) => item.saved > 0)?.chapter ?? 1;
+  const chapter = selection.chapter ?? languageCoverage?.chapters.find((item) => item.saved > 0)?.chapter ?? allChapters[0] ?? 1;
 
   const live = !!liveRun && liveRun.language === language && liveRun.status === 'RUNNING';
-  const index = useChapter(language, chapter, live);
+  const index = useChapter(book, language, chapter, live);
+  const canto = isSB ? cantoOf(chapter) : 0;
+  const chapters = isSB ? allChapters.filter((id) => cantoOf(id) === canto) : allChapters;
   const [follow, setFollow] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
 
@@ -133,7 +140,18 @@ export function TranslationOutput({
           })}
         </div>
 
-        <div className="grid grid-cols-9 gap-1.5 sm:grid-cols-[repeat(18,minmax(0,1fr))]" role="tablist" aria-label="Chapter">
+        {isSB && (
+          <div className="flex items-center gap-2 text-sm">
+            <label htmlFor="canto" className="text-muted-foreground">Canto</label>
+            <Select id="canto" className="h-8 w-24" value={canto} onChange={(e) => onSelect({ chapter: Number(e.target.value) * 100 + 1, verseId: null })}>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((c) => {
+                const saved = allChapters.filter((id) => cantoOf(id) === c).reduce((n, id) => n + (languageCoverage?.chapters.find((x) => x.chapter === id)?.saved ?? 0), 0);
+                return <option key={c} value={c}>{c}{saved ? ` · ${formatCount(saved)}` : ''}</option>;
+              })}
+            </Select>
+          </div>
+        )}
+        <div className={cn('grid gap-1.5', isSB ? 'grid-cols-10 sm:grid-cols-[repeat(15,minmax(0,1fr))]' : 'grid-cols-9 sm:grid-cols-[repeat(18,minmax(0,1fr))]')} role="tablist" aria-label="Chapter">
           {chapters.map((number) => {
             const item = languageCoverage?.chapters.find((c) => c.chapter === number);
             const fraction = item && item.total ? item.saved / item.total : 0;
@@ -144,7 +162,7 @@ export function TranslationOutput({
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                title={item ? `Chapter ${number} · ${item.saved} of ${item.total} verses` : `Chapter ${number}`}
+                title={item ? `Chapter ${chapterName(book, number)} · ${item.saved} of ${item.total} verses` : `Chapter ${chapterName(book, number)}`}
                 onClick={() => onSelect({ chapter: number, verseId: null })}
                 className={cn(
                   'relative h-9 overflow-hidden rounded-md border text-xs font-semibold tabular-nums transition-colors',
@@ -152,7 +170,7 @@ export function TranslationOutput({
                 )}
               >
                 <span aria-hidden className={cn('absolute inset-x-0 bottom-0', fraction >= 1 ? 'bg-success/35' : 'bg-primary/20')} style={{ height: `${fraction * 100}%` }} />
-                <span className="relative">{number}</span>
+                <span className="relative">{isSB ? number % 100 : number}</span>
               </button>
             );
           })}
@@ -222,7 +240,7 @@ function VerseList({
           <>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Chapter {index.chapter}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Chapter {index.chapterLabel ?? index.chapter}</p>
                 <p className="truncate font-semibold" title={index.titleEn ?? undefined}>
                   {index.title || index.titleEn || '—'}
                 </p>
@@ -435,7 +453,7 @@ function VerseHeader({ data, mode, onMode, onPick, languageName }: { data: Verse
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Translated by Claude · <span className="font-mono">{ai.model}</span> · version <span className="font-mono">{ai.version}</span> · {formatDate(ai.generatedAt)}
+            Translated by {ai.provider === 'openai' ? 'OpenAI' : 'Claude'} · <span className="font-mono">{ai.model}</span> · version <span className="font-mono">{ai.version}</span> · {formatDate(ai.generatedAt)}
           </p>
           {ai.note && <p className="rounded-md border bg-background px-3 py-2 text-sm">{ai.note}</p>}
           {ai.warnings.length > 0 && (

@@ -19,6 +19,9 @@ import { ProgressBar, ScoreMix, StatusBadge, describeChapters, formatCount, form
 import { useAuth } from '@/lib/auth';
 import { useSocketStatus } from '@/lib/socket';
 import {
+  DEFAULT_BOOK,
+  cantoOf,
+  isBook,
   refreshCoverage,
   useCoverage,
   useImports,
@@ -26,6 +29,8 @@ import {
   useRun,
   useRuns,
   useTranslationLive,
+  type BookId,
+  type BookInfo,
   type Coverage,
   type ImportStatus,
   type Overview,
@@ -43,8 +48,10 @@ export function TranslationsPage() {
   const canPublish = hasPermission('verse.publish');
   const [params, setParams] = useSearchParams();
   const overview = useOverview();
-  const coverage = useCoverage();
-  const imports = useImports();
+  const bookParam = params.get('book');
+  const bookId: BookId = isBook(bookParam) ? bookParam : DEFAULT_BOOK;
+  const coverage = useCoverage(bookId);
+  const imports = useImports(bookId);
   useTranslationLive();
 
   const [startFor, setStartFor] = useState<{ language: string | null } | null>(null);
@@ -66,17 +73,20 @@ export function TranslationsPage() {
       { replace }
     );
 
-  const openOutput = (language: string, chapter: number, verseId?: string) =>
-    update({ tab: 'output', run: null, lang: language, chapter: String(chapter), verse: verseId ?? null });
+  const openOutput = (book: BookId, language: string, chapter: number, verseId?: string) =>
+    update({ tab: 'output', run: null, book: book === DEFAULT_BOOK ? null : book, lang: language, chapter: String(chapter), verse: verseId ?? null });
+  const pickBook = (book: BookId) => update({ book: book === DEFAULT_BOOK ? null : book, run: null, lang: null, chapter: null, verse: null });
   const openRun = (id: string | null) => update({ run: id });
 
   const data = overview.data;
+  const book: BookInfo | undefined = data?.books.find((b) => b.id === bookId) ?? data?.books[0];
+  const activeHere = data && book ? data.active.filter((run) => run.book === book.id) : [];
 
   return (
     <div>
       <PageHeader
         title="Translations"
-        description="Claude translates Prabhupāda's Bhagavad-gītā into other languages. Runs work on the server — closing or refreshing this page never stops one."
+        description="Claude or OpenAI translates Prabhupāda's Bhagavad-gītā and Śrīmad-Bhāgavatam into other languages. Both books can be translated at the same time. Runs work on the server — closing or refreshing this page never stops one."
         actions={
           <>
             <LiveIndicator />
@@ -111,27 +121,54 @@ export function TranslationsPage() {
         </Card>
       )}
 
-      {data && (
+      {data && book && (
         <div className="space-y-6">
           <Health settings={data.settings} hasActive={data.active.length > 0} />
+
+          <div className="grid gap-2 sm:grid-cols-2" role="tablist" aria-label="Book">
+            {data.books.map((item) => {
+              const running = data.active.filter((run) => run.book === item.id);
+              const selected = item.id === book.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => pickBook(item.id)}
+                  className={cn('flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors', selected ? 'border-primary bg-primary/5 ring-1 ring-primary/40' : 'bg-card hover:bg-accent')}
+                >
+                  <span>
+                    <span className="block font-semibold">{item.title}</span>
+                    <span className="block text-xs text-muted-foreground">{item.id === 'srimad-bhagavatam' ? '12 cantos · 335 chapters' : '18 chapters'}</span>
+                  </span>
+                  {running.length > 0 && (
+                    <Badge variant={running.some((run) => run.status === 'RUNNING') ? 'default' : 'outline'} className="shrink-0">
+                      {running.length} active
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
           <Tabs value={tab} onValueChange={(value) => update({ tab: value === 'output' ? 'output' : null })}>
             <TabsList>
               <TabsTrigger value="runs">
                 Runs
-                {data.active.length > 0 && <Badge className="ml-2 px-1.5 py-0">{data.active.length}</Badge>}
+                {activeHere.length > 0 && <Badge className="ml-2 px-1.5 py-0">{activeHere.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="output">Output</TabsTrigger>
             </TabsList>
 
             <TabsContent value="runs" className="space-y-8">
-              {data.active.length > 0 && (
+              {activeHere.length > 0 && (
                 <section className="space-y-3">
-                  <h3 className="text-sm font-medium">In progress</h3>
-                  {data.active.map((run) => (
+                  <h3 className="text-sm font-medium">In progress — {book.title}</h3>
+                  {activeHere.map((run) => (
                     <Card key={run.id}>
                       <CardContent className="pt-6">
-                        <RunPanel run={run} chaptersInBook={data.chapters.length} onOpenOutput={openOutput} />
+                        <RunPanel run={run} chaptersInBook={book.chapters.length} onOpenOutput={openOutput} />
                       </CardContent>
                     </Card>
                   ))}
@@ -141,10 +178,11 @@ export function TranslationsPage() {
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Languages</h3>
-                  <RefreshCoverage />
+                  <RefreshCoverage book={book.id} />
                 </div>
                 <LanguageGrid
                   overview={data}
+                  book={book}
                   coverage={coverage.data}
                   imports={imports.data}
                   loading={coverage.isLoading}
@@ -157,11 +195,12 @@ export function TranslationsPage() {
                 />
               </section>
 
-              <History overview={data} onOpen={openRun} />
+              <History overview={data} book={book} onOpen={openRun} />
             </TabsContent>
 
             <TabsContent value="output">
               <TranslationOutput
+                book={book.id}
                 overview={data}
                 coverage={coverage.data}
                 selection={{
@@ -179,7 +218,7 @@ export function TranslationsPage() {
                     true
                   )
                 }
-                liveRun={(params.get('lang') ? data.active.find((run) => run.language === params.get('lang')) : data.active[0]) ?? undefined}
+                liveRun={(params.get('lang') ? activeHere.find((run) => run.language === params.get('lang')) : activeHere[0]) ?? undefined}
               />
             </TabsContent>
           </Tabs>
@@ -188,15 +227,16 @@ export function TranslationsPage() {
             open={startFor !== null}
             onOpenChange={(open) => !open && setStartFor(null)}
             overview={data}
+            book={book}
             language={startFor?.language ?? null}
             onStarted={() => update({ tab: null })}
             onOpenRun={openRun}
           />
-          {importFor && <ImportDialog onClose={() => setImportFor(null)} overview={data} language={importFor} canPublish={canPublish} />}
+          {importFor && <ImportDialog onClose={() => setImportFor(null)} overview={data} book={book.id} language={importFor} canPublish={canPublish} />}
         </div>
       )}
 
-      <RunDialog id={openRunId} chaptersInBook={data?.chapters.length ?? 18} onClose={() => openRun(null)} onOpenOutput={openOutput} />
+      <RunDialog id={openRunId} books={data?.books ?? []} onClose={() => openRun(null)} onOpenOutput={openOutput} />
     </div>
   );
 }
@@ -215,7 +255,7 @@ function LiveIndicator() {
   );
 }
 
-function RefreshCoverage() {
+function RefreshCoverage({ book }: { book: BookId }) {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   return (
@@ -227,7 +267,7 @@ function RefreshCoverage() {
       onClick={async () => {
         setBusy(true);
         try {
-          await refreshCoverage(queryClient);
+          await refreshCoverage(queryClient, book);
         } finally {
           setBusy(false);
         }
@@ -242,7 +282,8 @@ function RefreshCoverage() {
 
 function Health({ settings, hasActive }: { settings: Overview['settings']; hasActive: boolean }) {
   const problems = [
-    !settings.apiKeyConfigured && { fatal: true, text: 'ANTHROPIC_API_KEY is not set on the server, so Claude cannot be called. Add it to the server .env for the api and worker, then restart them.' },
+    !settings.apiKeyConfigured && { fatal: true, text: `No AI provider has an API key on the server (${settings.providers.map((p) => p.keyEnv).join(' or ')}), so nothing can be translated. Add one to the server .env for the api and worker, then restart them.` },
+    ...settings.providers.filter((p) => !p.apiKeyConfigured && settings.apiKeyConfigured).map((p) => ({ fatal: false, text: `${p.label} is not available: ${p.keyEnv} is not set on the server.` })),
     !settings.storage.ok && { fatal: true, text: `The translations bucket cannot be used: ${settings.storage.error ?? 'unknown problem'}. The server reads and writes the app's own bucket (S3_BUCKET), so check that and its AWS credentials.` },
     settings.versionError && { fatal: true, text: settings.versionError },
     !settings.workerOnline && {
@@ -260,7 +301,7 @@ function Health({ settings, hasActive }: { settings: Overview['settings']; hasAc
           <CheckCircle2 className="h-3.5 w-3.5" /> Ready
         </span>
         <span>
-          Model <span className="font-mono text-foreground">{settings.model}</span>
+          {settings.providers.filter((p) => p.apiKeyConfigured).map((p) => `${p.label} ${p.defaultModel}`).join(' · ')}
         </span>
         <span>
           Version <span className="font-mono text-foreground">{settings.version}</span>
@@ -290,6 +331,7 @@ function Health({ settings, hasActive }: { settings: Overview['settings']; hasAc
 
 function LanguageGrid({
   overview,
+  book,
   coverage,
   imports,
   loading,
@@ -301,6 +343,7 @@ function LanguageGrid({
   onOpenOutput,
 }: {
   overview: Overview;
+  book: BookInfo;
   coverage: Coverage | undefined;
   imports: ImportStatus | undefined;
   loading: boolean;
@@ -309,16 +352,19 @@ function LanguageGrid({
   onStart: (language: string) => void;
   onImport: (language: string) => void;
   onOpenRun: (id: string) => void;
-  onOpenOutput: (language: string, chapter: number) => void;
+  onOpenOutput: (book: BookId, language: string, chapter: number) => void;
 }) {
+  const isSB = book.id === 'srimad-bhagavatam';
+  // The Gita gets a box per chapter; the Bhagavatam, with 335, gets one per canto.
+  const boxes = isSB ? Array.from({ length: 12 }, (_, i) => i + 1) : book.chapters.map((c) => c.id);
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {overview.languages.map((language) => {
         const stats = coverage?.languages.find((item) => item.code === language.code);
-        const run = overview.active.find((item) => item.language === language.code);
+        const run = overview.active.find((item) => item.language === language.code && item.book === book.id);
         const total = coverage?.total ?? 0;
         const percent = total && stats ? (stats.saved / total) * 100 : 0;
-        const firstChapter = stats?.chapters.find((item) => item.saved > 0)?.chapter ?? 1;
+        const firstChapter = stats?.chapters.find((item) => item.saved > 0)?.chapter ?? book.chapters[0].id;
         // Everything is translated under the version a new run would use (or by a person): a run would find nothing to do.
         const upToDate = !!stats && total > 0 && stats.upToDate >= total;
         const outdated = stats ? stats.saved - stats.upToDate : 0;
@@ -351,12 +397,14 @@ function LanguageGrid({
                     <ProgressBar percent={percent} tone={percent >= 100 ? 'success' : 'primary'} />
                   </div>
 
-                  <div className="flex gap-0.5" title="Chapters 1 to 18 — the fuller the box, the more of the chapter is translated">
-                    {overview.chapters.map((chapter) => {
-                      const item = stats?.chapters.find((c) => c.chapter === chapter);
+                  <div className="flex gap-0.5" title={isSB ? 'Cantos 1 to 12 — the fuller the box, the more of the canto is translated' : 'Chapters 1 to 18 — the fuller the box, the more of the chapter is translated'}>
+                    {boxes.map((chapter) => {
+                      const members = isSB ? (stats?.chapters.filter((c) => cantoOf(c.chapter) === chapter) ?? []) : (stats?.chapters.filter((c) => c.chapter === chapter) ?? []);
+                      const item = members.length ? { saved: members.reduce((n, c) => n + c.saved, 0), total: members.reduce((n, c) => n + c.total, 0) } : undefined;
                       const fraction = item && item.total ? item.saved / item.total : 0;
+                      const label = isSB ? `Canto ${chapter}` : `Chapter ${chapter}`;
                       return (
-                        <span key={chapter} className="relative h-5 flex-1 overflow-hidden rounded-[3px] bg-muted" title={item ? `Chapter ${chapter}: ${item.saved} of ${item.total}` : `Chapter ${chapter}`}>
+                        <span key={chapter} className="relative h-5 flex-1 overflow-hidden rounded-[3px] bg-muted" title={item ? `${label}: ${item.saved} of ${item.total}` : label}>
                           <span className={cn('absolute inset-x-0 bottom-0', fraction >= 1 ? 'bg-success' : 'bg-primary/60')} style={{ height: `${fraction * 100}%` }} />
                         </span>
                       );
@@ -410,7 +458,7 @@ function LanguageGrid({
                     <Database /> Import
                   </Button>
                 )}
-                <Button size="sm" variant="outline" disabled={!stats?.saved} onClick={() => onOpenOutput(language.code, firstChapter)}>
+                <Button size="sm" variant="outline" disabled={!stats?.saved} onClick={() => onOpenOutput(book.id, language.code, firstChapter)}>
                   View output
                 </Button>
               </div>
@@ -441,11 +489,11 @@ function InDatabase({ status, saved, version }: { status: ImportStatus['language
 
 const STATUSES = ['QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED'] as const;
 
-function History({ overview, onOpen }: { overview: Overview; onOpen: (id: string) => void }) {
+function History({ overview, book, onOpen }: { overview: Overview; book: BookInfo; onOpen: (id: string) => void }) {
   const [status, setStatus] = useState('');
   const [language, setLanguage] = useState('');
   const [page, setPage] = useState(1);
-  const runs = useRuns({ status: status || undefined, language: language || undefined, page });
+  const runs = useRuns({ status: status || undefined, language: language || undefined, book: book.id, page });
 
   const filter = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => {
     setter(e.target.value);
@@ -455,7 +503,7 @@ function History({ overview, onOpen }: { overview: Overview; onOpen: (id: string
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-medium">All runs</h3>
+        <h3 className="text-sm font-medium">All runs — {book.title}</h3>
         <div className="flex gap-2">
           <Select value={language} onChange={filter(setLanguage)} aria-label="Language" className="h-8 text-xs">
             <option value="">Every language</option>
@@ -485,6 +533,7 @@ function History({ overview, onOpen }: { overview: Overview; onOpen: (id: string
               <TableHead>Chapters</TableHead>
               <TableHead className="min-w-40">Progress</TableHead>
               <TableHead title="Verses that scored 3 / 2 / 1">Scores 3·2·1</TableHead>
+              <TableHead>Model</TableHead>
               <TableHead>Cost</TableHead>
               <TableHead>Started</TableHead>
             </TableRow>
@@ -493,7 +542,7 @@ function History({ overview, onOpen }: { overview: Overview; onOpen: (id: string
             {runs.isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
                 </TableRow>
@@ -505,7 +554,7 @@ function History({ overview, onOpen }: { overview: Overview; onOpen: (id: string
                 </TableCell>
               </TableRow>
             ) : (
-              runs.data?.items.map((run) => <HistoryRow key={run.id} run={run} chapters={overview.chapters.length} onOpen={onOpen} />)
+              runs.data?.items.map((run) => <HistoryRow key={run.id} run={run} chapters={book.chapters.length} onOpen={onOpen} />)
             )}
           </TableBody>
         </Table>
@@ -539,7 +588,7 @@ function HistoryRow({ run, chapters, onOpen }: { run: Run; chapters: number; onO
       <TableCell>
         <StatusBadge status={run.status} stalled={run.stalled} />
       </TableCell>
-      <TableCell className="text-muted-foreground">{describeChapters(run.chapters, chapters)}</TableCell>
+      <TableCell className="text-muted-foreground">{describeChapters(run.chapters, chapters, run.book)}</TableCell>
       <TableCell>
         <div className="space-y-1">
           <ProgressBar percent={run.progress.percent} tone={run.status === 'COMPLETED' ? 'success' : run.status === 'FAILED' ? 'destructive' : run.status === 'PAUSED' ? 'warning' : 'primary'} className="h-1.5" />
@@ -551,6 +600,7 @@ function HistoryRow({ run, chapters, onOpen }: { run: Run; chapters: number; onO
       <TableCell className="tabular-nums text-muted-foreground">
         {run.scores[3]} · {run.scores[2]} · <span className={cn(run.scores[1] > 0 && 'font-medium text-amber-700 dark:text-amber-400')}>{run.scores[1]}</span>
       </TableCell>
+      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{run.provider === 'openai' ? 'OpenAI' : 'Claude'} · {run.model}</TableCell>
       <TableCell className="tabular-nums">{formatUsd(run.usage.costUsd)}</TableCell>
       <TableCell className="whitespace-nowrap text-muted-foreground">{timeAgo(run.createdAt)}</TableCell>
     </TableRow>
@@ -558,7 +608,7 @@ function HistoryRow({ run, chapters, onOpen }: { run: Run; chapters: number; onO
 }
 
 // A run opened by link (?run=…) is fetched on its own, so it is there after a refresh and in a new tab.
-function RunDialog({ id, chaptersInBook, onClose, onOpenOutput }: { id: string | null; chaptersInBook: number; onClose: () => void; onOpenOutput: (language: string, chapter: number, verseId?: string) => void }) {
+function RunDialog({ id, books, onClose, onOpenOutput }: { id: string | null; books: BookInfo[]; onClose: () => void; onOpenOutput: (book: BookId, language: string, chapter: number, verseId?: string) => void }) {
   const run = useRun(id);
   return (
     <Dialog open={!!id} onOpenChange={(open) => !open && onClose()}>
@@ -572,7 +622,7 @@ function RunDialog({ id, chaptersInBook, onClose, onOpenOutput }: { id: string |
         ) : run.isError || !run.data ? (
           <p className="text-sm text-destructive">This run could not be found.</p>
         ) : (
-          <RunPanel run={run.data.run} chaptersInBook={chaptersInBook} onOpenOutput={onOpenOutput} feedHeight="max-h-80" />
+          <RunPanel run={run.data.run} chaptersInBook={books.find((b) => b.id === run.data.run.book)?.chapters.length ?? 18} onOpenOutput={onOpenOutput} feedHeight="max-h-80" />
         )}
       </DialogContent>
     </Dialog>

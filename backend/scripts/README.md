@@ -191,6 +191,8 @@ what is already there. The seed names deity images but does not upload any.
 ## Translating the Gita with Claude
 
 `translate-claude.js` translates Prabhupāda's Gita into **Marathi, Hindi and Tamil** (default `--langs hi,mr,ta`;
+
+Flags added for several providers and both books: `--provider anthropic|openai` (default Claude `claude-sonnet-5-5`; OpenAI `gpt-6-luna`, key `OPENAI_API_KEY`, model override `TRANSLATION_OPENAI_MODEL`) and `--book bhagavat-gita|srimad-bhagavatam`. For the Bhagavatam `--chapters` takes canto×100+chapter (`1047` = SB 1.47) and `--verse` takes an id like `2.1.47.3`.
 all seven app languages are available) with the Anthropic API, one verse at a time, saving each verse to S3
 before the next begins. It is standalone (not `services/ai/`) and independent of the Gemini plan in
 `translate-verses-PLAN.md`.

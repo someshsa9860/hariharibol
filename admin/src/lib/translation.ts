@@ -16,8 +16,28 @@ export type PauseReason = 'credit' | 'auth' | 'config' | 'storage' | 'unavailabl
 
 export const ACTIVE: RunStatus[] = ['QUEUED', 'RUNNING', 'PAUSED'];
 
+export type BookId = 'bhagavat-gita' | 'srimad-bhagavatam';
+export const DEFAULT_BOOK: BookId = 'bhagavat-gita';
+export type BookInfo = { id: BookId; title: string; chapters: { id: number; label: string }[] };
+
+export function isBook(value: string | null): value is BookId {
+  return value === 'bhagavat-gita' || value === 'srimad-bhagavatam';
+}
+
+/** A chapter id as a reader names it: 47 in the Gita is "47"; 147 in the Bhagavatam is canto 1, chapter 47, "1.47". */
+export function chapterName(book: BookId, id: number) {
+  return book === 'srimad-bhagavatam' ? `${Math.floor(id / 100)}.${id % 100}` : String(id);
+}
+
+/** The canto a Bhagavatam chapter id belongs to; the Gita has none. */
+export const cantoOf = (id: number) => Math.floor(id / 100);
+
+export type ProviderInfo = { id: 'anthropic' | 'openai'; label: string; company: string; keyEnv: string; apiKeyConfigured: boolean; defaultModel: string };
+
 export type Run = {
   id: string;
+  book: BookId;
+  provider: ProviderInfo['id'];
   language: string;
   languageName: string;
   endonym: string;
@@ -51,6 +71,8 @@ export type ActivityEvent = FeedLine & { runId: string };
 export type Overview = {
   settings: {
     apiKeyConfigured: boolean;
+    providers: ProviderInfo[];
+    defaultProvider: ProviderInfo['id'];
     storage: { ok: boolean; describe?: string; error?: string };
     workerOnline: boolean;
     model: string;
@@ -60,11 +82,13 @@ export type Overview = {
   };
   languages: { code: string; name: string; endonym: string }[];
   chapters: number[];
+  books: BookInfo[];
   active: Run[];
 };
 
 export type Score = 1 | 2 | 3;
 export type Coverage = {
+  book: BookId;
   generatedAt: string;
   /** The version a new run would translate under. Null only when TRANSLATION_VERSION is malformed. */
   version: string | null;
@@ -83,6 +107,8 @@ export type Coverage = {
 
 export type Estimate = {
   language: string;
+  book: BookId;
+  provider: ProviderInfo['id'];
   chapters: number[];
   model: string;
   version: string | null;
@@ -95,12 +121,15 @@ export type Estimate = {
   calls: number;
   inputTokens: number;
   outputTokens: number;
-  costUsd: number;
+  /** Null when the chosen model has no known price: tokens are shown, cost is not. */
+  costUsd: number | null;
 };
 
 export type ChapterIndex = {
   language: string;
+  book: BookId;
   chapter: number;
+  chapterLabel: string;
   title: string | null;
   titleEn: string | null;
   total: number;
@@ -122,6 +151,7 @@ type Parts = { translation: string; purport: string[]; transliteration: string[]
 
 export type VerseOutput = {
   verseId: string;
+  book: BookId;
   ref: string;
   chapter: number;
   language: string;
@@ -131,6 +161,7 @@ export type VerseOutput = {
   translated: Parts | null;
   ai: {
     version: string;
+    provider?: string;
     model: string;
     effort: string;
     generatedAt: string;
@@ -147,6 +178,7 @@ export type RunPage = { items: Run[]; page: number; pageSize: number; total: num
 /** What Claude's runs have put in the database so far (GET /imports), one entry per language that has any. */
 export type ImportStatus = {
   version: string | null;
+  book: BookId;
   languages: { code: string; rows: number; current: number; published: number; versions: Record<string, number>; updatedAt: string | null }[];
 };
 
@@ -167,6 +199,7 @@ export type ImportChapter = {
 
 export type ImportResult = {
   language: string;
+  book?: BookId;
   publish: boolean;
   dryRun: boolean;
   totals: {
@@ -189,11 +222,11 @@ const ROOT = '/api/admin/translations';
 export const keys = {
   all: ['translation'] as const,
   overview: ['translation', 'overview'] as const,
-  coverage: ['translation', 'coverage'] as const,
-  imports: ['translation', 'imports'] as const,
+  coverage: (book: BookId) => ['translation', 'coverage', book] as const,
+  imports: (book: BookId) => ['translation', 'imports', book] as const,
   runs: ['translation', 'runs'] as const,
   run: (id: string) => ['translation', 'run', id] as const,
-  chapter: (language: string, chapter: number) => ['translation', 'chapter', language, chapter] as const,
+  chapter: (book: BookId, language: string, chapter: number) => ['translation', 'chapter', book, language, chapter] as const,
   verse: (language: string, verseId: string) => ['translation', 'verse', language, verseId] as const,
 };
 
@@ -213,18 +246,18 @@ export function useOverview() {
   });
 }
 
-export function useCoverage() {
+export function useCoverage(book: BookId) {
   return useQuery({
-    queryKey: keys.coverage,
-    queryFn: async () => (await api.get<Coverage>(`${ROOT}/coverage`)).data,
+    queryKey: keys.coverage(book),
+    queryFn: async () => (await api.get<Coverage>(`${ROOT}/coverage`, { book })).data,
     staleTime: 60_000,
   });
 }
 
-export function useImports() {
+export function useImports(book: BookId) {
   return useQuery({
-    queryKey: keys.imports,
-    queryFn: async () => (await api.get<ImportStatus>(`${ROOT}/imports`)).data,
+    queryKey: keys.imports(book),
+    queryFn: async () => (await api.get<ImportStatus>(`${ROOT}/imports`, { book })).data,
     staleTime: 30_000,
   });
 }
@@ -233,10 +266,10 @@ export function useImports() {
  * What an import of `language` would do, worked out by the server without writing anything (the same request with
  * `dryRun`). Always read fresh: it compares storage with the database, and either can change under the page.
  */
-export function useImportPreview(language: string | null, publish: boolean, enabled: boolean) {
+export function useImportPreview(book: BookId, language: string | null, publish: boolean, enabled: boolean) {
   return useQuery({
-    queryKey: ['translation', 'import-preview', language, publish],
-    queryFn: async () => (await api.post<ImportResult>(`${ROOT}/imports`, { language, publish, dryRun: true })).data,
+    queryKey: ['translation', 'import-preview', book, language, publish],
+    queryFn: async () => (await api.post<ImportResult>(`${ROOT}/imports`, { book, language, publish, dryRun: true })).data,
     enabled: enabled && !!language,
     staleTime: 0,
     gcTime: 0,
@@ -245,23 +278,38 @@ export function useImportPreview(language: string | null, publish: boolean, enab
   });
 }
 
-export async function refreshCoverage(queryClient: QueryClient) {
-  const data = (await api.get<Coverage>(`${ROOT}/coverage`, { refresh: true })).data;
-  queryClient.setQueryData(keys.coverage, data);
+export async function refreshCoverage(queryClient: QueryClient, book: BookId) {
+  const data = (await api.get<Coverage>(`${ROOT}/coverage`, { book, refresh: true })).data;
+  queryClient.setQueryData(keys.coverage(book), data);
 }
 
-export function useEstimate(language: string | null, chapters: number[], limit: number, enabled: boolean) {
+export function useEstimate(
+  pick: { book: BookId; provider: string; model: string },
+  language: string | null,
+  chapters: number[],
+  limit: number,
+  enabled: boolean
+) {
   return useQuery({
-    queryKey: ['translation', 'estimate', language, chapters.join(','), limit],
+    queryKey: ['translation', 'estimate', pick.book, pick.provider, pick.model, language, chapters.join(','), limit],
     queryFn: async () =>
-      (await api.get<Estimate>(`${ROOT}/estimate`, { language, chapters: chapters.join(','), limit: limit || undefined })).data,
+      (
+        await api.get<Estimate>(`${ROOT}/estimate`, {
+          language,
+          book: pick.book,
+          provider: pick.provider || undefined,
+          model: pick.model || undefined,
+          chapters: chapters.join(','),
+          limit: limit || undefined,
+        })
+      ).data,
     enabled: enabled && !!language && chapters.length > 0,
     staleTime: 60_000,
     placeholderData: (prev) => prev,
   });
 }
 
-export function useRuns(filters: { status?: string; language?: string; page: number }) {
+export function useRuns(filters: { status?: string; language?: string; book?: string; page: number }) {
   const socket = useSocketStatus();
   return useQuery({
     queryKey: [...keys.runs, filters],
@@ -291,11 +339,11 @@ export function useRun(id: string | null) {
   });
 }
 
-export function useChapter(language: string | null, chapter: number | null, live: boolean) {
+export function useChapter(book: BookId, language: string | null, chapter: number | null, live: boolean) {
   const socket = useSocketStatus();
   return useQuery({
-    queryKey: keys.chapter(language ?? '', chapter ?? 0),
-    queryFn: async () => (await api.get<ChapterIndex>(`${ROOT}/output/${language}/chapters/${chapter}`)).data,
+    queryKey: keys.chapter(book, language ?? '', chapter ?? 0),
+    queryFn: async () => (await api.get<ChapterIndex>(`${ROOT}/output/${language}/chapters/${chapter}`, { book })).data,
     enabled: !!language && !!chapter,
     placeholderData: (prev) => (prev && prev.language === language ? prev : undefined),
     refetchInterval: live && socket !== 'live' ? 6_000 : false,
@@ -313,7 +361,7 @@ export function useVerse(language: string | null, verseId: string | null) {
 
 // ── Writes ─────────────────────────────────────────────────────────────────────────────────────────
 
-export type StartInput = { language: string; chapters?: number[]; verseLimit?: number; budgetUsd?: number };
+export type StartInput = { language: string; book: BookId; provider: string; model?: string; chapters?: number[]; verseLimit?: number; budgetUsd?: number };
 
 function putRun(queryClient: QueryClient, run: Run) {
   applyRun(queryClient, run);
@@ -329,7 +377,7 @@ export function useStartRun() {
   });
 }
 
-export type ImportInput = { language: string; chapters?: number[]; publish: boolean };
+export type ImportInput = { language: string; book: BookId; chapters?: number[]; publish: boolean };
 
 /**
  * Copies a language's translated chapters from storage into the database. Returns what each chapter did.
@@ -340,7 +388,7 @@ export function useImportTranslations() {
   return useMutation({
     mutationFn: async (input: ImportInput) => (await api.post<ImportResult>(`${ROOT}/imports`, { ...input, dryRun: false })).data,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: keys.imports });
+      void queryClient.invalidateQueries({ queryKey: ['translation', 'imports'] });
       void queryClient.invalidateQueries({ queryKey: ['translation', 'import-preview'] });
     },
   });
@@ -403,7 +451,7 @@ export function useTranslationLive() {
     // history list and the language cards need a fresh look. Plain progress ticks need neither.
     const changed = !previous || previous.status !== run.status;
     if (changed) void queryClient.invalidateQueries({ queryKey: keys.runs });
-    if (!ACTIVE.includes(run.status) && changed) void queryClient.invalidateQueries({ queryKey: keys.coverage });
+    if (!ACTIVE.includes(run.status) && changed) void queryClient.invalidateQueries({ queryKey: ['translation', 'coverage'] });
   });
 
   useSocketEvent<ActivityEvent>('translation.activity', (event) => {

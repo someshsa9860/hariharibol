@@ -28,6 +28,9 @@ const translation = {
   unknownRetries: 2,
   unknownRetryMs: 2 * 60_000,
 
+  // A run that finds another run of its book working looks again after this long. (Two books run side by side.)
+  sameBookWaitMs: 15_000,
+
   // The activity feed lives in Redis: this many lines per run, for this many days.
   feedLines: 200,
   feedDays: 30,
@@ -35,7 +38,7 @@ const translation = {
   // Saved-verse counts per language come from reading every chapter file in S3; the answer is
   // kept this long, and dropped when a run stops.
   coverageCacheSeconds: 300,
-  coverageCacheKey: 'translation:coverage',
+  coverageCacheKey: 'translation:coverage', // + ':<book>'
 
   // The English chapter files never change under a run, so a process keeps them this long instead
   // of fetching them for every estimate, chapter view and attempt.

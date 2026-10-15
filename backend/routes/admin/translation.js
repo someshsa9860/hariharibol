@@ -1,12 +1,13 @@
 import { createRouter, schemas, z } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/translation.js';
+import { BOOK_IDS } from '../../scripts/lib/claude-translate-source.js';
 import { LANGUAGE_CODES } from '../../scripts/lib/claude-translate-languages.js';
 
 const router = createRouter({
   tag: 'Admin · Translations',
   prefix: '/translations',
   description:
-    "Translating Prabhupāda's Bhagavad-gītā into other languages with Claude: start a run for one " +
+    "Translating Prabhupāda's Bhagavad-gītā and Śrīmad-Bhāgavatam into other languages with Claude or OpenAI: start a run for one " +
     'language, watch it live (websocket events `translation.run` and `translation.activity`), read ' +
     'what it saved, and import the result from storage into the database. A run is a database row ' +
     'worked by the worker; it survives a page refresh, a restart and a failure, and pauses rather ' +
@@ -15,14 +16,16 @@ const router = createRouter({
 });
 
 const language = z.enum(LANGUAGE_CODES);
-const chapterNumber = z.coerce.number().int().min(1).max(18);
+const book = z.enum(BOOK_IDS);
+// A Gita chapter is 1–18; a Bhagavatam one is canto × 100 + chapter, up to 1290.
+const chapterNumber = z.coerce.number().int().min(1).max(1290);
 
 // The query string carries a list as "1,2,3".
 const chapterList = z
   .string()
-  .regex(/^\d{1,2}(,\d{1,2})*$/, 'Chapters are numbers separated by commas')
+  .regex(/^\d{1,4}(,\d{1,4})*$/, 'Chapters are numbers separated by commas')
   .transform((text) => [...new Set(text.split(',').map(Number))].sort((a, b) => a - b))
-  .refine((numbers) => numbers.every((n) => n >= 1 && n <= 18), 'The Gita has chapters 1 to 18');
+  .refine((numbers) => numbers.every((n) => n >= 1 && n <= 1290), 'Chapter ids are 1 to 1290');
 
 const statuses = z.enum(['QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED']);
 
@@ -54,7 +57,7 @@ router.get(
       'cached for five minutes; `refresh=true` rereads.',
     permission: 'translation.read',
     limit: 'read',
-    query: z.object({ refresh: z.enum(['true', 'false']).optional() }),
+    query: z.object({ book: book.optional(), refresh: z.enum(['true', 'false']).optional() }),
     responds: { 200: 'Coverage per language', 422: 'Storage cannot be read' },
   },
   controller.coverage
@@ -72,6 +75,9 @@ router.get(
     limit: 'read',
     query: z.object({
       language,
+      book: book.optional(),
+      provider: z.string().max(40).optional(),
+      model: z.string().max(100).optional(),
       chapters: chapterList.optional(),
       limit: z.coerce.number().int().min(1).max(800).optional(),
     }),
@@ -87,7 +93,7 @@ router.get(
     description: 'Newest first, filtered by status and language.',
     permission: 'translation.read',
     limit: 'read',
-    query: schemas.page.extend({ status: statuses.optional(), language: language.optional() }),
+    query: schemas.page.extend({ status: statuses.optional(), language: language.optional(), book: book.optional() }),
     responds: { 200: 'Runs' },
   },
   controller.list
@@ -99,7 +105,7 @@ router.post(
     summary: 'Start a translation run',
     description:
       'Queues a run for one language. Only one run per language may be active; others wait their ' +
-      'turn, because the queue works one run at a time. Verses already translated under the current ' +
+      'turn, because the queue works one run per book at a time. Verses already translated under the current ' +
       'version are skipped, so starting again continues where the last run stopped; verses made ' +
       'under an older version are translated again. When everything asked for is already up to date ' +
       'there is nothing to do and the answer is 409 with `details.upToDate`.',
@@ -107,14 +113,17 @@ router.post(
     limit: 'write',
     body: z.object({
       language,
-      chapters: z.array(chapterNumber).min(1).max(18).optional(),
+      book: book.optional(),
+      chapters: z.array(chapterNumber).min(1).max(335).optional(),
+      provider: z.enum(['anthropic', 'openai']).optional(),
+      model: z.string().trim().min(1).max(100).optional(),
       verseLimit: z.number().int().min(1).max(800).optional(),
       budgetUsd: z.number().positive().max(1000).optional(),
     }),
     responds: {
       201: 'The queued run',
       409: 'A run for this language is already active, or the language is already up to date for this version',
-      422: 'No Anthropic key, storage not set up, or the queue is unreachable',
+      422: 'No API key for the chosen provider, storage not set up, or the queue is unreachable',
     },
   },
   controller.start
@@ -175,6 +184,7 @@ router.get(
       'Languages with none are left out.',
     permission: 'translation.read',
     limit: 'read',
+    query: z.object({ book: book.optional() }),
     responds: { 200: 'The current version and a line per language' },
   },
   controller.imports
@@ -197,7 +207,8 @@ router.post(
     limit: 'write',
     body: z.object({
       language,
-      chapters: z.array(chapterNumber).min(1).max(18).optional(),
+      book: book.optional(),
+      chapters: z.array(chapterNumber).min(1).max(335).optional(),
       publish: z.boolean().default(false),
       dryRun: z.boolean().default(false),
     }),
@@ -219,6 +230,7 @@ router.get(
     permission: 'translation.read',
     limit: 'read',
     params: z.object({ language, chapter: chapterNumber }),
+    query: z.object({ book: book.optional() }),
     responds: { 200: 'The chapter', 422: 'Storage cannot be read' },
   },
   controller.chapter
@@ -233,7 +245,7 @@ router.get(
       'model, version and scores; and what a fresh check of the saved text still finds wrong.',
     permission: 'translation.read',
     limit: 'read',
-    params: z.object({ language, verseId: z.string().regex(/^\d{1,2}\.\d{1,2}\.\d{1,3}(-\d{1,3})?$/, 'A Gita verse id looks like 1.2.47') }),
+    params: z.object({ language, verseId: z.string().regex(/^\d{1,2}(\.\d{1,3}){2,3}(-\d{1,3})?$/, 'A verse id looks like 1.2.47 (Gita) or 2.1.1.1 (Bhagavatam)') }),
     responds: { 200: 'The verse', 404: 'No such verse', 422: 'Storage cannot be read' },
   },
   controller.verse

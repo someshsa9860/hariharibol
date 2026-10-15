@@ -26,14 +26,25 @@ import * as importer from '../../services/translation-import.js';
 import { ACTIVE_STATUSES, microsOf, presentRun } from '../../utils/translation-run.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
-import { conflict, forbidden, notFound, unprocessable } from '../../utils/errors.js';
-import { CHAPTERS } from '../../scripts/lib/claude-translate-source.js';
+import { badRequest, conflict, forbidden, notFound, unprocessable } from '../../utils/errors.js';
+import { BOOK, bookOf } from '../../scripts/lib/claude-translate-source.js';
+
+const chaptersOf = (book) => bookOf(book).chapters;
+
+/** The chapters asked for, or all of the book's; one that is not in the book is a 400. */
+function pickChapters(book, asked) {
+  const all = chaptersOf(book);
+  const picked = [...new Set(asked ?? all)].sort((a, b) => a - b);
+  const bad = picked.find((id) => !all.includes(id));
+  if (bad !== undefined) throw badRequest(`Chapter ${bad} is not in ${bookOf(book).title}.`);
+  return picked;
+}
 
 const START_LOCK_SECONDS = 20;
-const lockKey = (language) => `translation:start:${language}`;
-const importLockKey = (language) => `translation:import:${language}`;
+const lockKey = (book, language) => `translation:start:${book}:${language}`;
+const importLockKey = (book, language) => `translation:import:${book}:${language}`;
 
-const forget = (entity) => ({ id: entity.id, status: entity.status, language: entity.language });
+const forget = (entity) => ({ id: entity.id, status: entity.status, language: entity.language, book: entity.book });
 
 /** GET /api/admin/translations/overview — what the page needs before anything is chosen. */
 export const overview = async (req, res) => {
@@ -53,7 +64,9 @@ export const overview = async (req, res) => {
 
   return ok(res, {
     settings: {
-      apiKeyConfigured: Boolean(service.apiKey()),
+      apiKeyConfigured: service.providers().some((p) => p.apiKeyConfigured),
+      providers: service.providers(),
+      defaultProvider: service.defaultProvider(),
       storage,
       workerOnline,
       model: service.model(),
@@ -62,15 +75,16 @@ export const overview = async (req, res) => {
       effort: translation.effort,
     },
     languages: service.languages(),
-    chapters: CHAPTERS,
+    books: service.books(),
+    chapters: chaptersOf(BOOK),
     active: active.map((row) => presentRun(row)),
   });
 };
 
 /** GET /api/admin/translations/coverage — saved verses per language and chapter. */
 export const coverage = async (req, res) => {
-  const { refresh } = req.valid.query;
-  const data = await service.coverage({ refresh: refresh === 'true' }).catch((err) => {
+  const { refresh, book = BOOK } = req.valid.query;
+  const data = await service.coverage({ book, refresh: refresh === 'true' }).catch((err) => {
     throw unprocessable(`Could not read the translations from storage: ${err.message}`);
   });
   return ok(res, data);
@@ -78,9 +92,9 @@ export const coverage = async (req, res) => {
 
 /** GET /api/admin/translations/estimate — what a run would do and cost, before it is started. */
 export const estimate = async (req, res) => {
-  const { language, chapters, limit } = req.valid.query;
+  const { language, book = BOOK, chapters, limit, provider, model } = req.valid.query;
   const data = await service
-    .estimate({ language, chapters: chapters ?? CHAPTERS, limit: limit ?? 0 })
+    .estimate({ language, book, provider, model, chapters: pickChapters(book, chapters), limit: limit ?? 0 })
     .catch((err) => {
       throw unprocessable(`Could not work out an estimate: ${err.message}`);
     });
@@ -89,10 +103,10 @@ export const estimate = async (req, res) => {
 
 /** GET /api/admin/translations/runs */
 export const list = async (req, res) => {
-  const { status, language } = req.valid.query;
+  const { status, language, book } = req.valid.query;
   const { skip, take, page, pageSize } = readPage(req.valid.query, 20);
 
-  const where = { ...(status && { status }), ...(language && { language }) };
+  const where = { ...(status && { status }), ...(language && { language }), ...(book && { book }) };
   const [rows, total] = await Promise.all([
     prisma.translationRun.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
     prisma.translationRun.count({ where }),
@@ -114,9 +128,15 @@ export const get = async (req, res) => {
 /** POST /api/admin/translations/runs — start a run for one language. */
 export const start = async (req, res) => {
   const { language, chapters, verseLimit, budgetUsd } = req.valid.body;
+  const book = req.valid.body.book ?? BOOK;
+  const provider = req.valid.body.provider ?? service.defaultProvider();
+  const model = req.valid.body.model ?? service.model(provider);
 
   // Say what is wrong before a run exists that can only fail: a key, a bucket and a version are checked here.
-  if (!service.apiKey()) throw unprocessable('ANTHROPIC_API_KEY is not set on the server, so Claude cannot be called.');
+  if (!service.apiKey(provider)) {
+    const p = service.providers().find((x) => x.id === provider);
+    throw unprocessable(`${p.keyEnv} is not set on the server, so ${p.company} cannot be called.`);
+  }
   const storage = await service.storageStatus();
   if (!storage.ok) throw unprocessable(`Storage is not set up: ${storage.error}`);
   let version;
@@ -126,25 +146,25 @@ export const start = async (req, res) => {
     throw unprocessable(err.message);
   }
 
-  const gotLock = await redis.set(lockKey(language), req.auth.user.id, 'EX', START_LOCK_SECONDS, 'NX');
-  if (!gotLock) throw conflict('A run for this language is being started. Try again in a moment.');
+  const gotLock = await redis.set(lockKey(book, language), req.auth.user.id, 'EX', START_LOCK_SECONDS, 'NX');
+  if (!gotLock) throw conflict('A run for this language and book is being started. Try again in a moment.');
 
   try {
     const existing = await prisma.translationRun.findFirst({
-      where: { language, status: { in: ACTIVE_STATUSES } },
+      where: { language, book, status: { in: ACTIVE_STATUSES } },
       select: { id: true, status: true },
     });
     if (existing) {
-      throw conflict(`There is already a ${existing.status.toLowerCase()} run for this language. Cancel it or wait for it to finish.`, {
+      throw conflict(`There is already a ${existing.status.toLowerCase()} run for this language and book. Cancel it or wait for it to finish.`, {
         runId: existing.id,
       });
     }
 
-    const picked = [...new Set(chapters ?? CHAPTERS)].sort((a, b) => a - b);
+    const picked = pickChapters(book, chapters);
 
     // Nothing to translate is not a run: if everything asked for is already translated under this version,
     // say so rather than queue a job that finishes at once with "0 verses translated".
-    const left = await service.estimate({ language, chapters: picked, limit: verseLimit ?? 0, version }).catch((err) => {
+    const left = await service.estimate({ language, book, chapters: picked, limit: verseLimit ?? 0, provider, model, version }).catch((err) => {
       throw unprocessable(`Could not check what is already translated: ${err.message}`);
     });
     if (left.willTranslate === 0) {
@@ -158,8 +178,10 @@ export const start = async (req, res) => {
     const row = await prisma.translationRun.create({
       data: {
         language,
+        book,
         version,
-        model: service.model(),
+        provider,
+        model,
         chapters: picked,
         verseLimit: verseLimit ?? null,
         budgetMicros: budgetUsd ? microsOf(budgetUsd) : null,
@@ -192,13 +214,13 @@ export const start = async (req, res) => {
       action: 'translation.start',
       entityType: 'TranslationRun',
       entityId: row.id,
-      after: { language, chapters: picked, verseLimit: row.verseLimit, budgetUsd: budgetUsd ?? null, version, model: row.model },
+      after: { language, book, chapters: picked, verseLimit: row.verseLimit, budgetUsd: budgetUsd ?? null, version, provider, model: row.model },
     });
     service.publishRun(current);
 
     return created(res, presentRun(current));
   } finally {
-    await redis.del(lockKey(language)).catch(() => {});
+    await redis.del(lockKey(book, language)).catch(() => {});
   }
 };
 
@@ -211,10 +233,10 @@ export const resume = async (req, res) => {
   }
 
   const other = await prisma.translationRun.findFirst({
-    where: { language: row.language, status: { in: ACTIVE_STATUSES }, id: { not: row.id } },
+    where: { language: row.language, book: row.book, status: { in: ACTIVE_STATUSES }, id: { not: row.id } },
     select: { id: true, status: true },
   });
-  if (other) throw conflict(`Another run for this language is ${other.status.toLowerCase()}. Cancel it first.`, { runId: other.id });
+  if (other) throw conflict(`Another run for this language and book is ${other.status.toLowerCase()}. Cancel it first.`, { runId: other.id });
 
   // A new budget replaces the old one; `null` lifts it. Left out, the old one stays.
   const { budgetUsd } = req.valid.body ?? {};
@@ -305,7 +327,8 @@ export const cancel = async (req, res) => {
 /** GET /api/admin/translations/output/:language/chapters/:chapter */
 export const chapter = async (req, res) => {
   const { language, chapter: number } = req.valid.params;
-  const data = await service.chapterIndex(language, number).catch((err) => {
+  const book = req.valid.query?.book ?? BOOK;
+  const data = await service.chapterIndex(language, number, book).catch((err) => {
     throw unprocessable(`Could not read the chapter from storage: ${err.message}`);
   });
   return ok(res, data);
@@ -329,26 +352,27 @@ export const imports = async (req, res) => {
   } catch {
     // A malformed TRANSLATION_VERSION is reported by the overview; here it only means no row counts as current.
   }
-  return ok(res, await importer.importStatus({ version }));
+  return ok(res, await importer.importStatus({ version, book: req.valid.query?.book ?? BOOK }));
 };
 
 /** POST /api/admin/translations/imports — copy a language's translated chapters from storage into the database. */
 export const importTranslations = async (req, res) => {
   const { language, chapters, publish, dryRun } = req.valid.body;
+  const book = req.valid.body.book ?? BOOK;
   if (publish && !req.auth.permissions.has('verse.publish')) {
     throw forbidden('Making translations visible to readers needs the permission: verse.publish');
   }
 
   const work = () =>
-    importer.importLanguage({ language, chapters: chapters ?? CHAPTERS, publish, dryRun }).catch((err) => {
+    importer.importLanguage({ language, book, chapters: pickChapters(book, chapters), publish, dryRun }).catch((err) => {
       throw err.expected ? err : unprocessable(`Could not import the translations: ${err.message}`);
     });
 
   // A preview only reads, so it neither waits for an import nor holds one up.
   if (dryRun) return ok(res, await work());
 
-  const gotLock = await redis.set(importLockKey(language), req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
-  if (!gotLock) throw conflict('An import of this language is already running. Wait for it to finish.');
+  const gotLock = await redis.set(importLockKey(book, language), req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
+  if (!gotLock) throw conflict('An import of this language and book is already running. Wait for it to finish.');
 
   try {
     const result = await work();
@@ -357,10 +381,10 @@ export const importTranslations = async (req, res) => {
       action: 'translation.import',
       entityType: 'TranslationImport',
       entityId: language,
-      after: { language, publish, chapters: chapters ?? 'all', versions, ...counts },
+      after: { language, book, publish, chapters: chapters ?? 'all', versions, ...counts },
     });
     return ok(res, result);
   } finally {
-    await redis.del(importLockKey(language)).catch(() => {});
+    await redis.del(importLockKey(book, language)).catch(() => {});
   }
 };

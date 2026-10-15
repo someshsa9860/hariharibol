@@ -46,7 +46,7 @@ const DEVICE = 'translation-e2e-device';
 const STAMP = Date.now();
 const VERSION = `e2e-${STAMP}`;
 const queue = queues.translation;
-const IMPORT_LOCK = 'translation:import:ml'; // what the Import route holds while it runs, for the one language these checks name
+const IMPORT_LOCK = 'translation:import:bhagavat-gita:ml'; // what the Import route holds while it runs, for the one language these checks name
 
 let passed = 0;
 let failed = 0;

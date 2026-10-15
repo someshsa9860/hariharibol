@@ -1,5 +1,6 @@
 // Small pieces the Translations page is built from: how a status, a score and a progress bar look,
 // and how seconds, dollars and "a while ago" read. Nothing here fetches.
+import { chapterName, type BookId } from '@/lib/translation';
 
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -141,8 +142,10 @@ export function ProgressBar({ percent, tone = 'primary', className }: { percent:
   );
 }
 
-export function describeChapters(chapters: number[], all: number) {
+export function describeChapters(chapters: number[], all: number, book: BookId = 'bhagavat-gita') {
   if (chapters.length === 0 || chapters.length >= all) return 'All chapters';
-  if (chapters.length === 1) return `Chapter ${chapters[0]}`;
-  return `Chapters ${chapters.join(', ')}`;
+  const name = (id: number) => chapterName(book, id);
+  if (chapters.length === 1) return `Chapter ${name(chapters[0])}`;
+  if (chapters.length > 8) return `${chapters.length} chapters (${name(chapters[0])} … ${name(chapters[chapters.length - 1])})`;
+  return `Chapters ${chapters.map(name).join(', ')}`;
 }

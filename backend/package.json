@@ -74,6 +74,7 @@
     "jose": "^5.9.4",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.15",
+    "openai": "^6.49.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "rate-limit-redis": "^4.2.0",

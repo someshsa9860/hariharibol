@@ -8,6 +8,7 @@
 // every other commentator's text are never sent.
 
 import { language } from './claude-translate-languages.js';
+import { BOOK, bookOf } from './claude-translate-source.js';
 
 export const PROMPT_VERSION = '6';
 
@@ -68,6 +69,18 @@ OUTPUT
 - For each requested language: "transliteration" is the verse in that script, one string per line (an empty array when none is given); "translation" is the translated translation text; "wordMeanings" is the translated word-by-word list described above (an empty array when none is given); "purport" is an array with exactly one string for each purport paragraph, in order, each paragraph translated in full. When the English has no purport, "purport" is an empty array. "correctness" has the four ratings; "note" is as described above.
 - Write each language in its own script: Hindi and Marathi in Devanagari (as Hindi and as Marathi — they are different languages), Bengali, Tamil, Telugu, Kannada and Malayalam in their own scripts.`;
 
+/**
+ * The system prompt for a book. The Gita's is the text above, unchanged; another book's is the same rules with
+ * its own title where the Gita's stood (and its own speakers and reference in the examples).
+ */
+export function systemPromptFor(bookId = BOOK) {
+  if (bookId === BOOK) return SYSTEM_PROMPT;
+  return SYSTEM_PROMPT.replaceAll('Bhagavad-gītā', bookOf(bookId).title)
+    .replace('"Bg. 7.14"', '"SB 1.2.17"')
+    .replace('Kṛṣṇa, Arjuna, sages and elders', 'Kṛṣṇa, sages, kings and elders')
+    .replace('(Kṛṣṇa, Arjuna, Bhagavān,', '(Kṛṣṇa, Parīkṣit, Bhagavān,');
+}
+
 /** JSON Schema for the answer: one object per requested language. */
 export function answerSchema(langCodes) {
   const rating = { type: 'integer', enum: [1, 2, 3] };
@@ -113,13 +126,13 @@ export function answerSchema(langCodes) {
  * @param {string[]} langCodes
  * @param {Record<string, string[]>} [problems]  per language, what was wrong with the last try
  */
-export function userPrompt(unit, langCodes, problems = {}) {
+export function userPrompt(unit, langCodes, problems = {}, bookId = BOOK) {
   const langs = langCodes.map((c) => `${c} (${language(c).name})`).join(', ');
   const purport = unit.purport.length
     ? unit.purport.map((p, i) => `<paragraph n="${i + 1}">\n${p}\n</paragraph>`).join('\n')
     : '(no purport)';
   const lines = [
-    `Bhagavad-gītā ${unit.ref}`,
+    `${bookOf(bookId).title} ${unit.ref}`,
     '',
     `Translate into: ${langs}.`,
     '',
