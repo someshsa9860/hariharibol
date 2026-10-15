@@ -41,6 +41,7 @@ const PERMISSIONS = {
   'reel.delete': { group: 'content', name: 'Delete reels' },
   'translation.read': { group: 'content', name: 'View Claude translation runs and their output' },
   'translation.run': { group: 'content', name: 'Start, resume and cancel Claude translation runs' },
+  'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },
@@ -162,10 +163,15 @@ const SETTING_KEYS = {
   AI_PROVIDER: 'ai.provider',
   AI_MODEL_TEXT: 'ai.model.text',
   AI_MONTHLY_BUDGET_MICROS: 'ai.budget.monthly_micros',
-  SLOKA_DELIVERY_HOUR: 'sloka.delivery.default_hour',
+  SLOKA_DELIVERY_TIME: 'sloka.delivery.time',
   SIGNUP_ENABLED: 'auth.signup.enabled',
   BOOK_CACHE_VERSION: 'book.cache_version',
 };
+
+// When the daily sloka is pushed, in each reader's own timezone, if the
+// `sloka.delivery.time` setting is missing or unreadable. "04:30" is the quiet
+// hour before sunrise, when a day of practice starts.
+const SLOKA_DEFAULT_DELIVERY_TIME = '04:30';
 
 // ── Cache keys and TTLs ────────────────────────────────────────────────────
 const CACHE = {
@@ -202,5 +208,6 @@ export {
   REEL_COMPLETION_RATIO,
   REEL_MIN_VIEW_MS,
   SETTING_KEYS,
+  SLOKA_DEFAULT_DELIVERY_TIME,
   CACHE,
 };

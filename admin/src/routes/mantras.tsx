@@ -6,12 +6,12 @@ import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
 import { MantraTranslations } from '@/components/mantra-translations';
 import { MantraMalaAudio, NO_MALA_AUDIO, malaAudioProblem, type MalaAudio } from '@/components/mantra-mala-audio';
-import { useResourceMutation } from '@/lib/use-resource';
+import { useResourceList, useResourceMutation } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { api, ApiRequestError } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input, Label, Textarea } from '@/components/ui/input';
+import { Input, Label, Select, Textarea } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,8 @@ type Mantra = {
   createdAt: string;
   deity: { name: string } | null;
   guru: { name: string } | null;
+  prayerMantraId: string | null;
+  prayerMantra: { id: string; slug: string; name: string } | null;
   _count: { translations: number };
 };
 
@@ -56,7 +58,7 @@ const CATEGORIES = ['mahamantra', 'beej', 'name', 'gayatri'];
 // default (vaishnav) would count towards the wrong one. Free text on the model,
 // like category.
 const SAMPRADAYAS = ['vaishnav', 'shaiva', 'shakta', 'smarta'];
-const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '', chantMs: '', chantWords: '' };
+const EMPTY_FORM = { slug: '', name: '', category: '', sampradaya: '', sanskrit: '', transliteration: '', description: '', displayOrder: '', chantMs: '', chantWords: '', prayerMantraId: '' };
 
 const formatDuration = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
 
@@ -75,6 +77,9 @@ export function MantrasPage() {
     filters: ['category', 'isPublished'],
   });
   const mutate = useResourceMutation('mantras');
+  // Every mantra a prayer could be, whatever page the table is on. Keyed under
+  // 'mantras' so a save refreshes it with the table.
+  const prayerOptions = useResourceList<Mantra>('mantras', '/api/admin/mantras', { pageSize: 100 });
 
   const canWrite = hasPermission('mantra.write');
   const canPublish = hasPermission('mantra.publish');
@@ -103,6 +108,7 @@ export function MantrasPage() {
         displayOrder: String(editing.displayOrder),
         chantMs: editing.durationMs ? String(editing.durationMs) : '',
         chantWords: (editing.chantWords ?? []).join(', '),
+        prayerMantraId: editing.prayerMantraId ?? '',
       });
     }
   }, [editing]);
@@ -118,7 +124,10 @@ export function MantrasPage() {
       description: form.description || undefined,
       ...(form.displayOrder !== '' ? { displayOrder: Number(form.displayOrder) } : {}),
       // One chant at an ordinary pace, in ms; the app's auto count counts one chant per this much sound.
-      ...(form.chantMs !== '' ? { durationMs: Number(form.chantMs) } : {}),
+      // Always sent, so clearing the box goes back to the app working it out from the text.
+      durationMs: form.chantMs !== '' ? Number(form.chantMs) : null,
+      // Always sent, so choosing "None" takes the prayer off.
+      prayerMantraId: form.prayerMantraId || null,
       // Always sent, so clearing the box clears the list.
       chantWords: [...new Set(form.chantWords.toLowerCase().split(/[^a-z]+/).filter((w) => w.length >= 2))],
       // Always sent, so removing the recording clears it — the API takes the span with it.
@@ -367,8 +376,33 @@ export function MantrasPage() {
                 onChange={(e) => setForm({ ...form, chantMs: e.target.value })}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                How long one chant takes at an ordinary pace. Auto count in the app counts one chant for each this much
-                sound — Om Namah Shivaya about 1500, the mahamantra about 8000. Blank: the app works it out from the length of the text.
+                How long one chant takes at an ordinary pace. Auto count counts one chant for each
+                this much sound, and with auto count off a tap is ignored until half of it has passed since the last. The
+                app shortens it by 1% for every chant in a sitting (down to 65%), so a devotee who chants faster is not held
+                to the first pace. Om Namah Shivaya about 1500, the mahamantra about 4000. Needed to publish; on a draft,
+                blank means the app works it out from the length of the text.
+              </p>
+            </div>
+            <div>
+              <Label>Opening prayer</Label>
+              <Select
+                className="mt-1 w-full"
+                value={form.prayerMantraId}
+                onChange={(e) => setForm({ ...form, prayerMantraId: e.target.value })}
+              >
+                <option value="">None</option>
+                {(prayerOptions.data?.items ?? [])
+                  .filter((m) => m.id !== (editing !== 'new' && editing ? editing.id : ''))
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Another mantra chanted first — the Panchatattva mantra before the mahamantra. The counter shows it, and
+                after its own standard time one tap brings up this mantra (that tap is not counted). It comes again
+                before every round. A prayer that is not published is not shown.
               </p>
             </div>
             <div>
@@ -451,6 +485,7 @@ export function MantrasPage() {
                   ),
                 },
                 { label: 'Audio', value: viewing.audioPath ? 'Attached' : 'None' },
+                { label: 'Opening prayer', value: viewing.prayerMantra?.name ?? 'None' },
                 { label: 'Chant time', value: viewing.durationMs ? `${(viewing.durationMs / 1000).toFixed(1)} s` : '—' },
                 {
                   label: 'Mala recording',

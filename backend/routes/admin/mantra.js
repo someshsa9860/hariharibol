@@ -88,6 +88,8 @@ const mantraBody = {
   chantWords: z.array(z.string().min(1).max(50)).max(300).optional(),
   standardRounds: z.coerce.number().int().min(0).nullable().optional(),
   standardCount: z.coerce.number().int().min(0).nullable().optional(),
+  // Another mantra, chanted before this one at the start of every round. Null: none.
+  prayerMantraId: z.string().nullable().optional(),
   displayOrder: z.coerce.number().int().optional(),
 };
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, CheckCircle2, Languages, Loader2, Plus, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Database, Languages, Loader2, Plus, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImportDialog } from '@/components/translation-import-dialog';
 import { StartDialog } from '@/components/translation-start-dialog';
 import { TranslationOutput } from '@/components/translation-output';
 import { RunPanel } from '@/components/translation-run-panel';
@@ -20,11 +21,13 @@ import { useSocketStatus } from '@/lib/socket';
 import {
   refreshCoverage,
   useCoverage,
+  useImports,
   useOverview,
   useRun,
   useRuns,
   useTranslationLive,
   type Coverage,
+  type ImportStatus,
   type Overview,
   type Run,
 } from '@/lib/translation';
@@ -36,12 +39,16 @@ import { cn } from '@/lib/utils';
 export function TranslationsPage() {
   const { hasPermission } = useAuth();
   const canRun = hasPermission('translation.run');
+  const canImport = hasPermission('translation.import');
+  const canPublish = hasPermission('verse.publish');
   const [params, setParams] = useSearchParams();
   const overview = useOverview();
   const coverage = useCoverage();
+  const imports = useImports();
   useTranslationLive();
 
   const [startFor, setStartFor] = useState<{ language: string | null } | null>(null);
+  const [importFor, setImportFor] = useState<string | null>(null);
 
   const tab = params.get('tab') === 'output' ? 'output' : 'runs';
   const openRunId = params.get('run');
@@ -136,7 +143,18 @@ export function TranslationsPage() {
                   <h3 className="text-sm font-medium">Languages</h3>
                   <RefreshCoverage />
                 </div>
-                <LanguageGrid overview={data} coverage={coverage.data} loading={coverage.isLoading} canRun={canRun} onStart={(language) => setStartFor({ language })} onOpenRun={openRun} onOpenOutput={openOutput} />
+                <LanguageGrid
+                  overview={data}
+                  coverage={coverage.data}
+                  imports={imports.data}
+                  loading={coverage.isLoading}
+                  canRun={canRun}
+                  canImport={canImport}
+                  onStart={(language) => setStartFor({ language })}
+                  onImport={setImportFor}
+                  onOpenRun={openRun}
+                  onOpenOutput={openOutput}
+                />
               </section>
 
               <History overview={data} onOpen={openRun} />
@@ -174,6 +192,7 @@ export function TranslationsPage() {
             onStarted={() => update({ tab: null })}
             onOpenRun={openRun}
           />
+          {importFor && <ImportDialog onClose={() => setImportFor(null)} overview={data} language={importFor} canPublish={canPublish} />}
         </div>
       )}
 
@@ -272,17 +291,23 @@ function Health({ settings, hasActive }: { settings: Overview['settings']; hasAc
 function LanguageGrid({
   overview,
   coverage,
+  imports,
   loading,
   canRun,
+  canImport,
   onStart,
+  onImport,
   onOpenRun,
   onOpenOutput,
 }: {
   overview: Overview;
   coverage: Coverage | undefined;
+  imports: ImportStatus | undefined;
   loading: boolean;
   canRun: boolean;
+  canImport: boolean;
   onStart: (language: string) => void;
+  onImport: (language: string) => void;
   onOpenRun: (id: string) => void;
   onOpenOutput: (language: string, chapter: number) => void;
 }) {
@@ -294,6 +319,10 @@ function LanguageGrid({
         const total = coverage?.total ?? 0;
         const percent = total && stats ? (stats.saved / total) * 100 : 0;
         const firstChapter = stats?.chapters.find((item) => item.saved > 0)?.chapter ?? 1;
+        // Everything is translated under the version a new run would use (or by a person): a run would find nothing to do.
+        const upToDate = !!stats && total > 0 && stats.upToDate >= total;
+        const outdated = stats ? stats.saved - stats.upToDate : 0;
+        const inDatabase = imports?.languages.find((item) => item.code === language.code);
 
         return (
           <Card key={language.code} className={cn('h-full', run && 'ring-1 ring-primary/40')}>
@@ -336,6 +365,20 @@ function LanguageGrid({
 
                   {stats && stats.saved > 0 ? <ScoreMix scores={stats.scores} unscored={stats.scores.unscored} /> : <p className="text-xs text-muted-foreground">Nothing translated yet.</p>}
 
+                  {upToDate ? (
+                    <p className="flex items-center gap-1.5 text-xs text-success">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Up to date · version <span className="font-mono">{coverage?.version}</span>
+                    </p>
+                  ) : (
+                    outdated > 0 && (
+                      <p className="text-xs text-amber-800 dark:text-amber-300">
+                        {formatCount(outdated)} verse{outdated === 1 ? '' : 's'} translated under an older version — a new run translates {outdated === 1 ? 'it' : 'them'} again.
+                      </p>
+                    )
+                  )}
+
+                  {stats && stats.saved > 0 && <InDatabase status={inDatabase} saved={stats.saved} version={imports?.version ?? null} />}
+
                   {run && (
                     <p className="text-xs text-muted-foreground">
                       This run: {run.progress.done}/{run.progress.total} verses ({run.progress.percent}%)
@@ -352,10 +395,20 @@ function LanguageGrid({
                   </Button>
                 ) : (
                   canRun && (
-                    <Button size="sm" onClick={() => onStart(language.code)}>
-                      <Languages /> Translate
+                    <Button
+                      size="sm"
+                      onClick={() => onStart(language.code)}
+                      disabled={upToDate}
+                      title={upToDate ? `Every verse is already translated under version ${coverage?.version}. Set a new TRANSLATION_VERSION to translate it again.` : undefined}
+                    >
+                      <Languages /> {upToDate ? 'Up to date' : 'Translate'}
                     </Button>
                   )
+                )}
+                {canImport && !run && (
+                  <Button size="sm" variant="outline" disabled={!stats?.saved} onClick={() => onImport(language.code)} title="Copy the translated chapters from storage into the database">
+                    <Database /> Import
+                  </Button>
                 )}
                 <Button size="sm" variant="outline" disabled={!stats?.saved} onClick={() => onOpenOutput(language.code, firstChapter)}>
                   View output
@@ -366,6 +419,21 @@ function LanguageGrid({
         );
       })}
     </div>
+  );
+}
+
+// What the database holds from Claude's runs for this language, so "translated" and "imported" are not confused.
+function InDatabase({ status, saved, version }: { status: ImportStatus['languages'][number] | undefined; saved: number; version: string | null }) {
+  if (!status || status.rows === 0) {
+    return <p className="text-xs text-amber-800 dark:text-amber-300">Not in the database yet — Import puts it there.</p>;
+  }
+  const older = version ? status.rows - status.current : 0;
+  return (
+    <p className="text-xs text-muted-foreground" title={status.updatedAt ? `Last changed ${timeAgo(status.updatedAt)}` : undefined}>
+      <span className="font-medium text-foreground">{formatCount(status.rows)}</span> in the database, <span className="font-medium text-foreground">{formatCount(status.published)}</span> visible to readers
+      {older > 0 && <> · {formatCount(older)} from an older version</>}
+      {status.rows < saved && <> · {formatCount(saved - status.rows)} saved but not imported</>}
+    </p>
   );
 }
 

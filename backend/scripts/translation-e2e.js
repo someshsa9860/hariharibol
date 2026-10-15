@@ -11,7 +11,13 @@
 //
 // What it is checking is the part that fails quietly: that a run survives every way it can stop — credit
 // gone, Anthropic overloaded, a bad answer, Cancel, a worker shutdown, a lost background job — and ends up
-// in the state the page tells the admin, with every counter right and every saved verse kept.
+// in the state the page tells the admin, with every counter right and every saved verse kept. And that
+// a version is honoured: a language already translated under the current one is not started again, a new
+// one translates what Claude made under the old one, and a translator's own text is never replaced.
+//
+// The Import route is walked here only as far as it can be without writing: who may call it, what it
+// refuses, its lock, and a preview. Its fake Gita is book number 1 — the real Gita in a dev database — so
+// the real writes are `npm run test:translation-import`'s, on throwaway books.
 
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -40,6 +46,7 @@ const DEVICE = 'translation-e2e-device';
 const STAMP = Date.now();
 const VERSION = `e2e-${STAMP}`;
 const queue = queues.translation;
+const IMPORT_LOCK = 'translation:import:ml'; // what the Import route holds while it runs, for the one language these checks name
 
 let passed = 0;
 let failed = 0;
@@ -151,8 +158,23 @@ const depsWith = (claude) => ({ ...realDeps, apiKey: () => 'e2e-not-a-real-key',
 
 /* ---------- runs and jobs, the way the API makes them ---------- */
 
-const made = { runs: [], users: [], jobs: [] };
+const made = { runs: [], users: [], jobs: [], roles: [] };
 let jobCount = 0;
+
+/** A signed-in user whose role holds exactly `slugs`, for finding where one permission ends and the next begins. → their access token */
+async function tokenWith(slugs, label) {
+  const permissions = await prisma.permission.findMany({ where: { slug: { in: slugs } }, select: { id: true } });
+  if (permissions.length !== slugs.length) throw new Error(`Not all of ${slugs.join(', ')} exist. Has the migration run?`);
+  const role = await prisma.role.create({
+    data: { slug: `e2e-${STAMP}-${label}`, name: `E2E ${label}`, permissions: { create: permissions.map((p) => ({ permissionId: p.id })) } },
+  });
+  made.roles.push(role.id);
+  const user = await prisma.user.create({
+    data: { email: `${VERSION}-${label}@example.test`, name: `E2E ${label}`, roleId: role.id, authProvider: 'GOOGLE', providerUserId: `${VERSION}-${label}` },
+  });
+  made.users.push(user.id);
+  return (await authService.issueSession(user, DEVICE)).accessToken;
+}
 
 async function newRun(language, extra = {}) {
   const jobId = `e2e-${STAMP}-${(jobCount += 1)}`;
@@ -258,6 +280,7 @@ async function main() {
 
   let api = null;
   let realWorker = null;
+  let importsStartedAt = null;
   const apiLog = [];
   const saved = { heartbeatMs: translation.heartbeatMs, unknownRetryMs: translation.unknownRetryMs, retryBaseMs: translation.retryBaseMs };
   translation.heartbeatMs = 100; // Cancel and shutdown are noticed on a heartbeat; the real 5 s would only slow the test
@@ -625,12 +648,13 @@ async function main() {
       check('overview: seven languages, eighteen chapters, nothing active', overview.data.languages.length === 7 && overview.data.chapters.length === 18 && overview.data.active.length === 0);
 
       const estimate = await call('GET', '/api/admin/translations/estimate?language=te&chapters=2,3', { token });
-      check('estimate: four verses to do, none saved', estimate.status === 200 && estimate.data.todo === 4 && estimate.data.willTranslate === 4 && estimate.data.saved === 0, JSON.stringify(estimate.data));
+      check('estimate: four verses to do, none saved or outdated', estimate.status === 200 && estimate.data.todo === 4 && estimate.data.willTranslate === 4 && estimate.data.saved === 0 && estimate.data.outdated === 0, JSON.stringify(estimate.data));
+      check('estimate: it names the version a run would make', estimate.data.version === VERSION, String(estimate.data.version));
       check('estimate: a call per verse and a price', estimate.data.calls === 4 && estimate.data.costUsd > 0);
       const capped = await call('GET', '/api/admin/translations/estimate?language=te&chapters=2,3&limit=1', { token });
       check('estimate: a verse limit scales it down', capped.data.willTranslate === 1 && capped.data.costUsd < estimate.data.costUsd);
       const done = await call('GET', '/api/admin/translations/estimate?language=mr&chapters=2', { token });
-      check('estimate: a chapter already translated has nothing left', done.data.todo === 0 && done.data.saved === 2, JSON.stringify(done.data));
+      check('estimate: a chapter already translated under this version has nothing left', done.data.todo === 0 && done.data.saved === 2 && done.data.outdated === 0 && done.data.willTranslate === 0, JSON.stringify(done.data));
       check('estimate: a bad chapter list is refused', (await call('GET', '/api/admin/translations/estimate?language=te&chapters=2,99', { token })).status === 400);
       check('estimate: so is an unknown language', (await call('GET', '/api/admin/translations/estimate?language=xx', { token })).status === 400);
 
@@ -639,6 +663,15 @@ async function main() {
       check('coverage: Marathi has the chapters that were translated', coverage.status === 200 && mr && mr.byClaude >= 4 && mr.scores[3] >= 4, JSON.stringify(mr && { saved: mr.saved, byClaude: mr.byClaude }));
       check('coverage: the total is every verse in the Gita fixture', coverage.data.total === 36, String(coverage.data?.total));
       check('coverage: a language nobody started has none', coverage.data.languages.find((l) => l.code === 'ml').saved === 0);
+      check('coverage: it says which version it counted for, and how much of Marathi is up to date for it', coverage.data.version === VERSION && mr.upToDate === mr.saved && mr.chapters.find((c) => c.chapter === 2)?.upToDate === 2, JSON.stringify(mr && { version: coverage.data.version, saved: mr.saved, upToDate: mr.upToDate }));
+
+      // A language already translated under this version is not translated again: no run, and the reason is said.
+      const marathiRuns = await prisma.translationRun.count({ where: { language: 'mr' } });
+      const nothingLeft = await call('POST', '/api/admin/translations/runs', { token, body: { language: 'mr', chapters: [2] } });
+      check('start: a chapter already translated under this version is refused, saying so', nothingLeft.status === 409 && nothingLeft.json.error.details?.upToDate === true && nothingLeft.json.error.details?.version === VERSION && nothingLeft.json.error.message.includes(VERSION), `${nothingLeft.status} ${JSON.stringify(nothingLeft.json?.error)}`);
+      check('start: and no run was made for it, nor a job', (await prisma.translationRun.count({ where: { language: 'mr' } })) === marathiRuns);
+      const withLimit = await call('POST', '/api/admin/translations/runs', { token, body: { language: 'mr', chapters: [2], verseLimit: 1 } });
+      check('start: a verse limit does not change that', withLimit.status === 409 && withLimit.json.error.details?.upToDate === true, String(withLimit.status));
 
       // starting
       heard.length = 0;
@@ -737,6 +770,138 @@ async function main() {
 
       const audits = await prisma.auditLog.findMany({ where: { action: { startsWith: 'translation.' }, entityId: { in: made.runs } } });
       check('every start, cancel and resume is in the audit log', ['translation.start', 'translation.cancel', 'translation.resume'].every((a) => audits.some((r) => r.action === a)), audits.map((a) => a.action).join(','));
+
+      /* -- 12. importing into the database: who may, and what it refuses ------------------------------ */
+      section('Importing into the database');
+      {
+        await redis.del(`rl:write:${admin.id}`, `rl:read:${admin.id}`);
+        importsStartedAt = new Date();
+        const reader = await tokenWith(['translation.read'], 'reader');
+        const importer = await tokenWith(['translation.read', 'translation.import'], 'importer');
+        const post = (as, body) => call('POST', '/api/admin/translations/imports', { token: as, body });
+
+        // Every request below that gets past a guard it should not have gone through names Malayalam, which has no
+        // file in storage: the worst that can then happen is an import of nothing, never a write into the real Gita.
+        const malayalam = (await call('GET', '/api/admin/translations/coverage?refresh=true', { token })).data.languages.find((l) => l.code === 'ml');
+        check('(Malayalam has nothing in storage, so these requests cannot write)', malayalam.saved === 0, String(malayalam.saved));
+
+        // looking
+        check('what is in the database: a signed-out caller is refused', (await call('GET', '/api/admin/translations/imports')).status === 401);
+        check('what is in the database: so is a reader of the app', (await call('GET', '/api/admin/translations/imports', { token: plainToken })).status === 403);
+        const looked = await call('GET', '/api/admin/translations/imports', { token: reader });
+        check('what is in the database: whoever may read translations may see it', looked.status === 200 && looked.data.version === VERSION && Array.isArray(looked.data.languages), `${looked.status} ${JSON.stringify(looked.data)}`);
+        check('what is in the database: a line has the counts the page shows', looked.data.languages.every((l) => ['code', 'rows', 'current', 'published', 'versions', 'updatedAt'].every((k) => k in l)));
+
+        // who may import
+        check('import: a signed-out caller is refused', (await post(undefined, { language: 'ml' })).status === 401);
+        check('import: so is a reader of the app', (await post(plainToken, { language: 'ml' })).status === 403);
+        check('import: reading translations is not importing them', (await post(reader, { language: 'ml' })).status === 403);
+        check('import: and not previewing an import either', (await post(reader, { language: 'ml', dryRun: true })).status === 403);
+
+        // what it refuses
+        check('import: an unknown language is refused', (await post(importer, { language: 'xx' })).status === 400);
+        check('import: so is no language', (await post(importer, {})).status === 400);
+        check('import: a chapter that does not exist', (await post(importer, { language: 'ml', chapters: [19] })).status === 400);
+        check('import: an empty list of chapters', (await post(importer, { language: 'ml', chapters: [] })).status === 400);
+        check('import: a flag that is not true or false', (await post(importer, { language: 'ml', publish: 'yes' })).status === 400);
+        const unpublishable = await post(importer, { language: 'ml', publish: true });
+        check('import: making translations visible needs verse.publish as well', unpublishable.status === 403 && /verse\.publish/.test(unpublishable.json.error.message), `${unpublishable.status} ${unpublishable.json?.error?.message}`);
+        check('import: and so does previewing that', (await post(importer, { language: 'ml', publish: true, dryRun: true })).status === 403);
+
+        // what it does for someone who may
+        const nothing = await post(importer, { language: 'ml' });
+        check('import: a language with nothing in storage reports every chapter as not found and writes nothing', nothing.status === 200 && nothing.data.language === 'ml' && nothing.data.dryRun === false && nothing.data.publish === false && nothing.data.chapters.length === 18 && nothing.data.chapters.every((c) => c.found === false) && nothing.data.totals.chapters === 0 && nothing.data.totals.created === 0 && nothing.data.totals.updated === 0, `${nothing.status} ${JSON.stringify(nothing.data?.totals)}`);
+        const some = await post(token, { language: 'ml', chapters: [2, 1, 2], publish: true });
+        check('import: an admin with verse.publish may publish, and a repeated chapter is read once', some.status === 200 && some.data.publish === true && same(some.data.chapters.map((c) => c.chapter), [1, 2]), `${some.status} ${JSON.stringify(some.data?.chapters?.map((c) => c.chapter))}`);
+        check('import: the lock is let go afterwards', (await redis.exists(IMPORT_LOCK)) === 0);
+
+        // the lock
+        await redis.set(IMPORT_LOCK, VERSION, 'EX', 60);
+        const locked = await post(importer, { language: 'ml' });
+        check('import: while another import of the language is running, this one is refused', locked.status === 409 && /already running/.test(locked.json.error.message), `${locked.status} ${locked.json?.error?.message}`);
+        const previewed = await post(importer, { language: 'ml', dryRun: true });
+        check('import: a preview neither waits for it nor takes the lock', previewed.status === 200 && previewed.data.dryRun === true && (await redis.get(IMPORT_LOCK)) === VERSION, String(previewed.status));
+        await redis.del(IMPORT_LOCK);
+        check('import: once it is let go, the same request goes through', (await post(importer, { language: 'ml' })).status === 200);
+
+        const trail = await prisma.auditLog.findMany({ where: { action: 'translation.import', createdAt: { gte: importsStartedAt }, entityId: 'ml' }, orderBy: { createdAt: 'asc' } });
+        check('every import that ran is in the audit log, and nothing that was refused or only previewed', trail.length === 3 && trail.every((r) => r.entityType === 'TranslationImport' && r.after?.language === 'ml') && trail[1].after.publish === true && trail[0].after.publish === false, `${trail.length} rows`);
+
+        // a preview of Marathi, which has files — read only, whatever the database holds
+        const book = await prisma.book.findUnique({ where: { bookNumber: 1 }, select: { id: true } });
+        const rowsOf = () => prisma.verseTranslation.aggregate({ where: { languageCode: 'mr', verse: { bookNumber: 1 } }, _count: { _all: true }, _max: { updatedAt: true } });
+        const before = await rowsOf();
+        const preview = await post(importer, { language: 'mr', chapters: [2], dryRun: true });
+        if (!book) {
+          check('preview: without the book in the database it says to import the book first', preview.status === 422 && /not in the database/.test(preview.json.error.message), `${preview.status} ${preview.json?.error?.message}`);
+        } else {
+          const line = preview.data?.chapters?.[0];
+          check('preview: chapter 2 has both verses, each accounted for exactly once', preview.status === 200 && preview.data.dryRun === true && preview.data.chapters.length === 1 && line.found && line.inStorage === 2 && line.created + line.updated + line.unchanged + line.missing.length + line.conflicts.length === 2, `${preview.status} ${JSON.stringify(line)}`);
+          check('preview: it counts the verses by the version that made them', preview.data.totals.versions[VERSION] === 2, JSON.stringify(preview.data.totals.versions));
+          const after = await rowsOf();
+          check('preview: nothing was written, whatever it found', before._count._all === after._count._all && String(before._max.updatedAt) === String(after._max.updatedAt), `${before._count._all} → ${after._count._all}`);
+          check('preview: and it left no mark in the audit log', (await prisma.auditLog.count({ where: { action: 'translation.import', entityId: 'mr', createdAt: { gte: importsStartedAt } } })) === 0);
+        }
+      }
+
+      /* -- 13. a new version, and text a person wrote -------------------------------------------------- */
+      section('A new version translates again; a person’s text is left alone');
+      {
+        await redis.del(`rl:write:${admin.id}`, `rl:read:${admin.id}`);
+        const NEXT = `${VERSION}-next`;
+        const ofMr = { language: 'mr', chapters: [2] };
+
+        const current = await service.estimate({ ...ofMr, version: VERSION });
+        check('under the version Marathi chapter 2 was made with, nothing is left to do', current.saved === 2 && current.outdated === 0 && current.todo === 0 && current.willTranslate === 0, JSON.stringify(current));
+        const bumped = await service.estimate({ ...ofMr, version: NEXT });
+        check('under a new version the same verses are outdated, and a run would ask for each', bumped.saved === 0 && bumped.outdated === 2 && bumped.todo === 2 && bumped.willTranslate === 2 && bumped.calls === 2 && bumped.version === NEXT, JSON.stringify(bumped));
+
+        const claude = fakeClaude();
+        const redo = await work(await newRun('mr', { version: NEXT }), claude);
+        check('a run for the new version translates both verses again', redo.row.status === 'COMPLETED' && same(claude.asked, ['2.1', '2.2']) && redo.row.totalVerses === 2 && redo.row.doneVerses === 2, `${redo.row.status} asked ${claude.asked.join(' ')}`);
+        const file = readSaved(dir, 'mr', 2);
+        check('each verse now carries the new version', file.verses.length === 2 && file.verses.every((v) => v.aiTranslation.version === NEXT));
+        check('and the new text replaced the old: one translation for the verse, not two', file.verses.every((v) => v.commentaries.filter((c) => c.translatorSlug === 'prabhupada' && c.language === 'mr' && c.type === 'translation').length === 1));
+        const again = fakeClaude();
+        const idle = await work(await newRun('mr', { version: NEXT }), again);
+        check('a second run under that version has nothing to do', idle.row.status === 'COMPLETED' && again.asked.length === 0 && idle.row.totalVerses === 0, `${idle.row.status} asked ${again.asked.length}`);
+
+        // The API copy is still on the old version, and what is in storage now was made under another one.
+        const stale = await call('GET', '/api/admin/translations/estimate?language=mr&chapters=2', { token });
+        check('the API, still on the old version, calls them outdated', stale.data.saved === 0 && stale.data.outdated === 2 && stale.data.todo === 2 && stale.data.willTranslate === 2, JSON.stringify(stale.data));
+        const recount = await call('GET', '/api/admin/translations/coverage?refresh=true', { token });
+        const marathi = recount.data.languages.find((l) => l.code === 'mr');
+        const chapterTwo = marathi.chapters.find((c) => c.chapter === 2);
+        check('coverage counts them as saved but not up to date', chapterTwo.saved === 2 && chapterTwo.upToDate === 0 && marathi.upToDate === marathi.saved - 2 && marathi.versions[NEXT] === 2, JSON.stringify({ chapterTwo, upToDate: marathi.upToDate, saved: marathi.saved, versions: marathi.versions }));
+        const restart = await call('POST', '/api/admin/translations/runs', { token, body: ofMr });
+        check('so a run for them is accepted, not refused as up to date', restart.status === 201 && restart.data.status === 'QUEUED' && restart.data.version === VERSION, `${restart.status} ${JSON.stringify(restart.json?.error ?? restart.data?.status)}`);
+        if (restart.data) {
+          made.runs.push(restart.data.id);
+          const job = (await reload(restart.data.id))?.jobId;
+          if (job) made.jobs.push(job);
+          check('(and it is cancelled again, so nothing is left waiting)', (await call('POST', `/api/admin/translations/runs/${restart.data.id}/cancel`, { token })).status === 200);
+        }
+
+        // A verse a translator wrote has no AI stamp; it is current under every version and is never replaced.
+        const person = { verseId: '1.17.1', chapterNumber: 17, verseNumber: 1, verseNumberEnd: null, cantoNumber: null, bookNumber: 1, globalVerseNumber: 33 };
+        writeJson(dir, langChapterKey('bn', 17), {
+          meta: { bookNumber: 1, bookSlug: 'bhagavat-gita', language: 'bn', chapterNumber: 17 },
+          verses: [{ ...person, commentaries: [{ translatorSlug: 'prabhupada', type: 'translation', language: 'bn', displayOrder: 1, text: 'HUMAN-MARKER' }] }],
+        });
+        const mixed = await service.estimate({ language: 'bn', chapters: [17], version: VERSION });
+        check('a verse a person translated counts as saved, and is never outdated', mixed.saved === 1 && mixed.outdated === 0 && mixed.todo === 1, JSON.stringify(mixed));
+        const first = fakeClaude();
+        await work(await newRun('bn', { chapters: [17] }), first);
+        check('a run asks only for the verse nobody translated', same(first.asked, ['17.2']), first.asked.join(' '));
+        const second = fakeClaude();
+        await work(await newRun('bn', { chapters: [17], version: NEXT }), second);
+        check('a newer version redoes only what Claude made', same(second.asked, ['17.2']), second.asked.join(' '));
+        const kept = readSaved(dir, 'bn', 17);
+        const theirs = kept.verses.find((v) => v.verseId === '1.17.1');
+        const mine = kept.verses.find((v) => v.verseId === '1.17.2');
+        check('the person’s text is exactly as they left it, with no AI stamp', theirs.commentaries.length === 1 && theirs.commentaries[0].text === 'HUMAN-MARKER' && !theirs.aiTranslation);
+        check('and the other verse carries the newer version', mine.aiTranslation.version === NEXT);
+      }
     }
   } finally {
     translation.heartbeatMs = saved.heartbeatMs;
@@ -757,6 +922,11 @@ async function main() {
     await prisma.translationRun.deleteMany({ where: { id: { in: made.runs } } }).catch(() => {});
     await prisma.deviceSession?.deleteMany?.({ where: { userId: { in: made.users } } }).catch(() => {});
     await prisma.user.deleteMany({ where: { id: { in: made.users } } }).catch(() => {});
+    await prisma.role.deleteMany({ where: { id: { in: made.roles } } }).catch(() => {}); // after their users; their permission rows go with them
+    if (importsStartedAt) {
+      await prisma.auditLog.deleteMany({ where: { action: 'translation.import', entityType: 'TranslationImport', entityId: 'ml', createdAt: { gte: importsStartedAt } } }).catch(() => {});
+      if ((await redis.get(IMPORT_LOCK).catch(() => null)) === VERSION) await redis.del(IMPORT_LOCK).catch(() => {}); // only a lock this script took
+    }
     await redis.del(translation.coverageCacheKey).catch(() => {});
     rmSync(dir, { recursive: true, force: true });
   }

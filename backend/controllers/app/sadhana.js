@@ -308,9 +308,12 @@ async function ownSession(id, user) {
 
 /**
  * PUT /api/app/sadhana/chant/session/:id/detail
- * The tap record, one row per round. Everything derived — bead count, span,
- * average gap — is recomputed from the taps so a client bug cannot store a
- * duration that disagrees with the taps beside it.
+ * The rounds of a sitting, one row each. The row is a summary — beads, span,
+ * mean gap — and not the taps behind it: a tap each was most of what this table
+ * held. A client that still sends taps (an older build) gets them stored and its
+ * figures worked out from them, so a bug there cannot store a duration that
+ * disagrees with the taps beside it; one that sends only the summary is trusted
+ * for it, within the bounds the route checks.
  */
 export const saveChantDetail = async (req, res) => {
   const user = req.auth.user;
@@ -319,20 +322,18 @@ export const saveChantDetail = async (req, res) => {
   const session = await ownSession(id, user);
 
   const rows = malas.map((mala) => {
-    const taps = [...mala.taps].sort((a, b) => a.seq - b.seq);
-    const first = taps[0];
-    const last = taps[taps.length - 1];
-    // The first tap of a round has no span of its own; the gaps after it are
-    // what a round's duration is made of.
-    const gaps = taps.slice(1).map((tap) => tap.gapMs);
+    const taps = [...(mala.taps ?? [])].sort((a, b) => a.seq - b.seq);
+    if (taps.length) return { index: mala.index, data: roundFromTaps(mala, taps) };
+
+    const beads = mala.beads ?? 0;
     const data = {
-      beads: taps.length,
-      startedAt: first ? new Date(first.at) : session.startedAt,
-      endedAt: last ? new Date(last.at) : null,
-      durationMs: first && last ? Math.max(0, last.at - first.at) : 0,
-      avgGapMs: gaps.length ? Math.round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length) : 0,
-      complete: Boolean(mala.complete) && taps.length >= BEADS_PER_ROUND,
-      taps,
+      beads,
+      startedAt: mala.startedAt != null ? new Date(mala.startedAt) : session.startedAt,
+      endedAt: mala.endedAt != null ? new Date(mala.endedAt) : null,
+      durationMs: mala.durationMs ?? 0,
+      avgGapMs: mala.avgGapMs ?? 0,
+      complete: Boolean(mala.complete) && beads >= BEADS_PER_ROUND,
+      taps: [],
     };
     return { index: mala.index, data };
   });
@@ -349,6 +350,24 @@ export const saveChantDetail = async (req, res) => {
 
   return ok(res, { malas: saved });
 };
+
+/** A round's row worked out from its taps — what older builds send. */
+function roundFromTaps(mala, taps) {
+  const first = taps[0];
+  const last = taps[taps.length - 1];
+  // The first tap of a round has no span of its own; the gaps after it are
+  // what a round's duration is made of.
+  const gaps = taps.slice(1).map((tap) => tap.gapMs);
+  return {
+    beads: taps.length,
+    startedAt: new Date(first.at),
+    endedAt: new Date(last.at),
+    durationMs: Math.max(0, last.at - first.at),
+    avgGapMs: gaps.length ? Math.round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length) : 0,
+    complete: Boolean(mala.complete) && taps.length >= BEADS_PER_ROUND,
+    taps,
+  };
+}
 
 /**
  * POST /api/app/sadhana/chant/session/:id/transcripts
@@ -388,7 +407,15 @@ export const saveChantTranscripts = async (req, res) => {
 export const listChantSessions = async (req, res) => {
   const user = req.auth.user;
   const { page, pageSize, skip, take } = readPage(req.valid.query);
-  const where = { userId: user.id, source: 'IN_APP' };
+  const { mantraId } = req.valid.query;
+  const where = {
+    userId: user.id,
+    source: 'IN_APP',
+    // Sittings that opened and closed without finishing a round have nothing to
+    // show round by round, and were most of the rows in the list.
+    rounds: { gt: 0 },
+    ...(mantraId ? { mantraId: mantraId === 'none' ? null : mantraId } : {}),
+  };
 
   const [sessions, total] = await Promise.all([
     prisma.chantSession.findMany({

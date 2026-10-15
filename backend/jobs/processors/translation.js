@@ -201,10 +201,11 @@ async function execute(ctx, entry, deps) {
   if (!key) throw new ConfigError('ANTHROPIC_API_KEY is not set on the worker.');
   const { store, getSource } = await deps.workspace();
 
-  // Which verses are left, so the progress bar is true after a pause as well as at the start.
+  // Which verses are left, so the progress bar is true after a pause as well as at the start. Left means
+  // not yet translated under the run's own version: a verse made under another one counts as left.
   const verseLimit = row.verseLimit ? Math.max(0, row.verseLimit - state.doneVerses) : null;
   if (verseLimit === 0) return { kind: 'finished', stopReason: 'limit' };
-  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, model: row.model });
+  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, model: row.model, version: row.version });
   state.totalVerses = state.doneVerses + left.willTranslate;
   await ctx.flush();
   if (left.willTranslate === 0) return { kind: 'finished', stopReason: 'finished' };

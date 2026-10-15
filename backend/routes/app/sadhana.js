@@ -104,13 +104,14 @@ router.patch(
 router.put(
   '/chant/session/:id/detail',
   {
-    summary: 'Save a session’s rounds and taps',
+    summary: 'Save a session’s rounds',
     description:
-      'The tap-by-tap record of a sitting, grouped by round. Send the rounds that changed; ' +
-      'each is replaced as a whole, keyed by its `index`, so a retried request is harmless. ' +
-      'Totals (beads, duration, average gap) are worked out here from the taps rather than ' +
-      'trusted from the client. Accepted after the session has finished, so the last sync ' +
-      'on close can land.',
+      'The rounds of a sitting, one summary each: how many beads, when it started and ended, ' +
+      'how long it took and the mean time a chant took. Send the rounds that changed; each is ' +
+      'replaced as a whole, keyed by its `index`, so a retried request is harmless. The taps ' +
+      'behind a round are not kept — a row per bead is what made this table large. A client that ' +
+      'still sends `taps` (older builds) has them stored and its totals worked out from them. ' +
+      'Accepted after the session has finished, so the last sync on close can land.',
     limit: 'write',
     params: z.object({ id: z.string().min(1) }),
     body: z.object({
@@ -119,6 +120,11 @@ router.put(
           z.object({
             index: z.coerce.number().int().min(1).max(500),
             complete: z.boolean().optional(),
+            beads: z.coerce.number().int().min(0).max(120).optional(),
+            startedAt: z.coerce.number().int().min(0).optional(),
+            endedAt: z.coerce.number().int().min(0).optional(),
+            durationMs: z.coerce.number().int().min(0).max(86400000).optional(),
+            avgGapMs: z.coerce.number().int().min(0).max(86400000).optional(),
             taps: z
               .array(
                 z.object({
@@ -128,7 +134,8 @@ router.put(
                   auto: z.boolean().optional(),
                 })
               )
-              .max(120),
+              .max(120)
+              .optional(),
           })
         )
         .min(1)
@@ -175,12 +182,15 @@ router.get(
   {
     summary: 'List past chanting sessions',
     description:
-      'Newest first. Each carries its rounds, duration and — for sessions recorded tap by tap ' +
-      '— the number of rounds on record and the average time a round took.',
+      'Newest first, and only sittings that finished at least one round. Each carries its ' +
+      'rounds, duration and — for sessions with their rounds on record — the number of rounds ' +
+      'on record and the average time a round took. `mantraId` limits the list to one mantra, ' +
+      'or to sittings with none when it is `none`; left out, every mantra is listed.',
     limit: 'read',
     query: z.object({
       page: z.coerce.number().int().min(1).optional(),
       pageSize: z.coerce.number().int().min(1).max(100).optional(),
+      mantraId: z.string().min(1).optional(),
     }),
     responds: { 200: 'A page of sessions' },
   },
@@ -192,8 +202,9 @@ router.get(
   {
     summary: 'Get one session in full',
     description:
-      'The session, every round with its start, end, duration and taps, and the words heard ' +
-      'for each tap while those are still within their 7-day life.',
+      'The session and every round with its start, end, duration and mean chant time. (Rounds ' +
+      'saved by older builds also carry their taps, and the words heard for each while those ' +
+      'are still within their 7-day life.)',
     limit: 'read',
     params: z.object({ id: z.string().min(1) }),
     responds: { 200: 'The session with its rounds', 403: 'Not your session' },

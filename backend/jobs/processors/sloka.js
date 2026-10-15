@@ -1,8 +1,9 @@
 // The sloka jobs — building tomorrow's picks, and delivering today's.
 //
 // Split in two on purpose. Building runs once, late at night UTC, and can take
-// as long as it needs. Delivering runs every hour and pushes only to the users
-// whose own local hour has come round — one job that did both would either send
+// as long as it needs. Delivering runs every half hour and pushes only to the
+// users whose own local delivery time (04:30 unless the setting says otherwise)
+// has come round — one job that did both would either send
 // everyone their sloka at 3am somewhere, or hold a connection open for a day.
 
 import { prisma } from '../../config/database.js';
@@ -14,8 +15,10 @@ import * as websocket from '../../services/websocket.js';
 import * as slokaController from '../../controllers/app/sloka.js';
 import * as language from '../../utils/language.js';
 import { slokaPush } from '../../utils/sloka-push.js';
-import { localDateString, localHour, toDateColumn, shiftDays } from '../../utils/date.js';
+import { deliveryMinutes, isDeliveryDue } from '../../utils/sloka-delivery.js';
+import { localDateString, localMinutes, toDateColumn, shiftDays } from '../../utils/date.js';
 import { SETTING_KEYS } from '../../config/constants.js';
+import { SLOKA_DELIVERY_STEP_MINUTES } from '../../config/cron.js';
 
 const BATCH_SIZE = 500;
 
@@ -152,14 +155,17 @@ function loadVerseForPush(verseRowId, user) {
 }
 
 /**
- * Pushes the day's sloka to the users whose local delivery hour has arrived.
+ * Pushes the day's sloka to the users whose local delivery time has arrived.
  *
- * Runs hourly. `notifiedAt` is what stops a second run in the same hour from
- * sending twice — the state on the row, not the schedule, is what makes this
- * safe to retry.
+ * Runs every half hour (`SLOKA_DELIVERY_STEP_MINUTES`). The time is one setting
+ * for everyone, not learned per reader: the point is a sloka waiting at the start
+ * of the day, and a time worked out from when people open it would drift toward
+ * whenever they happen to wake. `notifiedAt` is what stops a second run in the
+ * same window from sending twice — the state on the row, not the schedule, is
+ * what makes this safe to retry.
  */
 async function deliver() {
-  const defaultHour = await settings.getNumber(SETTING_KEYS.SLOKA_DELIVERY_HOUR, 6);
+  const targetMinutes = deliveryMinutes(await settings.get(SETTING_KEYS.SLOKA_DELIVERY_TIME));
   const now = new Date();
 
   let sent = 0;
@@ -178,7 +184,6 @@ async function deliver() {
             timezone: true,
             readingLanguage: true,
             appLanguage: true,
-            preferences: { select: { bestDeliveryHour: true } },
           },
         },
       },
@@ -190,10 +195,12 @@ async function deliver() {
     cursor = pending[pending.length - 1].id;
 
     for (const row of pending) {
-      // The hour the weekly learning found this person actually opens things,
-      // falling back to the configured default.
-      const hour = row.user.preferences?.bestDeliveryHour ?? defaultHour;
-      if (localHour(row.user.timezone, now) !== hour) continue;
+      const due = isDeliveryDue({
+        localMinutes: localMinutes(row.user.timezone, now),
+        targetMinutes,
+        windowMinutes: SLOKA_DELIVERY_STEP_MINUTES,
+      });
+      if (!due) continue;
 
       // Only the day it is for — a row from an earlier date that was never
       // delivered is stale, and sending yesterday's sloka today is worse than

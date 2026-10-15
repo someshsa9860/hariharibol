@@ -655,6 +655,19 @@ model VerseTranslation {
   meaning String  @db.Text
   purport String? @db.Text
 
+  // The verse in this row's own script, and its word-by-word list in this row's
+  // language. Verse.transliteration / Verse.wordMeanings are language-neutral (Roman
+  // text, English meanings), so a Hindi or Tamil rendering cannot live there without
+  // overwriting them. Set by the Claude translation import (services/translation-import.js);
+  // null on every row that came from a book import.
+  transliteration String? @db.Text
+  wordMeanings    Json? // [{ word, meaning }]
+
+  // Who made the text and which TRANSLATION_VERSION run it came from — 'claude' and
+  // e.g. '1.0-12-10-26' for an imported Claude translation, null for a human's.
+  translatedBy String? @db.VarChar(20)
+  version      String? @db.VarChar(40)
+
   // Where this came from in the translator's own work — e.g. Dnyaneshwari
   // ovis "141-143" mapped onto a single BG verse.
   sourceRef String? @db.VarChar(50)
@@ -1694,6 +1707,12 @@ model Mantra {
   standardRounds Int?
   standardCount  Int?
 
+  // The prayer chanted before this mantra, e.g. the Pancha-tattva mantra before the
+  // mahamantra. The counter shows it before every round and counts nothing until it
+  // has been chanted — see "Opening prayers" in backend/CLAUDE.md. Optional; a prayer
+  // is itself a mantra, so it has a standard chanting time and its own renderings.
+  prayerMantraId String?
+
   isPublished  Boolean @default(false)
   displayOrder Int     @default(0)
 
@@ -1702,6 +1721,10 @@ model Mantra {
 
   deity Deity? @relation(fields: [deityId], references: [id], onDelete: SetNull)
   guru  Guru?  @relation(fields: [guruId], references: [id], onDelete: SetNull)
+
+  // Deleting a prayer leaves the mantras that used it with none.
+  prayerMantra Mantra?  @relation("MantraPrayer", fields: [prayerMantraId], references: [id], onDelete: SetNull)
+  prayerFor    Mantra[] @relation("MantraPrayer")
 
   translations     MantraTranslation[]
   chantSessions    ChantSession[]
@@ -1713,6 +1736,7 @@ model Mantra {
   @@index([sampradaya])
   @@index([deityId])
   @@index([guruId])
+  @@index([prayerMantraId])
   @@index([isPublished])
 }
 

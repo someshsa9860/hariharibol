@@ -7,9 +7,11 @@ const router = createRouter({
   prefix: '/translations',
   description:
     "Translating Prabhupāda's Bhagavad-gītā into other languages with Claude: start a run for one " +
-    'language, watch it live (websocket events `translation.run` and `translation.activity`), and read ' +
-    'what it saved. A run is a database row worked by the worker; it survives a page refresh, a ' +
-    'restart and a failure, and pauses rather than fails when credit runs out.',
+    'language, watch it live (websocket events `translation.run` and `translation.activity`), read ' +
+    'what it saved, and import the result from storage into the database. A run is a database row ' +
+    'worked by the worker; it survives a page refresh, a restart and a failure, and pauses rather ' +
+    'than fails when credit runs out. Text is stamped with a version (`TRANSLATION_VERSION`): a ' +
+    'language already translated under the current version is not translated again.',
 });
 
 const language = z.enum(LANGUAGE_CODES);
@@ -46,8 +48,10 @@ router.get(
   {
     summary: 'How much of the Gita each language has',
     description:
-      'Verses saved per language and per chapter, how many of them Claude made, and their scores. ' +
-      'Reads every chapter file, so the answer is cached for five minutes; `refresh=true` rereads.',
+      'Verses saved per language and per chapter, how many of them are up to date for the current ' +
+      'version (`upToDate`; the rest were made under an older one and are translated again by a new ' +
+      'run), how many Claude made, and their scores. Reads every chapter file, so the answer is ' +
+      'cached for five minutes; `refresh=true` rereads.',
     permission: 'translation.read',
     limit: 'read',
     query: z.object({ refresh: z.enum(['true', 'false']).optional() }),
@@ -60,7 +64,10 @@ router.get(
   '/estimate',
   {
     summary: 'Estimate a run',
-    description: 'What is left to translate for a language, and a guess at the calls, tokens and cost. Nothing is spent.',
+    description:
+      'What is left to translate for a language under the current version, and a guess at the calls, ' +
+      'tokens and cost: `saved` is already up to date, `outdated` was made under an older version and ' +
+      'is translated again. Nothing is spent.',
     permission: 'translation.read',
     limit: 'read',
     query: z.object({
@@ -92,8 +99,10 @@ router.post(
     summary: 'Start a translation run',
     description:
       'Queues a run for one language. Only one run per language may be active; others wait their ' +
-      'turn, because the queue works one run at a time. Verses already saved are skipped, so ' +
-      'starting again continues where the last run stopped.',
+      'turn, because the queue works one run at a time. Verses already translated under the current ' +
+      'version are skipped, so starting again continues where the last run stopped; verses made ' +
+      'under an older version are translated again. When everything asked for is already up to date ' +
+      'there is nothing to do and the answer is 409 with `details.upToDate`.',
     permission: 'translation.run',
     limit: 'write',
     body: z.object({
@@ -104,7 +113,7 @@ router.post(
     }),
     responds: {
       201: 'The queued run',
-      409: 'A run for this language is already active',
+      409: 'A run for this language is already active, or the language is already up to date for this version',
       422: 'No Anthropic key, storage not set up, or the queue is unreachable',
     },
   },
@@ -154,6 +163,52 @@ router.post(
     responds: { 200: 'The run', 404: 'No such run', 409: 'The run has already finished' },
   },
   controller.cancel
+);
+
+router.get(
+  '/imports',
+  {
+    summary: 'What is in the database from Claude’s translations',
+    description:
+      'Per language: how many Prabhupāda translation rows Claude made are in the database, how many ' +
+      'were made under the current version, how many readers can see, and when one last changed. ' +
+      'Languages with none are left out.',
+    permission: 'translation.read',
+    limit: 'read',
+    responds: { 200: 'The current version and a line per language' },
+  },
+  controller.imports
+);
+
+router.post(
+  '/imports',
+  {
+    summary: 'Import translated chapters into the database',
+    description:
+      'Copies a language’s translated chapters from storage into `VerseTranslation`: the translation, ' +
+      'purport, transliteration and word-by-word meanings, with the version that made them. A verse is ' +
+      'matched on its book, chapter and verse number; a row that exists is updated in place (its id ' +
+      'does not change) and one that does not is created. A verse the database lacks, or whose ' +
+      'numbers disagree with the file, is reported and left alone. New rows are hidden from readers ' +
+      'unless `publish` is true, which also needs `verse.publish`; an existing row’s visibility is ' +
+      'never lowered. `dryRun` returns the same report and writes nothing. Importing again changes ' +
+      'only what differs.',
+    permission: 'translation.import',
+    limit: 'write',
+    body: z.object({
+      language,
+      chapters: z.array(chapterNumber).min(1).max(18).optional(),
+      publish: z.boolean().default(false),
+      dryRun: z.boolean().default(false),
+    }),
+    responds: {
+      200: 'Counts per chapter and in total: created, updated, unchanged, missing, conflicts',
+      403: '`publish` without the `verse.publish` permission',
+      409: 'An import of this language is already running',
+      422: 'The book or translator is not in the database, or storage cannot be read',
+    },
+  },
+  controller.importTranslations
 );
 
 router.get(

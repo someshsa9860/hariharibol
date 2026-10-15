@@ -4,9 +4,11 @@
 //
 // Same shape as scripts/reels-e2e.js — the session is issued directly and
 // everything after it is the real endpoint. What it checks is that the numbers
-// stored for a round are the ones worked out from its taps, that re-sending is
-// harmless, that nobody can write to someone else's session, and that a
-// transcript past its expiry disappears from reads and from the table.
+// stored for a round are the ones worked out from its taps (older builds) or
+// taken from the summary the app sends now, that re-sending is harmless, that
+// nobody can write to someone else's session, that the history can be limited to
+// one mantra, and that a transcript past its expiry disappears from reads and
+// from the table.
 
 import { prisma } from '../config/database.js';
 import * as authService from '../services/auth.js';
@@ -152,6 +154,63 @@ async function main() {
 
   await prisma.chantSession.delete({ where: { id } });
   check('deleting a session removes its rounds and words', (await prisma.chantMala.count({ where: { sessionId: id } })) === 0 && (await prisma.chantTapTranscript.count({ where: { sessionId: id } })) === 0);
+
+  console.log('\n6. Round summaries, and the history of one mantra');
+  const mantras = await prisma.mantra.findMany({ where: { isPublished: true }, orderBy: { slug: 'asc' }, take: 2 });
+  if (mantras.length < 2) {
+    console.error('\nNeed two published mantras. Run `npm run seed` first.\n');
+    process.exit(1);
+  }
+  const [first, second] = mantras;
+  const open = async (mantraId, rounds, beads = 0) => {
+    const made = await call('POST', `${API}/session`, { ...as, body: mantraId ? { mantraId } : {} });
+    const sid = made.json?.data?.id;
+    if (rounds || beads) await call('PATCH', `${API}/session/${sid}`, { ...as, body: { rounds, beads, finish: true } });
+    return sid;
+  };
+
+  const s1 = await open(first.id, 1, 5);
+  const summary = [
+    { index: 1, complete: true, beads: 108, startedAt: t0, endedAt: t0 + 216000, durationMs: 216000, avgGapMs: 2000 },
+    // Begun in an earlier sitting: the time is not known, and says so with 0.
+    { index: 2, complete: false, beads: 5, startedAt: t0 + 220000, endedAt: t0 + 228000, durationMs: 0, avgGapMs: 2000 },
+  ];
+  const summed = await call('PUT', `${API}/session/${s1}/detail`, { ...as, body: { malas: summary } });
+  check('a summary with no taps saves', summed.status === 200, `HTTP ${summed.status} ${JSON.stringify(summed.json?.error ?? '')}`);
+  const kept = await prisma.chantMala.findMany({ where: { sessionId: s1 }, orderBy: { index: 'asc' } });
+  check('its figures are stored as sent', kept[0]?.beads === 108 && kept[0]?.durationMs === 216000 && kept[0]?.avgGapMs === 2000 && kept[0]?.complete === true);
+  check('no taps are stored with it', kept.every((row) => Array.isArray(row.taps) && row.taps.length === 0));
+  check('start and end are the times sent', kept[0]?.startedAt.getTime() === t0 && kept[0]?.endedAt.getTime() === t0 + 216000);
+  check('an unfinished round is not complete', kept[1]?.complete === false && kept[1]?.durationMs === 0);
+
+  const short = await call('PUT', `${API}/session/${s1}/detail`, {
+    ...as,
+    body: { malas: [{ index: 3, complete: true, beads: 50, startedAt: t0, endedAt: t0 + 1000 }] },
+  });
+  const shortRow = await prisma.chantMala.findUnique({ where: { sessionId_index: { sessionId: s1, index: 3 } } });
+  check('a round cannot be complete with fewer than 108 beads', short.status === 200 && shortRow?.complete === false);
+  const absurd = await call('PUT', `${API}/session/${s1}/detail`, { ...as, body: { malas: [{ index: 4, beads: 5000 }] } });
+  check('an impossible bead count is rejected', absurd.status === 400, `HTTP ${absurd.status}`);
+
+  const s2 = await open(second.id, 1);
+  const s3 = await open(null, 1);
+  const s4 = await open(first.id, 0, 0); // opened and closed without a round
+  const idsOf = async (query) => {
+    const res = await call('GET', `${API}/sessions${query}`, as);
+    return (res.json?.data ?? []).map((row) => row.id);
+  };
+  const ofFirst = await idsOf(`?mantraId=${first.id}`);
+  check('the history of a mantra lists its own sittings', ofFirst.includes(s1) && !ofFirst.includes(s2) && !ofFirst.includes(s3));
+  const ofNone = await idsOf('?mantraId=none');
+  check('"none" lists the sittings that had no mantra', ofNone.includes(s3) && !ofNone.includes(s1) && !ofNone.includes(s2));
+  const ofAll = await idsOf('');
+  check('with no mantra given every one is listed', [s1, s2, s3].every((sid) => ofAll.includes(sid)));
+  check('a sitting that finished no round is never listed', !ofAll.includes(s4) && !ofFirst.includes(s4));
+
+  const read = await call('GET', `${API}/session/${s1}`, as);
+  check('a session reads back its round summaries', read.json?.data?.malas?.length === 3 && read.json.data.malas[0].beads === 108);
+
+  await prisma.chantSession.deleteMany({ where: { id: { in: [s1, s2, s3, s4] } } });
 
   console.log(`\n${passed} passed, ${failed} failed\n`);
   await prisma.$disconnect();

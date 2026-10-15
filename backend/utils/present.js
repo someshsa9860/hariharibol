@@ -101,16 +101,21 @@ const includes = {
     likes: { where: { userId }, select: { userId: true } },
   }),
 
-  mantra: (mantraChain, readingChain) => ({
-    deity: { select: { id: true, slug: true, name: true, imagePath: true, fullImagePath: true } },
-    guru: { select: { id: true, slug: true, name: true, imagePath: true } },
-    translations: {
+  mantra: (mantraChain, readingChain) => {
+    const translations = {
       where: {
         isPublished: true,
         languageCode: { in: [...new Set([...mantraChain, ...readingChain])] },
       },
-    },
-  }),
+    };
+    return {
+      deity: { select: { id: true, slug: true, name: true, imagePath: true, fullImagePath: true } },
+      guru: { select: { id: true, slug: true, name: true, imagePath: true } },
+      translations,
+      // The prayer chanted before it is a mantra of its own, so it needs its renderings too.
+      prayerMantra: { include: { translations } },
+    };
+  },
 
   /**
    * A mantra named in passing — on a reel, in the chant history, as the
@@ -288,6 +293,11 @@ async function mantra(row, user) {
 
     standardRounds: row.standardRounds,
     standardCount: row.standardCount,
+
+    // The prayer chanted before this mantra (before every round), shown whole so the
+    // counter needs no second request. One level: a prayer's own prayer is not followed.
+    // A prayer that is not published is not shown.
+    prayer: row.prayerMantra?.isPublished ? await mantra({ ...row.prayerMantra, prayerMantra: null }, user) : null,
 
     deity: row.deity ? await s3.presignFields(row.deity, ['imagePath', 'fullImagePath']) : null,
     guru: row.guru ? await s3.presignFields(row.guru, ['imagePath']) : null,

@@ -183,6 +183,18 @@ async function seedMantras() {
 
     await seedMantraScripts(saved, mantra.sanskrit);
   }
+  // After the loop, because a prayer is another mantra and has to exist first.
+  for (const [slug, prayerSlug] of Object.entries(data.prayerMantras)) {
+    const [mantra, prayer] = await Promise.all([
+      prisma.mantra.findUnique({ where: { slug } }),
+      prisma.mantra.findUnique({ where: { slug: prayerSlug } }),
+    ]);
+    // A prayer only for a mantra that has none yet.
+    if (mantra && prayer && !mantra.prayerMantraId) {
+      await prisma.mantra.update({ where: { id: mantra.id }, data: { prayerMantraId: prayer.id } });
+    }
+  }
+
   log(`${data.mantras.length} mantras`);
 }
 

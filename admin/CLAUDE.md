@@ -189,6 +189,15 @@ part of the overlay contract with `backend/routes/admin/reel.js`; the app ignore
 - The position grid and the default box width keep text clear of the app's button
   column (`SAFE_AREAS` in `reel-stage.tsx`) — keep them in step with the app.
 
+## Mantra chanting time and opening prayer
+
+On `routes/mantras.tsx`. **Standard chanting time** (ms) is how long one chant takes at an ordinary pace: the app counts one
+chant per this much sound, waits half of it between hand taps when auto count is off, and shortens it as a sitting goes on.
+The mahamantra is about 4000. The form always sends it, `null` when blank, so it can be cleared again (publishing needs one).
+**Opening prayer** is a select over the first 100 mantras (the API's page limit; the mantra itself is left out): another mantra
+the counter shows first and before every round. "None" sends `prayerMantraId: null`. The API refuses a mantra as its own prayer and
+shows `prayerMantra` back; the detail dialog lists it.
+
 ## Mantra mala recording
 
 A mantra can carry one recording of a whole mala (optional) and the stretch of it that is
@@ -231,6 +240,7 @@ nothing that matters itself.
 | `routes/translations.tsx` | The page: health strip, **Runs** / **Output** tabs, in-progress cards, the language grid, history |
 | `components/translation-run-panel.tsx` | One run in full: progress, spend, activity feed, Resume / Cancel (`PAUSE` maps a pause reason to what to tell the admin) |
 | `components/translation-start-dialog.tsx` | New translation: language, chapters, verse limit, spending limit, a live estimate, and what blocks a start |
+| `components/translation-import-dialog.tsx` | Import into the database: language, a live preview of what it would do (nothing is written until the button), chapters to tick, whether to make the result visible, then what was done |
 | `components/translation-output.tsx` | The reader: language pills, an 18-chapter strip, a verse list with scores, and English beside the translation |
 | `components/translation-bits.tsx` | Small shared pieces: status and score badges, progress bar, durations, money |
 
@@ -251,6 +261,20 @@ nothing that matters itself.
   or a bad `TRANSLATION_VERSION` disable it with the reason; "no worker online" only warns (the run waits in the
   queue). A second start for a language that has a live run gets a 409 and an "Open that run" link.
 - **Without `translation.run` the page is read-only**: no Start, Resume / Try again or Cancel; View output stays.
+- **A language already translated under the current version is not translated again.** Its card says "Up to date · version X" and
+  its Translate button is off; verses Claude made under another version are counted as older, and the start dialog sends
+  only those and the missing ones (the server decides — the page just shows `outdated` and `upToDate`). Everything current
+  gives "already translated under version X. To translate it again, set a new TRANSLATION_VERSION", and Start is off.
+- **Import** (`translation.import`; the box to make translations visible also needs `verse.publish`) is on every card with
+  something saved, and not while a run for that language is live. The dialog is mounted only while open and starts from the
+  clicked language, so it never previews the wrong one. Changing the language or the visibility box previews again
+  (`POST /imports` with `dryRun`, never cached); chapters that have something to do arrive ticked. The button imports the ticked
+  chapters, the result replaces the preview, and the cards refresh to say what the database holds ("N in the database, M visible
+  to readers · K from an older version"). **A verse already there is replaced in place, its id kept**; new ones are hidden unless
+  the box is ticked. The dialog warns when the translations it replaces are visible to readers now, and that a verse edited
+  by hand on the Verses page is replaced by what is in storage.
+- Both were driven in a real headless Chrome against a copy of the API reading a fake Gita folder (cards, start dialog, preview,
+  import, import again, make visible, a read-only account). That script is not kept in the repo.
 
 Two shared changes were made for this page and apply everywhere:
 
@@ -261,6 +285,6 @@ Two shared changes were made for this page and apply everywhere:
 - `components/page-header.tsx` stacks the title above the actions on a phone and lets the actions wrap, instead of
   squeezing the title into a narrow column.
 
-Not done: the translated transliteration and word meanings are saved to S3 but have no database column yet, so the
-reader shows them from the files and the app cannot (see "Getting it into the database" in
-[../backend/scripts/README.md](../backend/scripts/README.md)).
+Not done: the app does not read a translation row's transliteration or word meanings yet, and nothing in the app says a text
+was machine-made. The import puts them in the database (`VerseTranslation`); serving them is the next step — see "Translation
+runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md). The **Output** tab still reads the files in storage, not the database.

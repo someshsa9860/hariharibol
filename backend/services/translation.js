@@ -17,7 +17,7 @@ import { describeEvent, presentRun } from '../utils/translation-run.js';
 
 import { DEFAULT_MODEL, costUsd } from '../scripts/lib/claude-translate-client.js';
 import { LANGUAGES, LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
-import { dryRun, hasTranslation, verifyEntry } from '../scripts/lib/claude-translate-run.js';
+import { dryRun, hasTranslation, isCurrent, verifyEntry } from '../scripts/lib/claude-translate-run.js';
 import { CHAPTERS, DEFAULT_GROUP_BUDGET, TRANSLATOR, chapterKey, loadChapter } from '../scripts/lib/claude-translate-source.js';
 import { dirStore, langChapterKey, s3Store, versionFrom } from '../scripts/lib/claude-translate-store.js';
 
@@ -125,15 +125,27 @@ async function mapLimit(items, limit, fn) {
 const emptyScores = () => ({ 1: 0, 2: 0, 3: 0, unscored: 0 });
 let coverageInFlight = null;
 
+/** The version new runs use, or null when TRANSLATION_VERSION is malformed (the overview reports that; coverage just goes on). */
+function versionOrNull() {
+  try {
+    return currentVersion();
+  } catch {
+    return null;
+  }
+}
+
 /**
- * How much of the Gita each language has: per language the verses saved, how many of those Claude made
- * and their scores, and per chapter the same count. Reads every chapter file, so it is kept in Redis for
- * `coverageCacheSeconds` and dropped when a run stops (`forgetCoverage`).
+ * How much of the Gita each language has: per language the verses saved, how many of those are up to date
+ * for the version new runs use (`upToDate`: made under it, or not by Claude), how many Claude made and
+ * their scores, and per chapter the saved and up-to-date counts. Reads every chapter file, so it is kept in
+ * Redis for `coverageCacheSeconds` and dropped when a run stops (`forgetCoverage`) — and when it was worked
+ * out for another version, which is what a restart with a new TRANSLATION_VERSION leaves behind.
  */
 export async function coverage({ refresh = false } = {}) {
   if (!refresh) {
     const cached = await redis.get(translation.coverageCacheKey).catch(() => null);
-    if (cached) return JSON.parse(cached);
+    const found = cached ? JSON.parse(cached) : null;
+    if (found && found.version === versionOrNull()) return found;
   }
   coverageInFlight ||= computeCoverage().finally(() => { coverageInFlight = null; });
   return coverageInFlight;
@@ -141,7 +153,8 @@ export async function coverage({ refresh = false } = {}) {
 
 async function computeCoverage() {
   const { store, getSource } = await openWorkspace();
-  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, byClaude: 0, scores: emptyScores(), versions: {}, chapters: [] }]));
+  const version = versionOrNull();
+  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, chapters: [] }]));
   let total = 0;
 
   const chapters = await mapLimit(CHAPTERS, translation.readConcurrency, async (n) => {
@@ -157,9 +170,11 @@ async function computeCoverage() {
       const by = byLang[code];
       const have = new Map((file?.verses || []).map((v) => [v.verseId, v]));
       let saved = 0;
+      let upToDate = 0;
       for (const unit of units) {
         if (!hasTranslation(file, unit.verseId, code)) continue;
         saved++;
+        if (isCurrent(file, unit.verseId, code, version)) upToDate++;
         const ai = have.get(unit.verseId)?.aiTranslation;
         if (!ai) continue;
         by.byClaude++;
@@ -167,11 +182,12 @@ async function computeCoverage() {
         by.versions[ai.version ?? 'unversioned'] = (by.versions[ai.version ?? 'unversioned'] || 0) + 1;
       }
       by.saved += saved;
-      by.chapters.push({ chapter: n, total: units.length, saved });
+      by.upToDate += upToDate;
+      by.chapters.push({ chapter: n, total: units.length, saved, upToDate });
     });
   }
 
-  const result = { generatedAt: new Date().toISOString(), total, languages: Object.values(byLang) };
+  const result = { generatedAt: new Date().toISOString(), version, total, languages: Object.values(byLang) };
   await redis.set(translation.coverageCacheKey, JSON.stringify(result), 'EX', translation.coverageCacheSeconds).catch(() => {});
   return result;
 }
@@ -179,16 +195,18 @@ async function computeCoverage() {
 export const forgetCoverage = () => redis.del(translation.coverageCacheKey).catch(() => {});
 
 /**
- * What a run for `language` over `chapters` has left, and a guess at its cost: the pipeline's dry run, one
- * chapter at a time in parallel and added up. `limit` caps how many verses (the cost is scaled to match).
+ * What a run for `language` over `chapters` has left under `version`, and a guess at its cost: the
+ * pipeline's dry run, one chapter at a time in parallel and added up. `limit` caps how many verses (the
+ * cost is scaled to match). A verse already translated under `version` is `saved` and costs nothing; one
+ * Claude translated under another version is `outdated` and is left to do, like a verse never translated.
  */
-export async function estimate({ language, chapters, limit = 0, model: modelId = model() }) {
+export async function estimate({ language, chapters, limit = 0, model: modelId = model(), version = currentVersion() }) {
   const { store, getSource } = await openWorkspace();
   const parts = await mapLimit(chapters, translation.readConcurrency, (n) =>
-    dryRun({ store, getSource, cfg: { langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET } })
+    dryRun({ store, getSource, cfg: { langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET, version } })
   );
   const sum = (pick) => parts.reduce((total, part) => total + pick(part.totals), 0);
-  const totals = { verses: sum((t) => t.verses), done: sum((t) => t.done), todo: sum((t) => t.todo), calls: sum((t) => t.calls), inTokens: sum((t) => t.inTokens), outTokens: sum((t) => t.outTokens), systemTokens: sum((t) => t.systemTokens) };
+  const totals = { verses: sum((t) => t.verses), done: sum((t) => t.done), todo: sum((t) => t.todo), outdated: sum((t) => t.outdated), calls: sum((t) => t.calls), inTokens: sum((t) => t.inTokens), outTokens: sum((t) => t.outTokens), systemTokens: sum((t) => t.systemTokens) };
   const verses = limit ? Math.min(limit, totals.todo) : totals.todo;
   const share = totals.todo ? verses / totals.todo : 0;
   const cost = costUsd(modelId, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
@@ -196,8 +214,10 @@ export async function estimate({ language, chapters, limit = 0, model: modelId =
     language,
     chapters,
     model: modelId,
+    version,
     verses: totals.verses,
     saved: totals.done,
+    outdated: totals.outdated,
     todo: totals.todo,
     willTranslate: verses,
     calls: Math.round(totals.calls * share),

@@ -236,17 +236,38 @@ user twice. Store money as integer minor units (paise, cents); floats drift.
 
 ## The daily sloka push
 
-`deliver()` in `jobs/processors/sloka.js` pushes each user's sloka at their own hour. **The body is the
+`deliver()` in `jobs/processors/sloka.js` pushes each user's sloka at **one time of day on their own clock —
+04:30 by default**. **The body is the
 verse** — Sanskrit first (so the collapsed notification shows it), then its meaning in the reader's
 language, then "Bhagavad Gita 2.47" — built by `slokaPush` in `utils/sloka-push.js` (pure; `npm test`). Why
 it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longer in the push; the app shows it.
+
+- **Planned, not built:** a personal journey (levels, a nine-week beginner path, moods, the Hindu calendar)
+  in place of the picker — [SLOKA-JOURNEY-PLAN.md](SLOKA-JOURNEY-PLAN.md). Read its open questions first.
+- **When** — the AppSetting `sloka.delivery.time` (`SETTING_KEYS.SLOKA_DELIVERY_TIME`, `"HH:MM"` 24-hour,
+  default `SLOKA_DEFAULT_DELIVERY_TIME` = `04:30`), edited on the admin **Settings** page, which rejects
+  anything that is not a time. `sloka.deliver` runs **every 30 minutes** (`SLOKA_DELIVERY_STEP_MINUTES` in
+  `config/cron.js`) and sends to whoever's local time falls in the 30 minutes starting at that setting
+  (`isDeliveryDue` in `utils/sloka-delivery.js`, pure; `npm test`). One window as wide as the run means every
+  reader falls in exactly one run, including zones 15 or 45 minutes off UTC; so 04:30 is delivered at the
+  first half hour at or after 04:30, and a time like 04:40 goes out at 05:00. `UserDailySloka.notifiedAt`
+  keeps a repeat run from sending twice. The setting is cached for 60 s.
+- **The same time for everyone.** The learned `UserPreferenceProfile.bestDeliveryHour` is **no longer read
+  by delivery** (the profile still computes it). A per-reader time would be a different design — say so if it
+  is wanted back. The old setting `sloka.delivery.default_hour` is removed by the migration
+  `20261017000000_sloka_delivery_time`, which also seeds `sloka.delivery.time`.
+- **Changing a cron pattern is safe.** BullMQ keys a repeatable job by name + pattern, so an edited pattern used
+  to leave the old schedule firing beside the new one. `jobs/schedules.js` now removes any repeatable entry
+  that is no longer exactly what `config/cron.js` asks for (pattern *and* timezone) when the worker boots.
+  **After deploying this, restart the worker** — that is when `sloka.deliver` moves from hourly to every 30
+  minutes and the old entry is dropped.
 
 - **The data carries the verse's place in its book** — `bookSlug`, `cantoNumber`, `chapterNumber`,
   `verseNumber` beside `verseId` and the `hariharibol://sloka/<verseId>` deeplink — so the app opens the
   chapter at the verse without a lookup. The app reads those names from `PushConfig`
   (`app/lib/core/constants/push_config.dart`); rename one and rename it there.
-- **The verse is read per push**, after the delivery-hour check, not with the pending rows: only the users
-  whose hour has come are sent anything, and which translations to fetch depends on who they are.
+- **The verse is read per push**, after the delivery-time check, not with the pending rows: only the users
+  whose time has come are sent anything, and which translations to fetch depends on who they are.
 - **The meaning is cut at 220 characters, the verse at 600** — a push is capped at 4 KB and a Devanagari
   character is three bytes of it.
 - **A picture goes with it** — `services/sloka-card.js` draws a 4:3 card (1200×900): "Sloka of Day" on top,
@@ -276,7 +297,7 @@ it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longe
 listens only for sound and counts one chant for each of these of it, so every mantra should have one. Set on the
 admin **Mantras** page ("Standard chanting time"); the seed (`standardChantMs` in `prisma/seed/data.js`) and the
 migration `20261014000100_mantra_standard_chant_time` fill it for the seeded mantras **only where it is empty**, so
-an admin's value is never overwritten. A mantra with none falls back, in the app, to 0.2 s per letter (min 1 s).
+an admin's value is never overwritten. A mantra with none falls back, in the app, to 0.1 s per letter (min 1 s). The mahamantra is 4000 (migration `20261016000100_mahamantra_standard_chant_time` moves it from the old seeded 8000 only, so an admin who chose 8000 on purpose is indistinguishable and is moved too; the other seeded times are unchanged). The app shortens it as a sitting goes on and waits half of it between hand taps when auto count is off; those numbers live in the app (`AutoChantConfig`). The admin can clear the time again (`durationMs: null`), but **publishing needs one**.
 
 `Mantra.chantWords` (`String[]`, default empty) is the set of **English words the phone's recogniser writes** when the
 mantra is chanted — it only knows English, so it turns Sanskrit into the nearest English. The app counts a chant when it
@@ -288,6 +309,23 @@ as `chantWords`.
 
 `Mantra.chantPhrases` was what the earlier matcher used; **the app no longer reads it**. Still seeded and sent; safe to
 ignore or remove later.
+
+## Opening prayers
+
+`Mantra.prayerMantraId` (nullable, `onDelete: SetNull`, indexed) names another mantra chanted **before** this one — the
+Panchatattva mantra before the mahamantra. The chant counter shows the prayer first and again before every round, so the app is
+sent it whole and needs no second request.
+
+- **`present.mantra` adds `prayer`**: the prayer presented like any mantra (its own text, translations and `durationMs`, which is
+  how long the app makes the reader wait), or `null`. **One level** — the prayer's own prayer is not followed, so two mantras
+  pointing at each other cannot loop. **A prayer that is not published is not shown.**
+- **The admin validates it** (`checkPrayer` in `controllers/admin/mantra.js`): a mantra cannot be its own prayer and the prayer
+  must exist, both a 400 — the foreign key alone would answer 500. The admin list and detail carry `prayerMantra`
+  (`{ id, slug, name }`); the body field is `prayerMantraId`, `null` to take it off.
+- **Seed**: `prayerMantras` in `prisma/seed/data.js` links the seeded pairs (only where a mantra has none, like the other seeded
+  fields); migration `20261016000000_mantra_prayer` adds the column.
+- `npm run test:mantra-prayer` walks it over real HTTP (publishing is done in the database there, since the endpoint wants an
+  uploaded recording — `test:mantra-mala` covers that).
 
 ## Mantra names and translations
 
@@ -422,6 +460,21 @@ day. Nothing in `sadhana/tasks` changed.
 
 `npm run test:routine` walks it against a running API.
 
+## The chant record (what a sitting stores)
+
+A `ChantSession` is one opening of the counter; `rounds` and `beads` only move forward (`PATCH …/chant/session/:id`), and a
+day's total (`recountDay`) sums **finished rounds** of its sessions. That is what lets the app carry a half-finished round into
+the next sitting without the day counting it twice: the old sitting keeps its stale partial `beads`, the new one finishes the round.
+
+- **A round is stored as a summary, not as its taps.** `PUT …/chant/session/:id/detail` takes per round `beads`, `startedAt`,
+  `endedAt`, `durationMs` and `avgGapMs` (idempotent per `[sessionId, index]`); `complete` only counts with all the beads
+  (`beads >= BEADS_PER_ROUND`). A round that was carried over has `durationMs: 0` — unknown, left out of averages. `taps` is still
+  accepted (older app builds) and stored when sent, but nothing sends it now; rows already holding taps stay readable.
+- **History is per mantra, and only sittings with a finished round.** `GET /chant/sessions` takes `mantraId` (an id, or `none`
+  for the plain counter; absent means all) and lists sessions with `rounds > 0`, so a sitting that was opened and left is not
+  listed. The app always sends it.
+- `npm run test:chant` walks the session lifecycle, the summaries, and the filter.
+
 ## Sampradaya from chanting
 
 Which tradition someone follows is **worked out from what they chant**, never chosen.
@@ -454,19 +507,23 @@ owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` �
 
 ## Translation runs (admin panel)
 
-The admin **Translations** page translates Prabhupāda's Gita with Claude as a background job and shows it live.
-The pipeline is the same one `npm run translate:claude` uses (`scripts/lib/claude-translate-*.js`, described in
+The admin **Translations** page translates Prabhupāda's Gita with Claude as a background job and shows it live,
+and imports what was saved into the database. The pipeline is the same one `npm run translate:claude` uses
+(`scripts/lib/claude-translate-*.js`, described in
 [scripts/README.md](scripts/README.md#translating-the-gita-with-claude)); this section is the part that runs it
 inside the API, worker and websocket containers.
 
 | File | Job |
 |---|---|
-| `routes/admin/translation.js`, `controllers/admin/translation.js` | Ten routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter` and `output/:language/verses/:verseId`. `translation.read` for reads, `translation.run` for start / resume / cancel |
+| `routes/admin/translation.js`, `controllers/admin/translation.js` | Twelve routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, and `imports` (`GET` what the database holds per language, `POST` import or preview). `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for the import |
 | `services/translation.js` | Opens the S3 workspace, per-language coverage (cached 300 s), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
+| `services/translation-import.js` | `importLanguage`: reads a language's chapter files from storage and writes them to `VerseTranslation`, or with `dryRun` only says what it would do |
+| `utils/translation-import.js` | Pure functions, no I/O: how a file's verse becomes a row's columns (`rowFromEntry`), whether it is the verse the database holds (`placeProblem`), what differs (`changedColumns`), `reasonOf`. `test/translation-import.test.js` holds them |
 | `jobs/processors/translation.js` | The BullMQ processor: runs the pipeline verse by verse, heartbeats, and decides what a stop means |
 | `utils/translation-run.js` | Pure functions, no I/O: `classifyError`, `retryDelayMs`, `presentRun`, how a pipeline event reads in the feed. `test/translation-run.test.js` holds them |
 | `config/translation.js` | Every timing and limit, with a comment each. Change a number here, not in the processor |
 | `prisma/migrations/20261013000000_translation_runs` | `TranslationRun` and the two permissions |
+| `prisma/migrations/20261018000000_verse_translation_version` | `VerseTranslation.transliteration`, `wordMeanings`, `translatedBy`, `version`, and the `translation.import` permission. Idempotent (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`) |
 
 Things to know before changing it:
 
@@ -497,8 +554,38 @@ Things to know before changing it:
   delivered by the websocket container to sockets whose role has `translation.read`: `translation.run` (the whole
   presented run) and `translation.activity` (`{ runId, at, kind, level, text, verseId? }`, one feed line). The page
   still works without the socket by polling.
-- **The two permissions are inserted by the migration** and given to `admin` and `super_admin`; any other role gets them on the
-  admin Roles page. Permissions are cached for about 5 minutes, so a new grant can take that long to show.
+- **A language already translated under the current `TRANSLATION_VERSION` is not translated again.** A verse is
+  *current* when Prabhupāda's translation exists and Claude's stamp on it (`aiTranslation.version`) is the running
+  version, or there is no stamp (a person's text, which is never replaced). Any other version, newer or older, is
+  *outdated* and is translated again. `start` with nothing but current verses in the chosen chapters creates no run and
+  answers 409 `error.details = { upToDate: true, version }`; the estimate carries `version` and `outdated`, and
+  coverage `upToDate` per language and chapter. To translate it all again, set a new `TRANSLATION_VERSION`.
+- **Import puts storage into the database; storage stays the truth.** `POST /imports` `{ language, chapters?, publish?,
+  dryRun? }` reads `json/bhagavat-gita/<language>/ch-<n>.json` and writes the Prabhupāda `TRANSLATION` row of each verse:
+  `meaning` (the translation), `purport`, `transliteration`, `wordMeanings`, and `translatedBy` / `version` from the
+  verse's `aiTranslation`. Rules, so nobody has to rediscover them:
+  - **The verse is found by its place, and checked.** `verseId` inside the book, and the file's book / canto / chapter / verse
+    numbers must agree with the row's. A verse not in the database, or that disagrees, is reported and left alone; an
+    import never creates a `Verse`.
+  - **An existing row is replaced in place.** The key is the table's own `(verseId, translatorId, languageCode, type)`, so the
+    row keeps its `id` and `createdAt`. A part the file no longer has (a purport removed) is cleared, because storage is the
+    truth. A row that already matches is counted `unchanged` and not written. Other translators, other languages and the
+    English are never touched.
+  - **Hidden unless `publish`.** A new row has `isPublished: false`; an existing row's visibility is never lowered; `publish: true`
+    raises it and needs `verse.publish` as well as `translation.import`. The readers' endpoints only serve published rows.
+  - **One transaction per chapter.** A failed chapter is reported with its reason and rolled back (its counts are zeroed), the
+    others carry on, and running it again is harmless. `dryRun` does the same work and writes nothing; it is what the page
+    shows before the button is pressed.
+  - **One import per language at a time** (Redis `translation:import:<language>`, `importLockSeconds`); a second gets 409. A
+    preview neither waits for the lock nor takes it. An audit row `translation.import` records who, what and the totals. The
+    page offers Import only while no run for that language is live; the API does not enforce that.
+  - **A hand edit on the Verses page is overwritten** by the next import of that verse. Editing a translation there does not
+    touch `translatedBy` / `version`, so a hand-edited row can still read "made by Claude" until it is imported again.
+  - **The read side is not changed yet.** The app and the offline book export serve `meaning` and `purport`; they do not yet
+    send a translation row's `transliteration` or `wordMeanings`, and nothing marks a text as machine-made. That is the next step.
+- **The three permissions are inserted by the migrations** (`translation.read`, `translation.run`, `translation.import`) and
+  given to `admin` and `super_admin`; any other role gets them on the admin Roles page. Permissions are cached for about 5
+  minutes, so a new grant can take that long to show.
 - **The bucket is the app's own** (`S3_BUCKET`, the AWS keys the API already has; `json/bhagavat-gita/` sits in it beside
   the book text). Nothing separate to configure: `openWorkspace()` in `services/translation.js` uses
   `services/s3.js`'s client. `SOURCE_S3_BUCKET` is read only if set (the command line's `.env.scripts` setting; it
@@ -512,10 +599,15 @@ Things to know before changing it:
   knows about the other.
 - `npm run test:translation` (`scripts/translation-e2e.js`) walks it against the real database, Redis and a real
   BullMQ worker with Claude faked: start, progress, credit pause and Resume, a 529 retry, cancel, a killed
-  worker, a flushed queue, permissions and the output endpoints. `npm test` needs Node ≥ 21 for its test glob; under
-  Node 20 run `node --test test/translation-run.test.js`.
-- **Not exercised:** a real Claude call and a write to the real bucket (the e2e uses `SOURCE_LOCAL_DIR`; the app's
-  bucket has only been read, by the page's check and coverage). Run `npm run translate:claude:test` first.
+  worker, a flushed queue, permissions, the version rule, the import's permissions and lock, and the output endpoints.
+  `npm run test:translation-import` (`scripts/translation-import-e2e.js`) walks `importLanguage` against the real database
+  with a throwaway book and a local folder: new, replaced in place with the id kept, unchanged, a part cleared, refused
+  verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once. `npm test` needs Node ≥ 21 for its
+  test glob; under Node 20 run
+  `node --test test/translation-run.test.js test/translation-import.test.js test/claude-translate.test.js`.
+- **Not exercised:** a real Claude call and a write to the real bucket (the e2es use `SOURCE_LOCAL_DIR`; the app's
+  bucket has only been read, by the page's check and coverage). Run `npm run translate:claude:test` first. The import
+  has not been run against the Gita's real S3 files either; do a `dryRun` from the page first.
 
 ## Client attestation on signup
 

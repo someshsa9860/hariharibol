@@ -10,7 +10,7 @@ import { after, describe, test } from 'node:test';
 import { TruncatedError, createClaude, messageRequest, thinkingSettings } from '../scripts/lib/claude-translate-client.js';
 import { LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { PROMPT_VERSION, SYSTEM_PROMPT, answerSchema, userPrompt } from '../scripts/lib/claude-translate-prompt.js';
-import { dryRun, hasTranslation, mergeEntry, run, status, verifyEntry, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
+import { dryRun, hasTranslation, isCurrent, mergeEntry, run, status, verifyEntry, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
 import { DEFAULT_GROUP_BUDGET, chapterKey, saChapterKey, sourceHash, unitsFromChapter } from '../scripts/lib/claude-translate-source.js';
 import {
   ConflictError, DEFAULT_VERSION, backupKey, checkpointKey, dirStore, langChapterKey, testStore, versionFrom,
@@ -1083,27 +1083,138 @@ describe('run', () => {
 /* ---------- versions ---------- */
 
 describe('versions', () => {
-  test('every item carries the run\'s version, and a new version has its own checkpoint and spend', async () => {
+  test('every item carries the run\'s version, and each version has its own checkpoint and spend', async () => {
     const { store, dir } = freshStore();
     await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v1', limit: 1 }), log: quiet() });
-    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v2' }), log: quiet() });
 
     for (const lang of LANGS) {
-      const file = readLang(dir, lang);
-      const v1 = verseOf(file, '1.2.1');
-      const v2 = verseOf(file, '1.2.2');
+      const v1 = verseOf(readLang(dir, lang), '1.2.1');
       assert.equal(v1.aiTranslation.version, 'v1');
       assert.ok(v1.commentaries.every((c) => c.version === 'v1'));
-      assert.equal(v2.aiTranslation.version, 'v2');
-      assert.ok(v2.commentaries.every((c) => c.version === 'v2'));
     }
-    assert.equal((await store.getJson(checkpointKey('v1'))).completedVerses, 1);
+    const cp1 = await store.getJson(checkpointKey('v1'));
+    assert.equal(cp1.completedVerses, 1);
+    assert.equal(cp1.costUsd, 0.5);
+    assert.equal(await store.getJson(checkpointKey('v2')), null, 'another version has no checkpoint until it runs');
+  });
+
+  test('asking again for the version a language already has asks Claude nothing', async () => {
+    const { store, dir } = freshStore();
+    await run({ store, getSource, ask: stub().ask, cfg: cfg(), log: quiet() });
+    const before = Object.fromEntries(LANGS.map((l) => [l, readFileSync(join(dir, langChapterKey(l, 2)), 'utf8')]));
+
+    const again = stub();
+    const log = quiet();
+    const result = await run({ store, getSource, ask: again.ask, cfg: cfg(), log });
+    assert.equal(again.calls.length, 0, 'nothing is sent to Claude');
+    assert.equal(result.done, 0);
+    assert.equal(result.skipped, 2);
+    assert.equal(log.events.filter((e) => e.name === 'backup').length, 0, 'nothing is changed, so nothing is backed up');
+    for (const l of LANGS) assert.equal(readFileSync(join(dir, langChapterKey(l, 2)), 'utf8'), before[l], `${l} is untouched`);
+
+    const plan = await dryRun({ store, getSource, cfg: cfg() });
+    assert.equal(plan.totals.todo, 0);
+    assert.equal(plan.totals.outdated, 0);
+    assert.equal(plan.totals.calls, 0);
+    assert.deepEqual(plan.totals.byLang, { hi: 2, mr: 2, ta: 2 });
+  });
+
+  test('a new version translates again what an older one made, and keeps the older text in a backup first', async () => {
+    const { store, dir } = freshStore();
+    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v1' }), log: quiet() });
+    const v1 = Object.fromEntries(LANGS.map((l) => [l, readFileSync(join(dir, langChapterKey(l, 2)), 'utf8')]));
+
+    const plan = await dryRun({ store, getSource, cfg: cfg({ version: 'v2' }) });
+    assert.equal(plan.totals.todo, 2, 'both verses are to do under the new version');
+    assert.equal(plan.totals.done, 0);
+    assert.equal(plan.totals.outdated, 6, 'two verses in three languages were made under another version');
+    assert.deepEqual(plan.totals.byLang, { hi: 0, mr: 0, ta: 0 }, 'none is up to date');
+    assert.equal(plan.totals.calls, 2);
+
+    const second = stub();
+    const log = quiet();
+    const result = await run({ store, getSource, ask: second.ask, cfg: cfg({ version: 'v2' }), log });
+    assert.deepEqual(second.calls.map((c) => c.ref), ['2.1', '2.2']);
+    assert.equal(result.done, 2);
+    assert.equal(result.skipped, 0);
+
+    for (const lang of LANGS) {
+      for (const id of ['1.2.1', '1.2.2']) {
+        const verse = verseOf(readLang(dir, lang), id);
+        assert.equal(verse.aiTranslation.version, 'v2', `${lang} ${id}`);
+        assert.ok(verse.commentaries.every((c) => c.version === 'v2'), `${lang} ${id} rows`);
+        assert.equal(verse.commentaries.filter((c) => c.type === 'translation').length, 1, 'replaced, not added beside the old one');
+      }
+      assert.equal(readFileSync(join(dir, backupKey(langChapterKey(lang, 2))), 'utf8'), v1[lang], `${lang}: the backup holds the file as v1 left it`);
+    }
+    assert.equal(log.events.filter((e) => e.name === 'backup').length, 3, 'one backup per file, before its first change');
+
     const cp2 = await store.getJson(checkpointKey('v2'));
-    assert.equal(cp2.completedVerses, 1, 'v2 translated only the verse v1 had not done');
-    assert.equal(cp2.costUsd, 0.5);
+    assert.equal(cp2.completedVerses, 2);
+    assert.equal(cp2.costUsd, 1);
+    assert.equal((await store.getJson(checkpointKey('v1'))).completedVerses, 2, 'the older version\'s bookkeeping is left as it was');
 
     const s = await status({ store, getSource, cfg: cfg({ version: 'v2' }) });
-    assert.deepEqual(s.versions, { v1: { hi: 1, mr: 1, ta: 1 }, v2: { hi: 1, mr: 1, ta: 1 } });
+    assert.deepEqual(s.versions, { v2: { hi: 2, mr: 2, ta: 2 } });
+    const after = await dryRun({ store, getSource, cfg: cfg({ version: 'v2' }) });
+    assert.equal(after.totals.todo, 0, 'and now v2 has nothing left');
+  });
+
+  test('a run for a new version that stops part-way carries on with what is still on the old one', async () => {
+    const { store, dir } = freshStore();
+    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v1' }), log: quiet() });
+    const first = await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v2', limit: 1 }), log: quiet() });
+    assert.equal(first.stopReason, 'limit');
+    assert.equal(verseOf(readLang(dir, 'hi'), '1.2.1').aiTranslation.version, 'v2');
+    assert.equal(verseOf(readLang(dir, 'hi'), '1.2.2').aiTranslation.version, 'v1', 'the second verse is still on the old version');
+
+    const plan = await dryRun({ store, getSource, cfg: cfg({ version: 'v2' }) });
+    assert.equal(plan.totals.todo, 1);
+    assert.equal(plan.totals.outdated, 3);
+    assert.deepEqual(plan.totals.byLang, { hi: 1, mr: 1, ta: 1 });
+
+    const rest = stub();
+    const result = await run({ store, getSource, ask: rest.ask, cfg: cfg({ version: 'v2' }), log: quiet() });
+    assert.deepEqual(rest.calls.map((c) => c.ref), ['2.2'], 'only the verse not yet on v2 is asked for');
+    assert.equal(result.skipped, 1);
+    for (const lang of LANGS) for (const id of ['1.2.1', '1.2.2']) assert.equal(verseOf(readLang(dir, lang), id).aiTranslation.version, 'v2');
+  });
+
+  test('a language that is only partly on the version is finished alone', async () => {
+    const { store } = freshStore();
+    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v1', langs: ['hi', 'mr'] }), log: quiet() });
+    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v2', langs: ['hi'] }), log: quiet() });
+
+    const next = stub();
+    await run({ store, getSource, ask: next.ask, cfg: cfg({ version: 'v2', langs: ['hi', 'mr', 'ta'] }), log: quiet() });
+    assert.deepEqual(next.calls.map((c) => [c.ref, c.langs]), [['2.1', ['mr', 'ta']], ['2.2', ['mr', 'ta']]], 'Hindi is already on v2; Marathi is outdated and Tamil is new');
+  });
+
+  test('a translator\'s own text is not replaced, whatever the version', async () => {
+    const { store, dir } = freshStore();
+    const own = { translatorSlug: 'prabhupada', type: 'translation', language: 'hi', displayOrder: 0, text: 'HUMAN-TRANSLATION' };
+    const original = seed(dir, langChapterKey('hi', 2), mergeEntry(existingHindi(), { verseId: '1.2.1', globalVerseNumber: 41, commentaries: [own] }));
+
+    const plan = await dryRun({ store, getSource, cfg: cfg({ langs: ['hi'], version: 'v7' }) });
+    assert.equal(plan.totals.todo, 1, 'only the verse nobody translated');
+    assert.equal(plan.totals.outdated, 0, 'a person\'s text is not "outdated"');
+
+    const { ask, calls } = stub();
+    await run({ store, getSource, ask, cfg: cfg({ langs: ['hi'], version: 'v7' }), log: quiet() });
+    assert.deepEqual(calls.map((c) => c.ref), ['2.2']);
+    const kept = verseOf(readLang(dir, 'hi'), '1.2.1');
+    assert.equal(kept.commentaries.find((c) => c.translatorSlug === 'prabhupada').text, 'HUMAN-TRANSLATION');
+    assert.equal(kept.aiTranslation, undefined);
+    assert.equal(JSON.parse(readFileSync(join(dir, backupKey(langChapterKey('hi', 2))), 'utf8')).verses.length, JSON.parse(original).verses.length, 'the original was backed up before the new verse went in');
+  });
+
+  test('status lists what is saved whichever version made it, so the versions found can be compared', async () => {
+    const { store } = freshStore();
+    await run({ store, getSource, ask: stub().ask, cfg: cfg({ version: 'v1', limit: 1 }), log: quiet() });
+    const s = await status({ store, getSource, cfg: cfg({ version: 'v2' }) });
+    assert.deepEqual(s.versions, { v1: { hi: 1, mr: 1, ta: 1 } });
+    assert.deepEqual(s.rows[0].byLang, { hi: 1, mr: 1, ta: 1 }, 'saved, though not by v2');
+    assert.equal(s.rows[0].done, 1);
   });
 });
 
@@ -1138,6 +1249,17 @@ describe('mergeEntry and hasTranslation', () => {
     assert.equal(hasTranslation(merged, '1.2.1', 'hi'), true);
     assert.equal(hasTranslation(merged, '1.2.1', 'mr'), false, 'a Hindi row is not a Marathi one');
     assert.equal(hasTranslation(merged, '1.2.3', 'hi'), false);
+  });
+
+  test('"current" is the same version, or text Claude did not make', () => {
+    const row = { translatorSlug: 'prabhupada', type: 'translation', language: 'hi', displayOrder: 0, text: 't' };
+    const madeBy = (version) => mergeEntry(existingHindi(), { verseId: '1.2.1', globalVerseNumber: 41, commentaries: [row], aiTranslation: { translatedBy: 'claude', version } });
+    assert.equal(isCurrent(madeBy('v1'), '1.2.1', 'hi', 'v1'), true);
+    assert.equal(isCurrent(madeBy('v1'), '1.2.1', 'hi', 'v2'), false, 'made under another version: outdated');
+    assert.equal(isCurrent(mergeEntry(existingHindi(), { verseId: '1.2.1', globalVerseNumber: 41, commentaries: [row] }), '1.2.1', 'hi', 'v2'), true, 'a translator\'s own text is never outdated');
+    assert.equal(isCurrent(madeBy('v1'), '1.2.1', 'mr', 'v1'), false, 'a Hindi row is not a Marathi one');
+    assert.equal(isCurrent(madeBy('v1'), '1.2.3', 'hi', 'v1'), false, 'nothing saved for that verse');
+    assert.equal(isCurrent(null, '1.2.1', 'hi', 'v1'), false);
   });
 });
 

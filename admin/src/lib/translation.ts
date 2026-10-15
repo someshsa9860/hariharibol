@@ -66,14 +66,18 @@ export type Overview = {
 export type Score = 1 | 2 | 3;
 export type Coverage = {
   generatedAt: string;
+  /** The version a new run would translate under. Null only when TRANSLATION_VERSION is malformed. */
+  version: string | null;
   total: number;
   languages: {
     code: string;
     saved: number;
+    /** Verses already translated under `version`, or by a person: a new run leaves these alone. */
+    upToDate: number;
     byClaude: number;
     scores: { 1: number; 2: number; 3: number; unscored: number };
     versions: Record<string, number>;
-    chapters: { chapter: number; total: number; saved: number }[];
+    chapters: { chapter: number; total: number; saved: number; upToDate: number }[];
   }[];
 };
 
@@ -81,8 +85,11 @@ export type Estimate = {
   language: string;
   chapters: number[];
   model: string;
+  version: string | null;
   verses: number;
   saved: number;
+  /** Of `saved`, made by Claude under another version: a run translates these again. */
+  outdated: number;
   todo: number;
   willTranslate: number;
   calls: number;
@@ -137,11 +144,53 @@ export type VerseOutput = {
 
 export type RunPage = { items: Run[]; page: number; pageSize: number; total: number; totalPages: number };
 
+/** What Claude's runs have put in the database so far (GET /imports), one entry per language that has any. */
+export type ImportStatus = {
+  version: string | null;
+  languages: { code: string; rows: number; current: number; published: number; versions: Record<string, number>; updatedAt: string | null }[];
+};
+
+/** One chapter of an import, or of its preview. `found: false` means storage has no file for it. */
+export type ImportChapter = {
+  chapter: number;
+  found: boolean;
+  inStorage: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  replacedVisible: number;
+  noTranslation: number;
+  missing: string[];
+  conflicts: { verseId: string; reason: string }[];
+  error: string | null;
+};
+
+export type ImportResult = {
+  language: string;
+  publish: boolean;
+  dryRun: boolean;
+  totals: {
+    chapters: number;
+    inStorage: number;
+    created: number;
+    updated: number;
+    unchanged: number;
+    replacedVisible: number;
+    noTranslation: number;
+    missing: number;
+    conflicts: number;
+    failedChapters: number;
+    versions: Record<string, number>;
+  };
+  chapters: ImportChapter[];
+};
+
 const ROOT = '/api/admin/translations';
 export const keys = {
   all: ['translation'] as const,
   overview: ['translation', 'overview'] as const,
   coverage: ['translation', 'coverage'] as const,
+  imports: ['translation', 'imports'] as const,
   runs: ['translation', 'runs'] as const,
   run: (id: string) => ['translation', 'run', id] as const,
   chapter: (language: string, chapter: number) => ['translation', 'chapter', language, chapter] as const,
@@ -169,6 +218,30 @@ export function useCoverage() {
     queryKey: keys.coverage,
     queryFn: async () => (await api.get<Coverage>(`${ROOT}/coverage`)).data,
     staleTime: 60_000,
+  });
+}
+
+export function useImports() {
+  return useQuery({
+    queryKey: keys.imports,
+    queryFn: async () => (await api.get<ImportStatus>(`${ROOT}/imports`)).data,
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * What an import of `language` would do, worked out by the server without writing anything (the same request with
+ * `dryRun`). Always read fresh: it compares storage with the database, and either can change under the page.
+ */
+export function useImportPreview(language: string | null, publish: boolean, enabled: boolean) {
+  return useQuery({
+    queryKey: ['translation', 'import-preview', language, publish],
+    queryFn: async () => (await api.post<ImportResult>(`${ROOT}/imports`, { language, publish, dryRun: true })).data,
+    enabled: enabled && !!language,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -253,6 +326,23 @@ export function useStartRun() {
   return useMutation({
     mutationFn: async (input: StartInput) => (await api.post<Run>(`${ROOT}/runs`, input)).data,
     onSuccess: (run) => putRun(queryClient, run),
+  });
+}
+
+export type ImportInput = { language: string; chapters?: number[]; publish: boolean };
+
+/**
+ * Copies a language's translated chapters from storage into the database. Returns what each chapter did.
+ * The status line and the preview are asked again afterwards, because both just stopped being true.
+ */
+export function useImportTranslations() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: ImportInput) => (await api.post<ImportResult>(`${ROOT}/imports`, { ...input, dryRun: false })).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: keys.imports });
+      void queryClient.invalidateQueries({ queryKey: ['translation', 'import-preview'] });
+    },
   });
 }
 

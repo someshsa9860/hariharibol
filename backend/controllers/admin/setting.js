@@ -9,6 +9,7 @@ import * as settings from '../../services/setting.js';
 import * as audit from '../../services/audit.js';
 import { ok } from '../../utils/respond.js';
 import { badRequest } from '../../utils/errors.js';
+import { parseTimeOfDay } from '../../utils/sloka-delivery.js';
 import { SETTING_KEYS } from '../../config/constants.js';
 
 // The keys the code actually reads, with what each is for. Listed so the panel
@@ -28,9 +29,12 @@ const KNOWN = {
     label: 'Monthly AI budget',
     help: 'In millionths of a dollar. AI calls stop once the month exceeds it. 0 means no cap.',
   },
-  [SETTING_KEYS.SLOKA_DELIVERY_HOUR]: {
-    label: 'Default sloka delivery hour',
-    help: '0–23 in each user’s own timezone, used until the weekly learning finds a better one.',
+  [SETTING_KEYS.SLOKA_DELIVERY_TIME]: {
+    label: 'Sloka delivery time',
+    help:
+      'When the daily sloka is pushed, as HH:MM on a 24-hour clock in each reader’s own timezone ' +
+      '(04:30 is the default). It is sent at the first half hour at or after this time.',
+    timeOfDay: true,
   },
   [SETTING_KEYS.SIGNUP_ENABLED]: {
     label: 'Signups open',
@@ -80,6 +84,10 @@ export const set = async (req, res) => {
     if (value.trim() === '' || !Number.isInteger(n) || n < meta.integerMin) {
       throw badRequest(`${key} must be a whole number, ${meta.integerMin} or more`);
     }
+  }
+
+  if (meta?.timeOfDay && parseTimeOfDay(value) === null) {
+    throw badRequest(`${key} must be a time like 04:30 (24-hour, HH:MM)`);
   }
 
   const row = await settings.set(key, value, {

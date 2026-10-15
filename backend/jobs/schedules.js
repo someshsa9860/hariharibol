@@ -6,16 +6,18 @@
 //
 // Called by the worker on boot. Registration is idempotent: BullMQ keys a
 // repeatable job by name and pattern, so restarting the worker replaces the
-// entry rather than adding a second one. Schedules removed from config/cron.js
-// are cleared here too, or they would keep firing forever with nothing left in
-// the code that mentions them.
+// entry rather than adding a second one. The key includes the pattern, though,
+// so a schedule whose timing was edited in config/cron.js is a new entry beside
+// the old one — the old one is cleared here, along with schedules removed
+// altogether, or it would keep firing forever with nothing in the code that
+// mentions it.
 
 import { queues } from './index.js';
 import { schedules } from '../config/cron.js';
 import logger from '../config/logger.js';
 
 async function registerSchedules() {
-  const wanted = new Set(schedules.map((entry) => entry.name));
+  const wanted = new Map(schedules.map((entry) => [entry.name, entry]));
 
   for (const entry of schedules) {
     const queue = queues[entry.queue];
@@ -33,13 +35,20 @@ async function registerSchedules() {
     logger.info({ job: entry.name, cron: entry.cron, queue: entry.queue }, 'schedule registered');
   }
 
-  // Anything still repeating that is no longer declared.
+  // Anything still repeating that is no longer declared, or declared with other timing.
   for (const name of Object.keys(queues)) {
     const existing = await queues[name].getRepeatableJobs();
     for (const job of existing) {
-      if (wanted.has(job.name)) continue;
+      const entry = wanted.get(job.name);
+      const current =
+        entry && entry.queue === name && job.pattern === entry.cron && (job.tz || 'UTC') === (entry.tz || 'UTC');
+      if (current) continue;
+
       await queues[name].removeRepeatableByKey(job.key);
-      logger.warn({ job: job.name, queue: name }, 'removed a schedule no longer in config/cron.js');
+      logger.warn(
+        { job: job.name, queue: name, pattern: job.pattern },
+        entry ? 'removed an old timing of a schedule in config/cron.js' : 'removed a schedule no longer in config/cron.js'
+      );
     }
   }
 }

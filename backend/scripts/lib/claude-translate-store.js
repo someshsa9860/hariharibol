@@ -27,8 +27,11 @@ export function versionFrom(value) {
   return version;
 }
 
-/** `json/bhagavat-gita/<lang>/ch-<n>.json` — next to the English (`en/`) and Sanskrit (`sa/`) chapter files. */
-export const langChapterKey = (lang, chapterNumber) => `json/${BOOK}/${lang}/ch-${chapterNumber}.json`;
+/**
+ * `json/bhagavat-gita/<lang>/ch-<n>.json` — next to the English (`en/`) and Sanskrit (`sa/`) chapter files.
+ * `book` is only ever given by the import's test, which reads a throwaway book instead of the Gita.
+ */
+export const langChapterKey = (lang, chapterNumber, book = BOOK) => `json/${book}/${lang}/ch-${chapterNumber}.json`;
 
 /** The run's bookkeeping (spend, last verse, the "a run is active" flag), one per translation version. */
 export const checkpointKey = (version) => `json/reports/translate-${BOOK}-${version}.json`;

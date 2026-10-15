@@ -34,6 +34,23 @@ function localHour(timezone, at = new Date()) {
   }
 }
 
+// Minutes since midnight in the user's zone, 0–1439 — for a time of day that is
+// not on the hour (04:30). `h23` so midnight is 0, where `hour12: false` can say 24.
+function localMinutes(timezone, at = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(at);
+    const part = (type) => Number.parseInt(parts.find((p) => p.type === type).value, 10);
+    return (part('hour') % 24) * 60 + part('minute');
+  } catch {
+    return at.getUTCHours() * 60 + at.getUTCMinutes();
+  }
+}
+
 // "2026-09-08" → Date at UTC midnight, the form every @db.Date column takes.
 function toDateColumn(dateString) {
   return new Date(`${dateString}T00:00:00.000Z`);
@@ -77,6 +94,7 @@ export {
   DAY_MS,
   localDateString,
   localHour,
+  localMinutes,
   toDateColumn,
   today,
   shiftDays,

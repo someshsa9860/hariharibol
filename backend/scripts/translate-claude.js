@@ -26,7 +26,7 @@ const HELP = `Usage: node scripts/translate-claude.js [options]
 
   --dry-run            count what is left, estimate calls / tokens / cost; calls nothing, writes nothing
   --status             progress per chapter and language, the versions found, the correctness scores and the checkpoint; add --verify to re-check every saved verse
-  (no mode flag)       translate, resuming automatically: only the verses and languages not yet saved (--resume is accepted)
+  (no mode flag)       translate, resuming automatically: only the verses and languages not yet translated under this version (--resume is accepted)
 
   --chapters 2,3       chapters to work on (default: all 18)
   --verse 1.2.47       one verse only (with --chapters or alone)
@@ -44,6 +44,8 @@ const HELP = `Usage: node scripts/translate-claude.js [options]
   --force              start even though the checkpoint says another run is active (use after a killed run)
 
 The version every verse is stamped with is TRANSLATION_VERSION in backend/.env (default 1.0-12-10-26); it is fixed for the run.
+A verse already translated under that version is left alone. One Claude translated under another version is translated again, so to redo
+a language, change the version. Text that Claude did not translate (a human translator's) is never replaced.
 `;
 
 const { values } = parseArgs({
@@ -144,8 +146,9 @@ if (values['dry-run']) {
   for (const r of rows) console.log(`${pad(r.chapter, 7)}  ${pad(r.verses, 6)}  ${cfg.langs.map((l) => pad(r.byLang[l], 5)).join(' ')}  ${pad(r.todo, 5)}  ${pad(r.calls, 5)}  ${pad(r.words, 6)}`);
   // The instructions ride on every call but are cached after the first, so they are priced as cache reads.
   const cost = costUsd(cfg.model, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
-  console.log(`\nTo do: ${totals.todo} of ${totals.verses} verses (a verse is to do while any language lacks it), about ${totals.calls} calls, ${(totals.words / 1000).toFixed(0)}k English words.`);
-  console.log(`Already saved: ${cfg.langs.map((l) => `${l} ${totals.byLang[l]}/${totals.verses}`).join('   ')}`);
+  console.log(`\nTo do: ${totals.todo} of ${totals.verses} verses (a verse is to do while any language lacks it, or has it from another version), about ${totals.calls} calls, ${(totals.words / 1000).toFixed(0)}k English words.`);
+  console.log(`Up to date for ${cfg.version}: ${cfg.langs.map((l) => `${l} ${totals.byLang[l]}/${totals.verses}`).join('   ')}`);
+  if (totals.outdated) console.log(`Made under another version, so translated again: ${totals.outdated} (verses × languages). --status lists the versions found.`);
   console.log(`Estimated tokens: ~${(totals.inTokens / 1e6).toFixed(1)}M in, ~${(totals.outTokens / 1e6).toFixed(1)}M out, and ~${(totals.systemTokens / 1e6).toFixed(1)}M of instructions re-read from the cache (script-length guesses; real counts are logged per call).`);
   console.log(cfg.effort === 'off'
     ? `Estimated cost: about ${usd(cost)} with thinking off — from the token guesses above; the real cost of every call is logged.`
@@ -207,7 +210,7 @@ const { ask } = createClaude({ apiKey: process.env.ANTHROPIC_API_KEY, model: cfg
 console.log(`Translating the Gita → ${cfg.langs.join(' ')}\nModel ${cfg.model} (${cfg.effort === 'off' ? 'thinking off' : `effort ${cfg.effort}`}) · version ${cfg.version} · output ${store.describe}json/bhagavat-gita/<lang>/ch-<n>.json\n`);
 try {
   const result = await run({ store, getSource, ask, cfg, log, signal: controller.signal });
-  console.log(`\n${result.stopReason}: ${result.done} verse(s) translated this run, ${result.skipped} already saved, ${usd(result.costUsd)} spent.`);
+  console.log(`\n${result.stopReason}: ${result.done} verse(s) translated this run, ${result.skipped} already up to date, ${usd(result.costUsd)} spent.`);
   if (result.stopReason === 'interrupted') process.exitCode = 130;
   if (testRoot && result.done) {
     const { units } = await loadChapter(getSource, cfg.chapters[0]);

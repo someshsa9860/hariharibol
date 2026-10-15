@@ -1,6 +1,8 @@
 // "New translation": pick a language and, if wanted, only some chapters, a verse limit and a spending
 // limit. The estimate on the right is the server's own arithmetic over what is already saved, so the
-// number shown is what a run would actually have left to do.
+// number shown is what a run would actually have left to do: verses not translated yet, plus verses Claude
+// translated under another version. Verses already done under the current version are never sent again, and
+// when that is every verse the server refuses the start (409) and the button is off.
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2, Play } from 'lucide-react';
@@ -149,7 +151,9 @@ export function StartDialog({
                   );
                 })}
               </div>
-              <p className="text-xs text-muted-foreground">Chapters already translated are skipped — only verses that are missing are sent to Claude.</p>
+              <p className="text-xs text-muted-foreground">
+                Verses already translated under the current version{est?.version ? ` (${est.version})` : ''} are skipped. Only verses that are missing, or that Claude made under an older version, are sent to Claude.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -171,6 +175,7 @@ export function StartDialog({
               <dl className={cn('space-y-1.5', estimate.isFetching && 'opacity-60')}>
                 <Row label="In the chapters" value={`${formatCount(est.verses)} verses`} />
                 <Row label="Already saved" value={formatCount(est.saved)} />
+                {est.outdated > 0 && <Row label="Older version" value={formatCount(est.outdated)} />}
                 <Row label="To translate" value={<b>{formatCount(est.willTranslate)}</b>} />
                 <Row label="Claude calls" value={`≈ ${formatCount(est.calls)}`} />
                 <Row label="Tokens" value={`≈ ${formatCount(est.inputTokens + est.outputTokens)}`} />
@@ -186,7 +191,11 @@ export function StartDialog({
                 <Loader2 className="h-4 w-4 animate-spin" /> Working it out…
               </div>
             )}
-            {nothingToDo && <p className="text-xs text-success">Everything in this selection is already translated.</p>}
+            {nothingToDo && (
+              <p className="text-xs text-success">
+                Everything in this selection is already translated under version {est.version ?? 'the current one'}. To translate it again, set a new TRANSLATION_VERSION on the server.
+              </p>
+            )}
           </aside>
         </div>
 

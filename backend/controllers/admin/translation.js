@@ -10,6 +10,11 @@
 //     stops cleanly. A queued, paused or stalled run is cancelled here directly.
 //   - Resume is for a PAUSED run (credit, auth, a budget, a bad config) or a FAILED one. It never
 //     re-translates what is saved: the next job starts at the first unsaved verse.
+//   - A run is for one version (TRANSLATION_VERSION, copied onto the row when it starts). A verse already
+//     translated under that version is never translated again, so `start` refuses a run that would have
+//     nothing to do; a verse Claude made under another version is outdated and is translated again.
+//   - Import copies what is in storage into the database (services/translation-import.js). It is
+//     quick enough to answer the request, so it is not a job; a lock keeps two of them from overlapping.
 
 import { prisma } from '../../config/database.js';
 import { redis } from '../../config/redis.js';
@@ -17,14 +22,16 @@ import logger from '../../config/logger.js';
 import { translation } from '../../config/translation.js';
 import * as audit from '../../services/audit.js';
 import * as service from '../../services/translation.js';
+import * as importer from '../../services/translation-import.js';
 import { ACTIVE_STATUSES, microsOf, presentRun } from '../../utils/translation-run.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
-import { conflict, notFound, unprocessable } from '../../utils/errors.js';
+import { conflict, forbidden, notFound, unprocessable } from '../../utils/errors.js';
 import { CHAPTERS } from '../../scripts/lib/claude-translate-source.js';
 
 const START_LOCK_SECONDS = 20;
 const lockKey = (language) => `translation:start:${language}`;
+const importLockKey = (language) => `translation:import:${language}`;
 
 const forget = (entity) => ({ id: entity.id, status: entity.status, language: entity.language });
 
@@ -134,6 +141,20 @@ export const start = async (req, res) => {
     }
 
     const picked = [...new Set(chapters ?? CHAPTERS)].sort((a, b) => a - b);
+
+    // Nothing to translate is not a run: if everything asked for is already translated under this version,
+    // say so rather than queue a job that finishes at once with "0 verses translated".
+    const left = await service.estimate({ language, chapters: picked, limit: verseLimit ?? 0, version }).catch((err) => {
+      throw unprocessable(`Could not check what is already translated: ${err.message}`);
+    });
+    if (left.willTranslate === 0) {
+      const name = service.languages().find((l) => l.code === language)?.name ?? language;
+      throw conflict(
+        `${name} is already translated with version ${version}, so there is nothing to translate. Set a new TRANSLATION_VERSION to translate it again.`,
+        { upToDate: true, version }
+      );
+    }
+
     const row = await prisma.translationRun.create({
       data: {
         language,
@@ -298,4 +319,48 @@ export const verse = async (req, res) => {
   });
   if (!data) throw notFound('Verse');
   return ok(res, data);
+};
+
+/** GET /api/admin/translations/imports — what Claude's runs have put in the database, per language. */
+export const imports = async (req, res) => {
+  let version = null;
+  try {
+    version = service.currentVersion();
+  } catch {
+    // A malformed TRANSLATION_VERSION is reported by the overview; here it only means no row counts as current.
+  }
+  return ok(res, await importer.importStatus({ version }));
+};
+
+/** POST /api/admin/translations/imports — copy a language's translated chapters from storage into the database. */
+export const importTranslations = async (req, res) => {
+  const { language, chapters, publish, dryRun } = req.valid.body;
+  if (publish && !req.auth.permissions.has('verse.publish')) {
+    throw forbidden('Making translations visible to readers needs the permission: verse.publish');
+  }
+
+  const work = () =>
+    importer.importLanguage({ language, chapters: chapters ?? CHAPTERS, publish, dryRun }).catch((err) => {
+      throw err.expected ? err : unprocessable(`Could not import the translations: ${err.message}`);
+    });
+
+  // A preview only reads, so it neither waits for an import nor holds one up.
+  if (dryRun) return ok(res, await work());
+
+  const gotLock = await redis.set(importLockKey(language), req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
+  if (!gotLock) throw conflict('An import of this language is already running. Wait for it to finish.');
+
+  try {
+    const result = await work();
+    const { versions, ...counts } = result.totals;
+    await audit.record(req, {
+      action: 'translation.import',
+      entityType: 'TranslationImport',
+      entityId: language,
+      after: { language, publish, chapters: chapters ?? 'all', versions, ...counts },
+    });
+    return ok(res, result);
+  } finally {
+    await redis.del(importLockKey(language)).catch(() => {});
+  }
 };

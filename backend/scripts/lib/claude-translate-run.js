@@ -13,13 +13,19 @@
 //     correctness score of 1 to 3 on every item (3 perfect, 2 good, 1 needs a second round), so a later
 //     pass can pick out the verses to redo. "Usable" means there is something to save at all: the JSON
 //     parses and the translation is not empty. "Done" means one thing: the language's chapter file holds
-//     a Prabhupāda translation for that verse. The checkpoint is a summary, never the source of truth.
+//     a Prabhupāda translation for that verse that is current (`isCurrent`) — made under this run's
+//     version, or not by Claude at all. The checkpoint is a summary, never the source of truth.
+//   * A version is what decides whether to translate again. Asking for the version a verse was already
+//     translated under asks Claude nothing; a verse Claude translated under another version is outdated
+//     and is translated again — that is what bumping TRANSLATION_VERSION is for. A translator's own
+//     work (a row with no `aiTranslation`) is never replaced.
 //   * All four items are asked for every time. An answer that leaves a whole one out (the English has a
 //     purport, the answer has none) is asked again; only if every round does is it saved without it.
 //   * The next verse does not start until the save is confirmed (the whole file reads back equal).
 //   * Nothing is overwritten blind: every write carries the tag of the file it was built from and
-//     fails if someone else changed it; a file that existed before this pipeline touched it is
-//     copied to json-backup-<date>/ first. A verse already done is skipped, not redone.
+//     fails if someone else changed it; a file that existed before this pipeline touched it, or that
+//     holds another version's verses this run is about to replace, is copied to json-backup-<date>/
+//     first. A verse already done is skipped, not redone.
 //   * A verse that gets no usable answer after --max-rounds stops the run. It is never skipped.
 
 import { TruncatedError, addUsage, emptyUsage, costUsd } from './claude-translate-client.js';
@@ -206,10 +212,22 @@ export function newFile(meta, lang) {
   return { meta: { ...rest, language: lang }, verses: [] };
 }
 
-/** Does this language's chapter file already hold Prabhupāda's translation of the verse? */
+/** Does this language's chapter file already hold Prabhupāda's translation of the verse, whoever made it? */
 export function hasTranslation(file, verseId, lang) {
   const verse = file?.verses?.find((v) => v.verseId === verseId);
   return Boolean(verse?.commentaries?.some((c) => c.translatorSlug === TRANSLATOR && c.type === 'translation' && c.language === lang));
+}
+
+/**
+ * Is the verse's translation in this language up to date for `version`? One that Claude made under the
+ * same version is; one Claude made under another version is outdated, and a run for `version` makes it
+ * again. One Claude did not make (the verse has no `aiTranslation`) counts as current whatever the
+ * version: a translator's own text is never replaced by a run.
+ */
+export function isCurrent(file, verseId, lang, version) {
+  if (!hasTranslation(file, verseId, lang)) return false;
+  const made = file.verses.find((v) => v.verseId === verseId).aiTranslation;
+  return !made || made.version === version;
 }
 
 /**
@@ -264,12 +282,17 @@ export function verifyEntry(verse, unit, lang) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * A file that exists and that this pipeline has not written yet is somebody's original: it is copied
- * to the backup folder before the first change. Once a verse of it carries `aiTranslation` the
- * backup was already taken.
+ * Copies the file to the backup folder before this run's first change to it, when what is there is
+ * something to lose: a file this pipeline has not written yet is somebody's original (no verse of it
+ * carries `aiTranslation`), and a file with verses Claude made under another version is about to have
+ * some of them replaced by this one. A file holding nothing but this version's own verses is not copied
+ * again. `state.backedUp` keeps it to once per file per run (the store keeps an earlier copy from the
+ * same day rather than overwriting it).
  */
-async function backupIfPristine(store, key, state, log) {
-  if (!state.file || state.backedUp || state.file.verses.some((v) => v.aiTranslation)) return;
+async function backupBeforeFirstWrite(store, key, state, version, log) {
+  if (!state.file || state.backedUp) return;
+  const madeByClaude = state.file.verses.filter((v) => v.aiTranslation);
+  if (madeByClaude.length && madeByClaude.every((v) => v.aiTranslation.version === version)) return;
   const to = await store.backup(key);
   state.backedUp = true;
   log.event('backup', { key, to });
@@ -283,7 +306,7 @@ async function backupIfPristine(store, key, state, log) {
 async function saveEntry({ store, key, meta, lang, entry, state, log, retryDelayMs }) {
   let failures = 0;
   for (let attempt = 1; ; attempt++) {
-    await backupIfPristine(store, key, state, log);
+    await backupBeforeFirstWrite(store, key, state, entry.aiTranslation.version, log);
     const next = mergeEntry(state.file || newFile(meta, lang), entry);
     const body = JSON.stringify(next, null, 2);
     try {
@@ -332,7 +355,8 @@ async function readChapterFiles(store, langs, n) {
   return states;
 }
 
-const pendingLangs = (states, langs, verseId) => langs.filter((l) => !hasTranslation(states[l].file, verseId, l));
+/** The languages a run for `version` still has to translate for this verse: missing, or made under another version. */
+const pendingLangs = (states, langs, verseId, version) => langs.filter((l) => !isCurrent(states[l].file, verseId, l, version));
 
 /* ---------- the run ---------- */
 
@@ -372,7 +396,7 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
 
       for (const unit of units) {
         if (cfg.only && unit.verseId !== cfg.only) continue;
-        const pending = pendingLangs(states, cfg.langs, unit.verseId);
+        const pending = pendingLangs(states, cfg.langs, unit.verseId, cfg.version);
         if (!pending.length) {
           chapterDone++;
           session.skipped++;
@@ -417,7 +441,7 @@ export async function run({ store, getSource, ask, cfg, log, signal }) {
         await writeCheckpoint(store, cp);
 
         session.done++;
-        if (!pendingLangs(states, cfg.langs, unit.verseId).length) chapterDone++;
+        if (!pendingLangs(states, cfg.langs, unit.verseId, cfg.version).length) chapterDone++;
         const correctness = Object.fromEntries(pending.map((l) => [l, result.qualityByLang[l].correctness]));
         log.event('verse', { verseId: unit.verseId, langs: pending, correctness, rounds: result.rounds, calls: result.usage.calls, costUsd: result.costUsd });
         log.say(
@@ -447,21 +471,27 @@ const k = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 
 /* ---------- dry run & status ---------- */
 
-/** What a run would do, without calling Claude or writing anything. */
+/**
+ * What a run for `cfg.version` would do, without calling Claude or writing anything. `byLang` counts the
+ * verses a language has up to date (nothing to do for them); `outdated` counts the verse translations —
+ * a verse in a language — that Claude made under another version and the run would make again. They are
+ * part of `todo`, not extra to it.
+ */
 export async function dryRun({ store, getSource, cfg, pricePerM = { input: 4, output: 20 } }) {
   const rows = [];
   const instructionTokens = Math.round(SYSTEM_PROMPT.length / 3.6); // what every call carries besides the verse; a guess
-  const totals = { chapters: 0, verses: 0, done: 0, todo: 0, calls: 0, words: 0, inTokens: 0, systemTokens: 0, outTokens: 0, byLang: Object.fromEntries(cfg.langs.map((l) => [l, 0])) };
+  const totals = { chapters: 0, verses: 0, done: 0, todo: 0, outdated: 0, calls: 0, words: 0, inTokens: 0, systemTokens: 0, outTokens: 0, byLang: Object.fromEntries(cfg.langs.map((l) => [l, 0])) };
   for (const n of cfg.chapters) {
     const { units } = await loadChapter(getSource, n);
     const states = await readChapterFiles(store, cfg.langs, n);
     const byLang = Object.fromEntries(cfg.langs.map((l) => [l, 0]));
-    let verses = 0, todo = 0, calls = 0, words = 0, inTokens = 0, outTokens = 0;
+    let verses = 0, todo = 0, outdated = 0, calls = 0, words = 0, inTokens = 0, outTokens = 0;
     for (const unit of units) {
       if (cfg.only && unit.verseId !== cfg.only) continue;
       verses++;
-      const pending = pendingLangs(states, cfg.langs, unit.verseId);
+      const pending = pendingLangs(states, cfg.langs, unit.verseId, cfg.version);
       for (const l of cfg.langs) if (!pending.includes(l)) byLang[l]++;
+      outdated += pending.filter((l) => hasTranslation(states[l].file, unit.verseId, l)).length;
       if (!pending.length) continue;
       todo++;
       const groups = groupLanguages(unit, pending, cfg.groupBudget);
@@ -470,11 +500,11 @@ export async function dryRun({ store, getSource, cfg, pricePerM = { input: 4, ou
       inTokens += groups.length * estimateInputTokens(unit);
       outTokens += pending.reduce((sum, l) => sum + estimateOutputTokens(unit, l), 0);
     }
-    rows.push({ chapter: n, verses, done: verses - todo, todo, calls, words, inTokens, outTokens, byLang });
+    rows.push({ chapter: n, verses, done: verses - todo, todo, outdated, calls, words, inTokens, outTokens, byLang });
     Object.assign(totals, {
       chapters: totals.chapters + 1, verses: totals.verses + verses, done: totals.done + (verses - todo), todo: totals.todo + todo,
-      calls: totals.calls + calls, words: totals.words + words, inTokens: totals.inTokens + inTokens, outTokens: totals.outTokens + outTokens,
-      systemTokens: totals.systemTokens + calls * instructionTokens,
+      outdated: totals.outdated + outdated, calls: totals.calls + calls, words: totals.words + words, inTokens: totals.inTokens + inTokens,
+      outTokens: totals.outTokens + outTokens, systemTokens: totals.systemTokens + calls * instructionTokens,
     });
     for (const l of cfg.langs) totals.byLang[l] += byLang[l];
   }
@@ -484,10 +514,10 @@ export async function dryRun({ store, getSource, cfg, pricePerM = { input: 4, ou
 }
 
 /**
- * Progress read from the language files: per chapter, how many verses each language has, plus a tally of
- * the versions found (`{ version: { lang: verses } }`), of the correctness scores (`{ lang: { 1, 2, 3 } }`) and
- * the verses scored 1 (`redo`), the run's checkpoint, and — with `verify` — a strict re-check of every saved
- * verse (`bad`).
+ * Progress read from the language files: per chapter, how many verses each language has (whichever version
+ * made them — the tally of versions below says which), plus a tally of the versions found
+ * (`{ version: { lang: verses } }`), of the correctness scores (`{ lang: { 1, 2, 3 } }`) and the verses
+ * scored 1 (`redo`), the run's checkpoint, and — with `verify` — a strict re-check of every saved verse (`bad`).
  */
 export async function status({ store, getSource, cfg, verify = false }) {
   const checkpoint = await store.getJson(checkpointKey(cfg.version));
@@ -502,10 +532,10 @@ export async function status({ store, getSource, cfg, verify = false }) {
     const byLang = Object.fromEntries(cfg.langs.map((l) => [l, 0]));
     let all = 0;
     for (const unit of units) {
-      const pending = pendingLangs(states, cfg.langs, unit.verseId);
-      if (!pending.length) all++;
+      const saved = (lang) => hasTranslation(states[lang].file, unit.verseId, lang);
+      if (cfg.langs.every(saved)) all++;
       for (const lang of cfg.langs) {
-        if (pending.includes(lang)) continue;
+        if (!saved(lang)) continue;
         byLang[lang]++;
         const verse = states[lang].file.verses.find((v) => v.verseId === unit.verseId);
         const version = verse.aiTranslation?.version ?? 'unversioned';

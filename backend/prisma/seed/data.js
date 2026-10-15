@@ -4,7 +4,13 @@
 // file is about *what* the platform starts with, index.js is about how it gets
 // written.
 
-import { ROLES, ROLE_PERMISSIONS, PERMISSIONS, SETTING_KEYS } from '../../config/constants.js';
+import {
+  ROLES,
+  ROLE_PERMISSIONS,
+  PERMISSIONS,
+  SETTING_KEYS,
+  SLOKA_DEFAULT_DELIVERY_TIME,
+} from '../../config/constants.js';
 
 // ── Roles ──────────────────────────────────────────────────────────────────
 // Marked isSystem so they cannot be deleted from the panel: removing the role
@@ -257,7 +263,7 @@ const translators = [
 // app counts one chant per this much sound. Only written to a mantra that has no
 // time yet, so an admin's edit on the Mantras page is never overwritten.
 const standardChantMs = {
-  'hare-krishna-mahamantra': 8000,
+  'hare-krishna-mahamantra': 4000,
   'panchatattva-mantra': 7000,
   'om-namo-bhagavate-vasudevaya': 4000,
   'rama-taraka-mantra': 3500,
@@ -268,6 +274,12 @@ const standardChantMs = {
   'maha-mrityunjaya-mantra': 12000,
   'shiva-gayatri': 8000,
   'datta-mala-mantra': 4000,
+};
+
+// The prayer chanted before a mantra, by slug. Only written to a mantra that has none
+// yet, so an admin's choice on the Mantras page is never overwritten.
+const prayerMantras = {
+  'hare-krishna-mahamantra': 'panchatattva-mantra',
 };
 
 const mantras = [
@@ -862,7 +874,7 @@ const settings = [
   { key: SETTING_KEYS.AI_MODEL_TEXT, value: 'gemini-2.0-flash' },
   // 0 means no cap. Set one before running a batch pass.
   { key: SETTING_KEYS.AI_MONTHLY_BUDGET_MICROS, value: '0' },
-  { key: SETTING_KEYS.SLOKA_DELIVERY_HOUR, value: '6' },
+  { key: SETTING_KEYS.SLOKA_DELIVERY_TIME, value: SLOKA_DEFAULT_DELIVERY_TIME },
   { key: SETTING_KEYS.SIGNUP_ENABLED, value: 'true' },
 ];
 
@@ -876,6 +888,7 @@ export {
   translators,
   mantras,
   standardChantMs,
+  prayerMantras,
   books,
   cantos,
   stories,

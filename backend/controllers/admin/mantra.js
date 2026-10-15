@@ -51,6 +51,16 @@ async function malaAudioChanges(before, body) {
   return next;
 }
 
+/** A prayer has to be another mantra that exists; the foreign key alone would answer with a 500. */
+async function checkPrayer(mantraId, prayerMantraId) {
+  if (!prayerMantraId) return;
+  if (prayerMantraId === mantraId) throw badRequest('A mantra cannot be its own prayer');
+  const prayer = await prisma.mantra.findUnique({ where: { id: prayerMantraId }, select: { id: true } });
+  if (!prayer) throw badRequest('That prayer mantra does not exist');
+}
+
+const PRAYER = { select: { id: true, slug: true, name: true } };
+
 /** GET /api/admin/mantras */
 export const list = async (req, res) => {
   const { q, category, isPublished } = req.valid.query;
@@ -67,6 +77,7 @@ export const list = async (req, res) => {
     include: {
       deity: { select: { slug: true, name: true } },
       guru: { select: { slug: true, name: true } },
+      prayerMantra: PRAYER,
       _count: { select: { translations: true } },
     },
     query: req.valid.query,
@@ -103,7 +114,7 @@ export const transliterate = async (req, res) => {
 export const get = async (req, res) => {
   const mantra = await prisma.mantra.findUnique({
     where: { id: req.valid.params.id },
-    include: { deity: true, guru: true, translations: { orderBy: { languageCode: 'asc' } } },
+    include: { deity: true, guru: true, prayerMantra: PRAYER, translations: { orderBy: { languageCode: 'asc' } } },
   });
   if (!mantra) throw notFound('Mantra');
 
@@ -114,6 +125,7 @@ export const get = async (req, res) => {
 };
 
 export const create = async (req, res) => {
+  await checkPrayer(null, req.valid.body.prayerMantraId);
   const data = { ...req.valid.body, ...(await malaAudioChanges(null, req.valid.body)) };
   const mantra = await prisma.mantra.create({ data });
   await audit.record(req, {
@@ -128,6 +140,7 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   const before = await prisma.mantra.findUnique({ where: { id: req.valid.params.id } });
   if (!before) throw notFound('Mantra');
+  await checkPrayer(before.id, req.valid.body.prayerMantraId);
 
   const data = { ...req.valid.body, ...(await malaAudioChanges(before, req.valid.body)) };
   const mantra = await prisma.mantra.update({ where: { id: before.id }, data });

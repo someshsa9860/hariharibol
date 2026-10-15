@@ -43,9 +43,11 @@
     "test:chant": "node scripts/chant-e2e.js",
     "test:routine": "node scripts/routine-e2e.js",
     "test:mantra-mala": "node scripts/mantra-mala-e2e.js",
+    "test:mantra-prayer": "node scripts/mantra-prayer-e2e.js",
     "test:sampradaya": "node scripts/sampradaya-e2e.js",
     "test:book-counts": "node scripts/book-counts-e2e.js",
-    "test:translation": "node scripts/translation-e2e.js"
+    "test:translation": "node scripts/translation-e2e.js",
+    "test:translation-import": "node scripts/translation-import-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

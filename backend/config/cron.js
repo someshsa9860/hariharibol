@@ -7,6 +7,11 @@ import { bookCache } from './book-cache.js';
 // schedule with it. Times are UTC; jobs that must respect a user's own clock
 // read `User.timezone` themselves rather than being scheduled per zone.
 
+// How often the sloka push looks for readers whose delivery time has come. The
+// delivery time is a half-hour mark (04:30), so this has to divide the hour; the
+// job reads it too, to know how wide "now" is.
+const SLOKA_DELIVERY_STEP_MINUTES = 30;
+
 const schedules = [
   {
     name: 'sloka.build',
@@ -19,9 +24,10 @@ const schedules = [
   {
     name: 'sloka.deliver',
     queue: 'sloka',
-    // Hourly: each run pushes to the users whose local delivery hour it now is.
-    cron: '0 * * * *',
-    description: 'Push the day’s sloka to users whose local delivery hour has arrived.',
+    // Every half hour: each run pushes to the users whose local delivery time
+    // (default 04:30) fell in the last half hour.
+    cron: `*/${SLOKA_DELIVERY_STEP_MINUTES} * * * *`,
+    description: 'Push the day’s sloka to users whose local delivery time has arrived.',
   },
   {
     name: 'sadhana.reminder',
@@ -88,4 +94,4 @@ const defaultJobOptions = {
   ...retention,
 };
 
-export { schedules, retention, defaultJobOptions };
+export { schedules, retention, defaultJobOptions, SLOKA_DELIVERY_STEP_MINUTES };
