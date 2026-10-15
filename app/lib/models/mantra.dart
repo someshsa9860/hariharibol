@@ -29,6 +29,7 @@ class Mantra {
     this.standardCount = 0,
     this.deity,
     this.guru,
+    this.prayer,
     this.availableLanguages = const [],
     this.isFavorite = false,
     this.myRounds = 0,
@@ -75,6 +76,11 @@ class Mantra {
 
   final ReferenceItem? deity;
   final ReferenceItem? guru;
+
+  /// The prayer chanted before this mantra — the Panchatattva mantra before the
+  /// mahamantra — shown on the counter before every round. Null when this
+  /// mantra has none (or its prayer is not published).
+  final Mantra? prayer;
 
   /// Set only by `GET /mantras/:slug` — the list endpoint does not resolve
   /// these, so they stay at their defaults for every card in a row.
@@ -133,6 +139,7 @@ class Mantra {
         standardCount: asInt(json['standardCount']),
         deity: asJson(json['deity']) == null ? null : ReferenceItem.fromJson(asJson(json['deity'])!),
         guru: asJson(json['guru']) == null ? null : ReferenceItem.fromJson(asJson(json['guru'])!),
+        prayer: asJson(json['prayer']) == null ? null : Mantra.fromJson(asJson(json['prayer'])!),
         availableLanguages: asStringList(json['availableLanguages']),
         isFavorite: asBool(json['isFavorite']),
         myRounds: asInt(json['myRounds']),

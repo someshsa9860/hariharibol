@@ -382,6 +382,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantFullPicture => 'முழுத்திரை படம்';
 
   @override
+  String get chantPrayerHint =>
+      'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு எண்ணத் தொடங்க வளையத்தைத் தட்டுங்கள்.';
+
+  @override
   String get sadhanaAutoCountListening => 'கேட்கிறது…';
 
   @override

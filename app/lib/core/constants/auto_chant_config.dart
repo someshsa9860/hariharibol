@@ -33,11 +33,28 @@ abstract final class AutoChantConfig {
   // ── How long one chant takes ────────────────────────────────────────────
   /// Every mantra carries its own standard time (`Mantra.durationMs`, set on the
   /// admin **Mantras** page). One that has none is taken to be this long per
-  /// letter of its text.
-  static const double chantSecondsPerLetter = 0.2;
+  /// letter of its text — a rough guess, so set the real time where it matters.
+  static const double chantSecondsPerLetter = 0.1;
 
   /// Never shorter than this, so a one-syllable mantra is not counted every blink.
   static const double minChantSeconds = 1.0;
+
+  /// Someone chanting gets quicker as a sitting goes on. **The numbers to change**
+  /// if auto count falls behind (raise them) or runs ahead (lower them): each
+  /// chant counted is taken to last this much less than the one before — 0.01 is
+  /// 1% — ...
+  static const double speedUpPerChant = 0.01;
+
+  /// ...but never less than this share of the standard time, so a long sitting is
+  /// not counted faster than anyone can chant. 0.65 is reached after about 43 chants.
+  static const double fastestShare = 0.65;
+
+  /// With auto count off the ring is tapped by hand, and a tap that comes sooner
+  /// than this share of one standard chant after the last is ignored — nobody has
+  /// finished a chant in that time, so it would only be a tap with no chanting
+  /// behind it. The standard time itself, not the sped-up one: half of it is
+  /// always shorter than the quickest real chant.
+  static const double manualTapGapShare = 0.5;
 
   /// A last, unfinished chant still counts when sound stops if at least this
   /// share of a standard time was chanted.

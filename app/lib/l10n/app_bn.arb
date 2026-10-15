@@ -93,6 +93,7 @@
   "sadhanaAutoCountIdle": "জপের অপেক্ষায়",
   "chantAutoCountLoading": "স্বয়ংক্রিয় গণনা প্রস্তুত হচ্ছে…",
   "chantFullPicture": "পূর্ণ পর্দার ছবি",
+  "chantPrayerHint": "প্রথমে এই প্রার্থনাটি করুন, তারপর গণনা শুরু করতে বৃত্তে ট্যাপ করুন।",
   "sadhanaAutoCountListening": "শুনছে…",
   "sadhanaAutoCountCounted": "গোনা হয়েছে — পরেরটির অপেক্ষায়",
   "sadhanaAutoCountPermissionDenied": "স্বয়ংক্রিয় গণনার জন্য মাইক্রোফোনের অনুমতি দরকার",

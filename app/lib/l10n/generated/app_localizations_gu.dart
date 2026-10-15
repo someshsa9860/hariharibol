@@ -379,6 +379,10 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantFullPicture => 'પૂર્ણ સ્ક્રીન ચિત્ર';
 
   @override
+  String get chantPrayerHint =>
+      'પહેલા આ પ્રાર્થના કરો, પછી ગણતરી શરૂ કરવા માટે વર્તુળ પર ટેપ કરો.';
+
+  @override
   String get sadhanaAutoCountListening => 'સાંભળી રહ્યું છે…';
 
   @override

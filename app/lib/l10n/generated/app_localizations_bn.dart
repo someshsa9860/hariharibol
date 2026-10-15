@@ -382,6 +382,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chantFullPicture => 'পূর্ণ পর্দার ছবি';
 
   @override
+  String get chantPrayerHint =>
+      'প্রথমে এই প্রার্থনাটি করুন, তারপর গণনা শুরু করতে বৃত্তে ট্যাপ করুন।';
+
+  @override
   String get sadhanaAutoCountListening => 'শুনছে…';
 
   @override

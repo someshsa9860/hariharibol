@@ -378,6 +378,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantFullPicture => 'Full-screen picture';
 
   @override
+  String get chantPrayerHint =>
+      'Chant this prayer first, then tap the ring to begin counting.';
+
+  @override
   String get sadhanaAutoCountListening => 'Listening…';
 
   @override

@@ -49,54 +49,111 @@ class ChantTapLog {
       );
 }
 
-/// One round of the mala: its taps, and everything that follows from them.
+/// One round of the mala.
 ///
-/// Nothing here is stored beside the taps — start, end and duration are read
-/// off them, so the three can never disagree with the list they describe.
+/// Two shapes, one reading. A round chanted on this screen is built from its
+/// taps, and its start, end and duration are read off them, so the figures can
+/// never disagree with the list they describe. A round that comes back from the
+/// server is a [ChantMalaLog.stored]: the server keeps a summary of each round
+/// and not its taps (a row per bead is what made the history so large), so it
+/// has the figures and no taps.
 class ChantMalaLog {
-  const ChantMalaLog({required this.index, required this.taps, this.complete = false});
+  const ChantMalaLog({
+    required this.index,
+    required this.taps,
+    this.complete = false,
+    this.carried = 0,
+  })  : _storedBeads = null,
+        _storedStartedAt = null,
+        _storedEndedAt = null,
+        _storedDurationMs = 0,
+        _storedAvgGapMs = 0;
+
+  /// A round as the server keeps it: the figures, without the taps.
+  const ChantMalaLog.stored({
+    required this.index,
+    required int beads,
+    required this.complete,
+    DateTime? startedAt,
+    DateTime? endedAt,
+    int durationMs = 0,
+    int avgGapMs = 0,
+  })  : taps = const [],
+        carried = 0,
+        _storedBeads = beads,
+        _storedStartedAt = startedAt,
+        _storedEndedAt = endedAt,
+        _storedDurationMs = durationMs,
+        _storedAvgGapMs = avgGapMs;
 
   /// 1-based within the sitting.
   final int index;
+
+  /// The taps made on this screen. Empty for a [ChantMalaLog.stored] round.
   final List<ChantTapLog> taps;
 
   /// All of the round's beads were counted.
   final bool complete;
 
-  int get beads => taps.length;
+  /// Beads of this round counted before the screen was opened, when the
+  /// sitting carried on from a count left by an earlier one. They have no taps
+  /// here, but they are beads of this round all the same.
+  final int carried;
+
+  // Set only on a stored round, whose figures are not worked out from taps.
+  final int? _storedBeads;
+  final DateTime? _storedStartedAt;
+  final DateTime? _storedEndedAt;
+  final int _storedDurationMs;
+  final int _storedAvgGapMs;
+
+  bool get _isStored => _storedBeads != null;
+
+  int get beads => _storedBeads ?? carried + taps.length;
 
   /// The first and last tap. A round that has not had a tap has neither.
-  DateTime? get startedAt => taps.isEmpty ? null : taps.first.at;
-  DateTime? get endedAt => taps.isEmpty ? null : taps.last.at;
+  DateTime? get startedAt =>
+      _isStored ? _storedStartedAt : (taps.isEmpty ? null : taps.first.at);
+  DateTime? get endedAt => _isStored ? _storedEndedAt : (taps.isEmpty ? null : taps.last.at);
 
-  int get durationMs =>
-      taps.length < 2 ? 0 : taps.last.at.difference(taps.first.at).inMilliseconds;
+  /// How long the round took. 0 when that is not known: a round with beads
+  /// carried over was begun in an earlier sitting, so the time between its
+  /// first and last tap here is not the time it took.
+  int get durationMs {
+    if (_isStored) return _storedDurationMs;
+    if (carried > 0 || taps.length < 2) return 0;
+    return taps.last.at.difference(taps.first.at).inMilliseconds;
+  }
 
   double get durationSeconds => durationMs / 1000;
 
   /// Mean gap, leaving out the first tap of the sitting (which has none).
   int get avgGapMs {
+    if (_isStored) return _storedAvgGapMs;
     final gaps = taps.where((tap) => tap.gapMs > 0).map((tap) => tap.gapMs).toList();
     if (gaps.isEmpty) return 0;
     return (gaps.reduce((a, b) => a + b) / gaps.length).round();
   }
 
-  /// How many taps have words attached — what the "heard" badge counts.
-  int get heardCount => taps.where((tap) => tap.heard != null).length;
-
-  ChantMalaLog withTaps(List<ChantTapLog> next) =>
-      ChantMalaLog(index: index, taps: next, complete: complete);
-
+  /// What is sent to the server: the figures, not the taps.
   Json toJson() => {
         'index': index,
         'complete': complete,
-        'taps': taps.map((tap) => tap.toJson()).toList(),
+        'beads': beads,
+        'startedAt': ?startedAt?.millisecondsSinceEpoch,
+        'endedAt': ?endedAt?.millisecondsSinceEpoch,
+        'durationMs': durationMs,
+        'avgGapMs': avgGapMs,
       };
 
-  factory ChantMalaLog.fromJson(Json json) => ChantMalaLog(
+  factory ChantMalaLog.fromJson(Json json) => ChantMalaLog.stored(
         index: asInt(json['index']),
         complete: asBool(json['complete']),
-        taps: asList(json['taps'], ChantTapLog.fromJson),
+        beads: asInt(json['beads']),
+        startedAt: asDate(json['startedAt']),
+        endedAt: asDate(json['endedAt']),
+        durationMs: asInt(json['durationMs']),
+        avgGapMs: asInt(json['avgGapMs']),
       );
 }
 
@@ -178,8 +235,7 @@ class ChantSessionSummary {
   }
 }
 
-/// A past sitting in full: its summary, every round with its taps, and the
-/// words heard for them while those are still within their 7 days.
+/// A past sitting in full: its summary and every round it was chanted in.
 class ChantSessionDetail {
   const ChantSessionDetail({required this.summary, required this.malas});
 
@@ -188,23 +244,10 @@ class ChantSessionDetail {
 
   factory ChantSessionDetail.fromJson(Json json) {
     final session = asJson(json['session']) ?? const {};
-    final heard = <int, String>{};
-    for (final row in json['transcripts'] is List ? json['transcripts'] as List : const []) {
-      final item = asJson(row);
-      if (item == null) continue;
-      final text = asStringOrNull(item['text']);
-      if (text != null) heard[asInt(item['seq'])] = text;
-    }
-
-    final malas = asList(json['malas'], ChantMalaLog.fromJson)
-        .map(
-          (mala) => mala.withTaps([
-            for (final tap in mala.taps) tap.withHeard(heard[tap.seq]),
-          ]),
-        )
-        .toList();
-
-    return ChantSessionDetail(summary: ChantSessionSummary.fromJson(session), malas: malas);
+    return ChantSessionDetail(
+      summary: ChantSessionSummary.fromJson(session),
+      malas: asList(json['malas'], ChantMalaLog.fromJson),
+    );
   }
 }
 
@@ -235,22 +278,39 @@ class ChantStats {
 
   factory ChantStats.of(List<ChantMalaLog> malas) {
     final finished = malas.where((mala) => mala.complete).toList();
-    final gaps = [
-      for (final mala in malas)
-        for (final tap in mala.taps)
-          if (tap.seq > 1) tap.gapMs,
+
+    // A round with its taps contributes each of them; a stored one (no taps)
+    // contributes its mean, once for each gap it is the mean of.
+    var gapTotalMs = 0;
+    var gapCount = 0;
+    for (final mala in malas) {
+      if (mala.taps.isNotEmpty) {
+        for (final tap in mala.taps) {
+          if (tap.seq > 1) {
+            gapTotalMs += tap.gapMs;
+            gapCount += 1;
+          }
+        }
+      } else if (mala.avgGapMs > 0 && mala.beads > 1) {
+        gapTotalMs += mala.avgGapMs * (mala.beads - 1);
+        gapCount += mala.beads - 1;
+      }
+    }
+
+    // A round whose time is not known (see ChantMalaLog.durationMs) is left out
+    // of the averages rather than counted as instant.
+    final durations = [
+      for (final mala in finished)
+        if (mala.durationMs > 0) mala.durationMs,
     ];
-
-    double? mean(List<int> values) =>
-        values.isEmpty ? null : values.reduce((a, b) => a + b) / values.length / 1000;
-
-    final durations = finished.map((mala) => mala.durationMs).toList();
+    final meanDuration =
+        durations.isEmpty ? null : durations.reduce((a, b) => a + b) / durations.length / 1000;
 
     return ChantStats(
       totalChants: malas.fold(0, (sum, mala) => sum + mala.beads),
       malasDone: finished.length,
-      avgChantSeconds: mean(gaps),
-      avgMalaSeconds: mean(durations),
+      avgChantSeconds: gapCount == 0 ? null : gapTotalMs / gapCount / 1000,
+      avgMalaSeconds: meanDuration,
       fastestMalaSeconds:
           durations.isEmpty ? null : durations.reduce((a, b) => a < b ? a : b) / 1000,
     );

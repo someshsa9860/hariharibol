@@ -24,6 +24,11 @@ abstract final class BoxKeys {
   /// when it was.
   static const String autoChantEnabled = 'settings.auto_chant_enabled';
 
+  /// Beads counted into the round in progress, one key per mantra (`any` for a
+  /// sitting with none), so the counter opens on the count it was left at.
+  /// Deleted when the round completes.
+  static String chantProgress(String? mantraId) => 'chant.progress.${mantraId ?? 'any'}';
+
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
 

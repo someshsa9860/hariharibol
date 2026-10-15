@@ -381,6 +381,10 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chantFullPicture => 'ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ';
 
   @override
+  String get chantPrayerHint =>
+      'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆಯನ್ನು ಮಾಡಿ, ನಂತರ ಎಣಿಕೆ ಆರಂಭಿಸಲು ವೃತ್ತವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.';
+
+  @override
   String get sadhanaAutoCountListening => 'ಆಲಿಸುತ್ತಿದೆ…';
 
   @override

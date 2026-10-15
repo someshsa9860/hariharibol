@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/chant_log.dart';
 import '../../widgets/chant/chant_history_list.dart';
@@ -14,14 +15,23 @@ class ChantAnalyticsArgs {
     required this.malas,
     required this.sittingTime,
     required this.beadsPerRound,
+    this.mantraId,
+    this.mantraName,
   });
 
   final List<ChantMalaLog> malas;
   final Duration sittingTime;
   final int beadsPerRound;
+
+  /// The mantra being chanted. The history is of this mantra alone; null for a
+  /// sitting with none, which is the history of those.
+  final String? mantraId;
+  final String? mantraName;
 }
 
-/// The counter's analytics: this sitting mala by mala, and the ones before it.
+/// The counter's analytics for one mantra: this sitting round by round, and the
+/// sittings before it. Rounds are the finest grain shown — the single chants
+/// inside a round are not kept or listed.
 class ChantAnalyticsView extends StatelessWidget {
   const ChantAnalyticsView({super.key, required this.args});
 
@@ -35,7 +45,18 @@ class ChantAnalyticsView extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(text.chantAnalyticsTitle),
+          title: args.mantraName == null
+              ? Text(text.chantAnalyticsTitle)
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(text.chantAnalyticsTitle),
+                    Text(
+                      args.mantraName!,
+                      style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+                    ),
+                  ],
+                ),
           bottom: TabBar(
             tabs: [
               Tab(text: text.chantTabThisSitting),
@@ -49,7 +70,7 @@ class ChantAnalyticsView extends StatelessWidget {
               padding: AppSpacing.page,
               child: ChantMalaReport(malas: args.malas, totalTime: args.sittingTime),
             ),
-            ChantHistoryList(beadsPerRound: args.beadsPerRound),
+            ChantHistoryList(mantraId: args.mantraId, beadsPerRound: args.beadsPerRound),
           ],
         ),
       ),

@@ -381,6 +381,10 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
 
   @override
+  String get chantPrayerHint =>
+      'ముందు ఈ ప్రార్థనను చేయండి, ఆపై లెక్కింపు ప్రారంభించడానికి వలయాన్ని తట్టండి.';
+
+  @override
   String get sadhanaAutoCountListening => 'వింటోంది…';
 
   @override

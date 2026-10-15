@@ -4,13 +4,19 @@ import '../models/chant_log.dart';
 import '../models/paged.dart';
 import '../services/sadhana_service.dart';
 
-/// Past sittings, newest first, loaded a page at a time.
+/// Past sittings of one mantra, newest first, loaded a page at a time. The key
+/// is the mantra's id, or null for sittings that had none.
 ///
 /// `autoDispose`: the history is only ever looked at from the counter's
 /// analytics screen, and a list left cached would be stale by the next sitting.
 class ChantHistoryNotifier extends AsyncNotifier<Paged<ChantSessionSummary>> {
+  ChantHistoryNotifier(this._mantraId);
+
+  final String? _mantraId;
+
   @override
-  Future<Paged<ChantSessionSummary>> build() => SadhanaService.instance.chantSessions();
+  Future<Paged<ChantSessionSummary>> build() =>
+      SadhanaService.instance.chantSessions(mantraId: _mantraId);
 
   bool _loadingMore = false;
 
@@ -21,7 +27,10 @@ class ChantHistoryNotifier extends AsyncNotifier<Paged<ChantSessionSummary>> {
     if (_loadingMore || current == null || !current.hasMore) return;
     _loadingMore = true;
     try {
-      final next = await SadhanaService.instance.chantSessions(page: current.page + 1);
+      final next = await SadhanaService.instance.chantSessions(
+        mantraId: _mantraId,
+        page: current.page + 1,
+      );
       state = AsyncData(current.merge(next));
     } catch (_) {
       // The page already loaded stays; there is nothing useful to show for a
@@ -32,8 +41,8 @@ class ChantHistoryNotifier extends AsyncNotifier<Paged<ChantSessionSummary>> {
   }
 }
 
-final chantHistoryProvider =
-    AsyncNotifierProvider.autoDispose<ChantHistoryNotifier, Paged<ChantSessionSummary>>(
+final chantHistoryProvider = AsyncNotifierProvider.family
+    .autoDispose<ChantHistoryNotifier, Paged<ChantSessionSummary>, String?>(
   ChantHistoryNotifier.new,
 );
 

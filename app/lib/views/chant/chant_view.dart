@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/constants/chant_sync_config.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/constants/storage_keys.dart';
@@ -19,6 +20,7 @@ import '../../providers/home_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
+import '../../services/chant_progress_store.dart';
 import '../../services/chant_recorder.dart';
 import '../../services/local_store.dart';
 import '../../services/mantra_auto_chant_session.dart';
@@ -44,10 +46,21 @@ import 'chant_fullscreen_view.dart';
 /// mahamantra, so this screen works with nothing chosen and simply opens a
 /// session with no mantra attached. A mantra that has a mala recording also gets
 /// a player, and each chant on the recording is counted as it ends.
+///
+/// A mantra with a [Mantra.prayer] opens on the prayer, and shows it again
+/// after every round: the prayer is not counted, and one tap once its time has
+/// passed brings the mantra itself, from where counting starts.
+///
+/// The count of the round in progress is kept on the phone for each mantra
+/// ([ChantProgressStore]), so closing the counter — or the app — and coming back
+/// to the same mantra finds it where it was left.
 class ChantView extends ConsumerStatefulWidget {
-  const ChantView({super.key, this.mantra});
+  const ChantView({super.key, this.mantra, this.clock});
 
   final Mantra? mantra;
+
+  /// The time, for tests; the real clock when null.
+  final DateTime Function()? clock;
 
   @override
   ConsumerState<ChantView> createState() => _ChantViewState();
@@ -65,6 +78,19 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   late final int _beadsPerRoundInUse;
   late final ChantRecorder _recorder;
 
+  DateTime _now() => (widget.clock ?? DateTime.now)();
+
+  Mantra? get _prayer => widget.mantra?.prayer;
+
+  /// The prayer is showing in place of the mantra: before the first round and
+  /// after each one. Nothing is counted while it is.
+  bool _inPrayer = false;
+  DateTime _prayerShownAt = DateTime.now();
+
+  /// Auto count was left on, but the sitting opened on the prayer, so it starts
+  /// when the prayer is over rather than listening to it.
+  bool _autoStartAfterPrayer = false;
+
   String? _sessionId;
 
   /// Rounds already chanted today before this sitting, purely for the number
@@ -77,7 +103,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// Counts taps, to restart the ring's ripple on each one.
   int _pulse = 0;
 
-  Timer? _syncDebounce;
+  /// Running while taps are waiting to be sent; see [_scheduleSync].
+  Timer? _syncTimer;
   bool _finishing = false;
 
   /// Null when this sitting has no mantra, or the mantra has no keyword
@@ -127,7 +154,12 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _roundsBefore = today?.day.roundsCompleted ?? 0;
     _target = today?.day.roundTarget ?? 0;
     _beadsPerRoundInUse = today?.beadsPerRound ?? _beadsPerRound;
-    _recorder = ChantRecorder(beadsPerRound: _beadsPerRoundInUse);
+    _recorder = ChantRecorder(beadsPerRound: _beadsPerRoundInUse, now: widget.clock);
+    // A round left part-way carries on from where it was. Its prayer was said
+    // when it began, so it is not asked for again.
+    _recorder.carry(ChantProgressStore.read(widget.mantra?.id));
+    _inPrayer = _prayer != null && _recorder.beadsInMala == 0;
+    if (_inPrayer) _prayerShownAt = _now();
     _targetAnnounced = _target > 0 && _roundsBefore >= _target;
     unawaited(_startSession());
     _initAutoChant();
@@ -148,13 +180,19 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       setState(() => _autoChantStatus = status);
       _holdScreenForListening();
     });
-    _autoChantRepetitionSub = session.repetitionDetected.listen((_) => _tapBead(auto: true));
+    _autoChantRepetitionSub = session.repetitionDetected.listen((_) {
+      if (!_inPrayer) _tapBead(auto: true);
+    });
 
     // Left on last time, it is on again now: the person chose it once.
     if (_savedAutoChant) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_startAutoChant());
-      });
+      if (_inPrayer) {
+        _autoStartAfterPrayer = true;
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_startAutoChant());
+        });
+      }
     }
   }
 
@@ -175,6 +213,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     );
     _mala = player;
     _malaChantsSub = player.chantsCompleted.listen((chants) {
+      if (_inPrayer) return;
       for (var i = 0; i < chants; i++) {
         _tapBead(auto: true);
       }
@@ -204,19 +243,24 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // because of one.
     if (state == AppLifecycleState.paused) {
       unawaited(_autoChant?.suspend());
-    } else if (state == AppLifecycleState.resumed) {
+    } else if (state == AppLifecycleState.resumed && !_inPrayer) {
+      // (Not during the prayer: it is not counted, and the mic stays off until
+      // the prayer is over.)
       unawaited(_autoChant?.resume());
     }
     // A recording cannot be counted along to from the background.
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       unawaited(_mala?.pause());
     }
+    // A timer is not a promise once the app is in the background, and the
+    // system may end it there: send what is waiting while there is still time.
+    if (state == AppLifecycleState.paused) _flushSync();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _syncDebounce?.cancel();
+    _syncTimer?.cancel();
     _clockTicker?.cancel();
     _clock.dispose();
     _counted.dispose();
@@ -249,26 +293,80 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
+  /// A tap on the ring by hand. With auto count off nothing else says a chant
+  /// happened, so a tap that comes before half of one chant's time has passed
+  /// since the last is ignored: otherwise the count runs ahead of the chanting.
+  /// (No mantra, no standard time, no limit. With auto count on, the sound is
+  /// the count and a tap is only a correction.)
+  void _tapRing() {
+    if (_inPrayer) return _tapPrayer();
+    final mantra = widget.mantra;
+    if (mantra != null && !_autoChantStatus.enabled) {
+      if (!_recorder.tapAllowed(MantraAutoChantSession.manualTapGapOf(mantra))) return;
+    }
+    _tapBead();
+  }
+
+  /// The tap that ends the prayer. It is not a chant and is not recorded; it
+  /// only counts once the prayer has had its standard time, so the mantra
+  /// cannot be reached without the prayer being said.
+  void _tapPrayer() {
+    final prayer = _prayer;
+    if (prayer != null) {
+      final standard = Duration(milliseconds: MantraAutoChantSession.standardChantMsOf(prayer));
+      if (_now().difference(_prayerShownAt) < standard) return;
+    }
+    HapticFeedback.selectionClick();
+    setState(() => _inPrayer = false);
+    _counted.value += 1;
+    // The first chant of the mantra is timed from here, not from the round
+    // before it or from the prayer.
+    _recorder.beginChanting();
+
+    if (_autoStartAfterPrayer) {
+      _autoStartAfterPrayer = false;
+      unawaited(_startAutoChant());
+    } else {
+      unawaited(_autoChant?.resume());
+    }
+  }
+
+  /// A round is done: the prayer comes before the next one.
+  void _beginPrayer() {
+    setState(() => _inPrayer = true);
+    _prayerShownAt = _now();
+    // Neither the microphone nor the recording may count the prayer.
+    unawaited(_autoChant?.suspend());
+    unawaited(_mala?.pause());
+  }
+
+  /// Keeps the round in progress on the phone. 0 (a round just finished)
+  /// forgets it.
+  void _saveProgress() => ChantProgressStore.write(widget.mantra?.id, _recorder.beadsInMala);
+
   void _tapBead({bool auto = false}) {
     HapticFeedback.selectionClick();
     _recorder.tap(auto: auto);
 
     final roundCompleted = _recorder.beadsInMala == 0;
     if (roundCompleted) HapticFeedback.mediumImpact();
+    _saveProgress();
     setState(() => _pulse += 1);
     _counted.value += 1;
+    if (roundCompleted && _prayer != null) _beginPrayer();
 
     if (!_targetAnnounced && _target > 0 && _totalRounds >= _target) {
       _targetAnnounced = true;
       AppNavigator.instance.showMessage(AppLocalizations.of(context).sadhanaTargetReached);
     }
 
-    _scheduleSync(immediate: roundCompleted);
+    _scheduleSync();
   }
 
   void _undoBead() {
     if (!_recorder.undo()) return;
     HapticFeedback.selectionClick();
+    _saveProgress();
     setState(() {});
     _counted.value += 1;
     _scheduleSync();
@@ -322,13 +420,24 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
-  void _scheduleSync({bool immediate = false}) {
-    _syncDebounce?.cancel();
-    if (immediate) {
+  /// Marks that something is waiting to be sent. Taps are sent in batches: the
+  /// first one after a send starts the clock, and the ones after it ride along
+  /// without restarting it, so a steady chanter is saved every
+  /// [ChantSyncConfig.batchInterval] and not once per chant.
+  void _scheduleSync() {
+    _syncTimer ??= Timer(ChantSyncConfig.batchInterval, () {
+      _syncTimer = null;
       unawaited(_sync());
-      return;
-    }
-    _syncDebounce = Timer(const Duration(seconds: 2), () => unawaited(_sync()));
+    });
+  }
+
+  /// Sends what is waiting now, without waiting out the batch — for when the
+  /// app is about to go where a timer may not run.
+  void _flushSync() {
+    if (_syncTimer == null) return;
+    _syncTimer!.cancel();
+    _syncTimer = null;
+    unawaited(_sync());
   }
 
   Future<void> _sync({bool finish = false}) async {
@@ -381,7 +490,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     setState(() => _finishing = true);
     // Nothing is counted after the sitting's last sync.
     await _mala?.pause();
-    _syncDebounce?.cancel();
+    _syncTimer?.cancel();
+    _syncTimer = null;
     await _sync(finish: true);
     // The day this screen started from is stale the moment a round lands —
     // refreshed here rather than left for the tab's own pull to refresh.
@@ -401,7 +511,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
           rounds: () => _totalRounds,
           beads: () => _recorder.beadsInMala,
           beadsPerRound: _beadsPerRoundInUse,
-          onTap: _tapBead,
+          onTap: _tapRing,
         ),
       ),
     );
@@ -414,6 +524,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
         malas: _recorder.malas,
         sittingTime: _stopwatch.elapsed,
         beadsPerRound: _beadsPerRoundInUse,
+        mantraId: widget.mantra?.id,
+        mantraName: widget.mantra?.name,
       ),
     );
   }
@@ -467,7 +579,26 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                if (widget.mantra != null) ...[
+                if (_inPrayer && _prayer != null) ...[
+                  Text(
+                    _prayer!.name,
+                    textAlign: TextAlign.center,
+                    style: context.texts.titleMedium?.copyWith(color: context.colors.primary),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    _prayer!.text,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.verse(context, size: 22),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    text.chantPrayerHint,
+                    textAlign: TextAlign.center,
+                    style: context.texts.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ] else if (widget.mantra != null) ...[
                   Text(
                     widget.mantra!.text,
                     textAlign: TextAlign.center,
@@ -475,7 +606,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
-                if (_mala != null) ...[
+                if (_mala != null && !_inPrayer) ...[
                   ChantAlongCard(player: _mala!),
                   const SizedBox(height: AppSpacing.lg),
                 ],
@@ -496,7 +627,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     roundsLabel: text.sadhanaRoundsCaption,
                     beadsPerRound: _beadsPerRoundInUse,
                     pulse: _pulse,
-                    onTap: _tapBead,
+                    onTap: _tapRing,
                     centerImageUrl: widget.mantra?.deity?.imageUrl,
                     centerImageKey: widget.mantra?.deity == null ? null : 'deity-${widget.mantra!.deity!.id}',
                   ),
@@ -508,7 +639,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     tooltip: text.sadhanaUndoBead,
                   ),
                 ),
-                if (_autoChant != null)
+                if (_autoChant != null && !_inPrayer)
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),

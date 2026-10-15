@@ -84,7 +84,7 @@ void main() {
         expect(find.text('1.8s'), findsWidgets);
       });
 
-      testWidgets('the report lists each mala, opens it, and shows what was heard', (tester) async {
+      testWidgets('the report lists each round, and only the round', (tester) async {
         await pump(
           tester,
           ChantMalaReport(malas: sitting().malas, totalTime: const Duration(minutes: 2)),
@@ -94,14 +94,14 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.text('Mala 1'), findsOneWidget);
         expect(find.text('Mala 2'), findsOneWidget);
-        expect(find.text('hare krishna hare krishna'), findsNothing);
 
         await tester.ensureVisible(find.text('Mala 1'));
         await tester.tap(find.text('Mala 1'));
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
-        expect(find.text('hare krishna hare krishna'), findsOneWidget);
+        expect(find.text('Mala 1'), findsOneWidget, reason: 'a round does not open into its chants');
+        expect(find.text('hare krishna hare krishna'), findsNothing);
       });
     });
   }

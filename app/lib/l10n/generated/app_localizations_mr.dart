@@ -380,6 +380,10 @@ class AppLocalizationsMr extends AppLocalizations {
   String get chantFullPicture => 'पूर्ण स्क्रीन चित्र';
 
   @override
+  String get chantPrayerHint =>
+      'आधी ही प्रार्थना करा, मग गणना सुरू करण्यासाठी वर्तुळावर टॅप करा.';
+
+  @override
   String get sadhanaAutoCountListening => 'ऐकत आहे…';
 
   @override

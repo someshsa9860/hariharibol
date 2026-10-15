@@ -191,15 +191,153 @@ void main() {
     });
   });
 
-  test('a round survives the trip to the server and back', () {
+  test('a round goes to the server as a summary, and comes back with the same figures', () {
     chant(4, gapMs: 1200);
     final mala = recorder.malas.single;
 
-    final back = ChantMalaLog.fromJson(mala.toJson());
+    final sent = mala.toJson();
+    expect(sent.containsKey('taps'), isFalse, reason: 'taps are kept on the phone, not stored');
+
+    final back = ChantMalaLog.fromJson(sent);
 
     expect(back.index, mala.index);
     expect(back.complete, isTrue);
+    expect(back.beads, 4);
     expect(back.durationMs, mala.durationMs);
-    expect(back.taps.map((t) => t.gapMs), mala.taps.map((t) => t.gapMs));
+    expect(back.avgGapMs, mala.avgGapMs);
+    expect(back.taps, isEmpty);
+  });
+
+  test('a tap is allowed once the gap has passed since the last, and the first is always allowed', () {
+    const gap = Duration(seconds: 2);
+    expect(recorder.tapAllowed(gap), isTrue);
+
+    recorder.tap();
+    clock.advance(1999);
+    expect(recorder.tapAllowed(gap), isFalse);
+    clock.advance(1);
+    expect(recorder.tapAllowed(gap), isTrue);
+  });
+
+  test('a tap that is taken back makes room for the next one', () {
+    const gap = Duration(seconds: 2);
+    recorder.tap();
+    clock.advance(5000);
+    recorder.tap();
+    expect(recorder.tapAllowed(gap), isFalse);
+
+    expect(recorder.undo(), isTrue);
+    expect(recorder.tapAllowed(gap), isTrue);
+  });
+
+  group('picking up a round where it was left', () {
+    test('carried beads count as the start of the round, with no taps behind them', () {
+      recorder.carry(2);
+
+      expect(recorder.beadsInMala, 2);
+      expect(recorder.completedMalas, 0);
+      expect(recorder.currentMala, 1);
+      expect(recorder.taps, isEmpty);
+    });
+
+    test('the round finishes after the beads that were left, not a whole new round', () {
+      recorder.carry(2);
+      chant(2);
+
+      expect(recorder.completedMalas, 1);
+      expect(recorder.beadsInMala, 0);
+      expect(recorder.currentMala, 2);
+
+      final mala = recorder.malas.first;
+      expect(mala.complete, isTrue);
+      expect(mala.beads, 4);
+      expect(mala.durationMs, 0, reason: 'the start of it was never timed');
+    });
+
+    test('a round that was carried is left out of the timings, one that was not is kept', () {
+      recorder.carry(2);
+      chant(2, gapMs: 900);
+      chant(4, gapMs: 1500, first: false);
+
+      final stats = ChantStats.of(recorder.malas);
+      final timed = recorder.malas.last.durationMs / 1000;
+      expect(stats.fastestMalaSeconds, timed);
+      expect(stats.avgMalaSeconds, timed);
+    });
+
+    test('carrying more than a round holds at one short of it', () {
+      recorder.carry(40);
+
+      expect(recorder.beadsInMala, 3);
+      expect(recorder.completedMalas, 0);
+    });
+
+    test('taking a bead back works on carried beads too', () {
+      recorder.carry(2);
+
+      expect(recorder.undo(), isTrue);
+      expect(recorder.beadsInMala, 1);
+      expect(recorder.undo(), isTrue);
+      expect(recorder.beadsInMala, 0);
+      expect(recorder.undo(), isFalse);
+    });
+
+    test('a round with no tap of its own is not sent', () {
+      recorder.carry(2);
+
+      expect(recorder.takeDirtyMalas(), isEmpty);
+    });
+
+    test('the first chant after beginning is timed from then, so a prayer is not counted in it', () {
+      recorder.beginChanting();
+      clock.advance(4000);
+
+      expect(recorder.tapAllowed(const Duration(seconds: 5)), isFalse);
+      clock.advance(1000);
+      expect(recorder.tapAllowed(const Duration(seconds: 5)), isTrue);
+      expect(recorder.tap().gapMs, 5000);
+    });
+  });
+
+  group('rounds that come back from the server', () {
+    test('their figures are the ones stored, not worked out from taps', () {
+      final stored = ChantMalaLog.stored(
+        index: 1,
+        beads: 108,
+        complete: true,
+        startedAt: DateTime(2026, 10, 6, 6),
+        endedAt: DateTime(2026, 10, 6, 6, 10),
+        durationMs: 600000,
+        avgGapMs: 5000,
+      );
+
+      expect(stored.beads, 108);
+      expect(stored.durationMs, 600000);
+      expect(stored.avgGapMs, 5000);
+      expect(stored.taps, isEmpty);
+    });
+
+    test('a round with no known duration is not the fastest or the average', () {
+      final unknown = ChantMalaLog.stored(
+        index: 1,
+        beads: 108,
+        complete: true,
+        startedAt: DateTime(2026, 10, 6, 6),
+        endedAt: DateTime(2026, 10, 6, 6, 1),
+      );
+      final timed = ChantMalaLog.stored(
+        index: 2,
+        beads: 108,
+        complete: true,
+        startedAt: DateTime(2026, 10, 6, 7),
+        endedAt: DateTime(2026, 10, 6, 7, 10),
+        durationMs: 600000,
+        avgGapMs: 5000,
+      );
+
+      final stats = ChantStats.of([unknown, timed]);
+      expect(stats.fastestMalaSeconds, 600);
+      expect(stats.avgMalaSeconds, 600);
+    });
   });
 }

@@ -48,6 +48,8 @@ class MantraAutoChantSession {
           lead: Duration(milliseconds: (AutoChantConfig.vadMinSpeechDurationSeconds * 1000).round()),
           tail: Duration(milliseconds: (AutoChantConfig.vadMinSilenceDurationSeconds * 1000).round()),
           partialShare: AutoChantConfig.partialChantShare,
+          speedUpPerChant: AutoChantConfig.speedUpPerChant,
+          fastestShare: AutoChantConfig.fastestShare,
           countedFor: AutoChantConfig.defaultCooldown,
         );
 
@@ -92,6 +94,11 @@ class MantraAutoChantSession {
   }
 
   int get standardChantMs => standardChantMsOf(mantra);
+
+  /// The least time between two hand taps of [mantra], when auto count is off:
+  /// half of one standard chant (see [AutoChantConfig.manualTapGapShare]).
+  static Duration manualTapGapOf(Mantra mantra) =>
+      Duration(milliseconds: (standardChantMsOf(mantra) * AutoChantConfig.manualTapGapShare).round());
 
   Stream<AutoChantStatus> get statusStream => _statusController.stream;
 

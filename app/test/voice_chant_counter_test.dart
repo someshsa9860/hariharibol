@@ -100,4 +100,81 @@ void main() {
     counter.onVoice(false);
     expect(counter.phase, AutoChantPhase.idle);
   });
+
+  group('a chanter gets quicker as the sitting goes on', () {
+    // 10% quicker with each chant, never below half: 1000, 900, 810, 729 ms...
+    VoiceChantCounter quickening({double speedUp = 0.1, double fastest = 0.5}) => VoiceChantCounter(
+          standard: const Duration(seconds: 1),
+          speedUpPerChant: speedUp,
+          fastestShare: fastest,
+          now: clock.call,
+        );
+
+    test('each chant is due sooner than the one before', () {
+      counter = quickening();
+      counter.onVoice(true);
+      clock.advance(1000);
+      expect(counter.tick(), 1);
+      clock.advance(899);
+      expect(counter.tick(), 0);
+      clock.advance(1);
+      expect(counter.tick(), 1); // 1900 ms in: the 900 ms chant
+      clock.advance(810);
+      expect(counter.tick(), 1); // 2710 ms in: the 810 ms chant
+      expect(counter.total, 3);
+    });
+
+    test('never quicker than the fastest share of the standard time', () {
+      counter = quickening(speedUp: 0.5, fastest: 0.5);
+      counter.onVoice(true);
+      clock.advance(1000);
+      expect(counter.tick(), 1);
+      // 500 ms from here on, however many chants have gone before.
+      clock.advance(500);
+      expect(counter.tick(), 1);
+      clock.advance(500);
+      expect(counter.tick(), 1);
+      clock.advance(1000);
+      expect(counter.tick(), 2);
+    });
+
+    test('the pace is kept through a silence and through a reset', () {
+      counter = quickening();
+      counter.onVoice(true);
+      clock.advance(1000);
+      counter.tick();
+      clock.advance(900);
+      counter.tick();
+      counter.onVoice(false);
+
+      expect(counter.currentStandard, const Duration(milliseconds: 810));
+      counter.reset();
+      expect(counter.currentStandard, const Duration(milliseconds: 810));
+      expect(counter.total, 0);
+
+      counter.onVoice(true);
+      clock.advance(809);
+      expect(counter.tick(), 0);
+      clock.advance(1);
+      expect(counter.tick(), 1);
+    });
+
+    test('a last, unfinished chant is judged against its own, quicker time', () {
+      counter = quickening();
+      counter.onVoice(true);
+      clock.advance(1000);
+      expect(counter.tick(), 1);
+      // 540 ms of a 900 ms chant is 60%: it counts. Against 1000 ms it would not.
+      clock.advance(540);
+      expect(counter.onVoice(false), 1);
+    });
+
+    test('with no speed-up every chant takes the standard time', () {
+      counter = quickening(speedUp: 0);
+      counter.onVoice(true);
+      clock.advance(3000);
+      expect(counter.tick(), 3);
+      expect(counter.standardAt(50), const Duration(seconds: 1));
+    });
+  });
 }

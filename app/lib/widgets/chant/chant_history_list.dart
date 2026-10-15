@@ -15,18 +15,21 @@ import '../common/app_error_view.dart';
 import '../common/app_loader.dart';
 import '../common/empty_state.dart';
 
-/// Past sittings, newest first, from the server. A sitting that has its tap
-/// record opens into it; one from before timing was recorded shows only its
-/// totals and does not pretend to open.
+/// Past sittings of one mantra, newest first, from the server. A sitting that
+/// has its rounds on record opens into them; one from before rounds were
+/// recorded shows only its totals and does not pretend to open.
 class ChantHistoryList extends ConsumerWidget {
-  const ChantHistoryList({super.key, required this.beadsPerRound});
+  const ChantHistoryList({super.key, required this.mantraId, required this.beadsPerRound});
 
+  /// Whose history: this mantra's, or that of sittings with no mantra when null.
+  final String? mantraId;
   final int beadsPerRound;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
-    final history = ref.watch(chantHistoryProvider);
+    final provider = chantHistoryProvider(mantraId);
+    final history = ref.watch(provider);
 
     return history.when(
       loading: () => const AppLoader(),
@@ -34,7 +37,7 @@ class ChantHistoryList extends ConsumerWidget {
         failure: error is ApiFailure
             ? error
             : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
-        onRetry: () async => ref.invalidate(chantHistoryProvider),
+        onRetry: () async => ref.invalidate(provider),
       ),
       data: (page) {
         if (page.items.isEmpty) {
@@ -50,7 +53,7 @@ class ChantHistoryList extends ConsumerWidget {
             if (index >= page.items.length) {
               // Reaching the end of what is loaded is what asks for more.
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => ref.read(chantHistoryProvider.notifier).loadMore(),
+                (_) => ref.read(provider.notifier).loadMore(),
               );
               return const AppLoader();
             }
@@ -89,10 +92,6 @@ class _SessionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(formatDateTime(context, session.startedAt), style: context.texts.titleMedium),
-                    if (session.mantraName != null) ...[
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(session.mantraName!, style: muted),
-                    ],
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       text.chantHistorySummary(

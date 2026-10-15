@@ -275,6 +275,7 @@
   "sadhanaAutoCountIdle": "Waiting for chanting",
   "chantAutoCountLoading": "Getting auto count ready…",
   "chantFullPicture": "Full-screen picture",
+  "chantPrayerHint": "Chant this prayer first, then tap the ring to begin counting.",
   "sadhanaAutoCountListening": "Listening…",
   "sadhanaAutoCountCounted": "Counted — listening for the next one",
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",

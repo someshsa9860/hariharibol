@@ -676,6 +676,12 @@ abstract class AppLocalizations {
   /// **'Full-screen picture'**
   String get chantFullPicture;
 
+  /// No description provided for @chantPrayerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant this prayer first, then tap the ring to begin counting.'**
+  String get chantPrayerHint;
+
   /// No description provided for @sadhanaAutoCountListening.
   ///
   /// In en, this message translates to:

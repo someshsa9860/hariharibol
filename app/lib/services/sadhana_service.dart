@@ -92,8 +92,9 @@ class SadhanaService {
     );
   }
 
-  /// The tap record: each round that changed, with its taps. Rounds are
-  /// replaced whole on the server, so sending one again is harmless.
+  /// The rounds that changed, each as a summary (start, end, time, mean chant
+  /// time) and not its taps. Rounds are replaced whole on the server, so
+  /// sending one again is harmless.
   Future<void> saveChantDetail(String sessionId, List<ChantMalaLog> malas) {
     return _api.put(
       ApiPaths.chantSessionDetail(sessionId),
@@ -110,13 +111,17 @@ class SadhanaService {
     );
   }
 
-  /// Past sittings, newest first.
-  Future<Paged<ChantSessionSummary>> chantSessions({int page = 1}) async {
-    final response = await _api.get(ApiPaths.chantSessions, query: {'page': page});
+  /// Past sittings of one mantra, newest first — or, with no [mantraId], of
+  /// sittings that had none.
+  Future<Paged<ChantSessionSummary>> chantSessions({String? mantraId, int page = 1}) async {
+    final response = await _api.get(
+      ApiPaths.chantSessions,
+      query: {'page': page, 'mantraId': mantraId ?? 'none'},
+    );
     return Paged.fromResponse(response.data, response.meta, ChantSessionSummary.fromJson);
   }
 
-  /// One past sitting with every round and tap.
+  /// One past sitting with its rounds.
   Future<ChantSessionDetail> chantSession(String id) async {
     final response = await _api.get(ApiPaths.chantSessionById(id));
     return ChantSessionDetail.fromJson(response.json);

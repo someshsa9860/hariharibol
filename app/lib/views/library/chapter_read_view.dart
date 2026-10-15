@@ -28,6 +28,7 @@ import '../../widgets/common/motif.dart';
 import '../../widgets/library/reading_audio_controls.dart';
 import '../../widgets/library/reading_settings_sheet.dart';
 import '../../widgets/library/related_verses_sheet.dart';
+import '../../widgets/library/reveal_list_item.dart';
 import '../../widgets/library/translation_picker_sheet.dart';
 import '../../widgets/library/verse_block.dart';
 import '../../widgets/library/verse_notes_sheet.dart';
@@ -159,23 +160,33 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
   /// it has loaded. Runs at most once per screen — a rebuild triggered by,
   /// say, toggling a favourite must not yank the reader back to where they
   /// tapped in from.
+  ///
+  /// The list builds only what is near the screen, so a verse far down has no
+  /// widget yet; [revealListItem] walks toward it until it does. Item 0 is the
+  /// chapter header, so the verse at position n is item n + 1.
   void _scrollToTarget(ChapterReading reading) {
     final target = widget.targetVerseNumber;
     if (_scrolledToTarget || target == null) return;
-    final verse = reading.verses.where((v) => v.verseNumber == target).firstOrNull;
-    if (verse == null) return;
+    final at = reading.verses.indexWhere((v) => v.verseNumber == target);
+    if (at < 0) return;
     _scrolledToTarget = true;
 
+    BuildContext? contextAt(int item) {
+      final position = item - 1;
+      if (position < 0 || position >= reading.verses.length) return null;
+      return _verseKeys[reading.verses[position].id]?.currentContext;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _verseKeys[verse.id];
-      final targetContext = key?.currentContext;
-      if (targetContext == null) return;
-      Scrollable.ensureVisible(
-        targetContext,
+      if (!mounted) return;
+      unawaited(revealListItem(
+        index: at + 1,
+        itemCount: reading.verses.length + 2,
+        contextAt: contextAt,
         duration: AppDurations.normal,
         curve: Curves.easeOut,
         alignment: 0.1,
-      );
+      ));
     });
   }
 
