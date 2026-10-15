@@ -5,7 +5,7 @@ Nothing is kept in `/home/ubuntu`.
 
 ```text
 /var/www/hariharibol/
-├── server/     scripts, docker-compose.yml, nginx.conf and the live .env
+├── server/     the deploy scripts (one per container) and the live .env; nginx.conf and apache/ are the web-server configs
 ├── secrets/    Google service-account JSON, CloudFront key, other credential files
 └── website/    the built landing page, served read-only by the website container
 ```
@@ -30,27 +30,68 @@ cd /var/www/hariharibol/server && chmod +x *.sh && ./setup.sh
 `setup.sh` installs Docker, the AWS CLI and Nginx, creates `.env` from
 `.env.example`, and creates the empty `secrets/` and `website/` folders. Fill in
 `server/.env`, then put the Google service-account JSON, CloudFront key files and
-other credential material in `/var/www/hariharibol/secrets/`; Compose mounts
-that directory read-only at `/app/secrets` in every backend container.
+other credential material in `/var/www/hariharibol/secrets/`; the backend
+containers mount that directory read-only at `/app/secrets`.
 
 The server's AWS identity (an instance role, or an IAM user set up with
 `aws configure`) only needs to pull from ECR: `ecr:GetAuthorizationToken`,
 `ecr:BatchCheckLayerAvailability`, `ecr:GetDownloadUrlForLayer` and
 `ecr:BatchGetImage`.
 
-`setup.sh` also configures Nginx. `/api/` and `/health` go to the API, `/ws`
+`setup.sh` also configures Nginx, for a server that hosts only this project. `/api/` and `/health` go to the API, `/ws`
 to the websocket service, `/verse`, `/sloka`, `/mantra`, `/book` and the app
 link files to the deeplink service, `admin.hariharibol.com` to the admin panel
 and `hariharibol.com` to the website. TLS certificates are Let's Encrypt.
 
+### On a shared Apache server
+
+The production server also hosts other sites behind Apache, so `setup.sh` is not
+run there. `apache/hariharibol.conf` (port 80, redirects to https) and
+`apache/hariharibol-le-ssl.conf` (the three https hosts, same routes as the Nginx
+file) go in `/etc/apache2/sites-available/`. Once DNS points at the server:
+
+```bash
+sudo certbot certonly --apache -d hariharibol.com
+sudo certbot certonly --apache -d api.hariharibol.com -d admin.hariharibol.com
+sudo a2ensite hariharibol hariharibol-le-ssl
+sudo apache2ctl configtest && sudo systemctl reload apache2
+```
+
+### The database
+
+The database there is the shared managed PostgreSQL (RDS), so there is no postgres container. From your
+laptop, once:
+
+```bash
+ssh -t GSRKHVK_Main "$(cat deploy/create-database.sh)"
+```
+
+It asks for the new password (twice), creates the `hariharibol` user and database using the admin login it
+reads from api.callvcal.com's `.env` (never printed), and writes `DATABASE_URL` into
+`/var/www/hariharibol/server/.env`. Running it again only changes the password. Then deploy the backend so the
+Prisma migrations create the tables.
+
+### Memory
+
+Every container has a memory limit, all in `config.sh`. The Node containers also get a heap ceiling
+(`*_HEAP_MB`, about 60% of the limit) so Node collects garbage instead of being killed at the limit, and Redis
+has `maxmemory` with `noeviction` so a full Redis refuses writes rather than dropping queued jobs. When you
+raise a container's limit, raise its heap with it, then run that container's script (`./api.sh`, ...). Redis
+is left running by deploys: to apply a new limit, `docker rm -f hariharibol-redis && ./redis.sh`. All limits
+together are about 1.7 GB if every container hit its ceiling at once; normal use is a quarter of that, so
+give the server 4 GB or more.
+
 ## Deploying
 
 Deploy everything with `IMAGE_TAG=<git-sha> ./deploy.sh`, or one part with
-`./deploy.sh admin`, `./deploy.sh backend` or `./deploy.sh website`.
-`config.sh` centralizes paths, image repositories, tags and CPU/memory limits.
-`./pull.sh` pulls all configured images; `./prune.sh` removes superseded
-images and build cache, and the backend and admin workflows run it after each
-deploy.
+`./deploy.sh admin`, `./deploy.sh backend` or `./deploy.sh website`. Each container has its own small script
+that stops the old container and starts the new one with `docker run`: `redis.sh`, `api.sh`, `worker.sh`,
+`socket.sh`, `deeplink.sh`, `admin.sh`, `website.sh`. `deploy.sh backend` is: pull the image, start Redis if it
+is not running, run the migrations in a throwaway container (`migrate.sh`, so a failed migration stops the
+deploy while the old containers keep serving), then restart the four backend containers. `config.sh` holds
+the paths, image names, tags and CPU/memory limits; `common.sh` holds the little functions the scripts share.
+`./pull.sh` pulls the images; `./prune.sh` removes superseded images, and the backend and admin workflows run
+it after each deploy.
 
 The backend and admin workflows run `deploy.sh` over SSH when the
 `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` and `DEPLOY_PATH` secrets are
@@ -65,17 +106,16 @@ image and the run would pass while nothing changed.
 
 The public landing page lives in `website/`. Changes to it deploy through
 `.github/workflows/deploy-website.yml` to the root `hariharibol.com` host. The
-workflow uploads the built files to `$DEPLOY_PATH/website`, uploads the compose,
-nginx and website scripts to `$DEPLOY_PATH/server`, starts the small nginx
-website container and reloads the host Nginx configuration. On the first
-deployment it requests the `hariharibol.com` Let's Encrypt certificate using
-the existing DNS record.
+workflow uploads the built files to `$DEPLOY_PATH/website`, uploads the website
+scripts to `$DEPLOY_PATH/server`, starts the small nginx
+website container and checks it answers on `127.0.0.1:8081`. It does not touch
+the host web server or request a certificate; do that once as described above.
 
 The website is a public nginx image plus static files, so it deploys without
 any AWS login on the server.
 
-Only those four server files are uploaded by that workflow. Anything else in
-`deploy/server/` (for example `prune.sh`) reaches the server when you copy it
+Only those four server files (`config.sh`, `common.sh`, `deploy.sh`, `website.sh`) are uploaded by that
+workflow. Anything else in `deploy/server/` (for example `prune.sh`) reaches the server when you copy it
 there yourself.
 
 ## GitHub secrets and variables
@@ -106,16 +146,15 @@ The two `VITE_*` values are variables because Vite writes them into the public
 bundle; the admin workflow refuses to build if either is empty (an empty build
 cannot reach the API or sign anyone in).
 
-The server's `server/.env` must contain `ECR_REGISTRY`, `BACKEND_REPOSITORY`,
-`ADMIN_REPOSITORY`, `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and
+The server's `server/.env` must contain `DATABASE_URL`, `REDIS_PASSWORD`, `REDIS_URL`, `JWT_SECRET`, and
 `GOOGLE_SERVICE_ACCOUNT_PATH=/app/secrets/hari-hari-bol-service-account.json`.
 Keep CloudFront keys, Firebase JSON, and all other runtime credentials in the
 server's `.env` or the sibling `secrets/` folder. Do not commit them or add
 them as GitHub Actions secrets.
 
-The server stack includes local PostgreSQL and Redis containers with persistent
-Docker volumes. Future schema changes run through Prisma migrations during API
-deployment.
+The server stack includes a Redis container (reachable as `redis` on the `hariharibol` Docker network) with a
+persistent Docker volume; the database is external (see "On a shared Apache server"). Schema changes run
+through Prisma migrations during API deployment.
 
 ## Changing AWS account
 
@@ -126,7 +165,7 @@ can already pull from the new registry when the first image lands there:
    `hariharibol-admin`, an IAM user that can push to them (for GitHub), and one
    that can only pull (for the server).
 2. **Server** — run `aws configure` with the pull user's keys, and set
-   `ECR_REGISTRY` in `/var/www/hariharibol/server/.env`. Until it matches the
+   `ECR_REGISTRY` in `/var/www/hariharibol/server/config.sh`. Until it matches the
    GitHub variable, deploys fail on purpose (see above).
 3. **GitHub** — update the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
    secrets and the `ECR_REGISTRY` variable.
@@ -135,3 +174,12 @@ can already pull from the new registry when the first image lands there:
 5. **The app's own AWS keys** — `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and
    `S3_BUCKET` in `server/.env` are what the API uses for media storage, not for
    deploying. A new account needs its own bucket and keys there too.
+
+## Moving to another server
+
+1. Create the database (above), then deploy the backend so the tables exist.
+2. At the switch, stop the old API (`docker stop hariharibol-api-1 hariharibol-socket-1 hariharibol-worker-1`
+   on the old server) and run `./deploy/import-users.sh` from your laptop. It copies the users and their
+   sign-in sessions, so people who open the app on the new server are still signed in. Try it first with
+   `--dry-run`, which copies inside a transaction and rolls it back. Its header says why the order matters.
+3. Point the domain at the new server.

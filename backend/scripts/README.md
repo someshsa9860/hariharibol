@@ -107,7 +107,7 @@ seed prints "4 stories wait for chapters that are not imported yet", finishes
 everything else, and the second run creates them. Every step is idempotent, so a
 step run twice does no harm, and an importer run before the seed stops with a
 message that the book row is missing. On the server, run each through the api
-container: `docker compose exec api node scripts/import-sb.js`.
+container: `docker exec hariharibol-api node scripts/import-sb.js`.
 
 ### Counts
 
@@ -273,6 +273,13 @@ on **every item**: each `commentaries` row and the verse's `aiTranslation`. Chan
 re-translation and the old and new verses can be told apart (and compared, with `--status`, which lists the
 versions found per language). The checkpoint is per version too.
 
+**A language already translated under the current version is not translated again.** A verse is *current* when
+Prabhupāda's translation exists and its `aiTranslation.version` is this run's version, or it has no
+`aiTranslation` (a person's text, which a run never replaces). A verse under any other version, older or newer,
+is *outdated* and is translated again; a missing one is translated. So the same command run twice does nothing
+the second time (`--dry-run` and the admin page both say "up to date"), and a new `TRANSLATION_VERSION` is how you
+ask for everything to be redone.
+
 **An existing language file is merged into, never replaced.** `hi/ch-N.json` already exists (other translators'
 rows and a Roman `transliteration`). A run keeps every other row and verse, replaces only Prabhupāda's rows
 of that language, adds new rows after the last `displayOrder`, and replaces the verse-level `transliteration`
@@ -355,17 +362,29 @@ submit / poll / collect step and gives up the verse-by-verse, saved-before-the-n
 verse fields, `transliteration` as one string (lines joined by a line break), Prabhupāda's translation and
 purport as `commentaries` rows (`translatorSlug`, `type`, `language`, `displayOrder`, `text`; a purport's
 paragraphs joined by a line break), and `wordMeanings` as `[{ word, meaning }]` — the list `lib/word-meanings.js`
-already expects. The extra keys (`translatedBy`, `version`, `correctness`, `aiTranslation`) are ignored by
-the importer's helpers. What the database can take today:
+already expects. **The admin Translations page's Import button** (`services/translation-import.js`; see
+"Translation runs" in [../CLAUDE.md](../CLAUDE.md)) copies each language's files into the database. It is not
+`import-bg.js`, which still reads only `sa/`, `en/` and `dnyaneshwari/mr/`. All four items go in:
 
-| in the file | goes to | state |
-|---|---|---|
-| `commentaries` translation + purport rows | `VerseTranslation` (translator `prabhupada`, `languageCode`, `meaning`, `purport`) | `buildTranslationRows` in `lib/commentaries.js` already turns these rows into one row per language — a test runs a saved verse through it. **`import-bg.js` does not read `hi/`, `mr/`, `ta/` files yet** (it reads `sa/`, `en/` and `dnyaneshwari/mr/`), so a small addition there is all the import needs |
-| `transliteration`, `wordMeanings` | nowhere yet | `Verse.transliteration` and `Verse.wordMeanings` are single, language-neutral columns holding the Roman text and the English meanings. An importer that copied these in would **overwrite them with Hindi, Marathi or Tamil**, so it must not. They need their own home first (for example two nullable columns on the `TRANSLATION` row of `VerseTranslation`) |
+| in the file | goes to (`VerseTranslation`, translator `prabhupada`, the language, type `TRANSLATION`) |
+|---|---|
+| translation `commentaries` row | `meaning` |
+| purport `commentaries` row | `purport` |
+| `transliteration` | `transliteration` — the verse in that language's script |
+| `wordMeanings` | `wordMeanings` — `[{ word, meaning }]`, null when the verse has none |
+| `aiTranslation` | `translatedBy` and `version` — which run made the text |
 
-Until that is decided the files hold all four items, and the importer addition would read only
-`commentaries`. Re-doing a verse with a new version overwrites it in place in its language file (the earlier
-text survives only in the dated backup); keeping both versions side by side would need a history field.
+They sit on the translation row, **not** on `Verse`: `Verse.transliteration` and `Verse.wordMeanings` are single,
+language-neutral columns holding the Roman text and the English meanings, and copying Hindi, Marathi or Tamil into
+them would overwrite those. An import never touches `Verse`.
+
+A verse is found by its place in the book — `verseId` inside the book, and the file's book, canto, chapter and
+verse numbers must agree with the row's — so the row that is there is **replaced in place** (same `id`,
+same `createdAt`, same unique key `verseId + translator + language + type`) with what the file says. A part the file
+no longer has is cleared; a row that already matches is not written. New rows are hidden from readers unless the
+import is asked to make them visible. Re-doing a verse with a new version overwrites it in place in its language
+file and, on the next import, in the database (the earlier text survives only in the dated backup); keeping both
+versions side by side would need a history field. **The app does not read the new columns yet.**
 
 **Review.** The checks catch structure, omissions and wrong script, not reverence or subtle meaning, and
 Claude's own 3 is only as reliable as its sense of the language. A native reader should review a sample per

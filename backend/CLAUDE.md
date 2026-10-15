@@ -489,7 +489,7 @@ Things to know before changing it:
   409 with `error.details.runId`, which the page turns into "Open that run".
 - **A worker that dies mid-run is handled.** The row is touched every `heartbeatMs` (5 s); BullMQ hands the stalled
   job to another worker (`maxStalledCount` 20), and the page warns when a RUNNING run has been quiet for 90 s.
-  On SIGTERM the worker hands the run back and exits (`docker compose` gives it `stop_grace_period: 40s`), so a
+  On SIGTERM the worker hands the run back and exits (`deploy/server/worker.sh` gives it a 40 s stop timeout), so a
   deploy does not cost a retry.
 - **`reconcileRuns` is the safety net**: every 2 min and on boot it re-queues any QUEUED / RUNNING / PAUSED run
   whose BullMQ job is missing (a Redis flush, a crash between saving the row and queuing the job).

@@ -1,7 +1,7 @@
 # One image, four containers.
 #
 # The API, the worker, the websocket server and the deeplink service all run
-# from this image with a different command (see docker-compose.yml). They share
+# from this image with a different command (see deploy/server/*.sh). They share
 # every dependency and the whole Prisma client, so building four near-identical
 # images would mean four builds, four pushes and four chances for them to drift
 # out of sync with each other.

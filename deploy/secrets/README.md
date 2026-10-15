@@ -6,7 +6,7 @@ This directory is created beside `server/` on the deployment host:
 /var/www/hariharibol/
 ├── server/
 │   ├── .env
-│   └── docker-compose.yml
+│   └── api.sh, worker.sh, ... (the deploy scripts)
 └── secrets/
     ├── hari-hari-bol-service-account.json
     └── cloudfront-private-key.pem

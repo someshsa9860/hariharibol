@@ -8,7 +8,7 @@
 //
 // For a database whose counts drifted — rows imported before the importers
 // recounted, or inserted by hand. On the server:
-//   docker compose exec api node scripts/recount-books.js --dry-run
+//   docker exec hariharibol-api node scripts/recount-books.js --dry-run
 
 import { prisma } from '../config/database.js';
 import { recountBook } from '../services/book-counts.js';

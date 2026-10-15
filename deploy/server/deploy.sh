@@ -1,31 +1,38 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
+#!/bin/bash
+set -e
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/config.sh"
-source "$ENV_FILE"
-export IMAGE_TAG="${IMAGE_TAG:-latest}"
-if [[ -n "${2:-}" ]]; then export IMAGE_TAG="$2"; fi
+DIR="$(dirname "$0")"
+
+# ./deploy.sh [backend|admin|website|all]
+# One service on its own: ./api.sh, ./worker.sh, ./socket.sh, ./deeplink.sh, ./admin.sh, ./website.sh
+# (they restart the image already pulled; ./pull.sh fetches it).
+
+deploy_backend () {
+  "$DIR/pull.sh" backend
+  "$DIR/redis.sh"
+  "$DIR/migrate.sh"
+  "$DIR/api.sh"
+  "$DIR/socket.sh"
+  "$DIR/deeplink.sh"
+  "$DIR/worker.sh"
+}
+
+deploy_admin () {
+  "$DIR/pull.sh" admin
+  "$DIR/admin.sh"
+}
 
 case "${1:-all}" in
-  admin) "$SCRIPT_DIR/admin.sh" ;;
-  website) "$SCRIPT_DIR/website.sh" ;;
-  backend)
-    "$SCRIPT_DIR/api.sh"
-    "$SCRIPT_DIR/worker.sh"
-    "$SCRIPT_DIR/socket.sh"
-    "$SCRIPT_DIR/deeplink.sh"
-    ;;
+  backend) deploy_backend ;;
+  admin)   deploy_admin ;;
+  website) "$DIR/website.sh" ;;
   all)
-    "$SCRIPT_DIR/api.sh"
-    "$SCRIPT_DIR/worker.sh"
-    "$SCRIPT_DIR/socket.sh"
-    "$SCRIPT_DIR/deeplink.sh"
-    "$SCRIPT_DIR/admin.sh"
-    "$SCRIPT_DIR/website.sh"
+    deploy_backend
+    deploy_admin
+    "$DIR/website.sh"
     ;;
   *)
-    echo "usage: $0 [admin|website|backend|all]" >&2
+    echo "usage: $0 [backend|admin|website|all]" >&2
     exit 2
     ;;
 esac

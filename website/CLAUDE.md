@@ -76,7 +76,7 @@ npm run preview   # serve dist/ to check the built page
 
 `.github/workflows/deploy-website.yml` runs `npm ci && npm run build` and
 uploads **`website/dist`** to `$DEPLOY_PATH/website` on the server, which the
-`website` nginx container mounts read-only (`deploy/server/docker-compose.yml`).
+`website` nginx container mounts read-only (`deploy/server/website.sh`).
 Two things to keep in mind:
 
 - The upload must not use the scp action's `rm: true` — it would delete the

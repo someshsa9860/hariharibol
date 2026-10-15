@@ -1,34 +1,62 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
+#!/bin/bash
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-ENV_FILE="${ENV_FILE:-$SCRIPT_DIR/.env}"
-SECRETS_DIR="${SECRETS_DIR:-$ROOT_DIR/secrets}"
-COMPOSE_FILE="${COMPOSE_FILE:-$SCRIPT_DIR/docker-compose.yml}"
+# Everything the scripts need to know: where things are, which images, how much memory.
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_FILE="$BASE_DIR/server/.env"
+SECRETS_DIR="$BASE_DIR/secrets"
+WEBSITE_DIR="$BASE_DIR/website"
 
-: "${AWS_REGION:=ap-south-1}"
-: "${BACKEND_REPOSITORY:=hariharibol-backend}"
-: "${ADMIN_REPOSITORY:=hariharibol-admin}"
-: "${IMAGE_TAG:=latest}"
-: "${API_MEMORY_LIMIT:=512m}"
-: "${WORKER_MEMORY_LIMIT:=512m}"
-: "${SOCKET_MEMORY_LIMIT:=256m}"
-: "${DEEPLINK_MEMORY_LIMIT:=256m}"
-: "${ADMIN_MEMORY_LIMIT:=256m}"
-: "${POSTGRES_MEMORY_LIMIT:=512m}"
-: "${REDIS_MEMORY_LIMIT:=256m}"
-: "${API_CPU_LIMIT:=1.0}"
-: "${WORKER_CPU_LIMIT:=1.0}"
-: "${SOCKET_CPU_LIMIT:=0.5}"
-: "${DEEPLINK_CPU_LIMIT:=0.5}"
-: "${ADMIN_CPU_LIMIT:=0.5}"
-: "${POSTGRES_CPU_LIMIT:=1.0}"
-: "${REDIS_CPU_LIMIT:=0.5}"
+# The containers talk to each other (redis) by name on this network. Only the
+# loopback ports below are published; Apache/Nginx on the host proxies to them.
+NETWORK="hariharibol"
 
-export AWS_REGION BACKEND_REPOSITORY ADMIN_REPOSITORY IMAGE_TAG
-export API_MEMORY_LIMIT WORKER_MEMORY_LIMIT SOCKET_MEMORY_LIMIT DEEPLINK_MEMORY_LIMIT ADMIN_MEMORY_LIMIT
-export POSTGRES_MEMORY_LIMIT REDIS_MEMORY_LIMIT
-export API_CPU_LIMIT WORKER_CPU_LIMIT SOCKET_CPU_LIMIT DEEPLINK_CPU_LIMIT ADMIN_CPU_LIMIT POSTGRES_CPU_LIMIT REDIS_CPU_LIMIT
-export ENV_FILE SECRETS_DIR COMPOSE_FILE
-COMPOSE=(docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE")
+AWS_REGION="ap-south-1"
+ECR_REGISTRY="572638914162.dkr.ecr.ap-south-1.amazonaws.com"
+IMAGE_TAG="${IMAGE_TAG:-latest}"
+BACKEND_IMAGE="$ECR_REGISTRY/hariharibol-backend:$IMAGE_TAG"
+ADMIN_IMAGE="$ECR_REGISTRY/hariharibol-admin:$IMAGE_TAG"
+WEBSITE_IMAGE="nginx:1.27-alpine"
+REDIS_IMAGE="redis:7-alpine"
+
+# Memory limits come from what the containers actually used (cgroup peak after a
+# day in production: api 160 MiB, worker 116, socket 60, deeplink 41, redis 40,
+# the two nginx containers under 10), with room for traffic the sample did not
+# see. The database is managed (RDS), so there is no postgres container.
+#
+# *_HEAP_MB is Node's own heap ceiling, about 60% of the limit. Without it Node
+# grows until the kernel kills the container; with it Node collects garbage
+# first. The rest of the limit is for what the heap does not count (the Prisma
+# engine, buffers, the runtime). Raise a limit and its heap together.
+# Each container's swap is capped at its memory, so one that misbehaves cannot
+# push the whole server into swap.
+
+API_MEMORY="512m"
+API_HEAP_MB="320"
+API_CPU="1.0"
+
+WORKER_MEMORY="512m"
+WORKER_HEAP_MB="320"
+WORKER_CPU="1.0"
+
+SOCKET_MEMORY="256m"
+SOCKET_HEAP_MB="160"
+SOCKET_CPU="0.5"
+
+DEEPLINK_MEMORY="128m"
+DEEPLINK_HEAP_MB="80"
+DEEPLINK_CPU="0.5"
+
+ADMIN_MEMORY="64m"
+ADMIN_CPU="0.5"
+
+WEBSITE_MEMORY="64m"
+WEBSITE_CPU="0.25"
+
+# Redis refuses writes at REDIS_MAXMEMORY instead of growing into its limit.
+# "noeviction" is deliberate: the job queue must never lose a job to make room.
+REDIS_MEMORY="128m"
+REDIS_MAXMEMORY="64mb"
+REDIS_CPU="0.5"
+
+# The migration runs in its own throwaway container (see migrate.sh).
+MIGRATE_MEMORY="768m"
