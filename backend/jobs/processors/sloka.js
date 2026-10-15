@@ -145,7 +145,7 @@ function loadVerseForPush(verseRowId, user) {
       chapterNumber: true,
       verseNumber: true,
       verseNumberEnd: true,
-      book: { select: { slug: true, title: true } },
+      book: { select: { slug: true, title: true, titleI18n: true } },
       translations: {
         where: { isPublished: true, languageCode: { in: language.readingChain(user) } },
         select: { languageCode: true, type: true, meaning: true },
@@ -210,13 +210,13 @@ async function deliver() {
       // The verse itself is the notification. Why it was chosen stays in the
       // app (`reason` on the sloka), where there is room to say it.
       const verse = await loadVerseForPush(row.verseId, row.user);
-      const { body, data } = slokaPush({ verse, user: row.user });
+      const { title, body, data } = slokaPush({ verse, user: row.user });
 
       // The picture is the same for everyone who is sent this verse, so it is
       // drawn the first time and found after that. No picture, still a push.
       const image = await slokaCard.cardUrl(verse);
 
-      await notify.toUser(row.userId, { type: 'SLOKA', title: 'Your sloka for today', body, image, data });
+      await notify.toUser(row.userId, { type: 'SLOKA', title, body, image, data });
 
       await prisma.userDailySloka.update({
         where: { id: row.id },

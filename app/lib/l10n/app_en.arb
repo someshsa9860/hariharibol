@@ -544,6 +544,9 @@
   "readingFontSizeLarge": "Large",
   "readingFontSizeExtraLarge": "Extra large",
   "readingLanguageLabel": "Reading language",
+  "readingHideLabel": "Hide in verses",
+  "readingHideSanskrit": "Sanskrit",
+  "readingHideTransliteration": "Transliteration",
   "routineSubtitle": "Devotion, work and the ordinary in between.",
   "routineProgress": "{done} of {total} done",
   "@routineProgress": {
@@ -678,21 +681,6 @@
         "type": "int"
       },
       "total": {
-        "type": "int"
-      }
-    }
-  },
-  "reelVerseRef": "{book} {chapter}.{verse}",
-  "@reelVerseRef": {
-    "description": "A verse reference on a reel, e.g. BG 2.47",
-    "placeholders": {
-      "book": {
-        "type": "String"
-      },
-      "chapter": {
-        "type": "int"
-      },
-      "verse": {
         "type": "int"
       }
     }

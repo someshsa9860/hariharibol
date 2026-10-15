@@ -92,9 +92,9 @@ export const coverage = async (req, res) => {
 
 /** GET /api/admin/translations/estimate — what a run would do and cost, before it is started. */
 export const estimate = async (req, res) => {
-  const { language, book = BOOK, chapters, limit, provider, model } = req.valid.query;
+  const { language, book = BOOK, chapters, limit, provider, model, plan } = req.valid.query;
   const data = await service
-    .estimate({ language, book, provider, model, chapters: pickChapters(book, chapters), limit: limit ?? 0 })
+    .estimate({ language, book, provider, model, plan, chapters: pickChapters(book, chapters), limit: limit ?? 0 })
     .catch((err) => {
       throw unprocessable(`Could not work out an estimate: ${err.message}`);
     });
@@ -129,14 +129,21 @@ export const get = async (req, res) => {
 export const start = async (req, res) => {
   const { language, chapters, verseLimit, budgetUsd } = req.valid.body;
   const book = req.valid.body.book ?? BOOK;
-  const provider = req.valid.body.provider ?? service.defaultProvider();
-  const model = req.valid.body.model ?? service.model(provider);
+  const defaultProvider = req.valid.body.provider ?? service.defaultProvider();
+  const defaultModel = req.valid.body.model ?? service.model(defaultProvider);
 
-  // Say what is wrong before a run exists that can only fail: a key, a bucket and a version are checked here.
-  if (!service.apiKey(provider)) {
-    const p = service.providers().find((x) => x.id === provider);
-    throw unprocessable(`${p.keyEnv} is not set on the server, so ${p.company} cannot be called.`);
+  // Say what is wrong before a run exists that can only fail: a plan, its keys, a bucket and a version are checked here.
+  let plan;
+  try {
+    plan = service.resolvePlan({ plan: req.valid.body.plan ?? null, provider: defaultProvider, model: defaultModel });
+  } catch (err) {
+    throw unprocessable(err.message);
   }
+  const missing = service.missingKeys(plan);
+  if (missing.length) throw unprocessable(missing.map((m) => `${m.keyEnv} is not set on the server, so ${m.company} cannot be called.`).join(' '));
+  const lead = plan.translation ?? Object.values(plan)[0]; // the row's own provider and model: the translation's, else the first part's
+  const provider = lead.provider;
+  const model = lead.model;
   const storage = await service.storageStatus();
   if (!storage.ok) throw unprocessable(`Storage is not set up: ${storage.error}`);
   let version;
@@ -164,7 +171,7 @@ export const start = async (req, res) => {
 
     // Nothing to translate is not a run: if everything asked for is already translated under this version,
     // say so rather than queue a job that finishes at once with "0 verses translated".
-    const left = await service.estimate({ language, book, chapters: picked, limit: verseLimit ?? 0, provider, model, version }).catch((err) => {
+    const left = await service.estimate({ language, book, chapters: picked, limit: verseLimit ?? 0, provider, model, plan, version }).catch((err) => {
       throw unprocessable(`Could not check what is already translated: ${err.message}`);
     });
     if (left.willTranslate === 0) {
@@ -182,6 +189,7 @@ export const start = async (req, res) => {
         version,
         provider,
         model,
+        plan,
         chapters: picked,
         verseLimit: verseLimit ?? null,
         budgetMicros: budgetUsd ? microsOf(budgetUsd) : null,
@@ -214,7 +222,7 @@ export const start = async (req, res) => {
       action: 'translation.start',
       entityType: 'TranslationRun',
       entityId: row.id,
-      after: { language, book, chapters: picked, verseLimit: row.verseLimit, budgetUsd: budgetUsd ?? null, version, provider, model: row.model },
+      after: { language, book, chapters: picked, verseLimit: row.verseLimit, budgetUsd: budgetUsd ?? null, version, provider, model: row.model, plan },
     });
     service.publishRun(current);
 

@@ -13,6 +13,7 @@ import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
 import * as s3 from '../../services/s3.js';
 import * as sadhana from './sadhana.js';
+import * as slokaController from './sloka.js';
 import { ok } from '../../utils/respond.js';
 import { localDateString, toDateColumn } from '../../utils/date.js';
 
@@ -38,7 +39,7 @@ export const home = async (req, res) => {
       where: { isPublished: true },
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
       take: 6,
-      include: present.includes.mantra(language.mantraChain(user), readingChain),
+      include: present.includes.mantra(language.mantraTextChain(user), readingChain),
     }),
 
     user ? loadPersonal(user, date, readingChain) : Promise.resolve(null),
@@ -70,7 +71,7 @@ async function loadPersonal(user, date, readingChain) {
       where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
       include: {
         verse: { include: present.includes.verse(readingChain) },
-        issue: { select: { slug: true, name: true } },
+        issue: { select: { slug: true, name: true, nameI18n: true } },
       },
     }),
 
@@ -102,8 +103,8 @@ async function loadPersonal(user, date, readingChain) {
     mySloka: mySloka
       ? {
           id: mySloka.id,
-          reason: mySloka.reason,
-          issue: mySloka.issue,
+          reason: slokaController.reasonFor(mySloka, readingChain),
+          issue: slokaController.presentIssue(mySloka.issue, readingChain),
           seenAt: mySloka.seenAt,
           verse: await present.verse(mySloka.verse, user),
         }

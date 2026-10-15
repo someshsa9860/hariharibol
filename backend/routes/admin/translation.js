@@ -27,6 +27,23 @@ const chapterList = z
   .transform((text) => [...new Set(text.split(',').map(Number))].sort((a, b) => a - b))
   .refine((numbers) => numbers.every((n) => n >= 1 && n <= 1290), 'Chapter ids are 1 to 1290');
 
+// Who writes each part. A part left out is not touched by the run; one with no model uses its provider's default.
+const planEntry = z.object({
+  provider: z.enum(['anthropic', 'openai', 'gemini']),
+  model: z.string().trim().min(1).max(100).optional(),
+  effort: z.enum(['off', 'low', 'medium', 'high', 'xhigh', 'max']).optional(),
+});
+const plan = z.object({ translation: planEntry.optional(), purport: planEntry.optional(), transliteration: planEntry.optional(), wordMeanings: planEntry.optional() }).strict();
+// On a GET the plan travels as JSON text.
+const planText = z.string().max(2000).transform((text, ctx) => {
+  try {
+    return plan.parse(JSON.parse(text));
+  } catch {
+    ctx.addIssue({ code: 'custom', message: 'plan must be JSON: { translation?, purport?, transliteration?, wordMeanings? } each { provider, model?, effort? }' });
+    return z.NEVER;
+  }
+});
+
 const statuses = z.enum(['QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED']);
 
 // Static paths first, so none of them is read as a run id.
@@ -78,6 +95,7 @@ router.get(
       book: book.optional(),
       provider: z.string().max(40).optional(),
       model: z.string().max(100).optional(),
+      plan: planText.optional(),
       chapters: chapterList.optional(),
       limit: z.coerce.number().int().min(1).max(800).optional(),
     }),
@@ -108,15 +126,18 @@ router.post(
       'turn, because the queue works one run per book at a time. Verses already translated under the current ' +
       'version are skipped, so starting again continues where the last run stopped; verses made ' +
       'under an older version are translated again. When everything asked for is already up to date ' +
-      'there is nothing to do and the answer is 409 with `details.upToDate`.',
+      'there is nothing to do and the answer is 409 with `details.upToDate`. `plan` gives each part its own ' +
+      'provider, model and effort (translation, purport, transliteration, word meanings); parts that share all three ' +
+      'are asked for in one request per verse, and the groups run side by side. Parts left out of the plan are not touched.',
     permission: 'translation.run',
     limit: 'write',
     body: z.object({
       language,
       book: book.optional(),
       chapters: z.array(chapterNumber).min(1).max(335).optional(),
-      provider: z.enum(['anthropic', 'openai']).optional(),
+      provider: z.enum(['anthropic', 'openai', 'gemini']).optional(),
       model: z.string().trim().min(1).max(100).optional(),
+      plan: plan.optional(),
       verseLimit: z.number().int().min(1).max(800).optional(),
       budgetUsd: z.number().positive().max(1000).optional(),
     }),

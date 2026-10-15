@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select } from '@/components/ui/input';
-import { cantoOf, chapterName, useChapter, useVerse, type BookId, type ChapterIndex, type Coverage, type Overview, type Run, type VerseOutput } from '@/lib/translation';
+import { cantoOf, chapterName, useChapter, useVerse, type BookId, type ChapterIndex, type Coverage, type Overview, type Run, type VerseOutput, providerName } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
 import { ProgressBar, ScoreBadge, ScoreDot, formatCount } from './translation-bits';
 import { chapterOf } from './translation-run-panel';
@@ -453,8 +453,17 @@ function VerseHeader({ data, mode, onMode, onPick, languageName }: { data: Verse
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Translated by {ai.provider === 'openai' ? 'OpenAI' : 'Claude'} · <span className="font-mono">{ai.model}</span> · version <span className="font-mono">{ai.version}</span> · {formatDate(ai.generatedAt)}
+            Translated by {providerName(ai.provider ?? 'anthropic')} · <span className="font-mono">{ai.model}</span> · version <span className="font-mono">{ai.version}</span> · {formatDate(ai.generatedAt)}
           </p>
+          {ai.parts && Object.keys(ai.parts).length > 0 && new Set(Object.values(ai.parts).map((x) => `${x.provider}|${x.model}`)).size > 1 && (
+            <ul className="text-xs text-muted-foreground">
+              {Object.entries(ai.parts).map(([part, x]) => (
+                <li key={part}>
+                  {PART_LABEL[part] ?? part}: {providerName(x.provider)} · <span className="font-mono">{x.model}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           {ai.note && <p className="rounded-md border bg-background px-3 py-2 text-sm">{ai.note}</p>}
           {ai.warnings.length > 0 && (
             <details className="group rounded-md border border-warning/50 bg-warning/15 px-3 py-2 text-sm">

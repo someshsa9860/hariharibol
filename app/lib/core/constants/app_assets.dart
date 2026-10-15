@@ -7,4 +7,7 @@ abstract final class AppAssets {
   /// The brand logo on a transparent ground. Every place the app draws its own
   /// logo uses this one picture.
   static const String logo = 'assets/hariharibol_trprt.png';
+
+  /// The peacock feather on the Reels button, in its own colours (`PeacockFeatherIcon`).
+  static const String peacockFeather = 'assets/peacock_feather.svg';
 }

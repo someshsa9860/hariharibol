@@ -31,7 +31,7 @@ export const list = async (req, res) => {
   const { items, page } = await paginate(prisma.mantra, {
     where,
     orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
-    include: present.includes.mantra(language.mantraChain(user), readingChain),
+    include: present.includes.mantra(language.mantraTextChain(user), readingChain),
     query: req.valid.query,
   });
 
@@ -44,7 +44,7 @@ export const get = async (req, res) => {
 
   const mantra = await prisma.mantra.findFirst({
     where: { slug: req.valid.params.slug, isPublished: true },
-    include: present.includes.mantra(language.mantraChain(user), language.readingChain(user)),
+    include: present.includes.mantra(language.mantraTextChain(user), language.readingChain(user)),
   });
   if (!mantra) throw notFound('Mantra');
 

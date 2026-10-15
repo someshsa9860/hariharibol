@@ -57,6 +57,22 @@ function scriptRatio(text, [lo, hi]) {
   return letters === 0 ? 1 : native / letters;
 }
 
+// The Indic blocks (Devanagari to Malayalam, Sinhala): a letter or sign in one that is not the language's own
+// is a model slipping into another script — a Devanagari visarga in Tamil, a Gujarati one in Kannada. The
+// danda and double danda are shared by every Indic script and are fine anywhere.
+const INDIC = [0x0900, 0x0dff];
+const SHARED = new Set([0x0964, 0x0965]);
+
+/** The distinct characters of `text` that belong to an Indic script other than the language's own. */
+export function foreignScriptChars(text, [lo, hi]) {
+  const found = new Set();
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    if (cp >= INDIC[0] && cp <= INDIC[1] && !(cp >= lo && cp <= hi) && !SHARED.has(cp) && /[\p{L}\p{M}\p{N}\p{S}]/u.test(ch)) found.add(ch);
+  }
+  return [...found];
+}
+
 function sentenceCount(text) {
   return (text.match(/[.।?!](?=\s|$|["”’)\]])/g) || []).length;
 }
@@ -91,6 +107,11 @@ export function checkText(source, output, langCode, label) {
   const ratio = scriptRatio(output, lang.block);
   if (ratio < MIN_SCRIPT_RATIO) {
     add(BAD, `only ${(ratio * 100).toFixed(0)}% of its letters are ${lang.name} script — untranslated English left in`);
+  }
+
+  const foreign = foreignScriptChars(output, lang.block);
+  if (foreign.length) {
+    add(BAD, `contains ${foreign.length} character(s) of another script (${foreign.slice(0, 6).join(' ')}) — write only ${lang.name} script`);
   }
 
   const want = numbersIn(source);
@@ -228,28 +249,32 @@ function isAbsent(value, field) {
  * @param {{ translation: string, purport: string[], wordMeanings?: object[], transliteration?: string[] }} source   the English
  * @param {unknown} answer   what the model returned for this language
  */
-export function assessLanguage(source, answer, langCode) {
+export function assessLanguage(source, answer, langCode, parts = PARTS) {
   const unusable = (problem) => ({ usable: false, problems: [problem], findings: [], warnings: [], missing: [], scores: null, correctness: null, note: '', value: null });
   if (!answer || typeof answer !== 'object' || Array.isArray(answer)) return unusable('answer is missing or not an object');
-  if (typeof answer.translation !== 'string' || !answer.translation.trim()) return unusable('translation is empty or not a string');
+  const asked = (part) => parts.includes(part);
+  if (asked('translation') && (typeof answer.translation !== 'string' || !answer.translation.trim())) return unusable('translation is empty or not a string');
 
   const has = {
-    translation: true,
-    transliteration: (source.transliteration || []).length > 0,
-    wordMeanings: (source.wordMeanings || []).length > 0,
-    purport: source.purport.length > 0,
+    translation: asked('translation'),
+    transliteration: asked('transliteration') && (source.transliteration || []).length > 0,
+    wordMeanings: asked('wordMeanings') && (source.wordMeanings || []).length > 0,
+    purport: asked('purport') && source.purport.length > 0,
   };
   const found = []; // { part, level, msg }
   const add = (part, list) => found.push(...list.map((f) => ({ part, ...f })));
 
-  add('translation', checkText(source.translation, answer.translation, langCode, 'translation'));
-  const value = { translation: answer.translation.trim(), purport: [] };
+  const value = { purport: [] };
+  if (has.translation) {
+    add('translation', checkText(source.translation, answer.translation, langCode, 'translation'));
+    value.translation = answer.translation.trim();
+  }
 
   if (has.purport) {
     const r = checkPurport(source.purport, answer.purport, langCode);
     add('purport', r.findings);
     value.purport = r.paragraphs;
-  } else if (Array.isArray(answer.purport) && answer.purport.length) {
+  } else if (asked('purport') && Array.isArray(answer.purport) && answer.purport.length) {
     add('purport', [{ level: NOTE, msg: 'the English has no purport — the paragraphs returned were left out' }]);
   }
   if (has.transliteration) {
@@ -268,6 +293,11 @@ export function assessLanguage(source, answer, langCode) {
   if (has.wordMeanings && isAbsent(answer.wordMeanings, true)) missing.push('wordMeanings');
   if (has.purport && isAbsent(answer.purport)) missing.push('purport');
 
+  // A lane without the translation has nothing to save when every part it was asked for came back empty.
+  if (!has.translation && has.purport + has.transliteration + has.wordMeanings > 0 && missing.length === has.purport + has.transliteration + has.wordMeanings) {
+    return unusable(`${missing.join(', ')} came back empty`);
+  }
+
   const own = answer.correctness && typeof answer.correctness === 'object' ? answer.correctness : {};
   const scores = {};
   for (const part of PARTS.filter((p) => has[p])) {
@@ -283,7 +313,7 @@ export function assessLanguage(source, answer, langCode) {
     warnings: found.map((f) => f.msg),
     missing,
     scores,
-    correctness: Math.min(...Object.values(scores)),
+    correctness: Object.values(scores).length ? Math.min(...Object.values(scores)) : 3,
     note: text(answer.note),
     value,
   };
@@ -293,8 +323,8 @@ export function assessLanguage(source, answer, langCode) {
  * The strict view, for re-checking what is already saved (`--status --verify`): any 'bad' or 'minor'
  * finding is an error, notes stay warnings.
  */
-export function validateLanguage(source, answer, langCode) {
-  const a = assessLanguage(source, answer, langCode);
+export function validateLanguage(source, answer, langCode, parts = PARTS) {
+  const a = assessLanguage(source, answer, langCode, parts);
   if (!a.usable) return { ok: false, errors: a.problems, warnings: [], value: null };
   const errors = a.findings.filter((f) => f.level !== NOTE).map((f) => f.msg);
   const warnings = a.findings.filter((f) => f.level === NOTE).map((f) => f.msg);

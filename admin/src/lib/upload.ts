@@ -7,7 +7,7 @@
 
 import { api, loadTokens } from './api';
 
-export type UploadKind = 'reelVideo' | 'reelImage' | 'reelAudio' | 'reelThumbnail' | 'mantraMalaAudio' | 'deityImage' | 'deityFullImage';
+export type UploadKind = 'reelVideo' | 'reelImage' | 'reelAudio' | 'reelThumbnail' | 'mantraMalaAudio' | 'deityImage' | 'deityFullImage' | 'slokaImage';
 
 type Presigned = { key: string; uploadUrl: string; contentType: string; viaApi?: boolean };
 
@@ -21,6 +21,7 @@ export const ACCEPT: Record<UploadKind, string[]> = {
   mantraMalaAudio: ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/wav'],
   deityImage: ['image/jpeg', 'image/png', 'image/webp'],
   deityFullImage: ['image/jpeg', 'image/png', 'image/webp'],
+  slokaImage: ['image/jpeg', 'image/png', 'image/webp'],
 };
 
 const FRIENDLY: Record<UploadKind, string> = {
@@ -31,6 +32,7 @@ const FRIENDLY: Record<UploadKind, string> = {
   mantraMalaAudio: 'an MP3, M4A, AAC or WAV file',
   deityImage: 'a JPEG, PNG or WebP image',
   deityFullImage: 'a JPEG, PNG or WebP image',
+  slokaImage: 'a JPEG, PNG or WebP image',
 };
 
 // Browsers report some audio files under names the API does not list (`audio/x-m4a`,

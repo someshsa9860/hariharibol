@@ -1,9 +1,10 @@
 import 'json.dart';
 import 'reference_item.dart';
 
-/// A mantra, already resolved by the API into the reader's two languages: the
-/// script comes from their mantra language, the meaning from their reading
-/// language. Chanting in Devanagari while reading English is the normal case.
+/// A mantra, already resolved by the API into the reader's reading language: the
+/// name, the text's script and the meaning all follow it, so a Kannada reader sees
+/// Kannada letters. `textLanguage` says which language's text this is, and it is
+/// the next one in the reading chain when the reading language has none.
 class Mantra {
   const Mantra({
     required this.id,

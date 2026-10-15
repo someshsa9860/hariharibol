@@ -226,12 +226,61 @@ rest of the verse form.
 - Read-only without `verse.write`: inputs disabled, no row controls.
 - A re-import (`backend/scripts/lib/import-verses.js`) replaces these edits from the source files.
 
+## Titles in other languages
+
+The **Books** page's row menu has **Titles in other languages** (**View titles…** without `book.write`), which opens
+`components/book-titles-dialog.tsx`: the title of the book, each canto and each chapter in every reading language, with the
+English beside it. A language is picked on the left (with how many titles it has, a tick when it is complete); every title is a
+box on the right, grouped Book / Cantos / Chapters (or "Canto N chapters"), and a select narrows the list to **only those
+without a title**.
+
+- **A blank box is "no title in this language"**, and is how a wrong one is withdrawn — the app then reads the next language
+  in the reader's chain, ending in English. English itself is never edited here: it is the source, carried through untouched.
+- **Edits stay in the dialog until Save**, which sends one `PATCH` for each title that changed, all its languages together
+  (`{ titleI18n }` replaces the whole map, so the other languages and `en` are sent back with it). A partial failure says
+  "N of M titles saved" and leaves the rest as drafts; closing with unsaved changes asks first.
+- **The English column is `titleI18n.en ?? title`.** The Gita's chapters keep the Sanskrit name in the plain `title` and the
+  English heading in the map; showing `title` would call the Sanskrit "English".
+- The languages come from `GET /api/admin/books/languages` (active reading languages but English, in display order), the
+  book from the existing `GET /books/:id`. The dialog says seeded titles are AI-drafted and unreviewed, and that phones get a
+  change with the next book export.
+- Driven in a real headless Chrome against the local API (the Gita with 11 languages, then the Bhagavatam with 348 titles —
+  about 75 ms a keystroke): English column, edit, blank, Save, the saved map checked through the API, the unsaved-close
+  prompt, the missing-only filter and a second language. That script is not kept in the repo; the API side is
+  `npm run test:book-titles`.
+
+## Daily sloka
+
+`routes/slokas.tsx`: pool health, today's delivery and the calendar. **Edit**, or a badge under *Unset days*, opens one dialog
+for a day — which verse, and an optional background picture.
+
+- **The verse is chosen, not typed.** `components/sloka-verse-picker.tsx` is four selects — Book → Canto (only for a book that
+  has cantos, the Bhagavatam) → Chapter → Verse — with the verse's Sanskrit under them. Changing a select clears the ones below
+  it, and the chosen verse id goes up through `onChange` (`''` until one is picked), so Save stays off until there is a verse. A
+  chapter reads "Chapter n — title (k)", k being how many of its verses can be chosen.
+- **Only the sloka pool is offered**, from `GET /api/admin/slokas/picker` (one request, `sloka.manage` alone — see "Setting a
+  day's sloka" in [../backend/CLAUDE.md](../backend/CLAUDE.md)), so a verse the select can show is one the API accepts. To make
+  more verses choosable, mark them eligible on the Verses page; the picker never widens itself.
+- **Editing opens on the day's verse**, book down to verse filled in from its id. If that verse has since left the pool, the
+  dialog says so in amber and Save stays off until another is chosen — the API would refuse it anyway.
+- **The background picture** is an `ImageUploadField` (kind `slokaImage` in `lib/upload.ts`; JPEG, PNG or WebP). The dialog holds
+  it as `Picture`, and a save sends `imagePath` **only if it was changed there**: left out, the day keeps its picture (so
+  changing only the verse never loses it), a new key replaces it, `null` removes it. The field's optional `onBusyChange` says a
+  file is still on its way, and **Save waits for it** — otherwise a quick save would go without the picture.
+- **Uploads are never deleted** from storage when a picture is replaced or removed, as with reels.
+- **Nothing in the app shows the picture yet** — it is stored and sent as `imageUrl`, no more; see the backend section.
+- Driven in a real headless Chrome against the local API (choosing through both books, prefill on edit, upload, replace, remove,
+  keeping the picture when only the verse changes, a verse that left the pool, a picker that fails to load, a phone-width
+  window). That script is not kept in the repo; the API side is `npm run test:admin-sloka`.
+
 ## Translations
+
+**Per-part models.** The start dialog has a row per part (Translation, Transliteration, Word meanings, Purport): tick it, pick provider, model and thinking effort. Rows that match share one request per verse; the estimate lists each group, and a running run shows one progress bar per group. Start is blocked if any chosen provider lacks its API key. The plan is sent as `plan` (see `Plan` in `lib/translation.ts`).
 
 **Two books, two providers.** The page has a book switcher (Bhagavad-gītā / Śrīmad-Bhāgavatam, `?book=`); each book has its own languages grid, runs, import and output reader, and both can run at once. The start dialog picks the provider (disabled when its API key is missing) and model (default from `settings.providers`), shows the estimate with approximate cost before Start ("unknown" when the model has no price), and for the Bhagavatam chooses by canto (double-click a canto to pick chapters). Chapter ids for the Bhagavatam are canto × 100 + chapter; use `chapterName` / `cantoOf` from `lib/translation.ts`.
 
 `routes/translations.tsx` (`/translations`, Content section, permission `translation.read`) is where an admin
-starts, follows and reads Claude's translation of the Gita. The work happens in the backend's worker — see
+starts, follows and reads the AI translation of the Gita (GPT-6 Luna by default; Claude and Gemini can take any part). The work happens in the backend's worker — see
 "Translation runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md) — so this page is a window onto it and holds
 nothing that matters itself.
 
@@ -259,7 +308,7 @@ nothing that matters itself.
   process (`WS_PORT`). So `VITE_WS_URL` is only for a setup that differs. It reconnects with backoff and jitter,
   renews the access token on close code 4001, pings every 25 s, and gives up quietly on 4003 (this role may not
   listen).
-- **Start is gated by the server's overview**, not guessed: no `ANTHROPIC_API_KEY`, the app's bucket not reachable (or without the Gita in it)
+- **Start is gated by the server's overview**, not guessed: no API key for a provider the run would use (`OPENAI_API_KEY` for the default), the app's bucket not reachable (or without the Gita in it)
   or a bad `TRANSLATION_VERSION` disable it with the reason; "no worker online" only warns (the run waits in the
   queue). A second start for a language that has a live run gets a 409 and an "Open that run" link.
 - **Without `translation.run` the page is read-only**: no Start, Resume / Try again or Cancel; View output stays.

@@ -11,6 +11,8 @@ import RedisStore from 'rate-limit-redis';
 import { redis } from '../config/redis.js';
 import env from '../config/env.js';
 import { fail } from '../utils/respond.js';
+import { requestChain } from '../utils/language.js';
+import { translateError } from '../utils/messages.js';
 
 function store(prefix) {
   return new RedisStore({
@@ -31,7 +33,15 @@ function build(name, { windowMs, max }) {
     keyGenerator: (req) => req.auth?.user?.id || `${req.ip}:${req.deviceId || 'unknown'}`,
     skip: () => env.NODE_ENV === 'test',
     handler: (req, res) =>
-      fail(res, 429, 'RATE_LIMITED', 'Too many requests. Please slow down and try again.'),
+      fail(
+        res,
+        429,
+        'RATE_LIMITED',
+        translateError(
+          { message: 'Too many requests. Please slow down and try again.', code: 'RATE_LIMITED' },
+          requestChain(req)
+        )
+      ),
   });
 }
 

@@ -166,6 +166,7 @@ class PayloadTranslation {
     this.translatorName,
     this.meaning,
     this.purport,
+    this.transliteration,
     this.sourceRef,
     this.audioPath,
     this.displayOrder = 0,
@@ -179,6 +180,9 @@ class PayloadTranslation {
   final String? translatorName;
   final String? meaning;
   final String? purport;
+
+  /// The verse in this language's own script, when the server has one.
+  final String? transliteration;
   final String? sourceRef;
   final String? audioPath;
   final int displayOrder;
@@ -192,6 +196,7 @@ class PayloadTranslation {
         translatorName: asStringOrNull(json['translatorName']),
         meaning: asStringOrNull(json['meaning']),
         purport: asStringOrNull(json['purport']),
+        transliteration: asStringOrNull(json['transliteration']),
         sourceRef: asStringOrNull(json['sourceRef']),
         audioPath: asStringOrNull(json['audioPath']),
         displayOrder: asInt(json['displayOrder']),

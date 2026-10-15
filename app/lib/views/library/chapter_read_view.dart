@@ -13,7 +13,6 @@ import '../../models/api_failure.dart';
 import '../../models/book.dart';
 import '../../models/verse.dart';
 import '../../providers/book_provider.dart';
-import '../../providers/language_chain_provider.dart';
 import '../../providers/reading_audio_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
 import '../../services/audio/reading_audio.dart';
@@ -90,19 +89,19 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     super.dispose();
   }
 
-  /// Gives the player this chapter's verses, spoken text in the speaking language.
-  Future<void> _prepareAudio(ChapterReading data) async {
-    final chain = ref.read(speakingChainProvider);
-    final key = '$_audioContext:${chain.first}:${data.verses.length}';
+  /// Gives the player this chapter's verses. The recitation is the same whatever
+  /// language is being read, so nothing here follows the language settings.
+  void _prepareAudio(ChapterReading data) {
+    final key = '$_audioContext:${data.verses.length}';
     if (_preparedFor == key) return;
     _preparedFor = key;
-    await _audio.prepare(data.verses, context: _audioContext, speakingChain: chain);
+    _audio.prepare(data.verses, context: _audioContext);
     if (mounted) setState(() {});
   }
 
   Future<void> _playVerse(ChapterReading data, int index) async {
     final channel = AppLocalizations.of(context).readingAudioChannel;
-    await _prepareAudio(data);
+    _prepareAudio(data);
     await _audio.playVerse(index, channelName: channel);
   }
 
@@ -200,10 +199,8 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     AppNavigator.instance.push(AppRoutes.chapterPath(widget.slug, targetNumber, canto: widget.canto));
   }
 
-  bool _canPlay(Verse verse) =>
-      verse.hasAudio ||
-      (verse.translation?.meaning ?? '').trim().isNotEmpty ||
-      (verse.translation?.purport ?? '').trim().isNotEmpty;
+  // Only a verse with a recording can be played; the meaning is never read out.
+  bool _canPlay(Verse verse) => verse.hasAudio;
 
   Future<void> _toggleFavorite(Verse verse) async {
     final wasFavorite = _favoriteOverrides[verse.id] ?? verse.isFavorite;
@@ -265,15 +262,12 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     final text = AppLocalizations.of(context);
     final reading = ref.watch(chapterReadingProvider(_chapterArgs));
     final playback = ref.watch(readingStateProvider).value ?? const ReadingState();
-    ref.listen(speakingChainProvider, (_, _) {
-      final data = reading.value;
-      if (data != null) unawaited(_prepareAudio(data));
-    });
     ref.listen(readingStateProvider, (previous, next) {
       final state = next.value;
       if (state != null) _followPlayback(previous?.value, state);
     });
     final fontScale = ref.watch(readingFontSizeProvider).scale;
+    final hiddenParts = ref.watch(hiddenVersePartsProvider);
     final siblingChapters = ref.watch(bookChaptersProvider(_siblingArgs)).value ?? const <BookSection>[];
     final chapterNumbers = siblingChapters.map((c) => c.number).toSet();
     final hasPrevious = chapterNumbers.contains(widget.number - 1);
@@ -293,15 +287,15 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           IconButton(
             icon: const Icon(Icons.tune_rounded),
             tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(
-              context,
-              onLanguageChanged: () => ref.invalidate(chapterReadingProvider(_chapterArgs)),
-            ),
+            onPressed: () => showReadingSettingsSheet(context),
           ),
         ],
       ),
       bottomNavigationBar: const ReadingPlayerBar(),
       body: reading.when(
+        // A new reading language reloads the chapter; keep the verses on screen
+        // (and where the reader had scrolled to) until the new text is ready.
+        skipLoadingOnReload: true,
         loading: () => const AppLoader(),
         error: (error, _) => AppErrorView(
           failure: error is ApiFailure
@@ -313,7 +307,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           _saveOpenProgress(data);
           _scrollToTarget(data);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) unawaited(_prepareAudio(data));
+            if (mounted) _prepareAudio(data);
           });
 
           return ListView.separated(
@@ -342,6 +336,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                 child: VerseBlock(
                   verse: verse,
                   fontScale: fontScale,
+                  hidden: hiddenParts,
                   isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
                   isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
                   noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
@@ -354,7 +349,6 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                       verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
                   onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
                   playing: playback.isActive && playback.verseId == verse.id,
-                  playingSection: playback.verseId == verse.id ? playback.section : null,
                 ),
               );
             },

@@ -44,6 +44,21 @@ export const list = async (req, res) => {
   return paginated(res, await s3.presignList(items, ['coverImagePath', 'audioPath']), page);
 };
 
+/**
+ * GET /api/admin/books/languages
+ * The languages a book, canto or chapter title can be written in, for the titles
+ * editor. English is the source (the plain `title` column), so it is not listed.
+ * Served here so editing titles does not also need the reference-data permission.
+ */
+export const languages = async (req, res) => {
+  const rows = await prisma.language.findMany({
+    where: { isActive: true, isReadingLanguage: true, code: { not: 'en' } },
+    orderBy: { displayOrder: 'asc' },
+    select: { code: true, nativeName: true, englishName: true, isRtl: true },
+  });
+  return ok(res, rows);
+};
+
 /** GET /api/admin/books/:id */
 export const get = async (req, res) => {
   const book = await prisma.book.findUnique({

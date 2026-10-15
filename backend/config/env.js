@@ -91,16 +91,17 @@ const schema = z.object({
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().default('HariHariBol <no-reply@hariharibol.com>'),
 
-  // Claude translating the Gita (scripts/translate-claude.js, and the admin panel's Translations page,
-  // which runs it in the worker). Without a key the page still opens and shows what is saved; a run
-  // pauses with a message saying the key is missing. TRANSLATION_VERSION is checked where it is used
-  // (versionFrom) — it ends up in file names.
+  // An AI model translating the Gita (scripts/translate-claude.js, and the admin panel's Translations page,
+  // which runs it in the worker) — GPT-6 Luna unless a part is given to Claude or Gemini. Without a key the
+  // page still opens and shows what is saved; a run pauses with a message saying the key is missing.
+  // TRANSLATION_VERSION is checked where it is used (versionFrom) — it ends up in file names.
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().optional(),
-  // The other provider a run can use, and which one the Translations page offers first (anthropic | openai).
+  // The other providers a run can use, and which one the Translations page offers first (anthropic | openai | gemini; default openai).
   OPENAI_API_KEY: z.string().optional(),
   TRANSLATION_OPENAI_MODEL: z.string().optional(),
-  TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai']).optional(),
+  TRANSLATION_GEMINI_MODEL: z.string().optional(), // Gemini's key is GEMINI_API_KEY, above
+  TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
   WS_PORT: z.coerce.number().default(4001),

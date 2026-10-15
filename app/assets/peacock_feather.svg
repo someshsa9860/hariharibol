@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="plume" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C8B032"/>
+      <stop offset="0.45" stop-color="#1E9A5C"/>
+      <stop offset="1" stop-color="#0B5D4B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- plume -->
+  <path id="p" d="M287 10 C502 102 471 317 266 410 C72 317 72 102 287 10 Z" fill="url(#plume)"/>
+
+  <!-- barbs -->
+  <g stroke="#14724A" stroke-width="13" stroke-linecap="round" fill="none">
+    <path d="M266 379 L133 323 M266 379 L399 323"/>
+    <path d="M268 351 L141 294 M268 351 L395 294"/>
+    <path d="M269 323 L148 266 M269 323 L390 266"/>
+    <path d="M270 294 L155 238 M270 294 L385 238"/>
+    <path d="M271 266 L162 210 M271 266 L380 210"/>
+    <path d="M273 238 L171 182 M273 238 L375 182"/>
+    <path d="M274 210 L178 154 M274 210 L370 154"/>
+    <path d="M275 182 L185 125 M275 182 L365 125"/>
+  </g>
+
+  <!-- plume outline -->
+  <path d="M287 10 C502 102 471 317 266 410 C72 317 72 102 287 10 Z" fill="none" stroke="#0B5D4B" stroke-width="15" stroke-linejoin="round"/>
+
+  <!-- quill -->
+  <path d="M154 507 Q225 430 276 297" fill="none" stroke="#9A7230" stroke-width="31" stroke-linecap="round"/>
+
+  <!-- eye -->
+  <ellipse cx="276" cy="174" rx="102" ry="123" fill="#D9A92B"/>
+  <ellipse cx="276" cy="174" rx="82" ry="102" fill="#12A58E"/>
+  <ellipse cx="276" cy="174" rx="61" ry="82" fill="#1E4FC0"/>
+  <ellipse cx="276" cy="174" rx="33" ry="46" fill="#0A1240"/>
+  <circle cx="266" cy="159" r="9" fill="#FFFFFF" fill-opacity="0.53"/>
+</svg>

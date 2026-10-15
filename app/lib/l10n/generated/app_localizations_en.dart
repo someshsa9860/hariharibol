@@ -813,6 +813,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingLanguageLabel => 'Reading language';
 
   @override
+  String get readingHideLabel => 'Hide in verses';
+
+  @override
+  String get readingHideSanskrit => 'Sanskrit';
+
+  @override
+  String get readingHideTransliteration => 'Transliteration';
+
+  @override
   String get routineSubtitle => 'Devotion, work and the ordinary in between.';
 
   @override
@@ -1081,11 +1090,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String reelSlideOf(int current, int total) {
     return '$current of $total';
-  }
-
-  @override
-  String reelVerseRef(String book, int chapter, int verse) {
-    return '$book $chapter.$verse';
   }
 
   @override

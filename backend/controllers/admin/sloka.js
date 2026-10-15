@@ -54,6 +54,85 @@ function gaps(from, to, slokas) {
   return out;
 }
 
+// The Gita's plain chapter titles are the Sanskrit names; Prabhupāda's English
+// heading is `titleI18n.en` (see "Translated titles" in backend/CLAUDE.md).
+const englishTitle = (row) => (typeof row?.titleI18n?.en === 'string' && row.titleI18n.en.trim()) || row?.title || '';
+
+/**
+ * GET /api/admin/slokas/picker
+ * The verses an editor can choose from, laid out to be chosen by — book, then
+ * canto (the Bhagavatam only), then chapter, then verse. Only the eligible pool
+ * is listed, because `set` refuses anything else; picking from a list of what
+ * will be accepted beats typing a verse id and being told it was not.
+ *
+ * Served from here rather than the books and verses endpoints so choosing a
+ * sloka needs `sloka.manage` and nothing more. The pool is curated by hand, so
+ * it is sent whole, Sanskrit included, for the preview under the verse.
+ */
+export const picker = async (req, res) => {
+  const verses = await prisma.verse.findMany({
+    where: { isSlokaEligible: true, bookNumber: { in: SLOKA_ELIGIBLE_BOOK_NUMBERS } },
+    orderBy: [{ bookNumber: 'asc' }, { cantoNumber: 'asc' }, { chapterNumber: 'asc' }, { verseNumber: 'asc' }],
+    select: {
+      verseId: true,
+      bookNumber: true,
+      cantoNumber: true,
+      chapterNumber: true,
+      verseNumber: true,
+      verseNumberEnd: true,
+      sanskrit: true,
+      book: { select: { title: true } },
+      chapter: { select: { title: true, titleI18n: true } },
+    },
+  });
+
+  const cantos = await prisma.canto.findMany({
+    where: { book: { bookNumber: { in: SLOKA_ELIGIBLE_BOOK_NUMBERS } } },
+    select: { number: true, title: true, titleI18n: true, book: { select: { bookNumber: true } } },
+  });
+  const cantoTitle = new Map(cantos.map((c) => [`${c.book.bookNumber}.${c.number}`, englishTitle(c)]));
+
+  // Rows arrive in reading order, so each level is appended to as it is met.
+  const books = [];
+  for (const v of verses) {
+    let book = books.find((b) => b.bookNumber === v.bookNumber);
+    if (!book) {
+      book = { bookNumber: v.bookNumber, title: v.book.title, cantos: [], chapters: [] };
+      books.push(book);
+    }
+
+    if (v.cantoNumber != null && !book.cantos.some((c) => c.number === v.cantoNumber)) {
+      book.cantos.push({ number: v.cantoNumber, title: cantoTitle.get(`${v.bookNumber}.${v.cantoNumber}`) ?? '' });
+    }
+
+    let chapter = book.chapters.find((c) => c.cantoNumber === v.cantoNumber && c.number === v.chapterNumber);
+    if (!chapter) {
+      chapter = { number: v.chapterNumber, cantoNumber: v.cantoNumber, title: englishTitle(v.chapter), verses: [] };
+      book.chapters.push(chapter);
+    }
+
+    chapter.verses.push({
+      verseId: v.verseId,
+      verseNumber: v.verseNumber,
+      verseNumberEnd: v.verseNumberEnd,
+      sanskrit: v.sanskrit,
+    });
+  }
+
+  return ok(res, { books });
+};
+
+// A background image is only trusted if this server issued its key for a sloka
+// image, and it is only saved if the file really arrived — otherwise the app is
+// sent a link to nothing. A key the row already holds passes untouched.
+async function assertImage(key, current) {
+  if (!key || key === current) return;
+  if (!s3.isGeneratedKey(key) || !s3.keyHasPrefix(key, s3.PREFIXES.slokaImage)) {
+    throw badRequest('Not a sloka image upload key');
+  }
+  if (!(await s3.objectExists(key))) throw badRequest('That image is missing from storage — upload it again');
+}
+
 /** PUT /api/admin/slokas/:date — set or replace the sloka for one date. */
 export const set = async (req, res) => {
   const { date } = req.valid.params;
@@ -71,6 +150,12 @@ export const set = async (req, res) => {
     throw badRequest('That verse is not marked sloka-eligible');
   }
 
+  const existing = await prisma.dailySloka.findUnique({
+    where: { date: toDateColumn(date) },
+    select: { imagePath: true },
+  });
+  await assertImage(imagePath, existing?.imagePath);
+
   const sloka = await prisma.dailySloka.upsert({
     where: { date: toDateColumn(date) },
     update: { verseId: verse.id, imagePath, isPublished, source: 'MANUAL' },
@@ -85,7 +170,7 @@ export const set = async (req, res) => {
     action: 'sloka.set',
     entityType: 'DailySloka',
     entityId: sloka.id,
-    after: { date, verseId },
+    after: { date, verseId, imagePath },
   });
 
   return created(res, sloka);

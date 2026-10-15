@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { language } from './claude-translate-languages.js';
 import { normalizeWordMeanings } from './word-meanings.js';
 import { wordCount } from './claude-translate-validate.js';
+import { PARTS, partInputWords, partOutputWords, partsOf } from './claude-translate-parts.js';
 
 export const BOOK = 'bhagavat-gita';
 export const CHAPTERS = Array.from({ length: 18 }, (_, i) => i + 1);
@@ -164,17 +165,12 @@ export function unitWords(unit) {
   return wordCount(unit.translation) + unit.purport.reduce((n, p) => n + wordCount(p), 0);
 }
 
-/** Words in the word-by-word list (each entry's word and its meaning) and in the transliteration lines. */
-function listWords(unit) {
-  const lines = (unit.transliteration || []).reduce((n, l) => n + wordCount(l), 0);
-  return (unit.wordMeanings || []).reduce((n, w) => n + wordCount(w.word) + wordCount(w.meaning), lines);
-}
-
-/** Planning estimate of the output tokens one language needs for a unit. */
-export function estimateOutputTokens(unit, langCode) {
-  // A transliterated word costs more tokens than a translated one, so the list is weighted up.
-  // + the four ratings and the note that come with every language
-  return Math.ceil((unitWords(unit) + listWords(unit) * 1.5) * language(langCode).tokensPerWord) + 60;
+/** Planning estimate of the output tokens one language needs for a unit — for `parts` of it (all four by default). */
+export function estimateOutputTokens(unit, langCode, parts = PARTS) {
+  // A transliterated word costs more tokens than a translated one, so the lists are weighted up (see partOutputWords).
+  // + the ratings and the note that come with every language
+  const words = partsOf(unit, parts).reduce((n, part) => n + partOutputWords(unit, part), 0);
+  return Math.ceil(words * language(langCode).tokensPerWord) + 60;
 }
 
 /**
@@ -189,12 +185,12 @@ export const DEFAULT_GROUP_BUDGET = 1;
  * `budget` tokens. With the default budget every language is a group of its own; with a larger
  * one, languages share a call for as long as they fit.
  */
-export function groupLanguages(unit, langCodes, budget) {
+export function groupLanguages(unit, langCodes, budget, parts = PARTS) {
   const groups = [];
   let current = [];
   let used = 0;
   for (const code of langCodes) {
-    const cost = estimateOutputTokens(unit, code);
+    const cost = estimateOutputTokens(unit, code, parts);
     if (current.length && used + cost > budget) {
       groups.push(current);
       current = [];
@@ -207,7 +203,8 @@ export function groupLanguages(unit, langCodes, budget) {
   return groups;
 }
 
-/** Rough tokens a call's user message adds — the verse and its lists (English is ~1.5 tokens a word) and the request around them. The instructions every call carries are counted apart. */
-export function estimateInputTokens(unit) {
-  return Math.ceil((unitWords(unit) + listWords(unit) * 2) * 1.5) + 120;
+/** Rough tokens a call's user message adds for `parts` — the verse and its lists (English is ~1.5 tokens a word) and the request around them. The instructions every call carries are counted apart. */
+export function estimateInputTokens(unit, parts = PARTS) {
+  const words = partsOf(unit, parts).reduce((n, part) => n + partInputWords(unit, part), 0);
+  return Math.ceil(words * 1.5) + 120;
 }

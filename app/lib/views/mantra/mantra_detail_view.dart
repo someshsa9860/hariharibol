@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format/script.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
@@ -51,7 +52,7 @@ class _MantraDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final transliteration = mantra.transliteration?.trim();
+    final transliteration = _transliterationToShow(mantra.transliteration?.trim(), mantra.text);
     final meaning = mantra.meaning?.trim();
     final purport = mantra.purport?.trim();
     final standard = mantra.standardRounds > 0
@@ -74,7 +75,7 @@ class _MantraDetail extends StatelessWidget {
         Text(mantra.name, style: context.texts.headlineMedium),
         const SizedBox(height: AppSpacing.lg),
         Text(mantra.text, style: AppTypography.verse(context, size: 20)),
-        if (transliteration != null && transliteration.isNotEmpty) ...[
+        if (transliteration != null) ...[
           const SizedBox(height: AppSpacing.md),
           Text(transliteration, style: AppTypography.transliteration(context)),
         ],
@@ -150,4 +151,13 @@ class _MantraDetail extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The Roman line under a mantra's text is for the Devanagari reader. The text now
+/// arrives in the reading language's own script (Kannada letters for a Kannada
+/// reader), and Roman under that, or a repeat of the text, would say it twice.
+String? _transliterationToShow(String? transliteration, String text) {
+  if (transliteration == null || transliteration.isEmpty) return null;
+  if (!isDevanagari(text) || sameScript(transliteration, text)) return null;
+  return transliteration;
 }

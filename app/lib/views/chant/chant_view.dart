@@ -500,13 +500,32 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// The picture in the ring: the list picture, or the 9:16 one when that is
+  /// all the deity has. Null when it has neither.
+  ({String url, String key})? _ringPicture(ReferenceItem? deity) {
+    if (deity == null) return null;
+    final list = deity.imageUrl;
+    if (list != null && list.isNotEmpty) return (url: list, key: 'deity-${deity.id}');
+    final full = deity.fullImageUrl;
+    if (full != null && full.isNotEmpty) return (url: full, key: 'deity-full-${deity.id}');
+    return null;
+  }
+
+  /// The whole picture. The 9:16 one fills the screen; a deity with only the
+  /// list picture shows that, uncropped, instead of nothing.
   void _openFullPicture(ReferenceItem deity) {
+    final full = deity.fullImageUrl;
+    final hasFull = full != null && full.isNotEmpty;
+    final picture = _ringPicture(deity);
+    if (picture == null) return;
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) => ChantFullscreenView(
-          imageUrl: deity.fullImageUrl!,
-          imageKey: 'deity-full-${deity.id}',
+          imageUrl: hasFull ? full : picture.url,
+          imageKey: hasFull ? 'deity-full-${deity.id}' : picture.key,
+          fit: hasFull ? BoxFit.cover : BoxFit.contain,
           counts: _counted,
           rounds: () => _totalRounds,
           beads: () => _recorder.beadsInMala,
@@ -534,6 +553,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final title = widget.mantra?.name ?? text.sadhanaGenericChant;
+    final deity = widget.mantra?.deity;
+    final picture = _ringPicture(deity);
 
     return PopScope(
       canPop: false,
@@ -628,8 +649,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     beadsPerRound: _beadsPerRoundInUse,
                     pulse: _pulse,
                     onTap: _tapRing,
-                    centerImageUrl: widget.mantra?.deity?.imageUrl,
-                    centerImageKey: widget.mantra?.deity == null ? null : 'deity-${widget.mantra!.deity!.id}',
+                    pictureUrl: picture?.url,
+                    pictureKey: picture?.key,
+                    onOpenPicture: deity == null ? null : () => _openFullPicture(deity),
+                    openPictureTooltip: text.chantFullPicture,
                   ),
                 ),
                 Align(
@@ -644,15 +667,6 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                       child: AutoChantSwitch(status: _autoChantStatus, onChanged: _toggleAutoChant),
-                    ),
-                  ),
-                const SizedBox(height: AppSpacing.sm),
-                if (widget.mantra?.deity?.fullImageUrl != null)
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () => _openFullPicture(widget.mantra!.deity!),
-                      icon: const Icon(Icons.fullscreen_rounded),
-                      label: Text(text.chantFullPicture),
                     ),
                   ),
                 const SizedBox(height: AppSpacing.md),

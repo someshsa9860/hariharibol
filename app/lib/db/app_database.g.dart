@@ -2239,6 +2239,17 @@ class $VerseTranslationsTable extends VerseTranslations
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _transliterationMeta = const VerificationMeta(
+    'transliteration',
+  );
+  @override
+  late final GeneratedColumn<String> transliteration = GeneratedColumn<String>(
+    'transliteration',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sourceRefMeta = const VerificationMeta(
     'sourceRef',
   );
@@ -2284,6 +2295,7 @@ class $VerseTranslationsTable extends VerseTranslations
     translatorName,
     meaning,
     purport,
+    transliteration,
     sourceRef,
     audioPath,
     displayOrder,
@@ -2372,6 +2384,15 @@ class $VerseTranslationsTable extends VerseTranslations
         purport.isAcceptableOrUnknown(data['purport']!, _purportMeta),
       );
     }
+    if (data.containsKey('transliteration')) {
+      context.handle(
+        _transliterationMeta,
+        transliteration.isAcceptableOrUnknown(
+          data['transliteration']!,
+          _transliterationMeta,
+        ),
+      );
+    }
     if (data.containsKey('source_ref')) {
       context.handle(
         _sourceRefMeta,
@@ -2438,6 +2459,10 @@ class $VerseTranslationsTable extends VerseTranslations
         DriftSqlType.string,
         data['${effectivePrefix}purport'],
       ),
+      transliteration: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transliteration'],
+      ),
       sourceRef: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}source_ref'],
@@ -2472,6 +2497,11 @@ class TranslationRecord extends DataClass
   final String? translatorName;
   final String? meaning;
   final String? purport;
+
+  /// The verse in this language's own script (Marathi in Devanagari, Tamil in
+  /// Tamil script), when there is one. The verse's own [Verses.transliteration]
+  /// is the Roman text every language falls back to.
+  final String? transliteration;
   final String? sourceRef;
   final String? audioPath;
   final int displayOrder;
@@ -2485,6 +2515,7 @@ class TranslationRecord extends DataClass
     this.translatorName,
     this.meaning,
     this.purport,
+    this.transliteration,
     this.sourceRef,
     this.audioPath,
     required this.displayOrder,
@@ -2510,6 +2541,9 @@ class TranslationRecord extends DataClass
     }
     if (!nullToAbsent || purport != null) {
       map['purport'] = Variable<String>(purport);
+    }
+    if (!nullToAbsent || transliteration != null) {
+      map['transliteration'] = Variable<String>(transliteration);
     }
     if (!nullToAbsent || sourceRef != null) {
       map['source_ref'] = Variable<String>(sourceRef);
@@ -2542,6 +2576,9 @@ class TranslationRecord extends DataClass
       purport: purport == null && nullToAbsent
           ? const Value.absent()
           : Value(purport),
+      transliteration: transliteration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transliteration),
       sourceRef: sourceRef == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceRef),
@@ -2567,6 +2604,7 @@ class TranslationRecord extends DataClass
       translatorName: serializer.fromJson<String?>(json['translatorName']),
       meaning: serializer.fromJson<String?>(json['meaning']),
       purport: serializer.fromJson<String?>(json['purport']),
+      transliteration: serializer.fromJson<String?>(json['transliteration']),
       sourceRef: serializer.fromJson<String?>(json['sourceRef']),
       audioPath: serializer.fromJson<String?>(json['audioPath']),
       displayOrder: serializer.fromJson<int>(json['displayOrder']),
@@ -2585,6 +2623,7 @@ class TranslationRecord extends DataClass
       'translatorName': serializer.toJson<String?>(translatorName),
       'meaning': serializer.toJson<String?>(meaning),
       'purport': serializer.toJson<String?>(purport),
+      'transliteration': serializer.toJson<String?>(transliteration),
       'sourceRef': serializer.toJson<String?>(sourceRef),
       'audioPath': serializer.toJson<String?>(audioPath),
       'displayOrder': serializer.toJson<int>(displayOrder),
@@ -2601,6 +2640,7 @@ class TranslationRecord extends DataClass
     Value<String?> translatorName = const Value.absent(),
     Value<String?> meaning = const Value.absent(),
     Value<String?> purport = const Value.absent(),
+    Value<String?> transliteration = const Value.absent(),
     Value<String?> sourceRef = const Value.absent(),
     Value<String?> audioPath = const Value.absent(),
     int? displayOrder,
@@ -2618,6 +2658,9 @@ class TranslationRecord extends DataClass
         : this.translatorName,
     meaning: meaning.present ? meaning.value : this.meaning,
     purport: purport.present ? purport.value : this.purport,
+    transliteration: transliteration.present
+        ? transliteration.value
+        : this.transliteration,
     sourceRef: sourceRef.present ? sourceRef.value : this.sourceRef,
     audioPath: audioPath.present ? audioPath.value : this.audioPath,
     displayOrder: displayOrder ?? this.displayOrder,
@@ -2643,6 +2686,9 @@ class TranslationRecord extends DataClass
           : this.translatorName,
       meaning: data.meaning.present ? data.meaning.value : this.meaning,
       purport: data.purport.present ? data.purport.value : this.purport,
+      transliteration: data.transliteration.present
+          ? data.transliteration.value
+          : this.transliteration,
       sourceRef: data.sourceRef.present ? data.sourceRef.value : this.sourceRef,
       audioPath: data.audioPath.present ? data.audioPath.value : this.audioPath,
       displayOrder: data.displayOrder.present
@@ -2663,6 +2709,7 @@ class TranslationRecord extends DataClass
           ..write('translatorName: $translatorName, ')
           ..write('meaning: $meaning, ')
           ..write('purport: $purport, ')
+          ..write('transliteration: $transliteration, ')
           ..write('sourceRef: $sourceRef, ')
           ..write('audioPath: $audioPath, ')
           ..write('displayOrder: $displayOrder')
@@ -2681,6 +2728,7 @@ class TranslationRecord extends DataClass
     translatorName,
     meaning,
     purport,
+    transliteration,
     sourceRef,
     audioPath,
     displayOrder,
@@ -2698,6 +2746,7 @@ class TranslationRecord extends DataClass
           other.translatorName == this.translatorName &&
           other.meaning == this.meaning &&
           other.purport == this.purport &&
+          other.transliteration == this.transliteration &&
           other.sourceRef == this.sourceRef &&
           other.audioPath == this.audioPath &&
           other.displayOrder == this.displayOrder);
@@ -2713,6 +2762,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
   final Value<String?> translatorName;
   final Value<String?> meaning;
   final Value<String?> purport;
+  final Value<String?> transliteration;
   final Value<String?> sourceRef;
   final Value<String?> audioPath;
   final Value<int> displayOrder;
@@ -2727,6 +2777,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
     this.translatorName = const Value.absent(),
     this.meaning = const Value.absent(),
     this.purport = const Value.absent(),
+    this.transliteration = const Value.absent(),
     this.sourceRef = const Value.absent(),
     this.audioPath = const Value.absent(),
     this.displayOrder = const Value.absent(),
@@ -2742,6 +2793,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
     this.translatorName = const Value.absent(),
     this.meaning = const Value.absent(),
     this.purport = const Value.absent(),
+    this.transliteration = const Value.absent(),
     this.sourceRef = const Value.absent(),
     this.audioPath = const Value.absent(),
     this.displayOrder = const Value.absent(),
@@ -2759,6 +2811,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
     Expression<String>? translatorName,
     Expression<String>? meaning,
     Expression<String>? purport,
+    Expression<String>? transliteration,
     Expression<String>? sourceRef,
     Expression<String>? audioPath,
     Expression<int>? displayOrder,
@@ -2774,6 +2827,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
       if (translatorName != null) 'translator_name': translatorName,
       if (meaning != null) 'meaning': meaning,
       if (purport != null) 'purport': purport,
+      if (transliteration != null) 'transliteration': transliteration,
       if (sourceRef != null) 'source_ref': sourceRef,
       if (audioPath != null) 'audio_path': audioPath,
       if (displayOrder != null) 'display_order': displayOrder,
@@ -2791,6 +2845,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
     Value<String?>? translatorName,
     Value<String?>? meaning,
     Value<String?>? purport,
+    Value<String?>? transliteration,
     Value<String?>? sourceRef,
     Value<String?>? audioPath,
     Value<int>? displayOrder,
@@ -2806,6 +2861,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
       translatorName: translatorName ?? this.translatorName,
       meaning: meaning ?? this.meaning,
       purport: purport ?? this.purport,
+      transliteration: transliteration ?? this.transliteration,
       sourceRef: sourceRef ?? this.sourceRef,
       audioPath: audioPath ?? this.audioPath,
       displayOrder: displayOrder ?? this.displayOrder,
@@ -2843,6 +2899,9 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
     if (purport.present) {
       map['purport'] = Variable<String>(purport.value);
     }
+    if (transliteration.present) {
+      map['transliteration'] = Variable<String>(transliteration.value);
+    }
     if (sourceRef.present) {
       map['source_ref'] = Variable<String>(sourceRef.value);
     }
@@ -2870,6 +2929,7 @@ class VerseTranslationsCompanion extends UpdateCompanion<TranslationRecord> {
           ..write('translatorName: $translatorName, ')
           ..write('meaning: $meaning, ')
           ..write('purport: $purport, ')
+          ..write('transliteration: $transliteration, ')
           ..write('sourceRef: $sourceRef, ')
           ..write('audioPath: $audioPath, ')
           ..write('displayOrder: $displayOrder, ')
@@ -4619,6 +4679,7 @@ typedef $$VerseTranslationsTableCreateCompanionBuilder =
       Value<String?> translatorName,
       Value<String?> meaning,
       Value<String?> purport,
+      Value<String?> transliteration,
       Value<String?> sourceRef,
       Value<String?> audioPath,
       Value<int> displayOrder,
@@ -4635,6 +4696,7 @@ typedef $$VerseTranslationsTableUpdateCompanionBuilder =
       Value<String?> translatorName,
       Value<String?> meaning,
       Value<String?> purport,
+      Value<String?> transliteration,
       Value<String?> sourceRef,
       Value<String?> audioPath,
       Value<int> displayOrder,
@@ -4692,6 +4754,11 @@ class $$VerseTranslationsTableFilterComposer
 
   ColumnFilters<String> get purport => $composableBuilder(
     column: $table.purport,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transliteration => $composableBuilder(
+    column: $table.transliteration,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4765,6 +4832,11 @@ class $$VerseTranslationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get transliteration => $composableBuilder(
+    column: $table.transliteration,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sourceRef => $composableBuilder(
     column: $table.sourceRef,
     builder: (column) => ColumnOrderings(column),
@@ -4827,6 +4899,11 @@ class $$VerseTranslationsTableAnnotationComposer
   GeneratedColumn<String> get purport =>
       $composableBuilder(column: $table.purport, builder: (column) => column);
 
+  GeneratedColumn<String> get transliteration => $composableBuilder(
+    column: $table.transliteration,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get sourceRef =>
       $composableBuilder(column: $table.sourceRef, builder: (column) => column);
 
@@ -4888,6 +4965,7 @@ class $$VerseTranslationsTableTableManager
                 Value<String?> translatorName = const Value.absent(),
                 Value<String?> meaning = const Value.absent(),
                 Value<String?> purport = const Value.absent(),
+                Value<String?> transliteration = const Value.absent(),
                 Value<String?> sourceRef = const Value.absent(),
                 Value<String?> audioPath = const Value.absent(),
                 Value<int> displayOrder = const Value.absent(),
@@ -4902,6 +4980,7 @@ class $$VerseTranslationsTableTableManager
                 translatorName: translatorName,
                 meaning: meaning,
                 purport: purport,
+                transliteration: transliteration,
                 sourceRef: sourceRef,
                 audioPath: audioPath,
                 displayOrder: displayOrder,
@@ -4918,6 +4997,7 @@ class $$VerseTranslationsTableTableManager
                 Value<String?> translatorName = const Value.absent(),
                 Value<String?> meaning = const Value.absent(),
                 Value<String?> purport = const Value.absent(),
+                Value<String?> transliteration = const Value.absent(),
                 Value<String?> sourceRef = const Value.absent(),
                 Value<String?> audioPath = const Value.absent(),
                 Value<int> displayOrder = const Value.absent(),
@@ -4932,6 +5012,7 @@ class $$VerseTranslationsTableTableManager
                 translatorName: translatorName,
                 meaning: meaning,
                 purport: purport,
+                transliteration: transliteration,
                 sourceRef: sourceRef,
                 audioPath: audioPath,
                 displayOrder: displayOrder,

@@ -38,6 +38,17 @@ void main() {
     expect(translations[verses.first.id]!.map((t) => t.languageCode).toSet(), {'en', 'hi'});
   });
 
+  test('a language\'s own-script transliteration is stored with its translation', () async {
+    await save(unitJson());
+
+    final verses = await db.bookDao.versesOfChapter('ch1-1');
+    final translations = await db.bookDao.translationsFor(verses.map((v) => v.id));
+    final byLanguage = {for (final t in translations[verses.first.id]!) t.languageCode: t};
+    expect(byLanguage['hi']!.transliteration, 'श्लोकः 1.1');
+    expect(byLanguage['en']!.transliteration, isNull, reason: 'English reads the verse\'s own Roman text');
+    expect(verses.first.transliteration, 'shloka 1.1');
+  });
+
   test('download_state is done at the downloaded version and hash', () async {
     await save(unitJson(), version: 4, hash: 'abc');
     final state = await db.downloadStateDao.stateOf('book1', 'canto1');
@@ -281,6 +292,13 @@ void main() {
             retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
             PRIMARY KEY (book_id, unit_id))
         ''');
+        sqlite.execute('''
+          CREATE TABLE verse_translations (
+            id TEXT NOT NULL PRIMARY KEY, verse_row_id TEXT NOT NULL, language_code TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'TRANSLATION', translator_id TEXT, translator_slug TEXT,
+            translator_name TEXT, meaning TEXT, purport TEXT, source_ref TEXT, audio_path TEXT,
+            display_order INTEGER NOT NULL DEFAULT 0)
+        ''');
         sqlite.execute("INSERT INTO download_state (book_id, unit_id, unit_type, unit_number, status, version, hash) VALUES ('b', 'u', 'canto', 4, 'done', 7, 'abc')");
         sqlite.execute('PRAGMA user_version = 2');
       });
@@ -293,6 +311,34 @@ void main() {
       expect(await upgraded.bookDao.dropOutdatedUnits('b', 1), 0);
       expect(await upgraded.downloadStateDao.stateOf('b', 'u'), isNotNull);
     });
+  });
+
+  test('upgrading a version 3 database adds the transliteration column and keeps its rows', () async {
+    final raw = NativeDatabase.memory(setup: (sqlite) {
+      sqlite.execute('''
+        CREATE TABLE verse_translations (
+          id TEXT NOT NULL PRIMARY KEY, verse_row_id TEXT NOT NULL, language_code TEXT NOT NULL,
+          type TEXT NOT NULL DEFAULT 'TRANSLATION', translator_id TEXT, translator_slug TEXT,
+          translator_name TEXT, meaning TEXT, purport TEXT, source_ref TEXT, audio_path TEXT,
+          display_order INTEGER NOT NULL DEFAULT 0)
+      ''');
+      sqlite.execute('''
+        CREATE TABLE download_state (
+          book_id TEXT NOT NULL, unit_id TEXT NOT NULL, unit_type TEXT NOT NULL,
+          unit_number INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending',
+          version INTEGER NOT NULL DEFAULT 0, hash TEXT, cache_version INTEGER NOT NULL DEFAULT 1,
+          downloaded_at INTEGER, retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
+          PRIMARY KEY (book_id, unit_id))
+      ''');
+      sqlite.execute("INSERT INTO verse_translations (id, verse_row_id, language_code, meaning) VALUES ('t', 'v', 'hi', 'अर्थ')");
+      sqlite.execute('PRAGMA user_version = 3');
+    });
+    final upgraded = AppDatabase(raw);
+    addTearDown(upgraded.close);
+
+    final rows = await upgraded.customSelect('SELECT meaning, transliteration FROM verse_translations').get();
+    expect(rows.single.read<String>('meaning'), 'अर्थ');
+    expect(rows.single.read<String?>('transliteration'), isNull, reason: 'filled by the next download of the unit');
   });
 
   test('indexes exist for unit and language lookups', () async {

@@ -134,7 +134,7 @@ export const search = async (req, res) => {
     const { items, page } = await paginate(prisma.mantra, {
       where: mantraWhere(q, readingChain),
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
-      include: present.includes.mantra(language.mantraChain(user), readingChain),
+      include: present.includes.mantra(language.mantraTextChain(user), readingChain),
       query: req.valid.query,
     });
     return paginated(res, await present.mantras(items, user), page);
@@ -161,7 +161,7 @@ export const search = async (req, res) => {
     prisma.mantra.findMany({
       where: mantraWhere(q, readingChain),
       take: PREVIEW_LIMIT,
-      include: present.includes.mantra(language.mantraChain(user), readingChain),
+      include: present.includes.mantra(language.mantraTextChain(user), readingChain),
     }),
     prisma.book.findMany({ where: bookWhere(q), take: PREVIEW_LIMIT }),
   ]);

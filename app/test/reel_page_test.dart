@@ -178,8 +178,10 @@ void main() {
     expect(find.byIcon(Icons.check_rounded), findsOneWidget);
   });
 
-  testWidgets('labels a linked verse through l10n, not a baked string',
-      (tester) async {
+  testWidgets('shows the verse label exactly as the API sends it', (tester) async {
+    // The book's title is the database's (`Book.titleI18n`), resolved for the
+    // reader by the server, so the label arrives in their language. The app
+    // adds nothing to it.
     await pumpReel(
       tester,
       reel(verse: {
@@ -188,13 +190,16 @@ void main() {
         'bookNumber': 1,
         'chapterNumber': 2,
         'verseNumber': 47,
+        'label': 'भगवद्गीता 2.47',
       }),
     );
     await tester.pump();
-    expect(find.text('BG 2.47'), findsOneWidget);
+    expect(find.text('भगवद्गीता 2.47'), findsOneWidget);
   });
 
-  testWidgets('uses the Bhagavatam abbreviation for book two', (tester) async {
+  testWidgets('does not name a book itself when the API sends no label', (tester) async {
+    // Guessing "BG" or "SB" from the book number is what this used to do; the
+    // numbers say nothing about which book it is, so the app shows no name.
     await pumpReel(
       tester,
       reel(verse: {
@@ -206,7 +211,8 @@ void main() {
       }),
     );
     await tester.pump();
-    expect(find.text('SB 1.10'), findsOneWidget);
+    expect(find.text('SB 1.10'), findsNothing);
+    expect(find.text('BG 1.10'), findsNothing);
   });
 
   testWidgets('cites a verse from any book by the name the API gives it', (tester) async {

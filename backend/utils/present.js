@@ -78,11 +78,11 @@ const includes = {
         // What a text box bound to the verse is filled from — see `bindOverlays`.
         sanskrit: true,
         transliteration: true,
-        book: { select: { title: true } },
+        book: { select: { title: true, titleI18n: true } },
         translations: {
           where: { isPublished: true, languageCode: { in: readingChain } },
           orderBy: { displayOrder: 'asc' },
-          select: { languageCode: true, type: true, meaning: true },
+          select: { languageCode: true, type: true, meaning: true, transliteration: true },
         },
       },
     },
@@ -101,11 +101,11 @@ const includes = {
     likes: { where: { userId }, select: { userId: true } },
   }),
 
-  mantra: (mantraChain, readingChain) => {
+  mantra: (textChain, readingChain) => {
     const translations = {
       where: {
         isPublished: true,
-        languageCode: { in: [...new Set([...mantraChain, ...readingChain])] },
+        languageCode: { in: [...new Set([...textChain, ...readingChain])] },
       },
     };
     return {
@@ -161,7 +161,9 @@ async function verse(row, user) {
     verseNumberEnd: row.verseNumberEnd,
     type: row.type,
     sanskrit: row.sanskrit,
-    transliteration: row.transliteration,
+    // In the reading language's own script — stored, else carried over from the Devanagari —
+    // and the Roman text only for a reader whose languages are Roman or Devanagari.
+    transliteration: language.pickTransliteration(row.translations, chain, row.transliteration, row.sanskrit),
     wordMeanings: row.wordMeanings,
     audioUrl: audioKey ? await s3.presignGet(audioKey) : null,
     tags: row.tags,
@@ -243,15 +245,16 @@ function mantraStub(row, user) {
 /**
  * One mantra.
  *
- * The script and the meaning are chosen by *different* settings — mantraLanguage
- * for the text, readingLanguage for what it means — so a single response may
- * combine two rows of MantraTranslation. Someone chanting in Devanagari while
- * reading English is the normal case, not an edge one.
+ * The text, the name and the meaning all follow the *reading* language
+ * (`language.mantraTextChain` for the text, so a reading language with no row
+ * of the mantra's text falls to the account's mantra language, then English,
+ * then Sanskrit). A response can still combine two rows of MantraTranslation
+ * when the text had to fall back and the meaning did not.
  */
 async function mantra(row, user) {
   if (!row) return null;
 
-  const scriptChain = language.mantraChain(user);
+  const scriptChain = language.mantraTextChain(user);
   const readChain = language.readingChain(user);
 
   const script = language.pick(row.translations, scriptChain);
@@ -306,7 +309,29 @@ async function mantra(row, user) {
 
 const mantras = (rows, user) => Promise.all((rows || []).map((row) => mantra(row, user)));
 
-/** A book, with its title in the reader's language where one exists. */
+/**
+ * A `…I18n` JSON column as the plain `{ code: text }` map the app picks from, or null.
+ * Only non-empty strings survive, so a malformed value in the database never reaches a phone.
+ * `english` is the plain column, added as `en` when the map has none (see below).
+ */
+function i18nMap(value, english) {
+  const entries =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.entries(value).filter(([, text]) => typeof text === 'string' && text.trim())
+      : [];
+  const found = Object.fromEntries(entries);
+  // The plain column is the English one (`language.localised`). It goes in the
+  // map when the map has no English of its own, so the phone can still pick
+  // English after `title` was already picked in another language for the account.
+  if (!found.en && typeof english === 'string' && english.trim()) found.en = english;
+  return Object.keys(found).length > 0 ? found : null;
+}
+
+/**
+ * A book, with its title in the reader's language where one exists. The maps the title
+ * was picked from go too, so the phone can pick again the moment the reader changes
+ * their reading language, without asking and without the account having been updated yet.
+ */
 async function book(row, user) {
   if (!row) return null;
   const chain = language.readingChain(user);
@@ -317,7 +342,9 @@ async function book(row, user) {
     slug: row.slug,
     type: row.type,
     title: language.localised(row, 'title', 'titleI18n', chain),
+    titleI18n: i18nMap(row.titleI18n, row.title),
     description: language.localised(row, 'description', 'descriptionI18n', chain),
+    descriptionI18n: i18nMap(row.descriptionI18n, row.description),
     sourceLanguage: row.sourceLanguage,
     coverImageUrl: row.coverImagePath ? await s3.presignGet(row.coverImagePath) : null,
     audioUrl: row.audioPath ? await s3.presignGet(row.audioPath) : null,
@@ -331,7 +358,7 @@ async function book(row, user) {
 
 const books = (rows, user) => Promise.all((rows || []).map((row) => book(row, user)));
 
-/** Chapters and cantos share a shape — a number, a localised title, a count. */
+/** Chapters and cantos share a shape — a number, a localised title, a count (and the maps behind them). */
 function section(row, user) {
   if (!row) return null;
   const chain = language.readingChain(user);
@@ -340,7 +367,9 @@ function section(row, user) {
     number: row.number,
     cantoNumber: row.cantoNumber ?? null,
     title: language.localised(row, 'title', 'titleI18n', chain),
+    titleI18n: i18nMap(row.titleI18n, row.title),
     summary: language.localised(row, 'summary', 'summaryI18n', chain),
+    summaryI18n: i18nMap(row.summaryI18n, row.summary),
     totalChapters: row.totalChapters ?? undefined,
     totalVerses: row.totalVerses,
   };
@@ -364,12 +393,17 @@ async function reference(row, user) {
 
 const references = (rows, user) => Promise.all((rows || []).map((row) => reference(row, user)));
 
-/** "Bhagavad Gita 2.47" — a reel's verse as a person cites it. Null without a book to name. */
-function reelVerseLabel(verse) {
-  if (!verse?.book?.title) return null;
+/**
+ * "Bhagavad Gita 2.47" — a reel's verse as a person cites it. Null without a book to name.
+ * The book is named in the reader's language from `Book.titleI18n`, the same column the book
+ * list reads, so the app never has to know which book a number means or what it is called.
+ */
+function reelVerseLabel(verse, chain) {
+  const title = language.localised(verse?.book, 'title', 'titleI18n', chain);
+  if (!title) return null;
   const numbers = [verse.cantoNumber, verse.chapterNumber].filter((n) => n != null);
   const own = verse.verseNumberEnd ? `${verse.verseNumber}-${verse.verseNumberEnd}` : `${verse.verseNumber}`;
-  return `${verse.book.title} ${[...numbers, own].join('.')}`;
+  return `${title} ${[...numbers, own].join('.')}`;
 }
 
 /**
@@ -386,12 +420,13 @@ function bindOverlays(overlays, verse, user) {
   if (!Array.isArray(overlays) || !overlays.some((o) => o?.bind)) return overlays ?? [];
   if (!verse) return overlays;
 
-  const translation = language.pickTranslation(verse.translations, language.readingChain(user));
+  const chain = language.readingChain(user);
+  const translation = language.pickTranslation(verse.translations, chain);
   const fields = {
     sanskrit: verse.sanskrit,
-    transliteration: verse.transliteration,
+    transliteration: language.pickTransliteration(verse.translations, chain, verse.transliteration, verse.sanskrit),
     translation: translation?.meaning,
-    reference: reelVerseLabel(verse),
+    reference: reelVerseLabel(verse, chain),
   };
 
   return overlays.map((overlay) => {
@@ -504,7 +539,7 @@ async function reel(row, user) {
           chapterNumber: row.verse.chapterNumber,
           verseNumber: row.verse.verseNumber,
           // Named by the API so the app need not know which book a number means.
-          label: reelVerseLabel(row.verse),
+          label: reelVerseLabel(row.verse, language.readingChain(user)),
         }
       : null,
     mantra: mantraStub(row.mantra, user),

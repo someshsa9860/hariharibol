@@ -33,8 +33,9 @@ const HELP = `Usage: node scripts/translate-claude.js [options]
   --verse 1.2.47       one verse only (with --chapters or alone)
   --limit N            stop after N verses translated in this run
   --langs hi,mr,...    languages (default: hi,mr,ta; all seven: hi,mr,bn,ta,te,kn,ml)
-  --provider NAME      anthropic (default; or TRANSLATION_PROVIDER) | openai
-  --model ID           default claude-sonnet-5-5 for anthropic (or ANTHROPIC_MODEL), gpt-6-luna for openai (or TRANSLATION_OPENAI_MODEL)
+  --provider NAME      openai (default; or TRANSLATION_PROVIDER) | anthropic | gemini
+  --model ID           default gpt-6-luna for openai (or TRANSLATION_OPENAI_MODEL), claude-sonnet-5-5 for anthropic (or ANTHROPIC_MODEL),
+                       gemini-3.5-flash-lite for gemini (or TRANSLATION_GEMINI_MODEL)
   --effort LEVEL       off | low | medium | high | xhigh | max  (default off: no thinking; Opus 5.5, Fable and Mythos cannot turn it off — use low)
   --max-tokens N       output ceiling per call (default 64000)
   --group-budget N     estimated output tokens a call may carry before languages are split. Default 1: each language in its own call.

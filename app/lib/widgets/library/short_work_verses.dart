@@ -25,9 +25,12 @@ import 'verse_notes_sheet.dart';
 /// `ChapterReadView` for a stotra, aarti, prayer or poem, which has no
 /// chapter to read into.
 class ShortWorkVerses extends ConsumerStatefulWidget {
-  const ShortWorkVerses({super.key, required this.book});
+  const ShortWorkVerses({super.key, required this.book, this.titleKey});
 
   final Book book;
+
+  /// Passed on to [BookHeader] — see there.
+  final Key? titleKey;
 
   @override
   ConsumerState<ShortWorkVerses> createState() => _ShortWorkVersesState();
@@ -104,11 +107,15 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
     final text = AppLocalizations.of(context);
     final verses = ref.watch(bookVersesProvider(widget.book.slug));
     final fontScale = ref.watch(readingFontSizeProvider).scale;
+    final hiddenParts = ref.watch(hiddenVersePartsProvider);
 
     return verses.when(
       loading: () => Column(
         children: [
-          Padding(padding: AppSpacing.page.copyWith(bottom: 0), child: BookHeader(book: widget.book)),
+          Padding(
+            padding: AppSpacing.page.copyWith(bottom: 0),
+            child: BookHeader(book: widget.book, titleKey: widget.titleKey),
+          ),
           const Expanded(child: AppLoader()),
         ],
       ),
@@ -126,7 +133,7 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
         separatorBuilder: (context, index) =>
             index == 0 ? const SizedBox(height: AppSpacing.lg) : const Divider(height: AppSpacing.xl),
         itemBuilder: (context, index) {
-          if (index == 0) return BookHeader(book: widget.book);
+          if (index == 0) return BookHeader(book: widget.book, titleKey: widget.titleKey);
           if (list.isEmpty) {
             return Center(child: EmptyState(message: text.comingSoon, icon: Icons.menu_book_outlined));
           }
@@ -135,6 +142,7 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
           return VerseBlock(
             verse: verse,
             fontScale: fontScale,
+            hidden: hiddenParts,
             isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
             isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
             noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,

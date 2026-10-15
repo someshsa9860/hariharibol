@@ -8,6 +8,8 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/language_settings.dart';
 import '../services/local_store.dart';
 import '../services/user_service.dart';
+import 'home_provider.dart';
+import 'mantra_provider.dart';
 import 'session_provider.dart';
 
 /// The one place any screen reads the three languages from.
@@ -80,11 +82,23 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
               appLanguage: syncApp ? code : null,
               readingLanguage: syncReading ? code : null,
             )
-            .then((_) {}, onError: (Object error) {
+            .then((_) {
+          // The server shapes these by the language it now has on the account, so
+          // what is already on screen (a mantra's title and script, the sloka's
+          // transliteration) is asked for again.
+          if (ref.mounted) _refetchServerShaped();
+        }, onError: (Object error) {
           if (kDebugMode) debugPrint('[Language] account not updated: $error');
         }),
       );
     }
+  }
+
+  void _refetchServerShaped() {
+    ref
+      ..invalidate(mantraListProvider)
+      ..invalidate(mantraDetailProvider)
+      ..invalidate(homeFeedProvider);
   }
 }
 

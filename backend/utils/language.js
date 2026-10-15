@@ -1,18 +1,37 @@
-// A user picks three languages independently — app, mantra, reading — and any
-// one of them may have no content behind it. Every content response therefore
-// resolves against an ordered list of candidates rather than a single code.
+// A user picks languages independently — app, reading, and the older mantra
+// language — and any one of them may have no content behind it. Every content
+// response therefore resolves against an ordered list of candidates rather than
+// a single code.
 //
-//   mantra text     mantraLanguage → readingLanguage → appLanguage → en → sa
+//   mantra text     readingLanguage → mantraLanguage → appLanguage → en → sa
 //   meanings, verse readingLanguage → appLanguage → en
+//   reel narration  mantraLanguage → readingLanguage → appLanguage → en → sa
 //
 // The order is the user's stated intent, so it is applied here rather than
 // re-derived in each controller.
 
 import { DEFAULT_LANGUAGE, SOURCE_LANGUAGE } from '../config/constants.js';
+import { SCRIPT_LANGUAGES, fromDevanagari } from './script.js';
 
 const dedupe = (codes) => [...new Set(codes.filter(Boolean))];
 
-// What script a mantra should be shown in.
+// What script a mantra's text is shown in: the reading language's own, so a
+// reader who reads Kannada sees Kannada letters under a Kannada title. The
+// app has no control for the mantra language any more (the account's stays at
+// its "sa" default), so it is only the next choice, for a reading language
+// with no row of the mantra's text.
+function mantraTextChain(user) {
+  if (!user) return mantraChain(user);
+  return dedupe([
+    user.readingLanguage,
+    user.mantraLanguage,
+    user.appLanguage,
+    DEFAULT_LANGUAGE,
+    SOURCE_LANGUAGE,
+  ]);
+}
+
+// Which language of a mantra's recording or narration to play.
 function mantraChain(user) {
   if (!user) return dedupe([SOURCE_LANGUAGE, DEFAULT_LANGUAGE]);
   return dedupe([
@@ -35,6 +54,13 @@ function readingChain(user) {
 function appChain(user) {
   if (!user) return dedupe([DEFAULT_LANGUAGE]);
   return dedupe([user.appLanguage, DEFAULT_LANGUAGE]);
+}
+
+// The language a response to this request should speak when it is the server's
+// own words (errors): the signed-in user's app language, else what the client
+// said in Accept-Language, else English.
+function requestChain(req) {
+  return dedupe([req.auth?.user?.appLanguage, req.acceptLanguage, DEFAULT_LANGUAGE]);
 }
 
 // First row whose languageCode appears earliest in the chain. Returns null when
@@ -89,6 +115,32 @@ function pickTranslation(rows, chain) {
   return pick(standard, chain) ?? pick(rows, chain);
 }
 
+// A verse's transliteration in the reader's own language: walking the chain, a
+// language's stored transliteration wins (Marathi in Devanagari, Tamil in Tamil
+// script — the Claude translation import fills it, see VerseTranslation); failing
+// that, a language with its own script (Kannada, Bengali ...) gets the verse's
+// Devanagari carried across into it (`fromDevanagari`, the same conversion mantras
+// use), so a reader never sees Roman letters just because nothing was imported.
+// It is the *reading* language that decides, whichever rendering the verse opens
+// with, and any row of a language counts (a Marathi reader's ovi row has none, the
+// translation beside it does). `fallback` is the verse's own Roman (IAST) text, for
+// a reader whose languages are Roman or Devanagari and have nothing stored.
+// `sanskrit` is the verse's Devanagari; leave it out to skip the conversion.
+//
+// The app applies the same rule to what it holds offline — keep the two together
+// (BookRepository.pickTransliteration, core/format/indic_script.dart).
+function pickTransliteration(rows, chain, fallback = null, sanskrit = null) {
+  const source = typeof sanskrit === 'string' && sanskrit.trim() ? sanskrit : null;
+  for (const code of chain) {
+    if (Array.isArray(rows)) {
+      const row = rows.find((r) => r.languageCode === code && r.transliteration?.trim());
+      if (row) return row.transliteration;
+    }
+    if (source && SCRIPT_LANGUAGES.includes(code)) return fromDevanagari(source, code);
+  }
+  return fallback;
+}
+
 // Localised JSON columns (`titleI18n`, `nameI18n`) fall back to the plain
 // column when the chain misses.
 function localised(row, baseField, i18nField, chain) {
@@ -96,6 +148,10 @@ function localised(row, baseField, i18nField, chain) {
   if (map && typeof map === 'object') {
     for (const code of chain) {
       if (map[code]) return map[code];
+      // The plain column is the English one. A chain that reaches English stops
+      // there, as `pickName` does: someone who reads English with the app in
+      // Hindi has asked for English.
+      if (code === DEFAULT_LANGUAGE) break;
     }
   }
   return row?.[baseField] ?? null;
@@ -111,12 +167,15 @@ function fromHeader(header) {
 
 export {
   mantraChain,
+  mantraTextChain,
   readingChain,
   appChain,
+  requestChain,
   pick,
   pickName,
   mantraNameClauses,
   pickTranslation,
+  pickTransliteration,
   localised,
   fromHeader,
 };

@@ -7,13 +7,12 @@ import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/tts_model.dart';
 import 'package:hariharibol/models/verse.dart';
 import 'package:hariharibol/services/audio/interruption_policy.dart';
-import 'package:hariharibol/services/audio/reading_item.dart';
 import 'package:hariharibol/services/audio/reading_memory.dart';
 import 'package:hariharibol/services/audio/reading_playback_controller.dart';
 import 'package:hariharibol/widgets/library/verse_block.dart';
 import 'package:hariharibol/widgets/settings/voice_tile.dart';
 
-import 'reading_playback_test.dart' show FakeAudio, FakePlayer, FakeTts, item;
+import 'reading_playback_test.dart' show FakeAudio, FakePlayer, item;
 
 Widget app(Widget child) => MaterialApp(
       theme: AppTheme.light,
@@ -27,7 +26,7 @@ Widget app(Widget child) => MaterialApp(
       home: Scaffold(body: SingleChildScrollView(child: child)),
     );
 
-VerseBlock block({VoidCallback? onPlay, bool? playing, ReadingSection? section}) => VerseBlock(
+VerseBlock block({VoidCallback? onPlay, bool? playing}) => VerseBlock(
       verse: const Verse(id: 'v', verseId: '1.1.1', bookNumber: 1, type: 'S', verseNumber: 7, sanskrit: 'ॐ'),
       fontScale: 1,
       isFavorite: false,
@@ -39,7 +38,6 @@ VerseBlock block({VoidCallback? onPlay, bool? playing, ReadingSection? section})
       onOpenRelated: () {},
       onPlay: onPlay,
       playing: playing,
-      playingSection: section,
     );
 
 void main() {
@@ -56,15 +54,15 @@ void main() {
       expect(taps, 1);
     });
 
-    testWidgets('names the part being heard, in words', (tester) async {
-      await tester.pumpWidget(app(block(onPlay: () {}, playing: true, section: ReadingSection.purport)));
-      expect(find.text('Verse 7 · Purport'), findsOneWidget);
+    testWidgets('a verse being heard shows the speaker icon and only its number', (tester) async {
+      await tester.pumpWidget(app(block(onPlay: () {}, playing: true)));
+      expect(find.text('Verse 7'), findsOneWidget);
       expect(find.byIcon(Icons.volume_up_rounded), findsOneWidget);
     });
 
-    testWidgets('a verse not being read shows only its number', (tester) async {
+    testWidgets('a verse not being heard shows the play icon', (tester) async {
       await tester.pumpWidget(app(block(onPlay: () {}, playing: false)));
-      expect(find.textContaining('Purport'), findsNothing);
+      expect(find.text('Verse 7'), findsOneWidget);
       expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
     });
   });
@@ -144,15 +142,15 @@ void main() {
   });
 
   group('InterruptionPolicy', () {
-    late FakeTts tts;
+    late FakePlayer player;
     late ReadingPlaybackController c;
     late InterruptionPolicy policy;
 
     setUp(() {
       final log = <String>[];
-      tts = FakeTts(log)..hold = true;
-      c = ReadingPlaybackController(player: FakePlayer(log), tts: tts, audio: FakeAudio(log), memory: InMemoryReadingMemory());
-      c.load([item(1, audio: false)], context: 'c');
+      player = FakePlayer(log)..hold = true;
+      c = ReadingPlaybackController(player: player, audio: FakeAudio(log), memory: InMemoryReadingMemory());
+      c.load([item(1)], context: 'c');
       policy = InterruptionPolicy(c);
     });
 

@@ -5,16 +5,9 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../providers/reading_audio_provider.dart';
-import '../../services/audio/reading_item.dart';
 import '../../services/audio/reading_playback_controller.dart';
 
-String readingSectionLabel(AppLocalizations text, ReadingSection section) => switch (section) {
-      ReadingSection.verse => text.readingSectionVerse,
-      ReadingSection.meaning => text.readingSectionMeaning,
-      ReadingSection.purport => text.readingSectionPurport,
-    };
-
-/// The "read aloud" button at the top of the reading page. Idle: starts the
+/// The "play" button at the top of the reading page. Idle: starts the
 /// chapter (or offers to carry on from where the reader stopped). Playing: the
 /// bar below takes over, so this one shows it is on.
 class ReadingAudioAction extends ConsumerWidget {
@@ -76,7 +69,6 @@ class ReadingPlayerBar extends ConsumerWidget {
     final index = state.index ?? 0;
     final items = audio.controller.items;
     final verseNumber = index < items.length ? (items[index].verse.verseNumber ?? index + 1) : index + 1;
-    final section = state.section;
     final isPaused = state.status == ReadingStatus.paused;
 
     return Material(
@@ -91,9 +83,9 @@ class ReadingPlayerBar extends ConsumerWidget {
                 child: Semantics(
                   liveRegion: true,
                   child: Text(
-                    state.status == ReadingStatus.loading || section == null
+                    state.status == ReadingStatus.loading
                         ? text.readingAudioLoading
-                        : text.readingAudioNowPlaying(readingSectionLabel(text, section), verseNumber),
+                        : text.labelVerse(verseNumber),
                     style: context.texts.labelLarge,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

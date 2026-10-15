@@ -20,10 +20,15 @@ class ChantFullscreenView extends StatefulWidget {
     required this.beads,
     required this.beadsPerRound,
     required this.onTap,
+    this.fit = BoxFit.cover,
   });
 
   final String imageUrl;
   final String imageKey;
+
+  /// `cover` for the 9:16 art; `contain` for a picture of another shape, so
+  /// none of the deity is cropped off.
+  final BoxFit fit;
   final Listenable counts;
   final int Function() rounds;
   final int Function() beads;
@@ -62,7 +67,7 @@ class _ChantFullscreenViewState extends State<ChantFullscreenView> {
               url: widget.imageUrl,
               cacheKey: widget.imageKey,
               borderRadius: BorderRadius.zero,
-              fit: BoxFit.cover,
+              fit: widget.fit,
             ),
             SafeArea(
               child: Align(

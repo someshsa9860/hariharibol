@@ -25,6 +25,7 @@ export function ImageUploadField({
   hasImage,
   onUploaded,
   onRemoved,
+  onBusyChange,
 }: {
   label: string;
   hint: string;
@@ -34,6 +35,8 @@ export function ImageUploadField({
   hasImage: boolean;
   onUploaded: (key: string, localUrl: string) => void;
   onRemoved: () => void;
+  /** Says when a file is on its way, so a form can hold its Save until the key is back. */
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const picker = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
@@ -42,6 +45,7 @@ export function ImageUploadField({
   async function add(file: File) {
     setError('');
     setProgress(0);
+    onBusyChange?.(true);
     try {
       const key = await uploadFile(kind, file, setProgress);
       onUploaded(key, URL.createObjectURL(file));
@@ -49,6 +53,7 @@ export function ImageUploadField({
       setError(message(e));
     } finally {
       setProgress(null);
+      onBusyChange?.(false);
     }
   }
 

@@ -216,6 +216,30 @@ splitting them would mean maintaining two of everything.
 every provider retries webhooks — without that constraint a retry credits the
 user twice. Store money as integer minor units (paise, cents); floats drift.
 
+## Server wording in the user's language
+
+What the server says in its own voice — error messages and the daily sloka's title — is in the person's language;
+content (verses, meanings, names) was already, via `utils/language.js`.
+
+- **Errors follow the *app* language.** `middleware/error.js` (and the rate limiter) call `translateError` with
+  `language.requestChain(req)`: the signed-in user's `appLanguage`, else `Accept-Language` (the app sends its phone
+  locale before sign-in), else English. Controllers keep throwing English (`notFound('Verse')`); `utils/messages.js`
+  recognises the text (`EXACT`, `PATTERNS`, or `BY_CODE` for a failing dependency) and swaps in
+  `locales/<lang>.json`. **A message with no rule, or a language with no file, goes out in English** — developer-facing
+  messages ("not configured", "run the seed") are deliberately not translated, and neither are the admin API's.
+  A "… not found" says only that it was not found, not what (gender and grammar differ per language).
+- **The daily sloka follows the *reading* language** — the push title, the fallback body, the book name in "Bhagavad Gita
+  2.47" (`Book.titleI18n`), and the "Because you mentioned …" reason with the issue's `nameI18n`. `UserDailySloka.reason`
+  is written in English when the pick is made and is only a fallback; `reasonFor` words it at read time. Issue `name` in
+  the sloka and home responses is already in the reading language.
+- **The sloka picture is not translated.** It is drawn once per verse for everyone (English "Sloka of Day" title and book
+  name); a per-language card would need a font per script and one image per language.
+- **Adding a message**: an id in *every* `locales/*.json` (`test/messages.test.js` fails on a missing id or a changed
+  `{0}`), then a rule in `utils/messages.js`. **Adding a language**: one new file with all the ids.
+- The translations are AI-drafted and **not yet read by a native speaker**.
+- `language.localised` now stops at English (the plain column), like `pickName`: English reader + Hindi app no longer gets Hindi
+  from an `…I18n` column.
+
 ## Book, canto and chapter counts
 
 `Book.totalCantos/totalChapters/totalVerses`, `Canto.totalChapters/totalVerses` and
@@ -291,6 +315,38 @@ it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longe
     `storage/sloka-card-preview/` without sending anything. Careful: **`cardUrl` itself uploads**, and a dev
     `.env` with AWS keys writes to the real bucket.
 
+## Setting a day's sloka (admin)
+
+`PUT /api/admin/slokas/:date` sets one date's verse and, optionally, a background picture; `GET /api/admin/slokas/picker` is
+the list the admin page chooses the verse from. Both need `sloka.manage` and nothing else, so the page works for any role that
+can manage slokas, whether or not it can also read books and verses.
+
+- **The picker is the pool, laid out as a tree.** `picker` in `controllers/admin/sloka.js` returns `books → cantos / chapters →
+  verses` for every verse `set` would accept — `isSlokaEligible`, in a book of `SLOKA_ELIGIBLE_BOOK_NUMBERS` — in reading
+  order. A book with no cantos (the Gita) has an empty `cantos`; each chapter carries its `cantoNumber`. Titles are English,
+  `titleI18n.en ?? title`, because the Gita's plain chapter `title` is Devanagari (`englishTitle`). It is **one unpaged
+  request**, the Sanskrit included for the preview under the select — the Sanskrit alone is about 88 KB for the 322 verses of a
+  seeded dev database. Fine for a pool picked by hand; page it if the pool ever grows by orders of magnitude.
+- **`set` still checks the verse itself.** A verse of another book, or one not flagged eligible, is a 400 and nothing is
+  written — the picker cannot offer one, but the endpoint does not rely on that.
+- **`imagePath` is an upload key**, from `POST /api/admin/uploads` with `kind: 'slokaImage'` (JPEG, PNG or WebP; folder
+  `PREFIXES.slokaImage`, `slokas/images`). Left out, the day keeps its picture; a new key replaces it; `null` removes it.
+  `assertImage` refuses (400) a key this server did not issue for that folder, or whose file never reached storage; a key the
+  row already holds passes untouched, so a form can send back what it was given. The verse is checked before the image and
+  nothing is saved unless both pass, so a refused save leaves the upload waiting in `temp/`. Saving moves it out of `temp/`
+  like every other upload (see "Storage layout").
+- **The push card shares the folder but can never be an `imagePath`**: `slokas/images/cards/<design>/<verseId>.jpg` is not a
+  generated key (those are `<prefix>/<32 hex>.<ext>`), so a day cannot be pointed at a card.
+- **Replacing or removing a picture does not delete the old file** — same as every other upload.
+- **Where it goes:** the calendar (`GET /api/admin/slokas`), the home feed and `GET /api/app/sloka/today` send it as `imageUrl`
+  (a presigned link, or `null`). **Nothing user-facing draws it yet** — the app parses it (`models/sloka.dart`) and nothing
+  reads it, and the push picture is the one shared card per verse above — so for now the picture is stored and sent, no more.
+- `npm run test:admin-sloka` walks it over real HTTP against a running API: who may use it, the picker's content against the
+  database, accepted and refused verses, upload → save → permanent key → link, replace, keep, remove, and every kind of refused
+  key. It uploads and deletes real files, so the API **and** the script must run with `AWS_ACCESS_KEY_ID=` and
+  `AWS_SECRET_ACCESS_KEY=` blank (the script refuses to run otherwise). It uses dates in 2099 and removes what it made; the
+  moderator check runs only if a moderator account exists.
+
 ## Mantra standard chanting time and chant phrases
 
 `Mantra.durationMs` is how long **one chant takes at an ordinary pace**, in milliseconds. The app's auto count
@@ -337,9 +393,13 @@ already holds the old text (fix that row in the admin Mantras page). `test/mantr
 fails on a missing language, a missing or extra slug, or text in the wrong script. The translations are
 AI-drafted and **not yet read by a native speaker**.
 
-- **A mantra's title follows the *reading* language; its script follows the mantra language.** `present.mantra`
-  picks `name` with `language.pickName` (reading → app → en, then `Mantra.name`; it stops at English, so
-  someone reading English is not handed their app language's name). Wherever a mantra is named in passing — a
+- **A mantra's title *and* its text follow the *reading* language.** `present.mantra` picks `name` with
+  `language.pickName` (reading → app → en, then `Mantra.name`; it stops at English, so someone reading English
+  is not handed their app language's name) and `text` with `language.mantraTextChain` (reading → the account's
+  mantra language → app → en → sa — the row's own script, Kannada letters for a Kannada reader). An English
+  reader therefore gets the Roman text, not Devanagari. The account's `mantraLanguage` is still stored but is only
+  the next choice after reading, and the app never changes it. `language.mantraChain` (mantra language first)
+  is kept for reel narration only. `test/mantra-text-chain.test.js`. Wherever a mantra is named in passing — a
   reel, a chant session, the profile's preferred mantra — use `includes.mantraStub` / `present.mantraStub`,
   never a bare `include: { mantra: true }`. `test/pick-name.test.js`.
 - **Search finds the title a reader is shown.** The mantra list's `q` and `/search` match the English `name`
@@ -349,6 +409,38 @@ AI-drafted and **not yet read by a native speaker**.
   uses (`beej`, `gayatri`, `mahamantra`, `name`) from its ARB files (`mantraCategoryLabel`) and shows any other
   title-cased, untranslated — to name a new one, add a `mantraCategory*` key to all twelve ARBs and a line to
   `mantraCategoryLabel` (an app release).
+
+## Translated titles of books, cantos and chapters
+
+`Book`, `Canto` and `Chapter` carry `titleI18n` (JSON `{ code: text }`); `Canto` and `Chapter` also `summaryI18n`, `Book`
+`descriptionI18n`. The plain `title` / `summary` / `description` are the English.
+
+- **What a phone is sent.** `present.book` and `present.section` keep sending `title` picked in the account's language (older
+  app builds read that) and add `titleI18n`, `summaryI18n` and `descriptionI18n` (`i18nMap` in `utils/present.js`): blank and
+  non-text entries are dropped, **`en` is added from the plain column when the map has none**, and a title with nothing at all
+  is `null`. The app picks on the phone along its reading chain, so a change of reading language needs no second request.
+- **The Gita's chapters are the trap.** Their plain `title` is the Sanskrit name in Devanagari; Prabhupāda's English heading
+  is `titleI18n.en`, which `i18nMap` keeps. The Bhagavatam's plain titles are English and carry no map until the seed or an
+  admin writes one. Anything that wants "the English heading" of a chapter reads `titleI18n.en ?? title`, never `title` alone
+  (the admin Titles dialog does).
+- **Seeds**: `prisma/seed/section-titles/<code>.js`, one per reading language except English, in the shape described in
+  `section-titles/index.js` — the two books, the Bhagavatam's 12 cantos and the Gita's 18 chapters. `seedSectionTitles()`
+  (`prisma/seed/index.js`, after `seedBooks`) goes through `fillMissing`: **a language is added only where the row has none**,
+  so an admin's edit is never put back, and a corrected seed file does not reach a row that is already filled — fix that row
+  on the admin Books page → **Titles**. Chapters exist only once the importers have run, so a new database takes
+  seed → importers → seed. **The Bhagavatam's 335 chapters have no seeded titles** (there is no authoritative list to follow),
+  so they read in English until an admin fills them. The Gita's titles are its traditional names in the reader's own script;
+  the cantos' are translations of Prabhupāda's headings. They are AI-drafted and **not yet read by a native speaker**.
+  `test/section-titles.test.js` fails on a missing language, a list of the wrong length, or text in the wrong script.
+- **Admin**: `GET /api/admin/books/languages` (`book.read`) lists the languages a title can be written in — active reading
+  languages but English, in display order — so the Titles dialog does not need the reference-data permission. Titles are saved
+  with the existing `PATCH /books/:id`, `/cantos/:id` and `/chapters/:id` `{ titleI18n }`, which **replaces the whole map**: a
+  client must send back `en` and every other language it did not change.
+- **A changed title changes its unit's hash**, so the next book export rewrites that unit and phones fetch it again (the
+  Gita's chapter files, the Bhagavatam's canto files). Run the export on the server after a bulk edit; not locally (see
+  "Book cache").
+- `npm run test:book-titles` walks the languages endpoint, saving on all three levels, whole-map replacement and the shape a
+  phone is sent, against a running API with a throwaway book (deleted again). It uploads nothing, so the dev `.env` is fine.
 
 ## Book cache (offline books)
 
@@ -507,9 +599,11 @@ owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` �
 
 ## Translation runs (admin panel)
 
-**Providers and books (added later).** A run row also carries `provider` (`anthropic` | `openai`) and `book` (`bhagavat-gita` | `srimad-bhagavatam`); both default to the old behaviour. Providers live in `scripts/lib/translate-providers.js` (default models: `claude-sonnet-5-5`, and `gpt-6-luna` at $0.10 in / $0.01 cached / $0.50 out per 1M tokens, strict JSON schema output). Keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`; model overrides `ANTHROPIC_MODEL`, `TRANSLATION_OPENAI_MODEL` (not `OPENAI_MODEL`, which the AI features use); `TRANSLATION_PROVIDER` picks the default. Books are in `scripts/lib/claude-translate-source.js` (`BOOKS`): the Gita is `json/bhagavat-gita/<lang>/ch-N.json`; the Bhagavatam is English-only at the source and `json/srimad-bhagavatam/<lang>/c<canto>-ch-<n>.json`. A chapter id is the chapter number for the Gita and **canto × 100 + chapter** for the Bhagavatam (147 = SB 1.47). The worker runs one run per book at once (global concurrency 2); a second run of the same book waits, because they share a checkpoint. Start/import locks, coverage cache and the "one live run" rule are per book and language. "Up to date" is decided by version only, whatever the provider. Migration `20261019000000_translation_run_provider`. `npm run test:translation` and `node --test test/translate-*.test.js` cover it; no live OpenAI call has been made.
+**Providers and books (added later).** A run row also carries `provider` (`anthropic` | `openai` | `gemini`) and `book` (`bhagavat-gita` | `srimad-bhagavatam`); the columns default to Claude and the Gita because every run made before they existed was both, but a new run always carries the provider it was started with (the server's default when none is chosen). Providers live in `scripts/lib/translate-providers.js`. **The default is `openai` / `gpt-6-luna`** ($0.10 in / $0.01 cached / $0.50 out per 1M tokens, strict JSON schema output; about $0.9 for the whole Gita in one language): in a ten-verse trial in Tamil, Hindi and Marathi it beat Gemini 3.5 Flash-Lite on all four parts. Claude (`claude-sonnet-5-5`) is one choice away, for the verses or parts Luna scores 1: pick it per part on the admin page, or pass `--provider anthropic` on the command line. Keys: `OPENAI_API_KEY` (the default), `ANTHROPIC_API_KEY`; model overrides `ANTHROPIC_MODEL`, `TRANSLATION_OPENAI_MODEL` (not `OPENAI_MODEL`, which the AI features use); `TRANSLATION_PROVIDER` changes which provider is the default. Books are in `scripts/lib/claude-translate-source.js` (`BOOKS`): the Gita is `json/bhagavat-gita/<lang>/ch-N.json`; the Bhagavatam is English-only at the source and `json/srimad-bhagavatam/<lang>/c<canto>-ch-<n>.json`. A chapter id is the chapter number for the Gita and **canto × 100 + chapter** for the Bhagavatam (147 = SB 1.47). The worker runs one run per book at once (global concurrency 2); a second run of the same book waits, because they share a checkpoint. Start/import locks, coverage cache and the "one live run" rule are per book and language. "Up to date" is decided by version only, whatever the provider. Migration `20261019000000_translation_run_provider`. `npm run test:translation` and `node --test test/translate-*.test.js` cover it. Live `gpt-6-luna` calls have been made: Tamil chapters 1–4 were translated and then corrected with it, and a Malayalam run went through the worker.
 
-The admin **Translations** page translates Prabhupāda's Gita with Claude as a background job and shows it live,
+**Plans, lanes and Gemini (added later).** A run has a **plan**: for each part (`translation`, `transliteration`, `wordMeanings`, `purport`) a `{provider, model, effort}` — providers are `anthropic`, `openai` (the default), `gemini` (`GEMINI_API_KEY`, `TRANSLATION_GEMINI_MODEL`, REST client `scripts/lib/gemini-translate-client.js`, default `gemini-3.5-flash-lite`; tried live on ten verses, where Luna scored higher on every part, which is why it is not the default). Parts with the same provider|model|effort form a **lane**: one request per verse carrying only that lane's instructions, source text and answer schema. Lanes run in parallel (`Promise.allSettled` in `claude-translate-run.js`) and never wait for each other; each saves only its own parts into the chapter file (writes to one file are queued, conditional, verified). Each part is stamped under `aiTranslation.parts[part]` (provider, model, effort, version, sourceHash, score…); the verse-level `aiTranslation` is a summary (score = lowest part). If a lane fails the others finish their current verse and stop; resume asks only for the missing parts. `TranslationRun.plan` / `lanes` (migration `20261020000000_translation_run_plan`) hold the plan and per-lane progress; `GET /estimate?plan=<json>` and `POST /runs {plan}` take it (without one, every part uses `provider`/`model`). Progress counts verse×lane steps.
+
+The admin **Translations** page translates Prabhupāda's Gita with an AI model (GPT-6 Luna by default; Claude or Gemini can take any part) as a background job and shows it live,
 and imports what was saved into the database. The pipeline is the same one `npm run translate:claude` uses
 (`scripts/lib/claude-translate-*.js`, described in
 [scripts/README.md](scripts/README.md#translating-the-gita-with-claude)); this section is the part that runs it
@@ -583,8 +677,11 @@ Things to know before changing it:
     page offers Import only while no run for that language is live; the API does not enforce that.
   - **A hand edit on the Verses page is overwritten** by the next import of that verse. Editing a translation there does not
     touch `translatedBy` / `version`, so a hand-edited row can still read "made by Claude" until it is imported again.
-  - **The read side is not changed yet.** The app and the offline book export serve `meaning` and `purport`; they do not yet
-    send a translation row's `transliteration` or `wordMeanings`, and nothing marks a text as machine-made. That is the next step.
+  - **The read side serves `transliteration` now, not yet `wordMeanings`.** The API verse (`present.verse`) and the offline book
+    export (`shapeTranslation`, only when the row has one, so a book without them keeps its file hash) send the reader's own-script
+    transliteration, chosen by `language.pickTransliteration` along the reading chain and falling back to the verse's Roman text.
+    A translation row's `wordMeanings` are still not sent, and nothing marks a text as machine-made. Run
+    `node scripts/export-book-cache.js` after an import so phones fetch the changed Gita chapters.
 - **The three permissions are inserted by the migrations** (`translation.read`, `translation.run`, `translation.import`) and
   given to `admin` and `super_admin`; any other role gets them on the admin Roles page. Permissions are cached for about 5
   minutes, so a new grant can take that long to show.
@@ -594,8 +691,9 @@ Things to know before changing it:
   would send the server to a different bucket) and `SOURCE_LOCAL_DIR` is for tests. The keys must be allowed to
   **write** under `json/bhagavat-gita/` and `json/reports/`, and to copy to `json-backup-*/`. The page's checklist
   reads the first English chapter, so a bucket it cannot reach or that lacks the scripture is reported there.
-- **Needs in the server `.env`** for the `api` and `worker` containers: `ANTHROPIC_API_KEY`, and `TRANSLATION_VERSION`
-  (optional). Without a key the page says so and the Start button is disabled.
+- **Needs in the server `.env`** for the `api` and `worker` containers: `OPENAI_API_KEY` (the default provider), plus `ANTHROPIC_API_KEY` or `GEMINI_API_KEY`
+  for a part given to Claude or Gemini, and `TRANSLATION_VERSION` (optional). Without the key of a provider the run would use, the page says so and
+  the Start button is disabled.
 - **Do not run `npm run translate:claude` while the worker is working a run for the same language.** They write the
   same chapter files; each write is conditional on the object not having changed, so one of them stops, but neither
   knows about the other.
@@ -607,9 +705,10 @@ Things to know before changing it:
   verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once. `npm test` needs Node ≥ 21 for its
   test glob; under Node 20 run
   `node --test test/translation-run.test.js test/translation-import.test.js test/claude-translate.test.js`.
-- **Not exercised:** a real Claude call and a write to the real bucket (the e2es use `SOURCE_LOCAL_DIR`; the app's
-  bucket has only been read, by the page's check and coverage). Run `npm run translate:claude:test` first. The import
-  has not been run against the Gita's real S3 files either; do a `dryRun` from the page first.
+- **Not exercised:** a real Claude call (the e2es fake the model). GPT-6 Luna and Gemini have been called live, and Luna has
+  written Tamil chapters 1–4 and run a Malayalam job through the worker against the real bucket. Try one verse with
+  `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
+  Gita's real S3 files either; do a `dryRun` from the page first.
 
 ## Client attestation on signup
 

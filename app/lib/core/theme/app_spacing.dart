@@ -50,6 +50,10 @@ abstract final class AppSizes {
   static const double avatarLg = 72;
 
   static const double buttonHeight = 52;
+
+  /// A button that sits inside a card, where the full-height one would
+  /// outweigh the card around it.
+  static const double buttonHeightSm = 44;
   static const double coverWidth = 128;
   static const double coverHeight = 176;
 
@@ -71,6 +75,9 @@ abstract final class AppDurations {
   static const Duration fast = Duration(milliseconds: 150);
   static const Duration normal = Duration(milliseconds: 250);
   static const Duration slow = Duration(milliseconds: 400);
+
+  /// A progress ring filling to its value.
+  static const Duration progress = Duration(milliseconds: 700);
 
   /// A section fading and rising into place when a screen first draws.
   static const Duration entrance = Duration(milliseconds: 380);

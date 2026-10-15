@@ -150,7 +150,7 @@ referenced by a row's media key.
 Each file holds, per verse: `id`, `verseId`, numbers, `sanskrit`, `transliteration`,
 `wordMeanings`, `audioPath` (a key — a link in the file would change its hash every hour;
 the app trades keys for links at `/audio-urls`), and every **published** translation in
-every language (`meaning`, `purport`, translator, `languageCode`, `type`); plus book, unit
+every language (`meaning`, `purport`, `transliteration` in that language's script when it has one, translator, `languageCode`, `type`); plus book, unit
 and chapter metadata, `schemaVersion` and `updatedAt`.
 
 ### How a run decides what to upload

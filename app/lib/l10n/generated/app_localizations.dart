@@ -1438,6 +1438,24 @@ abstract class AppLocalizations {
   /// **'Reading language'**
   String get readingLanguageLabel;
 
+  /// No description provided for @readingHideLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide in verses'**
+  String get readingHideLabel;
+
+  /// No description provided for @readingHideSanskrit.
+  ///
+  /// In en, this message translates to:
+  /// **'Sanskrit'**
+  String get readingHideSanskrit;
+
+  /// No description provided for @readingHideTransliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'Transliteration'**
+  String get readingHideTransliteration;
+
   /// No description provided for @routineSubtitle.
   ///
   /// In en, this message translates to:
@@ -1929,12 +1947,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} of {total}'**
   String reelSlideOf(int current, int total);
-
-  /// A verse reference on a reel, e.g. BG 2.47
-  ///
-  /// In en, this message translates to:
-  /// **'{book} {chapter}.{verse}'**
-  String reelVerseRef(String book, int chapter, int verse);
 
   /// No description provided for @reelBookGita.
   ///

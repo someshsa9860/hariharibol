@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../tts/tts_engine.dart';
 import '../../models/verse.dart';
 import 'file_player.dart';
 import 'reading_item.dart';
@@ -17,7 +16,6 @@ class ReadingState {
     this.status = ReadingStatus.idle,
     this.index,
     this.verseId,
-    this.section,
     this.autoplay = false,
     this.error,
   });
@@ -27,9 +25,6 @@ class ReadingState {
   /// Position in the loaded verses.
   final int? index;
   final String? verseId;
-
-  /// Which part is being heard: the recitation, the meaning or the purport.
-  final ReadingSection? section;
 
   /// Carrying on to the next verse when this one ends.
   final bool autoplay;
@@ -46,19 +41,18 @@ class ReadingState {
       other.status == status &&
       other.index == index &&
       other.verseId == verseId &&
-      other.section == section &&
       other.autoplay == autoplay;
 
   @override
-  int get hashCode => Object.hash(status, index, verseId, section, autoplay);
+  int get hashCode => Object.hash(status, index, verseId, autoplay);
 
   @override
-  String toString() => 'ReadingState($status, #$index, $section, autoplay: $autoplay)';
+  String toString() => 'ReadingState($status, #$index, autoplay: $autoplay)';
 }
 
-/// Reads a chapter aloud: for each verse its recitation (if it has one), then
-/// the meaning, then the purport — the last two spoken in the speaking language
-/// by [tts]. One verse, or on through the chapter ("auto-play").
+/// Plays a chapter's recitation: for each verse the Sanskrit recording from the
+/// server, and nothing else — no spoken meaning or purport, whatever language
+/// the reader has. One verse, or on through the chapter ("auto-play").
 ///
 /// Every `await` on the way is checked against a run number: starting something
 /// else (next verse, a different verse, stop) bumps it, so the loop that was
@@ -66,17 +60,13 @@ class ReadingState {
 class ReadingPlaybackController {
   ReadingPlaybackController({
     required this.player,
-    required this.tts,
     required this.audio,
     required this.memory,
-    this.rate = 1.0,
   });
 
   final FilePlayer player;
-  final TtsEngine tts;
   final VerseAudioCache audio;
   final ReadingMemory memory;
-  final double rate;
 
   final StreamController<ReadingState> _states = StreamController<ReadingState>.broadcast();
   ReadingState _state = const ReadingState();
@@ -87,7 +77,7 @@ class ReadingPlaybackController {
   bool _autoplay = false;
   bool _paused = false;
   Completer<void>? _gate;
-  _Active _active = _Active.none;
+  bool _playerBusy = false;
 
   Stream<ReadingState> get states => _states.stream;
   ReadingState get state => _state;
@@ -114,7 +104,7 @@ class ReadingPlaybackController {
 
   // ── Starting ──────────────────────────────────────────────────────────
 
-  /// One verse: recitation, meaning, purport — then it stops.
+  /// One verse's recitation — then it stops.
   Future<void> playVerse(int index) => _start(index, autoplay: false);
 
   /// From [from] through to the end of the chapter.
@@ -153,7 +143,7 @@ class ReadingPlaybackController {
       i++;
     }
     if (run == _run) {
-      _active = _Active.none;
+      _playerBusy = false;
       _emit(const ReadingState());
     }
   }
@@ -164,7 +154,6 @@ class ReadingPlaybackController {
       status: ReadingStatus.loading,
       index: i,
       verseId: item.verse.id,
-      section: ReadingSection.verse,
       autoplay: _autoplay,
     ));
     final context = _context;
@@ -175,63 +164,33 @@ class ReadingPlaybackController {
       audio.prefetch(_items[i + 1].verse, following: [for (final n in _items.skip(i + 2).take(4)) n.verse]);
     }
 
-    // 1. The recitation. A verse with none, or one that will not load, is skipped.
-    if (item.verse.hasAudio) {
-      final file = await audio.fileFor(item.verse, following: [for (final n in _items.skip(i + 1).take(4)) n.verse]);
-      if (run != _run) return;
-      if (file != null) {
-        await _waitIfPaused(run);
-        if (run != _run) return;
-        _emit(_playing(i, item, ReadingSection.verse));
-        _active = _Active.player;
-        try {
-          await player.playFile(file);
-        } catch (error) {
-          _noteError(error, i, item, ReadingSection.verse);
-        }
-        if (run != _run) return;
-      }
-    }
-
-    // 2. The meaning, 3. the purport — in the speaking language.
-    await _speak(item, i, run, ReadingSection.meaning, item.meaning);
-    if (run != _run) return;
-    await _speak(item, i, run, ReadingSection.purport, item.purport);
-  }
-
-  Future<void> _speak(ReadingItem item, int i, int run, ReadingSection section, List<SpokenText> candidates) async {
-    SpokenText? chosen;
-    for (final candidate in candidates) {
-      if (candidate.text.isEmpty) continue;
-      if (await tts.canSpeak(candidate.language)) {
-        chosen = candidate;
-        break;
-      }
-    }
-    if (run != _run) return;
-    if (chosen == null) return; // nothing to say in a language we can voice
+    // A verse with no recording, or one that will not load, is skipped.
+    if (!item.verse.hasAudio) return;
+    final file = await audio.fileFor(item.verse, following: [for (final n in _items.skip(i + 1).take(4)) n.verse]);
+    if (run != _run || file == null) return;
 
     await _waitIfPaused(run);
     if (run != _run) return;
-    _emit(_playing(i, item, section));
-    _active = _Active.tts;
+    _emit(_playing(i, item));
+    _playerBusy = true;
     try {
-      await tts.speak(chosen.text, language: chosen.language, rate: rate);
+      await player.playFile(file);
     } catch (error) {
-      _noteError(error, i, item, section);
+      _noteError(error, item);
+    } finally {
+      if (run == _run) _playerBusy = false;
     }
   }
 
-  ReadingState _playing(int i, ReadingItem item, ReadingSection section) => ReadingState(
+  ReadingState _playing(int i, ReadingItem item) => ReadingState(
         status: _paused ? ReadingStatus.paused : ReadingStatus.playing,
         index: i,
         verseId: item.verse.id,
-        section: section,
         autoplay: _autoplay,
       );
 
-  void _noteError(Object error, int i, ReadingItem item, ReadingSection section) {
-    if (kDebugMode) debugPrint('[Reading] ${item.verse.verseId} $section skipped: $error');
+  void _noteError(Object error, ReadingItem item) {
+    if (kDebugMode) debugPrint('[Reading] ${item.verse.verseId} skipped: $error');
   }
 
   // ── Pausing ───────────────────────────────────────────────────────────
@@ -245,19 +204,11 @@ class ReadingPlaybackController {
     if (_paused || !_state.isActive) return;
     _paused = true;
     _gate = Completer<void>();
-    switch (_active) {
-      case _Active.player:
-        await player.pause();
-      case _Active.tts:
-        await tts.pause();
-      case _Active.none:
-        break;
-    }
+    if (_playerBusy) await player.pause();
     _emit(ReadingState(
       status: ReadingStatus.paused,
       index: _state.index,
       verseId: _state.verseId,
-      section: _state.section,
       autoplay: _autoplay,
     ));
   }
@@ -267,20 +218,12 @@ class ReadingPlaybackController {
     _paused = false;
     final gate = _gate;
     _gate = null;
-    switch (_active) {
-      case _Active.player:
-        await player.resume();
-      case _Active.tts:
-        await tts.resume();
-      case _Active.none:
-        break;
-    }
+    if (_playerBusy) await player.resume();
     if (gate != null && !gate.isCompleted) gate.complete();
     _emit(ReadingState(
       status: ReadingStatus.playing,
       index: _state.index,
       verseId: _state.verseId,
-      section: _state.section,
       autoplay: _autoplay,
     ));
   }
@@ -302,8 +245,8 @@ class ReadingPlaybackController {
     _gate = null;
     _paused = false;
     if (gate != null && !gate.isCompleted) gate.complete();
-    _active = _Active.none;
-    await Future.wait([player.stop(), tts.stop()]);
+    _playerBusy = false;
+    await player.stop();
   }
 
   void _emit(ReadingState next) {
@@ -317,11 +260,8 @@ class ReadingPlaybackController {
     await _halt();
     await _states.close();
     await player.dispose();
-    await tts.dispose();
   }
 
   /// For the lock screen.
   Verse? get currentVerse => _state.index == null ? null : _items[_state.index!].verse;
 }
-
-enum _Active { none, player, tts }

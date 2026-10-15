@@ -14,6 +14,8 @@ import '../common/eyebrow.dart';
 /// Tapping is not aimed at an individual bead — at phone size, 108 targets
 /// around a ring would be smaller than a fingertip. The whole disc is one
 /// target, and the ring is what shows where the count actually is.
+///
+/// With [showCount] off the middle is left empty, for a picture to sit in.
 class MalaRing extends StatelessWidget {
   const MalaRing({
     super.key,
@@ -22,6 +24,7 @@ class MalaRing extends StatelessWidget {
     required this.roundsLabel,
     this.beadsPerRound = 108,
     this.size = 280,
+    this.showCount = true,
   });
 
   final int beadsInRound;
@@ -29,6 +32,7 @@ class MalaRing extends StatelessWidget {
   final String roundsLabel;
   final int beadsPerRound;
   final double size;
+  final bool showCount;
 
   @override
   Widget build(BuildContext context) {
@@ -42,21 +46,23 @@ class MalaRing extends StatelessWidget {
           filledColor: context.colors.primary,
           trackColor: context.colors.outlineVariant,
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('$roundsCompleted', style: AppTypography.numeral(context, size: 72)),
-              const SizedBox(height: AppSpacing.xs),
-              Eyebrow(roundsLabel),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                '$beadsInRound / $beadsPerRound',
-                style: context.texts.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ),
+        child: showCount
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('$roundsCompleted', style: AppTypography.numeral(context, size: 72)),
+                    const SizedBox(height: AppSpacing.xs),
+                    Eyebrow(roundsLabel),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '$beadsInRound / $beadsPerRound',
+                      style: context.texts.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              )
+            : null,
       ),
     );
   }

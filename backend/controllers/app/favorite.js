@@ -34,7 +34,7 @@ export const list = async (req, res) => {
     include: {
       verse: { include: present.includes.verse(language.readingChain(user), user.id) },
       mantra: {
-        include: present.includes.mantra(language.mantraChain(user), language.readingChain(user)),
+        include: present.includes.mantra(language.mantraTextChain(user), language.readingChain(user)),
       },
       book: true,
       // Saved reels have a screen of their own (GET /reels/saved), which

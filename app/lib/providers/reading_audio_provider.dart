@@ -4,7 +4,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/tts_model.dart';
-import '../repositories/book_repository.dart';
 import '../services/audio/audio_link_resolver.dart';
 import '../services/audio/file_player.dart';
 import '../services/audio/interruption_policy.dart';
@@ -12,9 +11,6 @@ import '../services/audio/reading_audio.dart';
 import '../services/audio/reading_memory.dart';
 import '../services/audio/reading_playback_controller.dart';
 import '../services/audio/verse_audio_cache.dart';
-import '../services/tts/adaptive_tts_engine.dart';
-import '../services/tts/platform_tts_engine.dart';
-import '../services/tts/sherpa_tts_engine.dart';
 import '../services/tts/tts_model_manager.dart';
 
 final ttsModelManagerProvider = Provider<TtsModelManager>((ref) => TtsModelManager.instance);
@@ -42,20 +38,11 @@ class VoiceRequests {
 
 final voiceRequestsProvider = Provider<VoiceRequests>((ref) => VoiceRequests(ref.watch(ttsModelManagerProvider)));
 
-/// One reading player for the app. Built on first use; tears the audio down with
-/// the container.
+/// One recitation player for the app. Built on first use; tears the audio down
+/// with the container.
 final readingAudioProvider = Provider<ReadingAudio>((ref) {
-  final manager = ref.watch(ttsModelManagerProvider);
-  final requests = ref.watch(voiceRequestsProvider);
-
-  final engine = AdaptiveTtsEngine(
-    neural: SherpaTtsEngine(manager: manager),
-    platform: PlatformTtsEngine(),
-    onNeuralMissing: (language) => unawaited(requests.onSpeakingLanguage(language)),
-  );
   final controller = ReadingPlaybackController(
     player: JustAudioFilePlayer(),
-    tts: engine,
     audio: VerseAudioCache(resolver: AudioLinkResolver()),
     memory: LocalStoreReadingMemory(),
   );
@@ -66,11 +53,7 @@ final readingAudioProvider = Provider<ReadingAudio>((ref) {
     unawaited(controller.dispose());
   });
 
-  return ReadingAudio(
-    controller: controller,
-    session: session,
-    renderings: BookRepository.instance.spokenRenderings,
-  );
+  return ReadingAudio(controller: controller, session: session);
 });
 
 /// What the reading player is doing, for highlights and the player bar.

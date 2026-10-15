@@ -11,8 +11,23 @@ const router = createRouter({
 
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');
 
-// The three fixed paths are registered before '/:date', because express matches
+// The fixed paths are registered before '/:date', because express matches
 // in order and '/pool' would otherwise be read as a date.
+
+router.get(
+  '/picker',
+  {
+    summary: 'List the verses that can be chosen',
+    description:
+      'The sloka-eligible pool laid out to be picked from: each book with its cantos (the ' +
+      'Bhagavatam only) and chapters, and each chapter with its verses. Only eligible verses ' +
+      'appear, because `PUT /slokas/:date` refuses the rest.',
+    permission: 'sloka.manage',
+    limit: 'read',
+    responds: { 200: 'Books, cantos, chapters and verses' },
+  },
+  controller.picker
+);
 
 router.get(
   '/pool',
@@ -66,7 +81,9 @@ router.put(
     summary: 'Set the sloka for a date',
     description:
       'Only a sloka-eligible verse from the Gita or the Bhagavatam is accepted. Leave ' +
-      '`isPublished` false to draft a future date safely — nothing is sent until it is true.',
+      '`isPublished` false to draft a future date safely — nothing is sent until it is true. ' +
+      '`imagePath` is an upload key from `POST /uploads` with kind `slokaImage`: omit it to ' +
+      'leave the image as it is, send `null` to remove it.',
     permission: 'sloka.manage',
     limit: 'write',
     params: z.object({ date: dateString }),
@@ -77,7 +94,7 @@ router.put(
     }),
     responds: {
       201: 'The sloka',
-      400: 'Verse is not eligible, or from the wrong book',
+      400: 'Verse is not eligible, from the wrong book, or the image key is not one this server issued',
       404: 'No such verse',
     },
   },

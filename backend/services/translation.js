@@ -17,7 +17,8 @@ import { describeEvent, presentRun } from '../utils/translation-run.js';
 
 import { DEFAULT_PROVIDER, PROVIDERS, PROVIDER_IDS, costFor, providerOf } from '../scripts/lib/translate-providers.js';
 import { LANGUAGES, LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
-import { dryRun, hasTranslation, isCurrent, verifyEntry } from '../scripts/lib/claude-translate-run.js';
+import { dryRun, hasTranslation, isCurrent, isPartCurrent, planOf, verifyEntry } from '../scripts/lib/claude-translate-run.js';
+import { PARTS, PART_LABELS, lanesOf, normalizePlan } from '../scripts/lib/claude-translate-parts.js';
 import { BOOK, BOOKS, BOOK_IDS, DEFAULT_GROUP_BUDGET, TRANSLATOR, bookOf, bookOfVerseId, chapterIdOfVerse, chapterKey, chapterLabel, loadChapter } from '../scripts/lib/claude-translate-source.js';
 import { dirStore, langChapterKey, s3Store, versionFrom } from '../scripts/lib/claude-translate-store.js';
 
@@ -25,7 +26,7 @@ const queue = queues.translation;
 
 /* ---------- what the server is set up with ---------- */
 
-/** The provider a run uses unless the admin picks another (TRANSLATION_PROVIDER, else Claude). */
+/** The provider a run uses unless the admin picks another (TRANSLATION_PROVIDER, else GPT-6 Luna). */
 export const defaultProvider = () => (PROVIDER_IDS.includes(env.TRANSLATION_PROVIDER) ? env.TRANSLATION_PROVIDER : DEFAULT_PROVIDER);
 export const apiKey = (provider = defaultProvider()) => env[providerOf(provider).keyEnv] || '';
 /** The model a provider uses unless told otherwise: its env setting (ANTHROPIC_MODEL, TRANSLATION_OPENAI_MODEL), else its built-in default. */
@@ -37,6 +38,32 @@ export const providers = () =>
 
 /** The version every verse of a new run is stamped with (TRANSLATION_VERSION, else the default). Throws if the setting is malformed. */
 export const currentVersion = () => versionFrom(env.TRANSLATION_VERSION);
+
+/**
+ * The plan a request asks for, filled in: `{ part: { provider, model, effort } }` for the parts named. Without
+ * a plan, every part uses `provider` and `model` (the server's defaults when left out). Throws a plain message
+ * for an unknown part, provider or effort, a model a provider cannot run at that effort, or a missing key.
+ */
+export function resolvePlan({ plan = null, provider = defaultProvider(), model: modelId = model(provider), effort = translation.effort } = {}) {
+  const filled = normalizePlan(plan, { provider, model: modelId, effort });
+  for (const [part, entry] of Object.entries(filled)) {
+    if (!PROVIDER_IDS.includes(entry.provider)) throw new Error(`${PART_LABELS[part]}: unknown provider "${entry.provider}" — use ${PROVIDER_IDS.join(', ')}`);
+    if (plan && !plan[part]?.model) entry.model = model(entry.provider); // a part that names only a provider gets that provider's own default
+    try {
+      providerOf(entry.provider).check(entry.model, entry.effort);
+    } catch (err) {
+      throw new Error(`${PART_LABELS[part]}: ${err.message}`);
+    }
+  }
+  return filled;
+}
+
+/** The providers a plan calls that have no key on the server. → [{ id, keyEnv, company }] */
+export const missingKeys = (plan) =>
+  [...new Set(Object.values(plan).map((e) => e.provider))].filter((id) => !apiKey(id)).map((id) => ({ id, keyEnv: providerOf(id).keyEnv, company: providerOf(id).company }));
+
+/** The plan a run row carries: its own, or — for a run made before plans — every part by the row's provider and model. */
+export const planOfRow = (row) => planOf({ plan: row.plan, provider: row.provider, model: row.model, effort: translation.effort });
 
 export const languages = () => LANGUAGES.map(({ code, name, endonym }) => ({ code, name, endonym }));
 
@@ -161,7 +188,7 @@ export async function coverage({ book = BOOK, refresh = false } = {}) {
 async function computeCoverage(book) {
   const { store, getSource } = await openWorkspace();
   const version = versionOrNull();
-  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, chapters: [] }]));
+  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, parts: Object.fromEntries(PARTS.map((p) => [p, 0])), chapters: [] }]));
   let total = 0;
 
   const chapters = await mapLimit(bookOf(book).chapters, translation.readConcurrency, async (n) => {
@@ -181,7 +208,8 @@ async function computeCoverage(book) {
       for (const unit of units) {
         if (!hasTranslation(file, unit.verseId, code)) continue;
         saved++;
-        if (isCurrent(file, unit.verseId, code, version)) upToDate++;
+        if (isCurrent(file, unit.verseId, code, version, unit)) upToDate++;
+        for (const part of PARTS) if (isPartCurrent(file, unit, code, part, version) && hasPartText(have.get(unit.verseId), code, part)) by.parts[part]++;
         const ai = have.get(unit.verseId)?.aiTranslation;
         if (!ai) continue;
         by.byClaude++;
@@ -199,6 +227,10 @@ async function computeCoverage(book) {
   return result;
 }
 
+// Does the saved verse hold text for the part? (A part the English lacks counts as current but is not "saved".)
+const hasPartText = (verse, lang, part) =>
+  part === 'transliteration' ? Boolean(verse?.transliteration) : part === 'wordMeanings' ? Boolean(verse?.wordMeanings?.length) : ownRows(verse, lang).some((c) => c.type === part && c.text);
+
 const coverageKey = (book) => `${translation.coverageCacheKey}:${book}`;
 export const forgetCoverage = () => redis.del(...BOOK_IDS.map(coverageKey)).catch(() => {});
 
@@ -211,33 +243,59 @@ export const books = () => BOOK_IDS.map((id) => ({ id, title: BOOKS[id].title, c
  * cost is scaled to match). A verse already translated under `version` is `saved` and costs nothing; one
  * Claude translated under another version is `outdated` and is left to do, like a verse never translated.
  */
-export async function estimate({ language, book = BOOK, chapters, limit = 0, provider = defaultProvider(), model: modelId = model(provider), version = currentVersion() }) {
+export async function estimate({ language, book = BOOK, chapters, limit = 0, provider = defaultProvider(), model: modelId = model(provider), plan = null, version = currentVersion() }) {
   const { store, getSource } = await openWorkspace();
+  const filled = resolvePlan({ plan, provider, model: modelId });
+  const priceFor = (lane) => {
+    const unit = costFor(lane.provider, lane.model, { inputTokens: 1e6, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 });
+    const out = costFor(lane.provider, lane.model, { inputTokens: 0, outputTokens: 1e6, cacheReadTokens: 0, cacheWriteTokens: 0 });
+    return unit == null || out == null ? null : { input: unit, output: out };
+  };
   const parts = await mapLimit(chapters, translation.readConcurrency, (n) =>
-    dryRun({ store, getSource, cfg: { book, langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET, version } })
+    dryRun({ store, getSource, cfg: { book, langs: [language], chapters: [n], only: null, groupBudget: DEFAULT_GROUP_BUDGET, version, plan: filled, priceFor } })
   );
   const sum = (pick) => parts.reduce((total, part) => total + pick(part.totals), 0);
   const totals = { verses: sum((t) => t.verses), done: sum((t) => t.done), todo: sum((t) => t.todo), outdated: sum((t) => t.outdated), calls: sum((t) => t.calls), inTokens: sum((t) => t.inTokens), outTokens: sum((t) => t.outTokens), systemTokens: sum((t) => t.systemTokens) };
   const verses = limit ? Math.min(limit, totals.todo) : totals.todo;
   const share = totals.todo ? verses / totals.todo : 0;
-  const cost = costFor(provider, modelId, { inputTokens: totals.inTokens, outputTokens: totals.outTokens, cacheReadTokens: totals.systemTokens, cacheWriteTokens: 0 });
+
+  // Each lane on its own: what it has left, and what that costs at its own model's price.
+  const lanes = lanesOf(filled).map((lane, i) => {
+    const mine = parts.map((p) => p.lanes[i]);
+    const add = (key) => mine.reduce((n, l) => n + l[key], 0);
+    const todo = add('todo');
+    const laneShare = todo ? Math.min(limit || todo, todo) / todo : 0;
+    const cost = costFor(lane.provider, lane.model, { inputTokens: add('inTokens'), outputTokens: add('outTokens'), cacheReadTokens: add('systemTokens'), cacheWriteTokens: 0 });
+    return {
+      key: lane.key, provider: lane.provider, model: lane.model, effort: lane.effort, parts: lane.parts,
+      todo, willTranslate: Math.round(todo * laneShare), calls: Math.round(add('calls') * laneShare),
+      inputTokens: Math.round(add('inTokens') * laneShare), outputTokens: Math.round(add('outTokens') * laneShare),
+      costUsd: cost == null ? null : cost * laneShare,
+    };
+  });
+  const costs = lanes.map((l) => l.costUsd);
+  const first = filled.translation ?? Object.values(filled)[0];
   return {
     language,
     book,
     chapters,
-    provider,
-    model: modelId,
+    provider: first.provider,
+    model: first.model,
+    plan: filled,
+    lanes,
     version,
     verses: totals.verses,
     saved: totals.done,
     outdated: totals.outdated,
     todo: totals.todo,
     willTranslate: verses,
-    calls: Math.round(totals.calls * share),
-    inputTokens: Math.round(totals.inTokens * share),
-    outputTokens: Math.round(totals.outTokens * share),
+    // Steps of work: one verse in one lane. A run with a single lane has exactly `willTranslate`.
+    steps: lanes.reduce((n, l) => n + l.willTranslate, 0),
+    calls: lanes.reduce((n, l) => n + l.calls, 0),
+    inputTokens: lanes.reduce((n, l) => n + l.inputTokens, 0),
+    outputTokens: lanes.reduce((n, l) => n + l.outputTokens, 0),
     // A guess from the verses' length with thinking off; the run records what each call really cost.
-    costUsd: cost == null ? null : cost * share,
+    costUsd: costs.some((c) => c == null) ? null : costs.reduce((n, c) => n + c, 0),
   };
 }
 
@@ -265,6 +323,7 @@ export async function chapterIndex(language, chapter, book = BOOK) {
       warnings: ai?.warnings?.length ?? 0,
       version: ai?.version ?? null,
       generatedAt: ai?.generatedAt ?? null,
+      parts: ai?.parts ? Object.fromEntries(Object.entries(ai.parts).map(([part, st]) => [part, { provider: st.provider, model: st.model, correctness: st.correctness ?? null }])) : null,
       preview: text ? text.slice(0, 140) : null,
     };
   });
@@ -327,6 +386,8 @@ export async function verseOutput(language, verseId) {
       generatedAt: ai.generatedAt,
       correctness: ai.correctness,
       partScores: ai.partScores,
+      // Who made each part (verses saved before parts were stamped have none: the verse's own stamp applies to all).
+      parts: ai.parts ? Object.fromEntries(Object.entries(ai.parts).map(([part, st]) => [part, { provider: st.provider || 'anthropic', model: st.model, effort: st.effort, version: st.version, generatedAt: st.generatedAt, correctness: st.correctness ?? null, warnings: st.warnings ?? [] }])) : null,
       note: ai.note || null,
       warnings: ai.warnings ?? [],
     },

@@ -50,6 +50,8 @@ dependencies:
   # Media.
   cached_network_image: ^3.4.1
   just_audio: ^0.10.6
+  # Draws the bundled peacock feather (assets/peacock_feather.svg).
+  flutter_svg: ^2.3.0
 
   # Reels. `video_player` is the first-party plugin — AVPlayer on iOS and
   # ExoPlayer on Android, so the codec support is the platform's own rather
@@ -106,6 +108,7 @@ flutter:
 
   assets:
     - assets/hariharibol_trprt.png
+    - assets/peacock_feather.svg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/tts/

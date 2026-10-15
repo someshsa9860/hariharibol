@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/storage_keys.dart';
 import '../core/theme/app_typography.dart';
+import '../models/verse_part.dart';
 import '../services/local_store.dart';
 
 /// How large the reading screen sets its text.
@@ -45,3 +46,22 @@ class WordMeaningsOpenNotifier extends Notifier<bool> {
 }
 
 final wordMeaningsOpenProvider = NotifierProvider<WordMeaningsOpenNotifier, bool>(WordMeaningsOpenNotifier.new);
+
+/// The parts of a verse the reader has chosen to hide. Nothing is hidden until
+/// somebody ticks a box, and the choice holds for every verse in every book —
+/// stored on the device, like the font size above.
+class HiddenVersePartsNotifier extends Notifier<Set<VersePart>> {
+  @override
+  Set<VersePart> build() => {
+        for (final part in VersePart.values)
+          if (LocalStore.instance.read<bool>(BoxKeys.readingHiddenPart(part.name)) ?? false) part,
+      };
+
+  Future<void> set(VersePart part, {required bool hidden}) async {
+    state = hidden ? {...state, part} : ({...state}..remove(part));
+    await LocalStore.instance.write(BoxKeys.readingHiddenPart(part.name), hidden);
+  }
+}
+
+final hiddenVersePartsProvider =
+    NotifierProvider<HiddenVersePartsNotifier, Set<VersePart>>(HiddenVersePartsNotifier.new);

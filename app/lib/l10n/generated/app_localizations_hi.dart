@@ -812,6 +812,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get readingLanguageLabel => 'पढ़ने की भाषा';
 
   @override
+  String get readingHideLabel => 'श्लोकों में छिपाएँ';
+
+  @override
+  String get readingHideSanskrit => 'संस्कृत';
+
+  @override
+  String get readingHideTransliteration => 'लिप्यंतरण';
+
+  @override
   String get routineSubtitle => 'भक्ति, काम और बीच के साधारण पल।';
 
   @override
@@ -1081,11 +1090,6 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String reelSlideOf(int current, int total) {
     return '$total में से $current';
-  }
-
-  @override
-  String reelVerseRef(String book, int chapter, int verse) {
-    return '$book $chapter.$verse';
   }
 
   @override

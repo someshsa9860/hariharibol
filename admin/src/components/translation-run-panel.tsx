@@ -26,7 +26,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { ACTIVE, useCancelRun, useNow, useResumeRun, useRun, type FeedLine, type PauseReason, type Run, type BookId } from '@/lib/translation';
+import { ACTIVE, useCancelRun, useNow, useResumeRun, useRun, type FeedLine, type PauseReason, type Run, type BookId, PART_LABELS, providerName } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
 import {
   ProgressBar,
@@ -211,7 +211,7 @@ export function RunPanel({
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {describeChapters(run.chapters, chaptersInBook, run.book)}
-            {run.verseLimit ? ` · first ${run.verseLimit} verses` : ''} · version <span className="font-mono">{run.version}</span> · {run.provider === 'openai' ? 'OpenAI' : 'Claude'} {run.model}
+            {run.verseLimit ? ` · first ${run.verseLimit} verses` : ''} · version <span className="font-mono">{run.version}</span> {!run.lanes?.length && <> · {providerName(run.provider)} {run.model}</>}
           </p>
           <p className="text-xs text-muted-foreground">
             {run.requestedBy ? `Started by ${run.requestedBy.name}` : 'Started'} {timeAgo(run.createdAt, now)}
@@ -296,6 +296,26 @@ export function RunPanel({
         </div>
         <ProgressBar percent={progress.percent} tone={barTone} className="h-2.5" />
       </div>
+
+      {run.lanes && run.lanes.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{run.lanes.length === 1 ? 'Request' : 'Requests running side by side'}</p>
+          {run.lanes.map((lane) => {
+            const total = lane.total ?? 0;
+            const done = lane.done ?? 0;
+            return (
+              <div key={lane.key} className="rounded-md border p-2 text-xs">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-medium">{lane.parts.map((part) => PART_LABELS[part]).join(' + ')}</span>
+                  <span className="text-muted-foreground">{providerName(lane.provider)} · <span className="font-mono">{lane.model}</span>{lane.effort !== 'off' ? ` · ${lane.effort}` : ''}</span>
+                </div>
+                <ProgressBar percent={total ? Math.min(100, (done / total) * 100) : 0} tone={barTone} className="my-1.5 h-1.5" />
+                <p className="tabular-nums text-muted-foreground">{formatCount(done)} of {formatCount(total)} verses · {formatCount(lane.calls ?? 0)} calls · {formatUsd((lane.costMicros ?? 0) / 1e6)}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         <Stat label="Now translating" value={run.status === 'RUNNING' && progress.currentVerseId ? progress.currentVerseId : '—'} />

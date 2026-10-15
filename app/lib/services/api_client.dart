@@ -139,10 +139,11 @@ class ApiClient {
       options.headers[ApiHeaders.platform] = device.platform;
       options.headers[ApiHeaders.appVersion] = device.appVersion;
 
+      // Before sign-in there is no chosen app language, so the phone's own is
+      // sent: the server words its errors (a failed sign-in, a bad code) in it.
       final user = session.user;
-      if (user != null) {
-        options.headers[ApiHeaders.acceptLanguage] = user.appLanguage;
-      }
+      options.headers[ApiHeaders.acceptLanguage] =
+          user?.appLanguage ?? PlatformDispatcher.instance.locale.languageCode;
 
       final token = session.accessToken;
       if (token != null) {

@@ -23,6 +23,9 @@ part 'app_database.g.dart';
 ///   3  `download_state.cache_version`: which book cache version a unit was saved
 ///      under, so the server can ask for the offline books to be deleted and fetched
 ///      again. Existing rows get 1, the version before there was one.
+///   4  `verse_translations.transliteration`: a verse in each language's own script.
+///      Existing rows have none until their unit is downloaded again, which the
+///      server's new file hash asks for.
 @DriftDatabase(
   tables: [Books, Units, Verses, VerseTranslations, DownloadStates],
   daos: [BookDao, DownloadStateDao, SearchDao],
@@ -34,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase(driftDatabase(name: 'hariharibol'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -57,8 +60,9 @@ class AppDatabase extends _$AppDatabase {
             // Built at the newest shape, so it already has everything below.
             await m.createAll();
             await searchDao.createIndex();
-          } else if (from < 3) {
-            await m.addColumn(downloadStates, downloadStates.cacheVersion);
+          } else {
+            if (from < 3) await m.addColumn(downloadStates, downloadStates.cacheVersion);
+            if (from < 4) await m.addColumn(verseTranslations, verseTranslations.transliteration);
           }
         },
         beforeOpen: (details) async {

@@ -97,6 +97,27 @@ void main() {
     expect(english.chapter.title, 'Chapter 1');
   });
 
+  test('the transliteration is in the reading language\'s script, else the verse\'s Roman text', () async {
+    await store(1);
+    final hindi = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['hi', 'en']);
+    expect(hindi.verses.first.transliteration, 'श्लोकः 1.1');
+
+    final english = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['en']);
+    expect(english.verses.first.transliteration, 'shloka 1.1');
+
+    final chained = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['xx', 'hi', 'en']);
+    expect(chained.verses.first.transliteration, 'श्लोकः 1.1', reason: 'the next language in the chain that has one');
+  });
+
+  test('a language with a script of its own but nothing stored gets the Devanagari in it, not Roman', () async {
+    await store(1);
+    final tamil = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'en']);
+    expect(tamil.verses.first.transliteration, 'ஶ்லோக 1.1', reason: 'the verse\'s श्लोक 1.1, carried into Tamil letters');
+
+    final first = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'hi', 'en']);
+    expect(first.verses.first.transliteration, 'ஶ்லோக 1.1', reason: 'the first language in the chain decides');
+  });
+
   test('a language with no rendering falls back along the chain', () async {
     await store(1);
     final reading = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'hi', 'en']);
@@ -148,6 +169,32 @@ void main() {
     expect(chapters!.map((c) => c.number), [1, 2]);
     expect(await repo.chaptersLocal('srimad-bhagavatam', canto: 9, chain: ['en']), isNull);
     expect(await repo.cantosLocal('unknown', chain: ['en']), isNull);
+  });
+
+  test('section titles follow the reading chain, stop at English, and keep every language', () async {
+    await store(1);
+
+    Future<String> chapterTitle(List<String> chain) async =>
+        (await repo.chaptersLocal('srimad-bhagavatam', canto: 1, chain: chain))!.first.title;
+
+    expect(await chapterTitle(['hi', 'en']), 'अध्याय 1');
+    expect(await chapterTitle(['en']), 'Chapter 1');
+    // English readers with the app in Hindi asked for English: the chain stops there.
+    expect(await chapterTitle(['en', 'hi']), 'Chapter 1');
+    // A language the chapter has no title in falls through to the next one.
+    expect(await chapterTitle(['mr', 'hi', 'en']), 'अध्याय 1');
+
+    final first = (await repo.chaptersLocal('srimad-bhagavatam', canto: 1, chain: ['en']))!.first;
+    expect(first.titleI18n, {'hi': 'अध्याय 1', 'en': 'Chapter 1'}, reason: 'English is the plain title, so it can be picked again');
+    expect(first.titleFor(['hi', 'en']), 'अध्याय 1', reason: 'the screen picks again when the reading language changes');
+    expect(first.titleFor(['ta', 'en']), 'Chapter 1');
+  });
+
+  test('a verse names its book and chapter in the reading language', () async {
+    await store(1);
+    final reading = await repo.readChapterLocal('srimad-bhagavatam', 1, canto: 1, chain: ['hi', 'en']);
+    expect(reading!.verses.first.chapter?.title, 'अध्याय 1');
+    expect(reading.chapter.title, 'अध्याय 1');
   });
 
   test('search finds a verse across languages and returns it as a Verse', () async {

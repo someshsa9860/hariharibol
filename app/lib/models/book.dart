@@ -1,3 +1,4 @@
+import '../core/format/localised.dart';
 import 'json.dart';
 import 'verse.dart';
 
@@ -13,6 +14,8 @@ class Book {
     required this.bookNumber,
     required this.type,
     this.description,
+    this.titleI18n = const {},
+    this.descriptionI18n = const {},
     this.sourceLanguage,
     this.coverImageUrl,
     this.audioUrl,
@@ -32,6 +35,13 @@ class Book {
   final int bookNumber;
   final String type;
   final String? description;
+
+  /// The title and description in each language that has one, English included.
+  /// [title] and [description] were already picked from these for the language
+  /// the account had when they were sent; [titleFor] picks again for the
+  /// reader's chain, so a change of reading language shows at once.
+  final Map<String, String> titleI18n;
+  final Map<String, String> descriptionI18n;
   final String? sourceLanguage;
   final String? coverImageUrl;
   final String? audioUrl;
@@ -47,6 +57,16 @@ class Book {
 
   bool get hasCantos => totalCantos > 0;
 
+  /// The title in the first language of [chain] that has one.
+  String titleFor(List<String> chain) => pickLocalised(title, titleI18n, chain);
+
+  /// The description in the first language of [chain] that has one, or null.
+  String? descriptionFor(List<String> chain) {
+    final plain = description;
+    if (plain == null) return null;
+    return pickLocalised(plain, descriptionI18n, chain);
+  }
+
   factory Book.fromJson(Json json) => Book(
         id: asString(json['id']),
         slug: asString(json['slug']),
@@ -54,6 +74,8 @@ class Book {
         bookNumber: asInt(json['bookNumber']),
         type: asString(json['type']),
         description: asStringOrNull(json['description']),
+        titleI18n: parseLocalised(json['titleI18n']),
+        descriptionI18n: parseLocalised(json['descriptionI18n']),
         sourceLanguage: asStringOrNull(json['sourceLanguage']),
         coverImageUrl: asStringOrNull(json['coverImageUrl']),
         audioUrl: asStringOrNull(json['audioUrl']),
@@ -74,6 +96,8 @@ class BookSection {
     required this.title,
     this.cantoNumber,
     this.summary,
+    this.titleI18n = const {},
+    this.summaryI18n = const {},
     this.totalChapters,
     this.totalVerses = 0,
   });
@@ -83,8 +107,23 @@ class BookSection {
   final String title;
   final int? cantoNumber;
   final String? summary;
+
+  /// The title and summary in each language that has one, English included —
+  /// see [Book.titleI18n].
+  final Map<String, String> titleI18n;
+  final Map<String, String> summaryI18n;
   final int? totalChapters;
   final int totalVerses;
+
+  /// The title in the first language of [chain] that has one.
+  String titleFor(List<String> chain) => pickLocalised(title, titleI18n, chain);
+
+  /// The summary in the first language of [chain] that has one, or null.
+  String? summaryFor(List<String> chain) {
+    final plain = summary;
+    if (plain == null) return null;
+    return pickLocalised(plain, summaryI18n, chain);
+  }
 
   factory BookSection.fromJson(Json json) => BookSection(
         id: asString(json['id']),
@@ -92,6 +131,8 @@ class BookSection {
         title: asString(json['title']),
         cantoNumber: asIntOrNull(json['cantoNumber']),
         summary: asStringOrNull(json['summary']),
+        titleI18n: parseLocalised(json['titleI18n']),
+        summaryI18n: parseLocalised(json['summaryI18n']),
         totalChapters: asIntOrNull(json['totalChapters']),
         totalVerses: asInt(json['totalVerses']),
       );

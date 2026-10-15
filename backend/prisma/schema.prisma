@@ -207,9 +207,12 @@ model User {
   // nothing is derived from another.
   //   appLanguage     — UI chrome. Most users pick English.
   //   mantraLanguage  — the script a mantra is displayed in (sa/hi/mr/en/native).
+  //                     No longer asked of the reader outside onboarding: the app shows
+  //                     a mantra's text in the reading language, so this is only the
+  //                     next choice after it.
   //   readingLanguage — what they read and listen to content in.
   //
-  // Resolving mantra text: mantraLanguage → readingLanguage → appLanguage → "en".
+  // Resolving mantra text: readingLanguage → mantraLanguage → appLanguage → "en" → "sa".
   // Resolving verse translations: readingLanguage → appLanguage → "en".
   appLanguage     String @default("en") @db.VarChar(10)
   mantraLanguage  String @default("sa") @db.VarChar(10)
@@ -1741,11 +1744,9 @@ model Mantra {
 }
 
 // One language's rendering of a mantra. Carries both the mantra written in that
-// script and what it means, because the two are selected by different user
-// preferences:
-//   `text`    ← chosen by the user's mantraLanguage
-//   `meaning` ← chosen by the user's readingLanguage
-// A response therefore may combine two different rows of this table.
+// script and what it means. Both follow the user's readingLanguage; `text` falls
+// to their mantraLanguage, then English, then Sanskrit when that language has no
+// row, so a response can combine two different rows of this table.
 model MantraTranslation {
   id String @id @default(cuid())
 
@@ -2400,8 +2401,15 @@ model TranslationRun {
   language String @db.VarChar(10) // hi | mr | ta | bn | te | kn | ml
   version  String @db.VarChar(40) // TRANSLATION_VERSION when it was started
   book     String @default("bhagavat-gita") @db.VarChar(40) // bhagavat-gita | srimad-bhagavatam; chapters[] are that book's chapter ids
-  provider String @default("anthropic") @db.VarChar(20) // anthropic | openai
+  provider String @default("anthropic") @db.VarChar(20) // anthropic | openai | gemini — the translation part's (or the first part's) when `plan` is set
   model    String @db.VarChar(100)
+
+  // Which provider, model and effort writes each part: { translation: { provider, model, effort }, purport: …,
+  // transliteration: …, wordMeanings: … }. Null on a run made before plans: all four parts by `provider`/`model`.
+  // `lanes` is the progress of each group of parts that shares a provider+model+effort (one request per verse),
+  // [{ key, parts, provider, model, effort, done, total, calls, costMicros }]; the counters below are their sums.
+  plan  Json?
+  lanes Json?
 
   // What the admin asked for. No chapters = all eighteen; no limit or budget = none.
   chapters     Int[]

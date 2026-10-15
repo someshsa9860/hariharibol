@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,52 +8,36 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/language.dart';
+import '../../models/verse_part.dart';
 import '../../providers/languages_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
 import '../../providers/language_settings_provider.dart';
 
-/// Font size and reading language, applied live as they're picked — there is
-/// nothing to submit, so the sheet needs no confirm button. [onLanguageChanged]
-/// lets the reading screen refetch the open chapter once the language
-/// actually changes, without this sheet needing to know the chapter provider
-/// exists.
-Future<void> showReadingSettingsSheet(
-  BuildContext context, {
-  required VoidCallback onLanguageChanged,
-}) {
+/// Font size, which parts of a verse to hide, and reading language — applied
+/// live as they're picked, so there is nothing to submit and no confirm button.
+/// Picking a language also closes the sheet: the reading screen is already
+/// following the language setting, so the chapter reloads in it as the sheet
+/// goes.
+Future<void> showReadingSettingsSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,
-    builder: (context) =>
-        _ReadingSettingsSheet(onLanguageChanged: onLanguageChanged),
+    builder: (context) => const _ReadingSettingsSheet(),
   );
 }
 
-class _ReadingSettingsSheet extends ConsumerStatefulWidget {
-  const _ReadingSettingsSheet({required this.onLanguageChanged});
+class _ReadingSettingsSheet extends ConsumerWidget {
+  const _ReadingSettingsSheet();
 
-  final VoidCallback onLanguageChanged;
-
-  @override
-  ConsumerState<_ReadingSettingsSheet> createState() =>
-      _ReadingSettingsSheetState();
-}
-
-class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
-  bool _savingLanguage = false;
-
-  Future<void> _pickLanguage(String code) async {
-    if (code == ref.read(languageSettingsProvider).reading || _savingLanguage) return;
-
-    setState(() => _savingLanguage = true);
-    try {
-      await ref.read(languageSettingsProvider.notifier).setReading(code);
-      widget.onLanguageChanged();
-    } finally {
-      if (mounted) setState(() => _savingLanguage = false);
+  void _pickLanguage(BuildContext context, WidgetRef ref, String code) {
+    // The setting changes at once and is saved behind it; the sheet need not
+    // wait for the write, and the same language again just closes it.
+    if (code != ref.read(languageSettingsProvider).reading) {
+      unawaited(ref.read(languageSettingsProvider.notifier).setReading(code));
     }
+    Navigator.of(context).pop();
   }
 
   String _fontSizeLabel(AppLocalizations text, ReadingFontSize size) =>
@@ -62,10 +48,18 @@ class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
         ReadingFontSize.extraLarge => text.readingFontSizeExtraLarge,
       };
 
+  String _partLabel(AppLocalizations text, VersePart part) => switch (part) {
+        VersePart.sanskrit => text.readingHideSanskrit,
+        VersePart.transliteration => text.readingHideTransliteration,
+        VersePart.wordMeanings => text.verseWordMeanings,
+        VersePart.purport => text.mantraPurport,
+      };
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
     final fontSize = ref.watch(readingFontSizeProvider);
+    final hidden = ref.watch(hiddenVersePartsProvider);
     final languages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
     final currentLanguage = ref.watch(languageSettingsProvider.select((s) => s.reading));
 
@@ -106,6 +100,22 @@ class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
                     ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                text.readingHideLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              for (final part in VersePart.values)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(_partLabel(text, part)),
+                  value: hidden.contains(part),
+                  onChanged: (value) => ref
+                      .read(hiddenVersePartsProvider.notifier)
+                      .set(part, hidden: value ?? false),
+                ),
               if (languages.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xl),
                 Text(
@@ -124,7 +134,7 @@ class _ReadingSettingsSheetState extends ConsumerState<_ReadingSettingsSheet> {
                             color: context.colors.primary,
                           )
                         : null,
-                    onTap: () => _pickLanguage(language.code),
+                    onTap: () => _pickLanguage(context, ref, language.code),
                   ),
               ],
             ],

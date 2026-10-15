@@ -38,6 +38,7 @@
     "test:auth": "node scripts/auth-e2e.js",
     "test:reels": "node scripts/reels-e2e.js",
     "test:admin-reels": "node scripts/admin-reels-e2e.js",
+    "test:admin-sloka": "node scripts/admin-sloka-e2e.js",
     "test:subscriptions": "node scripts/subscription-e2e.js",
     "test:reel-recipes": "node scripts/reel-recipes-e2e.js",
     "test:chant": "node scripts/chant-e2e.js",
@@ -46,6 +47,7 @@
     "test:mantra-prayer": "node scripts/mantra-prayer-e2e.js",
     "test:sampradaya": "node scripts/sampradaya-e2e.js",
     "test:book-counts": "node scripts/book-counts-e2e.js",
+    "test:book-titles": "node scripts/book-titles-e2e.js",
     "test:translation": "node scripts/translation-e2e.js",
     "test:translation-import": "node scripts/translation-import-e2e.js"
   },

@@ -83,6 +83,7 @@ Map<String, dynamic> unitJson({
                 'translatorName': 'Gita Press',
                 'meaning': 'हिंदी अर्थ ${ch['number']}.$v',
                 'purport': null,
+                'transliteration': 'श्लोकः ${ch['number']}.$v',
                 'displayOrder': 0,
               },
             ],

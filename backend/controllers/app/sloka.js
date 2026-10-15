@@ -22,9 +22,10 @@ import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
 import * as s3 from '../../services/s3.js';
 import { ok, created } from '../../utils/respond.js';
+import { slokaReason } from '../../utils/messages.js';
 import { notFound } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
-import { SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE } from '../../config/constants.js';
+import { SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE, DEFAULT_LANGUAGE } from '../../config/constants.js';
 import { redis } from '../../config/redis.js';
 
 // How far back to look when avoiding repeats. Long enough that a sloka does not
@@ -164,7 +165,7 @@ export const mine = async (req, res) => {
     where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
     include: {
       verse: { include: present.includes.verse(readingChain) },
-      issue: { select: { id: true, slug: true, name: true, category: true } },
+      issue: { select: { id: true, slug: true, name: true, nameI18n: true, category: true } },
     },
   });
 
@@ -196,7 +197,7 @@ export const mine = async (req, res) => {
       },
       include: {
         verse: { include: present.includes.verse(readingChain) },
-        issue: { select: { id: true, slug: true, name: true, category: true } },
+        issue: { select: { id: true, slug: true, name: true, nameI18n: true, category: true } },
       },
     });
   }
@@ -207,16 +208,40 @@ export const mine = async (req, res) => {
     source: row.source,
     // "Because you mentioned krodha" — the app shows this, so the pick never
     // looks arbitrary.
-    reason: row.reason,
-    issue: row.issue,
+    reason: reasonFor(row, readingChain),
+    issue: presentIssue(row.issue, readingChain),
     seenAt: row.seenAt,
     verse: await present.verse(row.verse, user),
   });
 };
 
 /** "Because you mentioned krodha" — the app shows this, so the pick never looks arbitrary. */
-function moodReason(issue) {
-  return `Because you mentioned ${issue.name.toLowerCase()}`;
+function moodReason(issue, chain) {
+  return slokaReason(issueName(issue, chain).toLowerCase(), chain);
+}
+
+/** The issue's name in the reader's reading language. */
+function issueName(issue, chain) {
+  return language.localised(issue, 'name', 'nameI18n', chain);
+}
+
+/**
+ * An issue as the app is sent it: `nameI18n` stays on the server, `name` is
+ * already in the reader's language.
+ */
+function presentIssue(issue, chain) {
+  if (!issue) return null;
+  const { nameI18n, ...rest } = issue; // eslint-disable-line no-unused-vars
+  return { ...rest, name: issueName(issue, chain) };
+}
+
+/**
+ * Why a sloka was chosen, worded now in the reader's language. The text stored
+ * on the row (`reason`) was written in English when the pick was made, so it is
+ * only the fallback for a row whose issue is gone.
+ */
+function reasonFor(row, chain) {
+  return row.issue ? moodReason(row.issue, chain) : row.reason;
 }
 
 /**
@@ -228,6 +253,7 @@ export const mood = async (req, res) => {
   const user = req.auth.user;
   const { issueSlug, intensity, note } = req.valid.body;
   const date = localDateString(user.timezone);
+  const readingChain = language.readingChain(user);
 
   const issue = await prisma.issue.findFirst({ where: { slug: issueSlug, isPublished: true } });
   if (!issue) throw notFound('Issue');
@@ -242,7 +268,8 @@ export const mood = async (req, res) => {
     (await pickAnyEligibleVerse([]));
   if (!verseId) throw notFound('A sloka for that — none are mapped to it yet');
 
-  const reason = moodReason(issue);
+  // Stored in English as the fallback; what the app is sent is worded per request.
+  const reason = moodReason(issue, [DEFAULT_LANGUAGE]);
 
   // Append-only: the report needs to show which struggle recurs and whether it
   // eases, and a current-mood column could not answer that. `date` is what
@@ -261,7 +288,6 @@ export const mood = async (req, res) => {
     },
   });
 
-  const readingChain = language.readingChain(user);
 
   // One personal sloka per user per date is a database constraint, so a second
   // report on the same day replaces the pick rather than failing.
@@ -283,8 +309,8 @@ export const mood = async (req, res) => {
   return created(res, {
     id: row.id,
     date,
-    reason: row.reason,
-    issue: { id: issue.id, slug: issue.slug, name: issue.name, category: issue.category },
+    reason: moodReason(issue, readingChain),
+    issue: { id: issue.id, slug: issue.slug, name: issueName(issue, readingChain), category: issue.category },
     reportId: report.id,
     verse: await present.verse(row.verse, user),
   });
@@ -307,7 +333,7 @@ export const moodToday = async (req, res) => {
     where: { userId: user.id, date: toDateColumn(date), verseId: { not: null } },
     orderBy: { reportedAt: 'desc' },
     include: {
-      issue: { select: { id: true, slug: true, name: true, category: true } },
+      issue: { select: { id: true, slug: true, name: true, nameI18n: true, category: true } },
       verse: { include: present.includes.verse(readingChain) },
     },
   });
@@ -317,8 +343,8 @@ export const moodToday = async (req, res) => {
     await Promise.all(
       rows.map(async (row) => ({
         id: row.id,
-        reason: moodReason(row.issue),
-        issue: row.issue,
+        reason: moodReason(row.issue, readingChain),
+        issue: presentIssue(row.issue, readingChain),
         verse: await present.verse(row.verse, user),
       }))
     )
@@ -345,7 +371,7 @@ export const history = async (req, res) => {
     take: 60,
     include: {
       verse: { include: present.includes.verse(readingChain) },
-      issue: { select: { slug: true, name: true } },
+      issue: { select: { slug: true, name: true, nameI18n: true } },
     },
   });
 
@@ -355,8 +381,8 @@ export const history = async (req, res) => {
       rows.map(async (row) => ({
         id: row.id,
         date: row.date.toISOString().slice(0, 10),
-        reason: row.reason,
-        issue: row.issue,
+        reason: reasonFor(row, readingChain),
+        issue: presentIssue(row.issue, readingChain),
         seenAt: row.seenAt,
         verse: await present.verse(row.verse, user),
       }))
@@ -365,4 +391,4 @@ export const history = async (req, res) => {
 };
 
 // Shared with the nightly sloka job, which picks the same way this does.
-export { pickVerseForIssue, pickAnyEligibleVerse, recentVerseIds };
+export { pickVerseForIssue, pickAnyEligibleVerse, recentVerseIds, reasonFor, presentIssue };

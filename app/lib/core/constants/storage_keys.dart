@@ -44,6 +44,10 @@ abstract final class BoxKeys {
   /// open everywhere, and someone who does not wants it out of the way.
   static const String wordMeaningsOpen = 'settings.word_meanings_open';
 
+  /// Whether a part of every verse (a `VersePart` name) is hidden. One key per
+  /// part, so choosing one never rewrites the others.
+  static String readingHiddenPart(String part) => 'settings.reading_hidden.$part';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 

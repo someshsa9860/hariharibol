@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, MoreHorizontal, Plus, Send, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Languages, MoreHorizontal, Plus, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
+import { BookTitlesDialog } from '@/components/book-titles-dialog';
 import { useResourceMutation } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { api, ApiRequestError } from '@/lib/api';
@@ -46,6 +47,7 @@ export function BooksPage() {
   const { hasPermission } = useAuth();
   const [editing, setEditing] = useState<Book | 'new' | null>(null);
   const [viewing, setViewing] = useState<Book | null>(null);
+  const [titling, setTitling] = useState<Book | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
 
@@ -168,6 +170,10 @@ export function BooksPage() {
               View details
             </DropdownMenuItem>
             {canWrite && <DropdownMenuItem onClick={() => setEditing(b)}>Edit</DropdownMenuItem>}
+            <DropdownMenuItem onClick={() => setTitling(b)}>
+              <Languages className="mr-2 h-4 w-4" />
+              {canWrite ? 'Titles in other languages' : 'View titles in other languages'}
+            </DropdownMenuItem>
             {canPublish && (
               <DropdownMenuItem onClick={() => publish([b], !b.isPublished)}>{b.isPublished ? 'Unpublish' : 'Publish'}</DropdownMenuItem>
             )}
@@ -315,6 +321,8 @@ export function BooksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BookTitlesDialog book={titling} onClose={() => setTitling(null)} canWrite={canWrite} />
 
       <DetailDialog
         open={!!viewing}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/format/script.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
@@ -46,7 +47,11 @@ class VerseHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final sanskrit = verse.sanskrit?.trim();
+    // Not drawn when it is in the verse's own script: a Hindi or Marathi reader's would repeat it.
     final transliteration = verse.transliteration?.trim();
+    final showTransliteration = transliteration != null &&
+        transliteration.isNotEmpty &&
+        !(sanskrit != null && sameScript(transliteration, sanskrit));
     final meaning = verse.translation?.meaning?.trim();
     final translator = verse.translation?.translator?.name;
     final isLight = context.theme.brightness == Brightness.light;
@@ -109,7 +114,7 @@ class VerseHeroCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (transliteration != null && transliteration.isNotEmpty) ...[
+                  if (showTransliteration) ...[
                     Text(transliteration, style: AppTypography.transliteration(context)),
                     const SizedBox(height: AppSpacing.md),
                   ],

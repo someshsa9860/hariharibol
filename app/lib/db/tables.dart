@@ -109,6 +109,11 @@ class VerseTranslations extends Table {
   TextColumn get translatorName => text().nullable()();
   TextColumn get meaning => text().nullable()();
   TextColumn get purport => text().nullable()();
+
+  /// The verse in this language's own script (Marathi in Devanagari, Tamil in
+  /// Tamil script), when there is one. The verse's own [Verses.transliteration]
+  /// is the Roman text every language falls back to.
+  TextColumn get transliteration => text().nullable()();
   TextColumn get sourceRef => text().nullable()();
   TextColumn get audioPath => text().nullable()();
   IntColumn get displayOrder => integer().withDefault(const Constant(0))();

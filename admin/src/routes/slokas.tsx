@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Download, Plus, Trash2 } from 'lucide-react';
+import { ImageUploadField } from '@/components/image-upload-field';
 import { PageHeader } from '@/components/page-header';
+import { SlokaVerseSelect, inPool, type SlokaPickerData } from '@/components/sloka-verse-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input, Label, Select } from '@/components/ui/input';
+import { Input, Select } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,8 +17,19 @@ import { formatDateOnly } from '@/lib/utils';
 
 type Pool = { total: number; byBook: { bookNumber: number; count: number }[]; mappedToIssues: number; notMappedToIssues: number; isTooSmall: boolean };
 type Delivery = { date: string; picked: number; notified: number; seen: number; openRate: number };
-type SlokaRow = { date: string; isPublished: boolean; sentAt: string | null; verse: { verseId: string; sanskrit: string | null; book: { title: string } } };
+type SlokaRow = {
+  date: string;
+  isPublished: boolean;
+  sentAt: string | null;
+  imageUrl: string | null;
+  verse: { verseId: string; sanskrit: string | null; book: { title: string } };
+};
 type Range = { from: string; to: string; slokas: SlokaRow[]; unset: string[] };
+
+// The day's background picture while its dialog is open. `key` is what a save sends:
+// undefined leaves the picture as it is, a string is a new upload, null takes it away.
+// `url` is only what the preview shows.
+type Picture = { key: string | null | undefined; url: string | null };
 
 export function SlokasPage() {
   const pool = useResource<Pool>(['sloka-pool'], '/api/admin/slokas/pool');
@@ -30,20 +43,41 @@ export function SlokasPage() {
     to: to || undefined,
   });
   const mutate = useResourceMutation('sloka-range');
+  // Only the pool is offered, so a verse picked here is one the API will accept.
+  const choices = useResource<SlokaPickerData>(['sloka-picker'], '/api/admin/slokas/picker');
 
   const [editDate, setEditDate] = useState<string | null>(null);
   const [verseId, setVerseId] = useState('');
+  const [picture, setPicture] = useState<Picture>({ key: undefined, url: null });
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const rows = (range.data?.slokas ?? []).filter((s) =>
     status === 'published' ? s.isPublished : status === 'draft' ? !s.isPublished : status === 'sent' ? Boolean(s.sentAt) : true
   );
 
+  // `current` is the day's row when there is one; an unset day opens empty.
+  function openEditor(date: string, current?: SlokaRow) {
+    setEditDate(date);
+    setVerseId(current?.verse.verseId ?? '');
+    setPicture({ key: undefined, url: current?.imageUrl ?? null });
+    setUploading(false);
+    setError('');
+  }
+
+  // Saving waits for a verse the pool still holds, and for a picture that is still on its way.
+  const canSave = Boolean(choices.data && inPool(choices.data.books, verseId)) && !uploading && !mutate.isPending;
+
   async function save() {
     if (!editDate) return;
     setError('');
     try {
-      await mutate.mutateAsync({ path: `/api/admin/slokas/${editDate.slice(0, 10)}`, method: 'put', body: { verseId, isPublished: true } });
+      await mutate.mutateAsync({
+        path: `/api/admin/slokas/${editDate.slice(0, 10)}`,
+        method: 'put',
+        // The picture is sent only when it was changed here — leaving it out keeps what the day has.
+        body: { verseId, isPublished: true, ...(picture.key !== undefined && { imagePath: picture.key }) },
+      });
       setEditDate(null);
     } catch (e) {
       // Wrong book, or a verse that isn't in the sloka pool — the API says which.
@@ -115,7 +149,7 @@ export function SlokasPage() {
             ) : range.data?.unset.length ? (
               <div className="flex flex-wrap gap-1">
                 {range.data.unset.map((d) => (
-                  <Badge key={d} variant="warning" className="cursor-pointer" onClick={() => (setEditDate(d), setVerseId(''), setError(''))}>
+                  <Badge key={d} variant="warning" className="cursor-pointer" onClick={() => openEditor(d)}>
                     {formatDateOnly(d)}
                   </Badge>
                 ))}
@@ -190,7 +224,7 @@ export function SlokasPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => (setEditDate(s.date), setVerseId(s.verse.verseId), setError(''))}>
+                  <Button variant="ghost" size="sm" onClick={() => openEditor(s.date, s)}>
                     Edit
                   </Button>
                   {!s.sentAt && (
@@ -219,11 +253,34 @@ export function SlokasPage() {
           <DialogHeader>
             <DialogTitle>Set sloka for {editDate && formatDateOnly(editDate)}</DialogTitle>
           </DialogHeader>
-          <Label>Verse id</Label>
-          <Input className="mt-1" value={verseId} onChange={(e) => setVerseId(e.target.value.trim())} placeholder="e.g. 2.13" />
-          <p className="mt-1 text-xs text-muted-foreground">Must be from Bhagavad Gita or Srimad Bhagavatam and sloka-eligible.</p>
+          <div className="space-y-5">
+            {choices.data ? (
+              <SlokaVerseSelect books={choices.data.books} value={verseId} onChange={setVerseId} />
+            ) : choices.isError ? (
+              <p role="alert" className="text-sm text-destructive">
+                Could not load the verses.{' '}
+                <button type="button" className="underline" onClick={() => choices.refetch()}>
+                  Try again
+                </button>
+              </p>
+            ) : (
+              <Skeleton className="h-40 w-full" />
+            )}
+
+            <ImageUploadField
+              label="Background image"
+              hint="Optional. A picture kept with this day's sloka — JPEG, PNG or WebP."
+              kind="slokaImage"
+              ratio="4 / 3"
+              previewUrl={picture.url}
+              hasImage={picture.url !== null}
+              onUploaded={(key, url) => setPicture({ key, url })}
+              onRemoved={() => setPicture({ key: null, url: null })}
+              onBusyChange={setUploading}
+            />
+          </div>
           {error && (
-            <p role="alert" className="mt-2 text-sm text-destructive">
+            <p role="alert" className="mt-3 text-sm text-destructive">
               {error}
             </p>
           )}
@@ -231,7 +288,7 @@ export function SlokasPage() {
             <Button variant="outline" onClick={() => setEditDate(null)}>
               Cancel
             </Button>
-            <Button disabled={!verseId.trim() || mutate.isPending} onClick={save}>
+            <Button disabled={!canSave} onClick={save}>
               <Plus className="h-4 w-4" />
               Save
             </Button>

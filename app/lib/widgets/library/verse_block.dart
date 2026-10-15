@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../core/format/script.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/verse.dart';
-import '../../services/audio/reading_item.dart';
+import '../../models/verse_part.dart';
 import 'collapsible_section.dart';
-import 'reading_audio_controls.dart';
 import 'word_meanings_section.dart';
 
 /// One verse in the reading screen: script, transliteration, word meanings,
@@ -36,7 +36,7 @@ class VerseBlock extends StatelessWidget {
     this.onCompareTranslations,
     this.onPlay,
     this.playing,
-    this.playingSection,
+    this.hidden = const {},
   });
 
   final Verse verse;
@@ -64,17 +64,28 @@ class VerseBlock extends StatelessWidget {
 
   /// This verse is the one being read aloud, and which part of it is heard.
   final bool? playing;
-  final ReadingSection? playingSection;
+
+  /// Parts the reader has chosen not to see (Reading settings). The screen
+  /// holding the block passes them in, so the block itself reads no settings.
+  final Set<VersePart> hidden;
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final sanskrit = verse.sanskrit?.trim();
-    final transliteration = verse.transliteration?.trim();
+    final showSanskrit = !hidden.contains(VersePart.sanskrit) && sanskrit != null && sanskrit.isNotEmpty;
+    // A transliteration in the verse's own script (a Marathi reader's Devanagari
+    // under the Devanagari verse) would only repeat it. A Tamil or Roman one is
+    // a different way to read the same words, so it is shown.
+    final transliteration = hidden.contains(VersePart.transliteration)
+        ? null
+        : _transliterationToShow(verse.transliteration?.trim(), sanskrit);
     final rendering = translation ?? verse.translation;
     final meaning = rendering?.meaning?.trim();
     final translatorName = rendering?.translator?.name;
     final explanation = verse.explanation;
+    // The purport and the explanation that stands in for it are one slot.
+    final showCommentary = !hidden.contains(VersePart.purport);
 
     return Container(
       width: double.infinity,
@@ -104,9 +115,7 @@ class VerseBlock extends StatelessWidget {
                 ),
               Expanded(
                 child: Text(
-                  playing == true && playingSection != null
-                      ? text.labelVerseWithSection(verse.verseNumber ?? 0, readingSectionLabel(text, playingSection!))
-                      : text.labelVerse(verse.verseNumber ?? 0),
+                  text.labelVerse(verse.verseNumber ?? 0),
                   style: AppTypography.eyebrow(context, color: context.colors.primary),
                 ),
               ),
@@ -141,13 +150,13 @@ class VerseBlock extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (sanskrit != null && sanskrit.isNotEmpty)
+          if (showSanskrit)
             Text(sanskrit, style: AppTypography.verse(context, scale: fontScale)),
           if (transliteration != null && transliteration.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(transliteration, style: AppTypography.transliteration(context, scale: fontScale)),
           ],
-          if (verse.wordMeanings.isNotEmpty) ...[
+          if (verse.wordMeanings.isNotEmpty && !hidden.contains(VersePart.wordMeanings)) ...[
             const SizedBox(height: AppSpacing.sm),
             WordMeaningsSection(words: verse.wordMeanings, fontScale: fontScale),
           ],
@@ -162,10 +171,10 @@ class VerseBlock extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(text.labelTranslatorCredit(translatorName), style: context.texts.bodySmall),
           ],
-          if (rendering?.hasPurport ?? false) ...[
+          if (showCommentary && (rendering?.hasPurport ?? false)) ...[
             const SizedBox(height: AppSpacing.md),
             _Commentary(label: text.mantraPurport, text: rendering!.purport!.trim(), scale: fontScale),
-          ] else if (explanation != null && explanation.text.trim().isNotEmpty) ...[
+          ] else if (showCommentary && explanation != null && explanation.text.trim().isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             _Commentary(
               label: explanation.isGenerated ? text.verseExplanationAiLabel : text.verseExplanationLabel,
@@ -183,6 +192,12 @@ class VerseBlock extends StatelessWidget {
     final size = style.fontSize;
     return size == null ? style : style.copyWith(fontSize: size * scale);
   }
+}
+
+String? _transliterationToShow(String? transliteration, String? sanskrit) {
+  if (transliteration == null || transliteration.isEmpty) return null;
+  if (sanskrit != null && sameScript(transliteration, sanskrit)) return null;
+  return transliteration;
 }
 
 class _ActionIcon extends StatelessWidget {

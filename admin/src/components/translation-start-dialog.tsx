@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input, Label, Select } from '@/components/ui/input';
 import { ApiRequestError } from '@/lib/api';
-import { cantoOf, chapterName, useEstimate, useStartRun, type BookInfo, type Overview } from '@/lib/translation';
+import { PART_LABELS, PART_NAMES, cantoOf, chapterName, providerName, useEstimate, useStartRun, type BookInfo, type Overview, type PartName, type Plan } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { formatCount, formatUsd } from './translation-bits';
 
@@ -43,11 +43,18 @@ export function StartDialog({
   const { settings, languages } = overview;
   const allChapters = book.chapters.map((c) => c.id);
   const isSB = book.id === 'srimad-bhagavatam';
-  const [providerId, setProviderId] = useState<string>(settings.defaultProvider);
-  const [model, setModel] = useState('');
+  const freshRows = (): PartRows =>
+    Object.fromEntries(PART_NAMES.map((part) => [part, { on: true, provider: settings.defaultProvider as string, model: '', effort: 'off' }])) as PartRows;
+  const [rows, setRows] = useState<PartRows>(freshRows);
   const [openCanto, setOpenCanto] = useState<number | null>(null);
-  const provider = settings.providers.find((p) => p.id === providerId) ?? settings.providers[0];
-  
+  const infoOf = (id: string) => settings.providers.find((p) => p.id === id) ?? settings.providers[0];
+  const setRow = (part: PartName, patch: Partial<PartRow>) => setRows((prev) => ({ ...prev, [part]: { ...prev[part], ...patch } }));
+  const chosen = PART_NAMES.filter((part) => rows[part].on);
+  const plan: Plan = Object.fromEntries(chosen.map((part) => [part, { provider: rows[part].provider, model: rows[part].model.trim() || infoOf(rows[part].provider).defaultModel, effort: rows[part].effort }]));
+  const planKey = JSON.stringify(plan);
+  const usedProviders = [...new Set(chosen.map((part) => rows[part].provider))].map(infoOf);
+  const lanes = new Set(chosen.map((part) => `${plan[part]!.provider}|${plan[part]!.model}|${plan[part]!.effort}`)).size;
+
   const [language, setLanguage] = useState(preset ?? languages[0]?.code ?? '');
   const [picked, setPicked] = useState<number[]>([]);
   const [limit, setLimit] = useState('');
@@ -59,8 +66,7 @@ export function StartDialog({
   useEffect(() => {
     if (!open) return;
     setLanguage(preset ?? languages[0]?.code ?? '');
-    setProviderId(settings.defaultProvider);
-    setModel('');
+    setRows(freshRows());
     setOpenCanto(null);
     setPicked([]);
     setLimit('');
@@ -76,10 +82,12 @@ export function StartDialog({
   const wanted = picked.length ? picked : allChapters;
   const debouncedChapters = useDebounced(wanted.join(','));
   const debouncedLimit = useDebounced(limitNumber);
-  const estimate = useEstimate({ book: book.id, provider: providerId, model: model.trim() }, language, debouncedChapters ? debouncedChapters.split(',').map(Number) : [], debouncedLimit, open && inputsOk);
+  const debouncedPlan = useDebounced(planKey);
+  const estimate = useEstimate({ book: book.id, provider: '', model: '', plan: chosen.length ? (JSON.parse(debouncedPlan) as Plan) : null }, language, debouncedChapters ? debouncedChapters.split(',').map(Number) : [], debouncedLimit, open && inputsOk);
 
   const blockers = [
-    !provider.apiKeyConfigured && `${provider.keyEnv} is not set on the server, so ${provider.company} cannot be called. Pick another provider or add the key to the server .env and restart the api and worker.`,
+    chosen.length === 0 && 'Pick at least one thing to translate.',
+    ...usedProviders.filter((p) => !p.apiKeyConfigured).map((p) => `${p.keyEnv} is not set on the server, so ${p.company} cannot be called. Pick another provider or add the key to the server .env and restart the api and worker.`),
     !settings.storage.ok && `The translations bucket is not set up: ${settings.storage.error ?? 'unknown problem'}.`,
     settings.versionError && settings.versionError,
   ].filter(Boolean) as string[];
@@ -106,8 +114,8 @@ export function StartDialog({
       {
         language,
         book: book.id,
-        provider: providerId,
-        model: model.trim() || undefined,
+        provider: plan[chosen[0]]?.provider ?? settings.defaultProvider,
+        plan,
         chapters: picked.length ? picked : undefined,
         verseLimit: limitNumber > 0 ? limitNumber : undefined,
         budgetUsd: budgetNumber > 0 ? budgetNumber : undefined,
@@ -131,7 +139,7 @@ export function StartDialog({
         <DialogHeader>
           <DialogTitle>New translation — {book.title}</DialogTitle>
           <DialogDescription>
-            {provider.label} translates Prabhupāda's own words — translation, transliteration, word meanings and purport — into the language you pick. It runs on the server, so closing this page does not stop it.
+            AI translates Prabhupāda's own words — translation, transliteration, word meanings and purport — into the language you pick. Each part can use its own provider and model; parts that share one go in a single request, and the groups run side by side. It runs on the server, so closing this page does not stop it.
           </DialogDescription>
         </DialogHeader>
 
@@ -148,21 +156,43 @@ export function StartDialog({
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="provider">AI provider</Label>
-                <Select id="provider" className="w-full" value={providerId} onChange={(e) => { setProviderId(e.target.value); setModel(''); }}>
-                  {settings.providers.map((item) => (
-                    <option key={item.id} value={item.id} disabled={!item.apiKeyConfigured}>
-                      {item.label} ({item.company}){item.apiKeyConfigured ? '' : ' — no API key'}
-                    </option>
-                  ))}
-                </Select>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label>What to translate, and with which AI</Label>
+                <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { const first = chosen[0]; if (first) setRows((prev) => Object.fromEntries(PART_NAMES.map((part) => [part, { ...prev[part], provider: prev[first].provider, model: prev[first].model, effort: prev[first].effort }])) as PartRows); }}>
+                  Use the first one's for all
+                </button>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="model">Model</Label>
-                <Input id="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder={provider.defaultModel} />
+                {PART_NAMES.map((part) => {
+                  const row = rows[part];
+                  const info = infoOf(row.provider);
+                  return (
+                    <div key={part} className={cn('grid grid-cols-[7.5rem_1fr_1fr_4.5rem] items-center gap-1.5', !row.on && 'opacity-50')}>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={row.on} onChange={(e) => setRow(part, { on: e.target.checked })} />
+                        {PART_LABELS[part]}
+                      </label>
+                      <Select aria-label={`${PART_LABELS[part]} provider`} className="h-8 w-full text-xs" disabled={!row.on} value={row.provider} onChange={(e) => setRow(part, { provider: e.target.value, model: '' })}>
+                        {settings.providers.map((item) => (
+                          <option key={item.id} value={item.id} disabled={!item.apiKeyConfigured}>
+                            {item.label}{item.apiKeyConfigured ? '' : ' — no API key'}
+                          </option>
+                        ))}
+                      </Select>
+                      <Input aria-label={`${PART_LABELS[part]} model`} className="h-8 text-xs" disabled={!row.on} value={row.model} onChange={(e) => setRow(part, { model: e.target.value })} placeholder={info.defaultModel} />
+                      <Select aria-label={`${PART_LABELS[part]} effort`} className="h-8 w-full text-xs" disabled={!row.on} value={row.effort} onChange={(e) => setRow(part, { effort: e.target.value })}>
+                        {['off', 'low', 'medium', 'high'].map((level) => (
+                          <option key={level} value={level}>{level}</option>
+                        ))}
+                      </Select>
+                    </div>
+                  );
+                })}
               </div>
+              <p className="text-xs text-muted-foreground">
+                {chosen.length ? `${lanes} request${lanes === 1 ? '' : 's'} per verse, ${lanes === 1 ? 'one after another' : 'in parallel'}.` : 'Nothing chosen.'} The last column is thinking effort.
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -267,12 +297,19 @@ export function StartDialog({
                 <Row label="Already saved" value={formatCount(est.saved)} />
                 {est.outdated > 0 && <Row label="Older version" value={formatCount(est.outdated)} />}
                 <Row label="To translate" value={<b>{formatCount(est.willTranslate)}</b>} />
+                {est.lanes?.map((lane) => (
+                  <div key={lane.key} className="rounded border bg-background/60 p-1.5 text-[11px] leading-snug">
+                    <p className="font-medium">{providerName(lane.provider)} · {lane.model}</p>
+                    <p className="text-muted-foreground">{lane.parts.map((part) => PART_LABELS[part]).join(', ')}</p>
+                    <p className="tabular-nums">{formatCount(lane.willTranslate)} verses · ≈ {formatCount(lane.calls)} calls · {lane.costUsd === null ? 'cost unknown' : `≈ ${formatUsd(lane.costUsd)}`}</p>
+                  </div>
+                ))}
                 <Row label="Model calls" value={`≈ ${formatCount(est.calls)}`} />
                 <Row label="Tokens" value={`≈ ${formatCount(est.inputTokens + est.outputTokens)}`} />
                 <div className="border-t pt-2">
                   <Row label="Cost" value={est.costUsd === null ? <b className="text-base">unknown</b> : <b className="text-base">{est.costUsd ? `≈ ${formatUsd(est.costUsd)}` : '$0'}</b>} />
                 </div>
-                <p className="pt-1 text-[11px] leading-snug text-muted-foreground">{provider.label} · {est.model}. {est.costUsd === null ? 'This model has no known price, so only tokens are estimated. ' : ''}A guess from the length of the English text — the real cost is shown while it runs.</p>
+                <p className="pt-1 text-[11px] leading-snug text-muted-foreground">{est.costUsd === null ? 'A model here has no known price, so the total leaves it out. ' : ''}A guess from the length of the English text — the real cost is shown while it runs.</p>
               </dl>
             ) : estimate.isError ? (
               <p className="text-sm text-muted-foreground">Could not work out an estimate right now. You can still start the run.</p>
@@ -327,6 +364,9 @@ export function StartDialog({
     </Dialog>
   );
 }
+
+type PartRow = { on: boolean; provider: string; model: string; effort: string };
+type PartRows = Record<PartName, PartRow>;
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (

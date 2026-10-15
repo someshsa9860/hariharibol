@@ -11,6 +11,8 @@ import logger from '../config/logger.js';
 import env from '../config/env.js';
 import { AppError } from '../utils/errors.js';
 import { fail } from '../utils/respond.js';
+import { requestChain } from '../utils/language.js';
+import { translateError } from '../utils/messages.js';
 
 // Prisma's own errors carry enough to answer properly instead of as a 500.
 function fromPrisma(err) {
@@ -37,7 +39,8 @@ function fromPrisma(err) {
 }
 
 function notFound(req, res) {
-  return fail(res, 404, 'NOT_FOUND', `No route for ${req.method} ${req.originalUrl}`);
+  const message = `No route for ${req.method} ${req.originalUrl}`;
+  return fail(res, 404, 'NOT_FOUND', translateError({ message, code: 'NOT_FOUND' }, requestChain(req)));
 }
 
 // eslint-disable-next-line no-unused-vars -- express identifies this by arity
@@ -49,7 +52,13 @@ function errorHandler(err, req, res, next) {
       { requestId: req.id, code: appError.code, path: req.originalUrl, userId: req.auth?.user?.id },
       appError.message
     );
-    return fail(res, appError.status, appError.code, appError.message, appError.details);
+    return fail(
+      res,
+      appError.status,
+      appError.code,
+      translateError(appError, requestChain(req)),
+      appError.details
+    );
   }
 
   logger.error(
@@ -61,7 +70,7 @@ function errorHandler(err, req, res, next) {
     res,
     500,
     'SERVER_ERROR',
-    'Something went wrong on our side.',
+    translateError({ message: 'Something went wrong on our side.', code: 'SERVER_ERROR' }, requestChain(req)),
     env.isProduction ? undefined : { message: err.message, stack: err.stack?.split('\n').slice(0, 5) }
   );
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
@@ -8,13 +7,18 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/sadhana.dart';
 import '../common/animations.dart';
 import '../common/eyebrow.dart';
-import '../common/motif.dart';
+import 'progress_ring.dart';
 
 /// Today's practice at a glance: rounds against the target, and the run of days
 /// behind them.
 ///
+/// The count is set as a number on the left and drawn as a ring on the right —
+/// the number is what is read, the ring is what is seen from across the room.
+/// A met target puts a check in the ring and the title's line, so it is never
+/// said by colour alone.
+///
 /// When the day has not been opened the API sends null rather than zeroes, and
-/// this shows an invitation instead of a progress bar sitting at 0 of 0 — the
+/// this shows an invitation and an empty ring instead of 0 of 0 — the
 /// difference between "not started" and "failing" matters on a screen someone
 /// sees first thing in the morning.
 ///
@@ -36,57 +40,58 @@ class SadhanaCard extends StatelessWidget {
   final VoidCallback? onChant;
   final String? mantraName;
 
-  static const double _panelWidth = 92;
+  static const double _ringSize = 88;
+  static const double _ringStroke = 8;
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final today = summary.today;
-    final isLight = context.theme.brightness == Brightness.light;
 
     return TapScale(
       onTap: onTap,
       child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Padding(
+          padding: AppSpacing.card,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Eyebrow(text.homeTodaysSadhana),
-                      const SizedBox(height: AppSpacing.md),
-                      if (today == null)
-                        _Invitation(label: text.homeStartYourDay)
-                      else
-                        _Progress(day: today),
-                      if (summary.streak > 0) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        _Streak(label: text.sadhanaStreak(summary.streak)),
-                      ],
-                      if (onChant != null) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        _ChantButton(mantraName: mantraName, onPressed: onChant!),
-                      ],
-                    ],
+              Row(
+                children: [
+                  Expanded(
+                    child: Eyebrow(text.homeTodaysSadhana, color: context.colors.primary),
                   ),
-                ),
+                  if (summary.streak > 0) _StreakPill(label: text.sadhanaStreak(summary.streak)),
+                ],
               ),
-              SizedBox(
-                width: _panelWidth,
-                child: MotifPanel(
-                  motif: Motif.sun,
-                  from: isLight ? AppColors.panelFrom : AppColors.panelFromDark,
-                  to: isLight ? AppColors.panelTo : AppColors.panelToDark,
-                  lineColor: context.colors.primary,
-                  lineOpacity: isLight ? 0.40 : 0.55,
-                ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: today == null
+                        ? _Invitation(label: text.homeStartYourDay)
+                        : _Progress(day: today),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  ProgressRing(
+                    value: today?.roundProgress ?? 0,
+                    size: _ringSize,
+                    strokeWidth: _ringStroke,
+                    color: today?.roundTargetMet == true ? context.semanticColors.success : null,
+                    child: Icon(
+                      today?.roundTargetMet == true
+                          ? Icons.check_rounded
+                          : Icons.wb_sunny_outlined,
+                      size: AppSizes.iconLg,
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ],
               ),
+              if (onChant != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                _ChantButton(mantraName: mantraName, onPressed: onChant!),
+              ],
             ],
           ),
         ),
@@ -125,8 +130,6 @@ class _Progress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final met = day.roundTargetMet;
-    final colour = met ? context.semanticColors.success : context.colors.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,29 +144,26 @@ class _Progress extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('${day.roundsCompleted}', style: AppTypography.numeral(context, size: 36)),
+                Text('${day.roundsCompleted}', style: AppTypography.numeral(context, size: 44)),
                 const SizedBox(width: AppSpacing.xs),
-                Text(
-                  '/ ${day.roundTarget}',
-                  style: context.texts.titleMedium?.copyWith(
-                    color: context.colors.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    '/ ${day.roundTarget}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.texts.titleMedium?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        ClipRRect(
-          borderRadius: AppRadius.smAll,
-          child: LinearProgressIndicator(
-            value: day.roundProgress,
-            minHeight: AppSpacing.xs,
-            color: colour,
-          ),
-        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(text.sadhanaRoundsCaption, style: context.texts.bodySmall),
         if (day.tasksTotal > 0) ...[
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.xxs),
           Text(
             text.sadhanaTasksProgress(day.tasksDone, day.tasksTotal),
             style: context.texts.bodySmall,
@@ -174,31 +174,44 @@ class _Progress extends StatelessWidget {
   }
 }
 
-class _Streak extends StatelessWidget {
-  const _Streak({required this.label});
+/// The run of days, as a small pill in the card's corner.
+class _StreakPill extends StatelessWidget {
+  const _StreakPill({required this.label});
 
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.local_fire_department_rounded,
-          size: AppSizes.iconSm,
-          color: context.colors.primary,
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: context.colors.primaryContainer,
+        shape: const StadiumBorder(),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
         ),
-        const SizedBox(width: AppSpacing.xs),
-        Flexible(
-          child: Text(
-            label,
-            style: context.texts.bodySmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              size: AppSizes.iconSm,
+              color: context.colors.onPrimaryContainer,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.texts.labelMedium?.copyWith(
+                color: context.colors.onPrimaryContainer,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -222,7 +235,9 @@ class _ChantButton extends StatelessWidget {
         width: double.infinity,
         child: FilledButton.icon(
           onPressed: onPressed,
-          style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(AppSizes.buttonHeightSm),
+          ),
           icon: const Icon(Icons.radio_button_unchecked_rounded, size: AppSizes.iconSm),
           label: Text(
             name ?? text.sadhanaChantNow,

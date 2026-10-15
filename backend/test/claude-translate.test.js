@@ -10,6 +10,7 @@ import { after, describe, test } from 'node:test';
 import { TruncatedError, createClaude, messageRequest, thinkingSettings } from '../scripts/lib/claude-translate-client.js';
 import { LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { PROMPT_VERSION, SYSTEM_PROMPT, answerSchema, userPrompt } from '../scripts/lib/claude-translate-prompt.js';
+import { lanesOf, normalizePlan } from '../scripts/lib/claude-translate-parts.js';
 import { dryRun, hasTranslation, isCurrent, mergeEntry, run, status, verifyEntry, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
 import { DEFAULT_GROUP_BUDGET, chapterKey, saChapterKey, sourceHash, unitsFromChapter } from '../scripts/lib/claude-translate-source.js';
 import {
@@ -439,7 +440,7 @@ describe('source and prompt', () => {
 
 describe('the instructions and the answer schema', () => {
   test('the instructions ask for Prabhupāda\'s words as they are, in native grammar and respect, and a 1-3 rating', () => {
-    assert.equal(PROMPT_VERSION, '6');
+    assert.equal(PROMPT_VERSION, '7');
     assert.match(SYSTEM_PROMPT, /PRABHUPĀDA'S WORDS, AS THEY ARE/);
     assert.match(SYSTEM_PROMPT, /NATIVE GRAMMAR, CLARITY AND RESPECT/);
     assert.match(SYSTEM_PROMPT, /CORRECTNESS RATING/);
@@ -452,7 +453,7 @@ describe('the instructions and the answer schema', () => {
     assert.deepEqual(schema.required, ['hi', 'ta']);
     for (const lang of ['hi', 'ta']) {
       const o = schema.properties[lang];
-      assert.deepEqual(o.required, ['transliteration', 'translation', 'purport', 'wordMeanings', 'correctness', 'note']);
+      assert.deepEqual(o.required, ['translation', 'transliteration', 'wordMeanings', 'purport', 'correctness', 'note']);
       assert.deepEqual(o.properties.correctness.required, ['translation', 'transliteration', 'wordMeanings', 'purport']);
       for (const part of o.properties.correctness.required) assert.deepEqual(o.properties.correctness.properties[part], { type: 'integer', enum: [1, 2, 3] });
       assert.equal(o.properties.note.type, 'string');
@@ -676,13 +677,15 @@ describe('run', () => {
       assert.equal(v1.commentaries[1].text.split('\n').length, 2, 'purport paragraphs kept, joined by a newline');
       for (const row of v1.commentaries) assert.deepEqual([row.translatedBy, row.version, row.correctness], ['claude', VERSION, 3], 'every row says who, which version and how correct');
       assert.deepEqual(
-        { ...v1.aiTranslation, generatedAt: 'x', warnings: 'x' },
+        (({ parts, ...rest }) => ({ ...rest, generatedAt: 'x', warnings: 'x' }))(v1.aiTranslation),
         {
           translatedBy: 'claude', provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off', version: VERSION, promptVersion: PROMPT_VERSION, sourceHash: sourceHash(units[0]), generatedAt: 'x',
           correctness: 3, partScores: { translation: 3, transliteration: 3, wordMeanings: 3, purport: 3 }, warnings: 'x',
         },
         'no `note` key when Claude had nothing to say'
       );
+      assert.deepEqual(Object.keys(v1.aiTranslation.parts), ['translation', 'transliteration', 'wordMeanings', 'purport'], 'each part has its own stamp');
+      assert.equal(v1.aiTranslation.parts.purport.sourceHash.length, 16);
       assert.deepEqual(verifyEntry(v1, units[0], lang), []);
       const v2 = verseOf(file, '1.2.2');
       assert.equal(v2.commentaries.length, 1, 'no purport row when the verse has none');
@@ -1416,5 +1419,119 @@ describe('dry run and status', () => {
     seed(dir, langChapterKey('hi', 2), file);
     const s = await status({ store, getSource, cfg: cfg({ langs: ['hi'] }), verify: true });
     assert.match(s.bad[0].problems.join(), /English source has changed/);
+  });
+});
+
+
+describe('a plan: different models for different parts', () => {
+  const PLAN = {
+    translation: { provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off' },
+    purport: { provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off' },
+    transliteration: { provider: 'gemini', model: 'gemini-3.5-flash-lite', effort: 'off' },
+    wordMeanings: { provider: 'gemini', model: 'gemini-3.5-flash-lite', effort: 'off' },
+  };
+
+  /** One stub per lane: answers only the keys its schema asks for, and remembers what it was sent. */
+  function lanes({ failLane } = {}) {
+    const sent = { anthropic: [], gemini: [] };
+    const askFor = (lane) => async ({ system, user, schema }) => {
+      const ref = user.match(/Bhagavad-gītā (\S+)/)[1];
+      sent[lane.provider].push({ system, user, schema, ref });
+      if (failLane === lane.provider) throw new Error('boom');
+      await new Promise((r) => setTimeout(r, lane.provider === 'gemini' ? 15 : 1));
+      const data = {};
+      for (const [l, shape] of Object.entries(schema.properties)) {
+        const full = answerFor(unitOf(ref), l);
+        data[l] = Object.fromEntries(Object.keys(shape.properties).map((key) => [key, full[key]]));
+        data[l].correctness = Object.fromEntries(Object.keys(shape.properties.correctness.properties).map((p) => [p, 3]));
+      }
+      return { data, usage, costUsd: 0.5, stopReason: 'end_turn' };
+    };
+    return { askFor, sent };
+  }
+  const unitOf = (ref) => unitsFromChapter(chapterFile(), saFile()).units.find((u) => u.ref === ref);
+
+  test('parts with the same provider, model and effort share one lane', () => {
+    const l = lanesOf(normalizePlan(PLAN, {}));
+    assert.deepEqual(l.map((x) => [x.provider, x.parts]), [['anthropic', ['translation', 'purport']], ['gemini', ['transliteration', 'wordMeanings']]]);
+    assert.throws(() => normalizePlan({ nonsense: {} }, {}), /Unknown part/);
+    assert.throws(() => normalizePlan({}, {}), /no parts/);
+  });
+
+  test('each lane is one request per verse and carries only its parts: instructions, source, answer shape', async () => {
+    const { store, dir } = freshStore();
+    const { askFor, sent } = lanes();
+    await run({ store, getSource, askFor, cfg: cfg({ plan: PLAN, only: '1.2.1' }), log: quiet() });
+    assert.equal(sent.anthropic.length, 1);
+    assert.equal(sent.gemini.length, 1, 'two parts, one request');
+    const [a] = sent.anthropic, [g] = sent.gemini;
+    assert.deepEqual(Object.keys(a.schema.properties.hi.properties), ['translation', 'purport', 'correctness', 'note']);
+    assert.deepEqual(Object.keys(g.schema.properties.hi.properties), ['transliteration', 'wordMeanings', 'correctness', 'note']);
+    assert.doesNotMatch(a.user, /Word-by-word|Transliteration \(/i, 'the translation lane is not sent the transliteration or the word list');
+    assert.doesNotMatch(g.user, /Purport/i, 'the transliteration lane is not sent the purport');
+    assert.ok(g.system.length < a.system.length || g.system !== a.system, 'each lane has its own instructions');
+    for (const lang of LANGS) {
+      const v = verseOf(readLang(dir, lang), '1.2.1');
+      assert.deepEqual(Object.keys(v.aiTranslation.parts).sort(), ['purport', 'translation', 'transliteration', 'wordMeanings']);
+      assert.equal(v.aiTranslation.parts.transliteration.provider, 'gemini');
+      assert.equal(v.aiTranslation.parts.translation.provider, 'anthropic');
+      assert.deepEqual(verifyEntry(v, unitOf('2.1'), lang), []);
+    }
+  });
+
+  test('a lane saves only its parts: the other lane\'s text in the same file is kept', async () => {
+    const { store, dir } = freshStore();
+    const first = lanes();
+    await run({ store, getSource, askFor: first.askFor, cfg: cfg({ plan: { translation: PLAN.translation }, only: '1.2.1', langs: ['hi'] }), log: quiet() });
+    const before = verseOf(readLang(dir, 'hi'), '1.2.1');
+    assert.equal(before.transliteration, undefined);
+    const second = lanes();
+    await run({ store, getSource, askFor: second.askFor, cfg: cfg({ plan: { transliteration: PLAN.transliteration }, only: '1.2.1', langs: ['hi'] }), log: quiet() });
+    assert.equal(first.sent.anthropic.length + second.sent.anthropic.length, 1, 'the translation was not asked for again');
+    const after = verseOf(readLang(dir, 'hi'), '1.2.1');
+    assert.equal(after.transliteration, answerFor(unitOf('2.1'), 'hi').transliteration.join('\n'));
+    assert.deepEqual(after.commentaries.map((c) => c.type), ['translation']);
+    assert.deepEqual(Object.keys(after.aiTranslation.parts), ['translation', 'transliteration']);
+    assert.equal(after.aiTranslation.parts.translation.generatedAt, before.aiTranslation.parts.translation.generatedAt, 'the translation\'s stamp is untouched');
+  });
+
+  test('lanes run side by side and both write the same chapter files without losing each other', async () => {
+    const { store, dir } = freshStore();
+    const { askFor, sent } = lanes();
+    const result = await run({ store, getSource, askFor, cfg: cfg({ plan: PLAN }), log: quiet() });
+    assert.equal(result.stopReason, 'finished');
+    assert.equal(sent.anthropic.length, 2);
+    assert.equal(sent.gemini.length, 2);
+    for (const lang of LANGS) {
+      for (const id of ['1.2.1', '1.2.2']) {
+        const v = verseOf(readLang(dir, lang), id);
+        assert.ok(v.transliteration && v.wordMeanings.length && v.commentaries.some((c) => c.type === 'translation'), `${lang} ${id} has every part`);
+      }
+    }
+    const s = await status({ store, getSource, cfg: cfg({ plan: PLAN }), verify: true });
+    assert.deepEqual(s.bad, []);
+    const again = await run({ store, getSource, askFor: lanes().askFor, cfg: cfg({ plan: PLAN }), log: quiet() });
+    assert.equal(again.done, 0, 'everything is current: nothing is asked');
+  });
+
+  test('when one lane fails, the other\'s saved work stays, and the next run asks only for what is missing', async () => {
+    const { store, dir } = freshStore();
+    await assert.rejects(() => run({ store, getSource, askFor: lanes({ failLane: 'gemini' }).askFor, cfg: cfg({ plan: PLAN, only: '1.2.1' }), log: quiet() }), /boom/);
+    const v = verseOf(readLang(dir, 'hi'), '1.2.1');
+    assert.ok(v.commentaries.some((c) => c.type === 'translation'), 'the Claude lane\'s translation was saved');
+    assert.equal(v.transliteration, undefined);
+    const retry = lanes();
+    await run({ store, getSource, askFor: retry.askFor, cfg: cfg({ plan: PLAN, only: '1.2.1' }), log: quiet() });
+    assert.equal(retry.sent.anthropic.length, 0, 'the finished lane is not asked again');
+    assert.equal(retry.sent.gemini.length, 1);
+  });
+
+  test('a dry run prices each lane on its own', async () => {
+    const { store } = freshStore();
+    const r = await dryRun({ store, getSource, cfg: cfg({ plan: PLAN, priceFor: (lane) => (lane.provider === 'gemini' ? { input: 0.3, output: 2.5 } : { input: 3, output: 15 }) }) });
+    assert.deepEqual(r.lanes.map((l) => l.provider), ['anthropic', 'gemini']);
+    assert.ok(r.lanes.every((l) => l.calls > 0 && l.costFloor > 0));
+    assert.ok(r.lanes[0].inTokens !== r.lanes[1].inTokens, 'each lane counts only its parts\' source');
+    assert.equal(r.totals.calls, r.lanes[0].calls + r.lanes[1].calls);
   });
 });

@@ -145,6 +145,9 @@ export function presentRun(row, now = new Date()) {
     version: row.version,
     provider: row.provider,
     model: row.model,
+    // Who writes each part, and how far each group of parts has got. An older run has neither: one model did everything.
+    plan: row.plan ?? null,
+    lanes: row.lanes ?? null,
     status: row.status,
     pauseReason: row.pauseReason,
     statusMessage: row.statusMessage,
@@ -205,13 +208,16 @@ export function describeEvent(name, f = {}) {
   return line && { kind: name, ...line };
 }
 
+// Which parts a line is about, when the run is not doing all four at once.
+const partsNote = (f) => (f.parts?.length && f.parts.length < 4 ? ` [${f.parts.join('+')}]` : '');
+
 function describe(name, f) {
   switch (name) {
     case 'verse': {
       const score = Object.values(f.correctness || {})[0];
       const cost = f.costUsd == null ? '' : ` · ${money(f.costUsd)}`;
       const extra = f.rounds > 1 ? ` · ${f.rounds} rounds` : '';
-      return { level: score === 1 ? 'warn' : 'info', verseId: f.verseId, text: `${f.verseId} saved · score ${score ?? '?'}${extra} · ${f.calls ?? 1} call${f.calls === 1 ? '' : 's'}${cost}` };
+      return { level: score === 1 ? 'warn' : 'info', verseId: f.verseId, text: `${f.verseId}${partsNote(f)} saved · score ${score ?? '?'}${extra} · ${f.calls ?? 1} call${f.calls === 1 ? '' : 's'}${cost}` };
     }
     case 'warning':
       return { level: 'warn', verseId: f.verseId, text: `${f.verseId} · score ${f.correctness}: ${(f.warnings || [])[0] ?? 'see the verse'}${(f.warnings || []).length > 1 ? ` (+${f.warnings.length - 1} more)` : ''}` };
@@ -223,7 +229,7 @@ function describe(name, f) {
       return { level: 'warn', verseId: f.verseId, text: `${f.verseId} · the answer was not valid JSON; asking again` };
     case 'call-failed': {
       const what = { truncated: 'ran out of room', 'bad-json': 'was not valid JSON', refused: 'was declined' }[f.kind] ?? 'gave nothing usable';
-      return { level: 'warn', verseId: f.verseId, text: `${f.verseId} · a call ${what}${f.costUsd ? ` (${money(f.costUsd)} spent)` : ''}` };
+      return { level: 'warn', verseId: f.verseId, text: `${f.verseId}${partsNote(f)} · a call ${what}${f.costUsd ? ` (${money(f.costUsd)} spent)` : ''}` };
     }
     case 'split':
       return { level: 'info', verseId: f.verseId, text: `${f.verseId} · too long for one answer; asking in two parts` };

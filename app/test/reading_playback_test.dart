@@ -10,7 +10,6 @@ import 'package:hariharibol/services/audio/reading_item.dart';
 import 'package:hariharibol/services/audio/reading_memory.dart';
 import 'package:hariharibol/services/audio/reading_playback_controller.dart';
 import 'package:hariharibol/services/audio/verse_audio_cache.dart';
-import 'package:hariharibol/services/tts/tts_engine.dart';
 
 Future<void> settle([int ms = 8]) => Future<void>.delayed(Duration(milliseconds: ms));
 
@@ -51,53 +50,6 @@ class FakePlayer implements FilePlayer {
   Future<void> dispose() async {}
 }
 
-class FakeTts implements TtsEngine {
-  FakeTts(this.log);
-  final List<String> log;
-  Set<String> languages = {'en', 'hi'};
-  bool hold = false;
-  Object? failWith;
-  Completer<void>? _gate;
-
-  @override
-  String get id => 'fake';
-
-  @override
-  Stream<TtsProgress> get progress => const Stream.empty();
-
-  @override
-  Future<bool> canSpeak(String language) async => languages.contains(language);
-
-  @override
-  Future<void> speak(String text, {required String language, double rate = 1.0}) async {
-    log.add('say[$language]:$text');
-    if (failWith != null) throw failWith!;
-    if (hold) {
-      _gate = Completer<void>();
-      await _gate!.future;
-    }
-  }
-
-  void finish() {
-    if (_gate != null && !_gate!.isCompleted) _gate!.complete();
-  }
-
-  @override
-  Future<void> pause() async => log.add('tts:pause');
-
-  @override
-  Future<void> resume() async => log.add('tts:resume');
-
-  @override
-  Future<void> stop() async {
-    log.add('tts:stop');
-    finish();
-  }
-
-  @override
-  Future<void> dispose() async {}
-}
-
 class FakeAudio implements VerseAudioCache {
   FakeAudio(this.log);
   final List<String> log;
@@ -128,17 +80,11 @@ Verse verse(int n, {bool audio = true}) => Verse(
       audioPath: audio ? 'k$n.mp3' : null,
     );
 
-ReadingItem item(int n, {bool audio = true, bool meaning = true, bool purport = true, String lang = 'hi'}) => ReadingItem(
-      verse: verse(n, audio: audio),
-      label: '1.$n',
-      meaning: meaning ? [SpokenText(lang, 'meaning $n')] : const [],
-      purport: purport ? [SpokenText(lang, 'purport $n')] : const [],
-    );
+ReadingItem item(int n, {bool audio = true}) => ReadingItem(verse: verse(n, audio: audio), label: '1.$n');
 
 void main() {
   late List<String> log;
   late FakePlayer player;
-  late FakeTts tts;
   late FakeAudio audio;
   late InMemoryReadingMemory memory;
   late ReadingPlaybackController c;
@@ -147,84 +93,79 @@ void main() {
   setUp(() {
     log = [];
     player = FakePlayer(log);
-    tts = FakeTts(log);
     audio = FakeAudio(log);
     memory = InMemoryReadingMemory();
-    c = ReadingPlaybackController(player: player, tts: tts, audio: audio, memory: memory);
+    c = ReadingPlaybackController(player: player, audio: audio, memory: memory);
     states = [];
     c.states.listen(states.add);
   });
 
-  List<String> heard() => log.where((e) => e.startsWith('verse:') || e.startsWith('say[')).toList();
+  List<String> heard() => log.where((e) => e.startsWith('verse:')).toList();
 
-  test('one verse: recitation, then meaning, then purport — and it stops', () async {
+  test('one verse: its recitation, and it stops', () async {
     c.load([item(1), item(2)], context: 'ch1');
     await c.playVerse(0);
-    expect(heard(), ['verse:v1.mp3', 'say[hi]:meaning 1', 'say[hi]:purport 1']);
+    expect(heard(), ['verse:v1.mp3']);
     expect(c.state.status, ReadingStatus.idle);
   });
 
-  test('state names the verse and the part being heard', () async {
+  test('nothing but the recording is played — no speech of any kind', () async {
+    c.load([item(1)], context: 'ch1');
+    await c.playVerse(0);
+    expect(log.where((e) => e.startsWith('say[') || e.startsWith('tts:')), isEmpty);
+  });
+
+  test('state names the verse while it is heard, then goes idle', () async {
     c.load([item(1)], context: 'ch1');
     await c.playVerse(0);
     await settle();
-    final sections = states.where((s) => s.status == ReadingStatus.playing).map((s) => s.section).toList();
-    expect(sections, [ReadingSection.verse, ReadingSection.meaning, ReadingSection.purport]);
+    final playing = states.where((s) => s.status == ReadingStatus.playing).toList();
+    expect(playing.map((s) => s.verseId), ['v1']);
     expect(states.first.status, ReadingStatus.loading);
     expect(states.first.verseId, 'v1');
     expect(states.last.status, ReadingStatus.idle);
   });
 
-  test('a verse with no recitation goes straight to the meaning', () async {
+  test('a verse with no recording plays nothing', () async {
     c.load([item(1, audio: false)], context: 'ch1');
     await c.playVerse(0);
-    expect(heard(), ['say[hi]:meaning 1', 'say[hi]:purport 1']);
+    expect(heard(), isEmpty);
+    expect(c.state.status, ReadingStatus.idle);
   });
 
   test('a recitation that cannot be fetched is skipped, not fatal', () async {
     audio.missing.add('v1');
     c.load([item(1)], context: 'ch1');
     await c.playVerse(0);
-    expect(heard(), ['say[hi]:meaning 1', 'say[hi]:purport 1']);
+    expect(heard(), isEmpty);
+    expect(c.state.status, ReadingStatus.idle);
   });
 
   test('a recitation that will not play is skipped', () async {
     player.failWith = StateError('bad file');
     c.load([item(1)], context: 'ch1');
     await c.playVerse(0);
-    expect(heard(), ['verse:v1.mp3', 'say[hi]:meaning 1', 'say[hi]:purport 1']);
-  });
-
-  test('a section with no text is skipped', () async {
-    c.load([item(1, purport: false)], context: 'ch1');
-    await c.playVerse(0);
-    expect(heard(), ['verse:v1.mp3', 'say[hi]:meaning 1']);
-  });
-
-  test('speech failing skips that part and carries on', () async {
-    tts.failWith = const TtsException('no voice');
-    c.load([item(1)], context: 'ch1');
-    await c.playVerse(0);
-    expect(heard().where((e) => e.startsWith('say[')), hasLength(2), reason: 'both were tried');
+    expect(heard(), ['verse:v1.mp3']);
     expect(c.state.status, ReadingStatus.idle);
   });
 
   test('auto-play runs verse after verse in order, then ends', () async {
     c.load([item(1), item(2), item(3)], context: 'ch1');
     await c.playAll();
-    expect(heard(), [
-      'verse:v1.mp3', 'say[hi]:meaning 1', 'say[hi]:purport 1',
-      'verse:v2.mp3', 'say[hi]:meaning 2', 'say[hi]:purport 2',
-      'verse:v3.mp3', 'say[hi]:meaning 3', 'say[hi]:purport 3',
-    ]);
+    expect(heard(), ['verse:v1.mp3', 'verse:v2.mp3', 'verse:v3.mp3']);
     expect(c.state.status, ReadingStatus.idle);
+  });
+
+  test('auto-play steps over a verse with no recording', () async {
+    c.load([item(1), item(2, audio: false), item(3)], context: 'ch1');
+    await c.playAll();
+    expect(heard(), ['verse:v1.mp3', 'verse:v3.mp3']);
   });
 
   test('auto-play can start part-way', () async {
     c.load([item(1), item(2), item(3)], context: 'ch1');
     await c.playAll(from: 2);
-    expect(heard().first, 'verse:v3.mp3');
-    expect(heard().where((e) => e.startsWith('verse:')), hasLength(1));
+    expect(heard(), ['verse:v3.mp3']);
   });
 
   test('the next verse\'s recitation is fetched ahead of time', () async {
@@ -233,55 +174,24 @@ void main() {
     expect(audio.prefetched, ['v2']);
   });
 
-  test('the language spoken is the first one a voice exists for', () async {
-    tts.languages = {'en'};
-    c.load([
-      ReadingItem(
-        verse: verse(1, audio: false),
-        label: '1.1',
-        meaning: const [SpokenText('ta', 'tamil meaning'), SpokenText('en', 'english meaning')],
-        purport: const [SpokenText('ta', 'tamil purport')],
-      ),
-    ], context: 'ch1');
-    await c.playVerse(0);
-    expect(heard(), ['say[en]:english meaning'], reason: 'no Tamil voice → English text; no English purport → nothing');
-  });
-
-  test('pause holds the speech, resume carries on', () async {
-    tts.hold = true;
-    c.load([item(1, audio: false)], context: 'ch1');
-    final done = c.playVerse(0);
-    await settle();
-    expect(c.state.section, ReadingSection.meaning);
-
-    await c.pause();
-    expect(c.state.status, ReadingStatus.paused);
-    expect(log, contains('tts:pause'));
-    await c.resume();
-    expect(c.state.status, ReadingStatus.playing);
-    expect(log, contains('tts:resume'));
-
-    tts.hold = false;
-    tts.finish();
-    await done;
-    expect(heard(), ['say[hi]:meaning 1', 'say[hi]:purport 1']);
-  });
-
   test('pause during the recitation pauses the player', () async {
     player.hold = true;
     c.load([item(1)], context: 'ch1');
     final done = c.playVerse(0);
     await settle();
     await c.pause();
+    expect(c.state.status, ReadingStatus.paused);
     expect(log, contains('player:pause'));
     await c.resume();
+    expect(c.state.status, ReadingStatus.playing);
     expect(log, contains('player:resume'));
     player.hold = false;
     player.finish();
     await done;
+    expect(c.state.status, ReadingStatus.idle);
   });
 
-  test('paused while the recitation is still loading: the next part does not start until resume', () async {
+  test('paused while the recitation is still loading: it does not start until resume', () async {
     audio.hold = Completer<void>();
     c.load([item(1)], context: 'ch1');
     final done = c.playVerse(0);
@@ -294,7 +204,23 @@ void main() {
 
     await c.resume();
     await done;
-    expect(heard().first, 'verse:v1.mp3');
+    expect(heard(), ['verse:v1.mp3']);
+  });
+
+  test('paused between verses: the next one waits for resume', () async {
+    player.hold = true;
+    c.load([item(1), item(2)], context: 'ch1');
+    final done = c.playAll();
+    await settle();
+    await c.pause();
+    player.hold = false;
+    player.finish();
+    await settle(20);
+    expect(heard(), ['verse:v1.mp3'], reason: 'verse 2 waits while paused');
+
+    await c.resume();
+    await done;
+    expect(heard(), ['verse:v1.mp3', 'verse:v2.mp3']);
   });
 
   test('next skips to the following verse, keeping auto-play', () async {
@@ -311,7 +237,7 @@ void main() {
     player.hold = false;
     player.finish();
     await settle(40);
-    expect(heard().where((e) => e.startsWith('verse:')), containsAll(['verse:v1.mp3', 'verse:v2.mp3', 'verse:v3.mp3']));
+    expect(heard(), containsAll(['verse:v1.mp3', 'verse:v2.mp3', 'verse:v3.mp3']));
   });
 
   test('previous goes back one, and stays at the first', () async {
@@ -338,9 +264,9 @@ void main() {
     expect(c.state.status, ReadingStatus.idle);
   });
 
-  test('stop ends everything and nothing more is spoken', () async {
-    tts.hold = true;
-    c.load([item(1, audio: false), item(2)], context: 'ch1');
+  test('stop ends everything and nothing more is played', () async {
+    player.hold = true;
+    c.load([item(1), item(2)], context: 'ch1');
     final done = c.playAll();
     await settle();
     await c.stop();
@@ -359,8 +285,9 @@ void main() {
     player.hold = false;
     unawaited(c.playVerse(1));
     await settle(40);
-    expect(heard().where((e) => e.startsWith('say[hi]:meaning 1')), isEmpty, reason: 'the first verse was abandoned');
-    expect(heard(), contains('say[hi]:purport 2'));
+    expect(heard(), ['verse:v1.mp3', 'verse:v2.mp3']);
+    expect(c.state.index, isNull, reason: 'verse 2 finished and the player went idle');
+    expect(c.state.status, ReadingStatus.idle);
   });
 
   test('the last verse played is remembered per chapter', () async {
@@ -380,8 +307,8 @@ void main() {
   });
 
   test('loading a different chapter stops what is playing', () async {
-    tts.hold = true;
-    c.load([item(1, audio: false)], context: 'a');
+    player.hold = true;
+    c.load([item(1)], context: 'a');
     unawaited(c.playVerse(0));
     await settle();
     c.load([item(1)], context: 'b');
@@ -396,49 +323,23 @@ void main() {
   });
 
   group('ReadingItems.build', () {
-    test('follows the speaking language, with English after it, and the purport can differ in language', () {
-      final items = ReadingItems.build(
-        [verse(1, audio: false)],
-        speakingChain: ['hi', 'en'],
-        renderings: {
-          'v1': const [
-            SpokenRendering(language: 'en', meaning: 'English meaning', purport: 'English purport'),
-            SpokenRendering(language: 'hi', meaning: 'हिंदी अर्थ'),
-          ],
-        },
-      );
-      expect(items.single.meaning.map((m) => m.language), ['hi', 'en']);
-      expect(items.single.purport.map((m) => m.language), ['en'], reason: 'Hindi has no purport');
+    test('one item per verse, labelled with its reference', () {
+      final items = ReadingItems.build([verse(1), verse(2)]);
+      expect(items.map((i) => i.verse.id), ['v1', 'v2']);
+      expect(items.map((i) => i.label), everyElement(isNotEmpty));
     });
 
-    test('word-for-word meaning is read before the translation when asked', () {
+    test('only a verse with a recording has anything to play', () {
+      final items = ReadingItems.build([verse(1), verse(2, audio: false)]);
+      expect(items.map((i) => i.hasAnything), [true, false]);
+    });
+
+    test('a translation on screen is never something to play', () {
       final v = Verse(
         id: 'v1', verseId: '1', bookNumber: 1, type: 'S',
-        wordMeanings: const [WordMeaning(word: 'om', meaning: 'O Lord')],
+        translation: const VerseTranslation(id: 't', languageCode: 'mr', type: 'T', meaning: 'अर्थ', purport: 'टीप'),
       );
-      final items = ReadingItems.build(
-        [v],
-        speakingChain: ['en'],
-        renderings: {'v1': const [SpokenRendering(language: 'en', meaning: 'Translation')]},
-        wordMeanings: true,
-      );
-      expect(items.single.meaning.single.text, 'om — O Lord. Translation');
-    });
-
-    test('with nothing stored, the translation on screen is spoken', () {
-      final v = Verse(
-        id: 'v1', verseId: '1', bookNumber: 1, type: 'S',
-        translation: const VerseTranslation(id: 't', languageCode: 'mr', type: 'T', meaning: '<b>अर्थ</b>', purport: 'टीप'),
-      );
-      final items = ReadingItems.build([v], speakingChain: ['hi'], renderings: const {});
-      expect(items.single.meaning.single.language, 'mr');
-      expect(items.single.meaning.single.text, 'अर्थ', reason: 'markup removed');
-      expect(items.single.purport.single.text, 'टीप');
-    });
-
-    test('a verse with nothing at all has nothing to say', () {
-      final items = ReadingItems.build([verse(1, audio: false)], speakingChain: ['en'], renderings: const {});
-      expect(items.single.hasAnything, isFalse);
+      expect(ReadingItems.build([v]).single.hasAnything, isFalse);
     });
   });
 

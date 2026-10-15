@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../core/constants/book_sync_config.dart';
+import '../core/format/indic_script.dart';
+import '../core/format/localised.dart';
 import '../db/app_database.dart';
 import '../db/daos/book_dao.dart';
 import '../db/daos/download_state_dao.dart';
 import '../models/book.dart';
 import '../models/book_cache.dart';
 import '../models/verse.dart';
-import '../services/audio/reading_item.dart';
 import '../services/book_service.dart';
 import '../services/book_sync_manager.dart';
 
@@ -211,21 +212,6 @@ class BookRepository {
     );
   }
 
-  // ── Speech ────────────────────────────────────────────────────────────
-
-  /// Every stored rendering of [verseIds], reduced to what speech needs. The
-  /// spoken language is the *speaking* setting, so this returns all languages
-  /// and the caller picks — whatever is on screen does not decide what is said.
-  Future<Map<String, List<SpokenRendering>>> spokenRenderings(Iterable<String> verseIds) async {
-    final rows = await _books.translationsFor(verseIds);
-    return {
-      for (final entry in rows.entries)
-        entry.key: [
-          for (final t in entry.value) SpokenRendering(language: t.languageCode, meaning: t.meaning, purport: t.purport),
-        ],
-    };
-  }
-
   // ── Search ────────────────────────────────────────────────────────────
 
   /// Full-text search over everything downloaded, in the reader's languages
@@ -261,29 +247,20 @@ class BookRepository {
   // ── Building the app's models from rows ───────────────────────────────
 
   BookSection _section(UnitRecord unit, List<String> chain, {int? totalChapters}) {
+    // The English heading is the unit's plain title, so English can always be picked.
+    final titles = parseLocalised(unit.titleI18n, english: unit.title);
+    final summaries = parseLocalised(unit.summaryI18n, english: unit.summary);
     return BookSection(
       id: unit.id,
       number: unit.number,
-      title: _localised(unit.title, unit.titleI18n, chain),
+      title: pickLocalised(unit.title, titles, chain),
       cantoNumber: unit.cantoNumber,
-      summary: unit.summary == null ? null : _localised(unit.summary!, unit.summaryI18n, chain),
+      summary: unit.summary == null ? null : pickLocalised(unit.summary!, summaries, chain),
+      titleI18n: titles,
+      summaryI18n: summaries,
       totalChapters: totalChapters,
       totalVerses: unit.totalVerses,
     );
-  }
-
-  static String _localised(String fallback, String? i18nJson, List<String> chain) {
-    if (i18nJson == null) return fallback;
-    try {
-      final map = jsonDecode(i18nJson);
-      if (map is Map) {
-        for (final code in chain) {
-          final value = map[code];
-          if (value is String && value.isNotEmpty) return value;
-        }
-      }
-    } catch (_) {}
-    return fallback;
   }
 
   /// The rendering a verse opens with: the first stored one in the earliest
@@ -307,6 +284,32 @@ class BookRepository {
       }
     }
     return null;
+  }
+
+  /// A verse's transliteration in the reader's own language and script — the same
+  /// rule as the server (`language.pickTransliteration`). Walking the chain, a
+  /// language's stored transliteration wins; failing that a language with its own
+  /// script (Kannada, Bengali ...) gets the verse's Devanagari carried across into
+  /// it ([fromDevanagari]), so nothing is read in Roman letters just because no
+  /// transliteration was imported. The verse's Roman text ([fallback]) is left for
+  /// readers of Roman or Devanagari. Not tied to the rendering the verse opens
+  /// with: a Marathi reader's translation and ovi are different rows, and only one
+  /// of them carries it.
+  static String? pickTransliteration(
+    List<TranslationRecord> rows,
+    List<String> chain,
+    String? fallback, {
+    String? sanskrit,
+  }) {
+    final source = sanskrit?.trim().isNotEmpty == true ? sanskrit : null;
+    for (final code in chain) {
+      for (final row in rows) {
+        final text = row.transliteration;
+        if (row.languageCode == code && text != null && text.trim().isNotEmpty) return text;
+      }
+      if (source != null && hasIndicScript(code)) return fromDevanagari(source, code);
+    }
+    return fallback;
   }
 
   Verse _verse(VerseRecord row, BookRecord book, UnitRecord? chapter, List<TranslationRecord> rows, List<String> chain) {
@@ -342,13 +345,24 @@ class BookRepository {
       verseNumber: row.verseNumber,
       verseNumberEnd: row.verseNumberEnd,
       sanskrit: row.sanskrit,
-      transliteration: row.transliteration,
+      transliteration: pickTransliteration(rows, chain, row.transliteration, sanskrit: row.sanskrit),
       wordMeanings: words,
       audioUrl: row.audioUrl,
       audioPath: row.audioPath,
       tags: row.tagsJson == null ? const [] : List<String>.from(jsonDecode(row.tagsJson!) as List),
-      book: VerseBookRef(id: book.id, slug: book.slug, title: book.title, bookNumber: book.bookNumber),
-      chapter: chapter == null ? null : VerseChapterRef(id: chapter.id, number: chapter.number, title: chapter.title),
+      book: VerseBookRef(
+        id: book.id,
+        slug: book.slug,
+        title: pickLocalised(book.title, parseLocalised(book.titleI18n, english: book.title), chain),
+        bookNumber: book.bookNumber,
+      ),
+      chapter: chapter == null
+          ? null
+          : VerseChapterRef(
+              id: chapter.id,
+              number: chapter.number,
+              title: pickLocalised(chapter.title, parseLocalised(chapter.titleI18n, english: chapter.title), chain),
+            ),
       translation: picked == null ? null : shape(picked),
       availableTranslations: [for (final t in allowed) shape(t, withText: false)],
     );

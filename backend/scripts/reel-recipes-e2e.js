@@ -131,7 +131,7 @@ async function main() {
     // ── fixture ─────────────────────────────────────────────────────────────
     translator = await prisma.translator.create({ data: { slug: `e2e-translator-${STAMP}`, name: 'E2E Translator' } });
     book = await prisma.book.create({
-      data: { bookNumber: 9_000_000 + (STAMP % 900_000), slug, type: 'SCRIPTURE', title: 'E2E Recipe Book', totalVerses: 5, totalCantos: 1, deityId: null },
+      data: { bookNumber: 9_000_000 + (STAMP % 900_000), slug, type: 'SCRIPTURE', title: 'E2E Recipe Book', titleI18n: { hi: 'ई२ई पुस्तक' }, totalVerses: 5, totalCantos: 1, deityId: null },
     });
     const canto = await prisma.canto.create({ data: { bookId: book.id, number: 1, title: `Creation ${STAMP}` } });
     const chapters = [];
@@ -299,9 +299,10 @@ async function main() {
     await authService.invalidateUser(reader.id);
     const hindiReel = await fetchReel(hindi.id);
     check('a Hindi reader gets the Hindi one, from the same reel', hindiReel?.overlays?.find((o) => o.id === 'o-tr')?.text.includes('मेरी शरण'));
-    check('the Sanskrit and the reference do not change', hindiReel?.overlays?.find((o) => o.id === 'o-sa')?.text === 'संस्कृत 2.1' && hindiReel.overlays.find((o) => o.id === 'o-ref')?.text === 'E2E Recipe Book 1.2.1');
+    check('the Sanskrit does not change, and the reference names the book in the reader’s language', hindiReel?.overlays?.find((o) => o.id === 'o-sa')?.text === 'संस्कृत 2.1' && hindiReel.overlays.find((o) => o.id === 'o-ref')?.text === 'ई२ई पुस्तक 1.2.1', hindiReel?.overlays?.find((o) => o.id === 'o-ref')?.text);
     check('the reel still names its verse', hindiReel?.verse?.verseId === verses[3].verseId);
-    check('and cites it with its book, so the app need not guess which book a number means', hindiReel?.verse?.label === 'E2E Recipe Book 1.2.1', hindiReel?.verse?.label);
+    check('and cites it with its book, from Book.titleI18n, so the app need not name or guess a book', hindiReel?.verse?.label === 'ई२ई पुस्तक 1.2.1', hindiReel?.verse?.label);
+    check('an English reader is given the book’s own title', englishReel?.verse?.label === 'E2E Recipe Book 1.2.1', englishReel?.verse?.label);
 
     await prisma.verseTranslation.updateMany({ where: { verseId: verses[3].id, languageCode: 'hi' }, data: { meaning: 'सुधारा हुआ अनुवाद' } });
     check('a corrected translation shows on reels already made', (await fetchReel(hindi.id))?.overlays?.find((o) => o.id === 'o-tr')?.text === 'सुधारा हुआ अनुवाद');

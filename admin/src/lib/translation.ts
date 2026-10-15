@@ -32,7 +32,17 @@ export function chapterName(book: BookId, id: number) {
 /** The canto a Bhagavatam chapter id belongs to; the Gita has none. */
 export const cantoOf = (id: number) => Math.floor(id / 100);
 
-export type ProviderInfo = { id: 'anthropic' | 'openai'; label: string; company: string; keyEnv: string; apiKeyConfigured: boolean; defaultModel: string };
+export type PartName = 'translation' | 'transliteration' | 'wordMeanings' | 'purport';
+export const PART_NAMES: PartName[] = ['translation', 'transliteration', 'wordMeanings', 'purport'];
+export const PART_LABELS: Record<PartName, string> = { translation: 'Translation', transliteration: 'Transliteration', wordMeanings: 'Word meanings', purport: 'Purport' };
+export type PlanEntry = { provider: string; model: string; effort: string };
+/** Which provider, model and effort writes each part. A part left out is not touched by the run. */
+export type Plan = Partial<Record<PartName, PlanEntry>>;
+/** Parts that share a provider, model and effort: one request per verse, run in parallel with the other lanes. */
+export type Lane = { key: string; provider: string; model: string; effort: string; parts: PartName[]; done?: number; total?: number; calls?: number; costMicros?: number };
+export const providerName = (id: string) => (id === 'openai' ? 'OpenAI' : id === 'gemini' ? 'Gemini' : 'Claude');
+
+export type ProviderInfo = { id: 'anthropic' | 'openai' | 'gemini'; label: string; company: string; keyEnv: string; apiKeyConfigured: boolean; defaultModel: string };
 
 export type Run = {
   id: string;
@@ -63,6 +73,8 @@ export type Run = {
   finishedAt: string | null;
   heartbeatAt: string | null;
   stalled: boolean;
+  plan: Plan | null;
+  lanes: Lane[] | null;
 };
 
 export type FeedLine = { at: string; kind: string; level: 'info' | 'warn' | 'success' | 'error'; text: string; verseId?: string };
@@ -101,6 +113,7 @@ export type Coverage = {
     byClaude: number;
     scores: { 1: number; 2: number; 3: number; unscored: number };
     versions: Record<string, number>;
+    parts?: Record<string, number>;
     chapters: { chapter: number; total: number; saved: number; upToDate: number }[];
   }[];
 };
@@ -123,6 +136,9 @@ export type Estimate = {
   outputTokens: number;
   /** Null when the chosen model has no known price: tokens are shown, cost is not. */
   costUsd: number | null;
+  plan?: Plan;
+  steps?: number;
+  lanes?: (Lane & { todo: number; willTranslate: number; calls: number; inputTokens: number; outputTokens: number; costUsd: number | null })[];
 };
 
 export type ChapterIndex = {
@@ -141,6 +157,7 @@ export type ChapterIndex = {
     byClaude: boolean;
     correctness: Score | null;
     warnings: number;
+    parts?: Record<string, number> | null;
     version: string | null;
     generatedAt: string | null;
     preview: string | null;
@@ -167,6 +184,7 @@ export type VerseOutput = {
     generatedAt: string;
     correctness: Score | null;
     partScores: Record<string, number> | null;
+    parts?: Record<string, { provider: string; model: string; effort: string; version: string; generatedAt: string; correctness: Score | null }> | null;
     note: string | null;
     warnings: string[];
   } | null;
@@ -284,14 +302,14 @@ export async function refreshCoverage(queryClient: QueryClient, book: BookId) {
 }
 
 export function useEstimate(
-  pick: { book: BookId; provider: string; model: string },
+  pick: { book: BookId; provider: string; model: string; plan?: Plan | null },
   language: string | null,
   chapters: number[],
   limit: number,
   enabled: boolean
 ) {
   return useQuery({
-    queryKey: ['translation', 'estimate', pick.book, pick.provider, pick.model, language, chapters.join(','), limit],
+    queryKey: ['translation', 'estimate', pick.book, pick.provider, pick.model, JSON.stringify(pick.plan ?? null), language, chapters.join(','), limit],
     queryFn: async () =>
       (
         await api.get<Estimate>(`${ROOT}/estimate`, {
@@ -299,6 +317,7 @@ export function useEstimate(
           book: pick.book,
           provider: pick.provider || undefined,
           model: pick.model || undefined,
+          plan: pick.plan ? JSON.stringify(pick.plan) : undefined,
           chapters: chapters.join(','),
           limit: limit || undefined,
         })
@@ -361,7 +380,7 @@ export function useVerse(language: string | null, verseId: string | null) {
 
 // ── Writes ─────────────────────────────────────────────────────────────────────────────────────────
 
-export type StartInput = { language: string; book: BookId; provider: string; model?: string; chapters?: number[]; verseLimit?: number; budgetUsd?: number };
+export type StartInput = { language: string; book: BookId; provider: string; model?: string; plan?: Plan; chapters?: number[]; verseLimit?: number; budgetUsd?: number };
 
 function putRun(queryClient: QueryClient, run: Run) {
   applyRun(queryClient, run);

@@ -90,7 +90,7 @@ class _DashboardViewState extends State<DashboardView> {
               // rather than a fifth tab.
               action: NavAction(
                 iconBuilder: (colour, size) =>
-                    PeacockFeatherIcon(color: colour, size: size),
+                    PeacockFeatherIcon( size: size),
                 label: text.reelsTitle,
                 onTap: () => AppNavigator.instance.push(AppRoutes.reels),
               ),

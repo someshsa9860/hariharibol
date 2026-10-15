@@ -7,12 +7,13 @@ import { DEFAULT_PROVIDER, PROVIDER_IDS, costFor, createAsk, providerOf } from '
 import { classifyError } from '../utils/translation-run.js';
 
 describe('providers', () => {
-  it('knows Claude and OpenAI, with Sonnet 5.5 and GPT-6 Luna as their defaults', () => {
-    assert.deepEqual(PROVIDER_IDS, ['anthropic', 'openai']);
-    assert.equal(DEFAULT_PROVIDER, 'anthropic');
+  it('knows Claude, OpenAI and Gemini, with GPT-6 Luna the default and Sonnet 5.5 one choice away', () => {
+    assert.deepEqual(PROVIDER_IDS, ['anthropic', 'openai', 'gemini']);
+    assert.equal(DEFAULT_PROVIDER, 'openai');
     assert.equal(providerOf('anthropic').defaultModel, 'claude-sonnet-5-5');
     assert.equal(providerOf('openai').defaultModel, 'gpt-6-luna');
-    assert.throws(() => providerOf('gemini'), /Unknown provider/);
+    assert.equal(providerOf('gemini').defaultModel, 'gemini-3.5-flash-lite');
+    assert.throws(() => providerOf('grok'), /Unknown provider/);
   });
 
   it('prices each provider with its own table', () => {

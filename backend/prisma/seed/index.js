@@ -19,6 +19,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
 import { translations } from './mantra-translations/index.js';
+import { bookTitles, cantoTitles, chapterTitles, fillMissing } from './section-titles/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
@@ -209,7 +210,8 @@ async function seedBooks() {
       where: { bookNumber: book.bookNumber },
       update: {
         title: fields.title,
-        titleI18n: fields.titleI18n,
+        // titleI18n is not written here: seedSectionTitles fills only the languages a row
+        // lacks, so a title corrected in the admin panel is not put back by the next seed.
         description: fields.description,
         deityId: deityRow?.id ?? null,
         // Only where the seed names a folder — an admin-set one on another book stays.
@@ -229,6 +231,40 @@ async function seedBooks() {
     });
   }
   log(`${data.cantos.length} cantos`);
+}
+
+// The titles of the books, cantos and chapters in every reading language, added
+// only where the row has none (prisma/seed/section-titles/). Runs after the
+// importers on a new database too: chapters exist only once they have run.
+async function seedSectionTitles() {
+  let filled = 0;
+
+  const update = async (model, row, wanted) => {
+    const merged = fillMissing(row.titleI18n, wanted);
+    if (!merged) return;
+    await prisma[model].update({ where: { id: row.id }, data: { titleI18n: merged } });
+    filled += 1;
+  };
+
+  for (const book of await prisma.book.findMany({ select: { id: true, slug: true, titleI18n: true } })) {
+    // What data.js names for a short work, then what the seed files add to it.
+    const own = data.books.find((b) => b.slug === book.slug)?.titleI18n ?? {};
+    await update('book', book, { ...bookTitles(book.slug), ...own });
+  }
+
+  const cantos = await prisma.canto.findMany({
+    select: { id: true, number: true, titleI18n: true, book: { select: { slug: true } } },
+  });
+  for (const canto of cantos) await update('canto', canto, cantoTitles(canto.book.slug, canto.number));
+
+  // Chapters with no canto — the Gita's. A Bhagavatam chapter number repeats in every canto.
+  const chapters = await prisma.chapter.findMany({
+    where: { cantoId: null },
+    select: { id: true, number: true, titleI18n: true, book: { select: { slug: true } } },
+  });
+  for (const chapter of chapters) await update('chapter', chapter, chapterTitles(chapter.book.slug, chapter.number));
+
+  log(`${filled} book, canto and chapter titles completed`);
 }
 
 async function seedStories() {
@@ -365,6 +401,7 @@ async function main() {
   await seedReference();
   await seedMantras();
   await seedBooks();
+  await seedSectionTitles();
   await seedStories();
   await seedPlansAndTopics();
   await seedSettings();

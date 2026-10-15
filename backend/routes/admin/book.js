@@ -44,6 +44,19 @@ router.get(
   controller.list
 );
 
+// Before '/:id', or "languages" would be read as a book id.
+router.get(
+  '/languages',
+  {
+    summary: 'Languages a title can be written in',
+    description: 'Active reading languages other than English, in display order — for the titles editor.',
+    permission: 'book.read',
+    limit: 'read',
+    responds: { 200: 'Active reading languages, in display order' },
+  },
+  controller.languages
+);
+
 router.get(
   '/:id',
   {

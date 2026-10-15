@@ -3,8 +3,12 @@
 
 import * as anthropic from './claude-translate-client.js';
 import * as openai from './openai-translate-client.js';
+import * as gemini from './gemini-translate-client.js';
 
-export const DEFAULT_PROVIDER = 'anthropic';
+// GPT-6 Luna is the default: on ten Tamil / Hindi / Marathi verses it beat Gemini Flash-Lite on all four parts, and
+// its list price is a twentieth of Claude Sonnet's (about $0.9 for the whole Gita in one language).
+// When a part needs more care, give it to Claude from the admin page or with `--provider anthropic`.
+export const DEFAULT_PROVIDER = 'openai';
 
 export const PROVIDERS = {
   anthropic: {
@@ -27,6 +31,17 @@ export const PROVIDERS = {
     costUsd: openai.costUsd,
     create: openai.createOpenAI,
     check: (model, effort) => openai.reasoningEffort(effort),
+  },
+  gemini: {
+    label: 'Gemini',
+    company: 'Google',
+    defaultModel: gemini.DEFAULT_MODEL,
+    keyEnv: 'GEMINI_API_KEY',
+    modelEnv: 'TRANSLATION_GEMINI_MODEL',
+    costUsd: gemini.costUsd,
+    create: gemini.createGemini,
+    // Throws for a model that cannot think "off" (the Pro models).
+    check: gemini.thinkingBudget,
   },
 };
 

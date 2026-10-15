@@ -13,7 +13,7 @@ import '../../models/sloka.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/issues_provider.dart';
 import '../../services/sloka_service.dart';
-import '../common/eyebrow.dart';
+import '../common/icon_badge.dart';
 import 'mood_sheet.dart';
 
 /// Name what is weighing on you — one struggle or several — and get a verse
@@ -164,106 +164,111 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
     final answeredToday = ref.watch(homeFeedProvider).value?.issuesReportedToday.toSet() ?? const <String>{};
     final hasAnsweredToday = answeredToday.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Eyebrow(text.homeMoodPrompt),
-        const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
+    return Card(
+      child: Padding(
+        padding: AppSpacing.card,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final issue in issues)
-              _MoodChip(
-                issue: issue,
-                selected: hasAnsweredToday
-                    ? answeredToday.contains(issue.slug)
-                    : _selected.contains(issue.slug),
-                // Choosing a new vikara is closed off once today's answer is
-                // in, but an already-answered one stays tappable — that tap
-                // reopens its verse rather than picking it again.
-                enabled: hasAnsweredToday
-                    ? answeredToday.contains(issue.slug) && !_viewing
-                    : !_submitting,
-                onTap: () => hasAnsweredToday ? _viewToday() : _toggle(issue.slug),
-              ),
+            Row(
+              children: [
+                const IconBadge(icon: Icons.sentiment_satisfied_alt_rounded),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(text.homeMoodPrompt, style: context.texts.titleMedium),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                for (final issue in issues)
+                  _MoodChip(
+                    issue: issue,
+                    selected: hasAnsweredToday
+                        ? answeredToday.contains(issue.slug)
+                        : _selected.contains(issue.slug),
+                    // Choosing a new vikara is closed off once today's answer
+                    // is in, but an already-answered one stays tappable — that
+                    // tap reopens its verse rather than picking it again.
+                    enabled: hasAnsweredToday
+                        ? answeredToday.contains(issue.slug) && !_viewing
+                        : !_submitting,
+                    onTap: () => hasAnsweredToday ? _viewToday() : _toggle(issue.slug),
+                  ),
+              ],
+            ),
+            AnimatedSize(
+              duration: AppDurations.normal,
+              curve: Curves.easeOut,
+              alignment: AlignmentDirectional.topStart,
+              child: hasAnsweredToday
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(text.homeMoodAnsweredToday, style: context.texts.bodySmall),
+                          const SizedBox(height: AppSpacing.md),
+                          // The chips above reopen these too, but they read as
+                          // finished, not tappable — so the way back to the
+                          // verses is a control that says what it does.
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.tonalIcon(
+                              onPressed: _viewing ? null : _viewToday,
+                              style: _buttonStyle,
+                              icon: _viewing
+                                  ? const _ButtonSpinner()
+                                  : const Icon(Icons.menu_book_rounded, size: AppSizes.iconSm),
+                              label: Text(text.homeMoodViewToday(answeredToday.length)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _selected.isEmpty
+                      ? const SizedBox(width: double.infinity)
+                      : Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.lg),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: _submitting ? null : () => _submit(issues),
+                              style: _buttonStyle,
+                              icon: _submitting
+                                  ? _ButtonSpinner(color: context.colors.onPrimary)
+                                  : const Icon(Icons.menu_book_rounded, size: AppSizes.iconSm),
+                              label: Text(text.homeMoodSubmit(_selected.length)),
+                            ),
+                          ),
+                        ),
+            ),
           ],
         ),
-        AnimatedSize(
-          duration: AppDurations.normal,
-          curve: Curves.easeOut,
-          alignment: AlignmentDirectional.topStart,
-          child: hasAnsweredToday
-              ? Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        text.homeMoodAnsweredToday,
-                        style: context.texts.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      // The chips above reopen these too, but they read as
-                      // finished, not tappable — so the way back to the verses
-                      // is a control that says what it does.
-                      OutlinedButton.icon(
-                        onPressed: _viewing ? null : _viewToday,
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 40),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
-                          ),
-                        ),
-                        icon: _viewing
-                            ? SizedBox(
-                                width: AppSizes.iconSm,
-                                height: AppSizes.iconSm,
-                                child: const CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.menu_book_rounded,
-                                size: AppSizes.iconSm,
-                              ),
-                        label: Text(text.homeMoodViewToday(answeredToday.length)),
-                      ),
-                    ],
-                  ),
-                )
-              : _selected.isEmpty
-                  ? const SizedBox.shrink()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md),
-                      child: FilledButton.icon(
-                        onPressed: _submitting ? null : () => _submit(issues),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 40),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
-                          ),
-                        ),
-                        icon: _submitting
-                            ? SizedBox(
-                                width: AppSizes.iconSm,
-                                height: AppSizes.iconSm,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: context.colors.onPrimary,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.menu_book_rounded,
-                                size: AppSizes.iconSm,
-                              ),
-                        label: Text(text.homeMoodSubmit(_selected.length)),
-                      ),
-                    ),
-        ),
-      ],
+      ),
+    );
+  }
+
+  /// Inside a card the full-height button would outweigh the card itself.
+  static final ButtonStyle _buttonStyle = FilledButton.styleFrom(
+    minimumSize: const Size.fromHeight(AppSizes.buttonHeightSm),
+  );
+}
+
+class _ButtonSpinner extends StatelessWidget {
+  const _ButtonSpinner({this.color});
+
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: AppSizes.iconSm,
+      height: AppSizes.iconSm,
+      child: CircularProgressIndicator(strokeWidth: 2, color: color),
     );
   }
 }
@@ -294,6 +299,10 @@ class _MoodChip extends StatelessWidget {
     return FilterChip(
       selected: selected,
       onSelected: enabled ? (_) => onTap() : null,
+      // A chip's tap target is padded to 48 dp, which put a 48 dp row pitch on
+      // a ~32 dp chip and left the rows of this wrap far apart. Shrink-wrapped,
+      // the gap between rows is the `runSpacing` and nothing else.
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: Text(issue.name),
       labelStyle: context.texts.labelLarge?.copyWith(color: labelColor),
       avatar: selected

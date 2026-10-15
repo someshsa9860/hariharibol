@@ -125,20 +125,15 @@ class _ReelCaptionState extends State<ReelCaption> {
   /// A reel points at at most one of a verse, a mantra or a deity — the chip
   /// shows whichever is set, in that order of specificity.
   String? _subjectLabel(BuildContext context) {
-    final text = AppLocalizations.of(context);
     final reel = widget.reel;
 
     final verse = reel.verse;
     if (verse != null) {
-      // The API names the verse with its book. The numbers alone only ever
-      // distinguished two books, so any other would have been called "SB".
+      // The API names the verse with its book, in the reader's language
+      // (`Book.titleI18n`). The app does not name books: a book number says
+      // nothing about which book it is, and its name belongs to the database.
       final label = verse.label;
-      if (label != null && label.isNotEmpty) return label;
-      return text.reelVerseRef(
-        verse.bookNumber == 1 ? text.reelBookGita : text.reelBookBhagavatam,
-        verse.chapterNumber,
-        verse.verseNumber,
-      );
+      return label != null && label.isNotEmpty ? label : null;
     }
     return reel.mantra?.name ?? reel.deity?.name;
   }

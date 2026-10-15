@@ -4,7 +4,7 @@
 //
 //   npm run test:translation
 //
-// Nothing here can reach Anthropic or S3. The "model" is a stub, the bucket is a temporary folder
+// Nothing here can reach a model provider or S3. The "model" is a stub, the bucket is a temporary folder
 // (SOURCE_LOCAL_DIR) holding a fake Gita of 18 chapters × 2 verses, and the API copy is given a key that
 // is not real. The script refuses to run if a worker is connected to the translation queue, because that
 // worker would pick up the runs it creates.
@@ -390,7 +390,7 @@ async function main() {
       const noKeyRow = await newRun('ml');
       const noKey = await processRun(fakeJob(noKeyRow), 't', { ...depsWith(fakeClaude()), apiKey: () => '' }).catch((err) => err);
       const noKeyAfter = await reload(noKeyRow.id);
-      check('a worker without ANTHROPIC_API_KEY pauses with a config reason', noKey?.paused === 'config' && noKeyAfter.status === 'PAUSED' && noKeyAfter.pauseReason === 'config', `${noKeyAfter.status}/${noKeyAfter.pauseReason}`);
+      check('a worker without an API key pauses with a config reason', noKey?.paused === 'config' && noKeyAfter.status === 'PAUSED' && noKeyAfter.pauseReason === 'config', `${noKeyAfter.status}/${noKeyAfter.pauseReason}`);
     }
 
     /* -- 5. a spending limit ----------------------------------------------------------------------- */
@@ -617,7 +617,7 @@ async function main() {
       api = spawn(process.execPath, ['server.js'], {
         cwd: join(import.meta.dirname, '..'),
         env: {
-          ...process.env, PORT: String(PORT), SOURCE_LOCAL_DIR: dir, ANTHROPIC_API_KEY: 'e2e-not-a-real-key', TRANSLATION_VERSION: VERSION,
+          ...process.env, PORT: String(PORT), SOURCE_LOCAL_DIR: dir, ANTHROPIC_API_KEY: 'e2e-not-a-real-key', OPENAI_API_KEY: 'e2e-not-a-real-key', TRANSLATION_VERSION: VERSION,
           AWS_ACCESS_KEY_ID: '', AWS_SECRET_ACCESS_KEY: '',
         },
         stdio: ['ignore', 'pipe', 'pipe'],

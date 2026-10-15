@@ -22,6 +22,7 @@ import {
   DEFAULT_BOOK,
   cantoOf,
   isBook,
+  providerName,
   refreshCoverage,
   useCoverage,
   useImports,
@@ -600,7 +601,7 @@ function HistoryRow({ run, chapters, onOpen }: { run: Run; chapters: number; onO
       <TableCell className="tabular-nums text-muted-foreground">
         {run.scores[3]} · {run.scores[2]} · <span className={cn(run.scores[1] > 0 && 'font-medium text-amber-700 dark:text-amber-400')}>{run.scores[1]}</span>
       </TableCell>
-      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{run.provider === 'openai' ? 'OpenAI' : 'Claude'} · {run.model}</TableCell>
+      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{run.lanes && run.lanes.length > 1 ? `${run.lanes.length} models` : `${providerName(run.provider)} · ${run.model}`}</TableCell>
       <TableCell className="tabular-nums">{formatUsd(run.usage.costUsd)}</TableCell>
       <TableCell className="whitespace-nowrap text-muted-foreground">{timeAgo(run.createdAt)}</TableCell>
     </TableRow>

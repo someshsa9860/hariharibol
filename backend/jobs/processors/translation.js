@@ -10,7 +10,11 @@
 //   a failure waiting will not mend (a verse that will not translate) → FAILED, with the verse and why
 //
 // Every verse saved so far stays in S3, so a resumed run begins at the first one that is not. The
-// pipeline is scripts/lib/claude-translate-run.js, unchanged: this file feeds it and reports what it does.
+// pipeline is scripts/lib/claude-translate-run.js: this file feeds it and reports what it does.
+//
+// A run's plan may give the parts of a verse to different providers and models. Each group of parts that
+// shares one is a lane: the pipeline runs the lanes side by side, and the row's counters are their sums
+// (`doneVerses` and `totalVerses` count steps — one verse in one lane — which for a single lane are verses).
 
 import { DelayedError } from 'bullmq';
 
@@ -22,6 +26,7 @@ import { ConfigError, FINISHED_STATUSES, classifyError, microsOf, usdOf } from '
 
 import { createAsk, providerOf } from '../../scripts/lib/translate-providers.js';
 import { run as runPipeline } from '../../scripts/lib/claude-translate-run.js';
+import { lanesOf } from '../../scripts/lib/claude-translate-parts.js';
 import { DEFAULT_GROUP_BUDGET } from '../../scripts/lib/claude-translate-source.js';
 import { checkpointKey } from '../../scripts/lib/claude-translate-store.js';
 
@@ -129,7 +134,10 @@ function makeContext(row, job) {
     score1: row.score1, score2: row.score2, score3: row.score3,
     inputTokens: row.inputTokens, outputTokens: row.outputTokens, calls: row.calls, costMicros: row.costMicros,
     activeSeconds: row.activeSeconds, retriesInARow: row.retriesInARow,
+    // Per lane: { key, parts, provider, model, effort, done, total, calls, costMicros }. Filled in by `execute`.
+    lanes: Array.isArray(row.lanes) ? row.lanes.map((l) => ({ ...l })) : [],
   };
+  const laneOfPart = (part) => state.lanes.find((l) => l.parts.includes(part));
   let writing = Promise.resolve();
   let lastBeat = Date.now();
   let ticking = false;
@@ -139,6 +147,7 @@ function makeContext(row, job) {
     score1: state.score1, score2: state.score2, score3: state.score3,
     inputTokens: state.inputTokens, outputTokens: state.outputTokens, calls: state.calls, costMicros: state.costMicros,
     activeSeconds: Math.round(state.activeSeconds), retriesInARow: state.retriesInARow, heartbeatAt: new Date(),
+    lanes: state.lanes,
   });
 
   // Writes in order, one at a time; a failed write is logged and the next one carries the same numbers.
@@ -165,9 +174,16 @@ function makeContext(row, job) {
         state.inputTokens += (f.inputTokens ?? 0) + (name === 'call' ? f.cacheReadTokens ?? 0 : 0);
         state.outputTokens += f.outputTokens ?? 0;
         state.costMicros += microsOf(f.costUsd);
+        const lane = laneOfPart(f.parts?.[0]);
+        if (lane) {
+          lane.calls += 1;
+          lane.costMicros += microsOf(f.costUsd);
+        }
         flush();
       } else if (name === 'verse') {
         state.doneVerses += 1;
+        const lane = laneOfPart(f.parts?.[0]);
+        if (lane) lane.done += 1;
         state.current = null;
         state.retriesInARow = 0; // the run is moving again
         const score = Object.values(f.correctness || {})[0];
@@ -208,16 +224,47 @@ function makeContext(row, job) {
 
 async function execute(ctx, entry, deps) {
   const { row, state } = ctx;
-  const key = deps.apiKey(row.provider);
-  if (!key) throw new ConfigError(`${providerOf(row.provider).keyEnv} is not set on the worker.`);
+  const plan = service.planOfRow(row);
+  const lanes = lanesOf(plan);
+
+  // Every provider the plan calls needs its key on the worker; say which one is missing, once, before anything is spent.
+  const keys = {};
+  for (const lane of lanes) {
+    keys[lane.provider] ||= deps.apiKey(lane.provider);
+    if (!keys[lane.provider]) throw new ConfigError(`${providerOf(lane.provider).keyEnv} is not set on the worker.`);
+  }
+  // A client per lane, built now: one that cannot run its model at its effort fails here, as a config problem, not on a verse.
+  const clients = new Map();
+  for (const lane of lanes) {
+    clients.set(
+      lane.key,
+      deps.makeAsk({
+        provider: lane.provider, apiKey: keys[lane.provider], model: lane.model, effort: lane.effort, signal: entry.controller.signal,
+        onWait: (message) => service.pushFeed(row.id, { kind: 'wait', level: 'warn', text: lanes.length > 1 ? `[${lane.provider}] ${message}` : message }),
+      })
+    );
+  }
   const { store, getSource } = await deps.workspace();
 
   // Which verses are left, so the progress bar is true after a pause as well as at the start. Left means
   // not yet translated under the run's own version: a verse made under another one counts as left.
-  const verseLimit = row.verseLimit ? Math.max(0, row.verseLimit - state.doneVerses) : null;
+  // Each lane counts its own: the bar is in steps (a verse in a lane), done and total by lane.
+  const doneBefore = Object.fromEntries(state.lanes.map((l) => [l.key, l.done]));
+  const mostDone = Math.max(0, ...Object.values(doneBefore));
+  const verseLimit = row.verseLimit ? Math.max(0, row.verseLimit - mostDone) : null;
   if (verseLimit === 0) return { kind: 'finished', stopReason: 'limit' };
-  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, book: row.book, provider: row.provider, model: row.model, version: row.version });
-  state.totalVerses = state.doneVerses + left.willTranslate;
+  const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, book: row.book, provider: row.provider, model: row.model, plan, version: row.version });
+  const byKey = new Map(left.lanes.map((l) => [l.key, l]));
+  state.lanes = lanes.map((lane) => {
+    const before = state.lanes.find((l) => l.key === lane.key);
+    const done = before?.done ?? 0;
+    return {
+      key: lane.key, parts: lane.parts, provider: lane.provider, model: lane.model, effort: lane.effort,
+      done, total: done + (byKey.get(lane.key)?.willTranslate ?? 0), calls: before?.calls ?? 0, costMicros: before?.costMicros ?? 0,
+    };
+  });
+  state.doneVerses = state.lanes.reduce((n, l) => n + l.done, 0);
+  state.totalVerses = state.lanes.reduce((n, l) => n + l.total, 0);
   await ctx.flush();
   if (left.willTranslate === 0) return { kind: 'finished', stopReason: 'finished' };
 
@@ -230,12 +277,8 @@ async function execute(ctx, entry, deps) {
     maxSpend = (checkpoint?.costUsd ?? 0) + remaining;
   }
 
-  const ask = deps.makeAsk({
-    provider: row.provider, apiKey: key, model: row.model, effort: translation.effort, signal: entry.controller.signal,
-    onWait: (message) => service.pushFeed(row.id, { kind: 'wait', level: 'warn', text: message }),
-  });
   const cfg = {
-    book: row.book, provider: row.provider, model: row.model, effort: translation.effort, version: row.version, langs: [row.language], chapters: row.chapters,
+    book: row.book, provider: lanes[0].provider, model: lanes[0].model, effort: lanes[0].effort, plan, version: row.version, langs: [row.language], chapters: row.chapters,
     only: null, limit: verseLimit ?? 0, maxSpend, maxTokens: translation.maxTokens, groupBudget: DEFAULT_GROUP_BUDGET,
     maxRounds: translation.maxRounds,
     // The pipeline refuses to start while the checkpoint says another run is active. Our own earlier attempt,
@@ -245,7 +288,7 @@ async function execute(ctx, entry, deps) {
   };
 
   const result = await deps.runPipeline({
-    store, getSource, ask, cfg, signal: entry.controller.signal,
+    store, getSource, askFor: (lane) => clients.get(lane.key), cfg, signal: entry.controller.signal,
     log: { say: () => {}, event: (name, fields) => ctx.event(name, fields) },
   });
   return { kind: result.stopReason, stopReason: result.stopReason };
@@ -305,6 +348,7 @@ const progressData = (ctx) => {
     score1: state.score1, score2: state.score2, score3: state.score3,
     inputTokens: state.inputTokens, outputTokens: state.outputTokens, calls: state.calls, costMicros: state.costMicros,
     activeSeconds: Math.round(state.activeSeconds), retriesInARow: state.retriesInARow, heartbeatAt: new Date(),
+    lanes: state.lanes,
   };
 };
 

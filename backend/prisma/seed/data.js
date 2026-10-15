@@ -541,7 +541,6 @@ const books = [
     slug: 'bhagavad-gita',
     type: 'SCRIPTURE',
     title: 'Bhagavad Gita',
-    titleI18n: { hi: 'भगवद्गीता', mr: 'भगवद्गीता' },
     description: 'The song of the Lord, spoken to Arjuna on the field of Kurukshetra.',
     // One recording per verse: <folder>/<chapter>/<verse>.mp3 (utils/verse-audio.js).
     recitationParent: 'legacy/bhagvat-gita/mp3/chpaters-sloks',
@@ -552,7 +551,6 @@ const books = [
     slug: 'srimad-bhagavatam',
     type: 'SCRIPTURE',
     title: 'Srimad Bhagavatam',
-    titleI18n: { hi: 'श्रीमद्भागवतम्', mr: 'श्रीमद्भागवत' },
     description: 'The Bhagavata Purana, in twelve cantos.',
     displayOrder: 2,
   },

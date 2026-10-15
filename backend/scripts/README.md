@@ -192,8 +192,8 @@ what is already there. The seed names deity images but does not upload any.
 
 `translate-claude.js` translates Prabhupāda's Gita into **Marathi, Hindi and Tamil** (default `--langs hi,mr,ta`;
 
-Flags added for several providers and both books: `--provider anthropic|openai` (default Claude `claude-sonnet-5-5`; OpenAI `gpt-6-luna`, key `OPENAI_API_KEY`, model override `TRANSLATION_OPENAI_MODEL`) and `--book bhagavat-gita|srimad-bhagavatam`. For the Bhagavatam `--chapters` takes canto×100+chapter (`1047` = SB 1.47) and `--verse` takes an id like `2.1.47.3`.
-all seven app languages are available) with the Anthropic API, one verse at a time, saving each verse to S3
+Flags added for several providers and both books: `--provider openai|anthropic|gemini` (default OpenAI `gpt-6-luna`, key `OPENAI_API_KEY`, model override `TRANSLATION_OPENAI_MODEL`; `--provider anthropic` for Claude `claude-sonnet-5-5`, key `ANTHROPIC_API_KEY`, for what Luna scores 1; Gemini `gemini-3.5-flash-lite`, key `GEMINI_API_KEY`) and `--book bhagavat-gita|srimad-bhagavatam`. For the Bhagavatam `--chapters` takes canto×100+chapter (`1047` = SB 1.47) and `--verse` takes an id like `2.1.47.3`.
+all seven app languages are available) with an AI model (GPT-6 Luna by default; Claude and Gemini are options), one verse at a time, saving each verse to S3
 before the next begins. It is standalone (not `services/ai/`) and independent of the Gemini plan in
 `translate-verses-PLAN.md`.
 
@@ -292,8 +292,9 @@ same day is kept). Every write is conditional on the object not having changed s
 
 **Setup**
 
-1. Put a key in `backend/.env`: `ANTHROPIC_API_KEY=sk-ant-…` (`ANTHROPIC_MODEL` is optional;
-   default `claude-sonnet-5-5`; `TRANSLATION_VERSION` as above). The script never prints the key.
+1. Put a key in `backend/.env`: `OPENAI_API_KEY=…` for the default (GPT-6 Luna; `TRANSLATION_OPENAI_MODEL` is optional), or
+   `ANTHROPIC_API_KEY=sk-ant-…` for `--provider anthropic` (`ANTHROPIC_MODEL` is optional; default `claude-sonnet-5-5`);
+   `TRANSLATION_VERSION` as above. The script never prints a key.
 2. The English is read from, and the output written to, the bucket in `.env.scripts` (`SOURCE_*`) — the
    same bucket as the app's `S3_BUCKET`. Those credentials must be allowed to **write** under
    `json/bhagavat-gita/` and `json/reports/`, and to copy to `json-backup-*/`; the first checkpoint write
