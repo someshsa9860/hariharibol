@@ -601,6 +601,32 @@ day. Nothing in `sadhana/tasks` changed.
 
 `npm run test:routine` walks it against a running API.
 
+### Routine reminders: the verse behind each one
+
+The app schedules a **local** notification for each standard routine; the title is the task's name and the body is a verse.
+`RoutineKind` (one row per standard routine, keyed by the app's `RoutinePreset` name: `wakeUp`, `morningChant`, `exercise`,
+`breakfast`, `lunch`, `breakChant`, `eveningChant`, `dinner`, `scriptureReading`, `sleep`) and `RoutineNudge` (its verses) hold
+the content, seeded from `prisma/seed/routine-nudges.js` (`npm run seed`; add a verse by appending to its kind). Not per user.
+
+- `GET /api/app/routine/nudges` returns every active kind in the order of the day with its verses. A nudge's `text` is the
+  verse's translation in the reader's reading language when `verseId` (a `Verse.verseId` such as `1.2.69`) is imported and
+  published, else the seeded English (Śrīla Prabhupāda's translation). The link is soft because the book importers run apart
+  from the seed. The purport is not sent: a notification carries the verse, and tapping it can open the verse.
+- The app takes one verse per kind per day (day-of-year modulo the count), so it works offline once fetched.
+- **Voice, later.** `RoutineKind.voiceScript` holds the line to speak with `{name}` ("Hari Bol {name}, ..."); `voiceUrl` in the
+  response is always null today. When voice messages exist they will be per user and language, generated from the script, and
+  the app will play them with the same alert. Nothing generates or plays one yet.
+- **Rounds entered by hand already have an endpoint**: `POST /api/app/sadhana/chant/manual` (`rounds`, optional `date`) adds to
+  the day's total, the same table as in-app sittings. The break-chanting reminder is meant to open an entry sheet that calls it.
+
+**Rules the app's scheduling must follow** (decided with the owner; the app side is not built yet):
+- Reminders at least **3 hours apart**; when routine times are closer than that, the one with the verse that matters most
+  (wake up, chanting, sleep) wins and the rest are dropped, never moved.
+- **No reminder in the sleeping hours**, taken from the user's own routine (sleep start to wake up, on the phone's local
+  timezone) and kept to **6-8 hours**: a longer gap is cut to 8, a shorter one stretched to 6 around the sleep time.
+- **Notification Management** in Settings: each kind can be switched off, and **the voice (AI) message has its own switch**,
+  so someone can keep the alert and silence only the voice.
+
 ## The chant record (what a sitting stores)
 
 A `ChantSession` is one opening of the counter; `rounds` and `beads` only move forward (`PATCH …/chant/session/:id`), and a

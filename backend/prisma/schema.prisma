@@ -2048,6 +2048,57 @@ model RoutineCheck {
   @@index([userId, day])
 }
 
+// ----------------------------------------------------------------------------
+// Routine nudges: the verse a standard routine's reminder carries.
+//
+// The app has a fixed set of standard routines (wakeUp, morningChant, ... — the keys of
+// `RoutinePreset` in the app) and schedules a local reminder for each. A reminder's title
+// is the task's name and its body is a verse. These two tables are where those verses
+// come from, so they can be added to without a release. Not per user.
+// ----------------------------------------------------------------------------
+
+// One standard routine. `key` is the app's own name for it.
+model RoutineKind {
+  key String @id // wakeUp | morningChant | exercise | breakfast | lunch | eveningChant | dinner | scriptureReading | sleep
+
+  sortOrder Int @default(0) // the order of the day
+
+  // The spoken line, with {name} for the person: "Hari Bol {name}, it is time to wake up."
+  // Nothing reads it yet. A later job turns it into a voice message per user (the app plays
+  // `voiceUrl` when a nudge has one); it lives here so the script is written once, with the kind.
+  voiceScript String? @db.Text
+
+  isActive Boolean @default(true)
+
+  nudges RoutineNudge[]
+}
+
+// One verse for one kind. A kind has several; the app rotates through them by day.
+model RoutineNudge {
+  id String @id @default(cuid())
+
+  kindKey String
+  kind    RoutineKind @relation(fields: [kindKey], references: [key], onDelete: Cascade)
+
+  // The verse it is about, as `Verse.verseId` ("1.2.69"). A soft link on purpose: the book
+  // importers run separately from the seed, so the verse may not be in the database yet, and
+  // the nudge must still work. When the verse is there its translation in the reader's
+  // language is the body; `text` is what is shown when it is not.
+  verseId String?
+
+  reference String // "Bhagavad-gita 2.69", always shown with the text
+  text      String @db.Text // the verse's translation, in English — the fallback body
+
+  position Int     @default(0) // order within the kind
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kindKey, position])
+  @@index([verseId])
+}
+
 // ============================================================================
 // Reels — short-form creator video/image posts, and engagement on them
 // ============================================================================

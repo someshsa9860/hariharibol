@@ -22,6 +22,7 @@ import { translations } from './mantra-translations/index.js';
 import { bookTitles, cantoTitles, chapterTitles, fillMissing } from './section-titles/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
+import { routineKinds } from './routine-nudges.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
@@ -399,6 +400,30 @@ async function seedSettings() {
   log(`${data.settings.length} settings checked`);
 }
 
+async function seedRoutineNudges() {
+  let nudges = 0;
+  for (const [index, { kind, voice, verses }] of routineKinds.entries()) {
+    // A script an admin has edited is theirs: only a kind with none yet gets ours.
+    const existing = await prisma.routineKind.findUnique({ where: { key: kind }, select: { voiceScript: true } });
+    await prisma.routineKind.upsert({
+      where: { key: kind },
+      update: { sortOrder: index, ...(existing?.voiceScript ? {} : { voiceScript: voice }) },
+      create: { key: kind, sortOrder: index, voiceScript: voice },
+    });
+
+    for (const [position, verse] of verses.entries()) {
+      const fields = { verseId: verse.verseId, reference: verse.reference, text: verse.text };
+      await prisma.routineNudge.upsert({
+        where: { kindKey_position: { kindKey: kind, position } },
+        update: fields,
+        create: { kindKey: kind, position, ...fields },
+      });
+      nudges += 1;
+    }
+  }
+  log(`${routineKinds.length} routine kinds, ${nudges} verses`);
+}
+
 async function main() {
   console.log('Seeding HariHariBol...\n'); // eslint-disable-line no-console
 
@@ -413,6 +438,7 @@ async function main() {
   await seedStories();
   await seedPlansAndTopics();
   await seedSettings();
+  await seedRoutineNudges();
 
   const admins = await prisma.user.count({ where: { role: { slug: { not: 'user' } } } });
 

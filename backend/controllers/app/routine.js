@@ -8,6 +8,8 @@
 
 import { prisma } from '../../config/database.js';
 import { ok } from '../../utils/respond.js';
+import * as language from '../../utils/language.js';
+import { DEFAULT_LANGUAGE } from '../../config/constants.js';
 
 /** A stored row in the shape the phone keeps it in. Absent beats null for an optional number. */
 function present(row, fields) {
@@ -99,4 +101,61 @@ export const sync = async (req, res) => {
   ]);
 
   return ok(res, await snapshot(userId, since));
+};
+
+/**
+ * GET /api/app/routine/nudges
+ *
+ * The verse behind each standard routine's reminder, for the app to schedule local
+ * notifications from: the task's name is the title and `text` the body. A kind has several
+ * verses, in the order they were seeded; the app takes a different one each day. The text is
+ * the verse's translation in the reader's language when that verse and language are in the
+ * database, and the seeded English otherwise — so a reminder is never empty.
+ *
+ * `voiceScript` and `voiceUrl` are for the voice message of a later release: the script still
+ * has `{name}` in it, and the url is null until a message has been made for this person.
+ */
+export const nudges = async (req, res) => {
+  const chain = language.readingChain(req.auth.user);
+
+  const kinds = await prisma.routineKind.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    include: { nudges: { where: { isActive: true }, orderBy: { position: 'asc' } } },
+  });
+
+  const verseIds = [...new Set(kinds.flatMap((kind) => kind.nudges.map((nudge) => nudge.verseId)).filter(Boolean))];
+  const verses = verseIds.length
+    ? await prisma.verse.findMany({
+        where: { verseId: { in: verseIds } },
+        select: {
+          verseId: true,
+          translations: {
+            where: { isPublished: true, languageCode: { in: chain } },
+            orderBy: { displayOrder: 'asc' },
+            select: { languageCode: true, type: true, meaning: true },
+          },
+        },
+      })
+    : [];
+  const translationOf = new Map(verses.map((verse) => [verse.verseId, language.pickTranslation(verse.translations, chain)]));
+
+  return ok(res, {
+    kinds: kinds.map((kind) => ({
+      key: kind.key,
+      voiceScript: kind.voiceScript,
+      voiceUrl: null,
+      nudges: kind.nudges.map((nudge) => {
+        const translation = nudge.verseId ? translationOf.get(nudge.verseId) : null;
+        const own = translation?.meaning?.trim();
+        return {
+          id: nudge.id,
+          verseId: nudge.verseId,
+          reference: nudge.reference,
+          text: own || nudge.text,
+          languageCode: own ? translation.languageCode : DEFAULT_LANGUAGE,
+        };
+      }),
+    })),
+  });
 };

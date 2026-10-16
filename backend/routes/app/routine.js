@@ -69,6 +69,22 @@ router.get(
   controller.read
 );
 
+router.get(
+  '/nudges',
+  {
+    summary: 'The verses for the standard routine reminders',
+    description:
+      'For each standard routine (wakeUp, morningChant, ... — the app\'s own keys) the verses its ' +
+      'local reminder can carry, with the text in the reader\'s reading language when the verse ' +
+      'is imported and the seeded English when not. The app schedules the notifications from ' +
+      'this, one verse a day per routine. `voiceScript` (with {name}) and `voiceUrl` (null) are ' +
+      'reserved for the voice messages of a later release.',
+    limit: 'read',
+    responds: { 200: 'kinds, each with its nudges' },
+  },
+  controller.nudges
+);
+
 router.post(
   '/sync',
   {
