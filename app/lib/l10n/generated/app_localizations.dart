@@ -2925,6 +2925,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verse {number} · {section}'**
   String labelVerseWithSection(int number, String section);
+
+  /// Title of the AI chat screen (the list of chats).
+  ///
+  /// In en, this message translates to:
+  /// **'AI assistant'**
+  String get chatTitle;
+
+  /// Heading of the card on Home that opens the AI chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the assistant'**
+  String get chatHomeTitle;
+
+  /// Second line of the card on Home that opens the AI chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions on scripture, mantras and your practice'**
+  String get chatHomeBody;
+
+  /// Button and title for starting a new AI chat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get chatNewChat;
+
+  /// Heading of the introduction shown when there are no chats or messages yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your devotional assistant'**
+  String get chatIntroTitle;
+
+  /// Hint under the introduction in an empty chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about a verse, a mantra or your practice.'**
+  String get chatIntroHint;
+
+  /// Placeholder in the box where a question to the assistant is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a question'**
+  String get chatComposerHint;
+
+  /// Tooltip of the send button in the chat box.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// Tooltip of the stop button that ends a reply being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get chatStop;
+
+  /// Characters typed against the most a message may have. Shown near the limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max}'**
+  String chatCharacterCount(int count, int max);
+
+  /// The credit meter: how much of the reader's credit is left, as a percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% left'**
+  String chatCreditsLeft(int percent);
+
+  /// The credit meter with the reader's level name after it (the level is a name set in the admin panel).
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% left · {level}'**
+  String chatCreditsLeftLevel(int percent, String level);
+
+  /// Hint by the credit meter when today's allowance is what limits the reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets at midnight'**
+  String get chatCreditsResetsMidnight;
+
+  /// Hint by the credit meter: the day the plan's credits renew.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews {date}'**
+  String chatCreditsRenews(DateTime date);
+
+  /// Heading of the card shown when the reader's plan has no AI chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat is not part of your plan'**
+  String get chatNotAvailableTitle;
+
+  /// Body of the card shown when the reader's plan has no AI chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade your plan to ask the assistant your questions.'**
+  String get chatNotAvailableBody;
+
+  /// Heading of the card shown when the daily allowance of AI chat credits is used up.
+  ///
+  /// In en, this message translates to:
+  /// **'You have used today\'s credits'**
+  String get chatExhaustedDailyTitle;
+
+  /// Body of the card shown when the daily allowance of AI chat credits is used up.
+  ///
+  /// In en, this message translates to:
+  /// **'They refill at midnight. You can carry on then, or upgrade for more.'**
+  String get chatExhaustedDailyBody;
+
+  /// Heading of the card shown when the plan's AI chat credits are used up.
+  ///
+  /// In en, this message translates to:
+  /// **'Your credits have run out'**
+  String get chatExhaustedWalletTitle;
+
+  /// Body of the card shown when the plan's AI chat credits are used up.
+  ///
+  /// In en, this message translates to:
+  /// **'They renew with your plan. You can wait, or upgrade to keep going.'**
+  String get chatExhaustedWalletBody;
+
+  /// Heading of the card shown when one conversation has used the share of credits allowed to it.
+  ///
+  /// In en, this message translates to:
+  /// **'This chat has used its share of credits'**
+  String get chatShareUsedTitle;
+
+  /// Body of the card shown when one conversation has used the share of credits allowed to it.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new chat and the assistant will carry on from where you were.'**
+  String get chatShareUsedBody;
+
+  /// Button on the out-of-credits card that opens the plans screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade'**
+  String get chatUpgrade;
+
+  /// Button that opens a new chat carrying the summary of the full one.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new chat'**
+  String get chatStartNewChat;
+
+  /// Heading of the banner shown in place of the message box when a chat has reached its limit.
+  ///
+  /// In en, this message translates to:
+  /// **'This chat has grown long'**
+  String get chatFullTitle;
+
+  /// Body of the banner shown when a chat has reached its limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new chat and the assistant will carry our conversation forward.'**
+  String get chatFullBody;
+
+  /// Shown after starting a new chat when credits did not stretch to summarising the latest messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest messages could not be summarised, so only the earlier part came along.'**
+  String get chatContinuePartial;
+
+  /// Shown while the assistant folds older messages into a summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidying our conversation…'**
+  String get chatTidying;
+
+  /// Spoken label of the three dots shown while a reply is awaited.
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant is writing'**
+  String get chatTyping;
+
+  /// Shown under a reply that was cut off by a dropped connection, beside Try again.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost. What arrived is kept above.'**
+  String get chatConnectionLost;
+
+  /// Shown when the server could not finish writing a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'The reply could not be finished.'**
+  String get chatReplyFailed;
+
+  /// Shown when a question is sent while another reply is still being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait for the current reply to finish.'**
+  String get chatBusy;
+
+  /// Shown when a question is longer than the assistant accepts.
+  ///
+  /// In en, this message translates to:
+  /// **'That message is too long. Please shorten it.'**
+  String get chatTooLong;
+
+  /// Small note under a reply the reader stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get chatStopped;
+
+  /// Small note under a reply that was cut off before it ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Interrupted'**
+  String get chatInterrupted;
+
+  /// Tooltip of the button that copies a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatCopy;
+
+  /// Message after a reply is copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get chatCopied;
+
+  /// Tooltip of the button that shares a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get chatShare;
+
+  /// Tooltip of the button that asks for the last reply again.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get chatRegenerate;
+
+  /// Message after a link in a reply is tapped and copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get chatLinkCopied;
+
+  /// Shown in place of an image in a reply that could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable'**
+  String get chatImageUnavailable;
+
+  /// Tooltip of the three-dot menu on a chat.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get chatMoreActions;
+
+  /// Menu item that folds older messages of a chat into a summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact context'**
+  String get chatMenuCompact;
+
+  /// Menu item that renames a chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get chatMenuRename;
+
+  /// Title of the dialog that renames a chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename chat'**
+  String get chatRenameTitle;
+
+  /// Placeholder of the box in the rename dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat name'**
+  String get chatRenameHint;
+
+  /// Title of the confirmation before a chat is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this chat?'**
+  String get chatDeleteTitle;
+
+  /// Body of the confirmation before a chat is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'The conversation is removed. Credits already used are not returned.'**
+  String get chatDeleteBody;
+
+  /// Message after the reader compacts a chat and something was folded into the summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation tidied. Older messages are now summarised.'**
+  String get chatCompactDone;
+
+  /// Message after the reader compacts a chat that has nothing worth folding.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to tidy yet.'**
+  String get chatCompactNothing;
 }
 
 class _AppLocalizationsDelegate

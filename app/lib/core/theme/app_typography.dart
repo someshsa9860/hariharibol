@@ -111,6 +111,18 @@ abstract final class AppTypography {
     );
   }
 
+  /// Code in an answer: the phone's own monospace face, one step smaller than
+  /// the body so a line of it does not outrun the screen.
+  static TextStyle code(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return base.copyWith(
+      fontFamily: 'monospace',
+      fontFamilyFallback: const ['Menlo', 'Courier'],
+      fontSize: (base.fontSize ?? 14) * 0.92,
+      height: 1.45,
+    );
+  }
+
   /// A section heading above a list.
   static TextStyle section(BuildContext context) {
     return Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 20);

@@ -37,6 +37,15 @@ abstract final class ApiPaths {
   static const String routine = '$_app/routine';
   static const String routineSync = '$_app/routine/sync';
 
+  // AI chat
+  static const String chatStatus = '$_app/chat/status';
+  static const String chatConversations = '$_app/chat/conversations';
+  static String chatConversation(String id) => '$_app/chat/conversations/$id';
+  static String chatMessages(String id) => '$_app/chat/conversations/$id/messages';
+  static String chatRegenerate(String id) => '$_app/chat/conversations/$id/regenerate';
+  static String chatCompact(String id) => '$_app/chat/conversations/$id/compact';
+  static String chatContinue(String id) => '$_app/chat/conversations/$id/continue';
+
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
@@ -158,4 +167,7 @@ abstract final class ApiHeaders {
   static const String requestId = 'X-Request-Id';
   static const String appCheck = 'X-Firebase-AppCheck';
   static const String acceptLanguage = 'Accept-Language';
+
+  /// What a Server-Sent Events request asks for.
+  static const String eventStream = 'text/event-stream';
 }

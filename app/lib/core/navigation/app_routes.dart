@@ -97,6 +97,14 @@ abstract final class AppRoutes {
   static const String creatorPattern = '/creators/:id';
   static String creatorPath(String id) => '/creators/$id';
 
+  /// The assistant. The list of chats, one chat, and a chat not started yet —
+  /// `/chat/new` is the same screen as `/chat/:id` with nothing to load, and
+  /// the conversation is made when the first message is sent.
+  static const String chat = '/chat';
+  static const String chatNew = '/chat/new';
+  static const String chatPattern = '/chat/:id';
+  static String chatPath(String id) => '/chat/$id';
+
   static const List<String> tabs = [home, sadhana, library, routine];
 }
 
@@ -125,4 +133,6 @@ abstract final class RouteNames {
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';
   static const String creatorProfile = 'creatorProfile';
+  static const String chatList = 'chatList';
+  static const String chatDetail = 'chatDetail';
 }
