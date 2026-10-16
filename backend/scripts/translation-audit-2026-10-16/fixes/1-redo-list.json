@@ -1,0 +1,65 @@
+{
+ "_about": "Fix 1 of the 2026-10-16 audit: the six verses whose every part is mojibake. All parts are translated again by claude-sonnet-5-5 (parts the English does not have are skipped).",
+ "redo": [
+  {
+   "lang": "bn",
+   "verseId": "1.3.11",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  },
+  {
+   "lang": "bn",
+   "verseId": "1.9.11",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  },
+  {
+   "lang": "bn",
+   "verseId": "1.10.37",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  },
+  {
+   "lang": "bn",
+   "verseId": "1.11.25",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  },
+  {
+   "lang": "te",
+   "verseId": "1.3.9",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  },
+  {
+   "lang": "te",
+   "verseId": "1.11.46",
+   "parts": [
+    "translation",
+    "transliteration",
+    "wordMeanings",
+    "purport"
+   ]
+  }
+ ]
+}

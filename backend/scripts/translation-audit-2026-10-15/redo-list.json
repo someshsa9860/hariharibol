@@ -1,0 +1,233 @@
+{
+  "_about": "Audit lists A and B as tasks for scripts/redo-translation-parts.js. redo = the named parts are translated again by the model; touchUp = English words left in a text are given their wording and nothing else changes.",
+  "redo": [
+    {
+      "lang": "ml",
+      "verseId": "1.2.7",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.2.42",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.10.23",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.13.6",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.16.23",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.17.13",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.18.14",
+      "parts": [
+        "translation",
+        "wordMeanings",
+        "purport"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.18.42",
+      "parts": [
+        "translation",
+        "wordMeanings"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.18.45",
+      "parts": [
+        "translation",
+        "wordMeanings"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.12.5",
+      "parts": [
+        "wordMeanings"
+      ]
+    }
+  ],
+  "touchUp": [
+    {
+      "lang": "ml",
+      "verseId": "1.14.20",
+      "part": "translation"
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.2.13",
+      "part": "purport",
+      "hint": "\"transmigrate ചെയ്യുന്നു/ചെയ്യുന്നത്\" is one verb phrase: the soul passes from one body to another. Use the plain verb മാറുക in the form each sentence needs (മാറുന്നു / മാറുന്നത്), as the same book does in 1.15.8 (\"ശരീരത്തിലേക്ക് മാറും\"); a noun + ചെയ്യുന്നു reads badly."
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.3.19",
+      "part": "purport"
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.6.47",
+      "part": "purport",
+      "keep": [
+        "worship"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.8.10",
+      "part": "purport",
+      "sanskrit": [
+        "yoga-balena"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.13.3",
+      "part": "purport",
+      "fragments": [
+        "വേ"
+      ]
+    },
+    {
+      "lang": "ml",
+      "verseId": "1.13.22",
+      "part": "purport",
+      "hint": "\"transmigrate ചെയ്യുന്നു/ചെയ്യുന്നത്\" is one verb phrase: the soul passes from one body to another. Use the plain verb മാറുക in the form each sentence needs (മാറുന്നു / മാറുന്നത്), as the same book does in 1.15.8 (\"ശരീരത്തിലേക്ക് മാറും\"); a noun + ചെയ്യുന്നു reads badly."
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.6.8",
+      "part": "translation"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.6.40",
+      "part": "translation"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.6.47",
+      "part": "translation",
+      "fragments": [
+        "எனக்குத் த"
+      ],
+      "hint": "The gap takes in the word எனக்குத் (\"to Me\"): its த் belonged to the dropped word, so write எனக்கு (no த்) and then the adjective for \"transcendental\" (\"transcendental loving service\")."
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.7.10",
+      "part": "translation",
+      "fragments": [
+        "ஆதிச்"
+      ],
+      "hint": "The broken start \"ஆதிச்\" is ஆதி (\"original, primeval\") with a stray ச்; \"original seed\" is what the English says, so the meaning \"original\" must stay."
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.8.3",
+      "part": "translation"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.17.25",
+      "part": "translation"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.6.47",
+      "part": "purport",
+      "sanskrit": [
+        "bhajanti",
+        "bhaj",
+        "bhajate"
+      ]
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.7.6",
+      "part": "purport",
+      "fragments": [
+        "இந்தப் பொர"
+      ]
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.7.17",
+      "part": "purport"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.11.5",
+      "part": "purport",
+      "hint": "The sentence is \"that form, though it is transcendental, …\". The word வடிவம் is already in the sentence, so give only the adjective phrase that fits before \"இருந்தாலும்\" — not another வடிவம்."
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.12.8",
+      "part": "purport"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.14.5",
+      "part": "purport"
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.11.54",
+      "part": "purport",
+      "sanskrit": [
+        "na",
+        "tu"
+      ]
+    },
+    {
+      "lang": "ta",
+      "verseId": "1.9.4",
+      "part": "wordMeanings",
+      "fragments": [
+        "உயிர்வாழ்"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1109 @@
+{
+ "at": "2026-10-16T04:16:28.459Z",
+ "store": "s3://sanatan-db/",
+ "version": "1.0-12-10-26",
+ "model": "claude-sonnet-5-5",
+ "spent": 0.19960979999999998,
+ "stopped": null,
+ "items": [
+  {
+   "lang": "bn",
+   "chapter": 3,
+   "verseId": "1.3.11",
+   "before": "1c67f380d4f75665b2f407d077253068b7d73dcc",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings",
+     "purport"
+    ],
+    "scores": {
+     "translation": 3,
+     "transliteration": 3,
+     "wordMeanings": 3,
+     "purport": 3
+    },
+    "rounds": 1,
+    "warnings": []
+   },
+   "touchUps": [],
+   "costUsd": 0.030618,
+   "verse": {
+    "verseId": "1.3.11",
+    "globalVerseNumber": 130,
+    "bookNumber": 1,
+    "chapterNumber": 3,
+    "verseNumber": 11,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "দেবান্ভাবযতানেন তে দেবা ভাবযন্তু বঃ ।\nপরস্পরং ভাবযন্তঃ শ্রেযঃ পরমবাপ্স্যথ ॥3-11॥",
+    "wordMeanings": [
+     {
+      "word": "দেবান্",
+      "meaning": "দেবতাদের"
+     },
+     {
+      "word": "ভাবযতা",
+      "meaning": "সন্তুষ্ট করে"
+     },
+     {
+      "word": "অনেন",
+      "meaning": "এই যজ্ঞের দ্বারা"
+     },
+     {
+      "word": "তে",
+      "meaning": "সেই"
+     },
+     {
+      "word": "দেবাঃ",
+      "meaning": "দেবতারা"
+     },
+     {
+      "word": "ভাবযন্তু",
+      "meaning": "সন্তুষ্ট করবেন"
+     },
+     {
+      "word": "বঃ",
+      "meaning": "তোমাদের"
+     },
+     {
+      "word": "পরস্পরম্",
+      "meaning": "পরস্পরকে"
+     },
+     {
+      "word": "ভাবযন্তঃ",
+      "meaning": "পরস্পরকে সন্তুষ্ট করে"
+     },
+     {
+      "word": "শ্রেযঃ",
+      "meaning": "কল্যাণ"
+     },
+     {
+      "word": "পরম্",
+      "meaning": "পরম"
+     },
+     {
+      "word": "অবাপ্স্যথ",
+      "meaning": "তোমরা লাভ করবে"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "bn",
+      "displayOrder": 1,
+      "text": "যজ্ঞে সন্তুষ্ট হয়ে দেবতারাও তোমাদের সন্তুষ্ট করবেন, এইভাবে মানুষ ও দেবতাদের পারস্পরিক সহযোগিতার ফলে সকলের জন্য সমৃদ্ধি বিরাজ করবে।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     },
+     {
+      "translatorSlug": "prabhupada",
+      "type": "purport",
+      "language": "bn",
+      "displayOrder": 2,
+      "text": "দেবতারা জড় জগতের কার্যকলাপের ক্ষমতাপ্রাপ্ত প্রশাসক। প্রত্যেক জীবের দেহ ও আত্মা রক্ষার জন্য বায়ু, আলো, জল এবং অন্যান্য সমস্ত আশীর্বাদ সরবরাহের দায়িত্ব দেবতাদের উপর ন্যস্ত, যাঁরা পরমেশ্বর ভগবানের দেহের বিভিন্ন অংশে অসংখ্য সহকারী। তাঁদের সন্তোষ ও অসন্তোষ মানুষের যজ্ঞ অনুষ্ঠানের উপর নির্ভরশীল। কিছু যজ্ঞ বিশেষ বিশেষ দেবতাদের সন্তুষ্টির জন্য; কিন্তু তা করার সময়েও সমস্ত যজ্ঞে ভগবান বিষ্ণুই প্রধান ভোক্তারূপে পূজিত হন। ভগবদ্গীতাতেও বলা হয়েছে যে, কৃষ্ণ স্বয়ং সর্বপ্রকার যজ্ঞের ভোক্তা: ভোক্তারং যজ্ঞ-তপসাম্। অতএব যজ্ঞ-পতির পরম সন্তুষ্টিই সমস্ত যজ্ঞের প্রধান উদ্দেশ্য। এই যজ্ঞগুলি যখন যথাযথভাবে অনুষ্ঠিত হয়, তখন স্বাভাবিকভাবেই সরবরাহের বিভিন্ন বিভাগের দায়িত্বপ্রাপ্ত দেবতারা সন্তুষ্ট হন, এবং প্রাকৃতিক সম্পদের সরবরাহে কোনও অভাব থাকে না। যজ্ঞ অনুষ্ঠানের অনেক আনুষঙ্গিক ফল আছে, যা পরিণামে জড় বন্ধন থেকে মুক্তি দান করে। যজ্ঞ অনুষ্ঠানের দ্বারা সমস্ত কার্যকলাপ পবিত্র হয়, যেমন বেদে বলা হয়েছে: আহার-শুদ্ধৌ সত্ত্ব-শুদ্ধিঃ সত্ত্ব-শুদ্ধৌ ধ্রুবা স্মৃতিঃ স্মৃতি-লম্ভে সর্ব-গ্রন্থীনাং বিপ্রমোক্ষঃ। যজ্ঞ অনুষ্ঠানের দ্বারা আহার্য বস্তু পবিত্র হয়, এবং পবিত্র আহার্য গ্রহণ করে মানুষের অস্তিত্বই শুদ্ধ হয়; অস্তিত্বের শুদ্ধির দ্বারা স্মৃতির সূক্ষ্মতর কোষগুলি পবিত্র হয়, এবং স্মৃতি পবিত্র হলে মানুষ মুক্তির পথের কথা চিন্তা করতে পারে, আর এই সমস্ত একত্রে কৃষ্ণভাবনামৃতের দিকে নিয়ে যায়, যা বর্তমান সমাজের পরম প্রয়োজন।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "522597a896ed7459",
+     "generatedAt": "2026-10-16T04:14:31.933Z",
+     "correctness": 3,
+     "partScores": {
+      "translation": 3,
+      "transliteration": 3,
+      "wordMeanings": 3,
+      "purport": 3
+     },
+     "warnings": [],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "cce0926cf7385fb5",
+       "generatedAt": "2026-10-16T04:14:31.933Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "0c927a4ce6472aa7",
+       "generatedAt": "2026-10-16T04:14:31.933Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "6390ce1966c20859",
+       "generatedAt": "2026-10-16T04:14:31.933Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "purport": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "a01397dd9124a3b3",
+       "generatedAt": "2026-10-16T04:14:31.933Z",
+       "correctness": 3,
+       "warnings": []
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 3
+  },
+  {
+   "lang": "bn",
+   "chapter": 9,
+   "verseId": "1.9.11",
+   "before": "ae5ccaac0acfd16f7b7b1f4d428580ec0a133beb",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings",
+     "purport"
+    ],
+    "scores": {
+     "translation": 3,
+     "transliteration": 3,
+     "wordMeanings": 3,
+     "purport": 2
+    },
+    "rounds": 1,
+    "warnings": [
+     "purport: rated 2 by Claude"
+    ]
+   },
+   "touchUps": [],
+   "costUsd": 0.0767,
+   "verse": {
+    "verseId": "1.9.11",
+    "globalVerseNumber": 349,
+    "bookNumber": 1,
+    "chapterNumber": 9,
+    "verseNumber": 11,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "অবজানন্তি মাং মূঢ়া মানুষীং তনুমাশ্রিতম্ ।\nপরং ভাবমজানন্তো মম ভূতমহেশ্বরম্ ॥ ৯-১১॥",
+    "wordMeanings": [
+     {
+      "word": "অবজানন্তি",
+      "meaning": "উপহাস করে"
+     },
+     {
+      "word": "মাম্",
+      "meaning": "আমাকে"
+     },
+     {
+      "word": "মূঢ়াঃ",
+      "meaning": "মূঢ় ব্যক্তিরা"
+     },
+     {
+      "word": "মানুষীম্",
+      "meaning": "মানবরূপে"
+     },
+     {
+      "word": "তনুম্",
+      "meaning": "দেহ"
+     },
+     {
+      "word": "আশ্রিতম্",
+      "meaning": "ধারণ করলে"
+     },
+     {
+      "word": "পরম্",
+      "meaning": "চিন্ময়"
+     },
+     {
+      "word": "ভাবম্",
+      "meaning": "স্বরূপ"
+     },
+     {
+      "word": "অজানন্তঃ",
+      "meaning": "না জেনে"
+     },
+     {
+      "word": "মম",
+      "meaning": "আমার"
+     },
+     {
+      "word": "ভূত",
+      "meaning": "সর্বভূতের"
+     },
+     {
+      "word": "মহা-ঈশ্বরম্",
+      "meaning": "পরম অধীশ্বর"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "bn",
+      "displayOrder": 1,
+      "text": "আমি যখন মানবরূপে অবতীর্ণ হই, তখন মূঢ় ব্যক্তিরা আমাকে উপহাস করে। সর্বভূতের পরমেশ্বর-রূপে আমার যে চিন্ময় স্বরূপ, তা তারা জানে না।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     },
+     {
+      "translatorSlug": "prabhupada",
+      "type": "purport",
+      "language": "bn",
+      "displayOrder": 2,
+      "text": "এই অধ্যায়ের পূর্ববর্তী শ্লোকগুলির অন্যান্য ব্যাখ্যা থেকে স্পষ্ট যে, পরমেশ্বর ভগবান মানুষের মতো আবির্ভূত হলেও তিনি সাধারণ মানুষ নন। যে পুরুষোত্তম ভগবান সমগ্র জড় সৃষ্টির সৃষ্টি, পালন ও সংহার পরিচালনা করেন, তিনি মানুষ হতে পারেন না। তবু অনেক মূর্খ লোক কৃষ্ণকে কেবল একজন শক্তিশালী মানুষ বলে মনে করে, তার বেশি কিছু নয়। বাস্তবে তিনিই আদি পরম পুরুষ, যা ব্রহ্মসংহিতায় (ঈশ্বরঃ পরমঃ কৃষ্ণঃ) নিশ্চিতভাবে বলা হয়েছে; তিনিই পরমেশ্বর। ঈশ্বর বা নিয়ন্তা অনেক আছেন, আর একজনকে অন্যজনের চেয়ে বড় বলে মনে হয়। জড় জগতের সাধারণ কাজকর্মের পরিচালনায় আমরা দেখি কোনো কর্মকর্তা বা পরিচালক, তাঁর উপরে একজন সচিব, তাঁর উপরে একজন মন্ত্রী, আর তাঁর উপরে একজন রাষ্ট্রপতি। এঁরা প্রত্যেকেই নিয়ন্তা, কিন্তু একজন অন্যজনের দ্বারা নিয়ন্ত্রিত। ব্রহ্মসংহিতায় বলা হয়েছে যে কৃষ্ণ পরম নিয়ন্তা; জড় ও চিন্ময় উভয় জগতেই নিঃসন্দেহে অনেক নিয়ন্তা আছেন, কিন্তু কৃষ্ণই পরম নিয়ন্তা (ঈশ্বরঃ পরমঃ কৃষ্ণঃ), এবং তাঁর দেহ সচ্চিদানন্দময়, অজড়। জড় দেহ পূর্ববর্তী শ্লোকগুলিতে বর্ণিত অদ্ভুত কার্যাবলী সম্পাদন করতে পারে না। তাঁর দেহ নিত্য, আনন্দময় ও জ্ঞানপূর্ণ। তিনি সাধারণ মানুষ না হলেও মূর্খেরা তাঁকে উপহাস করে এবং মানুষ বলে মনে করে। এখানে তাঁর দেহকে মানুষীম্ বলা হয়েছে, কারণ তিনি ঠিক মানুষের মতোই আচরণ করছেন, অর্জুনের সখা এবং কুরুক্ষেত্র যুদ্ধে জড়িত এক রাজনীতিবিদের মতো। বহু ভাবে তিনি ঠিক সাধারণ মানুষের মতো আচরণ করছেন, কিন্তু বাস্তবে তাঁর দেহ সচ্চিদানন্দ-বিগ্রহ—নিত্য আনন্দ ও পরম জ্ঞান। বৈদিক ভাষাতেও এটি নিশ্চিত করা হয়েছে। সচ্চিদানন্দরূপায় কৃষ্ণায়: “সেই পরমেশ্বর ভগবান কৃষ্ণকে আমি প্রণাম জানাই, যিনি জ্ঞানের নিত্য আনন্দময় রূপ।” (গোপাল-তাপনী উপনিষদ ১.১) বৈদিক ভাষায় আরও বর্ণনা আছে। তম্ একং গোবিন্দম্: “তুমি গোবিন্দ, ইন্দ্রিয় ও গাভীদের আনন্দদাতা।” সচ্চিদানন্দ-বিগ্রহম্: “আর তোমার রূপ চিন্ময়, জ্ঞান, আনন্দ ও নিত্যতায় পূর্ণ।” (গোপাল-তাপনী উপনিষদ ১.৩৮) শ্রীকৃষ্ণের দেহের চিন্ময় গুণাবলী, তার পূর্ণ আনন্দ ও জ্ঞান থাকা সত্ত্বেও ভগবদ্গীতার বহু তথাকথিত পণ্ডিত ও ভাষ্যকার কৃষ্ণকে সাধারণ মানুষ বলে উপহাস করে। পূর্বকৃত সৎকর্মের ফলে পণ্ডিত অসাধারণ মানুষরূপে জন্মগ্রহণ করতে পারেন, কিন্তু শ্রীকৃষ্ণ সম্বন্ধে এই ধারণা জ্ঞানের দৈন্য থেকেই হয়। তাই তাকে মূঢ় বলা হয়, কারণ কেবল মূর্খ ব্যক্তিরাই কৃষ্ণকে সাধারণ মানুষ বলে মনে করে। মূর্খেরা কৃষ্ণকে সাধারণ মানুষ মনে করে কারণ তারা পরমেশ্বরের গোপনীয় লীলা ও তাঁর বিভিন্ন শক্তি সম্বন্ধে জানে না। তারা জানে না যে কৃষ্ণের দেহ পূর্ণ জ্ঞান ও আনন্দের প্রতীক, তিনি সর্বভূতের অধীশ্বর এবং তিনি যে কাউকে মুক্তি দান করতে পারেন। কৃষ্ণের যে এত চিন্ময় গুণ আছে তা না জানার ফলে তারা তাঁকে উপহাস করে। তারা এটাও জানে না যে এই জড় জগতে পরমেশ্বর ভগবানের আবির্ভাব তাঁর অন্তরঙ্গা শক্তির প্রকাশ। তিনি জড়া শক্তির প্রভু। বহু স্থানে যেমন ব্যাখ্যা করা হয়েছে (মম মায়া দুরত্যয়া), তিনি দাবি করেন যে জড়া শক্তি অত্যন্ত শক্তিশালী হলেও তাঁর নিয়ন্ত্রণাধীন, এবং যে তাঁর শরণাগত হয় সে এই জড়া শক্তির নিয়ন্ত্রণ থেকে মুক্ত হতে পারে। কৃষ্ণের শরণাগত জীব যদি জড়া শক্তির প্রভাব থেকে মুক্ত হতে পারে, তাহলে সমগ্র জড় প্রকৃতির সৃষ্টি, পালন ও সংহার যিনি পরিচালনা করেন, সেই পরমেশ্বর ভগবানের আমাদের মতো জড় দেহ কীভাবে থাকতে পারে? সুতরাং কৃষ্ণ সম্বন্ধে এই ধারণা সম্পূর্ণ মূর্খতা। মূর্খ ব্যক্তিরা অবশ্য কল্পনা করতে পারে না যে সাধারণ মানুষের মতো আবির্ভূত পুরুষোত্তম ভগবান কৃষ্ণ সমস্ত পরমাণুর এবং বিশ্বরূপের বিশাল প্রকাশের নিয়ন্তা হতে পারেন। বৃহত্তম ও ক্ষুদ্রতম তাদের ধারণার অতীত, তাই তারা কল্পনা করতে পারে না যে মানুষের মতো একটি রূপ একই সঙ্গে অনন্ত ও ক্ষুদ্রকে নিয়ন্ত্রণ করতে পারে। বাস্তবে, তিনি অনন্ত ও সীমিত উভয়কেই নিয়ন্ত্রণ করলেও এই সমস্ত প্রকাশ থেকে তিনি পৃথক। তাঁর যোগম্ ঐশ্বরম্ সম্বন্ধে, অর্থাৎ তাঁর অচিন্ত্য চিন্ময় শক্তি সম্বন্ধে স্পষ্টভাবে বলা হয়েছে যে তিনি অনন্ত ও সীমিতকে একই সঙ্গে নিয়ন্ত্রণ করতে পারেন এবং তাদের থেকে নির্লিপ্তও থাকতে পারেন। মানুষের মতো আবির্ভূত কৃষ্ণ কীভাবে অনন্ত ও সীমিতকে নিয়ন্ত্রণ করেন তা মূর্খেরা কল্পনা করতে না পারলেও শুদ্ধ ভক্তরা তা গ্রহণ করেন, কারণ তাঁরা জানেন যে কৃষ্ণ পরমেশ্বর ভগবান। তাই তাঁরা সম্পূর্ণরূপে তাঁর শরণাগত হন এবং কৃষ্ণভাবনায়, ভগবানের ভক্তিমূলক সেবায় নিযুক্ত হন। ভগবানের মানবরূপে আবির্ভাব নিয়ে নির্বিশেষবাদী ও সবিশেষবাদীদের মধ্যে অনেক বিতর্ক আছে। কিন্তু কৃষ্ণতত্ত্ব-বিজ্ঞান বোঝার প্রামাণিক শাস্ত্র ভগবদ্গীতা ও শ্রীমদ্ভাগবত দেখলে আমরা বুঝতে পারি যে কৃষ্ণ পরমেশ্বর ভগবান। তিনি এই পৃথিবীতে সাধারণ মানুষরূপে আবির্ভূত হলেও সাধারণ মানুষ নন। শ্রীমদ্ভাগবতের প্রথম স্কন্ধের প্রথম অধ্যায়ে, শৌনক প্রমুখ ঋষিরা যখন কৃষ্ণের লীলা সম্বন্ধে জিজ্ঞাসা করেছিলেন, তখন তাঁরা বলেছিলেন: কৃতবান্ কিল কর্মাণি সহ রামেণ কেশবঃ অতি-মর্ত্যানি ভগবান্ গূঢ়ঃ কপট-মানুষঃ “পরমেশ্বর ভগবান শ্রীকৃষ্ণ বলরামের সঙ্গে মানুষের মতো লীলা করেছিলেন, এবং এইভাবে প্রচ্ছন্ন থেকে তিনি বহু অতিমানবীয় কার্য সম্পাদন করেছিলেন।” (ভাগ. ১.১.২০) ভগবানের মানুষরূপে আবির্ভাব মূর্খদের বিভ্রান্ত করে। কৃষ্ণ এই পৃথিবীতে থাকাকালে যেসব অদ্ভুত কার্য করেছিলেন, কোনো মানুষ তা করতে পারে না। কৃষ্ণ যখন তাঁর পিতা-মাতা বসুদেব ও দেবকীর সম্মুখে আবির্ভূত হয়েছিলেন, তখন তিনি চতুর্ভুজরূপে এসেছিলেন, কিন্তু পিতা-মাতার প্রার্থনার পর তিনি নিজেকে এক সাধারণ শিশুতে রূপান্তরিত করেছিলেন। ভাগবতে (১০.৩.৪৬) যেমন বলা হয়েছে, বভূব প্রাকৃতঃ শিশুঃ: তিনি ঠিক এক সাধারণ শিশু, এক সাধারণ মানুষের মতো হয়েছিলেন। এখানেও আবার ইঙ্গিত করা হয়েছে যে ভগবানের সাধারণ মানুষরূপে আবির্ভাব তাঁর চিন্ময় দেহের অন্যতম বৈশিষ্ট্য। ভগবদ্গীতার একাদশ অধ্যায়েও বলা হয়েছে যে অর্জুন কৃষ্ণের চতুর্ভুজ রূপ দেখার জন্য প্রার্থনা করেছিলেন (তেনৈব রূপেণ চতুর্ভুজেন)। এই রূপ প্রকাশ করার পর অর্জুনের অনুরোধে কৃষ্ণ আবার তাঁর আদি মানবসদৃশ রূপ (মানুষং রূপম্) ধারণ করেছিলেন। পরমেশ্বরের এই বিভিন্ন বৈশিষ্ট্য অবশ্যই সাধারণ মানুষের নয়। যারা কৃষ্ণকে উপহাস করে এবং মায়াবাদী দর্শনে আক্রান্ত, তাদের মধ্যে কেউ কেউ কৃষ্ণ যে কেবল একজন সাধারণ মানুষ তা প্রমাণ করার জন্য শ্রীমদ্ভাগবতের (৩.২৯.২১) নিম্নলিখিত শ্লোকটি উদ্ধৃত করে। অহং সর্বেষু ভূতেষু ভূতাত্মাবস্থিতঃ সদা: “পরমেশ্বর প্রতিটি জীবের মধ্যে বিরাজমান।” কৃষ্ণকে উপহাসকারী অপ্রামাণিক ব্যক্তিদের ব্যাখ্যা অনুসরণ না করে জীব গোস্বামী ও বিশ্বনাথ চক্রবর্তী ঠাকুরের মতো বৈষ্ণব আচার্যদের কাছ থেকে এই বিশেষ শ্লোকটি বুঝে নেওয়াই আমাদের পক্ষে ভালো। এই শ্লোকের টীকায় জীব গোস্বামী বলেন যে কৃষ্ণ পরমাত্মারূপে তাঁর পূর্ণ অংশ-প্রকাশে চর ও অচর জীবের মধ্যে পরমাত্মা-রূপে অবস্থিত, তাই যে নবীন ভক্ত কেবল অর্চা-মূর্তির, অর্থাৎ মন্দিরে পরমেশ্বরের বিগ্রহের প্রতি মনোযোগ দেয় এবং অন্য জীবদের সম্মান করে না, সে বৃথাই মন্দিরে ভগবানের রূপের উপাসনা করছে। ভগবানের ভক্ত তিন প্রকার, এবং নবীন ভক্ত সর্বনিম্ন স্তরে অবস্থিত। নবীন ভক্ত অন্য ভক্তদের চেয়ে মন্দিরের বিগ্রহের প্রতি বেশি মনোযোগ দেয়, তাই বিশ্বনাথ চক্রবর্তী ঠাকুর সতর্ক করেন যে এই ধরনের মানসিকতা সংশোধন করা উচিত। ভক্তের দেখা উচিত যে কৃষ্ণ পরমাত্মারূপে সকলের হৃদয়ে বিরাজ করেন বলে প্রতিটি দেহ পরমেশ্বরের বিগ্রহ বা মন্দির; তাই যেমন কেউ ভগবানের মন্দিরকে সম্মান জানায়, তেমনই যে দেহে পরমাত্মা বাস করেন, সেই প্রতিটি দেহকেও যথাযথভাবে সম্মান করা উচিত। তাই প্রত্যেককে যথাযোগ্য সম্মান দেওয়া উচিত এবং অবহেলা করা উচিত নয়। অনেক নির্বিশেষবাদীও আছে যারা মন্দিরে উপাসনাকে উপহাস করে। তারা বলে, ভগবান যখন সর্বত্র বিরাজমান, তখন কেন মন্দির-উপাসনায় নিজেকে সীমাবদ্ধ রাখা হবে? কিন্তু ভগবান যদি সর্বত্র থাকেন, তবে তিনি কি মন্দিরে বা বিগ্রহে নেই? সবিশেষবাদী ও নির্বিশেষবাদী পরস্পরের সঙ্গে চিরকাল লড়াই করবে, কিন্তু কৃষ্ণভাবনাময় পূর্ণ ভক্ত জানেন যে কৃষ্ণ পরম পুরুষ হলেও তিনি সর্বব্যাপী, যেমন ব্রহ্মসংহিতায় নিশ্চিত করা হয়েছে। যদিও তাঁর নিজধাম গোলোক বৃন্দাবন এবং তিনি সর্বদা সেখানেই অবস্থান করেন, তবুও তাঁর বিভিন্ন শক্তির প্রকাশ ও পূর্ণ অংশ-প্রকাশের দ্বারা তিনি জড় ও চিন্ময় সৃষ্টির সমস্ত অংশে সর্বত্র বিরাজমান।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 2
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "a34c70bb2d911f52",
+     "generatedAt": "2026-10-16T04:15:19.684Z",
+     "correctness": 2,
+     "partScores": {
+      "translation": 3,
+      "transliteration": 3,
+      "wordMeanings": 3,
+      "purport": 2
+     },
+     "note": "The purport is very long; a few wordings and terms may need a second look.",
+     "warnings": [
+      "purport: rated 2 by Claude"
+     ],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "a6486bd5c436ffd7",
+       "generatedAt": "2026-10-16T04:15:19.684Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The purport is very long; a few wordings and terms may need a second look."
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "ee60cc760306445d",
+       "generatedAt": "2026-10-16T04:15:19.684Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The purport is very long; a few wordings and terms may need a second look."
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "db3460c8ae2df79e",
+       "generatedAt": "2026-10-16T04:15:19.684Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The purport is very long; a few wordings and terms may need a second look."
+      },
+      "purport": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "ef1b95295c40eece",
+       "generatedAt": "2026-10-16T04:15:19.684Z",
+       "correctness": 2,
+       "warnings": [
+        "purport: rated 2 by Claude"
+       ],
+       "note": "The purport is very long; a few wordings and terms may need a second look."
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 2
+  },
+  {
+   "lang": "bn",
+   "chapter": 10,
+   "verseId": "1.10.37",
+   "before": "31769ceeb7d61eed591e808d6aabffcd67c374b4",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings",
+     "purport"
+    ],
+    "scores": {
+     "translation": 3,
+     "transliteration": 3,
+     "wordMeanings": 3,
+     "purport": 3
+    },
+    "rounds": 1,
+    "warnings": []
+   },
+   "touchUps": [],
+   "costUsd": 0.02112,
+   "verse": {
+    "verseId": "1.10.37",
+    "globalVerseNumber": 409,
+    "bookNumber": 1,
+    "chapterNumber": 10,
+    "verseNumber": 37,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "বৃষ্ণীনাং বাসুদেবোঽস্মি পাণ্ডবানাং ধনঞ্জযঃ ।\nমুনীনামপ্যহং ব্যাসঃ কবীনামুশনা কবিঃ ॥10-37॥",
+    "wordMeanings": [
+     {
+      "word": "বৃষ্ণীনাম্",
+      "meaning": "বৃষ্ণিবংশধরদের মধ্যে"
+     },
+     {
+      "word": "বাসুদেবঃ",
+      "meaning": "দ্বারকায় কৃষ্ণ"
+     },
+     {
+      "word": "অস্মি",
+      "meaning": "আমি হই"
+     },
+     {
+      "word": "পাণ্ডবানাম্",
+      "meaning": "পাণ্ডবদের মধ্যে"
+     },
+     {
+      "word": "ধনম্-জযঃ",
+      "meaning": "অর্জুন"
+     },
+     {
+      "word": "মুনীনাম্",
+      "meaning": "মুনিদের মধ্যে"
+     },
+     {
+      "word": "অপি",
+      "meaning": "ও"
+     },
+     {
+      "word": "অহম্",
+      "meaning": "আমি"
+     },
+     {
+      "word": "ব্যাসঃ",
+      "meaning": "ব্যাস, সমস্ত বৈদিক সাহিত্যের সংকলক"
+     },
+     {
+      "word": "কবীনাম্",
+      "meaning": "সমস্ত মহান চিন্তাবিদদের মধ্যে"
+     },
+     {
+      "word": "উশনা",
+      "meaning": "উশনা"
+     },
+     {
+      "word": "কবিঃ",
+      "meaning": "চিন্তাবিদ"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "bn",
+      "displayOrder": 1,
+      "text": "বৃষ্ণিবংশধরদের মধ্যে আমি বাসুদেব, এবং পাণ্ডবদের মধ্যে আমি অর্জুন। মুনিদের মধ্যে আমি ব্যাস, এবং মহান চিন্তাবিদদের মধ্যে আমি উশনা।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     },
+     {
+      "translatorSlug": "prabhupada",
+      "type": "purport",
+      "language": "bn",
+      "displayOrder": 2,
+      "text": "কৃষ্ণ হলেন আদি পরমেশ্বর ভগবান, এবং বলদেব হলেন কৃষ্ণের প্রত্যক্ষ প্রকাশ। ভগবান কৃষ্ণ ও বলদেব উভয়েই বসুদেবের পুত্ররূপে আবির্ভূত হয়েছিলেন, তাই তাঁদের উভয়কেই বাসুদেব বলা যেতে পারে। অন্য দৃষ্টিকোণ থেকে, কৃষ্ণ কখনও বৃন্দাবন ত্যাগ করেন না, তাই অন্যত্র প্রকাশিত কৃষ্ণের সমস্ত রূপই তাঁর প্রকাশ। বাসুদেব কৃষ্ণের প্রত্যক্ষ প্রকাশ, তাই বাসুদেব কৃষ্ণ থেকে ভিন্ন নন। বুঝতে হবে যে ভগবদ্গীতার এই শ্লোকে যে বাসুদেবের উল্লেখ করা হয়েছে তিনি বলদেব, অর্থাৎ বলরাম, কারণ তিনি সমস্ত অবতারের আদি উৎস, এবং তাই তিনিই বাসুদেবের একমাত্র উৎস। ভগবানের প্রত্যক্ষ প্রকাশগুলিকে বলা হয় স্বাংশ (ব্যক্তিগত প্রকাশ), এবং বিভিন্নাংশ (বিচ্ছিন্ন প্রকাশ) নামেও প্রকাশ আছে। পাণ্ডুর পুত্রদের মধ্যে অর্জুন ধনঞ্জয় নামে বিখ্যাত। তিনি মানুষের মধ্যে শ্রেষ্ঠ, তাই তিনি কৃষ্ণের প্রতিনিধিত্ব করেন। মুনিদের মধ্যে, অর্থাৎ বৈদিক জ্ঞানে অভিজ্ঞ বিদ্বান ব্যক্তিদের মধ্যে, ব্যাস শ্রেষ্ঠ, কারণ কলিযুগে সাধারণ মানুষের বোধগম্য হওয়ার জন্য তিনি বৈদিক জ্ঞানকে নানাভাবে ব্যাখ্যা করেছেন। আর ব্যাস কৃষ্ণের অবতাররূপেও পরিচিত; তাই ব্যাসও কৃষ্ণের প্রতিনিধিত্ব করেন। কবি হলেন তাঁরা যাঁরা যে-কোনো বিষয়ে গভীরভাবে চিন্তা করতে সক্ষম। কবিদের মধ্যে উশনা, অর্থাৎ শুক্রাচার্য, ছিলেন অসুরদের গুরু; তিনি ছিলেন অত্যন্ত বুদ্ধিমান ও দূরদর্শী রাজনীতিবিদ। এইভাবে শুক্রাচার্য কৃষ্ণের ঐশ্বর্যের আরেকজন প্রতিনিধি।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "fb14429113e04f04",
+     "generatedAt": "2026-10-16T04:15:38.656Z",
+     "correctness": 3,
+     "partScores": {
+      "translation": 3,
+      "transliteration": 3,
+      "wordMeanings": 3,
+      "purport": 3
+     },
+     "warnings": [],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "4711f4fd34f4a6b6",
+       "generatedAt": "2026-10-16T04:15:38.656Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "0e9d3fcda8435ac6",
+       "generatedAt": "2026-10-16T04:15:38.656Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "56b1f04977c80141",
+       "generatedAt": "2026-10-16T04:15:38.656Z",
+       "correctness": 3,
+       "warnings": []
+      },
+      "purport": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "87d2c978b0a1387a",
+       "generatedAt": "2026-10-16T04:15:38.656Z",
+       "correctness": 3,
+       "warnings": []
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 3
+  },
+  {
+   "lang": "bn",
+   "chapter": 11,
+   "verseId": "1.11.25",
+   "before": "8126cc5dc65240929046b7862481b458ca988f60",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings"
+    ],
+    "scores": {
+     "translation": 2,
+     "transliteration": 3,
+     "wordMeanings": 3
+    },
+    "rounds": 1,
+    "warnings": [
+     "translation: rated 2 by Claude"
+    ]
+   },
+   "touchUps": [],
+   "costUsd": 0.019845,
+   "verse": {
+    "verseId": "1.11.25",
+    "globalVerseNumber": 439,
+    "bookNumber": 1,
+    "chapterNumber": 11,
+    "verseNumber": 25,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "দংষ্ট্রাকরালানি চ তে মুখানি দৃষ্ট্বৈব কালানলসন্নিভানি ।\nদিশো ন জানে ন লভে চ শর্ম প্রসীদ দেবেশ জগন্নিবাস ॥11-25॥",
+    "wordMeanings": [
+     {
+      "word": "দংষ্ট্রা",
+      "meaning": "দন্ত"
+     },
+     {
+      "word": "করালানি",
+      "meaning": "ভয়ঙ্কর"
+     },
+     {
+      "word": "চ",
+      "meaning": "ও"
+     },
+     {
+      "word": "তে",
+      "meaning": "আপনার"
+     },
+     {
+      "word": "মুখানি",
+      "meaning": "মুখমণ্ডল"
+     },
+     {
+      "word": "দৃষ্ট্বা",
+      "meaning": "দেখে"
+     },
+     {
+      "word": "এব",
+      "meaning": "এইভাবে"
+     },
+     {
+      "word": "কাল-অনল",
+      "meaning": "মৃত্যুর অগ্নি"
+     },
+     {
+      "word": "সন্নিভানি",
+      "meaning": "যেন"
+     },
+     {
+      "word": "দিশঃ",
+      "meaning": "দিকসমূহ"
+     },
+     {
+      "word": "ন",
+      "meaning": "না"
+     },
+     {
+      "word": "জানে",
+      "meaning": "আমি জানি"
+     },
+     {
+      "word": "ন",
+      "meaning": "না"
+     },
+     {
+      "word": "লভে",
+      "meaning": "আমি লাভ করি"
+     },
+     {
+      "word": "চ",
+      "meaning": "এবং"
+     },
+     {
+      "word": "শর্ম",
+      "meaning": "কৃপা"
+     },
+     {
+      "word": "প্রসীদ",
+      "meaning": "প্রসন্ন হোন"
+     },
+     {
+      "word": "দেব-ঈশ",
+      "meaning": "হে সমস্ত দেবতাদের ঈশ্বর"
+     },
+     {
+      "word": "জগৎ-নিবাস",
+      "meaning": "হে জগতের আশ্রয়"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "bn",
+      "displayOrder": 1,
+      "text": "হে দেবেশ, হে জগন্নিবাস, আপনি আমার প্রতি প্রসন্ন হোন। আপনার প্রজ্বলিত মৃত্যুসদৃশ মুখমণ্ডল এবং ভয়ঙ্কর দন্তরাজি দেখে আমি আমার ভারসাম্য রক্ষা করতে পারছি না। সর্বদিকেই আমি বিভ্রান্ত হয়ে পড়েছি।",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 2
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "9bd321512dcca6ae",
+     "generatedAt": "2026-10-16T04:15:53.664Z",
+     "correctness": 2,
+     "partScores": {
+      "translation": 2,
+      "transliteration": 3,
+      "wordMeanings": 3
+     },
+     "note": "The translation opens with 'হে দেবেশ, হে জগন্নিবাস' as a compact rendering of 'O Lord of lords, O refuge of the worlds', and 'deathlike' is rendered as 'মৃত্যুসদৃশ'; wording could be double-checked.",
+     "warnings": [
+      "translation: rated 2 by Claude"
+     ],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "44cf1e8ad5384af3",
+       "generatedAt": "2026-10-16T04:15:53.664Z",
+       "correctness": 2,
+       "warnings": [
+        "translation: rated 2 by Claude"
+       ],
+       "note": "The translation opens with 'হে দেবেশ, হে জগন্নিবাস' as a compact rendering of 'O Lord of lords, O refuge of the worlds', and 'deathlike' is rendered as 'মৃত্যুসদৃশ'; wording could be double-checked."
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "8bcd58a22a523285",
+       "generatedAt": "2026-10-16T04:15:53.664Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The translation opens with 'হে দেবেশ, হে জগন্নিবাস' as a compact rendering of 'O Lord of lords, O refuge of the worlds', and 'deathlike' is rendered as 'মৃত্যুসদৃশ'; wording could be double-checked."
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "6fd912f791d837f3",
+       "generatedAt": "2026-10-16T04:15:53.664Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The translation opens with 'হে দেবেশ, হে জগন্নিবাস' as a compact rendering of 'O Lord of lords, O refuge of the worlds', and 'deathlike' is rendered as 'মৃত্যুসদৃশ'; wording could be double-checked."
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 2
+  },
+  {
+   "lang": "te",
+   "chapter": 3,
+   "verseId": "1.3.9",
+   "before": "e78ae092a55e18a7f81000d5ce0ce405ff9e840d",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings",
+     "purport"
+    ],
+    "scores": {
+     "translation": 3,
+     "transliteration": 2,
+     "wordMeanings": 3,
+     "purport": 2
+    },
+    "rounds": 1,
+    "warnings": [
+     "transliteration: rated 2 by Claude",
+     "purport: rated 2 by Claude"
+    ]
+   },
+   "touchUps": [],
+   "costUsd": 0.034265,
+   "verse": {
+    "verseId": "1.3.9",
+    "globalVerseNumber": 128,
+    "bookNumber": 1,
+    "chapterNumber": 3,
+    "verseNumber": 9,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "యజ్ఞార్థాత్కర్మణో.ఽన్యత్ర లోకో.ఽయం కర్మబన్ధనః ।\nతదర్థం కర్మ కౌన్తేయ ముక్తసఙ్గః సమాచర ॥3-9॥",
+    "wordMeanings": [
+     {
+      "word": "యజ్ఞ-అర్థాత్",
+      "meaning": "యజ్ఞం కోసం, అనగా విష్ణువు కొరకు మాత్రమే చేసినది"
+     },
+     {
+      "word": "కర్మణః",
+      "meaning": "కర్మ కంటె"
+     },
+     {
+      "word": "అన్యత్ర",
+      "meaning": "లేకపోతే"
+     },
+     {
+      "word": "లోకః",
+      "meaning": "జగత్తు"
+     },
+     {
+      "word": "అయమ్",
+      "meaning": "ఈ"
+     },
+     {
+      "word": "కర్మ-బన్ధనః",
+      "meaning": "కర్మ వలన బంధనం"
+     },
+     {
+      "word": "తత్",
+      "meaning": "ఆయన యొక్క"
+     },
+     {
+      "word": "అర్థమ్",
+      "meaning": "కొరకు"
+     },
+     {
+      "word": "కర్మ",
+      "meaning": "కర్మ"
+     },
+     {
+      "word": "కౌన్తేయ",
+      "meaning": "ఓ కుంతీపుత్రా"
+     },
+     {
+      "word": "ముక్త-సఙ్గః",
+      "meaning": "సంగము నుండి విముక్తుడై"
+     },
+     {
+      "word": "సమాచర",
+      "meaning": "చక్కగా ఆచరించు"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "te",
+      "displayOrder": 1,
+      "text": "యజ్ఞార్థంగా, అనగా విష్ణువు కొరకు చేసే కర్మను ఆచరింపవలెను; లేకపోతే కర్మ ఈ భౌతిక జగత్తులో బంధనానికి కారణమవుతుంది. కాబట్టి, ఓ కుంతీపుత్రా, ఆయన సంతృప్తి కొరకు నీకు విధించబడిన కర్తవ్యములను నిర్వర్తించు; ఆ విధంగా నీవు ఎల్లప్పుడూ బంధనము నుండి విముక్తుడవై ఉంటావు.",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 3
+     },
+     {
+      "translatorSlug": "prabhupada",
+      "type": "purport",
+      "language": "te",
+      "displayOrder": 2,
+      "text": "శరీర పోషణ కొరకు కూడా కర్మ చేయవలసి ఉంటుంది కనుక, ఒక నిర్దిష్ట సామాజిక స్థానానికి, గుణానికి విధించబడిన కర్తవ్యములు ఆ ప్రయోజనం నెరవేరేలా ఏర్పరచబడ్డాయి. యజ్ఞము అంటే విష్ణువు, లేదా యజ్ఞ కర్మలు. అన్ని యజ్ఞ కర్మలూ విష్ణువు సంతృప్తి కొరకే ఉద్దేశించబడ్డాయి. వేదములు ఆజ్ఞాపిస్తున్నాయి: యజ్ఞో వై విష్ణుః. అనగా, విధించబడిన యజ్ఞములను ఆచరించినా లేదా నేరుగా విష్ణువును సేవించినా ఒకే ప్రయోజనం సిద్ధిస్తుంది. కాబట్టి కృష్ణ చైతన్యమే ఈ శ్లోకంలో విధించబడిన విధంగా యజ్ఞాన్ని ఆచరించడం. వర్ణాశ్రమ వ్యవస్థ కూడా విష్ణువును సంతృప్తిపరచడాన్నే లక్ష్యంగా కలిగి ఉంది. వర్ణాశ్రమాచారవతా పురుషేణ పరః పుమాన్/ విష్ణుర్ఆరాధ్యతే (విష్ణు పురాణము 3.8.8). కాబట్టి విష్ణువు సంతృప్తి కొరకు కర్మ చేయవలెను. ఈ భౌతిక జగత్తులో చేసే మరే ఇతర కర్మ అయినా బంధనానికి కారణమవుతుంది, ఎందుకంటే మంచి కర్మకైనా చెడు కర్మకైనా ప్రతిఫలాలు ఉంటాయి, ఏ ప్రతిఫలమైనా కర్తను బంధిస్తుంది. కాబట్టి కృష్ణుని (లేదా విష్ణువును) సంతృప్తిపరచడానికి కృష్ణ చైతన్యంలో కర్మ చేయవలెను; అటువంటి కార్యకలాపాలు చేస్తున్నప్పుడు మనిషి విముక్త స్థితిలో ఉంటాడు. ఇదే కర్మ చేయడంలోని గొప్ప కళ, ప్రారంభంలో ఈ ప్రక్రియకు చాలా నిపుణమైన మార్గదర్శకత్వం అవసరం. కాబట్టి కృష్ణ భగవానుని భక్తుని నిపుణ మార్గదర్శకత్వంలో, లేదా కృష్ణ భగవానుని ప్రత్యక్ష ఉపదేశం క్రింద (ఆయన క్రింద అర్జునునికి కర్మ చేసే అవకాశం లభించింది) ఎంతో శ్రద్ధగా వర్తించవలెను. ఇంద్రియ తృప్తి కొరకు ఏదీ చేయకూడదు, కృష్ణుని సంతృప్తి కొరకే ప్రతిదీ చేయవలెను. ఈ అభ్యాసం కర్మ ప్రతిఫలం నుండి కాపాడడమే కాక, క్రమంగా భగవంతుని దివ్య ప్రేమమయ సేవకు కూడా ఉన్నతిని కలిగిస్తుంది, ఆ సేవయే మనిషిని భగవద్రాజ్యానికి చేర్చగలదు.",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 2
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "4c55ab7d5cb24882",
+     "generatedAt": "2026-10-16T04:16:14.358Z",
+     "correctness": 2,
+     "partScores": {
+      "translation": 3,
+      "transliteration": 2,
+      "wordMeanings": 3,
+      "purport": 2
+     },
+     "note": "The avagraha spelling in the first line and the rendering of the Viṣṇu Purāṇa quotation (viṣṇur ārādhyate) in Telugu script are slightly uncertain.",
+     "warnings": [
+      "transliteration: rated 2 by Claude",
+      "purport: rated 2 by Claude"
+     ],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "41b7b52dd4f39828",
+       "generatedAt": "2026-10-16T04:16:14.358Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The avagraha spelling in the first line and the rendering of the Viṣṇu Purāṇa quotation (viṣṇur ārādhyate) in Telugu script are slightly uncertain."
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "ec9eb9a43860dfc6",
+       "generatedAt": "2026-10-16T04:16:14.358Z",
+       "correctness": 2,
+       "warnings": [
+        "transliteration: rated 2 by Claude"
+       ],
+       "note": "The avagraha spelling in the first line and the rendering of the Viṣṇu Purāṇa quotation (viṣṇur ārādhyate) in Telugu script are slightly uncertain."
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "4329c472d6701143",
+       "generatedAt": "2026-10-16T04:16:14.358Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "The avagraha spelling in the first line and the rendering of the Viṣṇu Purāṇa quotation (viṣṇur ārādhyate) in Telugu script are slightly uncertain."
+      },
+      "purport": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "a02ba0f8855cd625",
+       "generatedAt": "2026-10-16T04:16:14.358Z",
+       "correctness": 2,
+       "warnings": [
+        "purport: rated 2 by Claude"
+       ],
+       "note": "The avagraha spelling in the first line and the rendering of the Viṣṇu Purāṇa quotation (viṣṇur ārādhyate) in Telugu script are slightly uncertain."
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 2
+  },
+  {
+   "lang": "te",
+   "chapter": 11,
+   "verseId": "1.11.46",
+   "before": "d414abad5b414ed2e4e19fef35fe03f14604eac9",
+   "redo": {
+    "parts": [
+     "translation",
+     "transliteration",
+     "wordMeanings",
+     "purport"
+    ],
+    "scores": {
+     "translation": 2,
+     "transliteration": 3,
+     "wordMeanings": 2,
+     "purport": 2
+    },
+    "rounds": 1,
+    "warnings": [
+     "translation: rated 2 by Claude",
+     "wordMeanings: rated 2 by Claude",
+     "purport: rated 2 by Claude"
+    ]
+   },
+   "touchUps": [],
+   "costUsd": 0.0170618,
+   "verse": {
+    "verseId": "1.11.46",
+    "globalVerseNumber": 460,
+    "bookNumber": 1,
+    "chapterNumber": 11,
+    "verseNumber": 46,
+    "verseNumberEnd": null,
+    "cantoNumber": null,
+    "transliteration": "కిరీటినం గదినం చక్రహస్తం ఇచ్ఛామి త్వాం ద్రష్టుమహం తథైవ ।\nతేనైవ రూపేణ చతుర్భుజేన సహస్రబాహో భవ విశ్వమూర్తే ॥11-46॥",
+    "wordMeanings": [
+     {
+      "word": "కిరీటినమ్",
+      "meaning": "కిరీటముతో"
+     },
+     {
+      "word": "గదినమ్",
+      "meaning": "గదతో"
+     },
+     {
+      "word": "చక్ర-హస్తమ్",
+      "meaning": "చేతిలో చక్రముతో"
+     },
+     {
+      "word": "ఇచ్ఛామి",
+      "meaning": "కోరుచున్నాను"
+     },
+     {
+      "word": "త్వామ్",
+      "meaning": "నిన్ను"
+     },
+     {
+      "word": "ద్రష్టుమ్",
+      "meaning": "చూడాలని"
+     },
+     {
+      "word": "అహమ్",
+      "meaning": "నేను"
+     },
+     {
+      "word": "తథా ఏవ",
+      "meaning": "ఆ స్థితిలోనే"
+     },
+     {
+      "word": "తేన ఏవ",
+      "meaning": "ఆ"
+     },
+     {
+      "word": "రూపేణ",
+      "meaning": "రూపముతో"
+     },
+     {
+      "word": "చతుః-భుజేన",
+      "meaning": "నాలుగు చేతులు గల"
+     },
+     {
+      "word": "సహస్ర-బాహో",
+      "meaning": "ఓ వేయి చేతులు గలవాడా"
+     },
+     {
+      "word": "భవ",
+      "meaning": "కేవలము అగుము"
+     },
+     {
+      "word": "విశ్వ-మూర్తే",
+      "meaning": "ఓ విశ్వరూపా"
+     }
+    ],
+    "commentaries": [
+     {
+      "translatorSlug": "prabhupada",
+      "type": "translation",
+      "language": "te",
+      "displayOrder": 1,
+      "text": "ఓ విశ్వరూపా, ఓ సహస్రబాహో, శిరస్సున కిరీటముతో, చేతులలో గద, చక్రము, శంఖము, పద్మముతో కూడిన నాలుగు చేతుల రూపములో నిన్ను చూడాలని కోరుచున్నాను. ఆ రూపములో నిన్ను దర్శించాలని ఆరాటపడుచున్నాను.",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 2
+     },
+     {
+      "translatorSlug": "prabhupada",
+      "type": "purport",
+      "language": "te",
+      "displayOrder": 2,
+      "text": "బ్రహ్మసంహిత (5.39)లో ఇలా చెప్పబడింది: రామాదిమూర్తిషు కలానియమేన తిష్ఠన్ — భగవంతుడు నిత్యము వందలు, వేల రూపములలో స్థితుడై ఉన్నాడు; వాటిలో ముఖ్యమైన రూపములు రామ, నృసింహ, నారాయణ మొదలైనవి. రూపములు అసంఖ్యాకములు. కానీ కృష్ణుడు ఆదిపురుషుడైన భగవంతుడనీ, ఆయన తాత్కాలికమైన విశ్వరూపమును ధరించాడనీ అర్జునునికి తెలుసు. ఇప్పుడు అతడు చిన్మయ రూపమైన నారాయణ రూపమును చూపమని కోరుచున్నాడు. కృష్ణుడే ఆదిపురుషుడైన భగవంతుడనీ, ఇతర రూపములన్నియు ఆయన నుండియే ఉద్భవించాయనీ శ్రీమద్భాగవతములోని వచనమును ఈ శ్లోకము ఏ సందేహమూ లేకుండా స్థాపించుచున్నది. ఆయన తన అంశావతారములకు భిన్నుడు కాడు; తన అసంఖ్యాక రూపములలో దేనిలోనైనా ఆయన భగవంతుడే. ఈ రూపములన్నింటిలో ఆయన యువకునివలె నిత్యనూతనుడు. అదియే పరమపురుషుడైన భగవంతుని నిత్యలక్షణము. కృష్ణుని ఎరిగినవాడు భౌతిక ప్రపంచపు కల్మషములన్నిటి నుండి వెంటనే విముక్తుడగును.",
+      "translatedBy": "claude",
+      "version": "1.0-12-10-26",
+      "correctness": 2
+     }
+    ],
+    "aiTranslation": {
+     "translatedBy": "claude",
+     "version": "1.0-12-10-26",
+     "provider": "anthropic",
+     "model": "claude-sonnet-5-5",
+     "effort": "off",
+     "promptVersion": "7",
+     "sourceHash": "91c078107bbd79fc",
+     "generatedAt": "2026-10-16T04:16:28.455Z",
+     "correctness": 2,
+     "partScores": {
+      "translation": 2,
+      "transliteration": 3,
+      "wordMeanings": 2,
+      "purport": 2
+     },
+     "note": "Some wording choices (e.g. 'చిన్మయ రూపమైన' for 'spiritual form', 'ఆరాటపడుచున్నాను') may merit a native reviewer's check.",
+     "warnings": [
+      "translation: rated 2 by Claude",
+      "wordMeanings: rated 2 by Claude",
+      "purport: rated 2 by Claude"
+     ],
+     "parts": {
+      "translation": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "6de44b26b83ad726",
+       "generatedAt": "2026-10-16T04:16:28.455Z",
+       "correctness": 2,
+       "warnings": [
+        "translation: rated 2 by Claude"
+       ],
+       "note": "Some wording choices (e.g. 'చిన్మయ రూపమైన' for 'spiritual form', 'ఆరాటపడుచున్నాను') may merit a native reviewer's check."
+      },
+      "transliteration": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "96f7b4a59792eb43",
+       "generatedAt": "2026-10-16T04:16:28.455Z",
+       "correctness": 3,
+       "warnings": [],
+       "note": "Some wording choices (e.g. 'చిన్మయ రూపమైన' for 'spiritual form', 'ఆరాటపడుచున్నాను') may merit a native reviewer's check."
+      },
+      "wordMeanings": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "750729568e889fc8",
+       "generatedAt": "2026-10-16T04:16:28.455Z",
+       "correctness": 2,
+       "warnings": [
+        "wordMeanings: rated 2 by Claude"
+       ],
+       "note": "Some wording choices (e.g. 'చిన్మయ రూపమైన' for 'spiritual form', 'ఆరాటపడుచున్నాను') may merit a native reviewer's check."
+      },
+      "purport": {
+       "provider": "anthropic",
+       "model": "claude-sonnet-5-5",
+       "effort": "off",
+       "version": "1.0-12-10-26",
+       "promptVersion": "7",
+       "sourceHash": "0c924068b1cee908",
+       "generatedAt": "2026-10-16T04:16:28.455Z",
+       "correctness": 2,
+       "warnings": [
+        "purport: rated 2 by Claude"
+       ],
+       "note": "Some wording choices (e.g. 'చిన్మయ రూపమైన' for 'spiritual form', 'ఆరాటపడుచున్నాను') may merit a native reviewer's check."
+      }
+     }
+    }
+   },
+   "scoreBefore": 1,
+   "scoreAfter": 2
+  }
+ ]
+}
