@@ -188,6 +188,17 @@ async function main() {
   const anonRead = await call('GET', API);
   check('and so does a read', anonRead.status === 401, `HTTP ${anonRead.status}`);
 
+  // The verses behind the standard routine's reminders (needs `npm run seed`).
+  const nudges = await call('GET', `${API}/nudges`, as);
+  const kinds = nudges.json?.data?.kinds ?? [];
+  const wake = kinds.find((kind) => kind.key === 'wakeUp');
+  check('nudges list the standard routines in the order of the day', nudges.status === 200 && kinds[0]?.key === 'wakeUp' && kinds.at(-1)?.key === 'sleep', `HTTP ${nudges.status}, ${kinds.length} kinds`);
+  check('each kind has verses with a reference and text', kinds.length > 0 && kinds.every((kind) => kind.nudges.length > 0 && kind.nudges.every((n) => n.reference && n.text)));
+  check('a kind carries a voice script with {name} and no voice url yet', wake?.voiceScript?.includes('{name}') && wake.voiceUrl === null);
+  check('the day-break chanting reminder exists', kinds.some((kind) => kind.key === 'breakChant'));
+  const nudgesAnon = await call('GET', `${API}/nudges`);
+  check('nudges need a signed-in user', nudgesAnon.status === 401, `HTTP ${nudgesAnon.status}`);
+
   await wipe(me.id);
   await wipe(other.id);
 
