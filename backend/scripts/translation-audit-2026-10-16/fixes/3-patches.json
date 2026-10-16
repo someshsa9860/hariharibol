@@ -1,0 +1,15 @@
+[
+  { "lang": "bn", "verseId": "1.1.38", "part": "wordMeanings", "i": 1, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.2.5", "part": "wordMeanings", "i": 7, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.3.8", "part": "wordMeanings", "i": 10, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.4.36", "part": "wordMeanings", "i": 0, "find": "even — এমনকি", "replace": "এমনকি", "why": "api: the English word kept beside its translation" },
+  { "lang": "bn", "verseId": "1.5.4", "part": "wordMeanings", "i": 8, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.6.25", "part": "wordMeanings", "i": 10, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.11.32", "part": "wordMeanings", "i": 11, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.12.10", "part": "wordMeanings", "i": 1, "find": "even if — যদিও", "replace": "যদিও", "why": "api: the English words kept beside their translation" },
+  { "lang": "bn", "verseId": "1.12.10", "part": "wordMeanings", "i": 8, "find": "even — এমনকি", "replace": "এমনকি", "why": "api: the English word kept beside its translation" },
+  { "lang": "bn", "verseId": "1.18.17", "part": "wordMeanings", "i": 9, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "bn", "verseId": "1.18.60", "part": "wordMeanings", "i": 12, "find": "even", "replace": "এমনকি", "why": "api: the English word left in the meaning" },
+  { "lang": "hi", "verseId": "1.11.33", "part": "purport", "find": "परमPersonality of Godhead परम पुरुषोत्तम", "replace": "परम पुरुषोत्तम", "why": "'Supreme Personality of Godhead' half-translated and then said again in Hindi" },
+  { "lang": "mr", "verseId": "1.4.5", "part": "purport", "find": "अच्युत ( acyuta ) असे", "replace": "अच्युत असे", "why": "the English gloss '( acyuta )' kept after the Marathi word that already is acyuta" }
+]

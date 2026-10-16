@@ -1,0 +1,4 @@
+[
+  { "lang": "ml", "verseId": "1.8.22", "part": "purport", "find": "വിവിൈധവ", "replace": "വിവിധൈവ",
+    "why": "the Sanskrit \"vividhaiva\" quoted in the purport has its vowel sign ൈ out of place (U+0D3F U+0D48 before ധ)" }
+]

@@ -10,13 +10,14 @@ import { after, describe, test } from 'node:test';
 import { TruncatedError, createClaude, messageRequest, thinkingSettings } from '../scripts/lib/claude-translate-client.js';
 import { LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { PROMPT_VERSION, SYSTEM_PROMPT, answerSchema, userPrompt } from '../scripts/lib/claude-translate-prompt.js';
-import { lanesOf, normalizePlan } from '../scripts/lib/claude-translate-parts.js';
+import { MADE_BY_LABELS, lanesOf, mainStampOf, normalizePlan, translatedByOf } from '../scripts/lib/claude-translate-parts.js';
+import { PROVIDER_IDS } from '../scripts/lib/translate-providers.js';
 import { dryRun, hasTranslation, isCurrent, mergeEntry, run, status, verifyEntry, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
 import { DEFAULT_GROUP_BUDGET, chapterKey, saChapterKey, sourceHash, unitsFromChapter } from '../scripts/lib/claude-translate-source.js';
 import {
   ConflictError, DEFAULT_VERSION, backupKey, checkpointKey, dirStore, langChapterKey, testStore, versionFrom,
 } from '../scripts/lib/claude-translate-store.js';
-import { assessLanguage, validateLanguage } from '../scripts/lib/claude-translate-validate.js';
+import { assessLanguage, checkText, unassignedChars, validateLanguage } from '../scripts/lib/claude-translate-validate.js';
 // The importer's own helpers: what the saved files must satisfy for a database import to take them as they are.
 import { buildTranslationRows } from '../scripts/lib/commentaries.js';
 import { normalizeWordMeanings } from '../scripts/lib/word-meanings.js';
@@ -266,6 +267,11 @@ describe('validator', () => {
   rejects('English left in', (a) => { a.translation = TRANSLATION_1; }, /identical|script/);
   rejects('a dropped number', (a) => { a.purport[0] = a.purport[0].replace('2.47', ''); }, /numbers differ/);
   rejects('a changed number', (a) => { a.purport[0] = a.purport[0].replace('2.47', '2.48'); }, /numbers differ/);
+  rejects('a code point Unicode has not assigned (an avagraha written U+0BC3)', (a) => { a.translation = a.translation.replace(/ /, '\u0bc3 '); }, /do not exist in Unicode \(U\+0BC3\)/, 'te');
+  test('unassignedChars finds only unassigned code points inside the Indic blocks', () => {
+    assert.deepEqual(unassignedChars('శాశ్వతో\u0bc3యం ఽ क ।'), ['\u0bc3']);
+    assert.deepEqual(unassignedChars('a \u0378 outside the Indic blocks, and a plain ऽ'), []);
+  });
   rejects('a missing parenthesis', (a) => { a.purport[0] = a.purport[0].replace('(', ''); }, /parentheses/);
   rejects('a missing quotation mark', (a) => { a.translation = `"${a.translation}`; }, /quotation/);
   rejects('a truncated answer', (a) => { a.purport[1] = 'भगवान भगवान.'; }, /too short/);
@@ -279,6 +285,20 @@ describe('validator', () => {
   rejects('Hindi written as Marathi', (a) => {
     a.translation = 'हे संजय, माझे पुत्र आणि पांडूचे पुत्र काय करत होते, ते आहे आणि नाही आणि आहे आणि होते आहे आणि आहेत.';
   }, /reads as Marathi/);
+
+  test('word counts are not measured on a short gloss, and a long paragraph keeps the full floor', () => {
+    const english = (n) => Array(n).fill('lord').join(' ');
+    const tamil = (n) => Array(n).fill('பகவான்').join(' ');
+    const tooShort = (words, answerWords) => checkText(english(words), tamil(answerWords), 'ta', 'x').some((f) => /too short/.test(f.msg));
+    assert.equal(tooShort(10, 3), false, 'a gloss of 6–14 words is not measured');
+    assert.equal(tooShort(14, 2), false);
+    assert.equal(tooShort(20, 8), false, '0.40× of 20 words: under the full floor of 0.5, over the lowered 0.35');
+    assert.equal(tooShort(20, 5), true, '0.25× of 20 words');
+    assert.equal(tooShort(149, 60), false, '0.40× of 149 words');
+    assert.equal(tooShort(150, 60), true, '0.40× of 150 words is under the full floor');
+    assert.equal(tooShort(200, 110), false, '0.55× of 200 words');
+    assert.equal(tooShort(200, 10), true, 'a truncated paragraph');
+  });
 
   test('digits in the target language are accepted as the same number', () => {
     const answer = good('bn');
@@ -1423,6 +1443,39 @@ describe('dry run and status', () => {
 });
 
 
+describe('who a saved row says made it', () => {
+  test('every provider has a label, and a stamp with no provider is Claude\'s', () => {
+    for (const id of PROVIDER_IDS) assert.ok(MADE_BY_LABELS.includes(translatedByOf(id)), `${id} has a label`);
+    assert.equal(new Set(MADE_BY_LABELS).size, PROVIDER_IDS.length, 'no two providers share one');
+    assert.deepEqual(['anthropic', 'openai', 'gemini', undefined].map(translatedByOf), ['claude', 'gpt', 'gemini', 'claude']);
+    assert.equal(translatedByOf('somebody-new'), 'somebody-new', 'an unknown provider is never passed off as Claude');
+  });
+
+  test('the stamp that speaks for a verse is the translation\'s, or else the newest', () => {
+    const t = { provider: 'openai', generatedAt: '2026-10-01' };
+    const p = { provider: 'anthropic', generatedAt: '2026-10-09' };
+    assert.equal(mainStampOf({ translation: t, purport: p }), t);
+    assert.equal(mainStampOf({ purport: p, transliteration: { provider: 'gemini', generatedAt: '2026-10-02' } }), p);
+    assert.equal(mainStampOf({}), null);
+  });
+
+  test('a run by GPT saves rows and a verse that say gpt, and verifyEntry checks them against the stamp', async () => {
+    const { store, dir } = freshStore();
+    const { ask } = stub();
+    await run({ store, getSource, ask, cfg: cfg({ provider: 'openai', model: 'gpt-6-luna', only: '1.2.1' }), log: quiet() });
+    for (const lang of LANGS) {
+      const v = verseOf(readLang(dir, lang), '1.2.1');
+      const own = v.commentaries.filter((c) => c.translatorSlug === 'prabhupada' && c.language === lang);
+      assert.deepEqual(own.map((c) => c.translatedBy), ['gpt', 'gpt']);
+      assert.equal(v.aiTranslation.translatedBy, 'gpt');
+      assert.equal(v.aiTranslation.parts.translation.provider, 'openai');
+      assert.deepEqual(verifyEntry(v, unitsFromChapter(chapterFile(), saFile()).units.find((u) => u.ref === '2.1'), lang), []);
+      const old = { ...v, commentaries: v.commentaries.map((c) => (c.translatedBy ? { ...c, translatedBy: 'claude' } : c)) };
+      assert.ok(verifyEntry(old, unitsFromChapter(chapterFile(), saFile()).units.find((u) => u.ref === '2.1'), lang).some((p) => /not stamped gpt/.test(p)), 'Claude\'s label on GPT\'s text is a problem');
+    }
+  });
+});
+
 describe('a plan: different models for different parts', () => {
   const PLAN = {
     translation: { provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off' },
@@ -1475,6 +1528,7 @@ describe('a plan: different models for different parts', () => {
       assert.deepEqual(Object.keys(v.aiTranslation.parts).sort(), ['purport', 'translation', 'transliteration', 'wordMeanings']);
       assert.equal(v.aiTranslation.parts.transliteration.provider, 'gemini');
       assert.equal(v.aiTranslation.parts.translation.provider, 'anthropic');
+      assert.deepEqual(v.commentaries.filter((c) => c.language === lang).map((c) => c.translatedBy), ['claude', 'claude'], 'rows made by Claude say claude');
       assert.deepEqual(verifyEntry(v, unitOf('2.1'), lang), []);
     }
   });

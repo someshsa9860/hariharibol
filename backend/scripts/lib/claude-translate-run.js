@@ -5,7 +5,7 @@
 // Where it writes: one chapter file per language beside the English one —
 // json/bhagavat-gita/<lang>/ch-<n>.json — each verse carrying the four things translated
 // (transliteration, wordMeanings, and Prabhupāda's translation and purport as commentaries) and
-// stamped `translatedBy: 'claude'` with the run's version. A language's file may already exist
+// stamped `translatedBy` (the provider's brand: claude, gpt, gemini) with the run's version. A language's file may already exist
 // with other translators' rows in it (hi/ does); those rows are kept.
 //
 // The rules this file keeps:
@@ -36,7 +36,7 @@
 
 import { TruncatedError, addUsage, emptyUsage, costUsd } from './claude-translate-client.js';
 import { PROMPT_VERSION, answerSchema, systemPromptFor, userPrompt } from './claude-translate-prompt.js';
-import { PARTS, lanesOf, normalizePlan, partHash, partsOf, unitHasPart } from './claude-translate-parts.js';
+import { PARTS, lanesOf, mainStampOf, normalizePlan, partHash, partsOf, translatedByOf, unitHasPart } from './claude-translate-parts.js';
 import {
   BOOK, CHAPTERS, TRANSLATOR, chapterLabel, estimateInputTokens, estimateOutputTokens, groupLanguages, loadChapter, sourceHash, unitWords,
 } from './claude-translate-source.js';
@@ -221,7 +221,7 @@ export function buildEntry(unit, t, lang, { provider = 'anthropic', model, effor
   const done = parts.filter((part) => unitHasPart(unit, part) || has[part]);
   const content = Object.fromEntries(PARTS.map((part) => [part, done.includes(part) && has[part]]));
   const stamped = done; // a part that came back empty is stamped too, scored 1, so it is flagged — not silently retried forever
-  const row = (type, text) => ({ translatorSlug: TRANSLATOR, type, language: lang, displayOrder: 0, text, translatedBy: 'claude', version, correctness: quality.scores[type] });
+  const row = (type, text) => ({ translatorSlug: TRANSLATOR, type, language: lang, displayOrder: 0, text, translatedBy: translatedByOf(provider), version, correctness: quality.scores[type] });
   const commentaries = [];
   if (done.includes('translation') && content.translation) commentaries.push(row('translation', t.translation));
   if (content.purport) commentaries.push(row('purport', t.purport.join('\n')));
@@ -257,10 +257,10 @@ function summarise(parts, hash) {
   const names = PARTS.filter((p) => parts[p]);
   if (!names.length) return { translatedBy: 'claude', parts: {} };
   const newest = names.map((p) => parts[p]).sort((a, b) => String(b.generatedAt).localeCompare(String(a.generatedAt)))[0];
-  const main = parts.translation ?? newest;
+  const main = mainStampOf(parts);
   const notes = [...new Set(names.map((p) => parts[p].note).filter(Boolean))];
   return {
-    translatedBy: 'claude', version: main.version, provider: main.provider, model: main.model, effort: main.effort, promptVersion: main.promptVersion,
+    translatedBy: translatedByOf(main.provider), version: main.version, provider: main.provider, model: main.model, effort: main.effort, promptVersion: main.promptVersion,
     sourceHash: hash, generatedAt: newest.generatedAt,
     correctness: Math.min(...names.map((p) => parts[p].correctness ?? 3)),
     partScores: Object.fromEntries(names.map((p) => [p, parts[p].correctness])),
@@ -382,13 +382,15 @@ export function verifyEntry(verse, unit, lang) {
       const stamp = stamps[r.type];
       if (!stamp) problems.push(`${r.type} row has no stamp`);
       else {
-        if (r.translatedBy !== 'claude' || r.version !== stamp.version) problems.push(`${r.type} row is not stamped claude / ${stamp.version}`);
+        const label = translatedByOf(stamp.provider);
+        if (r.translatedBy !== label || r.version !== stamp.version) problems.push(`${r.type} row is not stamped ${label} / ${stamp.version}`);
         if (r.correctness !== stamp.correctness) problems.push(`${r.type} row's correctness does not match the verse's`);
       }
     }
   } else {
     if (ai.sourceHash !== sourceHash(unit)) problems.push('the English source has changed since this was translated');
-    for (const r of rows) if (r.translatedBy !== 'claude' || r.version !== ai.version) problems.push(`${r.type} row is not stamped claude / ${ai.version}`);
+    const label = translatedByOf(ai.provider);
+    for (const r of rows) if (r.translatedBy !== label || r.version !== ai.version) problems.push(`${r.type} row is not stamped ${label} / ${ai.version}`);
     if (![1, 2, 3].includes(ai.correctness)) problems.push('no correctness score');
     for (const r of rows) if (r.correctness !== ai.partScores?.[r.type]) problems.push(`${r.type} row's correctness does not match the verse's`);
   }

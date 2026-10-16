@@ -1,7 +1,57 @@
 # Gita translations in the local database — audit report
 
 **Date:** 2026-10-16 · **Checked:** the seven translated languages (bn hi kn ml mr ta te) of Prabhupāda's Bhagavad-gītā, as they now stand in the **local Postgres** `VerseTranslation` table, against the English in the same database and against S3 (`s3://sanatan-db/json/bhagavat-gita/<lang>/`, read-only).
-**This report is the first half of the task. Nothing has been fixed.** Nothing was written to S3. The only database change is the import described in §1. Nothing is committed.
+**§1–§6 and §7's list describe the state at audit time. The fixes were done afterwards the same day — see §0 for what was changed in S3 and the database, and where the pre-fix copies are.** Nothing is committed.
+
+---
+
+## 0. Fixes applied after the audit (S3 and the local database)
+
+You asked for the fixes one by one, in S3 as well. All seven are done; **S3 (`json/bhagavat-gita/<lang>/ch-N.json`, 126 files) and the local database hold the same text** (a dry-run import of all seven languages reports nothing to change, and a scan of all 4,907 rows and all 126 files finds no unassigned code point left). Every row is still **hidden** (`isPublished = false`).
+
+**Undo.** Before the first write: a full copy of the folder at `s3://sanatan-db/json-backup-2026-10-16-before-audit-fixes/json/bhagavat-gita/`; each apply also kept per-file backups under `s3://sanatan-db/json-backup-2026-10-16/json/bhagavat-gita/…`. The original findings are in `findings-before-fixes.json`; `findings.json` is now regenerated for the current state. Each fix's dry-run and apply report is in `fixes/`.
+
+| # | What | Result |
+|---|---|---|
+| 1 | The six corrupt verses (A) redone whole by claude-sonnet-5-5 | bn 1.3.11 1.9.11 1.10.37 1.11.25, te 1.3.9 1.11.46; about $0.20; all scored 3 |
+| 2 | Script rules for bn / te / kn / hi / mr (`fix-translation-script.js`, no model call) — B, C, E, F, J and the avagraha | 82 files written. Verses touched: bn 133, te 88, kn 65, hi 16, mr 87. Transliteration lines rebuilt from the English IAST: bn 51, te 43, kn 39, hi 8, mr 11. Verse tails `॥N-M॥` normalised: bn 90, te 27, kn 27, hi 5, mr 79. Stray other-script letters in purports removed: bn 7, te 31, kn 4, hi 1. Dot-avagraha, a word column rebuilt, Roman-quote conversions: a few each |
+| 3 | Hand patches (D, and the English words in G) with `--patches` | 11 files: bn 11 entries in 10 verses ("even" and the like), hi 1.11.33 purport, mr 1.4.5 purport |
+| 4 | **Validator length rule changed** (texts under 15 source words are not measured; the floor is ×0.7 under 150 words), and every stored stamp re-scored | 126 files; stamps re-scored hi 115, mr 168, bn 170, ta 114, te 106, kn 127, ml 118. Ta and ml also had 1 and 4 transliteration lines regenerated in that pass |
+| 5 | **`translatedBy` is now the provider brand** (`claude`, `gpt`, `gemini`) instead of one name for everything; relabelled in S3 and re-imported | ta gpt 701; ml gpt 692 + claude 9; the other five claude 701. 36 files |
+| 6 | ml 1.8.22 purport: `വിവിൈധവ` → `വിവിധൈവ` | 1 file |
+| 7 | **Characters that do not exist in Unicode** — an avagraha or letter the model wrote with the wrong code point (te U+0BC3, bn U+09B3 / U+09B4, kn U+0CFD…). The validator now flags them (`unassignedChars`), and the script pass mends them in place (drops one before a real avagraha, otherwise replaces it with the language's avagraha); Tamil and Malayalam, which have no avagraha sign of their own, are reported, not guessed | te 1.2.20 1.6.40 1.7.30, bn 1.9.1 1.17.3, ta 1.6.34 1.6.45 (the Tamil purport one by hand: `த்ரு஢வ்ரதாஃ` → `த்ருடவ்ரதாஃ`) |
+
+Checks run: 633 of 633 backend unit tests pass. The new rules have tests in `test/translation-script-fix.test.js`, `test/translation-brahmic.test.js` and `test/claude-translate.test.js`. The two end-to-end scripts that call a model or write the real tables (`translation-e2e.js`, `translation-import-e2e.js`) were **not** run.
+
+**Corrections to this report's own findings**
+
+- **H was wrong in part.** ml 1.3.3, 1.8.10, 1.9.26 and 1.12.20 are **false alarms** — a number plus the ordinal ending "39-ാം" (a vowel sign after a hyphen is correct Malayalam). te 1.2.20 and 1.6.40 are **real** (U+0BC3, which is not assigned in Telugu); I had first called them false alarms and was wrong. The real ones were ml 1.8.22, hi 1.18.17, bn 1.1.26, kn 1.11.28, kn 1.6.18 and the two te verses. The audit's check never listed the two kn verses (found by the script pass), nor bn 1.9.1, bn 1.17.3, te 1.7.30, ta 1.6.34 and ta 1.6.45 (found by the unassigned-code-point scan in Fix 7).
+- **"65 pairs" is overstated** by at least those four ml false alarms, so at most 61. I did not re-verify the other categories' counts one by one.
+- The avagraha "cosmetic" item (bn 4, te 23, kn 9) was cleared by Fix 2.
+
+**Where the stored scores are now** (lowest part per verse, 1 / 2 / 3; audit-time count of score 1 in brackets)
+
+| Language | Verses scored 1 | 2 | 3 | Parts scored 1: translation / translit. / words / purport |
+|---|---|---|---|---|
+| hi | 27 (136) | 278 | 396 | 1 / 1 / 18 / 7 |
+| mr | 29 (186) | 330 | 342 | 0 / 1 / 18 / 10 |
+| bn | 35 (214) | 224 | 442 | 0 / 2 / 23 / 10 |
+| te | 30 (134) | 381 | 290 | 0 / 2 / 19 / 9 |
+| kn | 18 (140) | 321 | 362 | 1 / 1 / 10 / 6 |
+| ml | 23 (135) | 665 | 13 | 2 / 3 / 2 / 17 |
+| ta | 89 (193) | 609 | 3 | 3 / 24 / 57 / 24 |
+
+- **The score-1s that remain are mostly the model's own doubt, not a validator rule.** Of the 271 parts still scored 1, 228 carry the model's own "rated 1 by Claude" (hi 19, mr 20, bn 25, te 21, kn 13, ml 23, ta 107). The other 43 are a validator finding alone: purport numbers that differ from the English (34 findings; Indian grouping such as 84,00,000 or a number written in words account for some, I did not check them all), brackets and quotation marks, line or entry counts, and two purports flagged "too short".
+- Tamil's high count (108 parts) is almost all the model's own rating (107 of 108). The stamp text says "rated N by Claude" for every provider, including the gpt-written Tamil and Malayalam — a label the pipeline writes regardless, so I would not read it as Claude's opinion of gpt's work.
+- The models' free-text `aiTranslation.note` strings (3,530 across the corpus) were left as they were; a few mention the stray signs that are now mended. They are not imported into the database.
+
+**What is left**
+
+- **Layout only, not text lost:** hi 1.11.48 and 1.11.53; mr 1.11.48 and 1.13.9; bn 1.11.48; te 1.10.3 and 1.11.48; kn 1.11.48. Of these, the **mr 1.13.9 and te 1.10.3 purport ¶1 splits are real truncations** — a paragraph cut in two, not just a different split.
+- **Deliberate:** "worship" left in the purport of 1.6.47 in mr, bn and ml.
+- **"Numbers differ"** in 36 purport pairs (hi 6, mr 9, bn 8, ta 1, te 7, kn 4, ml 1). Most are grouping or numbers written in words; I have not gone through them all (a possible "Fix 4b").
+- **Meaning accuracy: still unread by a native speaker.** Everything here is mechanical (script, completeness, Unicode, length, labels) plus sampled reading by me.
+- Publishing, the offline book export and the app reading `wordMeanings` are not done and not part of this.
 
 ---
 
@@ -18,7 +68,7 @@
 - **The database now holds 4,907 translation rows (701 × 7)**, each with translation, transliteration and word meanings; **667 of 701 also carry a purport** (the 34 other verses have none in English either). Version `1.0-12-10-26` on every row. **All are hidden** (`isPublished = false`); the English rows are untouched and visible.
 - **A second dry-run import after the first reports 701 `unchanged` in every language** — the database equals S3 exactly. Row totals reconcile (21,349 `VerseTranslation` rows across the table).
 - **Undo:** `pg_dump` of the table taken before the import, in the scratchpad: `/private/tmp/claude-501/-Users-SSS-Jay-Jay-Ram-Krishna-Hari-app-hariharibol/e417c2ef-b00c-4283-804c-642e0b3cc78c/scratchpad/db/VerseTranslation-before-import.sql` (data only, column inserts, 29.5 MB). It is in a temp directory — copy it somewhere permanent if you want to keep it.
-- **A labelling problem found on the way:** every row says `translatedBy = 'claude'`, but Tamil (all 701) and 692 of Malayalam's 701 were written by **gpt-6-luna** (the saved stamp says so; the database cannot). The five other languages were written by `claude-sonnet-5-5`. The column comes from a name the pipeline writes into every file regardless of provider.
+- **A labelling problem found on the way:** every row says `translatedBy = 'claude'`, but Tamil (all 701) and 692 of Malayalam's 701 were written by **gpt-6-luna** (the saved stamp says so; the database cannot). The five other languages were written by `claude-sonnet-5-5`. The column comes from a name the pipeline writes into every file regardless of provider. **Fixed — §0, Fix 5.**
 
 ## 2. Short answer
 
@@ -62,7 +112,7 @@ Verse × language pairs with something in A–H or J: **65 — bn 34, te 16, ml 
 
 ## 5. The stored scores (what the pipeline thought of its own work)
 
-Lowest part per verse, 1 / 2 / 3, and the model that wrote it.
+Lowest part per verse, 1 / 2 / 3, and the model that wrote it. **This is the audit-time state; the current numbers are in §0.**
 
 | Language | Model | Verses scored 1 | 2 | 3 | Parts scored 1: translation / translit. / words / purport |
 |---|---|---|---|---|---|
@@ -86,9 +136,9 @@ Lowest part per verse, 1 / 2 / 3, and the model that wrote it.
 - **The 11 word-meaning and 168 translation "too short" cases at the very bottom of the ratio** — I read a handful, not all.
 - **Anything about what the app shows.** The rows are hidden; the app reads `transliteration` of these rows but not `wordMeanings`, and nothing marks a text as machine-made (`backend/CLAUDE.md`, translation import).
 
-## 7. Proposed fixes — not done, waiting for your word
+## 7. Proposed fixes — items 1–5 are done (§0); 6 and 7 are not
 
-In order of value for the cost; each ends with re-running this audit (`tools/`) and a re-import of that language.
+As proposed at audit time, in order of value for the cost; each ends with re-running this audit (`tools/`) and a re-import of that language.
 
 1. **Redo the six corrupt verses** (A) with the existing `scripts/redo-translation-parts.js propose` / `apply` — whole verse, claude-sonnet-5-5, about 6 verses, a few cents. Back up first, as yesterday. Then import bn and te again (only those rows change).
 2. **Rule-based script pass for bn / te / kn / hi / mr** — the ml/ta pass (`scripts/fix-translation-script.js`) has rules only for those two languages. B, C, E, F, H, J and the avagraha would need the same rules for Bengali, Telugu and Kannada (the English IAST → script converter exists in `scripts/lib/translation-script.js` for the Dravidian scripts I used; Bengali and Devanagari need checking, so this step needs a look at what the converter can do before I promise it). No model cost.
@@ -118,6 +168,10 @@ DRY=1 OUT=/tmp/import.json node scripts/translation-audit-2026-10-16/tools/impor
 | `findings.json` | verse lists per category per language (what §3 counts) |
 | `tools/audit-db.mjs` | the audit: database vs English vs the saved stamps; uses the repo's own validator (`assessLanguage`) plus mojibake, foreign-script, Roman-letter, Hindi/Marathi, length and Sanskrit-sound checks |
 | `tools/categorise.mjs` | turns the audit's findings into `findings.json` |
-| `tools/import-all.mjs` | imports the seven languages (hidden), or previews |
+| `tools/import-all.mjs` | imports the seven languages (hidden), or previews; env `[DRY=1] [LANGS=bn,te] [OUT=…]` |
+| `findings-before-fixes.json` | the original findings, kept for comparison |
+| `fixes/` | each fix's proposal, dry run and apply report (patch files are `3-`, `6-` and `7-patches.json`) |
+
+The fixes themselves are tools in the repo, not in this folder: `node scripts/fix-translation-script.js` (dry run by default; `--apply` backs up, writes conditionally and reads back; `--report`, `--langs`, `--chapters`, `--verse`, `--patches FILE`, `--rescore`, `--relabel`) with its rules in `scripts/lib/translation-script-fix.js`, and `scripts/redo-translation-parts.js` for whole-verse redos. To re-check S3 against the current rules: `node scripts/fix-translation-script.js --rescore --relabel` should report 0 changes.
 
 The tables in §2 and §5 were computed from `output/audit-db.json` with throwaway one-liners that are not kept; every number can be re-derived from that file (each record carries the model, scores and notes from the saved stamp).

@@ -1,17 +1,18 @@
-// Repairs the script of the Malayalam and Tamil Gita translations without an AI: the Sanskrit lines (the
+// Repairs the script of the Gita translations (ml ta hi mr bn te kn) without an AI: the Sanskrit lines (the
 // transliteration and the Sanskrit word of each word meaning) are rebuilt from the English IAST wherever the saved
 // text has a script flaw — Devanagari or Kannada letters, a colon for a visarga, superscript digits — and Sanskrit
-// quoted inside prose is converted. Wrong-language prose and English words left in Roman letters are NOT touched:
+// quoted inside prose is converted. An avagraha written with a code point Unicode has not assigned is mended in place
+// (to the language's avagraha, or dropped where one follows it), and the line is rebuilt only if something stray is left. Wrong-language prose and English words left in Roman letters are NOT touched:
 // they are listed, and need a translation (`translate-claude.js`). The rules are scripts/lib/translation-script-fix.js.
 //
-//   node scripts/fix-translation-script.js --langs ml,ta                 dry run: what would change, and the scores before / after; writes nothing
+//   node scripts/fix-translation-script.js --langs bn,te,kn,hi,mr         dry run: what would change, and the scores before / after; writes nothing
 //   node scripts/fix-translation-script.js --langs ml --apply            back up each chapter file, then write it (conditionally) and read it back
 //
 // Every repaired part is re-scored by the validator and stamped `scriptFix`; the model's own rating of a transliteration
 // that was rebuilt is dropped (it described text that is gone). Nothing else in a verse changes, and the translation
 // version is left alone, so a later translation run still treats the verse as current.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -23,11 +24,17 @@ loadEnv({ path: resolve(backend, '.env') });
 
 const HELP = `Usage: node scripts/fix-translation-script.js [options]
 
-  --langs ml,ta        languages (default: ml,ta)
+  --langs ml,ta        languages (ml ta hi mr bn te kn; default: ml,ta)
   --chapters 1,2       chapters (default: all 18)
   --verse 1.2.47       one verse only
   --apply              write the repaired chapter files (default: a dry run that writes nothing)
   --report FILE        write every change and leftover, verse by verse, to FILE (JSON)
+  --patches FILE       hand-written replacements (JSON list of { lang, verseId, part, i?, find, replace, why }), applied after the rules;
+                       each \`find\` must occur exactly once in its place, or nothing is written
+  --rescore            also bring every verse's stamps (scores, warnings) in line with the validator as it is now, for the parts where they differ;
+                       the text is not touched and the model's own ratings are kept
+  --relabel            also set \`translatedBy\` on every row and verse to the provider its stamp names (gpt for GPT's text, not claude);
+                       nothing else is touched
   --keep-rating        keep the model's own rating of a rebuilt transliteration (to compare with the audit's dry run)
   --local-store DIR    read and write a folder laid out like the bucket (en/, sa/ and <lang>/ in it) instead of S3
   --force              apply although the checkpoint says a run is active
@@ -35,8 +42,8 @@ const HELP = `Usage: node scripts/fix-translation-script.js [options]
 
 const { values } = parseArgs({
   options: {
-    langs: { type: 'string' }, chapters: { type: 'string' }, verse: { type: 'string' }, apply: { type: 'boolean' }, report: { type: 'string' },
-    'keep-rating': { type: 'boolean' }, 'local-store': { type: 'string' }, force: { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
+    langs: { type: 'string' }, chapters: { type: 'string' }, verse: { type: 'string' }, apply: { type: 'boolean' }, report: { type: 'string' }, patches: { type: 'string' },
+    rescore: { type: 'boolean' }, relabel: { type: 'boolean' }, 'keep-rating': { type: 'boolean' }, 'local-store': { type: 'string' }, force: { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
   },
 });
 if (values.help) {
@@ -47,7 +54,7 @@ if (values.help) {
 const { CHAPTERS, loadChapter } = await import('./lib/claude-translate-source.js');
 const { ConflictError, checkpointKey, dirStore, langChapterKey, s3Store, versionFrom } = await import('./lib/claude-translate-store.js');
 const { verifyEntry } = await import('./lib/claude-translate-run.js');
-const { OWN, fixVerse, rescoreVerse, sanskritFlaw, verseScore } = await import('./lib/translation-script-fix.js');
+const { OWN, checkPatches, fixVerse, relabelStored, rescoreStored, rescoreVerse, sanskritFlaw, verseScore } = await import('./lib/translation-script-fix.js');
 
 const langs = (values.langs || 'ml,ta').split(',').map((s) => s.trim()).filter(Boolean);
 for (const l of langs) if (!OWN[l]) throw new Error(`--langs: "${l}" is not handled here — this repairs ${Object.keys(OWN).join(', ')}`);
@@ -55,10 +62,15 @@ const chapters = values.chapters ? values.chapters.split(',').map(Number) : CHAP
 for (const n of chapters) if (!CHAPTERS.includes(n)) throw new Error(`--chapters: ${n} is not a chapter of the Gita`);
 const version = versionFrom(process.env.TRANSLATION_VERSION);
 
+const patches = values.patches ? checkPatches(JSON.parse(readFileSync(resolve(values.patches), 'utf8'))) : [];
+const patchStatus = new Map(); // patch → what happened to it
+
 const store = values['local-store'] ? dirStore(resolve(values['local-store'])) : await s3Store();
 const getSource = values['local-store'] ? (key) => store.getJson(key) : (await import('./lib/source-s3.js')).getJson;
 
 const pad = (v, w) => String(v).padStart(w);
+/** What a validator warning is about, for counting: "purport ¶2: too short (0.64× …)" → "too short". */
+const kindOfWarning = (w) => (/too short|too long|rated \d by Claude/.exec(w)?.[0] ?? w.replace(/\d+/g, 'N').slice(0, 70));
 const count = (map, key, by = 1) => {
   map[key] = (map[key] || 0) + by;
 };
@@ -117,7 +129,9 @@ for (const lang of langs) {
         after.push(verse);
         return verse;
       }
-      const fixed = fixVerse(lang, verse, unit);
+      const mine = patches.filter((p) => p.lang === lang && p.verseId === verse.verseId);
+      const fixed = fixVerse(lang, verse, unit, mine);
+      for (const r of fixed.patchResults) patchStatus.set(r.patch, r.status);
       for (const c of fixed.changes) count(changes, `${c.part}: ${c.how}`);
       for (const l of fixed.leftovers) {
         const k = `${l.part}: ${l.kind}`;
@@ -127,21 +141,49 @@ for (const lang of langs) {
       let next = verse;
       if (fixed.changes.length) {
         touched.add(verse.verseId);
-        next = rescoreVerse(lang, verse, fixed.verse, unit, fixed.parts, { keepTransliterationRating: Boolean(values['keep-rating']) });
+        next = rescoreVerse(lang, verse, fixed.verse, unit, fixed.parts, { keepTransliterationRating: Boolean(values['keep-rating']), rebuilt: fixed.rebuilt });
         fileChanged = true;
-        // The stamps and rows must still agree; a problem the repair introduced stops everything.
+      }
+      let rescored = [];
+      if (values.rescore) {
+        const re = rescoreStored(lang, next, unit);
+        if (re.parts.length) {
+          touched.add(verse.verseId);
+          next = re.verse;
+          rescored = re.changes;
+          fileChanged = true;
+          for (const c of re.changes) {
+            count(changes, `${c.part}: re-scored ${c.from ?? '–'} → ${c.to}`);
+            for (const w of c.dropped) count(changes, `   warning dropped: ${kindOfWarning(w)}`);
+            for (const w of c.added) count(changes, `   warning added:   ${kindOfWarning(w)}`);
+          }
+        }
+      }
+      let relabelled = [];
+      if (values.relabel) {
+        const re = relabelStored(lang, next);
+        if (re.changes.length) {
+          touched.add(verse.verseId);
+          next = re.verse;
+          relabelled = re.changes;
+          fileChanged = true;
+          for (const c of re.changes) count(changes, `${c.what}: translatedBy ${c.from ?? '–'} → ${c.to}`);
+        }
+      }
+      if (next !== verse) {
+        // The stamps and rows must still agree; a problem the change introduced stops everything.
         const was = new Set(verifyEntry(verse, unit, lang));
         const introduced = verifyEntry(next, unit, lang).filter((p) => !was.has(p) && /stamp|correctness|source has changed/.test(p));
         if (introduced.length) {
           problemsFound = true;
-          console.log(`  !! ${lang} ${verse.verseId}: the repair would introduce: ${introduced.join('; ')}`);
+          console.log(`  !! ${lang} ${verse.verseId}: the change would introduce: ${introduced.join('; ')}`);
         }
       }
       // Sanskrit columns that still hold a script flaw after the repair.
       for (const line of (next.transliteration || '').split('\n')) if (line && sanskritFlaw(lang, line).length) flawsLeft++;
       for (const w of next.wordMeanings || []) if (sanskritFlaw(lang, w.word || '').length) flawsLeft++;
       after.push(next);
-      perLang[verse.verseId] = { changes: fixed.changes, leftovers: fixed.leftovers, parts: fixed.parts, scoreBefore: verseScore(verse), scoreAfter: verseScore(next) };
+      perLang[verse.verseId] = { changes: fixed.changes, leftovers: fixed.leftovers, parts: fixed.parts, rescored, relabelled, scoreBefore: verseScore(verse), scoreAfter: verseScore(next) };
       return next;
     });
     if (fileChanged) pending.push({ key, n, tag: found.tag, file: { ...found.json, verses } });
@@ -161,7 +203,19 @@ for (const lang of langs) {
     const ids = [...leftoverVerses[k]];
     console.log(`    ${k.padEnd(44)} ${pad(v, 5)} in ${pad(ids.length, 3)} verses  ${ids.slice(0, 10).join(' ')}${ids.length > 10 ? ' …' : ''}`);
   }
-  console.log(`  Sanskrit lines / words still carrying a script flaw after the repair: ${flawsLeft}\n`);
+  console.log(`  Sanskrit lines / words still carrying a script flaw after the repair: ${flawsLeft}`);
+  const ofLang = patches.filter((p) => p.lang === lang && chapters.includes(Number(p.verseId.split('.')[1])) && (!values.verse || values.verse === p.verseId));
+  if (ofLang.length) {
+    const status = (p) => patchStatus.get(p) ?? 'verse-not-found';
+    const count = (st) => ofLang.filter((p) => status(p) === st).length;
+    console.log(`  hand patches: ${count('applied')} to apply, ${count('already')} already in place`);
+    for (const p of ofLang) {
+      if (['applied', 'already'].includes(status(p))) continue;
+      problemsFound = true;
+      console.log(`  !! ${lang} ${p.verseId} ${p.part}${p.i != null ? ` #${p.i}` : ''}: patch ${status(p)} — ${JSON.stringify(p.find)}`);
+    }
+  }
+  console.log('');
 
   if (apply) {
     if (problemsFound) throw new Error('Stopping before any write: see the lines marked !! above.');

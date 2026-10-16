@@ -3,7 +3,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const OUT = resolve(import.meta.dirname, '../output') + '/';
 const d = JSON.parse(readFileSync(OUT + 'audit-db.json', 'utf8'));
-const corrupt = new Set(['bn 1.3.11', 'bn 1.9.11', 'bn 1.10.37', 'bn 1.11.25', 'te 1.3.9', 'te 1.11.46']);
+// The six verses that were mojibake when the audit began (Fix 1 redid them). One counts as corrupt only while its translation is
+// still not in the language's script, so the list empties as they are mended instead of naming them forever.
+const WAS_CORRUPT = new Set(['bn 1.3.11', 'bn 1.9.11', 'bn 1.10.37', 'bn 1.11.25', 'te 1.3.9', 'te 1.11.46']);
+const corrupt = new Set(d.records.filter((r) => WAS_CORRUPT.has(r.lang + ' ' + r.id) && r.findings.some((f) => f.part === 'translation' && f.kind === 'wrong-script-share')).map((r) => r.lang + ' ' + r.id));
 const cats = {
   corrupt: {}, romanLeft: {}, stray: {}, avagraha: {}, untranslatedWord: {}, identical: {},
   structure: {}, brokenMarks: {}, iast: {}, numbers: {}, trunc: {},

@@ -1,15 +1,18 @@
-// Script conversion for repairing the Malayalam and Tamil Gita translations. Pure functions, no I/O.
+// Script conversion for repairing the Gita translations. Pure functions, no I/O.
 //
 // The English source spells the Sanskrit in IAST (Roman, with marks). A translation has to carry it in the language's own
 // script — the transliteration lines and the Sanskrit half of every word-by-word entry — and the model sometimes wrote it
 // in Devanagari, Kannada, Roman or with a colon for the visarga instead. These functions put it right by rule, from the
 // English IAST, so no model call is needed.
 //
-//   iastToMalayalam(iast) / iastToTamil(iast)   Roman IAST -> the language's script
+//   iastToMalayalam(iast) / iastToTamil(iast)   Roman IAST -> the language's script (Hindi, Marathi, Bengali, Telugu and Kannada: translation-brahmic.js)
 //   indicToMalayalam(text)                      stray Devanagari / Bengali / Kannada ... -> Malayalam, letter by letter
 //   indicToIast(text)                           the same, to IAST (so Tamil can be produced from it)
 //   sanskritLine(line, lang)                    one transliteration line of the source -> the script, with its danda and verse number
+//   indicToDevanagari / indicTo(lang, text)     stray letters of another Indic script -> the language's script, by position
 //   iastKey / scriptKey(lang, text), distance   a loose "sound skeleton", used only to measure how far two spellings are apart
+
+import { BRAHMIC, devanagariToBlock, iastToBrahmic } from './translation-brahmic.js';
 
 // ---------- IAST -> Malayalam ----------
 const M_CONS = {
@@ -257,8 +260,7 @@ export function sanskritLine(line, lang) {
   const verse = /\s*\|\|\s*([0-9]+(?:-[0-9]+)*)\s*\|\|\s*$/.exec(t);
   if (verse) { tail = ` ॥${verse[1]}॥`; t = t.slice(0, verse.index); }
   else if (/\s\.$/.test(t) || /\s*\|$/.test(t)) { tail = ' ।'; t = t.replace(/\s*[.|]$/, ''); }
-  const converted = lang === 'ml' ? iastToMalayalam(t) : iastToTamil(t);
-  return converted.replace(/\s+$/, '') + tail;
+  return iastTo(lang, t).replace(/\s+$/, '') + tail;
 }
 
 // ---------- loose sound skeletons ----------
@@ -329,7 +331,10 @@ function tamilKey(text) {
 
 /** The key of a script text in the language: both languages end up in the same alphabet as iastKey of the source. */
 export function scriptKey(lang, text) {
-  return lang === 'ml' ? iastKey(malayalamToIast(text)) : tamilKey(text);
+  if (lang === 'ml') return iastKey(malayalamToIast(text));
+  if (lang === 'ta') return tamilKey(text);
+  if (BRAHMIC[lang]) return iastKey(indicToIast(text.normalize('NFC').replace(/ৎ/g, 'ত্')));
+  throw new Error(`scriptKey: no converter for "${lang}"`);
 }
 
 /** Levenshtein distance between two strings (two-row version). */
@@ -350,4 +355,14 @@ function levenshtein(a, b) {
 export const distance = (a, b) => (Math.max(a.length, b.length) === 0 ? 0 : levenshtein(a, b) / Math.max(a.length, b.length));
 
 /** The Sanskrit of an IAST text in the language's script. */
-export const iastTo = (lang, text) => (lang === 'ml' ? iastToMalayalam(text) : iastToTamil(text));
+export function iastTo(lang, text) {
+  if (lang === 'ml') return iastToMalayalam(text);
+  if (lang === 'ta') return iastToTamil(text);
+  if (BRAHMIC[lang]) return iastToBrahmic(lang, text);
+  throw new Error(`iastTo: no converter for "${lang}"`);
+}
+
+/** Letter-for-letter into Hindi / Marathi / Bengali / Telugu / Kannada script, for stray letters of another Indic script (not Tamil: its block is not parallel). */
+export function indicToBrahmic(lang, text) {
+  return devanagariToBlock(lang, toDevanagari(text));
+}

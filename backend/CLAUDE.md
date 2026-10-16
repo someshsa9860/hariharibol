@@ -659,7 +659,10 @@ Things to know before changing it:
 - **Import puts storage into the database; storage stays the truth.** `POST /imports` `{ language, chapters?, publish?,
   dryRun? }` reads `json/bhagavat-gita/<language>/ch-<n>.json` and writes the Prabhupāda `TRANSLATION` row of each verse:
   `meaning` (the translation), `purport`, `transliteration`, `wordMeanings`, and `translatedBy` / `version` from the
-  verse's `aiTranslation`. Rules, so nobody has to rediscover them:
+  verse's `aiTranslation`. `translatedBy` is the provider's brand — `claude`, `gpt` or `gemini` (`MADE_BY` in
+  `scripts/lib/claude-translate-parts.js`) — so Tamil that GPT wrote says `gpt`; the model and effort are in the stamp. Until
+  2026-10-16 every row said `claude` whoever wrote it; `fix-translation-script.js --relabel` corrected the saved files. The
+  Translations page counts a row as the runs' own when `translatedBy` is any of those labels. Rules, so nobody has to rediscover them:
   - **The verse is found by its place, and checked.** `verseId` inside the book, and the file's book / canto / chapter / verse
     numbers must agree with the row's. A verse not in the database, or that disagrees, is reported and left alone; an
     import never creates a `Verse`.
@@ -676,7 +679,7 @@ Things to know before changing it:
     preview neither waits for the lock nor takes it. An audit row `translation.import` records who, what and the totals. The
     page offers Import only while no run for that language is live; the API does not enforce that.
   - **A hand edit on the Verses page is overwritten** by the next import of that verse. Editing a translation there does not
-    touch `translatedBy` / `version`, so a hand-edited row can still read "made by Claude" until it is imported again.
+    touch `translatedBy` / `version`, so a hand-edited row can still read as machine-made until it is imported again.
   - **The read side serves `transliteration` now, not yet `wordMeanings`.** The API verse (`present.verse`) and the offline book
     export (`shapeTranslation`, only when the row has one, so a book without them keeps its file hash) send the reader's own-script
     transliteration, chosen by `language.pickTransliteration` along the reading chain and falling back to the verse's Roman text.

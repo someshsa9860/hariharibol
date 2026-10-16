@@ -1,0 +1,281 @@
+{
+ "at": "2026-10-16T08:30:25.180Z",
+ "apply": true,
+ "version": "1.0-12-10-26",
+ "langs": [
+  "ml"
+ ],
+ "written": [
+  {
+   "lang": "ml",
+   "chapter": 8,
+   "key": "json/bhagavat-gita/ml/ch-8.json",
+   "backup": "json-backup-2026-10-16/json/bhagavat-gita/ml/ch-8.json"
+  }
+ ],
+ "details": {
+  "ml": {
+   "1.8.1": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.2": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.3": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 1,
+    "scoreAfter": 1
+   },
+   "1.8.4": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.5": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.6": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.7": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.8": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 1,
+    "scoreAfter": 1
+   },
+   "1.8.9": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.10": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.11": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.12": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.13": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.14": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.15": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.16": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.17": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.18": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.19": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.20": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.21": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.22": {
+    "changes": [
+     {
+      "part": "purport",
+      "how": "patch",
+      "from": "വിവിൈധവ",
+      "to": "വിവിധൈവ"
+     }
+    ],
+    "leftovers": [],
+    "parts": [
+     "purport"
+    ],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.23": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.24": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.25": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.26": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.27": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   },
+   "1.8.28": {
+    "changes": [],
+    "leftovers": [],
+    "parts": [],
+    "rescored": [],
+    "relabelled": [],
+    "scoreBefore": 2,
+    "scoreAfter": 2
+   }
+  }
+ }
+}

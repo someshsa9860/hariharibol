@@ -1,0 +1,10 @@
+[
+  {
+    "lang": "ta",
+    "verseId": "1.6.45",
+    "part": "purport",
+    "find": "த்ரு஢வ்ரதாஃ",
+    "replace": "த்ருடவ்ரதாஃ",
+    "why": "the Sanskrit \"dṛḍha-vratāḥ\" quoted in the purport has ḍ written with U+0BA2, which Unicode has not assigned; the corpus writes ḍ as ட (U+0B9F), as the converter does for the same word"
+  }
+]

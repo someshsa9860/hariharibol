@@ -29,6 +29,25 @@ export const PART_LABELS = {
 
 export const isPart = (name) => PARTS.includes(name);
 
+// What a saved row's `translatedBy` says about who wrote it: the provider's brand, which is short enough for the column
+// (the model and effort are in the stamp). Every provider in translate-providers.js has one; a stamp with no provider
+// is from before there were several, when Claude wrote everything.
+export const MADE_BY = { anthropic: 'claude', openai: 'gpt', gemini: 'gemini' };
+
+/** Every label a pipeline row can carry — what "made by a run, not by a person" means to the database. */
+export const MADE_BY_LABELS = Object.values(MADE_BY);
+
+/** The `translatedBy` label for text a stamp's provider wrote (an unknown provider labels itself rather than pass as Claude). */
+export const translatedByOf = (provider) => MADE_BY[provider ?? 'anthropic'] ?? provider;
+
+/** The stamp that speaks for a whole verse, out of its parts' stamps: the translation's, or else the newest part's. Null when there are none. */
+export function mainStampOf(parts) {
+  const held = PARTS.filter((p) => parts[p]).map((p) => parts[p]);
+  if (!held.length) return null;
+  const newest = held.sort((a, b) => String(b.generatedAt).localeCompare(String(a.generatedAt)))[0];
+  return parts.translation ?? newest;
+}
+
 /** Does the English have something for this part? The translation always does; the others only when the verse has them. */
 export function unitHasPart(unit, part) {
   switch (part) {

@@ -1,21 +1,27 @@
-// The part of repairing a Malayalam or Tamil Gita translation that needs no AI: script. The models keep writing
-// the Sanskrit lines in the wrong script (Devanagari, Kannada, a colon for a visarga, superscript digits), so those
-// are rebuilt from the English IAST by rule (translation-script.js), and Sanskrit quoted inside prose is converted.
+// The part of repairing a Gita translation that needs no AI: script. The models keep writing
+// the Sanskrit lines in the wrong script (Devanagari, Kannada, Roman, a colon for a visarga, superscript digits), so those
+// are rebuilt from the English IAST by rule (translation-script.js, translation-brahmic.js), and Sanskrit quoted inside prose is converted.
+// A code point Unicode has not assigned (an avagraha the model wrote as U+0BC3 in Telugu) is mended in place, not rebuilt.
 // Wrong-language prose and English words left in Roman letters are never touched: they need a translation, and
 // are reported as leftovers.
 //
 // Pure functions, no I/O (`npm test` covers them). The command line is scripts/fix-translation-script.js.
 //
-//   fixVerse(lang, verse, unit)  →  { verse, changes, leftovers, parts }
+//   fixVerse(lang, verse, unit, patches?)  →  { verse, changes, leftovers, parts, rebuilt, patchResults }
 //   rescoreVerse(lang, before, after, unit, parts)  →  the verse with the repaired parts' stamps and rows re-scored
+//   rescoreStored(lang, verse, unit)  →  { verse, parts, changes }: stamps brought in line with the validator as it is now
+//   relabelStored(lang, verse)  →  { verse, changes }: `translatedBy` of the rows and the verse brought in line with the provider each stamp names
 
-import { PARTS } from './claude-translate-parts.js';
+import { PARTS, mainStampOf, translatedByOf } from './claude-translate-parts.js';
 import { TRANSLATOR } from './claude-translate-source.js';
-import { assessLanguage } from './claude-translate-validate.js';
-import { distance, indicToIast, indicToMalayalam, iastKey, iastTo as iastToScript, sanskritLine, scriptKey } from './translation-script.js';
+import { assessLanguage, unassignedChars } from './claude-translate-validate.js';
+import { distance, indicToBrahmic, indicToIast, indicToMalayalam, iastKey, iastTo as iastToScript, sanskritLine, scriptKey } from './translation-script.js';
 
 /** The block of each language's own script. */
-export const OWN = { ml: [0x0d00, 0x0d7f], ta: [0x0b80, 0x0bff] };
+export const OWN = {
+  ml: [0x0d00, 0x0d7f], ta: [0x0b80, 0x0bff],
+  hi: [0x0900, 0x097f], mr: [0x0900, 0x097f], bn: [0x0980, 0x09ff], te: [0x0c00, 0x0c7f], kn: [0x0c80, 0x0cff],
+};
 
 /** A letter or a combining mark of any script. */
 const isLetter = (ch) => /[\p{L}\p{M}]/u.test(ch);
@@ -116,11 +122,15 @@ export const iastTo = (lang, text) => iastToScript(lang, text);
 const quoted = (t) => t.replace(/\s+[’'](?=\p{L})/gu, 'ʼ').replace(/(?<=\p{L})[’'](?=\p{L})/gu, 'ʼ');
 
 /** Any other Indic script into this language's script (Tamil goes through IAST: its block is not parallel to the others). */
-const indicTo = (lang, text) => (lang === 'ml' ? indicToMalayalam(text) : iastToScript('ta', indicToIast(text)));
+const indicTo = (lang, text) => {
+  if (lang === 'ml') return indicToMalayalam(text);
+  if (lang === 'ta') return iastToScript('ta', indicToIast(text));
+  return indicToBrahmic(lang, text);
+};
 
 /* ---------- Sanskrit fields: a transliteration line, the Sanskrit word of a word entry ---------- */
 
-/** What is wrong with a Sanskrit text: 'other-script', 'latin', 'colon-as-visarga', 'superscript', 'tamil-anusvara', 'modifier-apostrophe', 'digits'. [] when nothing. */
+/** What is wrong with a Sanskrit text: 'other-script', 'latin', 'colon-as-visarga', 'superscript', 'tamil-anusvara', 'modifier-apostrophe', 'digits', 'assamese-letters', 'broken-marks'. [] when nothing. */
 export function sanskritFlaw(lang, text) {
   const kindOf = kindFor(lang);
   const flaws = [];
@@ -132,9 +142,34 @@ export function sanskritFlaw(lang, text) {
   if (new RegExp(`(?<=[${own}]):`).test(text) || /꞉/.test(text)) flaws.push('colon-as-visarga');
   if (SUPERSCRIPTS.test(text)) flaws.push('superscript');
   if (lang === 'ta' && /ஂ/.test(text)) flaws.push('tamil-anusvara');
+  if (/(?<=[\p{L}\p{M}])\.(?=[\p{L}\p{M}])/u.test(text)) flaws.push('dot-avagraha'); // te.द्य: the source's ".a" for an avagraha, left as a full stop
   if (/ʼ/.test(text)) flaws.push('modifier-apostrophe'); // U+02BC is a letter to the validator, and neither language writes the avagraha with it
-  if (/(?<=[\p{L}\p{M}])[0-9]/u.test(text)) flaws.push('digits'); // "க3": a digit marking a voiced or aspirated stop; the verse number after ॥ is not one
+  if (/(?<=[\p{L}\p{M}])\p{Nd}/u.test(text)) flaws.push('digits'); // "க3": a digit (of any script: bn "২", te "౭") standing for a voiced or aspirated stop or an avagraha; the verse number after ॥ is not one
+  if (lang === 'bn' && /[ৰৱ]/.test(text)) flaws.push('assamese-letters'); // Bengali writes ra and va as র and ব
+  if (BRAHMIC_SIGNS.has(lang) && brokenMarks(lang, text)) flaws.push('broken-marks');
+  if (unassignedChars(text).length) flaws.push('unassigned'); // a code point Unicode has not assigned (an avagraha written U+0BC3 in Telugu): no font draws it
   return flaws;
+}
+
+/** The languages whose script is a parallel Brahmic block (consonants, vowel signs and the virama at the same offsets as Devanagari). */
+const BRAHMIC_SIGNS = new Set(['hi', 'mr', 'bn', 'te', 'kn']);
+
+/**
+ * A vowel sign with no consonant to stand on, or two vowel signs on one consonant (hi "इमाॉल्लोकान्न", bn "পিতৃৃনথ").
+ * Read on the composed (NFC) text, where a split vowel sign such as ো is already one sign.
+ */
+function brokenMarks(lang, text) {
+  const [lo] = OWN[lang];
+  const sign = (o) => (o >= 0x3e && o <= 0x4c) || o === 0x62 || o === 0x63;
+  const base = (o) => (o >= 0x15 && o <= 0x39) || (o >= 0x58 && o <= 0x5f) || o === 0x70 || o === 0x71 || o === 0x3c; // consonants, those with a nukta, Assamese ra and va, a nukta
+  let prev = -1;
+  for (const ch of text.normalize('NFC')) {
+    const o = ch.codePointAt(0) - lo;
+    const inBlock = o >= 0 && o <= 0x7f;
+    if (inBlock && sign(o) && !base(prev)) return true;
+    prev = inBlock ? o : -1;
+  }
+  return false;
 }
 
 /* ---------- prose ---------- */
@@ -145,6 +180,55 @@ export function sanskritFlaw(lang, text) {
  * (கிருஷ்ண 3,000 times, நரசிம்மர் in the corpus).
  */
 const TAMIL_NAMES = [['கൃഷ്ണ', 'கிருஷ்ண'], ['நृஸிம்ஹ', 'நரசிம்ம']];
+
+/**
+ * A Sanskrit word quoted in prose with a full stop where its avagraha belongs: ते.हं, एको.अपि, एको.ऽपि for तेऽहं, एकोऽपि.
+ * After e or o the next word's short a is dropped and an avagraha written instead, so a full stop between the vowel
+ * sign and the next letter (or before an avagraha already there) is that avagraha. Only the Brahmic languages.
+ * @returns {{ text: string, changes: { how: string, from: string, to: string }[] }}
+ */
+function dotAvagraha(lang, text) {
+  const changes = [];
+  if (!BRAHMIC_SIGNS.has(lang)) return { text, changes };
+  const [lo, hi] = OWN[lang];
+  const ch = (offset) => String.fromCodePoint(lo + offset);
+  const hex = (cp) => `\\u${cp.toString(16).padStart(4, '0')}`;
+  const eo = `[${ch(0x47)}${ch(0x4b)}]`;
+  const own = `[${hex(lo)}-${hex(hi)}]`;
+  const avagraha = ch(0x3d);
+  const swap = (to) => (match, pos, whole) => {
+    changes.push({ how: 'dot-avagraha', from: whole.slice(Math.max(0, pos - 6), pos + match.length + 4), to });
+    return to;
+  };
+  const out = text
+    .replace(new RegExp(`(?<=[\\p{L}\\p{M}])\\.(?=${avagraha})`, 'gu'), swap(''))
+    .replace(new RegExp(`(?<=${eo})\\.${ch(0x05)}`, 'gu'), swap(avagraha))
+    .replace(new RegExp(`(?<=${eo})\\.(?=${own})`, 'gu'), swap(avagraha));
+  return { text: out, changes };
+}
+
+/**
+ * An avagraha written with a code point Unicode has not assigned (te "శాశ్వతో\u0bc3యం" for శాశ్వతోఽయం). Where one stands
+ * between an e or o vowel sign and a letter, which is where Sanskrit puts an avagraha, it becomes the language's own; where
+ * the avagraha is already there after it (bn "সে\u09b3ঽশ"), it is only dropped. Any other unassigned code point is not guessed
+ * at: it is returned in `left` for the caller to rebuild or report. Only the Brahmic languages.
+ * @returns {{ text: string, changes: { how: string, from: string, to: string }[], left: string[] }}
+ */
+function unassignedAvagraha(lang, text) {
+  const changes = [];
+  if (!BRAHMIC_SIGNS.has(lang)) return { text, changes, left: unassignedChars(text) };
+  const [lo] = OWN[lang];
+  const ch = (offset) => String.fromCodePoint(lo + offset);
+  const avagraha = ch(0x3d);
+  const swap = (how, to) => (match, pos, whole) => {
+    changes.push({ how, from: whole.slice(Math.max(0, pos - 6), pos + 5), to });
+    return to;
+  };
+  const out = text
+    .replace(new RegExp(`\\p{Cn}(?=${avagraha})`, 'gu'), swap('unassigned-dropped', ''))
+    .replace(new RegExp(`(?<=[${ch(0x47)}${ch(0x4b)}])\\p{Cn}(?=\\p{L})`, 'gu'), swap('unassigned-avagraha', avagraha));
+  return { text: out, changes, left: unassignedChars(out) };
+}
 
 /**
  * Converts the stray or quoted Sanskrit in one prose field; says what could not be converted.
@@ -189,6 +273,10 @@ export function fixProse(lang, text, field = 'purport') {
       // (A visarga or an anusvara can: they become ஃ and ம்.)
       leftovers.push({ kind: 'orphan-sign', text: r.text.slice(0, 20), letters: r.letters, context: text.slice(Math.max(0, r.start - 6), r.end + 6).replace(/\n/g, ' ') });
       continue;
+    } else if (lang !== 'ta' && r.scripts.includes('Tamil')) {
+      // Tamil's block is not parallel to the others, so a Tamil letter cannot be moved to this script by position.
+      leftovers.push({ kind: 'tamil-letters', text: r.text.slice(0, 20), letters: r.letters, context: text.slice(Math.max(0, r.start - 10), r.end + 10).replace(/\n/g, ' ') });
+      continue;
     } else if (!quotesAllowed && r.letters >= WRONG_LANGUAGE_LETTERS) {
       leftovers.push({ kind: 'wrong-language', script: r.scripts, text: r.text.slice(0, 60), letters: r.letters });
       continue;
@@ -206,6 +294,21 @@ export function fixProse(lang, text, field = 'purport') {
       out = out.slice(0, r.start) + repl + out.slice(r.end);
       changes.push({ how, from: r.text.slice(0, 50), to: repl.slice(0, 50) });
     }
+  }
+  // Last, so that an avagraha of another script converted just above is one this rule can see.
+  const dotted = dotAvagraha(lang, out);
+  if (dotted.changes.length) {
+    out = dotted.text;
+    changes.push(...dotted.changes);
+  }
+  const mended = unassignedAvagraha(lang, out);
+  if (mended.changes.length) {
+    out = mended.text;
+    changes.push(...mended.changes);
+  }
+  for (const c of mended.left) {
+    const at = out.indexOf(c);
+    leftovers.push({ kind: 'unassigned', text: `U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`, letters: 1, context: out.slice(Math.max(0, at - 14), at + 10).replace(/\n/g, ' ') });
   }
   if (lang === 'ta') {
     // The chapters corrected by hand write plain letters; superscript digits after a Tamil letter are the older style.
@@ -232,7 +335,97 @@ const WORD_DISTANCE = 0.5;
  * Only Prabhupāda's rows in `lang` are touched, and nothing is invented: a line is rebuilt from the English
  * only when the saved one has a script flaw.
  */
-export function fixVerse(lang, verse, unit) {
+/**
+ * A transliteration line with a flaw, rebuilt from the English. Where the line and the English split into the same words only
+ * the words with a flaw are rebuilt, so the spelling the model chose for the rest of the line stays; otherwise the whole line is.
+ */
+function repairLine(lang, line, english) {
+  const whole = () => sanskritLine(english, lang);
+  const have = line.trim().split(/\s+/);
+  const want = english.trim().split(/\s+/);
+  if (have.length !== want.length) return whole();
+  const mark = (t) => {
+    if (t === '.' || t === '|') return '।';
+    const verseEnd = /^\|\|\s*([0-9]+(?:-[0-9]+)*)\s*\|\|$/.exec(t);
+    return verseEnd ? `॥${verseEnd[1]}॥` : null;
+  };
+  const rebuilt = have.map((token, i) => mark(want[i]) ?? (sanskritFlaw(lang, token).length ? sanskritLine(want[i], lang) : token)).join(' ');
+  return sanskritFlaw(lang, rebuilt).length ? whole() : rebuilt;
+}
+
+/* ---------- hand patches ---------- */
+
+/** What a patch may name. */
+const PATCH_PARTS = ['translation', 'purport', 'wordMeanings'];
+
+/**
+ * Checks a list of patches read from a file: `{ lang, verseId, part, i?, find, replace, why? }`.
+ * `part` is translation, purport or wordMeanings (with `i`, the entry's index, whose meaning is patched).
+ * @returns {object[]} the same list
+ */
+export function checkPatches(patches) {
+  if (!Array.isArray(patches)) throw new Error('patches: expected a list');
+  patches.forEach((p, k) => {
+    const bad = (why) => { throw new Error(`patches[${k}] (${p?.lang} ${p?.verseId}): ${why}`); };
+    if (!p || typeof p !== 'object') bad('not an object');
+    if (!OWN[p.lang]) bad(`"${p.lang}" is not a language handled here`);
+    if (!/^\d+\.\d+\.\d+$/.test(p.verseId || '')) bad('verseId should look like 1.2.47');
+    if (!PATCH_PARTS.includes(p.part)) bad(`part should be one of ${PATCH_PARTS.join(', ')}`);
+    if (p.part === 'wordMeanings' && !Number.isInteger(p.i)) bad('wordMeanings needs i, the index of the entry');
+    if (typeof p.find !== 'string' || !p.find) bad('find should be a non-empty string');
+    if (typeof p.replace !== 'string' || !p.replace) bad('replace should be a non-empty string (a deletion replaces a longer text with a shorter one around it, so a second run can tell it was done)');
+    if (p.find === p.replace) bad('find and replace are the same');
+  });
+  return patches;
+}
+
+/**
+ * Hand-written replacements, each naming one place: the text to find (it must occur exactly once there) and what it becomes.
+ * A patch whose `find` is gone and whose `replace` is already there was applied by an earlier run and is skipped.
+ * Only Prabhupāda's rows in `lang` are touched.
+ * @returns {{ verse: object, changes: object[], results: { patch: object, status: 'applied' | 'already' | 'not-found' | 'ambiguous' | 'missing' }[] }}
+ */
+export function applyPatches(lang, verse, patches) {
+  const out = JSON.parse(JSON.stringify(verse));
+  const changes = [];
+  const results = [];
+  for (const patch of patches) {
+    const holder = patch.part === 'wordMeanings' ? out.wordMeanings?.[patch.i] : ownRows(out, lang).find((r) => r.type === patch.part);
+    const field = patch.part === 'wordMeanings' ? 'meaning' : 'text';
+    const text = holder?.[field];
+    if (typeof text !== 'string') {
+      results.push({ patch, status: 'missing' });
+      continue;
+    }
+    const times = text.split(patch.find).length - 1;
+    if (times === 1) {
+      holder[field] = text.replace(patch.find, () => patch.replace);
+      changes.push({ part: patch.part, how: 'patch', ...(patch.part === 'wordMeanings' ? { i: patch.i } : {}), from: patch.find.slice(0, 50), to: patch.replace.slice(0, 50) });
+      results.push({ patch, status: 'applied' });
+    } else if (times === 0) results.push({ patch, status: text.includes(patch.replace) ? 'already' : 'not-found' });
+    else results.push({ patch, status: 'ambiguous' });
+  }
+  return { verse: out, changes, results };
+}
+
+/** The tail of the English line: "||3-12||". */
+const ENGLISH_TAIL = /\|\|\s*([0-9]+(?:-[0-9]+)*)\s*\|\|\s*$/;
+/** The tail a saved line ends with, whatever it is written in: "॥३-१२॥", "||3-12||", "॥ 8-20॥", "॥16.20॥". */
+const SAVED_TAIL = /\s*[॥|]{1,2}\s*[^\s॥|]*\s*[॥|]{1,2}\s*$/u;
+
+/**
+ * The verse number at the end of a line as the corpus writes it: ॥3-12॥, danda signs and ASCII digits, a space before it.
+ * The numbers come from the English line, which has them right; a tail already written so is left alone.
+ */
+export function fixTail(line, english) {
+  const want = ENGLISH_TAIL.exec(english);
+  const have = SAVED_TAIL.exec(line);
+  if (!want || !have) return line;
+  const tail = `॥${want[1]}॥`;
+  return have[0].trim() === tail ? line : `${line.slice(0, have.index).trimEnd()} ${tail}`;
+}
+
+export function fixVerse(lang, verse, unit, patches = []) {
   const out = JSON.parse(JSON.stringify(verse));
   const changes = [];
   const leftovers = [];
@@ -242,24 +435,45 @@ export function fixVerse(lang, verse, unit) {
     const english = unit.transliteration;
     if (lines.length === english.length) {
       out.transliteration = lines
-        .map((line, i) => {
+        .map((original, i) => {
+          const mended = unassignedAvagraha(lang, original);
+          for (const c of mended.changes) changes.push({ part: 'transliteration', how: c.how, line: i, from: c.from, to: c.to });
+          const line = mended.text;
           const flaws = sanskritFlaw(lang, line);
+          let next = line;
           if (flaws.length) {
             changes.push({ part: 'transliteration', how: 'line-regenerated', flaws, line: i });
-            return sanskritLine(english[i], lang);
+            next = repairLine(lang, line, english[i]);
+          } else {
+            const d = distance(scriptKey(lang, line), iastKey(english[i]));
+            if (d > LINE_DISTANCE) leftovers.push({ part: 'transliteration', kind: 'line-differs-from-english', line: i, distance: Number(d.toFixed(2)), have: line, english: english[i] });
           }
-          const d = distance(scriptKey(lang, line), iastKey(english[i]));
-          if (d > LINE_DISTANCE) leftovers.push({ part: 'transliteration', kind: 'line-differs-from-english', line: i, distance: Number(d.toFixed(2)), have: line, english: english[i] });
-          return line;
+          if (i === lines.length - 1) {
+            const tailed = fixTail(next, english[i]);
+            if (tailed !== next) {
+              changes.push({ part: 'transliteration', how: 'tail-normalised', line: i, from: next.slice(-14), to: tailed.slice(-14) });
+              next = tailed;
+            }
+          }
+          return next;
         })
         .join('\n');
-    } else leftovers.push({ part: 'transliteration', kind: 'line-count', have: lines.length, english: english.length });
+    } else {
+      leftovers.push({ part: 'transliteration', kind: 'line-count', have: lines.length, english: english.length });
+      const tailed = fixTail(lines[lines.length - 1], english[english.length - 1]);
+      if (tailed !== lines[lines.length - 1]) {
+        changes.push({ part: 'transliteration', how: 'tail-normalised', line: lines.length - 1, from: lines[lines.length - 1].slice(-14), to: tailed.slice(-14) });
+        out.transliteration = [...lines.slice(0, -1), tailed].join('\n');
+      }
+    }
   }
 
   if (Array.isArray(out.wordMeanings) && (unit.wordMeanings || []).length === out.wordMeanings.length) {
     out.wordMeanings = out.wordMeanings.map((entry, i) => {
       const source = unit.wordMeanings[i];
-      let word = entry.word;
+      const mended = unassignedAvagraha(lang, entry.word || '');
+      for (const c of mended.changes) changes.push({ part: 'wordMeanings', how: c.how, i, from: c.from, to: c.to });
+      let word = entry.word == null ? entry.word : mended.text;
       const flaws = sanskritFlaw(lang, word || '');
       if (flaws.length) {
         word = iastTo(lang, source.word || '');
@@ -285,8 +499,18 @@ export function fixVerse(lang, verse, unit) {
     return { ...row, text: fixed.text };
   });
 
+  let patched = out;
+  let patchResults = [];
+  if (patches.length) {
+    const applied = applyPatches(lang, out, patches);
+    patched = applied.verse;
+    patchResults = applied.results;
+    changes.push(...applied.changes);
+  }
+
   const parts = PARTS.filter((p) => changes.some((c) => c.part === p));
-  return { verse: out, changes, leftovers, parts };
+  const rebuilt = parts.filter((p) => changes.some((c) => c.part === p && /-regenerated$/.test(c.how)));
+  return { verse: patched, changes, leftovers, parts, rebuilt, patchResults };
 }
 
 /* ---------- scores ---------- */
@@ -359,22 +583,23 @@ export function assessVerse(lang, verse, unit, { parts, ratings = {} } = {}) {
  * the model's own rating for the part, and written into the stamp and into the translation / purport rows;
  * stamps of the parts nobody touched are left exactly as they were.
  *
- * The model's rating is **dropped for the transliteration** when a line of it was rebuilt by rule: it described
+ * The model's rating is **dropped for the transliteration** when a line of it was rebuilt by rule (`rebuilt`, default `parts`; a
+ * verse-number tail set right is not a rebuild): it described
  * text that is no longer there, and the stale rating is why a rebuilt part would otherwise stay at 1.
  *
  * A verse stamped per part (`aiTranslation.parts`) gets its repaired parts' `correctness` and `warnings` and a
  * `scriptFix` mark in each; one stamped as a whole gets the same in `partScores` / `warnings` and one
  * `scriptFix` mark. Either way `correctness` is the lowest part.
- * @param {{ keepTransliterationRating?: boolean }} [options]  true keeps the model's rating (to compare with a dry run that did)
+ * @param {{ keepTransliterationRating?: boolean, mark?: boolean }} [options]  `keepTransliterationRating`: keep the model's rating (to compare with a dry run that did); `mark: false`: no `scriptFix` stamp (a re-score is not a repair)
  */
-export function rescoreVerse(lang, before, after, unit, parts, { fixedAt = new Date().toISOString(), keepTransliterationRating = false } = {}) {
+export function rescoreVerse(lang, before, after, unit, parts, { fixedAt = new Date().toISOString(), keepTransliterationRating = false, rebuilt = parts, mark = true } = {}) {
   if (!parts.length) return after;
   const out = JSON.parse(JSON.stringify(after));
   const ai = out.aiTranslation;
   if (!ai) return out;
 
   const ratings = savedRatings(before);
-  if (!keepTransliterationRating && parts.includes('transliteration')) delete ratings.transliteration;
+  if (!keepTransliterationRating && rebuilt.includes('transliteration')) delete ratings.transliteration;
   const { scores, findings } = assessVerse(lang, out, unit, { parts: partsHeld(out, lang, unit), ratings });
 
   const messagesOf = (part) => findings.filter((f) => f.part === part).map((f) => f.msg);
@@ -388,7 +613,7 @@ export function rescoreVerse(lang, before, after, unit, parts, { fixedAt = new D
       if (!stamp || scores[part] == null) continue;
       stamp.correctness = scores[part];
       stamp.warnings = messagesOf(part);
-      stamp.scriptFix = fixedAt;
+      if (mark) stamp.scriptFix = fixedAt;
     }
     const names = PARTS.filter((p) => ai.parts[p]);
     ai.correctness = Math.min(...names.map((p) => ai.parts[p].correctness ?? 3));
@@ -401,9 +626,66 @@ export function rescoreVerse(lang, before, after, unit, parts, { fixedAt = new D
     ai.correctness = Math.min(...Object.values(partScores));
     // The old messages about the repaired parts go; the rest are kept as the run wrote them.
     ai.warnings = [...(ai.warnings || []).filter((w) => !parts.includes(partOfMessage(w))), ...parts.flatMap(messagesOf)];
-    ai.scriptFix = { at: fixedAt, parts: [...new Set([...(ai.scriptFix?.parts || []), ...parts])] };
+    if (mark) ai.scriptFix = { at: fixedAt, parts: [...new Set([...(ai.scriptFix?.parts || []), ...parts])] };
   }
   return out;
+}
+
+/** The score and warnings a verse's stamps hold for one part, whether it was stamped per part or as a whole. */
+function stampOf(verse, part) {
+  const ai = verse.aiTranslation || {};
+  if (ai.parts) return { score: ai.parts[part]?.correctness, warnings: ai.parts[part]?.warnings || [] };
+  return { score: ai.partScores?.[part], warnings: (ai.warnings || []).filter((w) => partOfMessage(w) === part) };
+}
+
+/**
+ * The verse's stamps brought in line with what the validator says today, for the parts where they differ (score or
+ * warnings) — after a rule of the validator changed. The model's own ratings are kept, the text is not touched, and no
+ * `scriptFix` mark is added: a re-score is no repair.
+ * → { verse, parts, changes: [{ part, from, to, dropped, added }] }  (`verse` is the argument itself when nothing differs)
+ */
+export function rescoreStored(lang, verse, unit) {
+  if (!verse.aiTranslation) return { verse, parts: [], changes: [] };
+  const { scores, findings } = assessVerse(lang, verse, unit, { parts: partsHeld(verse, lang, unit), ratings: savedRatings(verse) });
+  const changes = [];
+  for (const part of Object.keys(scores)) {
+    const now = stampOf(verse, part);
+    const messages = findings.filter((f) => f.part === part).map((f) => f.msg);
+    if (now.score === scores[part] && [...now.warnings].sort().join('\n') === [...messages].sort().join('\n')) continue;
+    changes.push({ part, from: now.score, to: scores[part], dropped: now.warnings.filter((w) => !messages.includes(w)), added: messages.filter((m) => !now.warnings.includes(m)) });
+  }
+  if (!changes.length) return { verse, parts: [], changes };
+  const parts = changes.map((c) => c.part);
+  return { verse: rescoreVerse(lang, verse, verse, unit, parts, { mark: false, rebuilt: [] }), parts, changes };
+}
+
+/**
+ * The `translatedBy` of each of the verse's rows and of the verse itself brought in line with the provider its stamp
+ * names — "gpt" for text GPT wrote, where the pipeline once wrote "claude" whoever the provider was. Nothing but the label
+ * changes. A verse a person wrote (no `aiTranslation`) is left alone.
+ * → { verse, changes: [{ what, from, to }] }  (`verse` is the argument itself when every label is right)
+ */
+export function relabelStored(lang, verse) {
+  const ai = verse.aiTranslation;
+  if (!ai) return { verse, changes: [] };
+  const changes = [];
+  const label = (what, from, provider) => {
+    const to = translatedByOf(provider);
+    if (from === to) return from;
+    changes.push({ what, from: from ?? null, to });
+    return to;
+  };
+  const commentaries = (verse.commentaries || []).map((c) => {
+    if (c.translatorSlug !== TRANSLATOR || c.language !== lang) return c;
+    const stamp = ai.parts ? ai.parts[c.type] : ai;
+    if (!stamp) return c;
+    const to = label(`${c.type} row`, c.translatedBy, stamp.provider);
+    return to === c.translatedBy ? c : { ...c, translatedBy: to };
+  });
+  const main = ai.parts ? mainStampOf(ai.parts) : ai;
+  const whole = main ? label('verse', ai.translatedBy, main.provider) : ai.translatedBy;
+  if (!changes.length) return { verse, changes };
+  return { verse: { ...verse, commentaries, aiTranslation: { ...ai, translatedBy: whole } }, changes };
 }
 
 /** A verse's lowest part score, the number the report counts as "needs a second round" when it is 1. */

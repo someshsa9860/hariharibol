@@ -10,6 +10,9 @@
 import { language } from './claude-translate-languages.js';
 
 const MIN_SCRIPT_RATIO = 0.85;
+const MIN_WORDS_MEASURED = 15;
+const LONG_TEXT_WORDS = 150;
+const SHORT_TEXT_FLOOR = 0.7;
 // Meta-text a model adds when it forgets it is producing data.
 const META_PATTERNS = [/```/, /\*\*/, /\bNote\s*:/i, /\bTranslator'?s?\b/i, /\bAs an AI\b/i, /\bHere is\b/i, /\bHere's\b/i, /<\/?(translation|purport|paragraph)\b/i];
 // Whole-word markers: enough of the other language's function words means the model wrote
@@ -73,6 +76,20 @@ export function foreignScriptChars(text, [lo, hi]) {
   return [...found];
 }
 
+/**
+ * The distinct code points of `text` inside the Indic blocks that Unicode has not assigned: a letter or sign the model
+ * made up, usually an avagraha written with a neighbouring code point (Telugu "శాశ్వతో௃యం"). No font draws it, and a
+ * script check by block misses it, because it is not a letter. Judged by the Unicode the running Node knows (16 in Node 20).
+ */
+export function unassignedChars(text) {
+  const found = new Set();
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    if (cp >= INDIC[0] && cp <= INDIC[1] && /\p{Cn}/u.test(ch)) found.add(ch);
+  }
+  return [...found];
+}
+
 function sentenceCount(text) {
   return (text.match(/[.।?!](?=\s|$|["”’)\]])/g) || []).length;
 }
@@ -114,6 +131,11 @@ export function checkText(source, output, langCode, label) {
     add(BAD, `contains ${foreign.length} character(s) of another script (${foreign.slice(0, 6).join(' ')}) — write only ${lang.name} script`);
   }
 
+  const unassigned = unassignedChars(output);
+  if (unassigned.length) {
+    add(BAD, `contains ${unassigned.length} character(s) that do not exist in Unicode (${unassigned.slice(0, 6).map((c) => `U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`).join(' ')}) — an avagraha or letter written with the wrong code point`);
+  }
+
   const want = numbersIn(source);
   const got = numbersIn(foldDigits(output, lang.digitZero));
   if (want.join(',') !== got.join(',')) {
@@ -128,10 +150,18 @@ export function checkText(source, output, langCode, label) {
   const quotes = '“”"';
   if (countChars(source, quotes) !== countChars(output, quotes)) add(MINOR, 'double quotation marks do not match the English');
 
+  // Word counts only say something about a text long enough for them to average out. A gloss of 6–14 words
+  // ("one who is not disturbed by happiness or distress") is routinely half that in a language that joins
+  // words, so a shorter text is not measured. Under 150 words the floor is lowered by 30%: measured on the
+  // 701 Gita verses in all seven languages, translations and short purport paragraphs fall that far below the
+  // language's usual ratio with nothing missing, while paragraphs of 150+ words hold to within the bounds in
+  // the language table — and the two real truncations found (a Telugu paragraph at 0.09×, a Marathi one at
+  // 0.37×) are far below either floor.
   const sourceWords = wordCount(source);
-  if (sourceWords >= 6) {
+  if (sourceWords >= MIN_WORDS_MEASURED) {
     const r = wordCount(output) / sourceWords;
-    if (r < lang.words[0]) add(BAD, `too short (${r.toFixed(2)}× the English words) — something was dropped`);
+    const floor = lang.words[0] * (sourceWords >= LONG_TEXT_WORDS ? 1 : SHORT_TEXT_FLOOR);
+    if (r < floor) add(BAD, `too short (${r.toFixed(2)}× the English words) — something was dropped`);
     else if (r > lang.words[1]) add(MINOR, `too long (${r.toFixed(2)}× the English words) — something was added`);
   }
 

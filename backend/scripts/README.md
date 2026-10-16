@@ -232,8 +232,9 @@ script, not translated.
 Each part (`translation`, `transliteration`, `wordMeanings`, `purport`) gets a score, and the verse's
 `correctness` is the lowest of its parts. A part's score is the lower of two things: **Claude's own rating**
 of it (asked for in the same answer, with a one-sentence `note` when anything is below 3) and **the free
-checks the script runs** — a missing paragraph, a list or transliteration of the wrong length, English left
-in, a wrong number, the wrong script, Hindi written for Marathi (these cap the part at 1); unmatched
+checks the script runs** — a missing paragraph, a text far shorter than the English (not measured under 15
+English words; the floor is 30 % lower under 150), a list or transliteration of the wrong length, English left
+in, a wrong number, the wrong script, a code point Unicode has not assigned (an avagraha the model wrote as U+0BC3 in Telugu), Hindi written for Marathi (these cap the part at 1); unmatched
 brackets or quotes, a line break, a text noticeably too long (these cap it at 2). The checks can lower what
 Claude said but never raise it. A part the English does not have (a verse with no purport) is not scored.
 
@@ -375,7 +376,7 @@ already expects. **The admin Translations page's Import button** (`services/tran
 | purport `commentaries` row | `purport` |
 | `transliteration` | `transliteration` — the verse in that language's script |
 | `wordMeanings` | `wordMeanings` — `[{ word, meaning }]`, null when the verse has none |
-| `aiTranslation` | `translatedBy` and `version` — which run made the text |
+| `aiTranslation` | `translatedBy` and `version` — which run made the text. `translatedBy` is the provider's brand (`claude`, `gpt` or `gemini`); the model is in the stamp |
 
 They sit on the translation row, **not** on `Verse`: `Verse.transliteration` and `Verse.wordMeanings` are single,
 language-neutral columns holding the Roman text and the English meanings, and copying Hindi, Marathi or Tamil into

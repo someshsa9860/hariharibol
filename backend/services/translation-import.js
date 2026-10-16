@@ -30,6 +30,7 @@ import { prisma } from '../config/database.js';
 import { unprocessable } from '../utils/errors.js';
 import { changedColumns, emptyChapter, placeProblem, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
+import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 
 /** The Gita's `Book.bookNumber`, as scripts/import-bg.js has it. Its storage folder (`BOOK`) has another spelling than its slug. */
@@ -172,13 +173,13 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
 }
 
 /**
- * What the database already holds from Claude's runs, per language: rows, how many were made under `version`
+ * What the database already holds from the translation runs (any provider), per language: rows, how many were made under `version`
  * (the one a new run uses), how many readers can see, and when one last changed. For the Translations page.
  */
 export async function importStatus({ version = null, book: bookId = BOOK, bookNumber = bookOf(bookId).bookNumber } = {}) {
   const groups = await prisma.verseTranslation.groupBy({
     by: ['languageCode', 'version', 'isPublished'],
-    where: { type: 'TRANSLATION', translatedBy: 'claude', translator: { slug: TRANSLATOR }, verse: { bookNumber } },
+    where: { type: 'TRANSLATION', translatedBy: { in: MADE_BY_LABELS }, translator: { slug: TRANSLATOR }, verse: { bookNumber } },
     _count: { _all: true },
     _max: { updatedAt: true },
   });
