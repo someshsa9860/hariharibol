@@ -21,6 +21,7 @@ import { PlansPage } from '@/routes/plans';
 import { NotificationsPage } from '@/routes/notifications';
 import { SettingsPage } from '@/routes/settings';
 import { AiUsagePage } from '@/routes/ai-usage';
+import { ChatPage } from '@/routes/chat';
 import { AuditPage } from '@/routes/audit';
 import { JobsPage } from '@/routes/jobs';
 import { TranslationsPage } from '@/routes/translations';
@@ -208,6 +209,14 @@ export function Router() {
         element={
           <Protected permission="ai.read">
             <AiUsagePage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/chat"
+        element={
+          <Protected permission="chat.manage">
+            <ChatPage />
           </Protected>
         }
       />
