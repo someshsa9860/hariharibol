@@ -23,18 +23,28 @@ import * as settings from '../setting.js';
 import { AppError } from '../../utils/errors.js';
 import * as gemini from './gemini.js';
 import * as openai from './openai.js';
+import * as tokens from './tokens.js';
 
 const providers = { GEMINI: gemini, OPENAI: openai };
 
-async function resolveProvider() {
-  const name = (await settings.get(SETTING_KEYS.AI_PROVIDER, env.AI_PROVIDER)).toUpperCase();
+// Which provider answers and with which model. The provider comes from `.env`
+// (AI_PROVIDER) unless the admin panel has set `ai.provider`, which wins — so
+// switching is a one-line .env change on an install that has never touched that
+// setting. `purpose` picks the model: the normal one, the stronger one for
+// plans on the ADVANCED tier, or the cheap one that writes summaries.
+async function resolveProvider({ purpose = 'text' } = {}) {
+  const name = String(await settings.get(SETTING_KEYS.AI_PROVIDER, env.AI_PROVIDER)).toUpperCase();
   const provider = providers[name];
   if (!provider) throw new AppError(500, 'AI_MISCONFIGURED', `Unknown AI provider: ${name}`);
-  const model = await settings.get(SETTING_KEYS.AI_MODEL_TEXT, provider.defaultModel);
-  return { provider, model };
+
+  let model;
+  if (purpose === 'summary') model = provider.summaryModel;
+  else if (purpose === 'advanced') model = provider.advancedModel;
+  else model = await settings.get(SETTING_KEYS.AI_MODEL_TEXT, provider.defaultModel);
+  return { provider, model: model || provider.defaultModel };
 }
 
-async function logUsage({ provider, model, operation, targetType, targetId, result, error }) {
+async function logUsage({ provider, model, operation, targetType, targetId, userId, result, error }) {
   try {
     await prisma.aiUsageLog.create({
       data: {
@@ -43,6 +53,7 @@ async function logUsage({ provider, model, operation, targetType, targetId, resu
         operation,
         targetType: targetType || null,
         targetId: targetId || null,
+        userId: userId || null,
         inputTokens: result?.inputTokens || 0,
         outputTokens: result?.outputTokens || 0,
         costMicros: result
@@ -89,20 +100,22 @@ async function withinBudget() {
  * @param {string} [request.targetId]
  */
 async function complete(request) {
-  const { operation, prompt, system, json = false, targetType, targetId, maxTokens, temperature } =
-    request;
+  const {
+    operation, prompt, messages, system, json = false, targetType, targetId, userId, maxTokens, temperature,
+    purpose = 'text',
+  } = request;
 
   if (!operation) throw new AppError(500, 'AI_MISCONFIGURED', 'Every AI call needs an operation');
   if (!(await withinBudget())) {
     throw new AppError(429, 'AI_BUDGET_EXHAUSTED', 'The monthly AI budget is spent');
   }
 
-  const { provider, model } = await resolveProvider();
+  const { provider, model } = await resolveProvider({ purpose });
   const startedAt = Date.now();
 
   try {
-    const result = await provider.complete({ model, system, prompt, json, maxTokens, temperature });
-    await logUsage({ provider, model, operation, targetType, targetId, result });
+    const result = await provider.complete({ model, system, prompt, messages, json, maxTokens, temperature });
+    await logUsage({ provider, model, operation, targetType, targetId, userId, result });
 
     logger.debug(
       { operation, model, ms: Date.now() - startedAt, tokens: result.inputTokens + result.outputTokens },
@@ -122,9 +135,82 @@ async function complete(request) {
       },
     };
   } catch (error) {
-    await logUsage({ provider, model, operation, targetType, targetId, error });
+    await logUsage({ provider, model, operation, targetType, targetId, userId, error });
     throw error;
   }
+}
+
+/**
+ * Stream a chat reply.
+ *
+ *   const run = await ai.stream({ operation, system, messages, userId, estimatedInput, signal });
+ *   for await (const text of run.text) send(text);
+ *   run.usage   // { inputTokens, outputTokens, costMicros, estimated }
+ *
+ * `run.usage` is filled in however the loop ends — finished, broken out of
+ * (the reader pressed stop), aborted by `signal`, or failed. When the provider
+ * never got to report its count (a cut stream), the usage is estimated locally
+ * from what was sent and what arrived, and `estimated` says so. That is the
+ * number the wallet is charged and the usage log records, so a stopped reply
+ * is never free and never double-charged.
+ */
+async function stream(request) {
+  const {
+    operation, system, messages, userId, targetType, targetId, maxTokens, temperature, signal,
+    purpose = 'text', estimatedInput = 0,
+  } = request;
+
+  if (!operation) throw new AppError(500, 'AI_MISCONFIGURED', 'Every AI call needs an operation');
+  if (!(await withinBudget())) {
+    throw new AppError(429, 'AI_BUDGET_EXHAUSTED', 'The monthly AI budget is spent');
+  }
+
+  const { provider, model } = await resolveProvider({ purpose });
+
+  const run = {
+    provider: provider.name,
+    model,
+    finishReason: null,
+    usage: { inputTokens: 0, outputTokens: 0, costMicros: 0, estimated: true },
+    receivedText: '',
+  };
+
+  run.text = (async function* () {
+    let reported = null;
+    let failure = null;
+    try {
+      for await (const piece of provider.stream({ model, system, messages, maxTokens, temperature, signal })) {
+        if (piece.done) {
+          reported = piece;
+          run.finishReason = piece.finishReason;
+          continue;
+        }
+        run.receivedText += piece.text;
+        yield piece.text;
+      }
+    } catch (error) {
+      failure = error;
+      throw error;
+    } finally {
+      // Runs on completion, on break (return()) and on error alike.
+      const complete = reported && (reported.inputTokens || reported.outputTokens);
+      const inputTokens = complete ? reported.inputTokens : estimatedInput;
+      const outputTokens = complete ? reported.outputTokens : tokens.estimate(run.receivedText);
+      run.usage = {
+        inputTokens,
+        outputTokens,
+        costMicros: provider.costMicros(model, inputTokens, outputTokens),
+        estimated: !complete,
+      };
+      await logUsage({
+        provider, model, operation, targetType, targetId, userId,
+        result: { inputTokens, outputTokens },
+        error: failure,
+      });
+    }
+  })();
+
+  return run;
 }
 
 function parseJson(text, operation) {
@@ -150,6 +236,8 @@ const OPERATIONS = {
   VERSE_ISSUE_MAP: 'verse.issue-map',
   VERSE_EXPLANATION: 'verse.explanation',
   SLOKA_REASON: 'sloka.reason',
+  CHAT_REPLY: 'chat.reply',
+  CHAT_SUMMARY: 'chat.summary',
 };
 
-export { complete, OPERATIONS, resolveProvider, withinBudget, providers };
+export { complete, stream, OPERATIONS, resolveProvider, withinBudget, providers };

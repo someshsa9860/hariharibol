@@ -6,6 +6,8 @@ import '../../models/mantra.dart';
 import '../../models/search_result.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
+import '../../views/chat/chat_list_view.dart';
+import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
 import '../../views/chant/chant_view.dart';
 import '../../views/dashboard/dashboard_view.dart';
@@ -208,6 +210,18 @@ GoRouter createRouter() {
         path: AppRoutes.creatorPattern,
         name: RouteNames.creatorProfile,
         builder: (context, state) => CreatorView(creatorId: state.pathParameters['id']!),
+      ),
+
+      GoRoute(
+        path: AppRoutes.chat,
+        name: RouteNames.chatList,
+        builder: (context, state) => const ChatListView(),
+      ),
+      // Also matches `/chat/new`, which ChatView reads as a chat not made yet.
+      GoRoute(
+        path: AppRoutes.chatPattern,
+        name: RouteNames.chatDetail,
+        builder: (context, state) => ChatView(conversationId: state.pathParameters['id']!),
       ),
 
       // The tabs. An indexed stack keeps each tab's scroll position and state

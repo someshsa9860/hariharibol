@@ -1692,4 +1692,175 @@ class AppLocalizationsTe extends AppLocalizations {
   String labelVerseWithSection(int number, String section) {
     return 'శ్లోకం $number · $section';
   }
+
+  @override
+  String get chatTitle => 'AI సహాయకుడు';
+
+  @override
+  String get chatHomeTitle => 'సహాయకుడిని అడగండి';
+
+  @override
+  String get chatHomeBody => 'శాస్త్రం, మంత్రాలు, మీ సాధన గురించి ప్రశ్నలు';
+
+  @override
+  String get chatNewChat => 'కొత్త చాట్';
+
+  @override
+  String get chatIntroTitle => 'మీ భక్తి సహాయకుడు';
+
+  @override
+  String get chatIntroHint => 'ఒక శ్లోకం, మంత్రం లేదా మీ సాధన గురించి అడగండి.';
+
+  @override
+  String get chatComposerHint => 'ప్రశ్న అడగండి';
+
+  @override
+  String get chatSend => 'పంపండి';
+
+  @override
+  String get chatStop => 'ఆపండి';
+
+  @override
+  String chatCharacterCount(int count, int max) {
+    return '$count / $max';
+  }
+
+  @override
+  String chatCreditsLeft(int percent) {
+    return '$percent% మిగిలింది';
+  }
+
+  @override
+  String chatCreditsLeftLevel(int percent, String level) {
+    return '$percent% మిగిలింది · $level';
+  }
+
+  @override
+  String get chatCreditsResetsMidnight => 'అర్ధరాత్రి రీసెట్ అవుతుంది';
+
+  @override
+  String chatCreditsRenews(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat('d MMM', localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'పునరుద్ధరణ: $dateString';
+  }
+
+  @override
+  String get chatNotAvailableTitle => 'చాట్ మీ ప్లాన్‌లో లేదు';
+
+  @override
+  String get chatNotAvailableBody =>
+      'సహాయకుడిని ప్రశ్నలు అడగడానికి మీ ప్లాన్‌ను అప్‌గ్రేడ్ చేయండి.';
+
+  @override
+  String get chatExhaustedDailyTitle => 'ఈ రోజు క్రెడిట్‌లు అయిపోయాయి';
+
+  @override
+  String get chatExhaustedDailyBody =>
+      'అవి అర్ధరాత్రి తిరిగి నిండుతాయి. అప్పుడు మీరు కొనసాగించవచ్చు, లేదా మరిన్ని కోసం అప్‌గ్రేడ్ చేయండి.';
+
+  @override
+  String get chatExhaustedWalletTitle => 'మీ క్రెడిట్‌లు అయిపోయాయి';
+
+  @override
+  String get chatExhaustedWalletBody =>
+      'ఇవి మీ ప్లాన్‌తో పునరుద్ధరించబడతాయి. మీరు వేచి ఉండవచ్చు, లేదా కొనసాగడానికి అప్‌గ్రేడ్ చేయండి.';
+
+  @override
+  String get chatShareUsedTitle => 'ఈ చాట్ తన వాటా క్రెడిట్‌లను ఉపయోగించుకుంది';
+
+  @override
+  String get chatShareUsedBody =>
+      'కొత్త చాట్ ప్రారంభించండి, మీరు ఆపిన చోట నుండి సహాయకుడు కొనసాగిస్తాడు.';
+
+  @override
+  String get chatUpgrade => 'అప్‌గ్రేడ్ చేయండి';
+
+  @override
+  String get chatStartNewChat => 'కొత్త చాట్ ప్రారంభించండి';
+
+  @override
+  String get chatFullTitle => 'ఈ చాట్ చాలా పొడవైంది';
+
+  @override
+  String get chatFullBody =>
+      'కొత్త చాట్ ప్రారంభించండి, సహాయకుడు మన సంభాషణను ముందుకు తీసుకెళ్తాడు.';
+
+  @override
+  String get chatContinuePartial =>
+      'మీ తాజా సందేశాల సారాంశం తయారు చేయలేకపోయాం, అందువల్ల ముందటి భాగం మాత్రమే వచ్చింది.';
+
+  @override
+  String get chatTidying => 'మన సంభాషణను సర్దుతున్నాను…';
+
+  @override
+  String get chatTyping => 'సహాయకుడు రాస్తున్నాడు';
+
+  @override
+  String get chatConnectionLost =>
+      'కనెక్షన్ తెగిపోయింది. వచ్చినది పైన ఉంచబడింది.';
+
+  @override
+  String get chatReplyFailed => 'సమాధానం పూర్తి కాలేదు.';
+
+  @override
+  String get chatBusy => 'ప్రస్తుత సమాధానం పూర్తయ్యే వరకు వేచి ఉండండి.';
+
+  @override
+  String get chatTooLong =>
+      'ఈ సందేశం చాలా పొడవుగా ఉంది. దయచేసి చిన్నది చేయండి.';
+
+  @override
+  String get chatStopped => 'ఆపబడింది';
+
+  @override
+  String get chatInterrupted => 'అంతరాయం కలిగింది';
+
+  @override
+  String get chatCopy => 'కాపీ చేయండి';
+
+  @override
+  String get chatCopied => 'కాపీ అయింది';
+
+  @override
+  String get chatShare => 'షేర్ చేయండి';
+
+  @override
+  String get chatRegenerate => 'మళ్లీ సమాధానం ఇవ్వండి';
+
+  @override
+  String get chatLinkCopied => 'లింక్ కాపీ అయింది';
+
+  @override
+  String get chatImageUnavailable => 'చిత్రం అందుబాటులో లేదు';
+
+  @override
+  String get chatMoreActions => 'మరిన్ని';
+
+  @override
+  String get chatMenuCompact => 'సందర్భాన్ని సంక్షిప్తం చేయండి';
+
+  @override
+  String get chatMenuRename => 'పేరు మార్చండి';
+
+  @override
+  String get chatRenameTitle => 'చాట్ పేరు మార్చండి';
+
+  @override
+  String get chatRenameHint => 'చాట్ పేరు';
+
+  @override
+  String get chatDeleteTitle => 'ఈ చాట్‌ను తొలగించాలా?';
+
+  @override
+  String get chatDeleteBody =>
+      'సంభాషణ తొలగించబడుతుంది. ఇప్పటికే ఉపయోగించిన క్రెడిట్‌లు తిరిగి రావు.';
+
+  @override
+  String get chatCompactDone =>
+      'సంభాషణ సర్దబడింది. పాత సందేశాల సారాంశం ఇప్పుడు ఉంది.';
+
+  @override
+  String get chatCompactNothing => 'సర్దడానికి ఇంకా ఏమీ లేదు.';
 }

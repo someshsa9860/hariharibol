@@ -1054,5 +1054,233 @@
         "type": "String"
       }
     }
+  },
+  "chatTitle": "AI assistant",
+  "@chatTitle": {
+    "description": "Title of the AI chat screen (the list of chats)."
+  },
+  "chatHomeTitle": "Ask the assistant",
+  "@chatHomeTitle": {
+    "description": "Heading of the card on Home that opens the AI chat."
+  },
+  "chatHomeBody": "Questions on scripture, mantras and your practice",
+  "@chatHomeBody": {
+    "description": "Second line of the card on Home that opens the AI chat."
+  },
+  "chatNewChat": "New chat",
+  "@chatNewChat": {
+    "description": "Button and title for starting a new AI chat."
+  },
+  "chatIntroTitle": "Your devotional assistant",
+  "@chatIntroTitle": {
+    "description": "Heading of the introduction shown when there are no chats or messages yet."
+  },
+  "chatIntroHint": "Ask about a verse, a mantra or your practice.",
+  "@chatIntroHint": {
+    "description": "Hint under the introduction in an empty chat."
+  },
+  "chatComposerHint": "Ask a question",
+  "@chatComposerHint": {
+    "description": "Placeholder in the box where a question to the assistant is typed."
+  },
+  "chatSend": "Send",
+  "@chatSend": {
+    "description": "Tooltip of the send button in the chat box."
+  },
+  "chatStop": "Stop",
+  "@chatStop": {
+    "description": "Tooltip of the stop button that ends a reply being written."
+  },
+  "chatCharacterCount": "{count} / {max}",
+  "@chatCharacterCount": {
+    "description": "Characters typed against the most a message may have. Shown near the limit.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "chatCreditsLeft": "{percent}% left",
+  "@chatCreditsLeft": {
+    "description": "The credit meter: how much of the reader's credit is left, as a percentage.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "chatCreditsLeftLevel": "{percent}% left · {level}",
+  "@chatCreditsLeftLevel": {
+    "description": "The credit meter with the reader's level name after it (the level is a name set in the admin panel).",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCreditsResetsMidnight": "Resets at midnight",
+  "@chatCreditsResetsMidnight": {
+    "description": "Hint by the credit meter when today's allowance is what limits the reader."
+  },
+  "chatCreditsRenews": "Renews {date}",
+  "@chatCreditsRenews": {
+    "description": "Hint by the credit meter: the day the plan's credits renew.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "d MMM",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "chatNotAvailableTitle": "Chat is not part of your plan",
+  "@chatNotAvailableTitle": {
+    "description": "Heading of the card shown when the reader's plan has no AI chat."
+  },
+  "chatNotAvailableBody": "Upgrade your plan to ask the assistant your questions.",
+  "@chatNotAvailableBody": {
+    "description": "Body of the card shown when the reader's plan has no AI chat."
+  },
+  "chatExhaustedDailyTitle": "You have used today's credits",
+  "@chatExhaustedDailyTitle": {
+    "description": "Heading of the card shown when the daily allowance of AI chat credits is used up."
+  },
+  "chatExhaustedDailyBody": "They refill at midnight. You can carry on then, or upgrade for more.",
+  "@chatExhaustedDailyBody": {
+    "description": "Body of the card shown when the daily allowance of AI chat credits is used up."
+  },
+  "chatExhaustedWalletTitle": "Your credits have run out",
+  "@chatExhaustedWalletTitle": {
+    "description": "Heading of the card shown when the plan's AI chat credits are used up."
+  },
+  "chatExhaustedWalletBody": "They renew with your plan. You can wait, or upgrade to keep going.",
+  "@chatExhaustedWalletBody": {
+    "description": "Body of the card shown when the plan's AI chat credits are used up."
+  },
+  "chatShareUsedTitle": "This chat has used its share of credits",
+  "@chatShareUsedTitle": {
+    "description": "Heading of the card shown when one conversation has used the share of credits allowed to it."
+  },
+  "chatShareUsedBody": "Start a new chat and the assistant will carry on from where you were.",
+  "@chatShareUsedBody": {
+    "description": "Body of the card shown when one conversation has used the share of credits allowed to it."
+  },
+  "chatUpgrade": "Upgrade",
+  "@chatUpgrade": {
+    "description": "Button on the out-of-credits card that opens the plans screen."
+  },
+  "chatStartNewChat": "Start a new chat",
+  "@chatStartNewChat": {
+    "description": "Button that opens a new chat carrying the summary of the full one."
+  },
+  "chatFullTitle": "This chat has grown long",
+  "@chatFullTitle": {
+    "description": "Heading of the banner shown in place of the message box when a chat has reached its limit."
+  },
+  "chatFullBody": "Start a new chat and the assistant will carry our conversation forward.",
+  "@chatFullBody": {
+    "description": "Body of the banner shown when a chat has reached its limit."
+  },
+  "chatContinuePartial": "Your latest messages could not be summarised, so only the earlier part came along.",
+  "@chatContinuePartial": {
+    "description": "Shown after starting a new chat when credits did not stretch to summarising the latest messages."
+  },
+  "chatTidying": "Tidying our conversation…",
+  "@chatTidying": {
+    "description": "Shown while the assistant folds older messages into a summary."
+  },
+  "chatTyping": "The assistant is writing",
+  "@chatTyping": {
+    "description": "Spoken label of the three dots shown while a reply is awaited."
+  },
+  "chatConnectionLost": "Connection lost. What arrived is kept above.",
+  "@chatConnectionLost": {
+    "description": "Shown under a reply that was cut off by a dropped connection, beside Try again."
+  },
+  "chatReplyFailed": "The reply could not be finished.",
+  "@chatReplyFailed": {
+    "description": "Shown when the server could not finish writing a reply."
+  },
+  "chatBusy": "Please wait for the current reply to finish.",
+  "@chatBusy": {
+    "description": "Shown when a question is sent while another reply is still being written."
+  },
+  "chatTooLong": "That message is too long. Please shorten it.",
+  "@chatTooLong": {
+    "description": "Shown when a question is longer than the assistant accepts."
+  },
+  "chatStopped": "Stopped",
+  "@chatStopped": {
+    "description": "Small note under a reply the reader stopped."
+  },
+  "chatInterrupted": "Interrupted",
+  "@chatInterrupted": {
+    "description": "Small note under a reply that was cut off before it ended."
+  },
+  "chatCopy": "Copy",
+  "@chatCopy": {
+    "description": "Tooltip of the button that copies a reply."
+  },
+  "chatCopied": "Copied",
+  "@chatCopied": {
+    "description": "Message after a reply is copied."
+  },
+  "chatShare": "Share",
+  "@chatShare": {
+    "description": "Tooltip of the button that shares a reply."
+  },
+  "chatRegenerate": "Regenerate",
+  "@chatRegenerate": {
+    "description": "Tooltip of the button that asks for the last reply again."
+  },
+  "chatLinkCopied": "Link copied",
+  "@chatLinkCopied": {
+    "description": "Message after a link in a reply is tapped and copied."
+  },
+  "chatImageUnavailable": "Image unavailable",
+  "@chatImageUnavailable": {
+    "description": "Shown in place of an image in a reply that could not be loaded."
+  },
+  "chatMoreActions": "More",
+  "@chatMoreActions": {
+    "description": "Tooltip of the three-dot menu on a chat."
+  },
+  "chatMenuCompact": "Compact context",
+  "@chatMenuCompact": {
+    "description": "Menu item that folds older messages of a chat into a summary."
+  },
+  "chatMenuRename": "Rename",
+  "@chatMenuRename": {
+    "description": "Menu item that renames a chat."
+  },
+  "chatRenameTitle": "Rename chat",
+  "@chatRenameTitle": {
+    "description": "Title of the dialog that renames a chat."
+  },
+  "chatRenameHint": "Chat name",
+  "@chatRenameHint": {
+    "description": "Placeholder of the box in the rename dialog."
+  },
+  "chatDeleteTitle": "Delete this chat?",
+  "@chatDeleteTitle": {
+    "description": "Title of the confirmation before a chat is deleted."
+  },
+  "chatDeleteBody": "The conversation is removed. Credits already used are not returned.",
+  "@chatDeleteBody": {
+    "description": "Body of the confirmation before a chat is deleted."
+  },
+  "chatCompactDone": "Conversation tidied. Older messages are now summarised.",
+  "@chatCompactDone": {
+    "description": "Message after the reader compacts a chat and something was folded into the summary."
+  },
+  "chatCompactNothing": "Nothing to tidy yet.",
+  "@chatCompactNothing": {
+    "description": "Message after the reader compacts a chat that has nothing worth folding."
   }
 }

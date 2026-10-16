@@ -37,6 +37,7 @@ const JOBS = {
   PREFERENCES_REBUILD: 'preferences.rebuild',
   ENTITLEMENT_SWEEP: 'entitlement.sweep',
   AUDIT_PRUNE: 'audit.prune',
+  AI_CREDITS_MAINTAIN: 'ai.credits.maintain',
   CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',
   S3_TEMP_PRUNE: 's3.temp.prune',
   BOOK_CACHE_EXPORT: 'book.cache.export',

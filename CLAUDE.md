@@ -12,6 +12,7 @@ This is a **deliberate rebuild**. The previous version grew too complex to navig
 |---|---|---|
 | `app/` | Mobile app (Flutter) | [app/CLAUDE.md](app/CLAUDE.md) |
 | `backend/` | API (plain Node.js) | [backend/CLAUDE.md](backend/CLAUDE.md) |
+| AI chat | **Built on all three parts; backend walked end to end (`npm run test:chat`, provider faked).** The app has a chat list and chat screen (Home-tab entry card), token-by-token streaming, stop / regenerate / retry, a credit meter and upgrade card — see "AI chat" in [app/CLAUDE.md](app/CLAUDE.md); the admin **AI chat** page edits persona, limits, plan allowances and wallets. A streamed devotional assistant (Sri Vaishnava orientation, respectful of other traditions) behind the provider-agnostic `services/ai/` (Gemini and OpenAI both stream). Context is kept small: persona + a running `contextSummary` + the newest few messages, older ones folded in by the cheap model. Every AI operation debits one token wallet per user with a ledger; readers see a credit meter, never tokens; per-plan allowances, daily cap (resets at the user's local midnight), model tier and the persona are edited in the admin **AI chat** page. See "AI chat" in [backend/CLAUDE.md](backend/CLAUDE.md). **Not yet run against a real Gemini/OpenAI key, nor on a phone against a live API;** the 11 non-English translations are AI-drafted. |
 | `admin/` | Admin panel | [admin/CLAUDE.md](admin/CLAUDE.md) |
 | `website/` | Public landing page (React, prerendered) | [website/CLAUDE.md](website/CLAUDE.md) |
 

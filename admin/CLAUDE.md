@@ -339,3 +339,24 @@ Two shared changes were made for this page and apply everywhere:
 Not done: the app does not read a translation row's transliteration or word meanings yet, and nothing in the app says a text
 was machine-made. The import puts them in the database (`VerseTranslation`); serving them is the next step — see "Translation
 runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md). The **Output** tab still reads the files in storage, not the database.
+
+## AI chat
+
+`routes/chat.tsx` (`/chat`, System section beside AI usage, permission `chat.manage`) is where staff run the
+devotional assistant. One file, a usage summary on top and three tabs, all over `/api/admin/chat/*`
+(`backend/routes/admin/chat.js`):
+
+- **Persona & limits** — `GET`/`PUT /settings`: the system prompt, the description the app shows (it states the
+  Sri Vaishnava orientation), and the seven limits. "Reset to default" fills the field with the built-in default;
+  saving an empty prompt or description also restores it. `limits` is always sent whole.
+- **Plan allowances** — `GET /plans`, `PUT /plans/:planId`, one row and one Save per plan: level name
+  (Jigyasu / Bhakta / …), enabled, daily tokens (0 = no cap), wallet tokens (what 100% of the user's meter means),
+  renewal, per-conversation tokens (0 = no cap), model tier. A plan with `config: null` uses the free plan's
+  allowance and is badged so.
+- **Wallets** — `GET /wallets?q=` (searchable, paged), then `GET /users/:userId` for balance, allocation, today's
+  use, the meter percent, period end and the last 50 ledger rows. **Grant** (`POST …/grant`, tokens above 0) and
+  **Adjust** (`POST …/adjust`, signed) both require a note; both land in the ledger and the audit log.
+- **Usage** — `GET /stats`: conversations, messages, active users and tokens by ledger source for the last 30 days.
+
+Raw token numbers appear only on this page; readers in the app see a percentage. Every query key starts with
+`chat`, so one invalidation refreshes the page after a write.

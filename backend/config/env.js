@@ -70,11 +70,22 @@ const schema = z.object({
   BOOK_CACHE_PREFIX: z.string().default('books/caches'),
   BOOK_CACHE_DOWNLOAD_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
 
-  AI_PROVIDER: z.enum(['GEMINI', 'OPENAI']).default('GEMINI'),
+  // "gemini" or "openai", in any case.
+  AI_PROVIDER: z
+    .string()
+    .default('gemini')
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(z.enum(['GEMINI', 'OPENAI'])),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
+  // Chat: the cheap model that writes conversation summaries, and the stronger
+  // one for plans whose model tier is ADVANCED. Both fall back to the main model.
+  GEMINI_SUMMARY_MODEL: z.string().default('gemini-2.0-flash-lite'),
+  GEMINI_ADVANCED_MODEL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_SUMMARY_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_ADVANCED_MODEL: z.string().optional(),
 
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),

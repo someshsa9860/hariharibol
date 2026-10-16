@@ -1683,4 +1683,175 @@ class AppLocalizationsEn extends AppLocalizations {
   String labelVerseWithSection(int number, String section) {
     return 'Verse $number · $section';
   }
+
+  @override
+  String get chatTitle => 'AI assistant';
+
+  @override
+  String get chatHomeTitle => 'Ask the assistant';
+
+  @override
+  String get chatHomeBody =>
+      'Questions on scripture, mantras and your practice';
+
+  @override
+  String get chatNewChat => 'New chat';
+
+  @override
+  String get chatIntroTitle => 'Your devotional assistant';
+
+  @override
+  String get chatIntroHint => 'Ask about a verse, a mantra or your practice.';
+
+  @override
+  String get chatComposerHint => 'Ask a question';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatStop => 'Stop';
+
+  @override
+  String chatCharacterCount(int count, int max) {
+    return '$count / $max';
+  }
+
+  @override
+  String chatCreditsLeft(int percent) {
+    return '$percent% left';
+  }
+
+  @override
+  String chatCreditsLeftLevel(int percent, String level) {
+    return '$percent% left · $level';
+  }
+
+  @override
+  String get chatCreditsResetsMidnight => 'Resets at midnight';
+
+  @override
+  String chatCreditsRenews(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat('d MMM', localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Renews $dateString';
+  }
+
+  @override
+  String get chatNotAvailableTitle => 'Chat is not part of your plan';
+
+  @override
+  String get chatNotAvailableBody =>
+      'Upgrade your plan to ask the assistant your questions.';
+
+  @override
+  String get chatExhaustedDailyTitle => 'You have used today\'s credits';
+
+  @override
+  String get chatExhaustedDailyBody =>
+      'They refill at midnight. You can carry on then, or upgrade for more.';
+
+  @override
+  String get chatExhaustedWalletTitle => 'Your credits have run out';
+
+  @override
+  String get chatExhaustedWalletBody =>
+      'They renew with your plan. You can wait, or upgrade to keep going.';
+
+  @override
+  String get chatShareUsedTitle => 'This chat has used its share of credits';
+
+  @override
+  String get chatShareUsedBody =>
+      'Start a new chat and the assistant will carry on from where you were.';
+
+  @override
+  String get chatUpgrade => 'Upgrade';
+
+  @override
+  String get chatStartNewChat => 'Start a new chat';
+
+  @override
+  String get chatFullTitle => 'This chat has grown long';
+
+  @override
+  String get chatFullBody =>
+      'Start a new chat and the assistant will carry our conversation forward.';
+
+  @override
+  String get chatContinuePartial =>
+      'Your latest messages could not be summarised, so only the earlier part came along.';
+
+  @override
+  String get chatTidying => 'Tidying our conversation…';
+
+  @override
+  String get chatTyping => 'The assistant is writing';
+
+  @override
+  String get chatConnectionLost =>
+      'Connection lost. What arrived is kept above.';
+
+  @override
+  String get chatReplyFailed => 'The reply could not be finished.';
+
+  @override
+  String get chatBusy => 'Please wait for the current reply to finish.';
+
+  @override
+  String get chatTooLong => 'That message is too long. Please shorten it.';
+
+  @override
+  String get chatStopped => 'Stopped';
+
+  @override
+  String get chatInterrupted => 'Interrupted';
+
+  @override
+  String get chatCopy => 'Copy';
+
+  @override
+  String get chatCopied => 'Copied';
+
+  @override
+  String get chatShare => 'Share';
+
+  @override
+  String get chatRegenerate => 'Regenerate';
+
+  @override
+  String get chatLinkCopied => 'Link copied';
+
+  @override
+  String get chatImageUnavailable => 'Image unavailable';
+
+  @override
+  String get chatMoreActions => 'More';
+
+  @override
+  String get chatMenuCompact => 'Compact context';
+
+  @override
+  String get chatMenuRename => 'Rename';
+
+  @override
+  String get chatRenameTitle => 'Rename chat';
+
+  @override
+  String get chatRenameHint => 'Chat name';
+
+  @override
+  String get chatDeleteTitle => 'Delete this chat?';
+
+  @override
+  String get chatDeleteBody =>
+      'The conversation is removed. Credits already used are not returned.';
+
+  @override
+  String get chatCompactDone =>
+      'Conversation tidied. Older messages are now summarised.';
+
+  @override
+  String get chatCompactNothing => 'Nothing to tidy yet.';
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -11,6 +13,7 @@ import '../models/auth_session.dart';
 import '../models/json.dart';
 import 'device_service.dart';
 import 'firebase_service.dart';
+import 'sse_parser.dart';
 
 /// A parsed response: the `data` the API sent, and the `meta` block beside it
 /// when the endpoint paginates.
@@ -27,6 +30,18 @@ class ApiResponse {
 
   Json get json => asJson(data) ?? const {};
   List<dynamic> get list => data is List ? data as List<dynamic> : const [];
+}
+
+/// Stops a request that is still running — the Stop button on a chat reply.
+/// Wraps Dio's token so nothing outside this file needs to import Dio.
+class ApiCancelToken {
+  final CancelToken _token = CancelToken();
+
+  bool get isCancelled => _token.isCancelled;
+
+  void cancel() {
+    if (!_token.isCancelled) _token.cancel();
+  }
 }
 
 /// The only thing in the app that speaks HTTP.
@@ -88,6 +103,72 @@ class ApiClient {
     bool attested = false,
   }) =>
       _send('POST', path, body: body, query: query, attested: attested);
+
+  /// POSTs and returns the reply as a stream of Server-Sent Events.
+  ///
+  /// The future completes when the server has answered with its headers. A
+  /// refusal before streaming starts (a 402, a 409) is an ordinary JSON error
+  /// and is thrown here as an [ApiFailure] with its code and details intact, so
+  /// a caller treats it exactly like any other failed call. After that, a
+  /// dropped connection is an [ApiFailure] on the stream. Cancelling [cancel]
+  /// closes the connection, which is how the server learns to stop writing.
+  ///
+  /// The bearer token and the silent 401 refresh work as for any other call.
+  Future<Stream<SseEvent>> postEventStream(
+    String path, {
+    Object? body,
+    ApiCancelToken? cancel,
+  }) async {
+    try {
+      final response = await _dio.request<ResponseBody>(
+        path,
+        data: body,
+        cancelToken: cancel?._token,
+        options: Options(
+          method: 'POST',
+          responseType: ResponseType.stream,
+          headers: const {Headers.acceptHeader: ApiHeaders.eventStream},
+          receiveTimeout: AppConfig.streamReceiveTimeout,
+        ),
+      );
+      final stream = response.data?.stream;
+      if (stream == null) return const Stream<SseEvent>.empty();
+      return _guardStream(parseSse(stream));
+    } on DioException catch (error) {
+      await _readErrorBody(error);
+      throw _toFailure(error);
+    }
+  }
+
+  /// Anything that goes wrong mid-stream is the connection dropping.
+  Stream<SseEvent> _guardStream(Stream<SseEvent> source) async* {
+    try {
+      yield* source;
+    } on ApiFailure {
+      rethrow;
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    } catch (_) {
+      throw const ApiFailure(kind: FailureKind.network);
+    }
+  }
+
+  /// A refused stream request still has a body to read: the JSON error. It is
+  /// decoded in place so [_toFailure] sees it like any other error response.
+  Future<void> _readErrorBody(DioException error) async {
+    final response = error.response;
+    final data = response?.data;
+    if (response == null || data is! ResponseBody) return;
+    try {
+      final bytes = <int>[];
+      await for (final piece in data.stream) {
+        bytes.addAll(piece);
+      }
+      response.data = jsonDecode(utf8.decode(bytes, allowMalformed: true));
+    } catch (_) {
+      response.data = null;
+    }
+  }
 
   Future<ApiResponse> put(String path, {Object? body}) => _send('PUT', path, body: body);
 

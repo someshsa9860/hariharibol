@@ -51,6 +51,11 @@ class AppNavigator {
   /// Pushes on top, for a screen the person is expected to come back from.
   Future<T?> push<T>(String location, {Object? extra}) => _go.push<T>(location, extra: extra);
 
+  /// Swaps the current screen for another — a full chat for the new one that
+  /// carries it on, so back does not return to the chat that is over.
+  Future<T?> replace<T extends Object?>(String location, {Object? extra}) =>
+      _go.pushReplacement<T>(location, extra: extra);
+
   void pop<T>([T? result]) {
     if (_go.canPop()) _go.pop(result);
   }

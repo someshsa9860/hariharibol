@@ -75,6 +75,14 @@ const schedules = [
       ]
     : []),
   {
+    name: 'ai.credits.maintain',
+    queue: 'maintenance',
+    cron: '15 * * * *',
+    description:
+      'Renew AI chat wallets whose period has ended and drop old daily-usage rows. (The daily cap ' +
+      'itself resets at each user’s local midnight by date, with no job.)',
+  },
+  {
     name: 'audit.prune',
     queue: 'maintenance',
     cron: '0 3 * * 0',

@@ -1699,4 +1699,177 @@ class AppLocalizationsTa extends AppLocalizations {
   String labelVerseWithSection(int number, String section) {
     return 'ஸ்லோகம் $number · $section';
   }
+
+  @override
+  String get chatTitle => 'AI உதவியாளர்';
+
+  @override
+  String get chatHomeTitle => 'உதவியாளரிடம் கேளுங்கள்';
+
+  @override
+  String get chatHomeBody =>
+      'சாஸ்திரம், மந்திரங்கள், உங்கள் சாதனா பற்றிய கேள்விகள்';
+
+  @override
+  String get chatNewChat => 'புதிய அரட்டை';
+
+  @override
+  String get chatIntroTitle => 'உங்கள் பக்தி உதவியாளர்';
+
+  @override
+  String get chatIntroHint =>
+      'ஒரு ஸ்லோகம், மந்திரம் அல்லது உங்கள் சாதனா பற்றிக் கேளுங்கள்.';
+
+  @override
+  String get chatComposerHint => 'கேள்வி கேளுங்கள்';
+
+  @override
+  String get chatSend => 'அனுப்பு';
+
+  @override
+  String get chatStop => 'நிறுத்து';
+
+  @override
+  String chatCharacterCount(int count, int max) {
+    return '$count / $max';
+  }
+
+  @override
+  String chatCreditsLeft(int percent) {
+    return '$percent% மீதம்';
+  }
+
+  @override
+  String chatCreditsLeftLevel(int percent, String level) {
+    return '$percent% மீதம் · $level';
+  }
+
+  @override
+  String get chatCreditsResetsMidnight => 'நள்ளிரவில் மீட்டமையும்';
+
+  @override
+  String chatCreditsRenews(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat('d MMM', localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'புதுப்பிப்பு: $dateString';
+  }
+
+  @override
+  String get chatNotAvailableTitle => 'அரட்டை உங்கள் திட்டத்தில் இல்லை';
+
+  @override
+  String get chatNotAvailableBody =>
+      'உதவியாளரிடம் கேள்விகள் கேட்க உங்கள் திட்டத்தை மேம்படுத்துங்கள்.';
+
+  @override
+  String get chatExhaustedDailyTitle => 'இன்றைய கிரெடிட்கள் தீர்ந்துவிட்டன';
+
+  @override
+  String get chatExhaustedDailyBody =>
+      'நள்ளிரவில் அவை மீண்டும் நிரம்பும். அப்போது தொடரலாம், அல்லது கூடுதலாகப் பெற மேம்படுத்தலாம்.';
+
+  @override
+  String get chatExhaustedWalletTitle => 'உங்கள் கிரெடிட்கள் தீர்ந்துவிட்டன';
+
+  @override
+  String get chatExhaustedWalletBody =>
+      'இவை உங்கள் திட்டத்துடன் புதுப்பிக்கப்படும். காத்திருக்கலாம், அல்லது தொடர மேம்படுத்தலாம்.';
+
+  @override
+  String get chatShareUsedTitle =>
+      'இந்த அரட்டை தனக்கான கிரெடிட்களைப் பயன்படுத்திவிட்டது';
+
+  @override
+  String get chatShareUsedBody =>
+      'புதிய அரட்டையைத் தொடங்குங்கள்; நீங்கள் நிறுத்திய இடத்திலிருந்து உதவியாளர் தொடர்வார்.';
+
+  @override
+  String get chatUpgrade => 'மேம்படுத்து';
+
+  @override
+  String get chatStartNewChat => 'புதிய அரட்டையைத் தொடங்கு';
+
+  @override
+  String get chatFullTitle => 'இந்த அரட்டை மிக நீளமாகிவிட்டது';
+
+  @override
+  String get chatFullBody =>
+      'புதிய அரட்டையைத் தொடங்குங்கள்; உதவியாளர் நம் உரையாடலைத் தொடர்வார்.';
+
+  @override
+  String get chatContinuePartial =>
+      'உங்கள் சமீபத்திய செய்திகளைச் சுருக்க முடியவில்லை, அதனால் முந்தைய பகுதி மட்டுமே வந்தது.';
+
+  @override
+  String get chatTidying => 'நம் உரையாடலைச் சுருக்குகிறேன்…';
+
+  @override
+  String get chatTyping => 'உதவியாளர் எழுதுகிறார்';
+
+  @override
+  String get chatConnectionLost =>
+      'இணைப்பு துண்டிக்கப்பட்டது. வந்தது மேலே வைக்கப்பட்டுள்ளது.';
+
+  @override
+  String get chatReplyFailed => 'பதிலை முடிக்க முடியவில்லை.';
+
+  @override
+  String get chatBusy => 'தற்போதைய பதில் முடியும் வரை காத்திருக்கவும்.';
+
+  @override
+  String get chatTooLong => 'இந்தச் செய்தி மிக நீளமாக உள்ளது. சுருக்கவும்.';
+
+  @override
+  String get chatStopped => 'நிறுத்தப்பட்டது';
+
+  @override
+  String get chatInterrupted => 'இடையில் நின்றது';
+
+  @override
+  String get chatCopy => 'நகலெடு';
+
+  @override
+  String get chatCopied => 'நகலெடுக்கப்பட்டது';
+
+  @override
+  String get chatShare => 'பகிர்';
+
+  @override
+  String get chatRegenerate => 'மீண்டும் பதிலளி';
+
+  @override
+  String get chatLinkCopied => 'இணைப்பு நகலெடுக்கப்பட்டது';
+
+  @override
+  String get chatImageUnavailable => 'படம் கிடைக்கவில்லை';
+
+  @override
+  String get chatMoreActions => 'மேலும்';
+
+  @override
+  String get chatMenuCompact => 'சூழலைச் சுருக்கு';
+
+  @override
+  String get chatMenuRename => 'பெயர் மாற்று';
+
+  @override
+  String get chatRenameTitle => 'அரட்டையின் பெயரை மாற்று';
+
+  @override
+  String get chatRenameHint => 'அரட்டையின் பெயர்';
+
+  @override
+  String get chatDeleteTitle => 'இந்த அரட்டையை நீக்கவா?';
+
+  @override
+  String get chatDeleteBody =>
+      'உரையாடல் நீக்கப்படும். ஏற்கெனவே பயன்படுத்திய கிரெடிட்கள் திரும்பக் கிடைக்காது.';
+
+  @override
+  String get chatCompactDone =>
+      'உரையாடல் சுருக்கப்பட்டது. பழைய செய்திகள் இப்போது சுருக்கமாக உள்ளன.';
+
+  @override
+  String get chatCompactNothing => 'இன்னும் சுருக்க எதுவும் இல்லை.';
 }

@@ -199,6 +199,59 @@ npm test                  # hashing, canonical JSON, diff decision, retry, lock 
 npm run test:book-cache   # the export and all four endpoints over HTTP (API running, AWS keys blank)
 ```
 
+## AI chat — setup, providers, credits
+
+A devotional assistant (Sri Vaishnava orientation, respectful of other traditions and religions)
+streamed to the app over Server-Sent Events. The app never sees a key; every call is made here.
+
+### Set it up
+
+1. `npm run prisma:deploy` — adds the chat tables, the `chat.manage` permission (given to `admin` and
+   `super_admin`) and a starting allowance for the `free` and `premium` plans.
+2. Put one provider's key in `.env` (copy `.env.example`):
+
+   ```bash
+   AI_PROVIDER=gemini            # or: openai
+   GEMINI_API_KEY=...            # https://aistudio.google.com/apikey
+   OPENAI_API_KEY=...            # https://platform.openai.com/api-keys
+   ```
+
+3. Restart the API. The worker container needs the same `.env` too — it renews wallets
+   (`ai.credits.maintain`, hourly).
+
+### `.env` keys
+
+| Key | What | Default |
+|---|---|---|
+| `AI_PROVIDER` | `gemini` or `openai` (any case) | `gemini` |
+| `GEMINI_API_KEY` / `OPENAI_API_KEY` | the provider's secret key | — |
+| `GEMINI_MODEL` / `OPENAI_MODEL` | chat model for BASIC plans | `gemini-2.0-flash` / `gpt-4o-mini` |
+| `GEMINI_SUMMARY_MODEL` / `OPENAI_SUMMARY_MODEL` | the cheap model that writes conversation summaries | `gemini-2.0-flash-lite` / `gpt-4o-mini` |
+| `GEMINI_ADVANCED_MODEL` / `OPENAI_ADVANCED_MODEL` | chat model for plans whose tier is ADVANCED; empty = the normal one | — |
+
+### Switching providers
+
+Change `AI_PROVIDER` and restart. Nothing else moves: both providers sit behind `services/ai/`, stream
+the same way, and report real token counts. **One catch:** a value saved as `ai.provider` (or
+`ai.model.text`) in the admin panel's Settings page overrides `.env`. Fresh installs do not set it; if an
+older database does, either clear it there or change it there instead.
+
+### What readers and admins see
+
+- **Readers** see a credit meter, 100% → 0%, and the name of their devotee level. Never token counts.
+- **Admin panel → AI chat**: the persona (system prompt) and the text the app shows describing the
+  assistant; the limits (how many recent messages are sent, when to compact, summary cap, max messages
+  per chat, max reply length); each plan's allowance (daily cap, wallet size, monthly renewal,
+  per-conversation cap, model tier, level name); wallets, with grants and adjustments. All of it applies
+  without a deploy.
+
+### Tests
+
+```bash
+npm test                 # unit tests: token counting, credits arithmetic, compaction, SSE/providers
+npm run test:chat        # end to end against Postgres + Redis, provider faked — no key, no network
+```
+
 ## First admin
 
 The seed deliberately creates no admin — a seeded account with a known email is

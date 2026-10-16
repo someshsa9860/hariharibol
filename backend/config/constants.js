@@ -59,6 +59,7 @@ const PERMISSIONS = {
   'setting.write': { group: 'system', name: 'Change app settings' },
   'ai.read': { group: 'system', name: 'View AI usage and spend' },
   'ai.run': { group: 'system', name: 'Trigger AI batch jobs' },
+  'chat.manage': { group: 'system', name: 'Edit the AI chat persona, limits and plan allowances; grant credits' },
   'audit.read': { group: 'system', name: 'View the audit log' },
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
@@ -166,6 +167,10 @@ const SETTING_KEYS = {
   SLOKA_DELIVERY_TIME: 'sloka.delivery.time',
   SIGNUP_ENABLED: 'auth.signup.enabled',
   BOOK_CACHE_VERSION: 'book.cache_version',
+  // AI chat — see config/chat.js for the defaults each falls back to.
+  CHAT_SYSTEM_PROMPT: 'chat.system_prompt',
+  CHAT_DESCRIPTION: 'chat.description',
+  CHAT_LIMITS: 'chat.limits',
 };
 
 // When the daily sloka is pushed, in each reader's own timezone, if the

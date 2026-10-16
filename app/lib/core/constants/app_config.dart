@@ -19,6 +19,10 @@ abstract final class AppConfig {
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
+  /// How long a Server-Sent Events reply may go without a byte. The chat's
+  /// server pings every 15 seconds, so this only trips when the line is dead.
+  static const Duration streamReceiveTimeout = Duration(seconds: 45);
+
   /// One retry, and only for a request that failed because the access token had
   /// expired. Anything else surfaces to the caller.
   static const int authRetryLimit = 1;
