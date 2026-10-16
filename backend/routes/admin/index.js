@@ -17,6 +17,7 @@ import permissionRoutes from './permission.js';
 import bookRoutes from './book.js';
 import verseRoutes from './verse.js';
 import mantraRoutes from './mantra.js';
+import creatorRoutes from './creator.js';
 import reelRoutes from './reel.js';
 import reelRecipeRoutes from './reel-recipe.js';
 import referenceRoutes from './reference.js';
@@ -43,6 +44,7 @@ const routers = [
   bookRoutes,
   verseRoutes,
   mantraRoutes,
+  creatorRoutes,
   reelRoutes,
   reelRecipeRoutes,
   referenceRoutes,

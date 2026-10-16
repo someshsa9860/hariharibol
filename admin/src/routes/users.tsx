@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Ban, CheckCircle2, Eye, MoreHorizontal, ShieldCheck, Trash2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Ban, CheckCircle2, Clapperboard, Eye, MoreHorizontal, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
@@ -20,6 +21,7 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDate, formatDateOnly } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { AddCreatorDialog } from '@/components/add-creator-dialog';
 
 type User = {
   id: string;
@@ -33,16 +35,19 @@ type User = {
   isBanned: boolean;
   createdAt: string;
   lastActiveAt: string | null;
+  creatorProfile: { id: string; status: string } | null;
 };
 
 type Role = { id: string; slug: string; name: string };
 
 export function UsersPage() {
   const { hasPermission } = useAuth();
+  const queryClient = useQueryClient();
   const [banTargets, setBanTargets] = useState<User[]>([]);
   const [banReason, setBanReason] = useState('');
   const [roleTargets, setRoleTargets] = useState<User[]>([]);
   const [viewing, setViewing] = useState<User | null>(null);
+  const [creatorTarget, setCreatorTarget] = useState<User | null>(null);
 
   const roles = useResource<Role[]>(['roles'], '/api/admin/roles');
   const table = useDataTable<User>({
@@ -55,6 +60,7 @@ export function UsersPage() {
   const canBan = hasPermission('user.ban');
   const canChangeRole = hasPermission('role.manage');
   const canDelete = hasPermission('user.delete');
+  const canMakeCreator = hasPermission('creator.manage');
 
   const ban = (users: User[], reason: string) =>
     table.runBulk(users.filter((u) => !u.isBanned), 'Banned', (u) =>
@@ -96,6 +102,7 @@ export function UsersPage() {
         <div className="flex gap-1.5">
           {u.isPremium && <Badge variant="success">Premium</Badge>}
           {u.isBanned && <Badge variant="destructive">Banned</Badge>}
+          {u.creatorProfile && <Badge variant="secondary">Creator</Badge>}
         </div>
       ),
     },
@@ -136,6 +143,12 @@ export function UsersPage() {
               <DropdownMenuItem onClick={() => setRoleTargets([u])}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Change role
+              </DropdownMenuItem>
+            )}
+            {canMakeCreator && !u.creatorProfile && (
+              <DropdownMenuItem onClick={() => setCreatorTarget(u)}>
+                <Clapperboard className="mr-2 h-4 w-4" />
+                Make creator
               </DropdownMenuItem>
             )}
             {canBan &&
@@ -281,6 +294,16 @@ export function UsersPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AddCreatorDialog
+        open={!!creatorTarget}
+        user={creatorTarget}
+        onClose={() => setCreatorTarget(null)}
+        onDone={(text) => {
+          table.setNotice({ tone: 'success', text });
+          void queryClient.invalidateQueries({ queryKey: [table.id] });
+        }}
+      />
 
       <DetailDialog
         open={!!viewing}
