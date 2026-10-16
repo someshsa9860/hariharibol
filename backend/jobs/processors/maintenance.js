@@ -10,6 +10,7 @@
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as s3 from '../../services/s3.js';
+import * as aiWallet from '../../services/ai-wallet.js';
 
 const RETENTION_DAYS = {
   // Who changed what. The longest, because this is the one that answers
@@ -34,6 +35,15 @@ export default async function maintenanceProcessor(job) {
       .count;
     logger.info({ count }, 'chant transcript prune finished');
     return { chantTranscript: count };
+  }
+
+  // Hourly: AI chat wallets whose period ended get refilled even if their owner
+  // never opens the app, and daily-usage rows past the window are dropped.
+  if (job.name === 'ai.credits.maintain') {
+    const renewal = await aiWallet.renewDue();
+    const pruned = await aiWallet.pruneDaily();
+    logger.info({ ...renewal, pruned }, 'ai credits maintenance finished');
+    return { ...renewal, dailyRowsPruned: pruned };
   }
 
   // Monthly: uploads that were never saved onto a row. Anything younger than a

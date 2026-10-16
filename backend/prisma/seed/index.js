@@ -374,6 +374,14 @@ async function seedPlansAndTopics() {
   }
   log(`${data.plans.length} subscription plan(s), ${data.features.length} feature(s)`);
 
+  for (const { planSlug, ...config } of data.aiPlanConfigs) {
+    const plan = await prisma.subscriptionPlan.findUnique({ where: { slug: planSlug } });
+    if (!plan) continue;
+    // Created once; the admin panel owns the numbers afterwards.
+    await prisma.aiPlanConfig.upsert({ where: { planId: plan.id }, update: {}, create: { ...config, planId: plan.id } });
+  }
+  log(`${data.aiPlanConfigs.length} AI chat allowance(s)`);
+
   for (const topic of data.topics) {
     await prisma.fcmTopic.upsert({ where: { key: topic.key }, update: topic, create: topic });
   }

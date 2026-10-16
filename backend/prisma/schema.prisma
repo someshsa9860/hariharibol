@@ -271,6 +271,11 @@ model User {
   subscriptions    Subscription[]
   payments         Payment[]
 
+  aiWallet          AiWallet?
+  aiWalletTxns      AiWalletTransaction[]
+  aiDailyUsage      AiDailyUsage[]
+  chatConversations ChatConversation[]
+
   favorites       Favorite[]
   readingProgress ReadingProgress[]
   verseNotes      VerseNote[]
@@ -1280,6 +1285,7 @@ model SubscriptionPlan {
   prices        PlanPrice[]
   features      PlanFeature[]
   subscriptions Subscription[]
+  aiConfig      AiPlanConfig?
 
   @@index([isActive, tier])
 }
@@ -1485,6 +1491,9 @@ model AiUsageLog {
   // What it was generating for, when it targets one row.
   targetType String? @db.VarChar(50)
   targetId   String?
+
+  // Who the call was made for, when it was made for a person (chat, summaries).
+  userId String?
 
   inputTokens  Int @default(0)
   outputTokens Int @default(0)
@@ -2454,4 +2463,185 @@ model TranslationRun {
 
   @@index([status, createdAt])
   @@index([language, createdAt])
+}
+
+// ── AI chat ────────────────────────────────────────────────────────────────
+// A devotional assistant. See "AI chat" in backend/CLAUDE.md.
+//
+// Users never see tokens. They see a credit meter derived from AiWallet, and
+// every AI operation — chat, summaries, whatever AI feature comes next — debits
+// the same wallet through services/ai-wallet.js. Nothing else writes these
+// tables.
+
+enum AiWalletTxType {
+  CREDIT
+  DEBIT
+}
+
+enum AiWalletSource {
+  CHAT
+  SUMMARIZATION
+  ADMIN_GRANT
+  ADMIN_ADJUST
+  PLAN_RENEWAL
+  OTHER_AI_FEATURE
+}
+
+enum AiModelTier {
+  BASIC
+  ADVANCED
+}
+
+enum AiRenewal {
+  MONTHLY // the wallet is topped back up to its allocation every period
+  NEVER // the allocation is a one-time total
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+enum ChatMessageStatus {
+  COMPLETE
+  PARTIAL // the stream broke after some text arrived
+  STOPPED // the reader pressed stop
+  ERROR // nothing usable arrived
+}
+
+// What a plan allows in chat. One row per SubscriptionPlan; edited in the admin
+// panel's AI chat page and read on every request (cached for a minute), so a
+// change applies without a deploy.
+model AiPlanConfig {
+  id String @id @default(cuid())
+
+  planId String           @unique
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  // What the devotee level is called to the reader: "Jigyasu", "Bhakta" …
+  levelName String @db.VarChar(50)
+
+  isEnabled Boolean @default(true)
+
+  // Per local day. 0 = no daily cap.
+  dailyTokens        Int       @default(0)
+  // What 100% of the credit meter means, and how it refills.
+  walletTokens       Int       @default(0)
+  renewal            AiRenewal @default(MONTHLY)
+  // Most tokens one conversation may spend before a fresh chat is asked for. 0 = no cap.
+  conversationTokens Int       @default(0)
+
+  modelTier AiModelTier @default(BASIC)
+
+  updatedAt DateTime @updatedAt
+}
+
+model AiWallet {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The plan the allocation was last set from, so a plan change is noticed.
+  planId String?
+
+  balance     Int // may dip below zero by the estimation error of one reply
+  allocation  Int // what 100% means
+  periodStart DateTime  @default(now())
+  periodEnd   DateTime? // null = never renews
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([periodEnd])
+}
+
+model AiWalletTransaction {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type   AiWalletTxType
+  tokens Int // always positive; `type` says which way
+  source AiWalletSource
+
+  // The conversation, message or admin action this came from.
+  referenceId String?
+  note        String?
+
+  balanceAfter Int
+  createdById  String? // the admin, for grants and adjustments
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([source, createdAt])
+}
+
+// Tokens spent per user per local day. The row for "today" is simply the one
+// whose date is today in the user's timezone, which is why the daily cap resets
+// at midnight with no job having to zero anything.
+model AiDailyUsage {
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date   String @db.VarChar(10) // user-local "YYYY-MM-DD"
+  tokens Int    @default(0)
+
+  @@id([userId, date])
+  @@index([date])
+}
+
+model ChatConversation {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String @default("New chat") @db.VarChar(120)
+
+  // Everything older than `summarizedThroughSeq`, compressed. Sent to the model
+  // in place of those messages, which stay in the table for display.
+  contextSummary       String? @db.Text
+  summarizedThroughSeq Int     @default(0)
+
+  lastSeq      Int @default(0)
+  messageCount Int @default(0)
+  tokensUsed   Int @default(0) // spent in this conversation, all operations
+
+  // The chat this one was started from when its limit was reached.
+  carriedFromId String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now())
+
+  messages ChatMessage[]
+
+  @@index([userId, lastMessageAt])
+}
+
+model ChatMessage {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  seq     Int
+  role    ChatRole
+  content String            @db.Text
+  status  ChatMessageStatus @default(COMPLETE)
+
+  // Local estimate of this message's size — what compaction decisions use.
+  tokenCount Int @default(0)
+
+  // From the provider, on an assistant message: what the whole call cost.
+  inputTokens  Int?
+  outputTokens Int?
+  model        String? @db.VarChar(100)
+
+  createdAt DateTime @default(now())
+
+  @@unique([conversationId, seq])
 }

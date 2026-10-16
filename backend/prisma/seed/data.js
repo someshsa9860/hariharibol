@@ -827,6 +827,31 @@ const plans = [
   },
 ];
 
+// ── AI chat allowances ─────────────────────────────────────────────────────
+// What each plan gets in the chat, under a devotee-level name. Proposed names — the
+// admin panel's AI chat page renames them. Tokens are never shown to readers.
+// Seeded once, like plans. A plan with no row here uses the free plan's.
+const aiPlanConfigs = [
+  {
+    planSlug: 'free',
+    levelName: 'Jigyasu',
+    dailyTokens: 6000,
+    walletTokens: 60000,
+    renewal: 'MONTHLY',
+    conversationTokens: 20000,
+    modelTier: 'BASIC',
+  },
+  {
+    planSlug: 'premium',
+    levelName: 'Bhakta',
+    dailyTokens: 40000,
+    walletTokens: 800000,
+    renewal: 'MONTHLY',
+    conversationTokens: 80000,
+    modelTier: 'ADVANCED',
+  },
+];
+
 // A few starting benefits. More arrive as features are built — each is a row
 // here (or added from the panel) plus values on the plans.
 const features = [
@@ -868,8 +893,9 @@ const topics = [
 // are entered from the panel and stored encrypted.
 
 const settings = [
-  { key: SETTING_KEYS.AI_PROVIDER, value: 'GEMINI' },
-  { key: SETTING_KEYS.AI_MODEL_TEXT, value: 'gemini-2.0-flash' },
+  // `ai.provider` and `ai.model.text` are deliberately NOT seeded: while they are absent the
+  // provider and models come from .env (AI_PROVIDER, GEMINI_MODEL …). Setting them in the
+  // admin panel overrides the .env.
   // 0 means no cap. Set one before running a batch pass.
   { key: SETTING_KEYS.AI_MONTHLY_BUDGET_MICROS, value: '0' },
   { key: SETTING_KEYS.SLOKA_DELIVERY_TIME, value: SLOKA_DEFAULT_DELIVERY_TIME },
@@ -877,6 +903,7 @@ const settings = [
 ];
 
 export {
+  aiPlanConfigs,
   roles,
   permissions,
   languages,
