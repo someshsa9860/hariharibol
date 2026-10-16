@@ -1,0 +1,9 @@
+# Never commit real environment files or secret key material.
+.env
+*/.env
+**/.env
+
+# Secret key files inside any security/ folder (keep README + .gitkeep only).
+**/security/*
+!**/security/README.md
+!**/security/.gitkeep
