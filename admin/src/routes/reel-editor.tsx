@@ -285,7 +285,7 @@ function Editor({ reel, creators, mediaType }: { reel: ReelDetail | null; creato
       </header>
 
       {!canWrite && <Notice tone="info">You can look at this reel but not change it.</Notice>}
-      {noCreator && <Notice tone="error">There is no approved creator to publish reels as. Approve a creator profile first.</Notice>}
+      {noCreator && <Notice tone="error">There is no approved creator to publish reels as. Add one on the Creators page first.</Notice>}
       {live && canWrite && <Notice tone="info">This reel is live — saving changes updates it for everyone straight away.</Notice>}
       {reel?.templateId && (
         <Notice tone="info">

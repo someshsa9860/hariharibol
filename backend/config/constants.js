@@ -49,6 +49,7 @@ const PERMISSIONS = {
   'user.ban': { group: 'users', name: 'Ban and unban users and devices' },
   'user.delete': { group: 'users', name: 'Delete users' },
   'role.manage': { group: 'users', name: 'Manage roles and permissions' },
+  'creator.manage': { group: 'users', name: 'Add, approve, edit and remove creators' },
   'notification.send': { group: 'users', name: 'Send broadcasts' },
 
   // system

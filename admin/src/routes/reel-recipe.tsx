@@ -372,7 +372,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
       </header>
 
       {!canWrite && <Notice tone="error">You need permission to edit reels to use this.</Notice>}
-      {creators.length === 0 && <Notice tone="error">There is no approved creator to publish reels as. Approve a creator profile first.</Notice>}
+      {creators.length === 0 && <Notice tone="error">There is no approved creator to publish reels as. Add one on the Creators page first.</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
 
       {step === 1 && (

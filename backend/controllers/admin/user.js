@@ -24,6 +24,8 @@ const LIST_SELECT = {
   createdAt: true,
   lastActiveAt: true,
   role: { select: { slug: true, name: true } },
+  // A creator is the same account with a profile attached, not another kind of user.
+  creatorProfile: { select: { id: true, status: true } },
 };
 
 // Columns the users table can be sorted by — see readSort.
