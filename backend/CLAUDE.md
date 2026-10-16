@@ -129,12 +129,15 @@ Gemini is the provider we use. It is not the provider the code knows about.
 - Everything goes through `services/ai/` behind one interface. Callers ask for a
   completion; they never learn which provider answered. Swapping Gemini for
   something else must touch only `services/ai/`.
-- Provider and model come from `AppSetting` (`ai.provider`, `ai.model.text`), so
-  they change without a deploy. API keys are secrets — encrypted, never returned.
+- Provider and models come from `.env` (`AI_PROVIDER`, `*_MODEL`, `*_SUMMARY_MODEL`,
+  `*_ADVANCED_MODEL`); `AppSetting` (`ai.provider`, `ai.model.text`), when set, overrides them
+  without a deploy. API keys are secrets — encrypted, never returned.
 - Every call is written to `AiUsageLog` with tokens and cost. An AI feature whose
   spend cannot be attributed to an operation does not ship.
 
 ### Cost rule: AI never runs on the request path
+
+(The one exception is **AI chat**, below — a person is waiting for a reply and pays for it from their own wallet.)
 
 Generating per user per day does not survive contact with scale — 10,000 users is
 10,000 calls every morning, for content that is largely the same. So the work is
@@ -153,6 +156,52 @@ The AI spend is bounded by the size of the corpus, not by how many users we have
 For the bulk passes: use batch mode where the provider offers it (roughly half
 price), the cheapest model that does the job, and embeddings rather than chat
 completions for anything that is really similarity matching. Cache in Redis.
+
+## AI chat
+
+A streamed devotional assistant. Files, in the order a request meets them:
+
+| File | Job |
+|---|---|
+| `routes/app/chat.js`, `controllers/app/chat.js` | Conversations CRUD, `status`, the two streaming endpoints (`messages`, `regenerate`), `compact`, `continue` |
+| `routes/admin/chat.js`, `controllers/admin/chat.js` | Persona and limits, per-plan allowance, wallets, grants (permission `chat.manage`) |
+| `services/ai/index.js` · `gemini.js` · `openai.js` · `sse.js` | `ai.stream()` / `ai.complete()` behind the provider interface; both providers stream and report usage |
+| `services/ai/tokens.js` | Local tokenizer (`js-tiktoken`, o200k) — an estimate for Gemini, so a 10% safety factor |
+| `services/ai-wallet.js` | The only writer of `AiWallet`, `AiWalletTransaction`, `AiDailyUsage` |
+| `utils/ai-credits.js`, `utils/chat-context.js` | The arithmetic and the prompt/compaction rules — **pure**, tested in `test/` |
+| `services/chat-settings.js`, `config/chat.js` | Persona, description and limits (AppSetting) and their defaults |
+
+Rules worth knowing before changing it:
+
+- **The prompt is small by construction**: `persona + conversation.contextSummary + the newest
+  `recentMessages` + the new message`. When the unsummarized history passes `recentMessages` messages or
+  `compactAtTokens` tokens, the older part is folded into `contextSummary` by the *summary* model and
+  `summarizedThroughSeq` moves up; those messages stay in the table (`summarized: true` in the API) and are
+  never sent again. The summary keeps name/preferences, interests and sampradaya leaning, practices and vows,
+  open questions, and is cut to `summaryMaxTokens`. A cut always leaves a USER message first.
+- **Everything costs from one wallet.** Chat replies and summaries both call `aiWallet.debit()` (source
+  `CHAT` / `SUMMARIZATION`); any future AI feature uses `OTHER_AI_FEATURE`. The amount is the **provider's
+  reported usage**. `ai.stream()` estimates it locally only when a stream is cut before the provider reports
+  (`usage.estimated`). A reply that produced no text and no billed usage costs nothing.
+- **Pre-check before the provider is called**: `spendable = min(wallet balance, today's cap left,
+  conversation share left)` must cover the prompt plus a minimum reply, and the reply is capped to what is
+  left (`max_tokens`), so overshoot is bounded by estimation error. One reply at a time per user (Redis lock).
+- **Daily cap = a date, not a job.** Spend is recorded under the user's *local* date (`User.timezone`, default
+  Asia/Kolkata), so the cap resets at each person's midnight by itself. The hourly `ai.credits.maintain` job
+  renews wallets whose month ended (so one nobody opens still refills) and prunes old daily rows.
+- **The meter is `min(wallet %, daily %)`** (`creditMeter`). `limitedBy` says which; the 402
+  `CREDITS_EXHAUSTED` carries `limitedBy`, `resetsAt`, `canUpgrade`, `startNewChat`.
+- **Wallet follows the plan**: created lazily on first use at the plan's `walletTokens`; raising the
+  allowance credits the difference; lowering it never claws back; a monthly renewal tops up to the allocation
+  and never beyond (an admin grant above it is neither topped up nor taken away).
+- **Stopping**: closing the connection aborts the provider request; what arrived is kept as `STOPPED`, and
+  the tokens actually used are charged. A provider error after some text is `PARTIAL`. Nothing arrived → the
+  empty assistant row is removed and `error.retryable` tells the app to offer retry.
+- **Hard limits**: `limits.maxMessages` and the plan's `conversationTokens` → 409 `CONVERSATION_LIMIT`;
+  `POST …/continue` folds everything into the summary and starts a new chat with it.
+- **Token numbers never reach `/api/app/*`.** Only `/api/admin/chat/*` shows them.
+- `npm run test:chat` walks all of it (provider faked); `npm test` holds the pure rules.
+- Error messages shown to readers are English only for now (they are the server's, not ARB keys).
 
 ## Subscriptions, donations and entitlement
 
