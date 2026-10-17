@@ -10,10 +10,13 @@ enum FailureKind {
   /// The request went out but nothing came back in time.
   timeout,
 
-  /// 401 after a refresh attempt already failed. The session is gone.
+  /// 403 with the code `UNAUTHENTICATED` (or a 401 from an older server): the
+  /// server does not know who is asking, and renewing the session did not fix
+  /// it. When the renewal itself was refused the session has been cleared.
   unauthorized,
 
-  /// 403 — signed in, but not allowed. Includes a failed attestation check.
+  /// Any other 403 — signed in, but not allowed. Includes a failed attestation
+  /// check. Never a reason to renew or end the session.
   forbidden,
 
   /// 404.

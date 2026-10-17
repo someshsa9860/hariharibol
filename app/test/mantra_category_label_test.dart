@@ -135,13 +135,13 @@ void main() {
           overrides: [
             sadhanaTodayProvider.overrideWith(_FakeToday.new),
             mantraCategoriesProvider.overrideWith(
-              (ref) async => [for (final slug in seeded) MantraCategory(slug: slug, count: 1)],
+              (ref) => Stream.value([for (final slug in seeded) MantraCategory(slug: slug, count: 1)]),
             ),
             mantraListProvider.overrideWith(
-              (ref, category) async => [
+              (ref, category) => Stream.value([
                 mantra('hare-krishna', 'हरे कृष्ण महामंत्र', 'mahamantra'),
                 mantra('rama-taraka', 'राम तारक मंत्र', 'name'),
-              ],
+              ]),
             ),
           ],
         ),
@@ -178,7 +178,7 @@ void main() {
           const MantraDetailView(slug: 'om'),
           locale: 'mr',
           overrides: [
-            mantraDetailProvider.overrideWith((ref, slug) async => mantra('om', 'ॐ', 'beej')),
+            mantraDetailProvider.overrideWith((ref, slug) => Stream.value(mantra('om', 'ॐ', 'beej'))),
           ],
         ),
       );

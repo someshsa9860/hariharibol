@@ -22,10 +22,14 @@ class FadeSlideIn extends StatefulWidget {
     this.index = 0,
     this.step = AppDurations.stagger,
     this.duration = AppDurations.entrance,
+    this.rise = AppSpacing.lg,
   });
 
   final Widget child;
   final int index;
+
+  /// How far below its place it starts.
+  final double rise;
 
   /// Delay added per [index].
   final Duration step;
@@ -96,7 +100,7 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
       child: AnimatedBuilder(
         animation: _curve,
         builder: (context, child) => Transform.translate(
-          offset: Offset(0, (1 - _curve.value) * AppSpacing.lg),
+          offset: Offset(0, (1 - _curve.value) * widget.rise),
           child: child,
         ),
         child: widget.child,

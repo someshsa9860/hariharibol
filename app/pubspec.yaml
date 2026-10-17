@@ -95,6 +95,13 @@ dependencies:
   flutter_markdown_plus: ^1.0.12
   markdown: ^7.3.1
 
+  # Ask Sakha's message box: a picture from the camera or the library, and
+  # talking instead of typing through the phone's own speech recognition
+  # (Apple's on iOS, Google's on Android). Both sit behind a service in
+  # lib/services/ so the screens can be tested without a phone.
+  image_picker: ^1.2.4
+  speech_to_text: ^7.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -111,6 +118,7 @@ flutter:
   assets:
     - assets/hariharibol_trprt.png
     - assets/peacock_feather.svg
+    - assets/sakha_icon.svg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/tts/

@@ -51,12 +51,35 @@ abstract final class BoxKeys {
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 
+  /// Book slug → where the reader stopped in it (`{ canto?, chapter, verse }`).
+  /// The account's own, so `AppSession.clear` removes it.
+  static const String readingPlaces = 'reading.places';
+
   /// Hold the silent book sync to Wi-Fi. Off by default: it is small, and
   /// the point is that the reader never has to think about it.
   static const String syncWifiOnly = 'settings.sync_wifi_only';
   static const String onboardingSeen = 'onboarding.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
+
+  /// Everything the Jap tab keeps so it can draw with no connection: today's
+  /// practice screen and the mantras, as the API last sent them. Personal (a
+  /// mantra's page carries the reader's own rounds), so `AppSession.clear`
+  /// removes every key under this prefix.
+  static const String sadhanaCachePrefix = 'cache.sadhana.';
+  static const String sadhanaToday = '${sadhanaCachePrefix}today';
+
+  /// The mantra copies alone. The server words them in the account's
+  /// languages, so they are dropped when those change.
+  static const String mantraCachePrefix = '${sadhanaCachePrefix}mantras.';
+  static const String mantraCategories = '${mantraCachePrefix}categories';
+
+  /// The mantras of one category, or all of them for `null`.
+  static String mantraList(String? category) =>
+      '${mantraCachePrefix}list.${category == null ? 'all' : 'category.$category'}';
+
+  /// One mantra's own page, by slug.
+  static String mantraDetail(String slug) => '${mantraCachePrefix}detail.$slug';
 
   /// The tasks added for a particular day. Each carries the day it belongs to.
   /// Kept here first and mirrored to the account (see `routine_sync.dart`).

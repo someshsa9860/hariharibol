@@ -8,6 +8,9 @@
 // controllers/app/auth.js issues it once a token has been verified. Everything
 // after that point is the real endpoint, over the real transport.
 
+import jwt from 'jsonwebtoken';
+
+import env from '../config/env.js';
 import { prisma } from '../config/database.js';
 import * as authService from '../services/auth.js';
 
@@ -84,11 +87,20 @@ async function main() {
   check('the signed-in response does carry them', personal.every((key) => key in home.json.data));
 
   const guarded = await call('GET', '/api/app/me');
-  check('a guarded route without a token is 401', guarded.status === 401, `HTTP ${guarded.status}`);
+  check('a guarded route without a token is 403', guarded.status === 403, `HTTP ${guarded.status}`);
+  check('and says why: UNAUTHENTICATED', guarded.json?.error?.code === 'UNAUTHENTICATED', guarded.json?.error?.code);
+  const garbled = await call('GET', '/api/app/me', { token: 'not.a.token' });
+  check('a garbage token is 403 as well', garbled.status === 403, `HTTP ${garbled.status}`);
+  const stale = jwt.sign({ sub: user.id, role: 'user', typ: 'access' }, env.JWT_SECRET, {
+    expiresIn: -60,
+    issuer: 'hariharibol',
+  });
+  const expired = await call('GET', '/api/app/me', { token: stale });
+  check('an expired access token is 403 UNAUTHENTICATED', expired.status === 403 && expired.json?.error?.code === 'UNAUTHENTICATED', `HTTP ${expired.status}`);
   const guardedOk = await call('GET', '/api/app/me', { token: session.accessToken });
   check('and 200 with one', guardedOk.status === 200, `HTTP ${guardedOk.status}`);
 
-  console.log('\n4. Silent rotation — what the Dio interceptor does on a 401');
+  console.log('\n4. Silent rotation — what the Dio interceptor does on a 403 UNAUTHENTICATED');
   const spentRefresh = session.refreshToken;
   const rotated = await call('POST', '/api/app/auth/refresh', {
     body: { refreshToken: spentRefresh, deviceId: 'e2e-device' },
@@ -103,17 +115,48 @@ async function main() {
   const home2 = await call('GET', '/api/app/home', { token: pair?.accessToken });
   check('GET /api/app/home is 200', home2.status === 200, `HTTP ${home2.status}`);
 
-  console.log('\n6. Replaying a spent refresh token is treated as theft');
+  console.log('\n6. A spent refresh token presented again straight away (a lost response)');
+  // The phone sent the refresh, the server rotated, the reply never arrived —
+  // so the phone asks again with the only token it has. That must work.
+  const retried = await call('POST', '/api/app/auth/refresh', {
+    body: { refreshToken: spentRefresh, deviceId: 'e2e-device' },
+  });
+  check('inside the grace window it is answered, not refused', retried.status === 200, `HTTP ${retried.status}`);
+  const retriedPair = retried.json?.data?.tokens;
+  check('with a pair of its own', Boolean(retriedPair?.accessToken && retriedPair?.refreshToken));
+  const stillOpen = await call('POST', '/api/app/auth/refresh', {
+    body: { refreshToken: pair?.refreshToken, deviceId: 'e2e-device' },
+  });
+  check('and nothing was revoked: the first pair still rotates', stillOpen.status === 200, `HTTP ${stillOpen.status}`);
+  pair.refreshToken = stillOpen.json?.data?.tokens?.refreshToken;
+
+  console.log('\n7. Replaying a spent refresh token after the window is treated as theft');
+  // Age the spent row past the window instead of sleeping through it.
+  const graceMs = env.REFRESH_REUSE_GRACE_SECONDS * 1000;
+  await prisma.refreshToken.updateMany({
+    where: { userId: user.id, rotatedAt: { not: null } },
+    data: { rotatedAt: new Date(Date.now() - graceMs - 60_000) },
+  });
   const replay = await call('POST', '/api/app/auth/refresh', {
     body: { refreshToken: spentRefresh, deviceId: 'e2e-device' },
   });
-  check('the replay is refused', replay.status === 401, `HTTP ${replay.status}`);
+  check('the replay is refused with 403', replay.status === 403, `HTTP ${replay.status}`);
+  check('and the code says unauthenticated', replay.json?.error?.code === 'UNAUTHENTICATED', replay.json?.error?.code);
   const afterReplay = await call('POST', '/api/app/auth/refresh', {
     body: { refreshToken: pair?.refreshToken, deviceId: 'e2e-device' },
   });
-  check('and it revoked every other session too', afterReplay.status === 401, `HTTP ${afterReplay.status}`);
+  check('and it revoked every other session too', afterReplay.status === 403, `HTTP ${afterReplay.status}`);
 
-  console.log('\n7. Signing out ends this device and no other');
+  console.log('\n8. A refresh that is not 403 leaves the session alone');
+  const fresh = await authService.issueSession(user, 'e2e-device');
+  const malformed = await call('POST', '/api/app/auth/refresh', { body: { refreshToken: 'short' } });
+  check('a malformed request is 4xx but not 403', malformed.status >= 400 && malformed.status < 500 && malformed.status !== 403, `HTTP ${malformed.status}`);
+  const stillGood = await call('POST', '/api/app/auth/refresh', {
+    body: { refreshToken: fresh.refreshToken, deviceId: 'e2e-device' },
+  });
+  check('the token it was sent for still works', stillGood.status === 200, `HTTP ${stillGood.status}`);
+
+  console.log('\n9. Signing out ends this device and no other');
   session = await authService.issueSession(user, 'e2e-device');
   const otherDevice = await authService.issueSession(user, 'e2e-device-2');
   const signedOut = await call('POST', '/api/app/auth/logout', {
@@ -124,21 +167,21 @@ async function main() {
   const dead = await call('POST', '/api/app/auth/refresh', {
     body: { refreshToken: session.refreshToken },
   });
-  check('the signed-out token is dead', dead.status === 401, `HTTP ${dead.status}`);
+  check('the signed-out token is dead', dead.status === 403, `HTTP ${dead.status}`);
   const stillAlive = await call('POST', '/api/app/auth/refresh', {
     body: { refreshToken: otherDevice.refreshToken, deviceId: 'e2e-device-2' },
   });
   check('the other device is untouched', stillAlive.status === 200, `HTTP ${stillAlive.status}`);
 
-  console.log('\n8. Sign-in without a verifiable provider token');
+  console.log('\n10. Sign-in without a verifiable provider token');
   const forgedGoogle = await call('POST', '/api/app/auth/social', {
     body: { provider: 'GOOGLE', idToken: 'x'.repeat(40) },
   });
-  check('a forged Google token is refused', forgedGoogle.status === 401, `HTTP ${forgedGoogle.status}`);
+  check('a forged Google token is refused', forgedGoogle.status === 403, `HTTP ${forgedGoogle.status}`);
   const forgedApple = await call('POST', '/api/app/auth/social', {
     body: { provider: 'APPLE', idToken: 'x'.repeat(40) },
   });
-  check('a forged Apple token is refused', forgedApple.status === 401, `HTTP ${forgedApple.status}`);
+  check('a forged Apple token is refused', forgedApple.status === 403, `HTTP ${forgedApple.status}`);
 
   console.log(`\n${passed} passed, ${failed} failed\n`);
   await prisma.$disconnect();

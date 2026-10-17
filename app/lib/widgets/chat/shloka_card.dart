@@ -5,10 +5,10 @@ import '../../core/theme/app_typography.dart';
 
 /// A block quote in an answer, drawn as a verse.
 ///
-/// The assistant sets a shloka, a mantra or a passage in a `>` quote. Lines in
+/// Sakha sets a shloka, a mantra or a passage in a `>` quote. Lines in
 /// an Indic script are set in [AppTypography.verse] — the platform face with the
 /// leading matras need, never the serif, which has no Devanagari. Lines in the
-/// Roman alphabet (the transliteration, the translation) take the italic
+/// Roman alphabet (the transliteration, the translation) take the
 /// transliteration style. Selectable, so a verse can be copied.
 class ShlokaCard extends StatelessWidget {
   const ShlokaCard({super.key, required this.text});

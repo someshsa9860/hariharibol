@@ -8,6 +8,7 @@
 import { prisma } from '../../config/database.js';
 import * as authService from '../../services/auth.js';
 import * as audit from '../../services/audit.js';
+import * as chatImages from '../../services/chat-images.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
@@ -270,7 +271,9 @@ export const remove = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true } });
   if (!user) throw notFound('User');
 
+  const pictures = await chatImages.keysWhere({ conversation: { userId } });
   await prisma.user.delete({ where: { id: userId } });
+  await chatImages.deleteFiles(pictures);
   await authService.invalidateUser(userId);
 
   await audit.record(req, {

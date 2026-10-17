@@ -1,6 +1,7 @@
 // What the chat draws: an answer's markdown (a table, a code block, a shloka in
 // a block quote), the credit meter (a percentage, never a token count), the
-// out-of-credits card, and the whole screen against a fake server.
+// out-of-credits card, and the messages. The whole screen is in
+// chat_screen_test.dart.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -11,10 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hariharibol/core/theme/app_theme.dart';
 import 'package:hariharibol/core/theme/app_typography.dart';
 import 'package:hariharibol/l10n/generated/app_localizations.dart';
-import 'package:hariharibol/models/api_failure.dart';
 import 'package:hariharibol/models/chat.dart';
-import 'package:hariharibol/providers/chat_provider.dart';
-import 'package:hariharibol/views/chat/chat_view.dart';
 import 'package:hariharibol/widgets/chat/chat_credit_meter.dart';
 import 'package:hariharibol/widgets/chat/chat_credits_card.dart';
 import 'package:hariharibol/widgets/chat/chat_markdown.dart';
@@ -100,7 +98,8 @@ void main() {
 
       // The Roman lines of the quote are the transliteration style.
       final roman = tester.widget<Text>(find.text('karmaṇy-evādhikāras te mā phaleṣu kadācana'));
-      expect(roman.style!.fontStyle, FontStyle.italic);
+      expect(roman.style!.fontFamily, isNot(AppTypography.serif));
+      expect(roman.style!.fontStyle, FontStyle.normal);
     });
 
     testWidgets('headings are never the serif (it has no Devanagari)', (tester) async {
@@ -142,28 +141,59 @@ void main() {
   });
 
   group('the credit meter', () {
-    testWidgets('shows a percentage, the level and the renewal day', (tester) async {
+    testWidgets('is small: the percentage and a thin bar, nothing more', (tester) async {
       await tester.pumpWidget(app(ChatCreditMeter(
         credits: fakeCredits(percent: 64, limitedBy: ChatLimitedBy.wallet),
       )));
       await tester.pump();
 
-      expect(find.text('64% left · Sevak'), findsOneWidget);
-      expect(find.text('Renews 3 Nov'), findsOneWidget);
+      expect(find.text('64% left'), findsOneWidget);
       expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, 0.64);
+      // The level and the renewal day wait behind a tap.
+      expect(find.text('Sevak'), findsNothing);
+      expect(find.text('Renews 3 Nov'), findsNothing);
+    });
+
+    testWidgets('a tap shows the level and the renewal day', (tester) async {
+      await tester.pumpWidget(app(Center(
+        child: ChatCreditMeter(credits: fakeCredits(percent: 64, limitedBy: ChatLimitedBy.wallet)),
+      )));
+      await tester.pump();
+
+      await tester.tap(find.text('64% left'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('64% left · Sevak\nRenews 3 Nov'), findsOneWidget);
     });
 
     testWidgets('says when the daily allowance resets', (tester) async {
-      await tester.pumpWidget(app(ChatCreditMeter(
-        credits: fakeCredits(percent: 5, limitedBy: ChatLimitedBy.daily),
+      await tester.pumpWidget(app(Center(
+        child: ChatCreditMeter(credits: fakeCredits(percent: 5, limitedBy: ChatLimitedBy.daily)),
       )));
       await tester.pump();
-      expect(find.text('Resets at midnight'), findsOneWidget);
+
+      await tester.tap(find.text('5% left'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.textContaining('Resets at midnight'), findsOneWidget);
+    });
+
+    testWidgets('reads out the level and the hint, though they are not on screen', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(app(ChatCreditMeter(
+        credits: fakeCredits(percent: 64, limitedBy: ChatLimitedBy.wallet),
+      )));
+      await tester.pump();
+
+      expect(find.bySemanticsLabel('64% left · Sevak, Renews 3 Nov'), findsOneWidget);
+      semantics.dispose();
     });
 
     testWidgets('never shows a token count, whatever the numbers behind it', (tester) async {
-      await tester.pumpWidget(app(ChatCreditMeter(credits: fakeCredits(percent: 37, limitedBy: ChatLimitedBy.wallet))));
+      await tester.pumpWidget(app(Center(
+        child: ChatCreditMeter(credits: fakeCredits(percent: 37, limitedBy: ChatLimitedBy.wallet)),
+      )));
       await tester.pump();
+      await tester.tap(find.text('37% left'));
+      await tester.pump(const Duration(milliseconds: 300));
 
       final text = allText(tester);
       expect(text.toLowerCase(), isNot(contains('token')));
@@ -209,7 +239,7 @@ void main() {
   });
 
   group('a message', () {
-    testWidgets('the reader\'s sits in a bubble, the assistant\'s is plain text with actions', (tester) async {
+    testWidgets('the reader\'s sits in a bubble, the answer is plain text with actions', (tester) async {
       await tester.pumpWidget(app(Column(children: [
         ChatMessageBubble(message: serverMessage('u', ChatRole.user, 'What is japa?')),
         ChatMessageBubble(message: serverMessage('a', ChatRole.assistant, 'Japa is **chanting**.'), onRegenerate: () {}),
@@ -219,15 +249,41 @@ void main() {
       expect(find.text('What is japa?'), findsOneWidget);
       expect(find.byTooltip('Copy'), findsOneWidget);
       expect(find.byTooltip('Share'), findsOneWidget);
-      expect(find.byTooltip('Regenerate'), findsOneWidget);
+      expect(find.byTooltip('Answer again'), findsOneWidget);
     });
 
-    testWidgets('only the last answer is given Regenerate', (tester) async {
+    testWidgets('a picture the reader sent is in the bubble, and opens large when tapped', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(app(ChatMessageBubble(
+        message: ChatMessage.local(key: 'u', role: ChatRole.user, content: 'What is this?', localImagePath: '/no/such/lamp.jpg'),
+      )));
+      await tester.pump();
+
+      expect(find.text('What is this?'), findsOneWidget);
+      expect(find.bySemanticsLabel('Picture you sent'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('a message that arrives while the chat is open rises in; one already there does not move', (tester) async {
+      await tester.pumpWidget(app(Column(children: [
+        ChatMessageBubble(message: serverMessage('old', ChatRole.user, 'Already here')),
+        ChatMessageBubble(message: serverMessage('new', ChatRole.user, 'Just sent'), animateIn: true),
+      ])));
+
+      Finder fade(String text) => find.ancestor(of: find.text(text), matching: find.byType(FadeTransition));
+      expect(tester.widgetList<FadeTransition>(fade('Already here')).any((f) => f.opacity.value < 1), isFalse);
+      expect(tester.widgetList<FadeTransition>(fade('Just sent')).any((f) => f.opacity.value < 1), isTrue);
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.widgetList<FadeTransition>(fade('Just sent')).any((f) => f.opacity.value < 1), isFalse);
+    });
+
+    testWidgets('only the last answer can be asked for again', (tester) async {
       await tester.pumpWidget(app(
         ChatMessageBubble(message: serverMessage('a', ChatRole.assistant, 'Older answer.')),
       ));
       await tester.pump();
-      expect(find.byTooltip('Regenerate'), findsNothing);
+      expect(find.byTooltip('Answer again'), findsNothing);
     });
 
     testWidgets('a stopped reply says so in words', (tester) async {
@@ -245,180 +301,9 @@ void main() {
         compacting: true,
       )));
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.bySemanticsLabel('The assistant is writing'), findsOneWidget);
+      expect(find.bySemanticsLabel('Sakha is writing'), findsOneWidget);
       expect(find.text('Tidying our conversation…'), findsOneWidget);
       expect(find.byTooltip('Copy'), findsNothing);
-    });
-  });
-
-  group('the chat screen', () {
-    late FakeChatService fake;
-
-    Future<void> open(WidgetTester tester, {String id = 'c1'}) async {
-      tester.view.physicalSize = const Size(400 * 3, 800 * 3);
-      tester.view.devicePixelRatio = 3;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(app(
-        ChatView(conversationId: id),
-        overrides: [chatServiceProvider.overrideWithValue(fake)],
-      ));
-      await tester.pump();
-      await tester.pump();
-    }
-
-    setUp(() {
-      fake = FakeChatService()
-        ..detail = ChatConversationDetail(
-          conversation: fakeConversation(id: 'c1', title: 'On the Gita'),
-          messages: [
-            serverMessage('m1', ChatRole.user, 'What is dharma?', seq: 1),
-            serverMessage('m2', ChatRole.assistant, 'Dharma is **duty**.', seq: 2),
-          ],
-        );
-    });
-
-    testWidgets('shows the messages, the meter and the box', (tester) async {
-      await open(tester);
-
-      expect(find.text('On the Gita'), findsOneWidget);
-      expect(find.text('What is dharma?'), findsOneWidget);
-      expect(find.textContaining('duty', findRichText: true), findsOneWidget);
-      expect(find.text('80% left · Sevak'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-      // The last answer can be asked for again.
-      expect(find.byTooltip('Regenerate'), findsOneWidget);
-    });
-
-    testWidgets('a new chat introduces the assistant by its own description', (tester) async {
-      await open(tester, id: 'new');
-
-      expect(find.text('Answers from the Sri Vaishnava tradition.'), findsOneWidget);
-      expect(find.text('New chat'), findsOneWidget);
-    });
-
-    testWidgets('sending streams the answer and the button becomes Stop, then Send again', (tester) async {
-      await open(tester);
-
-      await tester.enterText(find.byType(TextField), 'Tell me more');
-      await tester.pump();
-      await tester.tap(find.byTooltip('Send'));
-      await tester.pump();
-
-      expect(find.text('Tell me more'), findsOneWidget);
-      expect(find.byTooltip('Stop'), findsOneWidget);
-      // The box was emptied the moment the question went.
-      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
-
-      fake.push(ChatMeta(
-        conversation: fakeConversation(id: 'c1', title: 'On the Gita'),
-        userMessage: serverMessage('u2', ChatRole.user, 'Tell me more', seq: 3),
-        assistantMessageId: 'a2',
-      ));
-      fake.push(const ChatDelta('Hari '));
-      fake.push(const ChatDelta('bol'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.textContaining('Hari bol', findRichText: true), findsOneWidget);
-
-      fake.push(ChatDone(
-        message: serverMessage('a2', ChatRole.assistant, 'Hari bol', seq: 4),
-        conversation: fakeConversation(id: 'c1', title: 'On the Gita'),
-        credits: fakeCredits(percent: 60),
-      ));
-      await fake.finish();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.byTooltip('Send'), findsOneWidget);
-      expect(find.text('60% left · Sevak'), findsOneWidget);
-    });
-
-    testWidgets('a refused question comes back into the box with the exhausted card above it', (tester) async {
-      await open(tester);
-      fake.refuseNext(const ApiFailure(
-        kind: FailureKind.unknown,
-        statusCode: 402,
-        code: 'CREDITS_EXHAUSTED',
-        details: {'limitedBy': 'wallet', 'canUpgrade': true},
-      ));
-      await tester.enterText(find.byType(TextField), 'one more please');
-      await tester.pump();
-      await tester.tap(find.byTooltip('Send'));
-      await tester.pump();
-      await tester.pump();
-
-      expect(find.text('Your credits have run out'), findsOneWidget);
-      expect(find.widgetWithText(FilledButton, 'Upgrade'), findsOneWidget);
-      // The question was not lost.
-      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'one more please');
-      // And nothing can be sent until the credits are back.
-      expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
-    });
-
-    testWidgets('credits already out show the card and a box that cannot be used', (tester) async {
-      fake.statusValue = ChatStatus(
-        description: '',
-        credits: fakeCredits(percent: 0, exhausted: true, limitedBy: ChatLimitedBy.daily),
-        maxInputChars: 500,
-        maxMessages: 40,
-      );
-      await open(tester);
-
-      expect(find.text('You have used today\'s credits'), findsOneWidget);
-      expect(find.widgetWithText(FilledButton, 'Upgrade'), findsOneWidget);
-      expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
-    });
-
-    testWidgets('a plan without chat says so', (tester) async {
-      fake.statusValue = ChatStatus(
-        description: '',
-        credits: fakeCredits(percent: 0, enabled: false, exhausted: true),
-        maxInputChars: 500,
-        maxMessages: 40,
-      );
-      await open(tester);
-      expect(find.text('Chat is not part of your plan'), findsOneWidget);
-    });
-
-    testWidgets('a full chat swaps the box for Start a new chat', (tester) async {
-      fake.detail = ChatConversationDetail(
-        conversation: fakeConversation(id: 'c1', title: 'Long one', limitReached: ChatLimitReached.messages),
-        messages: [serverMessage('m1', ChatRole.user, 'hi', seq: 1)],
-      );
-      await open(tester);
-
-      expect(find.text('This chat has grown long'), findsOneWidget);
-      expect(find.widgetWithText(FilledButton, 'Start a new chat'), findsOneWidget);
-      expect(find.byType(TextField), findsNothing);
-    });
-
-    testWidgets('a dropped connection shows what arrived and a Try again button', (tester) async {
-      await open(tester);
-      await tester.enterText(find.byType(TextField), 'hello');
-      await tester.pump();
-      await tester.tap(find.byTooltip('Send'));
-      await tester.pump();
-
-      fake.push(ChatMeta(
-        conversation: fakeConversation(id: 'c1', title: 'On the Gita'),
-        userMessage: serverMessage('u2', ChatRole.user, 'hello', seq: 3),
-        assistantMessageId: 'a2',
-      ));
-      fake.push(const ChatDelta('The beginning'));
-      await tester.pump();
-      // An error on a stream needs a real turn of the event loop to arrive.
-      await tester.runAsync(() async {
-        fake.drop();
-        await pumpEventQueue();
-      });
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.textContaining('The beginning', findRichText: true), findsOneWidget);
-      expect(find.text('Connection lost. What arrived is kept above.'), findsOneWidget);
-      expect(find.text('Interrupted'), findsOneWidget);
-      expect(find.widgetWithText(TextButton, 'Try again'), findsOneWidget);
     });
   });
 }

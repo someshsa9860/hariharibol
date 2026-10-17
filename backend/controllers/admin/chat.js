@@ -1,4 +1,4 @@
-// AI chat administration: the persona and limits, what each plan allows, and
+// Ask Sakha (the AI chat) administration: the persona and limits, what each plan allows, and
 // individual wallets. Changes apply without a deploy — settings are cached for a
 // minute, plan allowances for 30 seconds (per server process).
 //
@@ -8,6 +8,7 @@ import { prisma } from '../../config/database.js';
 import { DEFAULT_DESCRIPTION, DEFAULT_LIMITS, DEFAULT_SYSTEM_PROMPT } from '../../config/chat.js';
 import * as chatSettings from '../../services/chat-settings.js';
 import * as wallet from '../../services/ai-wallet.js';
+import * as ai from '../../services/ai/index.js';
 import * as audit from '../../services/audit.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
@@ -22,6 +23,15 @@ export const getSettings = async (req, res) =>
     defaultDescription: DEFAULT_DESCRIPTION,
     limits: await chatSettings.limits(),
     defaultLimits: DEFAULT_LIMITS,
+    // Who writes the replies: plans on the standard model tier, plans on the stronger one, and the summary that
+    // tidies a long chat. Each is the engines in the order they are tried right now — `source` says which rule chose
+    // one: 'free-tier' (the switch on the AI usage page, the first two only), 'settings' or 'env' (the Settings page
+    // or .env), 'fallback' (AI_FALLBACK_MODEL, when the one before it is not working).
+    engines: {
+      text: await ai.describeChain('text'),
+      advanced: await ai.describeChain('advanced'),
+      summary: await ai.describeChain('summary'),
+    },
   });
 
 /** PUT /api/admin/chat/settings */

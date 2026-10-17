@@ -52,15 +52,28 @@ class SadhanaTab extends ConsumerWidget {
                     kind: FailureKind.unknown,
                     message: text.errorGeneric,
                   ),
-            onRetry: () => ref.read(sadhanaTodayProvider.notifier).refresh(),
+            onRetry: () => _refresh(ref),
           ),
           data: (data) => RefreshIndicator(
-            onRefresh: () => ref.read(sadhanaTodayProvider.notifier).refresh(),
+            onRefresh: () => _refresh(ref),
             child: _SadhanaContent(today: data),
           ),
         ),
       ),
     );
+  }
+
+  /// Asks again for everything on the tab. What is on screen stays when there is
+  /// no connection — the person is told, rather than shown an error over it.
+  Future<void> _refresh(WidgetRef ref) async {
+    // A mantra list that was drawn from the saved copy stays on it until asked
+    // again, so a pull is also how it catches up once the network is back.
+    ref
+      ..invalidate(mantraCategoriesProvider)
+      ..invalidate(mantraListProvider);
+
+    final failure = await ref.read(sadhanaTodayProvider.notifier).refresh();
+    if (failure != null) AppNavigator.instance.showFailure(failure);
   }
 }
 
@@ -315,6 +328,9 @@ class _MantraBrowserState extends ConsumerState<_MantraBrowser> {
           const SizedBox(height: AppSpacing.md),
         ],
         mantras.when(
+          // Pulling to refresh asks again; the list on screen stays until the
+          // answer replaces it.
+          skipLoadingOnReload: true,
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
             child: AppLoader(),

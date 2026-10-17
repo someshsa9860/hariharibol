@@ -6,14 +6,12 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/chat.dart';
 
-/// How much of the reader's credit is left: a slim bar, "NN% left", their level
-/// and when it comes back. The server sends a percentage and a level name and
-/// nothing else — this widget has no way to show a token count.
+/// How much of the reader's credit is left, small enough to sit in the app bar
+/// beside the title: "NN% left" over a thin bar. Tapping it shows the rest —
+/// their level and when it comes back. The server sends a percentage and a
+/// level name and nothing else — this widget has no way to show a token count.
 class ChatCreditMeter extends StatelessWidget {
   const ChatCreditMeter({super.key, required this.credits});
-
-  /// The height the meter needs, for an app bar's `bottom`.
-  static const double extent = 44;
 
   final ChatCredits credits;
 
@@ -21,53 +19,48 @@ class ChatCreditMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final level = credits.levelName;
-    final label = level == null
-        ? text.chatCreditsLeft(credits.percent)
-        : text.chatCreditsLeftLevel(credits.percent, level);
-    final hint = _hint(text);
+    final label = text.chatCreditsLeft(credits.percent);
+    final full = level == null ? label : text.chatCreditsLeftLevel(credits.percent, level);
+    final hint = creditsHint(text, credits.limitedBy, credits.resetsAt ?? credits.renewsAt, credits.renewsAt);
+    final tip = hint == null ? full : '$full\n$hint';
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-      child: Semantics(
-        label: hint == null ? label : '$label, $hint',
-        child: ExcludeSemantics(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              LinearProgressIndicator(
-                value: credits.percent / 100,
-                minHeight: ChatConfig.meterHeight,
-                borderRadius: AppRadius.smAll,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Row(
+    return Semantics(
+      label: hint == null ? full : '$full, $hint',
+      child: ExcludeSemantics(
+        child: Tooltip(
+          message: tip,
+          triggerMode: TooltipTriggerMode.tap,
+          showDuration: ChatConfig.meterTipShown,
+          child: ConstrainedBox(
+            // A finger-sized target for something drawn small.
+            constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+            child: Center(
+              // The label sets the width and the bar stretches to it. (A bar in
+              // a column under an `IntrinsicWidth` would ask for an infinite one.)
+              child: Stack(
                 children: [
-                  Expanded(
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: ChatConfig.meterHeight + AppSpacing.xs),
                     child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.texts.bodySmall),
                   ),
-                  if (hint != null) ...[
-                    const SizedBox(width: AppSpacing.sm),
-                    Flexible(
-                      child: Text(
-                        hint,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: context.texts.bodySmall,
-                      ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: LinearProgressIndicator(
+                      value: credits.percent / 100,
+                      minHeight: ChatConfig.meterHeight,
+                      borderRadius: AppRadius.smAll,
                     ),
-                  ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
-
-  String? _hint(AppLocalizations text) => creditsHint(text, credits.limitedBy, credits.resetsAt ?? credits.renewsAt, credits.renewsAt);
 }
 
 /// "Resets at midnight" for the daily allowance, "Renews 3 Nov" for the plan's

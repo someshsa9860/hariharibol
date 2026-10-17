@@ -111,7 +111,7 @@ async function main() {
     // ── 1 ───────────────────────────────────────────────────────────────────
     console.log('\n1. The languages a title can be written in');
     const signedOut = await call('GET', '/api/admin/books/languages');
-    check('signed out is 401', signedOut.status === 401, `HTTP ${signedOut.status}`);
+    check('signed out is 403', signedOut.status === 403, `HTTP ${signedOut.status}`);
 
     const langs = await call('GET', '/api/admin/books/languages', as);
     check('answers 200 (and "languages" is not read as a book id)', langs.status === 200, `HTTP ${langs.status}`);

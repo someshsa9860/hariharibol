@@ -2,8 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildMessages, buildSystem, capSummary, conversationLimit, liveMessages, planCompaction, summarizerRequest, titleFrom,
+  withPlaceholder,
 } from '../utils/chat-context.js';
-import { DEFAULT_LIMITS } from '../config/chat.js';
+import {
+  DEFAULT_LIMITS, IMAGE_GUIDANCE, IMAGE_PLACEHOLDER, NAME_GUIDANCE, NAME_TOKEN,
+} from '../config/chat.js';
 import * as tokens from '../services/ai/tokens.js';
 
 const limits = { ...DEFAULT_LIMITS, recentMessages: 6, compactAtTokens: 1000, keepRecentOnCompact: 2 };
@@ -116,4 +119,124 @@ test('titles are one tidy line', () => {
   assert.equal(titleFrom('  What is\n bhakti? '), 'What is bhakti?');
   assert.equal(titleFrom(''), 'New chat');
   assert.ok(titleFrom('x'.repeat(200)).length <= 60);
+});
+
+// ── Pictures ────────────────────────────────────────────────────────────────
+
+test('a picture alone is worth sending; an empty message and a failed one are not', () => {
+  const rows = [
+    { seq: 1, role: 'USER', content: '', imagePath: 'chat/images/a.jpg', status: 'COMPLETE' },
+    { seq: 2, role: 'ASSISTANT', content: 'A temple.', status: 'COMPLETE' },
+    { seq: 3, role: 'USER', content: '', imagePath: null, status: 'COMPLETE' },
+    { seq: 4, role: 'USER', content: '', imagePath: 'chat/images/b.jpg', status: 'ERROR' },
+  ];
+  assert.deepEqual(liveMessages(rows, 0).map((m) => m.seq), [1, 2]);
+});
+
+test('a note stands in for a picture that is not sent', () => {
+  assert.equal(withPlaceholder('What is this?', true), `What is this?\n\n${IMAGE_PLACEHOLDER}`);
+  assert.equal(withPlaceholder('', true), IMAGE_PLACEHOLDER);
+  assert.equal(withPlaceholder('  ', true), IMAGE_PLACEHOLDER);
+  assert.equal(withPlaceholder('Just words', false), 'Just words');
+});
+
+test('the note on pictures is added to the persona only when there is one', () => {
+  assert.equal(buildSystem({ persona: 'P', summary: null }), 'P');
+  assert.equal(buildSystem({ persona: 'P', summary: null, withImage: true }), `P\n\n${IMAGE_GUIDANCE}`);
+  const both = buildSystem({ persona: 'P', summary: 'PERSON — Asha', withImage: true });
+  assert.ok(both.includes(IMAGE_GUIDANCE) && both.endsWith('PERSON — Asha'));
+  assert.ok(both.indexOf(IMAGE_GUIDANCE) < both.indexOf('PERSON — Asha'));
+});
+
+test('the note on the name is added only for a reader who has one, and never holds the name itself', () => {
+  assert.equal(buildSystem({ persona: 'P', summary: null }), 'P');
+  assert.equal(buildSystem({ persona: 'P', summary: null, withName: true }), `P\n\n${NAME_GUIDANCE}`);
+  const all = buildSystem({ persona: 'P', summary: 'PERSON — Asha', withImage: true, withName: true });
+  assert.ok(all.indexOf(IMAGE_GUIDANCE) < all.indexOf(NAME_GUIDANCE));
+  assert.ok(all.indexOf(NAME_GUIDANCE) < all.indexOf('PERSON — Asha'));
+  assert.ok(NAME_GUIDANCE.includes(NAME_TOKEN));
+});
+
+test('the summarizer is told the name token is not a fact to record', () => {
+  const { system } = summarizerRequest({ existingSummary: '', messages: convo(2), maxTokens: 400 });
+  assert.ok(system.includes(NAME_TOKEN));
+  assert.match(system, /not a fact to record/);
+});
+
+test('the new message carries its own picture', () => {
+  const messages = buildMessages({ live: convo(2), recentMessages: 6, userText: 'What is this?', userImageKey: 'chat/images/new.jpg' });
+  const last = messages[messages.length - 1];
+  assert.equal(last.content, 'What is this?');
+  assert.equal(last.imageKey, 'chat/images/new.jpg');
+  // The earlier turns carry no picture.
+  assert.ok(messages.slice(0, -1).every((m) => !m.imageKey));
+});
+
+test('only the newest picture is sent as a picture; older ones become a note', () => {
+  const live = [
+    { seq: 1, role: 'USER', content: 'first', imagePath: 'chat/images/one.jpg', status: 'COMPLETE' },
+    { seq: 2, role: 'ASSISTANT', content: 'A deity.', status: 'COMPLETE' },
+    { seq: 3, role: 'USER', content: 'second', imagePath: 'chat/images/two.jpg', status: 'COMPLETE' },
+    { seq: 4, role: 'ASSISTANT', content: 'A temple.', status: 'COMPLETE' },
+  ];
+
+  // A text question: the newest picture in the history is the one still sent.
+  const text = buildMessages({ live, recentMessages: 6, userText: 'and its history?' });
+  const sent = text.filter((m) => m.imageKey);
+  assert.deepEqual(sent.map((m) => m.imageKey), ['chat/images/two.jpg']);
+  assert.ok(text[0].content.includes(IMAGE_PLACEHOLDER), 'the first picture is a note');
+  assert.ok(text[0].content.startsWith('first'));
+  assert.ok(!text[0].imageKey);
+
+  // A new picture takes the place: nothing before it is sent as a picture.
+  const fresh = buildMessages({ live, recentMessages: 6, userText: 'now this', userImageKey: 'chat/images/three.jpg' });
+  assert.deepEqual(fresh.filter((m) => m.imageKey).map((m) => m.imageKey), ['chat/images/three.jpg']);
+  assert.ok(fresh[2].content.includes(IMAGE_PLACEHOLDER), 'the second picture is a note too');
+});
+
+test('a picture that fell out of the window is not sent', () => {
+  const live = [
+    { seq: 1, role: 'USER', content: 'old', imagePath: 'chat/images/old.jpg', status: 'COMPLETE' },
+    ...convo(6).map((m) => ({ ...m, seq: m.seq + 1 })),
+  ];
+  const messages = buildMessages({ live, recentMessages: 4, userText: 'next' });
+  assert.ok(messages.every((m) => !m.imageKey));
+  assert.ok(messages.every((m) => !m.content.includes(IMAGE_PLACEHOLDER)));
+});
+
+test('a picture with no words keeps its place when messages merge', () => {
+  // A picture alone, then a reply that failed (so is not sent), then another message from the same side.
+  const live = [{ seq: 1, role: 'USER', content: '', imagePath: 'chat/images/a.jpg', status: 'COMPLETE' }];
+  const messages = buildMessages({ live, recentMessages: 6, userText: 'what is it?' });
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].role, 'user');
+  assert.equal(messages[0].imageKey, 'chat/images/a.jpg');
+  assert.ok(messages[0].content.endsWith('what is it?'));
+});
+
+test('a new picture with no words is still a message', () => {
+  const messages = buildMessages({ live: [], recentMessages: 6, userText: '', userImageKey: 'chat/images/a.jpg' });
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].imageKey, 'chat/images/a.jpg');
+});
+
+test('the summarizer is told that a picture was shared, never given the picture', () => {
+  const messages = [
+    { seq: 1, role: 'USER', content: 'Who is this?', imagePath: 'chat/images/a.jpg' },
+    { seq: 2, role: 'ASSISTANT', content: 'Lord Krishna.' },
+    { seq: 3, role: 'USER', content: '', imagePath: 'chat/images/b.jpg' },
+  ];
+  const { prompt } = summarizerRequest({ existingSummary: '', messages, maxTokens: 400 });
+  assert.ok(prompt.includes(`PERSON: Who is this?\n\n${IMAGE_PLACEHOLDER}`));
+  assert.ok(prompt.includes(`PERSON: ${IMAGE_PLACEHOLDER}`));
+  assert.ok(!prompt.includes('chat/images'));
+});
+
+test('a picture counts towards the prompt', () => {
+  const plain = [{ role: 'user', content: 'What is this?' }];
+  const withPicture = [{ role: 'user', content: 'What is this?', imageKey: 'chat/images/a.jpg' }];
+  const loaded = [{ role: 'user', content: 'What is this?', image: { mimeType: 'image/jpeg', base64: 'AAAA' } }];
+  assert.ok(tokens.estimateMessages(withPicture) > tokens.estimateMessages(plain));
+  // The estimate is the same before the pixels are loaded and after, so the pre-check and the real call agree.
+  assert.equal(tokens.estimateMessages(withPicture), tokens.estimateMessages(loaded));
 });

@@ -5,9 +5,10 @@ import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../common/sakha_icon.dart';
 
-/// The way into the assistant, from Home. A card, not a tab: the assistant is
-/// something to reach for, not a place to live.
+/// A second way into Ask Sakha, from Home, for someone who has not yet noticed
+/// the raised button in the bar: it says in words what the button only shows.
 class ChatEntryCard extends StatelessWidget {
   const ChatEntryCard({super.key});
 
@@ -23,7 +24,7 @@ class ChatEntryCard extends StatelessWidget {
           padding: AppSpacing.card,
           child: Row(
             children: [
-              Icon(Icons.chat_bubble_outline_rounded, size: AppSizes.iconLg, color: context.colors.primary),
+              const SakhaIcon(size: AppSizes.iconLg),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(

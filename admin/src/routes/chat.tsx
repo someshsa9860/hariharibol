@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { EngineChain, type Engine } from '@/components/ai-engines';
 import { PageHeader } from '@/components/page-header';
 import { SearchInput } from '@/components/search-input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useResource, useResourceList } from '@/lib/use-resource';
 import { useDebounced } from '@/lib/use-debounced';
 import { api, ApiRequestError } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { formatDate, formatDateOnly } from '@/lib/utils';
 
 // Every key on this page starts with 'chat' so one invalidation refreshes it all.
@@ -28,6 +31,8 @@ type Limits = {
   maxMessages: number;
   maxOutputTokens: number;
   maxInputChars: number;
+  imageInput: number;
+  imageMaxEdge: number;
 };
 type ChatSettings = {
   systemPrompt: string;
@@ -36,6 +41,8 @@ type ChatSettings = {
   defaultDescription: string;
   limits: Limits;
   defaultLimits: Limits;
+  // The provider and model behind each kind of call, in the order they are tried.
+  engines: { text: Engine[]; advanced: Engine[]; summary: Engine[] };
 };
 type PlanConfig = {
   levelName: string;
@@ -118,8 +125,10 @@ const LIMIT_FIELDS: { key: keyof Limits; label: string; help: string }[] = [
   { key: 'keepRecentOnCompact', label: 'Keep on compact', help: 'Messages kept word for word when a conversation is summarised.' },
   { key: 'summaryMaxTokens', label: 'Summary max (tokens)', help: 'The longest a conversation summary may be.' },
   { key: 'maxMessages', label: 'Max messages per conversation', help: 'A conversation stops accepting messages after this many (0 = no cap).' },
-  { key: 'maxOutputTokens', label: 'Max reply (tokens)', help: 'The longest a single reply from the assistant may be.' },
+  { key: 'maxOutputTokens', label: 'Max reply (tokens)', help: 'The longest a single reply from Sakha may be.' },
   { key: 'maxInputChars', label: 'Max message length (characters)', help: 'The longest message a user may send.' },
+  { key: 'imageInput', label: 'Pictures allowed (1 yes, 0 no)', help: 'Whether a message may carry a picture. Pictures are sent to the model provider.' },
+  { key: 'imageMaxEdge', label: 'Picture size (pixels)', help: 'A picture is kept and sent no larger than this on its longest side (256–4096).' },
 ];
 
 function PersonaTab() {
@@ -179,7 +188,7 @@ function PersonaTab() {
             </div>
             <Textarea id="chat-prompt" className="mt-1 min-h-64 font-mono text-xs" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
             <p className="mt-1 text-xs text-muted-foreground">
-              The assistant's persona and rules. Clearing it and saving restores the built-in default.
+              Sakha's persona and rules. Clearing it and saving restores the built-in default.
             </p>
           </div>
           <div>
@@ -191,7 +200,8 @@ function PersonaTab() {
             </div>
             <Textarea id="chat-desc" className="mt-1 min-h-20" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} />
             <p className="mt-1 text-xs text-muted-foreground">
-              Readers see this text. It states the assistant's Sri Vaishnava orientation, so keep it truthful to the system prompt.
+              Readers see this text. It names no sampradaya — Sakha is for every tradition — and says plainly that Sakha is a digital
+              companion, not a person. Keep it truthful to the system prompt.
             </p>
           </div>
         </CardContent>
@@ -616,6 +626,52 @@ function WalletsTab() {
   );
 }
 
+// ── Which AI answers ───────────────────────────────────────────────────────
+
+const ENGINE_KINDS: { key: keyof ChatSettings['engines']; title: string; help: string }[] = [
+  { key: 'text', title: 'Replies', help: 'Plans on the standard model tier.' },
+  { key: 'advanced', title: 'Replies, stronger tier', help: 'Never uses the free tier.' },
+  { key: 'summary', title: 'Chat summaries', help: 'Tidies a long conversation.' },
+];
+
+function EnginesCard() {
+  const { hasPermission } = useAuth();
+  // The same request as the Persona tab's, so it is made once; the tab shows the error if there is one.
+  const engines = useResource<ChatSettings>([KEY, 'settings'], '/api/admin/chat/settings').data?.engines;
+  if (!engines) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="py-4">
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <p className="font-medium">Answering with</p>
+          {hasPermission('ai.read') && (
+            <Link to="/ai" className="text-xs text-primary underline-offset-2 hover:underline">
+              OpenAI free tier and token counts
+            </Link>
+          )}
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {ENGINE_KINDS.map(({ key, title, help }) => (
+            <div key={key}>
+              <p className="text-xs text-muted-foreground">
+                {title} — {help}
+              </p>
+              <div className="mt-1">
+                <EngineChain engines={engines[key]} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Tried in this order: the next only if the one before it fails to answer. The provider and model come from the Settings page
+          (ai.provider, ai.model.text) or the server’s .env; the free tier is switched on the AI usage page.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Usage ──────────────────────────────────────────────────────────────────
 
 function UsageSummary() {
@@ -672,7 +728,8 @@ function UsageSummary() {
 export function ChatPage() {
   return (
     <div>
-      <PageHeader title="AI chat" description="The devotional assistant's persona and limits, what each plan may spend, and individual wallets." />
+      <PageHeader title="Ask Sakha" description="Which AI answers, Sakha's persona and limits, what each plan may spend, and individual wallets." />
+      <EnginesCard />
       <UsageSummary />
       <Tabs defaultValue="persona">
         <TabsList>

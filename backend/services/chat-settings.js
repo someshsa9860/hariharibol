@@ -4,7 +4,7 @@
 
 import * as settings from './setting.js';
 import { SETTING_KEYS } from '../config/constants.js';
-import { DEFAULT_DESCRIPTION, DEFAULT_LIMITS, DEFAULT_SYSTEM_PROMPT } from '../config/chat.js';
+import { DEFAULT_DESCRIPTION, DEFAULT_LIMITS, DEFAULT_SYSTEM_PROMPT, IMAGE_EDGE_RANGE } from '../config/chat.js';
 
 export async function systemPrompt() {
   const stored = await settings.get(SETTING_KEYS.CHAT_SYSTEM_PROMPT, null);
@@ -33,17 +33,19 @@ export async function limits() {
   result.recentMessages = Math.max(result.recentMessages, result.keepRecentOnCompact + 1, 2);
   result.maxOutputTokens = Math.max(result.maxOutputTokens, 64);
   result.maxInputChars = Math.max(result.maxInputChars, 1);
+  result.imageInput = result.imageInput > 0 ? 1 : 0;
+  result.imageMaxEdge = Math.min(Math.max(result.imageMaxEdge, IMAGE_EDGE_RANGE.min), IMAGE_EDGE_RANGE.max);
   return result;
 }
 
 export async function saveSystemPrompt(value, updatedById) {
-  return settings.set(SETTING_KEYS.CHAT_SYSTEM_PROMPT, value ?? '', { description: 'AI chat persona and rules', updatedById });
+  return settings.set(SETTING_KEYS.CHAT_SYSTEM_PROMPT, value ?? '', { description: 'Ask Sakha persona and rules', updatedById });
 }
 
 export async function saveDescription(value, updatedById) {
-  return settings.set(SETTING_KEYS.CHAT_DESCRIPTION, value ?? '', { description: 'AI chat description shown in the app', updatedById });
+  return settings.set(SETTING_KEYS.CHAT_DESCRIPTION, value ?? '', { description: 'Ask Sakha description shown in the app', updatedById });
 }
 
 export async function saveLimits(value, updatedById) {
-  return settings.set(SETTING_KEYS.CHAT_LIMITS, JSON.stringify(value), { description: 'AI chat limits (JSON)', updatedById });
+  return settings.set(SETTING_KEYS.CHAT_LIMITS, JSON.stringify(value), { description: 'Ask Sakha limits (JSON)', updatedById });
 }

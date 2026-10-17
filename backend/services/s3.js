@@ -49,8 +49,10 @@ const CACHE_TTL = Math.max(60, TTL - 300);
 // app.js — everything else about the interface stays the same either way.
 // Gated on the environment rather than on credentials alone, so a production
 // deploy that is missing its keys still fails loudly instead of quietly
-// writing to a container's ephemeral disk.
-const useLocalStorage = env.isDevelopment && !(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY);
+// writing to a container's ephemeral disk. A test run counts as development
+// here (it only differs in skipping the rate limits), so a script that blanks
+// the keys is kept off the real bucket.
+const useLocalStorage = (env.isDevelopment || env.NODE_ENV === 'test') && !(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY);
 const LOCAL_STORAGE_ROOT = path.join(import.meta.dirname, '..', 'storage');
 
 if (useLocalStorage) {
@@ -100,6 +102,7 @@ const PREFIXES = {
   creatorCover: 'creators/covers',
   reelTemplateBackground: 'reel-templates/backgrounds',
   reelTemplateLogo: 'reel-templates/logos',
+  chatImage: 'chat/images',
 };
 
 // DD-MM-YY, UTC — the same clock the scheduled jobs run on.

@@ -6,9 +6,14 @@ import '../../core/navigation/app_routes.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/push_link.dart';
 import '../../widgets/common/glass_nav_bar.dart';
-import '../../widgets/common/peacock_feather_icon.dart';
+import '../../widgets/common/sakha_icon.dart';
 
-/// The dashboard shell: the four tabs and the bar that switches them.
+/// The dashboard shell: the four tabs, the bar that switches them, and Sakha's
+/// button raised in the middle of it.
+///
+/// Reels is the third tab, and the only one that runs edge to edge: the bar
+/// stays, but turns dark over the video (`onMedia`) instead of laying cream
+/// glass across a picture.
 ///
 /// The bar and the floating button are stacked over the content by hand rather
 /// than handed to `Scaffold`. They have to be: the bar is frosted, and a
@@ -51,6 +56,9 @@ class _DashboardViewState extends State<DashboardView> {
     super.dispose();
   }
 
+  /// Whether the tab on screen is the reels feed.
+  bool get _onReels => shell.currentIndex == AppRoutes.tabs.indexOf(AppRoutes.reels);
+
   void _onTap(int index) {
     // Tapping the tab you are already on returns it to its first screen, which
     // is what every other app does and what people expect.
@@ -85,14 +93,14 @@ class _DashboardViewState extends State<DashboardView> {
             child: GlassNavBar(
               selectedIndex: shell.currentIndex,
               onSelected: _onTap,
-              // Reels is the one thing worth reaching from anywhere without
-              // leaving the tab you're on, so it gets the circle of its own
-              // rather than a fifth tab.
-              action: NavAction(
-                iconBuilder: (colour, size) =>
-                    PeacockFeatherIcon( size: size),
-                label: text.reelsTitle,
-                onTap: () => AppNavigator.instance.push(AppRoutes.reels),
+              onMedia: _onReels,
+              // Sakha is a person to talk to rather than a place to be, so the
+              // button is raised out of the tabs and opens the chat over them.
+              hero: NavHero(
+                iconBuilder: (size) => SakhaIcon(size: size),
+                label: text.tabSakha,
+                semanticLabel: text.chatTitle,
+                onTap: () => AppNavigator.instance.push(AppRoutes.chat),
               ),
               items: [
                 NavItem(
@@ -106,14 +114,14 @@ class _DashboardViewState extends State<DashboardView> {
                   label: text.tabSadhana,
                 ),
                 NavItem(
+                  icon: Icons.play_circle_outline_rounded,
+                  selectedIcon: Icons.play_circle_rounded,
+                  label: text.reelsTitle,
+                ),
+                NavItem(
                   icon: Icons.menu_book_outlined,
                   selectedIcon: Icons.menu_book_rounded,
                   label: text.tabLibrary,
-                ),
-                NavItem(
-                  icon: Icons.checklist_outlined,
-                  selectedIcon: Icons.checklist_rounded,
-                  label: text.tabRoutine,
                 ),
               ],
             ),

@@ -36,14 +36,24 @@ class _TranslationPickerSheet extends ConsumerWidget {
     return SafeArea(
       top: false,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            AppSpacing.xl,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(text.verseCompareTranslations, style: context.texts.titleLarge),
+              Text(
+                text.verseCompareTranslations,
+                style: context.texts.titleLarge,
+              ),
               const SizedBox(height: AppSpacing.md),
               Flexible(
                 child: translations.when(
@@ -69,10 +79,17 @@ class _TranslationPickerSheet extends ConsumerWidget {
                             final meaning = rendering.meaning?.trim();
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: Text(rendering.translator?.name ?? rendering.languageCode),
+                              title: Text(
+                                rendering.translator?.name ??
+                                    rendering.languageCode,
+                              ),
                               subtitle: meaning == null || meaning.isEmpty
                                   ? null
-                                  : Text(meaning, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  : Text(
+                                      meaning,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                               onTap: () => Navigator.of(context).pop(rendering),
                             );
                           },

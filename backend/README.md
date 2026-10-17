@@ -201,8 +201,10 @@ npm run test:book-cache   # the export and all four endpoints over HTTP (API run
 
 ## AI chat — setup, providers, credits
 
-A devotional assistant (Sri Vaishnava orientation, respectful of other traditions and religions)
-streamed to the app over Server-Sent Events. The app never sees a key; every call is made here.
+**Ask Sakha** — Sakha, a devotional friend (Sri Vaishnava orientation, respectful of other traditions and
+religions), streamed to the app over Server-Sent Events. A reader has one conversation, can add a picture to
+a message, and can clear the chat. The app never sees a key; every call is made here. ("AI chat" is the
+internal name: the routes, the `chat` API path and the permission keep it.)
 
 ### Set it up
 
@@ -228,28 +230,36 @@ streamed to the app over Server-Sent Events. The app never sees a key; every cal
 | `GEMINI_MODEL` / `OPENAI_MODEL` | chat model for BASIC plans | `gemini-2.0-flash` / `gpt-4o-mini` |
 | `GEMINI_SUMMARY_MODEL` / `OPENAI_SUMMARY_MODEL` | the cheap model that writes conversation summaries | `gemini-2.0-flash-lite` / `gpt-4o-mini` |
 | `GEMINI_ADVANCED_MODEL` / `OPENAI_ADVANCED_MODEL` | chat model for plans whose tier is ADVANCED; empty = the normal one | — |
+| `OPENAI_REASONING_EFFORT` | how hard a reasoning model (`gpt-6-luna`) thinks before it answers: `none`, `low`, `medium`, `high`; models that do not reason ignore it | `none` |
 
 ### Switching providers
 
 Change `AI_PROVIDER` and restart. Nothing else moves: both providers sit behind `services/ai/`, stream
 the same way, and report real token counts. **One catch:** a value saved as `ai.provider` (or
 `ai.model.text`) in the admin panel's Settings page overrides `.env`. Fresh installs do not set it; if an
-older database does, either clear it there or change it there instead.
+older database does, either clear it there or change it there instead. Change the model with the provider:
+a saved `ai.model.text` of `gemini-2.0-flash` would otherwise be sent to OpenAI.
+
+`OPENAI_MODEL=gpt-6-luna` works. It is a reasoning model, so the provider sends it `reasoning_effort`
+(`OPENAI_REASONING_EFFORT`, `none` by default) instead of a temperature it would refuse. Its thinking is
+billed as output and taken from the reader's wallet, so raising the effort costs credits as well as time.
+Any OpenAI model you use needs a row in `PRICING` in `services/ai/openai.js`, for its price and its parameters.
 
 ### What readers and admins see
 
 - **Readers** see a credit meter, 100% → 0%, and the name of their devotee level. Never token counts.
-- **Admin panel → AI chat**: the persona (system prompt) and the text the app shows describing the
-  assistant; the limits (how many recent messages are sent, when to compact, summary cap, max messages
-  per chat, max reply length); each plan's allowance (daily cap, wallet size, monthly renewal,
+- **Admin panel → Ask Sakha**: the persona (system prompt) and the text the app shows describing
+  Sakha; the limits (how many recent messages are sent, when to compact, summary cap, max messages
+  per chat, max reply length, whether pictures are allowed and how large they are kept); each plan's allowance (daily cap, wallet size, monthly renewal,
   per-conversation cap, model tier, level name); wallets, with grants and adjustments. All of it applies
   without a deploy.
 
 ### Tests
 
 ```bash
-npm test                 # unit tests: token counting, credits arithmetic, compaction, SSE/providers
+npm test                 # unit tests: token counting, credits arithmetic, compaction, SSE/providers, pictures
 npm run test:chat        # end to end against Postgres + Redis, provider faked — no key, no network
+                         # (pictures included; storage falls back to backend/storage/ and is cleaned up)
 ```
 
 ## First admin

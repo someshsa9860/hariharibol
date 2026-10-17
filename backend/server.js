@@ -7,6 +7,7 @@ import env from './config/env.js';
 import logger from './config/logger.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { closeQueues } from './jobs/index.js';
+import { warmUp } from './services/ai/tokens.js';
 
 let server;
 
@@ -17,6 +18,8 @@ async function start() {
 
   server = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'api listening');
+    // Ask Sakha's first reply must not be the one that pays for building the tokenizer (~300 ms, blocking).
+    setImmediate(warmUp);
   });
 
   // Slow clients on a slightly slow network otherwise get their requests cut

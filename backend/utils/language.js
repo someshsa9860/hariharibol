@@ -50,6 +50,25 @@ function readingChain(user) {
   return dedupe([user.readingLanguage, user.appLanguage, DEFAULT_LANGUAGE]);
 }
 
+// The languages a phone names on a book call (`?languages=mr,en`), as a list of codes.
+// A phone changes its own reading language at once and tells the account a moment
+// later, so on the call made in between the account still holds the old one; naming
+// the languages on the call itself keeps the text from running one change behind.
+// Nothing, or nothing usable, is an empty list and the account's languages stand.
+function fromQuery(value) {
+  if (typeof value !== 'string') return [];
+  return dedupe(value.split(',').map((code) => code.trim().toLowerCase())).slice(0, 3);
+}
+
+// `user` with its reading languages replaced by `codes` (first the reading language,
+// then the app's), for a call that named them. Works for a signed-out caller too,
+// who has no user to copy: the result only ever carries the two language fields,
+// which is all `readingChain` and `present.verse` / `present.section` read.
+function withReadingLanguages(user, codes) {
+  if (!codes?.length) return user;
+  return { ...user, readingLanguage: codes[0], appLanguage: codes[1] ?? null };
+}
+
 // UI chrome the server renders — emails, deeplink pages.
 function appChain(user) {
   if (!user) return dedupe([DEFAULT_LANGUAGE]);
@@ -169,6 +188,8 @@ export {
   mantraChain,
   mantraTextChain,
   readingChain,
+  fromQuery,
+  withReadingLanguages,
   appChain,
   requestChain,
   pick,

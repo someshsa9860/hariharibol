@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:hariharibol/models/api_failure.dart';
 import 'package:hariharibol/models/chat.dart';
-import 'package:hariharibol/models/paged.dart';
 import 'package:hariharibol/services/api_client.dart';
 import 'package:hariharibol/services/chat_service.dart';
 
@@ -62,19 +61,29 @@ class FakeChatService implements ChatService {
     maxMessages: 40,
   );
 
-  ChatConversationDetail detail = ChatConversationDetail(
-    conversation: fakeConversation(),
-    messages: const [],
-  );
+  /// What the server answers to "my conversation": null for a reader who has
+  /// not said anything yet, which is how most tests begin.
+  ChatConversationDetail? detail;
 
-  /// Every call made, in order: `send:<id>:<text>`, `regenerate:<id>`, …
+  /// Every call made, in order: `send:<id>:<text>`, `regenerate:<id>`, `clear`…
   final List<String> calls = [];
 
   StreamController<ChatStreamEvent>? live;
   ApiFailure? _refusal;
   bool cancelled = false;
-  ChatCompactResult? compactResult;
   ChatContinueResult? continueResult;
+
+  /// When set, `current()` fails with it (once).
+  ApiFailure? currentFailure;
+
+  /// When set, `clear()` fails with it (once).
+  ApiFailure? clearFailure;
+
+  /// When set, the next upload fails with it.
+  Object? uploadFailure;
+
+  /// When set, an upload waits for the test to complete this.
+  Completer<ChatUploadedImage>? uploadGate;
 
   void refuseNext(ApiFailure failure) => _refusal = failure;
 
@@ -97,8 +106,8 @@ class FakeChatService implements ChatService {
   }
 
   @override
-  Stream<ChatStreamEvent> send(String id, String content, {ApiCancelToken? cancel}) =>
-      _open('send:$id:$content', cancel);
+  Stream<ChatStreamEvent> send(String id, String content, {String? imageKey, ApiCancelToken? cancel}) =>
+      _open('send:$id:$content${imageKey == null ? '' : ':image=$imageKey'}', cancel);
 
   @override
   Stream<ChatStreamEvent> regenerate(String id, {ApiCancelToken? cancel}) => _open('regenerate:$id', cancel);
@@ -107,7 +116,14 @@ class FakeChatService implements ChatService {
   Future<ChatStatus> status() async => statusValue;
 
   @override
-  Future<ChatConversationPage> conversations({int page = 1}) async => Paged.empty<ChatConversation>();
+  Future<ChatConversationDetail?> current() async {
+    final failure = currentFailure;
+    if (failure != null) {
+      currentFailure = null;
+      throw failure;
+    }
+    return detail;
+  }
 
   @override
   Future<ChatConversation> create({String? title}) async {
@@ -116,19 +132,27 @@ class FakeChatService implements ChatService {
   }
 
   @override
-  Future<ChatConversationDetail> conversation(String id) async => detail;
+  Future<void> clear() async {
+    calls.add('clear');
+    final failure = clearFailure;
+    if (failure != null) {
+      clearFailure = null;
+      throw failure;
+    }
+    detail = null;
+  }
 
   @override
-  Future<ChatConversation> rename(String id, String title) async => fakeConversation(id: id, title: title);
-
-  @override
-  Future<void> delete(String id) async => calls.add('delete:$id');
-
-  @override
-  Future<ChatCompactResult> compact(String id) async {
-    calls.add('compact:$id');
-    return compactResult ??
-        ChatCompactResult(compacted: true, conversation: fakeConversation(id: id), credits: fakeCredits(percent: 70));
+  Future<ChatUploadedImage> uploadImage(String path, {ApiCancelToken? cancel}) async {
+    calls.add('upload:$path');
+    final failure = uploadFailure;
+    if (failure != null) {
+      uploadFailure = null;
+      throw failure;
+    }
+    final gate = uploadGate;
+    if (gate != null) return gate.future;
+    return ChatUploadedImage(key: 'key:${path.split('/').last}', url: 'https://files.test/${path.split('/').last}');
   }
 
   @override

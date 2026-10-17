@@ -23,9 +23,22 @@ abstract final class AppConfig {
   /// server pings every 15 seconds, so this only trips when the line is dead.
   static const Duration streamReceiveTimeout = Duration(seconds: 45);
 
+  /// A picture going up is the one request that sends far more than it gets
+  /// back, on whatever signal the phone has.
+  static const Duration uploadTimeout = Duration(seconds: 60);
+
   /// One retry, and only for a request that failed because the access token had
   /// expired. Anything else surfaces to the caller.
   static const int authRetryLimit = 1;
+
+  /// The access token lasts a week; the app swaps it for a new one once it is
+  /// this old (on launch, on coming back to the app, and while it is open), so
+  /// a person who opens the app now and then never holds an expired one.
+  static const Duration accessRenewAfter = Duration(days: 1);
+
+  /// After a renewal that could not be completed — offline, the server busy —
+  /// the next try waits this long. The token in hand is still good meanwhile.
+  static const Duration renewRetryAfter = Duration(minutes: 15);
 
   static const int defaultPageSize = 20;
 

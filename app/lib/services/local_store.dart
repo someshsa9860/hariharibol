@@ -42,6 +42,14 @@ class LocalStore {
 
   Future<void> delete(String key) => _open.delete(key);
 
+  /// Removes every key that starts with [prefix] — a family of cached
+  /// answers that is dropped together.
+  Future<void> deleteWithPrefix(String prefix) {
+    final box = _open;
+    final keys = box.keys.where((key) => key is String && key.startsWith(prefix)).toList();
+    return box.deleteAll(keys);
+  }
+
   /// Wipes everything this store holds. Used on sign-out, alongside clearing
   /// the tokens and the offline database.
   Future<void> clear() => _open.clear();

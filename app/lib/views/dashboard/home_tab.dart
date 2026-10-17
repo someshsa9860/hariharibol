@@ -22,11 +22,13 @@ import '../../widgets/dashboard/book_card.dart';
 import '../../widgets/dashboard/continue_reading_card.dart';
 import '../../widgets/dashboard/home_header.dart';
 import '../../widgets/dashboard/home_stats_card.dart';
-import '../../widgets/dashboard/mantra_card.dart';
+import '../../widgets/dashboard/mantra_row.dart';
 import '../../widgets/dashboard/mood_chips.dart';
 import '../../widgets/dashboard/open_chant.dart';
+import '../../widgets/dashboard/routine_entry_card.dart';
 import '../../widgets/dashboard/sadhana_card.dart';
 import '../../widgets/dashboard/verse_hero_card.dart';
+import '../../widgets/library/open_book.dart';
 
 /// The dashboard.
 ///
@@ -132,6 +134,10 @@ class _HomeContent extends ConsumerWidget {
           onChant: () => openChant(ref, mantraSlug: sadhanaToday?.chantMantraSlug),
         ),
 
+      // Today's tasks sit beside today's practice. The routine is a screen
+      // of its own now, so this is its door — and says how the day is going.
+      const RoutineEntryCard(),
+
       // Lifetime totals, right after today's practice — a separate request
       // from the rest of the feed, so it is signed out only when there is a
       // user to have totals at all.
@@ -140,7 +146,7 @@ class _HomeContent extends ConsumerWidget {
       // Signed out, there is nothing to answer and nowhere to record it.
       if (user != null) const MoodChips(),
 
-      // The assistant is for people with an account — it has credits to spend.
+      // Ask Sakha is for people with an account — it has credits to spend.
       if (user != null) const ChatEntryCard(),
 
       if (mine != null)
@@ -172,9 +178,7 @@ class _HomeContent extends ConsumerWidget {
             itemCount: feed.books.length,
             itemBuilder: (context, index) => BookCard(
               book: feed.books[index],
-              onTap: () => AppNavigator.instance.push(
-                AppRoutes.bookPath(feed.books[index].slug),
-              ),
+              onTap: () => openBook(ref, feed.books[index].slug),
             ),
           ),
         ),
@@ -182,14 +186,10 @@ class _HomeContent extends ConsumerWidget {
       if (feed.mantras.isNotEmpty)
         _TitledSection(
           header: SectionHeader(title: text.homeMantras),
-          child: _HorizontalRow(
-            height: AppSizes.coverHeight * 0.8,
-            itemCount: feed.mantras.length,
-            itemBuilder: (context, index) => MantraCard(
-              mantra: feed.mantras[index],
-              onTap: () => AppNavigator.instance.push(
-                AppRoutes.mantraPath(feed.mantras[index].slug),
-              ),
+          child: MantraRow(
+            mantras: feed.mantras,
+            onOpen: (mantra) => AppNavigator.instance.push(
+              AppRoutes.mantraPath(mantra.slug),
             ),
           ),
         ),

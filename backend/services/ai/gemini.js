@@ -14,7 +14,8 @@ const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 // these exist to make AiUsageLog.costMicros a real number rather than a guess.
 // Update them when the price list changes — a stale table under-reports spend.
 const PRICING = {
-  'gemini-2.0-flash': { input: 0.075, output: 0.3 },
+  'gemini-3.5-flash-lite': { input: 0.3, output: 2.5 },
+  'gemini-2.0-flash':{ input: 0.075, output: 0.3 },
   'gemini-2.0-flash-lite': { input: 0.0375, output: 0.15 },
   'gemini-1.5-flash': { input: 0.075, output: 0.3 },
   'gemini-1.5-pro': { input: 1.25, output: 5 },
@@ -22,9 +23,16 @@ const PRICING = {
 
 const DEFAULT_PRICE = { input: 0.075, output: 0.3 };
 
-// Chat history is already `{ role: 'user' | 'assistant', content }`; Gemini calls the model "model".
-const toContents = (messages) =>
-  messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+// Chat history is already `{ role: 'user' | 'assistant', content }`; Gemini calls the model "model". A message may
+// also carry `image: { mimeType, base64 }`, which goes in as an inline part beside its words.
+function toContents(messages) {
+  return messages.map((m) => {
+    const parts = [];
+    if (m.content || !m.image) parts.push({ text: m.content || '' });
+    if (m.image) parts.push({ inlineData: { mimeType: m.image.mimeType, data: m.image.base64 } });
+    return { role: m.role === 'assistant' ? 'model' : 'user', parts };
+  });
+}
 
 // Thinking models bill their reasoning as output, and report it separately.
 const outputTokensOf = (usage) => (usage.candidatesTokenCount || 0) + (usage.thoughtsTokenCount || 0);
@@ -136,6 +144,8 @@ async function* stream({ model, system, messages, maxTokens = 1024, temperature 
 // The shape services/ai/index.js expects of every provider: a name for the
 // usage log, a completion call, a cost function and a default model.
 export const name = 'GEMINI';
+// Whether a key is set — the engine chain in index.js leaves out a provider that could only answer "not configured".
+export const isConfigured = () => Boolean(env.GEMINI_API_KEY);
 export const defaultModel = env.GEMINI_MODEL;
 export const summaryModel = env.GEMINI_SUMMARY_MODEL;
 export const advancedModel = env.GEMINI_ADVANCED_MODEL || env.GEMINI_MODEL;

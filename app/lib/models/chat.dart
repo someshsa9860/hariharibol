@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import '../core/constants/chat_config.dart';
 import 'json.dart';
-import 'paged.dart';
 
 /// What holds a chat back: today's allowance, or the plan's wallet.
 enum ChatLimitedBy {
@@ -53,8 +52,8 @@ class ChatCredits {
       );
 }
 
-/// `GET /chat/status`: what to show before a chat — the assistant's own
-/// description, the meter, and the input limits.
+/// `GET /chat/status`: what to show before a chat — Sakha's own description,
+/// the meter, and the input limits.
 class ChatStatus {
   const ChatStatus({
     required this.description,
@@ -174,6 +173,8 @@ class ChatMessage {
     this.status = ChatMessageStatus.complete,
     this.createdAt,
     this.summarized = false,
+    this.imageUrl,
+    this.localImagePath,
   });
 
   /// A message the phone made before the server has numbered it: the sent
@@ -182,6 +183,7 @@ class ChatMessage {
     required String key,
     required ChatRole role,
     String content = '',
+    String? localImagePath,
   }) =>
       ChatMessage(
         id: key,
@@ -189,6 +191,7 @@ class ChatMessage {
         role: role,
         content: content,
         status: role == ChatRole.assistant ? ChatMessageStatus.partial : ChatMessageStatus.complete,
+        localImagePath: localImagePath,
       );
 
   final String id;
@@ -204,8 +207,18 @@ class ChatMessage {
   final DateTime? createdAt;
   final bool summarized;
 
+  /// The picture sent with a question, as a link the server signed. It runs out,
+  /// so a screen that is kept open for hours may have to ask again.
+  final String? imageUrl;
+
+  /// The same picture as the file on this phone, for the message just sent: it
+  /// is shown at once instead of waiting for the link to load. A conversation
+  /// read back from the server has none.
+  final String? localImagePath;
+
   bool get isUser => role == ChatRole.user;
   bool get isAssistant => role == ChatRole.assistant;
+  bool get hasImage => imageUrl != null || localImagePath != null;
 
   ChatMessage copyWith({String? id, String? content, ChatMessageStatus? status}) => ChatMessage(
         id: id ?? this.id,
@@ -216,6 +229,8 @@ class ChatMessage {
         status: status ?? this.status,
         createdAt: createdAt,
         summarized: summarized,
+        imageUrl: imageUrl,
+        localImagePath: localImagePath,
       );
 
   /// The server's version of this message, kept under this one's [clientKey].
@@ -228,6 +243,8 @@ class ChatMessage {
         status: server.status,
         createdAt: server.createdAt,
         summarized: server.summarized,
+        imageUrl: server.imageUrl,
+        localImagePath: localImagePath,
       );
 
   factory ChatMessage.fromJson(Json json) {
@@ -241,6 +258,7 @@ class ChatMessage {
       status: ChatMessageStatus.parse(json['status']),
       createdAt: asDate(json['createdAt']),
       summarized: asBool(json['summarized']),
+      imageUrl: asStringOrNull(json['imageUrl']),
     );
   }
 }
@@ -258,26 +276,19 @@ class ChatConversationDetail {
       );
 }
 
-/// A page of the conversation list.
-typedef ChatConversationPage = Paged<ChatConversation>;
+/// `POST /chat/images`: a picture the server has taken in, waiting to be sent
+/// with a question.
+class ChatUploadedImage {
+  const ChatUploadedImage({required this.key, required this.url});
 
-/// `POST …/compact`.
-class ChatCompactResult {
-  const ChatCompactResult({
-    required this.compacted,
-    required this.conversation,
-    required this.credits,
-  });
+  /// What to send with the question.
+  final String key;
 
-  final bool compacted;
-  final ChatConversation conversation;
-  final ChatCredits credits;
+  /// A signed link to the picture as the server stored it.
+  final String url;
 
-  factory ChatCompactResult.fromJson(Json json) => ChatCompactResult(
-        compacted: asBool(json['compacted']),
-        conversation: ChatConversation.fromJson(asJson(json['conversation']) ?? const {}),
-        credits: ChatCredits.fromJson(asJson(json['credits']) ?? const {}),
-      );
+  factory ChatUploadedImage.fromJson(Json json) =>
+      ChatUploadedImage(key: asString(json['key']), url: asString(json['url']));
 }
 
 /// `POST …/continue`: the new chat that carries the summary.

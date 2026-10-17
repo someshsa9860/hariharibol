@@ -52,10 +52,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<!-- Auto-count: listens for a known mantra's own sound to count
-	     repetitions, entirely on-device. No audio leaves the phone. -->
+	<!-- The microphone is used twice: auto-count listens for a known mantra's own
+	     sound to count repetitions (on-device, no audio leaves the phone), and
+	     speaking a message to Sakha in the chat. -->
 	<key>NSMicrophoneUsageDescription</key>
-	<string>HariHariBol listens while you chant to count repetitions and, if you turn on word detection, to note the words you said.</string>
+	<string>HariHariBol listens while you chant to count your repetitions, and when you tap the microphone to speak a message to Sakha.</string>
+	<!-- Speaking a message to Sakha: the phone's own speech recognition turns
+	     it into text. Apple may process the audio on its servers. -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>HariHariBol uses your phone's speech recognition to turn what you say into text when you speak a message to Sakha.</string>
+	<!-- A picture shared in the chat with Sakha. -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HariHariBol opens your photos so you can choose a picture to share with Sakha.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>HariHariBol opens the camera so you can take a picture to share with Sakha.</string>
 	<!-- Lets --dart-define=API_BASE_URL point at a plain http://localhost
 	     backend on the dev machine. Scoped to local networking only, not a
 	     blanket ATS opt-out, so it carries no risk in a release build that

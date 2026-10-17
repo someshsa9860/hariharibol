@@ -13,6 +13,9 @@
 import { prisma } from '../../config/database.js';
 import * as payments from '../../services/payments/index.js';
 import * as entitlement from '../../services/entitlement.js';
+import * as aiWallet from '../../services/ai-wallet.js';
+import { TYPICAL_REPLY_TOKENS } from '../../config/chat.js';
+import { repliesIn } from '../../utils/ai-credits.js';
 import { ok, created } from '../../utils/respond.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 
@@ -30,6 +33,14 @@ const presentPrice = (price) => ({
   periodDays: price.periodDays,
   trialDays: price.trialDays,
 });
+
+// What Ask Sakha gives a plan, in the one unit a reader can weigh: about how many replies a month. Never
+// tokens (they stay on /api/admin). Null when the plan has no chat, or its wallet does not refill monthly —
+// "a month" would then be untrue, and the card simply has no row for it.
+const presentSakha = (allowance) =>
+  allowance?.isEnabled && allowance.renewal === 'MONTHLY'
+    ? { repliesPerMonth: repliesIn(allowance.walletTokens, TYPICAL_REPLY_TOKENS) }
+    : null;
 
 /**
  * GET /api/app/subscription/plans — public, so the paywall can be shown before sign-in.
@@ -53,10 +64,13 @@ export const plans = async (req, res) => {
     prisma.feature.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
   ]);
 
+  // A plan with no allowance of its own is on the free plan's — the same rule the chat applies.
+  const allowances = await Promise.all(plans.map((plan) => aiWallet.allowanceFor(plan.id)));
+
   return ok(res, {
     // The catalogue, so the app can lay out a comparison table in one pass.
     features: features.map((f) => ({ key: f.key, name: f.name, description: f.description, kind: f.kind, unit: f.unit })),
-    plans: plans.map((plan) => {
+    plans: plans.map((plan, i) => {
       const values = new Map(plan.features.map((v) => [v.featureId, v]));
       return {
         id: plan.id,
@@ -66,6 +80,7 @@ export const plans = async (req, res) => {
         tier: plan.tier,
         isFree: plan.isFree,
         prices: plan.prices.map(presentPrice),
+        sakha: presentSakha(allowances[i]),
         features: Object.fromEntries(
           features.map((f) => {
             const v = values.get(f.id);

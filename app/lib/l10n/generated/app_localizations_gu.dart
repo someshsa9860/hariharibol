@@ -132,6 +132,9 @@ class AppLocalizationsGu extends AppLocalizations {
   String get tabRoutine => 'દિનચર્યા';
 
   @override
+  String get tabSakha => 'Sakha';
+
+  @override
   String get reelsTitle => 'રીલ્સ';
 
   @override
@@ -630,6 +633,11 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
+  String plansSakhaReplies(int count) {
+    return 'દર મહિને લગભગ $count જવાબો';
+  }
+
+  @override
   String get plansNoFeatures =>
       'હજી કોઈ વધારાના લાભ નથી — વધુ જલદી આવી રહ્યા છે.';
 
@@ -688,6 +696,10 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get libraryNoBooks => 'હજી કોઈ ગ્રંથ પ્રકાશિત થયો નથી.';
+
+  @override
+  String get libraryBookNotStarted =>
+      'હજી શરૂ કર્યું નથી. શરૂ કરવા માટે ટેપ કરો.';
 
   @override
   String get actionEdit => 'ફેરફાર કરો';
@@ -792,6 +804,9 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get readingSettingsTitle => 'વાંચન સેટિંગ્સ';
+
+  @override
+  String get readingContents => 'અનુક્રમણિકા';
 
   @override
   String get readingFontSizeLabel => 'અક્ષરનું કદ';
@@ -1683,19 +1698,16 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
-  String get chatTitle => 'AI સહાયક';
+  String get chatTitle => 'Sakha ને પૂછો';
 
   @override
-  String get chatHomeTitle => 'સહાયકને પૂછો';
+  String get chatHomeTitle => 'Sakha ને પૂછો';
 
   @override
   String get chatHomeBody => 'શાસ્ત્ર, મંત્ર અને તમારી સાધના વિશે પ્રશ્નો';
 
   @override
-  String get chatNewChat => 'નવી ચેટ';
-
-  @override
-  String get chatIntroTitle => 'તમારા ભક્તિ સહાયક';
+  String get chatIntroTitle => 'તમારા મિત્ર Sakha';
 
   @override
   String get chatIntroHint => 'કોઈ શ્લોક, મંત્ર અથવા તમારી સાધના વિશે પૂછો.';
@@ -1740,7 +1752,7 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get chatNotAvailableBody =>
-      'સહાયકને પ્રશ્નો પૂછવા માટે તમારો પ્લાન અપગ્રેડ કરો.';
+      'Sakha ને પ્રશ્નો પૂછવા માટે તમારો પ્લાન અપગ્રેડ કરો.';
 
   @override
   String get chatExhaustedDailyTitle => 'આજના ક્રેડિટ પૂરા થઈ ગયા છે';
@@ -1762,7 +1774,7 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get chatShareUsedBody =>
-      'નવી ચેટ શરૂ કરો, સહાયક તમે જ્યાં હતા ત્યાંથી આગળ વધશે.';
+      'નવી ચેટ શરૂ કરો, Sakha તમે જ્યાં હતા ત્યાંથી આગળ વધશે.';
 
   @override
   String get chatUpgrade => 'અપગ્રેડ કરો';
@@ -1774,7 +1786,7 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chatFullTitle => 'આ ચેટ ઘણી લાંબી થઈ ગઈ છે';
 
   @override
-  String get chatFullBody => 'નવી ચેટ શરૂ કરો, સહાયક આપણી વાતચીતને આગળ લઈ જશે.';
+  String get chatFullBody => 'નવી ચેટ શરૂ કરો, Sakha આપણી વાતચીતને આગળ લઈ જશે.';
 
   @override
   String get chatContinuePartial =>
@@ -1784,14 +1796,23 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chatTidying => 'આપણી વાતચીત સમેટાઈ રહી છે…';
 
   @override
-  String get chatTyping => 'સહાયક લખી રહ્યા છે';
+  String get chatTyping => 'Sakha લખી રહ્યા છે';
 
   @override
   String get chatConnectionLost =>
-      'કનેક્શન તૂટી ગયું. જે આવ્યું છે તે ઉપર રાખ્યું છે.';
+      'કનેક્શન વચ્ચે જ તૂટી ગયું. કૃપા કરીને ફરી પ્રયાસ કરો.';
 
   @override
-  String get chatReplyFailed => 'જવાબ પૂરો થઈ શક્યો નહીં.';
+  String get chatReplyFailed =>
+      'Sakha તે જવાબ પૂરો કરી શક્યા નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get chatOverloaded =>
+      'Sakha અત્યારે વ્યસ્ત છે. કૃપા કરીને થોડી જ વારમાં ફરી પ્રયાસ કરો.';
+
+  @override
+  String get chatUnavailable =>
+      'Sakha અત્યારે ઉપલબ્ધ નથી. કૃપા કરીને થોડી વાર પછી ફરી પ્રયાસ કરો.';
 
   @override
   String get chatBusy => 'કૃપા કરીને હાલનો જવાબ પૂરો થાય ત્યાં સુધી રાહ જુઓ.';
@@ -1824,31 +1845,131 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chatImageUnavailable => 'છબી ઉપલબ્ધ નથી';
 
   @override
-  String get chatMoreActions => 'વધુ';
+  String get chatClearTooltip => 'ચેટ સાફ કરો';
 
   @override
-  String get chatMenuCompact => 'સંદર્ભ ટૂંકો કરો';
+  String get chatClearTitle => 'આ ચેટ સાફ કરવી?';
 
   @override
-  String get chatMenuRename => 'નામ બદલો';
+  String get chatClearBody =>
+      'તમારા સંદેશા અને Sakha એ આપેલા જવાબ દૂર થઈ જશે, અને આપણી વાતચીત Sakha ને યાદ રહેશે નહીં. વપરાઈ ગયેલા ક્રેડિટ પાછા મળતા નથી.';
 
   @override
-  String get chatRenameTitle => 'ચેટનું નામ બદલો';
+  String get chatClearConfirm => 'સાફ કરો';
 
   @override
-  String get chatRenameHint => 'ચેટનું નામ';
+  String get chatCleared => 'ચેટ સાફ થઈ ગઈ';
 
   @override
-  String get chatDeleteTitle => 'આ ચેટ કાઢી નાખવી?';
+  String get chatSuggestionsLabel => 'આ પૂછી જુઓ';
 
   @override
-  String get chatDeleteBody =>
-      'વાતચીત દૂર થઈ જશે. વપરાઈ ગયેલા ક્રેડિટ પાછા મળતા નથી.';
+  String get chatStarter1Title => 'જીવન માટે એક શ્લોક';
 
   @override
-  String get chatCompactDone =>
-      'વાતચીત સમેટાઈ ગઈ. જૂના સંદેશાઓનો હવે સારાંશ બન્યો છે.';
+  String get chatStarter1Prompt =>
+      'મને ભગવદ્ગીતા 2.47 સમજાવો — ફળની ચિંતા કર્યા વિના પોતાનું કર્તવ્ય નિભાવવું.';
 
   @override
-  String get chatCompactNothing => 'હજી સમેટવા જેવું કંઈ નથી.';
+  String get chatStarter2Title => 'જપની શરૂઆત';
+
+  @override
+  String get chatStarter2Prompt =>
+      'હરે કૃષ્ણ મહામંત્રનો જપ કેવી રીતે શરૂ કરું, અને શરૂઆતમાં કેટલી માળા કરવી?';
+
+  @override
+  String get chatStarter3Title => 'રોજની સાધના';
+
+  @override
+  String get chatStarter3Prompt =>
+      'વ્યસ્ત દિવસે પણ નિભાવી શકાય એવી કોઈ સરળ રોજની સાધના સૂચવો.';
+
+  @override
+  String get chatStarter4Title => 'જ્યારે મન અસ્થિર હોય';
+
+  @override
+  String get chatStarter4Prompt =>
+      'મારું મન અસ્થિર છે. શાંતિ મેળવવા વિશે શાસ્ત્રો શું કહે છે?';
+
+  @override
+  String get chatStarter5Title => 'સાંભળવા જેવી એક કથા';
+
+  @override
+  String get chatStarter5Prompt =>
+      'મને પ્રહલાદની કથા કહો અને તેમાંથી શું શીખવા મળે છે તે જણાવો.';
+
+  @override
+  String get chatFollowUp1 => 'સરળ રીતે સમજાવો';
+
+  @override
+  String get chatFollowUp2 => 'એક ઉદાહરણ આપો';
+
+  @override
+  String get chatFollowUp3 => 'આ કેમ મહત્ત્વનું છે?';
+
+  @override
+  String get chatFollowUp4 => 'આનો અભ્યાસ કેવી રીતે કરું?';
+
+  @override
+  String get chatAttach => 'ચિત્ર ઉમેરો';
+
+  @override
+  String get chatAttachCamera => 'ફોટો પાડો';
+
+  @override
+  String get chatAttachGallery => 'તમારા ફોટામાંથી પસંદ કરો';
+
+  @override
+  String get chatAttachNote =>
+      'ચિત્ર જવાબ લખવામાં મદદ કરતી સેવાને મોકલાય છે, અને તમે ચેટ સાફ ન કરો ત્યાં સુધી અહીં રહે છે.';
+
+  @override
+  String get chatImageRemove => 'ચિત્ર દૂર કરો';
+
+  @override
+  String get chatImageUploading => 'ચિત્ર ઉમેરાઈ રહ્યું છે…';
+
+  @override
+  String get chatImageFailed =>
+      'ચિત્ર ઉમેરી શકાયું નથી. ફરી પ્રયાસ કરવા ટૅપ કરો.';
+
+  @override
+  String get chatImageRejected =>
+      'આ ચિત્ર વાપરી શકાતું નથી. કૃપા કરીને બીજું પસંદ કરો.';
+
+  @override
+  String get chatImageOff => 'તમારા પ્લાનમાં ચિત્રો ઉપલબ્ધ નથી.';
+
+  @override
+  String get chatImageSemantics => 'તમે મોકલેલું ચિત્ર';
+
+  @override
+  String get chatPictureDenied =>
+      'ચિત્ર ઉમેરવા માટે ફોનના સેટિંગમાં કૅમેરા અથવા ફોટાની પરવાનગી આપો.';
+
+  @override
+  String get chatMic => 'બોલીને પ્રશ્ન પૂછો';
+
+  @override
+  String get chatMicStop => 'સાંભળવાનું બંધ કરો';
+
+  @override
+  String get chatListening => 'બોલો…';
+
+  @override
+  String get chatMicDenied =>
+      'બોલવા માટે ફોનના સેટિંગમાં માઇક્રોફોન અને સ્પીચ રેકગ્નિશનની પરવાનગી આપો.';
+
+  @override
+  String get chatMicUnavailable => 'આ ફોન પર બોલીને લખવું ઉપલબ્ધ નથી.';
+
+  @override
+  String get chatMicNoSpeech => 'કંઈ સંભળાયું નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get chatMicFailed =>
+      'સાંભળવાનું અટકી ગયું. કૃપા કરીને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get chatJumpToLatest => 'નવીનતમ';
 }

@@ -14,6 +14,8 @@
 import { Tiktoken } from 'js-tiktoken/lite';
 import o200k_base from 'js-tiktoken/ranks/o200k_base';
 
+import { IMAGE_TOKEN_ESTIMATE } from '../../config/chat.js';
+
 // Providers other than OpenAI count a little differently; 10% over is a
 // cheap way to stay on the safe side of a limit.
 const SAFETY_FACTOR = 1.1;
@@ -27,6 +29,14 @@ function getEncoder() {
   return encoder;
 }
 
+/**
+ * Builds the encoder now. Its tables take a few hundred milliseconds to construct, all on the event loop, so the
+ * first person to chat after a deploy would otherwise wait for them — and so would everyone else's requests.
+ */
+export function warmUp() {
+  getEncoder().encode('warm up');
+}
+
 /** Tokens in a string, as the encoder counts them (no safety factor). */
 export function countText(text) {
   if (!text) return 0;
@@ -38,9 +48,15 @@ export function estimate(text) {
   return Math.ceil(countText(text) * SAFETY_FACTOR);
 }
 
-/** Estimated tokens for a list of `{ role, content }` messages. */
-export function estimateMessages(messages) {
-  return messages.reduce((sum, m) => sum + estimate(m.content) + MESSAGE_OVERHEAD, 0);
+/**
+ * Estimated tokens for a list of `{ role, content }` messages. A message that carries a picture (`image`, or the
+ * `imageKey` it is fetched by) costs [imageTokens] more; the provider reports the true figure once it has answered.
+ */
+export function estimateMessages(messages, imageTokens = IMAGE_TOKEN_ESTIMATE) {
+  return messages.reduce(
+    (sum, m) => sum + estimate(m.content) + MESSAGE_OVERHEAD + (m.image || m.imageKey ? imageTokens : 0),
+    0
+  );
 }
 
 /** Cuts text to at most `maxTokens` tokens (encoder count), on a token boundary. */

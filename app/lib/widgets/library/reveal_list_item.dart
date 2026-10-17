@@ -44,7 +44,12 @@ Future<bool> revealListItem({
   for (var step = 0; step < _maxSteps; step++) {
     final target = contextAt(index);
     if (target != null && target.mounted) {
-      await _bringToRest(target, duration: duration, curve: curve, alignment: alignment);
+      await _bringToRest(
+        target,
+        duration: duration,
+        curve: curve,
+        alignment: alignment,
+      );
       return true;
     }
 
@@ -57,7 +62,10 @@ Future<bool> revealListItem({
     if (nearest == null) {
       // A jump landed past the end, so only the unkeyed end of the list is
       // built. Back to the real end; the next look finds the last items.
-      final end = position.pixels.clamp(position.minScrollExtent, position.maxScrollExtent);
+      final end = position.pixels.clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
       if ((end - position.pixels).abs() < 1) return false;
       position.jumpTo(end);
       await WidgetsBinding.instance.endOfFrame;
@@ -65,13 +73,17 @@ Future<bool> revealListItem({
     }
 
     // How far the target is, in items, times what an item has measured so far.
-    final average = (position.maxScrollExtent + position.viewportDimension) / itemCount;
+    final average =
+        (position.maxScrollExtent + position.viewportDimension) / itemCount;
     final distance = (index - nearest.index) * average;
     // At least half a page, so a short guess still gets somewhere.
     final move = distance.abs() < position.viewportDimension / 2
         ? position.viewportDimension / 2 * (distance < 0 ? -1 : 1)
         : distance;
-    final next = (position.pixels + move).clamp(position.minScrollExtent, position.maxScrollExtent);
+    final next = (position.pixels + move).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
     // Already at the end of the list and the item is still not there.
     if ((next - position.pixels).abs() < 1) return false;
 
@@ -93,7 +105,12 @@ Future<void> _bringToRest(
   required double alignment,
 }) async {
   alignment = _alignmentFor(target, alignment);
-  await Scrollable.ensureVisible(target, duration: duration, curve: curve, alignment: alignment);
+  await Scrollable.ensureVisible(
+    target,
+    duration: duration,
+    curve: curve,
+    alignment: alignment,
+  );
 
   for (var attempt = 0; attempt < _maxSettles; attempt++) {
     await WidgetsBinding.instance.endOfFrame;
@@ -101,7 +118,8 @@ Future<void> _bringToRest(
 
     final position = Scrollable.maybeOf(target)?.position;
     final box = target.findRenderObject();
-    if (position == null || box == null || !position.hasContentDimensions) return;
+    if (position == null || box == null || !position.hasContentDimensions)
+      return;
     final viewport = RenderAbstractViewport.maybeOf(box);
     if (viewport == null) return;
 
@@ -123,7 +141,10 @@ Future<void> _bringToRest(
 double _alignmentFor(BuildContext target, double alignment) {
   final box = target.findRenderObject();
   final position = Scrollable.maybeOf(target)?.position;
-  if (box is! RenderBox || !box.hasSize || position == null || !position.hasViewportDimension) {
+  if (box is! RenderBox ||
+      !box.hasSize ||
+      position == null ||
+      !position.hasViewportDimension) {
     return alignment;
   }
   return box.size.height > position.viewportDimension ? 0 : alignment;
@@ -139,7 +160,8 @@ double _alignmentFor(BuildContext target, double alignment) {
     for (final candidate in [index - distance, index + distance]) {
       if (candidate < 0 || candidate >= itemCount) continue;
       final context = contextAt(candidate);
-      if (context != null && context.mounted) return (index: candidate, context: context);
+      if (context != null && context.mounted)
+        return (index: candidate, context: context);
     }
   }
   return null;

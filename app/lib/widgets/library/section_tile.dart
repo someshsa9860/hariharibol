@@ -73,7 +73,9 @@ class SectionTile extends StatelessWidget {
                             for (final fact in facts)
                               Text(
                                 fact,
-                                style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+                                style: context.texts.bodySmall?.copyWith(
+                                  color: context.colors.onSurfaceVariant,
+                                ),
                               ),
                           ],
                         ),
@@ -82,7 +84,10 @@ class SectionTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Icon(Icons.chevron_right_rounded, color: context.colors.onSurfaceVariant),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: context.colors.onSurfaceVariant,
+                ),
               ],
             ),
           ),
@@ -109,7 +114,10 @@ class _NumberSquare extends StatelessWidget {
       ),
       child: Text(
         '$number',
-        style: AppTypography.numeral(context, size: 20).copyWith(color: context.colors.onPrimaryContainer),
+        style: AppTypography.numeral(
+          context,
+          size: 20,
+        ).copyWith(color: context.colors.onPrimaryContainer),
       ),
     );
   }

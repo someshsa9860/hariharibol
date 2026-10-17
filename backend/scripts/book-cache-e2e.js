@@ -121,7 +121,7 @@ async function main() {
 
     // ── access ──────────────────────────────────────────────────────────────
     console.log('\nAccess');
-    check('export trigger refuses a signed-out caller', (await call('POST', '/api/admin/book-cache/run', { body: { wait: true } })).status === 401);
+    check('export trigger refuses a signed-out caller', (await call('POST', '/api/admin/book-cache/run', { body: { wait: true } })).status === 403);
     check('export trigger refuses a reader', (await call('POST', '/api/admin/book-cache/run', { token: reader.token, body: { wait: true } })).status === 403);
 
     // ── first export ────────────────────────────────────────────────────────

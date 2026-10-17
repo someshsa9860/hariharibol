@@ -43,13 +43,24 @@ export function clearTokens() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-// Refreshing is racy if two requests 401 at once — share one in-flight attempt
-// rather than spending two refresh tokens for one moment of expiry.
-let refreshing: Promise<Tokens | null> | null = null;
+// The backend answers "I do not know who you are" with 403 and the code
+// UNAUTHENTICATED (backend/utils/errors.js). A 403 FORBIDDEN is a signed-in admin
+// who lacks a permission — renewing the token would not change it.
+const isUnauthenticated = (status: number, error?: ApiError) =>
+  status === 403 && error?.code === 'UNAUTHENTICATED';
 
-async function refreshTokens(): Promise<Tokens | null> {
+// What a refresh attempt came to. Only `rejected` — the server saying 403 — means
+// the session is over; a network error, a 5xx or a 429 says nothing about it, and
+// signing an admin out for one would throw away a perfectly good refresh token.
+type Refresh = { kind: 'renewed'; tokens: Tokens } | { kind: 'rejected' } | { kind: 'unavailable' };
+
+// Refreshing is racy if two requests are refused at once — share one in-flight
+// attempt rather than spending two refresh tokens for one moment of expiry.
+let refreshing: Promise<Refresh> | null = null;
+
+async function refreshTokens(): Promise<Refresh> {
   const current = loadTokens();
-  if (!current) return null;
+  if (!current) return { kind: 'rejected' };
 
   if (!refreshing) {
     refreshing = fetch(`${API_URL}/api/app/auth/refresh`, {
@@ -57,14 +68,15 @@ async function refreshTokens(): Promise<Tokens | null> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: current.refreshToken, deviceId: 'admin-web' }),
     })
-      .then(async (res) => {
-        if (!res.ok) return null;
+      .then(async (res): Promise<Refresh> => {
+        if (res.status === 403) return { kind: 'rejected' };
+        if (!res.ok) return { kind: 'unavailable' };
         const body = await res.json();
         const tokens: Tokens = body.data.tokens;
         saveTokens(tokens);
-        return tokens;
+        return { kind: 'renewed', tokens };
       })
-      .catch(() => null)
+      .catch((): Refresh => ({ kind: 'unavailable' }))
       .finally(() => {
         refreshing = null;
       });
@@ -110,11 +122,20 @@ async function request<T>(path: string, options: RequestOptions = {}, retried = 
 
   if (!res.ok || body.success === false) {
     // An expired access token, not a bad refresh token — rotate once and retry.
-    if (res.status === 401 && !retried && tokens) {
-      const refreshed = await refreshTokens();
-      if (refreshed) return request<T>(path, options, true);
-      clearTokens();
-      window.location.href = '/login';
+    if (isUnauthenticated(res.status, body.error) && !retried && tokens) {
+      const refresh = await refreshTokens();
+      if (refresh.kind === 'renewed') return request<T>(path, options, true);
+      if (refresh.kind === 'rejected') {
+        clearTokens();
+        window.location.href = '/login';
+      } else {
+        // The session may well be fine; the server could not be asked. Keep it,
+        // and report a failure that is not a 403 so no caller reads it as a sign-out.
+        throw new ApiRequestError(503, {
+          code: 'SESSION_CHECK_FAILED',
+          message: 'Could not reach the server to renew your session. Try again in a moment.',
+        });
+      }
     }
     throw new ApiRequestError(res.status, body.error ?? { code: 'UNKNOWN', message: 'Request failed' });
   }

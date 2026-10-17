@@ -78,3 +78,5 @@ coverage/
 
 # Retired speech model
 app/android/app/src/debug/assets/auto_chant/
+# Added by code-review-graph
+.code-review-graph/

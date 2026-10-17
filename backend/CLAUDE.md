@@ -122,6 +122,19 @@ backend/
 - A single person can be both a normal user and an admin. Admin surfaces are reachable **only** if their role/permissions grant it.
 - Use **standard roles**; the permission set is derived from this project's actual content and actions.
 
+### Sessions and tokens
+
+The apps (mobile and admin) keep a person signed in for as long as the server says their session is good, so the way the server says "no" is a contract.
+
+- **Access token**: signed JWT (`typ: 'access'`), `ACCESS_TOKEN_TTL` = **7d**, verified in-process (`services/auth.js`). **Refresh token**: random, only its SHA-256 stored (`RefreshToken`), `REFRESH_TOKEN_TTL_DAYS` = **365**, replaced on every use. The apps renew the access token about once a day, so a person in regular use never meets an expired one; one who is away for a while still has a year to come back.
+- **"Not signed in" is a 403, never a 401.** `unauthorized()` (`utils/errors.js`) is 403 with code `UNAUTHENTICATED`; `forbidden()` is 403 with code `FORBIDDEN` (signed in, lacks the permission). The apps tell them apart **by code**: only `UNAUTHENTICATED` makes them refresh, and **a 403 `UNAUTHENTICATED` answering `POST /auth/refresh` is the only thing that signs anyone out.** So:
+  - throw `unauthorized()` only when a credential is not valid — never for a validation error (400), a rate limit (429), a missing resource (404) or anything that could pass on its own (5xx). A refresh that fails any of those other ways leaves the person signed in to try again;
+  - a failed sign-in (a Google or Apple token that does not verify) is `unauthorized()` too, now 403, and the app shows it as a sign-in failure (it sends no bearer then);
+  - a new 403 that means "no permission" must use `forbidden()` and its `FORBIDDEN` code, or an app will take it for a lapsed session and refresh in a loop.
+- **A spent refresh token is not always theft.** Presenting one that was already used revokes every session on the account — except when it was spent within `REFRESH_REUSE_GRACE_SECONDS` (default 300): the usual cause is a phone that sent the refresh, lost the reply, and asks again when its signal returns, and signing the person out of every device for that is the wrong answer. Inside the window the old token gets a fresh pair and nothing is revoked. **The cost**: someone who has copied a refresh token and replays it inside the window also gets a session of their own (and rotating it then spends the real owner's next token, who gets one more grace). Set it to 0 for the strict behaviour.
+- **A bad bearer is refused even on a public route** (`middleware/auth.js` establishes who is asking, and an expired or garbage token is not "nobody"), so a client must send none on sign-in or logout. `POST /auth/logout` is public for the same reason: the refresh token in its body is the credential, and signing out has to work when the access token has already lapsed.
+- `npm run test:auth` walks it over real HTTP: the 403/`UNAUTHENTICATED` shape, garbage and expired bearers, rotation, reuse inside and outside the grace window, theft revoking every session, a malformed refresh token (400, not 403), logout, and forged Google/Apple tokens.
+
 ## AI
 
 Gemini is the provider we use. It is not the provider the code knows about.
@@ -134,6 +147,78 @@ Gemini is the provider we use. It is not the provider the code knows about.
   without a deploy. API keys are secrets — encrypted, never returned.
 - Every call is written to `AiUsageLog` with tokens and cost. An AI feature whose
   spend cannot be attributed to an operation does not ship.
+- **OpenAI reasoning models (`gpt-6-luna`)** take different request parameters from the older ones, and
+  `openai.js` knows which is which from a `reasoning` flag on the model's `PRICING` row: they get
+  `reasoning_effort` (`OPENAI_REASONING_EFFORT`, `none` unless set) and a `temperature` only alongside
+  `none` — at any other effort OpenAI answers 400 to every temperature but the default. Thinking tokens
+  arrive inside `completion_tokens`, so they are billed and debited from a reader's wallet like output; that
+  is why chat does not think by default. A model used with this provider needs a `PRICING` row for its price
+  and its parameters. Tested in `test/ai-stream.test.js`; run live against `gpt-6-luna` and `gpt-4o-mini`
+  (stream and complete) on 2026-10-16.
+- **Saved settings beat `.env`, and are cached.** `ai.provider` / `ai.model.text` in `AppSetting` decide
+  before `AI_PROVIDER` / `*_MODEL` are read, so a database that still holds them ignores a changed `.env`;
+  change them on the admin Settings page (applies on the next call) or clear them. Switching the provider
+  without the model sends the old provider's model name to the new one.
+- **Gemini retires models without warning.** `gemini-2.0-flash`, `gemini-2.0-flash-lite` and `gemini-2.5-flash-lite` all
+  answered 404 on 2026-10-17; `gemini-3.5-flash-lite` works. A retired model saved on the Settings page is not corrected by
+  the `.env` default — chat keeps answering only because the engine chain below fails over to `AI_FALLBACK_MODEL`, at the
+  price of one wasted request a reply. The Ask Sakha page's **Answering with** card shows the chain.
+
+### OpenAI's free tokens, the engine chain and the token calculator
+
+OpenAI gives this organisation free tokens every day for sharing its API traffic with OpenAI (platform.openai.com →
+Settings → Data controls → Sharing). That page, read on 2026-10-17, lists two pools: **250,000 tokens a day** across
+`gpt-5.4`, `gpt-5.2`, `gpt-5.1`, `gpt-5`, `gpt-4.1`, `gpt-4o`, `o1`, `o3`, and **2,500,000 a day** across `gpt-5.4-mini`,
+`gpt-5.4-nano`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o-mini`, `o3-mini`, `o4-mini`. Past a
+pool OpenAI does not refuse — it bills the standard rate — and every other model is billed from the first token:
+**`gpt-6-luna` is not free.** The pools are shared by every project on the organisation. The page says only "tokens": the
+code adds input and output together and assumes the day ends at midnight UTC, which can only make it stop early.
+
+| File | Job |
+|---|---|
+| `utils/ai-free-tier.js` | **Pure.** The pools and which model is in which, the 90% stop (`SAFETY`), the models an admin may pick (`USABLE_MODELS`), which translation parts may move to a free model (`isSwappable`, `swapPlan`) and `FreeTierEnded` — `test/ai-free-tier.test.js` |
+| `services/ai/token-tally.js` | The token calculator, below |
+| `services/ai/free-tier.js` | The switch, and the one question every caller asks: `check('text' \| 'translation')` → a model, or `reason: 'off' \| 'spent'`. `status()` and `save()` serve the admin page |
+| `routes/admin/ai.js`, `controllers/admin/ai.js` | `GET /api/admin/ai/free-tier` (`ai.read`: the switch, the pools against today's count, the count model by model, what chat and translation would use right now) and `PUT` (`setting.write`: `{ enabled?, textModel?, translationModel? }`; a model outside `USABLE_MODELS` is a 400; audit action `ai.free-tier.update`). `GET /api/admin/chat/settings` also returns `engines` for the three purposes |
+
+- **The switch is off until an admin turns it on** (admin → AI usage → *Use OpenAI free tier*; `AppSetting`
+  `ai.free_tier.enabled`, with `ai.free_tier.text_model` and `ai.free_tier.translation_model`), so a database that has never
+  seen it behaves as before. It exists so data sharing can be switched off at OpenAI one day without a deploy.
+- **Only `gpt-4o-mini`, `gpt-4.1-mini` and `gpt-4.1-nano` are offered.** They are in the 2.5 M pool and take plain request
+  parameters; the `gpt-5.x` and `o` models in the pools want reasoning parameters `openai.js` has not been run with. Defaults:
+  `gpt-4o-mini` for chat, `gpt-4.1-mini` for translation (a saved model that is no longer offered reads as its default).
+- **The engine chain** (`resolveEngines` in `services/ai/index.js`). A call is tried on, in order: (1) the free-tier model,
+  while the switch is on and the pool has room — never for `purpose: 'advanced'`, so a paying reader's model does not depend
+  on the day's count; (2) the provider and model that are set (the Settings page, else `.env`); (3) OpenAI
+  `AI_FALLBACK_MODEL` (default `gpt-6-luna`, paid; blank turns it off). A repeat is dropped, and so is an OpenAI engine when
+  there is no `OPENAI_API_KEY`. Each engine has a `source` — `free-tier`, `settings`, `env`, `fallback` — and
+  `ai.describeChain(purpose)` returns the list as it would be tried right now; the admin pages show it (AI usage → *Right now*,
+  Ask Sakha → *Answering with*).
+- **Failing over.** `complete()` and `stream()` take the next engine when one errors — a retired model, a bad key, over quota,
+  a 5xx. A stream does so only while no text has reached the reader and nobody has stopped it; after that the error is thrown,
+  as before. **A call that hangs is not an error and is not failed over** — the providers set no timeout of their own, and a
+  call the caller aborts (its timeout, the reader's stop) never moves on. Every attempt is written to `AiUsageLog`, failed ones
+  with 0 tokens, and only a successful one is added to the tally. A free-tier call is logged with `costMicros` 0, so it is not
+  spend and does not draw on `AI_MONTHLY_BUDGET_MICROS`.
+- **The token calculator** (`services/ai/token-tally.js`) is a Redis hash `ai:tokens:<UTC day>`, fields
+  `<provider>|<model>|in|out|calls`, kept three days — one number for the API and the worker. Chat and the batch passes add to it
+  from `logUsage`, every lane of an admin translation run (any provider) from `jobs/processors/translation.js`. **It counts what
+  this app sent.** Other projects on the OpenAI organisation draw on the pools unseen and the command-line translation script
+  is not counted, which is why use stops at 90% of a pool (`capOf`); a flushed Redis starts the day from zero; a Redis that
+  cannot answer reads as empty, so a counter outage never stops a reply. One call can still cross the cap by its own size; the
+  margin covers it.
+- **Translation runs** are covered in "Translation runs" below: parts on the paid default move to the free model for an
+  attempt, every request re-checks, and a run that outlives the day's tokens is requeued onto the paid model.
+- **Privacy.** With the switch on, what readers write to Sakha and any picture they send goes to OpenAI and is shared under
+  that programme. With it off, chat can still reach OpenAI as the paid fallback when the set provider fails, unless
+  `AI_FALLBACK_MODEL` is blank. **Turn the switch off before turning data sharing off at OpenAI** — the free models are then
+  billed at their normal rates, and the switch would still prefer them to the paid default.
+- **Not verified:** that OpenAI really bills these calls at nothing — there is no API to read the free allowance, so watch the
+  Usage page at platform.openai.com after a day with the switch on. `gpt-4.1-mini` has not been tried on the Indic languages;
+  compare a chapter with `gpt-6-luna` before leaving it on for a whole language.
+- Tests: `test/ai-free-tier.test.js` (pure) and `test/translate-providers.test.js`; `scripts/chat-e2e.js` section 17 (the
+  chain, failing over, the switch, the tally, the audit rows — both providers faked) and `scripts/translation-e2e.js` section 9b
+  (the swap, the requeue, the tally). Under Node 20 run the unit files one at a time with `node --test <file>`.
 
 ### Cost rule: AI never runs on the request path
 
@@ -159,16 +244,20 @@ completions for anything that is really similarity matching. Cache in Redis.
 
 ## AI chat
 
-A streamed devotional assistant. Files, in the order a request meets them:
+Sakha, the streamed devotional friend readers know as **Ask Sakha** ("AI chat" is the internal name; the routes, the
+`chat` API path and the permission keep it). Files, in the order a request meets them:
 
 | File | Job |
 |---|---|
-| `routes/app/chat.js`, `controllers/app/chat.js` | Conversations CRUD, `status`, the two streaming endpoints (`messages`, `regenerate`), `compact`, `continue` |
+| `routes/app/chat.js`, `controllers/app/chat.js` | `status`, `current` (the one conversation the app opens), `images` (upload a picture), conversations CRUD, `DELETE /conversations` (clear everything), the two streaming endpoints (`messages`, `regenerate`), `compact`, `continue` |
+| `services/chat-images.js`, `utils/chat-image.js` | A picture sent to Sakha: whose an upload is until a message takes it (Redis), clearing the files away; and the pure part that checks, orients and re-encodes the bytes (`@napi-rs/canvas`) — `test/chat-image.test.js` |
 | `routes/admin/chat.js`, `controllers/admin/chat.js` | Persona and limits, per-plan allowance, wallets, grants (permission `chat.manage`) |
 | `services/ai/index.js` · `gemini.js` · `openai.js` · `sse.js` | `ai.stream()` / `ai.complete()` behind the provider interface; both providers stream and report usage |
 | `services/ai/tokens.js` | Local tokenizer (`js-tiktoken`, o200k) — an estimate for Gemini, so a 10% safety factor |
 | `services/ai-wallet.js` | The only writer of `AiWallet`, `AiWalletTransaction`, `AiDailyUsage` |
 | `utils/ai-credits.js`, `utils/chat-context.js` | The arithmetic and the prompt/compaction rules — **pure**, tested in `test/` |
+| `utils/chat-name.js` | The reader's first name and the `{name}` placeholder: `firstNameOf`, `fill`, `createFiller` (chunk-safe, for the stream) — **pure**, `test/chat-name.test.js` |
+| `utils/chat-errors.js` | What the stream's `error` event says: a fixed line and a `code` per failure, never the provider's or the server's own text — **pure**, `test/chat-errors.test.js` |
 | `services/chat-settings.js`, `config/chat.js` | Persona, description and limits (AppSetting) and their defaults |
 
 Rules worth knowing before changing it:
@@ -177,8 +266,62 @@ Rules worth knowing before changing it:
   `recentMessages` + the new message`. When the unsummarized history passes `recentMessages` messages or
   `compactAtTokens` tokens, the older part is folded into `contextSummary` by the *summary* model and
   `summarizedThroughSeq` moves up; those messages stay in the table (`summarized: true` in the API) and are
-  never sent again. The summary keeps name/preferences, interests and sampradaya leaning, practices and vows,
+  never sent again. The summary keeps preferences, interests and sampradaya leaning, practices and vows,
   open questions, and is cut to `summaryMaxTokens`. A cut always leaves a USER message first.
+- **A reply is fast because nothing slow stands in front of it, and the tidying happens after it.**
+  - **Compaction is a background task, never part of a reply.** After a reply has been settled and `done` sent,
+    `reply()` asks `context.planCompaction` (over the history *including* the answer just saved) whether the chat
+    now needs folding, and if so starts `compactInBackground` without awaiting it. The summary model is a slow call
+    (about a second) that used to delay every third reply; now the reader never waits for it. The stream therefore
+    carries no `status` event on a reply any more. The prompt window is bounded (`recentMessages`), so a quick
+    follow-up that arrives before the summary lands is still answered correctly — at worst it leaves out the two
+    oldest messages for that one turn.
+  - **One compaction at a time per conversation** (Redis NX lock `chat:compact:<conversationId>`, 90 s). The
+    background run skips when the lock is held (the one running covers it); the explicit **Tidy**
+    (`POST …/compact`) and **Start a new chat** (`POST …/continue`) wait up to 20 s for it, because the reader asked
+    and is waiting. The run re-reads the conversation inside the lock, so it never summarises a stale window. Redis
+    being down fails open, as for the reply lock.
+  - **It runs in this process, not in BullMQ**, on purpose: it is one cheap call, a summary that is lost to a
+    restart is simply made after the next reply, and `npm run test:chat` can see it. A background failure is logged
+    and never reaches the reader (a conversation cleared while it was summarising is the one expected case, P2025,
+    logged at debug); its tokens are still debited, the call having been made.
+  - **The reply path is parallel.** Persona, limits, the wallet and the history load together, and settling the
+    reply (answer row, conversation counters, wallet debit) runs together too; `aiWallet.statusFrom(opened, user)` builds the
+    meter from the wallet the reply already opened instead of reading it a second time. `logger.debug`
+    "chat reply timing" records `beforeStreamMs`, `firstTokenMs`, `streamMs` and `settleMs` for a reply.
+  - **Two cold-start costs are paid at boot or cached.** `services/ai/tokens.js` `warmUp()` builds the tokenizer
+    right after the server listens (it blocked the event loop for ~300 ms on the first reply of a process), and
+    `services/ai/index.js` remembers the month's AI spend for 20 s (`monthSpend`) — the sum scans the month's usage
+    rows whenever a monthly budget is set, and a limit that bites a few seconds late costs nothing a monthly budget
+    would notice.
+  - **Not done:** the provider call is not overlapped with the save of the new message (the two-step failure cases
+    were not worth a few milliseconds), and Node's `fetch` keep-alive (4 s) means a reader pausing longer than that
+    between messages pays a new TLS handshake to the provider; tuning that needs a dispatcher (`undici`) this
+    project does not depend on and cannot be measured against the fake provider.
+- **Sakha uses the reader's first name, and the name is never in a prompt** (`utils/chat-name.js`,
+  `NAME_GUIDANCE` in `config/chat.js`). The account name stays on the server; the model is told only to write the
+  literal token `{name}` where it would use the reader's first name, and the server fills the token in on the way
+  out.
+  - **The first name** is the first word of `User.name`, kept to letters, marks, joiners and `'’.-` (so nothing
+    that markdown, a link or the token itself would act on survives), at most 30 code points, or none at all when
+    there is no letter in it (`firstNameOf`). It is read from the already-loaded session user, not a query.
+  - **Where the token is filled**: while streaming (`createFiller` holds back a trailing `{`, `{n`, … `{name` until
+    it can tell whether a token is being written, so the app never sees half of one), in the saved message's
+    `done` payload and whenever a stored assistant message is presented (history, `current`, regenerate).
+    **The database holds the raw token**, which is what lets a reader who later changes their account name see the
+    new name in old messages, and what keeps the name out of every row.
+  - **Where it never goes**: the persona, the replayed history and the summariser's transcript all carry the token
+    unfilled, and the summariser is told that `{name}` is "not a fact to record". `NAME_GUIDANCE` is appended
+    only for a reader who has a usable first name (`buildSystem({ withName })`), and it tells the model not to
+    use the token inside a quotation, verse, heading, link or code block and never to explain it. A reader with
+    no usable name gets the token **removed**, with its comma, so the sentence still reads ("Hari Bol, {name}!" →
+    "Hari Bol!"). On the stream that tidy-up of the comma cannot be taken back, so a nameless reader's streamed text
+    may keep a stray comma that the saved message does not.
+  - **A name the reader types into the chat is their own words**, not account data: it can end up in the summary
+    like anything else they say, and if they ask to be called something else the model is told to do that.
+  - **Not an agent with a tool.** The alternatives were a tool call that fetches the name (a round trip to the
+    model before the first word) or sending the name and trusting the provider with it; the placeholder costs
+    nothing on the request path and keeps the name off the wire entirely.
 - **Everything costs from one wallet.** Chat replies and summaries both call `aiWallet.debit()` (source
   `CHAT` / `SUMMARIZATION`); any future AI feature uses `OTHER_AI_FEATURE`. The amount is the **provider's
   reported usage**. `ai.stream()` estimates it locally only when a stream is cut before the provider reports
@@ -200,8 +343,43 @@ Rules worth knowing before changing it:
 - **Hard limits**: `limits.maxMessages` and the plan's `conversationTokens` → 409 `CONVERSATION_LIMIT`;
   `POST …/continue` folds everything into the summary and starts a new chat with it.
 - **Token numbers never reach `/api/app/*`.** Only `/api/admin/chat/*` shows them.
-- `npm run test:chat` walks all of it (provider faked); `npm test` holds the pure rules.
-- Error messages shown to readers are English only for now (they are the server's, not ARB keys).
+- **A reader has one conversation.** The app opens `GET /chat/current` (the conversation with the latest activity, in the shape of `/conversations/:id`, or `null` before the first message — which creates one). The per-conversation routes and the list stay, for older app builds and for `continue`, which still starts a second chat carrying the summary when the first is full. **`DELETE /chat/conversations` clears the reader's chat**: every conversation, message, the `contextSummary` Sakha keeps, and the stored pictures; 204, or 409 while a reply is being written; credits spent are not returned. Account deletion (`deleteAccount` in `controllers/app/auth.js`) and the admin user delete (`controllers/admin/user.js`) remove the picture files too.
+- **Pictures** (`POST /chat/images`, then `imageKey` on `messages`). The request body is the **raw image bytes** (`Content-Type` image/jpeg, png or webp — a GIF, SVG or anything else is 422 `IMAGE_NOT_USABLE`), not multipart. `utils/chat-image.js` checks the header before decoding (`sniff`: format and size, so a "40 000 × 40 000" header is refused before it costs memory), applies the EXIF orientation, draws white behind transparency, scales to `imageMaxEdge` and **re-encodes as a JPEG** — metadata (location, time, device) is dropped by construction. The result is stored under `chat/images/` as an ordinary upload (a `temp/` key that moves to its permanent key when a message row saves it), and the key is **claimed in Redis for 24 hours** (`chat:image:<key>` → the reader's id, `services/chat-images.js`). A message may carry **one** `imageKey` or none; the key must be one this server issued for chat pictures, claimed by this reader, and unused — otherwise 422 `IMAGE_NOT_USABLE`, and another reader's key is refused **without being consumed**. A refused send (a 402 or 409 before the provider) does not consume the claim either; it is released after the message transaction. 403 `IMAGE_NOT_AVAILABLE` when `imageInput` is off, 413 `IMAGE_TOO_LARGE` (`IMAGE_UPLOAD_MAX_BYTES`, 8 MB). A message may be a picture alone; an image-only first message leaves the title "New chat".
+  - **Read before the row is saved.** Saving the message moves a fresh upload from `temp/` to its permanent key, so `reply()` reads the bytes **first** (`withPictures`) and builds the system prompt from what is really sent.
+  - **Only the newest picture goes to the model as pixels** (`buildMessages` in `utils/chat-context.js`): it is the one a follow-up is about, and an old one would cost its tokens again every turn. Earlier pictures become the text `[the person shared a picture here]` (`IMAGE_PLACEHOLDER`), as they do in the summariser's transcript. Regenerate and follow-ups reuse the newest picture. A picture whose file has gone from storage degrades to the placeholder instead of failing the chat.
+  - **`IMAGE_GUIDANCE` is appended to the persona only when a picture is really sent** (`buildSystem({ withImage })`), so an admin-edited persona never has to mention pictures, and a chat with pictures switched off, or a missing file, never has the persona describing a picture the model was not given. (The e2e caught this once: the note was added whenever a message *had* a picture.)
+  - **Cost**: a message with a picture carries `tokenCount = estimate(text) + IMAGE_TOKEN_ESTIMATE` (1200) for the pre-check and compaction; the wallet is debited the **provider's reported usage**, as for every reply. Gemini gets `inlineData` parts, OpenAI `image_url` data URLs (`services/ai/gemini.js`, `openai.js`; `services/ai/tokens.js` counts `imageKey` as `IMAGE_TOKEN_ESTIMATE`).
+  - **Admin limits** (`chat.limits`, the Ask Sakha page): `imageInput` (0 switches pictures off for everyone; text still works) and `imageMaxEdge` (256–4096, default 1280).
+  - A picture is **sent to the model provider**; the app says so on the attach sheet. It is stored until the chat is cleared, the conversation deleted or the account deleted.
+  - Migration `20261023000000_chat_message_image` adds `ChatMessage.imagePath` (nullable key). Apply it on every other environment.
+- **`services/s3.js` and tests**: with `NODE_ENV=test` and blank AWS keys, storage falls back to `backend/storage/` like development does, so `npm run test:chat` never touches the real bucket (it blanks the keys itself and removes every file it made).
+- `npm run test:chat` walks all of it over real HTTP (provider faked): the conversation, streaming, wallets and caps, compaction, the error codes, **section 15 for pictures** (upload, claim and ownership, what the provider is sent, one debit, deletion on clear / account delete / admin delete, switched off, a missing file), **section 6b for the background compaction** (the reply is not held up, the summary lands after `done`, one at a time per conversation, Tidy waits for the one under way) and **section 16 for the name** (the provider is never sent it, the stream and the saved message carry it, a reader with no name loses the token) — 183 assertions. It snapshots and restores the three chat `AppSetting` rows and removes its users and files. `npm test` holds the pure rules (`chat-context`, `chat-name`, `chat-image`, `ai-stream`, `chat-errors`, `ai-credits`).
+- **A failure never leaks its reason.** Once the stream has started, the `error` event is built by `forReader`
+  (`utils/chat-errors.js`): the chat's own errors (`CREDITS_EXHAUSTED`, `CHAT_NOT_AVAILABLE`, `CONVERSATION_LIMIT`,
+  `MESSAGE_TOO_LONG`, `NOTHING_TO_REGENERATE`) pass through as written, with their `details`; a provider failure
+  becomes a fixed line under `AI_BUSY`, `AI_UNAVAILABLE` (also a missing key, a wrong provider and a spent monthly
+  budget — the last one not retryable) or `AI_FAILED` (also bad output); anything else is `SERVER_ERROR`. The
+  provider's response body, a database message or a stack trace stays in the log. The line is English and only a last
+  resort for a client that does not know the code: **the app words every `code` itself from its ARB files**, in the
+  reader's language, and shows nothing the server wrote (`ChatProblemNotice`). A refusal before streaming (402, 409,
+  400) is an ordinary JSON error carrying the chat's own code.
+- **Sakha is a friend, not a disguise** (`config/chat.js`). The persona calls itself Sakha, is warm and direct, never
+  introduces itself as an "assistant", "chatbot" or "AI model", never claims a body, family or past, and answers
+  truthfully and briefly if someone sincerely asks whether it is a person. The description the app shows says in one
+  line that Sakha is a digital companion and can make mistakes. A prompt or description saved on the admin Ask Sakha
+  page **replaces** these defaults (clear the field and save to restore them).
+- **Sakha is for everyone, and shares Vaishnava bhakti by invitation** (`config/chat.js`). Its heart is Vaishnava
+  bhakti, but it **names no sampradaya** — not in the description readers see, and not in its answers ("as a Sri
+  Vaishnava…" is out); it never asks which tradition or religion someone belongs to and never says aloud what it has
+  guessed. It is never made to lie about it: asked sincerely what outlook it speaks from, it says Vaishnava bhakti.
+  With a Vaishnava of any line it speaks in that line's own terms; with everyone else it answers the question first,
+  starts from common ground and offers **at most one small next step** (a verse, a story, a few minutes of the holy
+  name), never in every reply. A decline is accepted at once. Pressure, fear, guilt, rewards, "your faith is lesser"
+  and conversion language are ruled out in the prompt, and so is bending a scripture or a fact to flatter
+  Vaishnavism; a person in distress is comforted and sold nothing. Wording is checked by `npm run test:chat`; whether
+  the model *follows* it has to be read in real conversations — the prompt is only an instruction.
+  **The summary memory still records "the tradition or sampradaya they lean towards"** (`summarizerRequest`) — that is
+  private to the prompt and lets Sakha speak in a person's own terms; the persona forbids saying it back.
 
 ## Subscriptions, donations and entitlement
 
@@ -256,6 +434,36 @@ webhooks and the daily job, and rebuildable from `Subscription` and `Payment`
 at any time. Read entitlement from `entitlement.compute`; never scatter
 subscription logic through controllers. `npm run test:subscriptions` walks the
 whole surface.
+
+### The four devotee plans
+
+The paid plans are the four kinds of devotee in Bhagavad-gita 7.16, above the `free` baseline. What they add is **Ask Sakha**
+(plus the ad-free and supporter-badge flags); the rest of the app stays free. They are data, so every number below is
+editable on the admin Plans and Ask Sakha pages once it exists — the seed (`prisma/seed/data.js`) and the migration
+`20261024000000_devotee_plans` hold the starting values and are **create-only**; change both together.
+
+| Plan | Tier | Month | Ask Sakha wallet | ≈ replies a month | Daily cap | Per chat |
+|---|---|---|---|---|---|---|
+| Free (*Sadhaka*) | 0 | — | 60,000 | 15 | 6,000 | 20,000 |
+| Ārta | 1 | ₹49 | 400,000 | 100 | 24,000 | 40,000 |
+| Jijñāsu | 2 | ₹99 | 1,000,000 | 250 | 60,000 | 80,000 |
+| Arthārthī | 3 | ₹199 | 2,000,000 | 500 | 120,000 | 100,000 |
+| Jñānī | 4 | ₹399 | 4,000,000 | 1,000 | 240,000 | 120,000 |
+
+- **Replies are the unit a reader sees.** `GET /subscription/plans` adds `sakha: { repliesPerMonth }` to each plan
+  (`presentSakha`: `repliesIn(walletTokens, TYPICAL_REPLY_TOKENS)`, 4,000 tokens a reply, rounded down to a multiple of 5 once
+  ≥ 10; `null` for a plan with no chat or a wallet that does not refill monthly). It is an estimate — a long answer or a
+  picture costs more — and **the plans response never carries a token figure** (`npm run test:subscriptions` checks the JSON for
+  the word). Paid plans are `MONTHLY` + `ADVANCED`; the wallet is 4,000 × the replies, so changing one means changing the other.
+- **Donors earn Jijñāsu** (`grantedToDonors`), the ₹99 plan. **Premium is retired, not deleted**: inactive, no longer granted to
+  donors, tier 2 — entitlement ignores `isActive` and its `AiPlanConfig` ("Bhakta", 800k) stays, so anyone who bought it keeps
+  access and their wallet until their period ends, and a donor wins the tie with an old Premium subscriber.
+- **Store products.** Each price is `<slug>_monthly` on both stores (`arta_monthly`, `jijnasu_monthly`, `artharthi_monthly`,
+  `jnani_monthly`). They must be created in the Play Console and App Store Connect at the matching price; until a store lists one
+  the app's Subscribe button is disabled, nothing breaks.
+- **Cost check.** The margins assume the current cheap default model, roughly ₹0.05–0.07 a reply; an expensive `ADVANCED` model
+  changes that and the allowances should be revisited.
+- **Names and descriptions are English-only** from the API (Devanagari term first), like every plan.
 
 **Payments are one ledger.** Subscriptions and donations both land in `Payment`,
 separated by `purpose`. They arrive the same way and reconcile the same way, so
@@ -324,7 +532,11 @@ it was chosen (`UserDailySloka.reason`, "Because you mentioned …") is no longe
   (`isDeliveryDue` in `utils/sloka-delivery.js`, pure; `npm test`). One window as wide as the run means every
   reader falls in exactly one run, including zones 15 or 45 minutes off UTC; so 04:30 is delivered at the
   first half hour at or after 04:30, and a time like 04:40 goes out at 05:00. `UserDailySloka.notifiedAt`
-  keeps a repeat run from sending twice. The setting is cached for 60 s.
+  keeps a repeat run from sending twice. The setting is cached for 60 s. The rows it loads run up to **UTC's
+  tomorrow**, not today: a reader east of UTC is on the next date for the first hours of their day (Kolkata
+  until 05:30), so bounding at UTC's today hid their 04:30 sloka until the window had passed and it was never
+  sent. `npm run test:sloka-deliver` runs the real `deliver()` with a faked clock for Kolkata, Kiritimati
+  and New York (blanks the AWS keys so the card is not stored in the real bucket).
 - **The same time for everyone.** The learned `UserPreferenceProfile.bestDeliveryHour` is **no longer read
   by delivery** (the profile still computes it). A per-reader time would be a different design — say so if it
   is wanted back. The old setting `sloka.delivery.default_hour` is removed by the migration
@@ -518,6 +730,21 @@ Rules worth knowing before changing it:
   in `GET /verses/:id/translations`. Use it, not `pick`, wherever a verse's meaning is chosen (`present.js`,
   the reel recipe). The app mirrors it in `BookRepository.pickTranslation`; `test/pick-translation.test.js`
   and the app's `pick_translation_test.dart` hold the same cases.
+
+## Reading language on a book call
+
+`GET /books/:slug/chapters/:number` and `GET /books/:slug/verses` take an optional `?languages=mr,en` (`schemas.languages`:
+up to three codes of two or three letters, reading language first). When present it **replaces the account's reading and
+app languages for that call** — `language.fromQuery` reads it, `language.withReadingLanguages(user, codes)` returns the user
+(or, for a signed-out caller, a bare object) with `readingLanguage = codes[0]` and `appLanguage = codes[1]`, and the controller
+uses that for the chain, `present.verses` and `present.section`. Favourites, highlights and notes still belong to the real
+account (`req.auth.user?.id`). Without it nothing changes, so older app builds keep working.
+
+**Why it exists.** The app changes its reading language on the phone at once and tells the account in a separate, later
+request (`PATCH /me/languages`), so a book call made in between was shaped by the language the reader had just left. Text a
+phone already holds from the export is picked on the phone and was never affected; this endpoint serves what it does not hold
+(a book not yet downloaded — on a laptop, the Gita, whose export has not been built there). The other book endpoints
+(`/chapters/bulk`, the lists) are not changed — the offline copy picks on the phone. `test/reading-languages.test.js`.
 
 ## Verse recitations
 
@@ -713,6 +940,18 @@ Things to know before changing it:
   - **FAILED** — something nobody foresaw. It gets `unknownRetries` (2) quiet retries first, then the message and
     the verse it stopped on are shown. Resume still works.
   Every verse saved to S3 stays saved, so a resumed run starts at the first verse that is not.
+- **OpenAI's free daily tokens come first, when the switch is on** (rules and numbers in "OpenAI's free tokens, the engine
+  chain and the token calculator" under AI). `execute` in the processor asks `freeTier.check('translation')` before it plans;
+  with room, `swapPlan` moves only the parts on the paid default — OpenAI, `gpt-6-luna` (the server's `service.model('openai')`),
+  thinking `off` — to the free translation model (`gpt-4.1-mini` unless the admin picked another). A part given to Claude,
+  Gemini, another model or a thinking level is never touched. The row keeps the plan that was asked for; the attempt runs,
+  and stamps each verse with, the plan it really used, so a verse's `aiTranslation` names the model that wrote it. Every
+  lane's request is counted in the token calculator, and a swapped lane re-checks the allowance **before each request**
+  (`countedAsk`) and is logged at $0, so the run's spending limit moves only on paid tokens. When the day's tokens run out,
+  or the switch goes off, the lane throws `FreeTierEnded`; the processor puts the run straight back in the queue and the next
+  attempt plans on the paid model, starting at the first verse not saved — a feed line says so. If a swapped part lands on
+  the model another part already uses, the two lanes become one and its `done` restarts from 0 on the bar (cosmetic).
+  `scripts/translation-e2e.js` section 9b walks it.
 - **One live run per language**, enforced twice: a Redis start-lock and a database check. A second start returns
   409 with `error.details.runId`, which the page turns into "Open that run".
 - **A worker that dies mid-run is handled.** The row is touched every `heartbeatMs` (5 s); BullMQ hands the stalled

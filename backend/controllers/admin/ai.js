@@ -12,6 +12,8 @@
 import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as ai from '../../services/ai/index.js';
+import * as freeTier from '../../services/ai/free-tier.js';
+import * as translations from '../../services/translation.js';
 import { queues } from '../../jobs/index.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
@@ -85,6 +87,40 @@ export const spend = async (req, res) => {
       outputTokens: row._sum.outputTokens || 0,
     })),
   });
+};
+
+// The free-tier switch as the panel shows it: the saved state, today's tally pool by pool and model by model, and what
+// chat and translations would use if they ran this moment — chat as the engines it would try in turn.
+async function freeTierState() {
+  const [status, chat, translation] = await Promise.all([freeTier.status(), ai.describeChain('text'), freeTier.check('translation')]);
+  const paidModel = translations.model('openai');
+  return {
+    ...status,
+    now: {
+      chat,
+      translation: { model: translation.model ?? paidModel, paidModel, onFreeTier: Boolean(translation.model), reason: translation.reason },
+    },
+  };
+}
+
+/** GET /api/admin/ai/free-tier */
+export const getFreeTier = async (req, res) => ok(res, await freeTierState());
+
+/** PUT /api/admin/ai/free-tier — the switch and the two models; a field left out is left alone. */
+export const saveFreeTier = async (req, res) => {
+  const before = await freeTier.status();
+  await freeTier.save(req.valid.body, req.auth.user.id);
+  const after = await freeTierState();
+
+  await audit.record(req, {
+    action: 'ai.free-tier.update',
+    entityType: 'AiFreeTier',
+    entityId: 'openai',
+    before: { enabled: before.enabled, models: JSON.stringify(before.models) },
+    after: { enabled: after.enabled, models: JSON.stringify(after.models) },
+  });
+
+  return ok(res, after);
 };
 
 /**

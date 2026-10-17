@@ -10,7 +10,8 @@ const badgeVariants = cva(
         default: 'border-transparent bg-primary/10 text-primary',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
         success: 'border-transparent bg-success/15 text-success',
-        warning: 'border-transparent bg-warning/20 text-warning-foreground',
+        // The foreground token is near-black in the dark theme, which on the amber tint is unreadable; the amber itself reads.
+        warning: 'border-transparent bg-warning/20 text-warning-foreground dark:text-warning',
         destructive: 'border-transparent bg-destructive/10 text-destructive',
         outline: 'border-border text-foreground',
       },

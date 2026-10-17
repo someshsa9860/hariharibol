@@ -216,6 +216,39 @@ class SadhanaToday {
   String? get chantMantraSlug => profile?.preferredMantraSlug ?? favoriteMantraSlug;
   String? get chantMantraName => profile?.preferredMantraName ?? favoriteMantraName;
 
+  /// This screen as it stands at the start of [newDate] (`yyyy-MM-dd`): the same
+  /// standing preferences, an empty day. For a copy saved on an earlier day —
+  /// yesterday's rounds are not today's. The run of days carries over only from
+  /// the day before; any longer and the days between were missed.
+  SadhanaToday carriedTo(String newDate) {
+    if (newDate == date) return this;
+
+    final saved = DateTime.tryParse(date);
+    final now = DateTime.tryParse(newDate);
+    final daysBetween = saved == null || now == null
+        ? null
+        : DateTime.utc(now.year, now.month, now.day)
+            .difference(DateTime.utc(saved.year, saved.month, saved.day))
+            .inDays;
+
+    return SadhanaToday(
+      date: newDate,
+      day: SadhanaDay(
+        roundTarget: profile?.dailyRoundTarget ?? day.roundTarget,
+        roundsCompleted: 0,
+        tasksTotal: 0,
+        tasksDone: 0,
+      ),
+      tasks: const [],
+      sessions: const [],
+      streak: daysBetween == 1 ? streak : 0,
+      beadsPerRound: beadsPerRound,
+      profile: profile,
+      favoriteMantraSlug: favoriteMantraSlug,
+      favoriteMantraName: favoriteMantraName,
+    );
+  }
+
   factory SadhanaToday.fromJson(Json json) => SadhanaToday(
         date: asString(json['date']),
         day: SadhanaDay.fromJson(asJson(json['day']) ?? const {}),

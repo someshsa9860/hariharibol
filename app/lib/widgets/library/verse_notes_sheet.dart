@@ -24,7 +24,8 @@ Future<void> showVerseNotesSheet(
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,
-    builder: (context) => _VerseNotesSheet(verseId: verseId, onCountChanged: onCountChanged),
+    builder: (context) =>
+        _VerseNotesSheet(verseId: verseId, onCountChanged: onCountChanged),
   );
 }
 
@@ -112,7 +113,9 @@ class _VerseNotesSheetState extends ConsumerState<_VerseNotesSheet> {
     return SafeArea(
       top: false,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.8),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+        ),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             AppSpacing.lg,
@@ -138,11 +141,14 @@ class _VerseNotesSheetState extends ConsumerState<_VerseNotesSheet> {
                   ),
                   data: (list) => list.isEmpty
                       ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.lg,
+                          ),
                           child: Text(
                             text.verseNoteEmpty,
-                            style: context.texts.bodyMedium
-                                ?.copyWith(color: context.colors.onSurfaceVariant),
+                            style: context.texts.bodyMedium?.copyWith(
+                              color: context.colors.onSurfaceVariant,
+                            ),
                           ),
                         )
                       : ListView.separated(
@@ -158,12 +164,18 @@ class _VerseNotesSheetState extends ConsumerState<_VerseNotesSheet> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: AppSizes.iconSm),
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      size: AppSizes.iconSm,
+                                    ),
                                     tooltip: text.actionEdit,
                                     onPressed: () => _startEdit(note),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline_rounded, size: AppSizes.iconSm),
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: AppSizes.iconSm,
+                                    ),
                                     tooltip: text.actionDelete,
                                     onPressed: () => _delete(note),
                                   ),

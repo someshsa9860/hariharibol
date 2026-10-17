@@ -8,7 +8,12 @@ import '../../l10n/generated/app_localizations.dart';
 /// joined line, because the word that joins them is different in every
 /// language. A count of zero is left out.
 class SectionCounts extends StatelessWidget {
-  const SectionCounts({super.key, this.cantos = 0, this.chapters = 0, this.verses = 0});
+  const SectionCounts({
+    super.key,
+    this.cantos = 0,
+    this.chapters = 0,
+    this.verses = 0,
+  });
 
   final int cantos;
   final int chapters;

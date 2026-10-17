@@ -54,6 +54,7 @@
   "tabSadhana": "Jap",
   "tabLibrary": "Read",
   "tabRoutine": "Routine",
+  "tabSakha": "Sakha",
   "reelsTitle": "Reels",
   "tabSearch": "Search",
   "homeGreeting": "Hari Bol",
@@ -450,6 +451,14 @@
       }
     }
   },
+  "plansSakhaReplies": "About {count} replies a month",
+  "@plansSakhaReplies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plansNoFeatures": "No extra benefits yet — more are on the way.",
   "plansRestoreDone": "Purchases restored.",
   "settingsPrivacy": "Privacy policy",
@@ -492,6 +501,7 @@
   "deleteAccountBody": "This removes your practice history, favourites and notifications. It cannot be undone.",
   "comingSoon": "Coming soon",
   "libraryNoBooks": "No books published yet.",
+  "libraryBookNotStarted": "Not started yet. Tap to begin.",
   "actionEdit": "Edit",
   "actionDelete": "Delete",
   "libraryDownloadBook": "Download for offline reading",
@@ -538,6 +548,7 @@
   "verseNoteEmpty": "No notes yet on this verse.",
   "verseNoteDeleteConfirm": "Delete this note?",
   "readingSettingsTitle": "Reading settings",
+  "readingContents": "Contents",
   "readingFontSizeLabel": "Text size",
   "readingFontSizeSmall": "Small",
   "readingFontSizeMedium": "Medium",
@@ -1055,25 +1066,21 @@
       }
     }
   },
-  "chatTitle": "AI assistant",
+  "chatTitle": "Ask Sakha",
   "@chatTitle": {
-    "description": "Title of the AI chat screen (the list of chats)."
+    "description": "Title of the Ask Sakha screen."
   },
-  "chatHomeTitle": "Ask the assistant",
+  "chatHomeTitle": "Ask Sakha",
   "@chatHomeTitle": {
-    "description": "Heading of the card on Home that opens the AI chat."
+    "description": "Heading of the card on Home that opens Ask Sakha."
   },
   "chatHomeBody": "Questions on scripture, mantras and your practice",
   "@chatHomeBody": {
-    "description": "Second line of the card on Home that opens the AI chat."
+    "description": "Second line of the card on Home that opens Ask Sakha."
   },
-  "chatNewChat": "New chat",
-  "@chatNewChat": {
-    "description": "Button and title for starting a new AI chat."
-  },
-  "chatIntroTitle": "Your devotional assistant",
+  "chatIntroTitle": "Your friend Sakha",
   "@chatIntroTitle": {
-    "description": "Heading of the introduction shown when there are no chats or messages yet."
+    "description": "Heading of the welcome shown when the chat has no messages yet."
   },
   "chatIntroHint": "Ask about a verse, a mantra or your practice.",
   "@chatIntroHint": {
@@ -1081,7 +1088,7 @@
   },
   "chatComposerHint": "Ask a question",
   "@chatComposerHint": {
-    "description": "Placeholder in the box where a question to the assistant is typed."
+    "description": "Placeholder in the box where a question to Sakha is typed."
   },
   "chatSend": "Send",
   "@chatSend": {
@@ -1141,33 +1148,33 @@
   },
   "chatNotAvailableTitle": "Chat is not part of your plan",
   "@chatNotAvailableTitle": {
-    "description": "Heading of the card shown when the reader's plan has no AI chat."
+    "description": "Heading of the card shown when the reader's plan has no Ask Sakha."
   },
-  "chatNotAvailableBody": "Upgrade your plan to ask the assistant your questions.",
+  "chatNotAvailableBody": "Upgrade your plan to ask Sakha your questions.",
   "@chatNotAvailableBody": {
-    "description": "Body of the card shown when the reader's plan has no AI chat."
+    "description": "Body of the card shown when the reader's plan has no Ask Sakha."
   },
   "chatExhaustedDailyTitle": "You have used today's credits",
   "@chatExhaustedDailyTitle": {
-    "description": "Heading of the card shown when the daily allowance of AI chat credits is used up."
+    "description": "Heading of the card shown when the daily allowance of Ask Sakha credits is used up."
   },
   "chatExhaustedDailyBody": "They refill at midnight. You can carry on then, or upgrade for more.",
   "@chatExhaustedDailyBody": {
-    "description": "Body of the card shown when the daily allowance of AI chat credits is used up."
+    "description": "Body of the card shown when the daily allowance of Ask Sakha credits is used up."
   },
   "chatExhaustedWalletTitle": "Your credits have run out",
   "@chatExhaustedWalletTitle": {
-    "description": "Heading of the card shown when the plan's AI chat credits are used up."
+    "description": "Heading of the card shown when the plan's Ask Sakha credits are used up."
   },
   "chatExhaustedWalletBody": "They renew with your plan. You can wait, or upgrade to keep going.",
   "@chatExhaustedWalletBody": {
-    "description": "Body of the card shown when the plan's AI chat credits are used up."
+    "description": "Body of the card shown when the plan's Ask Sakha credits are used up."
   },
   "chatShareUsedTitle": "This chat has used its share of credits",
   "@chatShareUsedTitle": {
     "description": "Heading of the card shown when one conversation has used the share of credits allowed to it."
   },
-  "chatShareUsedBody": "Start a new chat and the assistant will carry on from where you were.",
+  "chatShareUsedBody": "Start a new chat and Sakha will carry on from where you were.",
   "@chatShareUsedBody": {
     "description": "Body of the card shown when one conversation has used the share of credits allowed to it."
   },
@@ -1183,7 +1190,7 @@
   "@chatFullTitle": {
     "description": "Heading of the banner shown in place of the message box when a chat has reached its limit."
   },
-  "chatFullBody": "Start a new chat and the assistant will carry our conversation forward.",
+  "chatFullBody": "Start a new chat and Sakha will carry our conversation forward.",
   "@chatFullBody": {
     "description": "Body of the banner shown when a chat has reached its limit."
   },
@@ -1193,19 +1200,27 @@
   },
   "chatTidying": "Tidying our conversation…",
   "@chatTidying": {
-    "description": "Shown while the assistant folds older messages into a summary."
+    "description": "Shown while Sakha folds older messages into a summary."
   },
-  "chatTyping": "The assistant is writing",
+  "chatTyping": "Sakha is writing",
   "@chatTyping": {
     "description": "Spoken label of the three dots shown while a reply is awaited."
   },
-  "chatConnectionLost": "Connection lost. What arrived is kept above.",
+  "chatConnectionLost": "The connection was interrupted. Please try again.",
   "@chatConnectionLost": {
-    "description": "Shown under a reply that was cut off by a dropped connection, beside Try again."
+    "description": "Shown when the connection was cut while a reply was being written (or could not be kept), beside Try again."
   },
-  "chatReplyFailed": "The reply could not be finished.",
+  "chatReplyFailed": "Sakha could not finish that reply. Please try again.",
   "@chatReplyFailed": {
     "description": "Shown when the server could not finish writing a reply."
+  },
+  "chatOverloaded": "Sakha is busy right now. Please try again in a moment.",
+  "@chatOverloaded": {
+    "description": "Shown when Sakha's side is overloaded or a rate limit was reached; asking again in a moment usually works."
+  },
+  "chatUnavailable": "Sakha is not available right now. Please try again a little later.",
+  "@chatUnavailable": {
+    "description": "Shown when Sakha cannot answer for now: the server could not reach its provider, or a spending limit was reached. Only waiting helps."
   },
   "chatBusy": "Please wait for the current reply to finish.",
   "@chatBusy": {
@@ -1213,7 +1228,7 @@
   },
   "chatTooLong": "That message is too long. Please shorten it.",
   "@chatTooLong": {
-    "description": "Shown when a question is longer than the assistant accepts."
+    "description": "Shown when a question is longer than Sakha accepts."
   },
   "chatStopped": "Stopped",
   "@chatStopped": {
@@ -1235,7 +1250,7 @@
   "@chatShare": {
     "description": "Tooltip of the button that shares a reply."
   },
-  "chatRegenerate": "Regenerate",
+  "chatRegenerate": "Answer again",
   "@chatRegenerate": {
     "description": "Tooltip of the button that asks for the last reply again."
   },
@@ -1247,40 +1262,160 @@
   "@chatImageUnavailable": {
     "description": "Shown in place of an image in a reply that could not be loaded."
   },
-  "chatMoreActions": "More",
-  "@chatMoreActions": {
-    "description": "Tooltip of the three-dot menu on a chat."
+  "chatClearTooltip": "Clear chat",
+  "@chatClearTooltip": {
+    "description": "Tooltip and label of the button that clears the whole chat with Sakha."
   },
-  "chatMenuCompact": "Compact context",
-  "@chatMenuCompact": {
-    "description": "Menu item that folds older messages of a chat into a summary."
+  "chatClearTitle": "Clear this chat?",
+  "@chatClearTitle": {
+    "description": "Title of the confirmation before the chat with Sakha is cleared."
   },
-  "chatMenuRename": "Rename",
-  "@chatMenuRename": {
-    "description": "Menu item that renames a chat."
+  "chatClearBody": "Your messages and the replies Sakha gave are removed, and Sakha will not remember what we talked about. Credits already used are not returned.",
+  "@chatClearBody": {
+    "description": "Body of the confirmation before the chat is cleared. Clearing also wipes what Sakha remembers of the conversation."
   },
-  "chatRenameTitle": "Rename chat",
-  "@chatRenameTitle": {
-    "description": "Title of the dialog that renames a chat."
+  "chatClearConfirm": "Clear",
+  "@chatClearConfirm": {
+    "description": "Confirm button of the clear-chat dialog."
   },
-  "chatRenameHint": "Chat name",
-  "@chatRenameHint": {
-    "description": "Placeholder of the box in the rename dialog."
+  "chatCleared": "Chat cleared",
+  "@chatCleared": {
+    "description": "Brief message shown after the chat has been cleared."
   },
-  "chatDeleteTitle": "Delete this chat?",
-  "@chatDeleteTitle": {
-    "description": "Title of the confirmation before a chat is deleted."
+  "chatSuggestionsLabel": "Try asking",
+  "@chatSuggestionsLabel": {
+    "description": "Small heading above the suggestion cards on an empty chat."
   },
-  "chatDeleteBody": "The conversation is removed. Credits already used are not returned.",
-  "@chatDeleteBody": {
-    "description": "Body of the confirmation before a chat is deleted."
+  "chatStarter1Title": "A verse to live by",
+  "@chatStarter1Title": {
+    "description": "Title of the first suggestion card on an empty chat (a verse from the Gita)."
   },
-  "chatCompactDone": "Conversation tidied. Older messages are now summarised.",
-  "@chatCompactDone": {
-    "description": "Message after the reader compacts a chat and something was folded into the summary."
+  "chatStarter1Prompt": "Explain Bhagavad Gita 2.47 to me, about doing my duty without worrying about the result.",
+  "@chatStarter1Prompt": {
+    "description": "Question sent to Sakha when the first suggestion card is tapped. BG 2.47 is the verse on acting without attachment to results."
   },
-  "chatCompactNothing": "Nothing to tidy yet.",
-  "@chatCompactNothing": {
-    "description": "Message after the reader compacts a chat that has nothing worth folding."
+  "chatStarter2Title": "Begin chanting",
+  "@chatStarter2Title": {
+    "description": "Title of the second suggestion card on an empty chat."
+  },
+  "chatStarter2Prompt": "How do I begin chanting the Hare Krishna mahamantra, and how many rounds should I start with?",
+  "@chatStarter2Prompt": {
+    "description": "Question sent to Sakha when the second suggestion card is tapped. A round is one mala."
+  },
+  "chatStarter3Title": "A daily practice",
+  "@chatStarter3Title": {
+    "description": "Title of the third suggestion card on an empty chat."
+  },
+  "chatStarter3Prompt": "Suggest a simple daily sadhana I can keep, even on a busy day.",
+  "@chatStarter3Prompt": {
+    "description": "Question sent to Sakha when the third suggestion card is tapped. Sadhana is daily spiritual practice."
+  },
+  "chatStarter4Title": "When the mind is restless",
+  "@chatStarter4Title": {
+    "description": "Title of the fourth suggestion card on an empty chat."
+  },
+  "chatStarter4Prompt": "My mind feels restless. What do the scriptures say about finding peace?",
+  "@chatStarter4Prompt": {
+    "description": "Question sent to Sakha when the fourth suggestion card is tapped."
+  },
+  "chatStarter5Title": "A story to hear",
+  "@chatStarter5Title": {
+    "description": "Title of the fifth suggestion card on an empty chat."
+  },
+  "chatStarter5Prompt": "Tell me the story of Prahlada and what it teaches.",
+  "@chatStarter5Prompt": {
+    "description": "Question sent to Sakha when the fifth suggestion card is tapped."
+  },
+  "chatFollowUp1": "Explain simply",
+  "@chatFollowUp1": {
+    "description": "Quick reply chip under Sakha's answer. Tapping it sends this text as the next message."
+  },
+  "chatFollowUp2": "Give an example",
+  "@chatFollowUp2": {
+    "description": "Quick reply chip under Sakha's answer. Tapping it sends this text as the next message."
+  },
+  "chatFollowUp3": "Why does this matter?",
+  "@chatFollowUp3": {
+    "description": "Quick reply chip under Sakha's answer. Tapping it sends this text as the next message."
+  },
+  "chatFollowUp4": "How do I practise this?",
+  "@chatFollowUp4": {
+    "description": "Quick reply chip under Sakha's answer. Tapping it sends this text as the next message."
+  },
+  "chatAttach": "Add a picture",
+  "@chatAttach": {
+    "description": "Tooltip of the button beside the message box that adds a picture."
+  },
+  "chatAttachCamera": "Take a photo",
+  "@chatAttachCamera": {
+    "description": "Option in the add-a-picture sheet that opens the camera."
+  },
+  "chatAttachGallery": "Choose from your photos",
+  "@chatAttachGallery": {
+    "description": "Option in the add-a-picture sheet that opens the photo library."
+  },
+  "chatAttachNote": "The picture is shared with the service that helps write replies, and stays in this chat until you clear it.",
+  "@chatAttachNote": {
+    "description": "Privacy note at the foot of the add-a-picture sheet."
+  },
+  "chatImageRemove": "Remove picture",
+  "@chatImageRemove": {
+    "description": "Tooltip of the button that removes the picture waiting in the message box."
+  },
+  "chatImageUploading": "Adding picture…",
+  "@chatImageUploading": {
+    "description": "Shown on the picture in the message box while it is being uploaded."
+  },
+  "chatImageFailed": "The picture could not be added. Tap to try again.",
+  "@chatImageFailed": {
+    "description": "Shown on the picture in the message box when the upload did not go through."
+  },
+  "chatImageRejected": "That picture cannot be used. Please choose another.",
+  "@chatImageRejected": {
+    "description": "Shown when the server cannot use the picture: not readable as a picture, or too large."
+  },
+  "chatImageOff": "Pictures are not available on your plan.",
+  "@chatImageOff": {
+    "description": "Shown when the reader's plan or the settings have pictures switched off."
+  },
+  "chatImageSemantics": "Picture you sent",
+  "@chatImageSemantics": {
+    "description": "Screen-reader label of a picture inside the reader's own message."
+  },
+  "chatPictureDenied": "Allow access to your camera or photos in your phone's Settings to add a picture.",
+  "@chatPictureDenied": {
+    "description": "Shown when the reader has refused camera or photo access."
+  },
+  "chatMic": "Speak your question",
+  "@chatMic": {
+    "description": "Tooltip of the microphone button beside the message box."
+  },
+  "chatMicStop": "Stop listening",
+  "@chatMicStop": {
+    "description": "Tooltip of the microphone button while the phone is listening."
+  },
+  "chatListening": "Listening…",
+  "@chatListening": {
+    "description": "Shown in the message box while the phone is listening to the reader."
+  },
+  "chatMicDenied": "Allow the microphone and speech recognition in your phone's Settings to speak your question.",
+  "@chatMicDenied": {
+    "description": "Shown when the reader has refused microphone or speech recognition access."
+  },
+  "chatMicUnavailable": "Speaking is not available on this phone.",
+  "@chatMicUnavailable": {
+    "description": "Shown when the phone has no speech recogniser to use."
+  },
+  "chatMicNoSpeech": "Nothing was heard. Please try again.",
+  "@chatMicNoSpeech": {
+    "description": "Shown when listening ended without any words."
+  },
+  "chatMicFailed": "Listening stopped. Please try again.",
+  "@chatMicFailed": {
+    "description": "Shown when the phone's speech recogniser gave up part-way."
+  },
+  "chatJumpToLatest": "Latest",
+  "@chatJumpToLatest": {
+    "description": "Label of the button that scrolls the chat back down to the newest message."
   }
 }

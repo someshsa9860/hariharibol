@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +12,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'providers/locale_provider.dart';
 import 'providers/routine_sync_provider.dart';
 import 'providers/theme_provider.dart';
+import 'services/api_client.dart';
 import 'widgets/push/push_foreground.dart';
 
 /// The root widget.
@@ -17,7 +20,9 @@ import 'widgets/push/push_foreground.dart';
 /// It builds the router once — rebuilding it would reset the whole navigation
 /// stack — and hands the theme, the localisations and the messenger key to
 /// `MaterialApp`. Nothing else lives here (`PushForeground` draws a push that
-/// arrives while the app is open, so it wraps every screen).
+/// arrives while the app is open, so it wraps every screen), apart from one
+/// errand: when the app opens or comes back to the front, an access token that
+/// is a day old is swapped for a new one (see `ApiClient.renewAccessTokenIfDue`).
 class HariHariBolApp extends ConsumerStatefulWidget {
   const HariHariBolApp({super.key});
 
@@ -25,7 +30,7 @@ class HariHariBolApp extends ConsumerStatefulWidget {
   ConsumerState<HariHariBolApp> createState() => _HariHariBolAppState();
 }
 
-class _HariHariBolAppState extends ConsumerState<HariHariBolApp> {
+class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBindingObserver {
   late final GoRouter _router = createRouter();
 
   @override
@@ -34,6 +39,24 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> {
     // Starts the routine's sync with the account (nothing, until someone is
     // signed in).
     ref.read(routineSyncerProvider);
+
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(ApiClient.instance.renewAccessTokenIfDue());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // A phone can sit in a pocket for days; the first thing it does on waking
+    // is renew, so the first screen never meets an expired token.
+    if (state == AppLifecycleState.resumed) {
+      unawaited(ApiClient.instance.renewAccessTokenIfDue());
+    }
   }
 
   @override

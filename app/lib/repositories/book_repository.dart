@@ -82,7 +82,7 @@ class BookRepository {
       if (fetched != null) return fetched;
     }
 
-    return _api.chapter(slug, number, canto: canto);
+    return _api.chapter(slug, number, canto: canto, languages: chain);
   }
 
   Future<ChapterReading?> readChapterLocal(
@@ -138,7 +138,7 @@ class BookRepository {
   /// if the network is the problem. Short works are not in the weekly export.
   Future<List<Verse>> shortWork(String slug, {required List<String> chain}) async {
     try {
-      final verses = await _api.verses(slug);
+      final verses = await _api.verses(slug, languages: chain);
       unawaited(saveShortWork(verses).catchError((_) {}));
       return verses;
     } catch (_) {

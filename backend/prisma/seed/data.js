@@ -802,6 +802,17 @@ const stories = [
 // ones created in the Play Console and App Store Connect — edit them in the
 // panel (Plans) once the products exist. Seeded once and never overwritten:
 // after that the panel is the source of truth.
+//
+// The paid plans are the four kinds of devotee of Bhagavad-gita 7.16 — ārta,
+// jijñāsu, arthārthī, jñānī. They differ in how much Ask Sakha they give, which
+// is the whole of what a plan adds: the app itself is free. Migration
+// 20261024000000_devotee_plans inserts the same rows on a database that already
+// exists (production runs `migrate deploy`, not the seed), so change both together.
+
+const monthly = (productId, priceMinor) => [
+  { provider: 'GOOGLE_PLAY', productId, priceMinor, currency: 'INR', periodDays: 30 },
+  { provider: 'APPLE_APP_STORE', productId, priceMinor, currency: 'INR', periodDays: 30 },
+];
 
 const plans = [
   {
@@ -814,46 +825,66 @@ const plans = [
     prices: [],
   },
   {
-    slug: 'premium',
-    name: 'Premium',
-    description: 'Supports the project, and adds a few extras on top of everything that is already free.',
+    slug: 'arta',
+    name: 'Ārta',
+    description: 'आर्त · For a hard time. Steady company in Sakha when the heart is heavy.',
     tier: 1,
+    isActive: true,
+    prices: monthly('arta_monthly', 4900),
+  },
+  {
+    slug: 'jijnasu',
+    name: 'Jijñāsu',
+    description: 'जिज्ञासु · For the seeker. More room to ask, to understand and to go deeper into the verses.',
+    tier: 2,
+    // A donation of any amount earns this one for good, as Premium did.
     grantedToDonors: true,
     isActive: true,
-    prices: [
-      { provider: 'GOOGLE_PLAY', productId: 'premium_monthly', priceMinor: 9900, currency: 'INR', periodDays: 30 },
-      { provider: 'APPLE_APP_STORE', productId: 'premium_monthly', priceMinor: 9900, currency: 'INR', periodDays: 30 },
-    ],
+    prices: monthly('jijnasu_monthly', 9900),
+  },
+  {
+    slug: 'artharthi',
+    name: 'Arthārthī',
+    description: 'अर्थार्थी · For the one who prays for a good life. Sakha beside you through work, family and the goals you pray for.',
+    tier: 3,
+    isActive: true,
+    prices: monthly('artharthi_monthly', 19900),
+  },
+  {
+    slug: 'jnani',
+    name: 'Jñānī',
+    description: 'ज्ञानी · For the one who worships out of love and understanding. The fullest allowance, for a daily practice of study and conversation.',
+    tier: 4,
+    isActive: true,
+    prices: monthly('jnani_monthly', 39900),
   },
 ];
 
 // ── AI chat allowances ─────────────────────────────────────────────────────
-// What each plan gets in the chat, under a devotee-level name. Proposed names — the
-// admin panel's AI chat page renames them. Tokens are never shown to readers.
+// What each plan gets in the chat, under a devotee-level name. Proposed numbers — the
+// admin panel's Ask Sakha page changes them. Tokens are never shown to readers: the app
+// is told "about N replies a month", worked out from the wallet at TYPICAL_REPLY_TOKENS
+// (4,000, config/chat.js), so walletTokens below is 4,000 × replies.
+//
+//   plan       price   replies/mo   wallet     daily cap    one chat
+//   free       —            15        60,000      6,000       20,000
+//   arta       ₹49         100       400,000     24,000       40,000
+//   jijnasu    ₹99         250     1,000,000     60,000       80,000
+//   artharthi  ₹199        500     2,000,000    120,000      100,000
+//   jnani      ₹399      1,000     4,000,000    240,000      120,000
+//
 // Seeded once, like plans. A plan with no row here uses the free plan's.
 const aiPlanConfigs = [
-  {
-    planSlug: 'free',
-    levelName: 'Jigyasu',
-    dailyTokens: 6000,
-    walletTokens: 60000,
-    renewal: 'MONTHLY',
-    conversationTokens: 20000,
-    modelTier: 'BASIC',
-  },
-  {
-    planSlug: 'premium',
-    levelName: 'Bhakta',
-    dailyTokens: 40000,
-    walletTokens: 800000,
-    renewal: 'MONTHLY',
-    conversationTokens: 80000,
-    modelTier: 'ADVANCED',
-  },
+  { planSlug: 'free', levelName: 'Sadhaka', dailyTokens: 6000, walletTokens: 60000, renewal: 'MONTHLY', conversationTokens: 20000, modelTier: 'BASIC' },
+  { planSlug: 'arta', levelName: 'Arta', dailyTokens: 24000, walletTokens: 400000, renewal: 'MONTHLY', conversationTokens: 40000, modelTier: 'ADVANCED' },
+  { planSlug: 'jijnasu', levelName: 'Jijnasu', dailyTokens: 60000, walletTokens: 1000000, renewal: 'MONTHLY', conversationTokens: 80000, modelTier: 'ADVANCED' },
+  { planSlug: 'artharthi', levelName: 'Artharthi', dailyTokens: 120000, walletTokens: 2000000, renewal: 'MONTHLY', conversationTokens: 100000, modelTier: 'ADVANCED' },
+  { planSlug: 'jnani', levelName: 'Jnani', dailyTokens: 240000, walletTokens: 4000000, renewal: 'MONTHLY', conversationTokens: 120000, modelTier: 'ADVANCED' },
 ];
 
 // A few starting benefits. More arrive as features are built — each is a row
 // here (or added from the panel) plus values on the plans.
+const paid = { enabled: true };
 const features = [
   {
     key: 'ads.removed',
@@ -861,7 +892,7 @@ const features = [
     description: 'No advertising anywhere in the app.',
     kind: 'FLAG',
     sortOrder: 10,
-    values: { free: { enabled: false }, premium: { enabled: true } },
+    values: { free: { enabled: false }, arta: paid, jijnasu: paid, artharthi: paid, jnani: paid },
   },
   {
     key: 'supporter.badge',
@@ -869,7 +900,7 @@ const features = [
     description: 'A badge on your profile.',
     kind: 'FLAG',
     sortOrder: 20,
-    values: { free: { enabled: false }, premium: { enabled: true } },
+    values: { free: { enabled: false }, arta: paid, jijnasu: paid, artharthi: paid, jnani: paid },
   },
 ];
 

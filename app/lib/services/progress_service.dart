@@ -11,10 +11,18 @@ class ProgressService {
 
   final ApiClient _api = ApiClient.instance;
 
-  Future<void> save(String verseId, {int? versesRead}) => _api.put(
-        ApiPaths.progress,
-        body: {'verseId': verseId, 'versesRead': ?versesRead},
-      );
+  // `async` and `await`, not an arrow returning the request: the callers end
+  // with `.catchError((_) {})`, which throws an ArgumentError at run time when
+  // the future underneath is really a `Future<ApiResponse>` and the handler
+  // returns nothing — a failed save would become an uncaught error.
+  Future<void> save(String verseId, {int? versesRead}) async {
+    await _api.put(
+      ApiPaths.progress,
+      body: {'verseId': verseId, 'versesRead': ?versesRead},
+    );
+  }
 
-  Future<void> reset(String bookId) => _api.delete(ApiPaths.progressForBook(bookId));
+  Future<void> reset(String bookId) async {
+    await _api.delete(ApiPaths.progressForBook(bookId));
+  }
 }

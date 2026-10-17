@@ -79,5 +79,12 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Speaking a message to Sakha uses the phone's own speech service
+             (speech_to_text). From Android 11 the app must ask to see it. The
+             camera needs no permission here: the picture is taken by the
+             camera app, through an intent. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
     </queries>
 </manifest>

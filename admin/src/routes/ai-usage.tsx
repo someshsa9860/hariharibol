@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
 import { DetailDialog } from '@/components/detail-dialog';
+import { AiFreeTierCard } from '@/components/ai-free-tier-card';
 import { useResource, useResourceMutation } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { formatDate, formatMicros } from '@/lib/utils';
@@ -46,7 +47,7 @@ export function AiUsagePage() {
   const columns: Column<UsageRow>[] = [
     { key: 'operation', header: 'Operation', sort: 'operation', fixed: true, csv: (r) => r.operation, render: (r) => r.operation },
     { key: 'provider', header: 'Provider', csv: (r) => r.provider, render: (r) => <Badge variant="outline">{r.provider}</Badge> },
-    { key: 'model', header: 'Model', csv: (r) => r.model, defaultHidden: true, render: (r) => r.model },
+    { key: 'model', header: 'Model', csv: (r) => r.model, render: (r) => <span className="font-mono text-xs">{r.model}</span> },
     { key: 'input', header: 'Tokens in', sort: 'inputTokens', csv: (r) => r.inputTokens, defaultHidden: true, render: (r) => r.inputTokens.toLocaleString() },
     { key: 'output', header: 'Tokens out', sort: 'outputTokens', csv: (r) => r.outputTokens, defaultHidden: true, render: (r) => r.outputTokens.toLocaleString() },
     // Micros are millionths of a dollar; the CSV keeps the raw integer so a spreadsheet can sum it exactly.
@@ -72,7 +73,9 @@ export function AiUsagePage() {
 
   return (
     <div>
-      <PageHeader title="AI usage" description="Spend is bounded by the corpus, not by user count — every call is logged." />
+      <PageHeader title="AI usage" description="Which model answers, OpenAI’s free daily tokens, and what every call cost — spend is bounded by the corpus, not by user count." />
+
+      <AiFreeTierCard />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

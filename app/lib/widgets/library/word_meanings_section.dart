@@ -16,7 +16,11 @@ import 'collapsible_section.dart';
 /// A verse with no word-for-word gets nothing at all — not a heading over an
 /// empty list.
 class WordMeaningsSection extends ConsumerWidget {
-  const WordMeaningsSection({super.key, required this.words, required this.fontScale});
+  const WordMeaningsSection({
+    super.key,
+    required this.words,
+    required this.fontScale,
+  });
 
   final List<WordMeaning> words;
   final double fontScale;
@@ -28,10 +32,14 @@ class WordMeaningsSection extends ConsumerWidget {
     return CollapsibleSection(
       label: AppLocalizations.of(context).verseWordMeanings,
       expanded: ref.watch(wordMeaningsOpenProvider),
-      onToggle: () => ref.read(wordMeaningsOpenProvider.notifier).set(!ref.read(wordMeaningsOpenProvider)),
+      onToggle: () => ref
+          .read(wordMeaningsOpenProvider.notifier)
+          .set(!ref.read(wordMeaningsOpenProvider)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [for (final word in words) _WordRow(word: word, fontScale: fontScale)],
+        children: [
+          for (final word in words) _WordRow(word: word, fontScale: fontScale),
+        ],
       ),
     );
   }
@@ -64,7 +72,13 @@ class _WordRow extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: Text(sanskrit, style: AppTypography.transliteration(context, scale: fontScale)),
+                    child: Text(
+                      sanskrit,
+                      style: AppTypography.transliteration(
+                        context,
+                        scale: fontScale,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(flex: 3, child: meaning),

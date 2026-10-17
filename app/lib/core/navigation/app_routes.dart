@@ -14,6 +14,9 @@ abstract final class AppRoutes {
   static const String home = '/home';
   static const String sadhana = '/sadhana';
   static const String library = '/library';
+
+  /// The day's tasks. Pushed from Home — it was a tab until Reels took the
+  /// place, and is a screen of its own with a back button now.
   static const String routine = '/routine';
 
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
@@ -79,9 +82,8 @@ abstract final class AppRoutes {
   static const String chantSessionPattern = '/chant/sessions/:id';
   static String chantSessionPath(String id) => '/chant/sessions/$id';
 
-  /// Reels. Pushed from the nav bar's action circle rather than a tab — the
-  /// one thing worth reaching from anywhere, same treatment [chant] used to
-  /// get before Jap became a tab of its own.
+  /// The reels feed — a tab, the third of the bar. It runs under the bar, which
+  /// turns dark over it. A single reel ([reelPattern]) is pushed over the tabs.
   static const String reels = '/reels';
 
   /// One reel on its own — what a share link and a push notification open.
@@ -97,15 +99,15 @@ abstract final class AppRoutes {
   static const String creatorPattern = '/creators/:id';
   static String creatorPath(String id) => '/creators/$id';
 
-  /// The assistant. The list of chats, one chat, and a chat not started yet —
-  /// `/chat/new` is the same screen as `/chat/:id` with nothing to load, and
-  /// the conversation is made when the first message is sent.
+  /// Ask Sakha. A reader has one chat: this opens it, or an empty one whose
+  /// conversation is made on the server when the first message is sent. Opened
+  /// by the raised button in the middle of the bar, and pushed rather than a
+  /// tab: a composer and a keyboard cannot share the bottom with a bar.
   static const String chat = '/chat';
-  static const String chatNew = '/chat/new';
-  static const String chatPattern = '/chat/:id';
-  static String chatPath(String id) => '/chat/$id';
 
-  static const List<String> tabs = [home, sadhana, library, routine];
+  /// The shell's branches, left to right in the bar. Sakha's button stands
+  /// between the second and the third.
+  static const List<String> tabs = [home, sadhana, reels, library];
 }
 
 /// Route names, for `goNamed` calls where a path would need building.
@@ -133,6 +135,5 @@ abstract final class RouteNames {
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';
   static const String creatorProfile = 'creatorProfile';
-  static const String chatList = 'chatList';
-  static const String chatDetail = 'chatDetail';
+  static const String chat = 'chat';
 }

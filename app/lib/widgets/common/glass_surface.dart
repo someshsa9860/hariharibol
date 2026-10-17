@@ -23,6 +23,7 @@ class GlassSurface extends StatelessWidget {
     this.radius = 0,
     this.blur = 10,
     this.opacity,
+    this.tint,
     this.border,
     this.shadows,
   });
@@ -40,6 +41,10 @@ class GlassSurface extends StatelessWidget {
   /// heavier in dark mode, where a thin tint over black still reads as clear.
   final double? opacity;
 
+  /// The colour the glass is tinted with. The theme's surface unless given —
+  /// a bar laid over a video wants a dark tint in either theme.
+  final Color? tint;
+
   /// Drawn as part of the shape itself, not a separate decoration.
   final BorderSide? border;
 
@@ -50,7 +55,7 @@ class GlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.theme.brightness == Brightness.dark;
-    final tint = opacity ?? (isDark ? 0.34 : 0.42);
+    final strength = opacity ?? (isDark ? 0.34 : 0.42);
 
     final panel = LiquidGlass.withOwnLayer(
       shape: LiquidRoundedSuperellipse(
@@ -60,7 +65,7 @@ class GlassSurface extends StatelessWidget {
       settings: LiquidGlassSettings(
         thickness: 22,
         blur: blur,
-        glassColor: context.colors.surface.withValues(alpha: tint),
+        glassColor: (tint ?? context.colors.surface).withValues(alpha: strength),
         lightIntensity: isDark ? 0.35 : 0.6,
         saturation: 1.4,
       ),

@@ -19,10 +19,14 @@ import 'package:hariharibol/l10n/generated/app_localizations.dart';
 const _l10nDir = 'lib/l10n';
 
 /// Keys whose text is a name or a code that is written the same in every
-/// language. Empty on purpose: "HariHariBol" and texts made only of placeholders
-/// and punctuation never need an entry. Add a key only when the "still English"
-/// check below is wrong about it.
-const _sameInEveryLanguage = <String>{};
+/// language. Nearly empty on purpose: "HariHariBol" and texts made only of
+/// placeholders and punctuation never need an entry. Add a key only when the
+/// "still English" check below is wrong about it.
+const _sameInEveryLanguage = <String>{
+  // Sakha's name alone, under the raised button of the bar. The app keeps it in
+  // Latin letters in every language (see "AI chat" in app/CLAUDE.md).
+  'tabSakha',
+};
 
 typedef _Arb = Map<String, dynamic>;
 

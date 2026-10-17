@@ -87,11 +87,14 @@ function responsesFor(entry) {
   }
 
   // The failures every route can produce, so each one does not have to list them.
+  // Not being signed in is a 403 too (code UNAUTHENTICATED), so one response
+  // covers it and a missing permission.
   if (!entry.meta.public) {
-    responses[401] = { $ref: '#/components/responses/Unauthorized' };
-    if (entry.meta.permission) {
-      responses[403] = { $ref: '#/components/responses/Forbidden' };
-    }
+    responses[403] = {
+      $ref: entry.meta.permission
+        ? '#/components/responses/ForbiddenOrUnauthenticated'
+        : '#/components/responses/Unauthenticated',
+    };
   }
   if (entry.meta.limit) {
     responses[429] = { $ref: '#/components/responses/RateLimited' };
@@ -192,10 +195,16 @@ function build() {
         bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       },
       responses: {
-        Unauthorized: {
-          description: 'Missing, expired or invalid access token. Refresh and retry.',
+        Unauthenticated: {
+          description:
+            'Missing, expired or invalid access token (error code `UNAUTHENTICATED`). ' +
+            'Refresh and retry; a 403 from the refresh itself means the session is over.',
         },
-        Forbidden: { description: 'Signed in, but this account lacks the required permission.' },
+        ForbiddenOrUnauthenticated: {
+          description:
+            'Error code `UNAUTHENTICATED`: missing, expired or invalid access token — refresh and ' +
+            'retry. Error code `FORBIDDEN`: signed in, but this account lacks the required permission.',
+        },
         RateLimited: { description: 'Too many requests. Back off and retry.' },
         ServerError: { description: 'Something went wrong on our side.' },
       },

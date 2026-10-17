@@ -38,17 +38,22 @@ class AppSession extends ChangeNotifier {
   AppUser? get user => _user;
   String? get accessToken => _pair?.accessToken;
   String? get refreshToken => _pair?.refreshToken;
+  AuthTokens? get tokens => _pair;
 
   /// Reads what was persisted. Called once from `main()`.
   ///
   /// A stored pair is trusted without a network round trip — the first API call
   /// will refresh it if the access token has aged out. Launch is not the place
   /// to block on the network.
+  ///
+  /// Nothing here signs anyone out on a guess. Not a failed call, not a phone
+  /// clock that says the refresh token has run out: the only thing that ends a
+  /// session is the server answering a refresh with 403 (see `ApiClient`).
   Future<void> restore() async {
     final stored = await _tokens.read();
     final cached = LocalStore.instance.readJson(BoxKeys.user);
 
-    if (stored == null || stored.isEmpty || stored.refreshLooksExpired) {
+    if (stored == null || stored.isEmpty) {
       if (stored != null) await _tokens.clear();
       _setSignedOut();
       return;
@@ -86,7 +91,7 @@ class AppSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sign-out, and what a dead refresh token forces.
+  /// Sign-out, and what the server refusing a refresh with 403 forces.
   ///
   /// Clearing storage is deliberately not conditional on the network call that
   /// preceded it having worked: if the server could not be told, the tokens
@@ -94,6 +99,10 @@ class AppSession extends ChangeNotifier {
   Future<void> clear() async {
     await _tokens.clear();
     await LocalStore.instance.delete(BoxKeys.user);
+    // The Jap tab's saved copies are this account's own.
+    await LocalStore.instance.deleteWithPrefix(BoxKeys.sadhanaCachePrefix);
+    // So is where they had got to in each book.
+    await LocalStore.instance.delete(BoxKeys.readingPlaces);
     _setSignedOut();
   }
 

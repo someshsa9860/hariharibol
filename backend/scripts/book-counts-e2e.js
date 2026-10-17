@@ -205,7 +205,7 @@ async function main() {
 
     // ── 6 ───────────────────────────────────────────────────────────────────
     console.log('\n6. Edges');
-    check('signed out is 401', (await call('POST', `/api/admin/books/${book.id}/recount`)).status === 401);
+    check('signed out is 403', (await call('POST', `/api/admin/books/${book.id}/recount`)).status === 403);
     // Prisma logs its own "No record was found" above this line; that is the error being asked for.
     check('an unknown book is an error rather than a quiet nothing', await recountBook('no-such-book').then(() => false, () => true));
   } finally {

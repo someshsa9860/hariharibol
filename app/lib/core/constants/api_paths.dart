@@ -37,13 +37,13 @@ abstract final class ApiPaths {
   static const String routine = '$_app/routine';
   static const String routineSync = '$_app/routine/sync';
 
-  // AI chat
+  // Ask Sakha (the chat)
   static const String chatStatus = '$_app/chat/status';
+  static const String chatCurrent = '$_app/chat/current';
+  static const String chatImages = '$_app/chat/images';
   static const String chatConversations = '$_app/chat/conversations';
-  static String chatConversation(String id) => '$_app/chat/conversations/$id';
   static String chatMessages(String id) => '$_app/chat/conversations/$id/messages';
   static String chatRegenerate(String id) => '$_app/chat/conversations/$id/regenerate';
-  static String chatCompact(String id) => '$_app/chat/conversations/$id/compact';
   static String chatContinue(String id) => '$_app/chat/conversations/$id/continue';
 
   // Library

@@ -22,6 +22,9 @@ import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import { translation } from '../../config/translation.js';
 import * as service from '../../services/translation.js';
+import * as freeTier from '../../services/ai/free-tier.js';
+import * as tally from '../../services/ai/token-tally.js';
+import { FreeTierEnded, isSwappable, swapPlan } from '../../utils/ai-free-tier.js';
 import { ConfigError, FINISHED_STATUSES, classifyError, microsOf, usdOf } from '../../utils/translation-run.js';
 
 import { createAsk, providerOf } from '../../scripts/lib/translate-providers.js';
@@ -222,10 +225,53 @@ function makeContext(row, job) {
 
 /* ---------- one attempt ---------- */
 
+// A lane's ask, counted in the token calculator (services/ai/token-tally.js) under the provider and model it ran on. A
+// lane that was moved to OpenAI's free model also asks, before every call, whether there are still free tokens
+// (services/ai/free-tier.js) — and costs nothing while there are.
+function countedAsk(ask, lane, onFreeTier) {
+  const count = (usage) => tally.record({
+    provider: lane.provider,
+    model: lane.model,
+    inputTokens: (usage?.inputTokens ?? 0) + (usage?.cacheReadTokens ?? 0) + (usage?.cacheWriteTokens ?? 0),
+    outputTokens: usage?.outputTokens ?? 0,
+  });
+  return async (request) => {
+    if (onFreeTier) {
+      const now = await freeTier.check('translation');
+      if (!now.model) throw new FreeTierEnded(now.reason);
+    }
+    try {
+      const result = await ask(request);
+      await count(result.usage);
+      return onFreeTier ? { ...result, costUsd: 0 } : result;
+    } catch (err) {
+      if (err?.usage) {
+        await count(err.usage); // a call that was paid for and gave nothing used the tokens too
+        if (onFreeTier) err.costUsd = 0;
+      }
+      throw err;
+    }
+  };
+}
+
+const sameParts = (a, b) => a.length === b.length && a.every((part) => b.includes(part));
+
 async function execute(ctx, entry, deps) {
   const { row, state } = ctx;
-  const plan = service.planOfRow(row);
+  const requested = service.planOfRow(row);
+
+  // OpenAI's free daily tokens (admin → AI usage): while there are some, the parts that asked for the paid default
+  // model are written by the free one. The row keeps the plan that was asked for; this attempt runs, and stamps the
+  // verses it saves with, the plan it really used. `countedAsk` ends the attempt when the allowance runs out.
+  const paidModel = service.model('openai');
+  const free = await freeTier.check('translation');
+  const { plan, swapped } = free.model ? swapPlan(requested, free.model, paidModel) : { plan: requested, swapped: [] };
   const lanes = lanesOf(plan);
+  if (swapped.length) {
+    service.pushFeed(row.id, { kind: 'status', level: 'info', text: `Using OpenAI’s free daily tokens (${free.model}) for ${swapped.join(', ')}; ${paidModel} takes over when they are spent.` });
+  } else if (free.reason === 'spent' && Object.values(requested).some((e) => isSwappable(e, paidModel))) {
+    service.pushFeed(row.id, { kind: 'status', level: 'info', text: `OpenAI’s free tokens for today are spent; using ${paidModel}.` });
+  }
 
   // Every provider the plan calls needs its key on the worker; say which one is missing, once, before anything is spent.
   const keys = {};
@@ -236,13 +282,11 @@ async function execute(ctx, entry, deps) {
   // A client per lane, built now: one that cannot run its model at its effort fails here, as a config problem, not on a verse.
   const clients = new Map();
   for (const lane of lanes) {
-    clients.set(
-      lane.key,
-      deps.makeAsk({
-        provider: lane.provider, apiKey: keys[lane.provider], model: lane.model, effort: lane.effort, signal: entry.controller.signal,
-        onWait: (message) => service.pushFeed(row.id, { kind: 'wait', level: 'warn', text: lanes.length > 1 ? `[${lane.provider}] ${message}` : message }),
-      })
-    );
+    const ask = deps.makeAsk({
+      provider: lane.provider, apiKey: keys[lane.provider], model: lane.model, effort: lane.effort, signal: entry.controller.signal,
+      onWait: (message) => service.pushFeed(row.id, { kind: 'wait', level: 'warn', text: lanes.length > 1 ? `[${lane.provider}] ${message}` : message }),
+    });
+    clients.set(lane.key, countedAsk(ask, lane, lane.parts.some((part) => swapped.includes(part))));
   }
   const { store, getSource } = await deps.workspace();
 
@@ -256,7 +300,8 @@ async function execute(ctx, entry, deps) {
   const left = await deps.estimate({ language: row.language, chapters: row.chapters, limit: verseLimit ?? 0, book: row.book, provider: row.provider, model: row.model, plan, version: row.version });
   const byKey = new Map(left.lanes.map((l) => [l.key, l]));
   state.lanes = lanes.map((lane) => {
-    const before = state.lanes.find((l) => l.key === lane.key);
+    // The same parts on another model (the free tier moving a lane, or handing it back) are the same work.
+    const before = state.lanes.find((l) => l.key === lane.key) ?? state.lanes.find((l) => sameParts(l.parts, lane.parts));
     const done = before?.done ?? 0;
     return {
       key: lane.key, parts: lane.parts, provider: lane.provider, model: lane.model, effort: lane.effort,
@@ -308,12 +353,13 @@ async function conclude(ctx, entry, outcome, job, token) {
   }
   if (entry.reason === 'shutdown' || outcome.kind === 'interrupted') {
     // The worker is going away. Put the run back; whichever worker comes up next carries on.
-    const resumeAt = new Date(Date.now() + 2_000);
-    const next = await runs.update({ where: { id: row.id }, data: { ...progressData(ctx), status: 'QUEUED', statusMessage: 'The worker restarted; continuing.', resumeAt } });
-    service.publishRun(next);
-    service.pushFeed(row.id, { kind: 'status', level: 'warn', text: 'The worker is restarting; this run will continue by itself.' });
-    await job.moveToDelayed(resumeAt.getTime(), token);
-    throw new DelayedError();
+    return requeue(ctx, job, token, { message: 'The worker restarted; continuing.', feed: 'The worker is restarting; this run will continue by itself.' });
+  }
+  if (outcome.error instanceof FreeTierEnded) {
+    // OpenAI's free tokens ran out (or the switch was turned off) part-way through. Start again at once: the next attempt
+    // plans afresh, without the free model, and picks up at the first verse not saved.
+    const why = outcome.error.reason === 'off' ? 'The OpenAI free tier was switched off' : 'OpenAI’s free tokens for today are spent';
+    return requeue(ctx, job, token, { message: `${why}; continuing with ${service.model('openai')}.`, feed: `${why}. Continuing with ${service.model('openai')}.` });
   }
 
   switch (outcome.kind) {
@@ -339,6 +385,17 @@ async function conclude(ctx, entry, outcome, job, token) {
       await finish(row, 'FAILED', { stopReason: 'error', statusMessage: `The run stopped for an unexpected reason (${outcome.kind}).` }, ctx);
       return { failed: outcome.kind };
   }
+}
+
+/** The run goes back in the queue and starts again in a couple of seconds, from the first verse not saved. */
+async function requeue(ctx, job, token, { message, feed }) {
+  const { row } = ctx;
+  const resumeAt = new Date(Date.now() + 2_000);
+  const next = await runs.update({ where: { id: row.id }, data: { ...progressData(ctx), status: 'QUEUED', statusMessage: message, resumeAt } });
+  service.publishRun(next);
+  service.pushFeed(row.id, { kind: 'status', level: 'warn', text: feed });
+  await job.moveToDelayed(resumeAt.getTime(), token);
+  throw new DelayedError();
 }
 
 const progressData = (ctx) => {

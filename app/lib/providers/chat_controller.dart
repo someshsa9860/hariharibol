@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/chat_config.dart';
@@ -9,36 +10,13 @@ import '../services/api_client.dart';
 import '../services/chat_service.dart';
 import 'chat_provider.dart';
 import 'chat_state.dart';
+import 'chat_turn.dart';
 
-/// One turn of the conversation in flight: the question and the answer being
-/// written, and what is known about how far it got.
-class _Turn {
-  _Turn({required this.userKey, required this.answerKey, required this.draft, required this.regenerate});
-
-  /// Local keys of the optimistic bubbles. `userKey` is null for a regeneration.
-  final String? userKey;
-  final String answerKey;
-
-  /// The question's text, handed back to the composer if the server refuses it.
-  final String? draft;
-  final bool regenerate;
-
-  final ApiCancelToken cancel = ApiCancelToken();
-  final Completer<void> done = Completer<void>();
-  StreamSubscription<ChatStreamEvent>? sub;
-
-  /// The server saved the question (a `meta` arrived).
-  bool gotMeta = false;
-
-  /// `done` or `error` arrived: the stream ended on purpose.
-  bool terminal = false;
-  bool stopped = false;
-
-  /// The question is on the server, so asking the reply again is safe.
-  bool get questionSaved => regenerate || gotMeta;
-}
-
-/// One conversation on screen.
+/// The reader's conversation with Sakha, as the chat screen shows it.
+///
+/// A reader has one conversation: opening the screen asks the server for it,
+/// and the first message creates it if there is none. [clear] removes it,
+/// and with it what Sakha remembers.
 ///
 /// **Streaming without flicker.** Text arriving from the server is held in a
 /// buffer and written to the state at most every [ChatConfig.flushInterval];
@@ -51,15 +29,12 @@ class _Turn {
 /// the server to answer the last question again, keeping what had arrived on
 /// screen until then.
 class ChatController extends Notifier<ChatState> {
-  ChatController(this._id);
-
-  final String _id;
-
   /// Completes when the conversation has loaded (for tests).
   Future<void> ready = Future.value();
 
   int _local = 0;
-  _Turn? _turn;
+  ChatTurn? _turn;
+  ApiCancelToken? _upload;
   final StringBuffer _pending = StringBuffer();
   Timer? _flushTimer;
   Timer? _creditsTimer;
@@ -71,6 +46,7 @@ class ChatController extends Notifier<ChatState> {
     ref.onDispose(() {
       _flushTimer?.cancel();
       _creditsTimer?.cancel();
+      _upload?.cancel();
       final turn = _turn;
       if (turn != null) {
         // Leaving the screen is stopping: the server keeps what arrived.
@@ -80,7 +56,6 @@ class ChatController extends Notifier<ChatState> {
       }
     });
 
-    if (_id == ChatConfig.newChatId) return const ChatState(loaded: true);
     ready = Future.microtask(_load);
     return const ChatState();
   }
@@ -91,15 +66,20 @@ class ChatController extends Notifier<ChatState> {
     ApiFailure? failure;
     ChatConversationDetail? detail;
     try {
-      detail = await _service.conversation(_id);
+      detail = await _service.current();
     } on ApiFailure catch (error) {
       failure = error;
     } catch (_) {
       failure = const ApiFailure(kind: FailureKind.unknown);
     }
     if (!ref.mounted) return;
+    if (failure != null) {
+      state = ChatState(loadFailure: failure);
+      return;
+    }
+    // Nothing yet: the first message makes the conversation.
     state = detail == null
-        ? ChatState(loadFailure: failure)
+        ? const ChatState(loaded: true)
         : ChatState(conversation: detail.conversation, messages: detail.messages, loaded: true);
   }
 
@@ -113,27 +93,43 @@ class ChatController extends Notifier<ChatState> {
     if (state.restoredDraft != null) state = state.copyWith(clearDraft: true);
   }
 
+  /// The reader has read the notice above the box and sent it away.
+  void dismissProblem() {
+    if (state.problem != null) state = state.copyWith(clearProblem: true);
+  }
+
   // ── Sending ──────────────────────────────────────────────────────────────
 
+  /// Sends [text], with the picture waiting in the box if there is one. A
+  /// picture alone is enough; one still going up, or one that failed, is not.
   Future<void> send(String text) async {
     final content = text.trim();
-    if (content.isEmpty || !state.canSend) return;
+    final image = state.draftImage;
+    if (!state.canSend || (image != null && !image.ready)) return;
+    if (content.isEmpty && image == null) return;
 
-    final turn = _Turn(
+    final turn = ChatTurn(
       userKey: _key('user'),
       answerKey: _key('assistant'),
       draft: content,
+      image: image,
       regenerate: false,
     );
     state = state.copyWith(
       messages: [
         ...state.messages,
-        ChatMessage.local(key: turn.userKey!, role: ChatRole.user, content: content),
+        ChatMessage.local(
+          key: turn.userKey!,
+          role: ChatRole.user,
+          content: content,
+          localImagePath: image?.path,
+        ),
         ChatMessage.local(key: turn.answerKey, role: ChatRole.assistant),
       ],
       phase: ChatPhase.waiting,
       clearProblem: true,
       clearDraft: true,
+      clearImage: true,
     );
     _turn = turn;
 
@@ -144,7 +140,7 @@ class ChatController extends Notifier<ChatState> {
     } else {
       // A new chat exists on the server only once something is said in it.
       try {
-        conversation = await _service.create();
+        conversation = await _asking(_service.create);
       } on ApiFailure catch (failure) {
         if (ref.mounted) _fail(turn, ChatProblem.fromFailure(failure));
         return;
@@ -155,7 +151,7 @@ class ChatController extends Notifier<ChatState> {
     if (turn.stopped) return;
 
     final id = conversation.id;
-    await _run(turn, () => _service.send(id, content, cancel: turn.cancel));
+    await _run(turn, () => _service.send(id, content, imageKey: image?.key, cancel: turn.cancel));
   }
 
   /// Answers the last question again, replacing the answer after it. Also what
@@ -170,7 +166,7 @@ class ChatController extends Notifier<ChatState> {
     }
     if (kept.isEmpty || !kept.last.isUser) return;
 
-    final turn = _Turn(userKey: null, answerKey: _key('assistant'), draft: null, regenerate: true);
+    final turn = ChatTurn(userKey: null, answerKey: _key('assistant'), draft: null, regenerate: true);
     state = state.copyWith(
       messages: [...kept, ChatMessage.local(key: turn.answerKey, role: ChatRole.assistant)],
       phase: ChatPhase.waiting,
@@ -200,7 +196,7 @@ class ChatController extends Notifier<ChatState> {
     _refreshCreditsSoon();
   }
 
-  Future<void> _run(_Turn turn, Stream<ChatStreamEvent> Function() open) {
+  Future<void> _run(ChatTurn turn, Stream<ChatStreamEvent> Function() open) {
     turn.sub = open().listen(
       (event) => _onEvent(turn, event),
       onError: (Object error) => _onError(turn, error),
@@ -210,7 +206,7 @@ class ChatController extends Notifier<ChatState> {
     return turn.done.future;
   }
 
-  void _onEvent(_Turn turn, ChatStreamEvent event) {
+  void _onEvent(ChatTurn turn, ChatStreamEvent event) {
     if (!ref.mounted || turn.stopped) return;
 
     switch (event) {
@@ -264,29 +260,33 @@ class ChatController extends Notifier<ChatState> {
     }
   }
 
-  void _onError(_Turn turn, Object error) {
+  void _onError(ChatTurn turn, Object error) {
     if (!ref.mounted || turn.stopped || turn.done.isCompleted) return;
-    final failure = error is ApiFailure ? error : const ApiFailure(kind: FailureKind.network);
-    _fail(turn, ChatProblem.fromFailure(failure, canRetry: turn.questionSaved));
+    _fail(
+      turn,
+      ChatProblem.fromFailure(_asFailure(error), canRetry: turn.questionSaved, replyStarted: turn.gotMeta),
+    );
   }
 
   /// The stream closed. If no `done` or `error` came first, the connection was
   /// cut — by a tunnel, a proxy, the phone's radio.
-  void _onDone(_Turn turn) {
+  void _onDone(ChatTurn turn) {
     if (!ref.mounted || turn.stopped || turn.terminal || turn.done.isCompleted) return;
     _fail(turn, ChatProblem(ChatIssue.connectionLost, canRetry: turn.questionSaved));
   }
 
   /// Settles a turn that did not finish. What arrived stays; an empty answer
   /// goes; a question the server never saved goes back to the composer.
-  void _fail(_Turn turn, ChatProblem problem) {
+  void _fail(ChatTurn turn, ChatProblem problem) {
     _flushNow();
 
     var messages = _settleAnswer(turn, ChatMessageStatus.partial);
     String? draft;
+    ChatDraftImage? image;
     if (!turn.questionSaved && turn.userKey != null) {
       messages = [for (final message in messages) if (message.clientKey != turn.userKey) message];
       draft = turn.draft;
+      image = turn.image;
     }
 
     var conversation = state.conversation;
@@ -301,6 +301,7 @@ class ChatController extends Notifier<ChatState> {
       compacting: false,
       problem: problem,
       restoredDraft: draft,
+      draftImage: image,
     );
     _finish(turn);
 
@@ -310,7 +311,7 @@ class ChatController extends Notifier<ChatState> {
 
   /// The messages with this turn's answer settled: removed if nothing arrived,
   /// otherwise kept and marked [status].
-  List<ChatMessage> _settleAnswer(_Turn turn, ChatMessageStatus status) {
+  List<ChatMessage> _settleAnswer(ChatTurn turn, ChatMessageStatus status) {
     return [
       for (final message in state.messages)
         if (message.clientKey != turn.answerKey)
@@ -320,10 +321,9 @@ class ChatController extends Notifier<ChatState> {
     ];
   }
 
-  void _finish(_Turn turn) {
+  void _finish(ChatTurn turn) {
     if (identical(_turn, turn)) _turn = null;
     if (!turn.done.isCompleted) turn.done.complete();
-    if (ref.mounted) ref.invalidate(chatListProvider);
   }
 
   // ── Throttled text ───────────────────────────────────────────────────────
@@ -367,40 +367,63 @@ class ChatController extends Notifier<ChatState> {
     });
   }
 
-  // ── The rest of the menu ─────────────────────────────────────────────────
+  // ── Pictures ─────────────────────────────────────────────────────────────
 
-  /// Folds older messages into the summary now. True when something was folded.
-  /// Throws the `ApiFailure` for the screen to show.
-  Future<bool> compact() async {
-    final conversation = state.conversation;
-    if (conversation == null || state.busy) return false;
-
-    state = state.copyWith(working: true, compacting: true);
-    try {
-      final result = await _service.compact(conversation.id);
-      if (!ref.mounted) return result.compacted;
-      ref.read(chatStatusProvider.notifier).applyCredits(result.credits);
-      state = state.copyWith(conversation: result.conversation, working: false, compacting: false);
-      return result.compacted;
-    } catch (_) {
-      if (ref.mounted) state = state.copyWith(working: false, compacting: false);
-      rethrow;
-    }
+  /// A picture has been chosen. It goes up at once, so that Send is ready by
+  /// the time the reader has finished typing. Choosing another replaces it.
+  Future<void> attachImage(String path) async {
+    if (state.busy) return;
+    _upload?.cancel();
+    final token = _upload = ApiCancelToken();
+    state = state.copyWith(draftImage: ChatDraftImage(path: path));
+    await _uploadDraft(path, token);
   }
 
-  /// Starts a new chat that carries this one's summary, for a chat that is
-  /// full. Returns it for the screen to open.
+  /// Tries the picture again after it failed to reach the server.
+  Future<void> retryImage() async {
+    final draft = state.draftImage;
+    if (draft == null || !draft.canRetry) return;
+    _upload?.cancel();
+    final token = _upload = ApiCancelToken();
+    state = state.copyWith(draftImage: draft.uploadingAgain());
+    await _uploadDraft(draft.path, token);
+  }
+
+  void removeImage() {
+    _upload?.cancel();
+    _upload = null;
+    if (state.draftImage != null) state = state.copyWith(clearImage: true);
+  }
+
+  Future<void> _uploadDraft(String path, ApiCancelToken token) async {
+    final ChatDraftImage next;
+    try {
+      final uploaded = await _service.uploadImage(path, cancel: token);
+      next = ChatDraftImage(path: path, key: uploaded.key);
+    } catch (error) {
+      if (token.isCancelled || !ref.mounted) return;
+      state = state.copyWith(draftImage: ChatDraftImage(path: path, problem: ChatImageProblem.of(error)));
+      return;
+    }
+    // Replaced or taken out while it was on its way: this answer is stale.
+    if (token.isCancelled || !ref.mounted) return;
+    state = state.copyWith(draftImage: next);
+  }
+
+  // ── Starting over ────────────────────────────────────────────────────────
+
+  /// For a chat that is full: starts a new one that carries this one's summary
+  /// and shows it empty — Sakha remembers, the screen does not repeat it.
   Future<ChatContinueResult?> startNewChat() async {
     final conversation = state.conversation;
     if (conversation == null || state.busy) return null;
 
     state = state.copyWith(working: true, compacting: true);
     try {
-      final result = await _service.continueChat(conversation.id);
+      final result = await _asking(() => _service.continueChat(conversation.id));
       if (!ref.mounted) return result;
-      state = state.copyWith(working: false, compacting: false);
+      state = ChatState(conversation: result.conversation, loaded: true);
       _refreshCreditsSoon(immediately: true);
-      ref.invalidate(chatListProvider);
       return result;
     } catch (_) {
       if (ref.mounted) state = state.copyWith(working: false, compacting: false);
@@ -408,25 +431,48 @@ class ChatController extends Notifier<ChatState> {
     }
   }
 
-  Future<void> rename(String title) async {
-    final conversation = state.conversation;
-    if (conversation == null) return;
-    final renamed = await _service.rename(conversation.id, title);
-    if (!ref.mounted) return;
-    state = state.copyWith(conversation: conversation.copyWith(title: renamed.title));
-    ref.invalidate(chatListProvider);
-  }
+  /// Removes the whole conversation, and with it everything Sakha remembers of
+  /// it. Credits already spent are not returned. Throws the `ApiFailure` for the
+  /// screen to word.
+  Future<void> clear() async {
+    if (!state.loaded || state.busy) return;
 
-  Future<void> delete() async {
-    final conversation = state.conversation;
-    if (conversation == null) return;
-    await _service.delete(conversation.id);
-    if (ref.mounted) ref.invalidate(chatListProvider);
+    state = state.copyWith(working: true);
+    try {
+      await _asking(_service.clear);
+    } catch (_) {
+      if (ref.mounted) state = state.copyWith(working: false);
+      rethrow;
+    }
+    if (!ref.mounted) return;
+    _upload?.cancel();
+    _upload = null;
+    state = const ChatState(loaded: true);
   }
 
   String _key(String kind) => 'local-$kind-${_local++}';
+
+  // ── Failures ─────────────────────────────────────────────────────────────
+
+  /// What a failed call is called. The api client turns everything it can into
+  /// an [ApiFailure]; anything else is a fault in our own code, so it is
+  /// `unknown` — calling it "the network" is how a parser bug once looked like a
+  /// bad signal.
+  ApiFailure _asFailure(Object error) {
+    if (error is ApiFailure) return error;
+    debugPrint('Chat call failed unexpectedly: $error');
+    return const ApiFailure(kind: FailureKind.unknown);
+  }
+
+  /// Runs a call whose failure the screen shows, so the only thing it ever has
+  /// to catch is an [ApiFailure].
+  Future<T> _asking<T>(Future<T> Function() call) async {
+    try {
+      return await call();
+    } catch (error) {
+      throw _asFailure(error);
+    }
+  }
 }
 
-/// The conversation with this id, or [ChatConfig.newChatId] for one not made yet.
-final chatControllerProvider =
-    NotifierProvider.autoDispose.family<ChatController, ChatState, String>(ChatController.new);
+final chatControllerProvider = NotifierProvider.autoDispose<ChatController, ChatState>(ChatController.new);

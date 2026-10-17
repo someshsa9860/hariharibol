@@ -346,6 +346,12 @@ abstract class AppLocalizations {
   /// **'Routine'**
   String get tabRoutine;
 
+  /// No description provided for @tabSakha.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha'**
+  String get tabSakha;
+
   /// No description provided for @reelsTitle.
   ///
   /// In en, this message translates to:
@@ -1114,6 +1120,12 @@ abstract class AppLocalizations {
   /// **'{limit} {unit}'**
   String plansLimit(int limit, String unit);
 
+  /// No description provided for @plansSakhaReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'About {count} replies a month'**
+  String plansSakhaReplies(int count);
+
   /// No description provided for @plansNoFeatures.
   ///
   /// In en, this message translates to:
@@ -1215,6 +1227,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No books published yet.'**
   String get libraryNoBooks;
+
+  /// No description provided for @libraryBookNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started yet. Tap to begin.'**
+  String get libraryBookNotStarted;
 
   /// No description provided for @actionEdit.
   ///
@@ -1401,6 +1419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading settings'**
   String get readingSettingsTitle;
+
+  /// No description provided for @readingContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Contents'**
+  String get readingContents;
 
   /// No description provided for @readingFontSizeLabel.
   ///
@@ -2926,34 +2950,28 @@ abstract class AppLocalizations {
   /// **'Verse {number} · {section}'**
   String labelVerseWithSection(int number, String section);
 
-  /// Title of the AI chat screen (the list of chats).
+  /// Title of the Ask Sakha screen.
   ///
   /// In en, this message translates to:
-  /// **'AI assistant'**
+  /// **'Ask Sakha'**
   String get chatTitle;
 
-  /// Heading of the card on Home that opens the AI chat.
+  /// Heading of the card on Home that opens Ask Sakha.
   ///
   /// In en, this message translates to:
-  /// **'Ask the assistant'**
+  /// **'Ask Sakha'**
   String get chatHomeTitle;
 
-  /// Second line of the card on Home that opens the AI chat.
+  /// Second line of the card on Home that opens Ask Sakha.
   ///
   /// In en, this message translates to:
   /// **'Questions on scripture, mantras and your practice'**
   String get chatHomeBody;
 
-  /// Button and title for starting a new AI chat.
+  /// Heading of the welcome shown when the chat has no messages yet.
   ///
   /// In en, this message translates to:
-  /// **'New chat'**
-  String get chatNewChat;
-
-  /// Heading of the introduction shown when there are no chats or messages yet.
-  ///
-  /// In en, this message translates to:
-  /// **'Your devotional assistant'**
+  /// **'Your friend Sakha'**
   String get chatIntroTitle;
 
   /// Hint under the introduction in an empty chat.
@@ -2962,7 +2980,7 @@ abstract class AppLocalizations {
   /// **'Ask about a verse, a mantra or your practice.'**
   String get chatIntroHint;
 
-  /// Placeholder in the box where a question to the assistant is typed.
+  /// Placeholder in the box where a question to Sakha is typed.
   ///
   /// In en, this message translates to:
   /// **'Ask a question'**
@@ -3010,37 +3028,37 @@ abstract class AppLocalizations {
   /// **'Renews {date}'**
   String chatCreditsRenews(DateTime date);
 
-  /// Heading of the card shown when the reader's plan has no AI chat.
+  /// Heading of the card shown when the reader's plan has no Ask Sakha.
   ///
   /// In en, this message translates to:
   /// **'Chat is not part of your plan'**
   String get chatNotAvailableTitle;
 
-  /// Body of the card shown when the reader's plan has no AI chat.
+  /// Body of the card shown when the reader's plan has no Ask Sakha.
   ///
   /// In en, this message translates to:
-  /// **'Upgrade your plan to ask the assistant your questions.'**
+  /// **'Upgrade your plan to ask Sakha your questions.'**
   String get chatNotAvailableBody;
 
-  /// Heading of the card shown when the daily allowance of AI chat credits is used up.
+  /// Heading of the card shown when the daily allowance of Ask Sakha credits is used up.
   ///
   /// In en, this message translates to:
   /// **'You have used today\'s credits'**
   String get chatExhaustedDailyTitle;
 
-  /// Body of the card shown when the daily allowance of AI chat credits is used up.
+  /// Body of the card shown when the daily allowance of Ask Sakha credits is used up.
   ///
   /// In en, this message translates to:
   /// **'They refill at midnight. You can carry on then, or upgrade for more.'**
   String get chatExhaustedDailyBody;
 
-  /// Heading of the card shown when the plan's AI chat credits are used up.
+  /// Heading of the card shown when the plan's Ask Sakha credits are used up.
   ///
   /// In en, this message translates to:
   /// **'Your credits have run out'**
   String get chatExhaustedWalletTitle;
 
-  /// Body of the card shown when the plan's AI chat credits are used up.
+  /// Body of the card shown when the plan's Ask Sakha credits are used up.
   ///
   /// In en, this message translates to:
   /// **'They renew with your plan. You can wait, or upgrade to keep going.'**
@@ -3055,7 +3073,7 @@ abstract class AppLocalizations {
   /// Body of the card shown when one conversation has used the share of credits allowed to it.
   ///
   /// In en, this message translates to:
-  /// **'Start a new chat and the assistant will carry on from where you were.'**
+  /// **'Start a new chat and Sakha will carry on from where you were.'**
   String get chatShareUsedBody;
 
   /// Button on the out-of-credits card that opens the plans screen.
@@ -3079,7 +3097,7 @@ abstract class AppLocalizations {
   /// Body of the banner shown when a chat has reached its limit.
   ///
   /// In en, this message translates to:
-  /// **'Start a new chat and the assistant will carry our conversation forward.'**
+  /// **'Start a new chat and Sakha will carry our conversation forward.'**
   String get chatFullBody;
 
   /// Shown after starting a new chat when credits did not stretch to summarising the latest messages.
@@ -3088,7 +3106,7 @@ abstract class AppLocalizations {
   /// **'Your latest messages could not be summarised, so only the earlier part came along.'**
   String get chatContinuePartial;
 
-  /// Shown while the assistant folds older messages into a summary.
+  /// Shown while Sakha folds older messages into a summary.
   ///
   /// In en, this message translates to:
   /// **'Tidying our conversation…'**
@@ -3097,20 +3115,32 @@ abstract class AppLocalizations {
   /// Spoken label of the three dots shown while a reply is awaited.
   ///
   /// In en, this message translates to:
-  /// **'The assistant is writing'**
+  /// **'Sakha is writing'**
   String get chatTyping;
 
-  /// Shown under a reply that was cut off by a dropped connection, beside Try again.
+  /// Shown when the connection was cut while a reply was being written (or could not be kept), beside Try again.
   ///
   /// In en, this message translates to:
-  /// **'Connection lost. What arrived is kept above.'**
+  /// **'The connection was interrupted. Please try again.'**
   String get chatConnectionLost;
 
   /// Shown when the server could not finish writing a reply.
   ///
   /// In en, this message translates to:
-  /// **'The reply could not be finished.'**
+  /// **'Sakha could not finish that reply. Please try again.'**
   String get chatReplyFailed;
+
+  /// Shown when Sakha's side is overloaded or a rate limit was reached; asking again in a moment usually works.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha is busy right now. Please try again in a moment.'**
+  String get chatOverloaded;
+
+  /// Shown when Sakha cannot answer for now: the server could not reach its provider, or a spending limit was reached. Only waiting helps.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha is not available right now. Please try again a little later.'**
+  String get chatUnavailable;
 
   /// Shown when a question is sent while another reply is still being written.
   ///
@@ -3118,7 +3148,7 @@ abstract class AppLocalizations {
   /// **'Please wait for the current reply to finish.'**
   String get chatBusy;
 
-  /// Shown when a question is longer than the assistant accepts.
+  /// Shown when a question is longer than Sakha accepts.
   ///
   /// In en, this message translates to:
   /// **'That message is too long. Please shorten it.'**
@@ -3157,7 +3187,7 @@ abstract class AppLocalizations {
   /// Tooltip of the button that asks for the last reply again.
   ///
   /// In en, this message translates to:
-  /// **'Regenerate'**
+  /// **'Answer again'**
   String get chatRegenerate;
 
   /// Message after a link in a reply is tapped and copied.
@@ -3172,59 +3202,239 @@ abstract class AppLocalizations {
   /// **'Image unavailable'**
   String get chatImageUnavailable;
 
-  /// Tooltip of the three-dot menu on a chat.
+  /// Tooltip and label of the button that clears the whole chat with Sakha.
   ///
   /// In en, this message translates to:
-  /// **'More'**
-  String get chatMoreActions;
+  /// **'Clear chat'**
+  String get chatClearTooltip;
 
-  /// Menu item that folds older messages of a chat into a summary.
+  /// Title of the confirmation before the chat with Sakha is cleared.
   ///
   /// In en, this message translates to:
-  /// **'Compact context'**
-  String get chatMenuCompact;
+  /// **'Clear this chat?'**
+  String get chatClearTitle;
 
-  /// Menu item that renames a chat.
+  /// Body of the confirmation before the chat is cleared. Clearing also wipes what Sakha remembers of the conversation.
   ///
   /// In en, this message translates to:
-  /// **'Rename'**
-  String get chatMenuRename;
+  /// **'Your messages and the replies Sakha gave are removed, and Sakha will not remember what we talked about. Credits already used are not returned.'**
+  String get chatClearBody;
 
-  /// Title of the dialog that renames a chat.
+  /// Confirm button of the clear-chat dialog.
   ///
   /// In en, this message translates to:
-  /// **'Rename chat'**
-  String get chatRenameTitle;
+  /// **'Clear'**
+  String get chatClearConfirm;
 
-  /// Placeholder of the box in the rename dialog.
+  /// Brief message shown after the chat has been cleared.
   ///
   /// In en, this message translates to:
-  /// **'Chat name'**
-  String get chatRenameHint;
+  /// **'Chat cleared'**
+  String get chatCleared;
 
-  /// Title of the confirmation before a chat is deleted.
+  /// Small heading above the suggestion cards on an empty chat.
   ///
   /// In en, this message translates to:
-  /// **'Delete this chat?'**
-  String get chatDeleteTitle;
+  /// **'Try asking'**
+  String get chatSuggestionsLabel;
 
-  /// Body of the confirmation before a chat is deleted.
+  /// Title of the first suggestion card on an empty chat (a verse from the Gita).
   ///
   /// In en, this message translates to:
-  /// **'The conversation is removed. Credits already used are not returned.'**
-  String get chatDeleteBody;
+  /// **'A verse to live by'**
+  String get chatStarter1Title;
 
-  /// Message after the reader compacts a chat and something was folded into the summary.
+  /// Question sent to Sakha when the first suggestion card is tapped. BG 2.47 is the verse on acting without attachment to results.
   ///
   /// In en, this message translates to:
-  /// **'Conversation tidied. Older messages are now summarised.'**
-  String get chatCompactDone;
+  /// **'Explain Bhagavad Gita 2.47 to me, about doing my duty without worrying about the result.'**
+  String get chatStarter1Prompt;
 
-  /// Message after the reader compacts a chat that has nothing worth folding.
+  /// Title of the second suggestion card on an empty chat.
   ///
   /// In en, this message translates to:
-  /// **'Nothing to tidy yet.'**
-  String get chatCompactNothing;
+  /// **'Begin chanting'**
+  String get chatStarter2Title;
+
+  /// Question sent to Sakha when the second suggestion card is tapped. A round is one mala.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I begin chanting the Hare Krishna mahamantra, and how many rounds should I start with?'**
+  String get chatStarter2Prompt;
+
+  /// Title of the third suggestion card on an empty chat.
+  ///
+  /// In en, this message translates to:
+  /// **'A daily practice'**
+  String get chatStarter3Title;
+
+  /// Question sent to Sakha when the third suggestion card is tapped. Sadhana is daily spiritual practice.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a simple daily sadhana I can keep, even on a busy day.'**
+  String get chatStarter3Prompt;
+
+  /// Title of the fourth suggestion card on an empty chat.
+  ///
+  /// In en, this message translates to:
+  /// **'When the mind is restless'**
+  String get chatStarter4Title;
+
+  /// Question sent to Sakha when the fourth suggestion card is tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'My mind feels restless. What do the scriptures say about finding peace?'**
+  String get chatStarter4Prompt;
+
+  /// Title of the fifth suggestion card on an empty chat.
+  ///
+  /// In en, this message translates to:
+  /// **'A story to hear'**
+  String get chatStarter5Title;
+
+  /// Question sent to Sakha when the fifth suggestion card is tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me the story of Prahlada and what it teaches.'**
+  String get chatStarter5Prompt;
+
+  /// Quick reply chip under Sakha's answer. Tapping it sends this text as the next message.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain simply'**
+  String get chatFollowUp1;
+
+  /// Quick reply chip under Sakha's answer. Tapping it sends this text as the next message.
+  ///
+  /// In en, this message translates to:
+  /// **'Give an example'**
+  String get chatFollowUp2;
+
+  /// Quick reply chip under Sakha's answer. Tapping it sends this text as the next message.
+  ///
+  /// In en, this message translates to:
+  /// **'Why does this matter?'**
+  String get chatFollowUp3;
+
+  /// Quick reply chip under Sakha's answer. Tapping it sends this text as the next message.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I practise this?'**
+  String get chatFollowUp4;
+
+  /// Tooltip of the button beside the message box that adds a picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a picture'**
+  String get chatAttach;
+
+  /// Option in the add-a-picture sheet that opens the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get chatAttachCamera;
+
+  /// Option in the add-a-picture sheet that opens the photo library.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from your photos'**
+  String get chatAttachGallery;
+
+  /// Privacy note at the foot of the add-a-picture sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture is shared with the service that helps write replies, and stays in this chat until you clear it.'**
+  String get chatAttachNote;
+
+  /// Tooltip of the button that removes the picture waiting in the message box.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove picture'**
+  String get chatImageRemove;
+
+  /// Shown on the picture in the message box while it is being uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding picture…'**
+  String get chatImageUploading;
+
+  /// Shown on the picture in the message box when the upload did not go through.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture could not be added. Tap to try again.'**
+  String get chatImageFailed;
+
+  /// Shown when the server cannot use the picture: not readable as a picture, or too large.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture cannot be used. Please choose another.'**
+  String get chatImageRejected;
+
+  /// Shown when the reader's plan or the settings have pictures switched off.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures are not available on your plan.'**
+  String get chatImageOff;
+
+  /// Screen-reader label of a picture inside the reader's own message.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture you sent'**
+  String get chatImageSemantics;
+
+  /// Shown when the reader has refused camera or photo access.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access to your camera or photos in your phone\'s Settings to add a picture.'**
+  String get chatPictureDenied;
+
+  /// Tooltip of the microphone button beside the message box.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak your question'**
+  String get chatMic;
+
+  /// Tooltip of the microphone button while the phone is listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop listening'**
+  String get chatMicStop;
+
+  /// Shown in the message box while the phone is listening to the reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get chatListening;
+
+  /// Shown when the reader has refused microphone or speech recognition access.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the microphone and speech recognition in your phone\'s Settings to speak your question.'**
+  String get chatMicDenied;
+
+  /// Shown when the phone has no speech recogniser to use.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking is not available on this phone.'**
+  String get chatMicUnavailable;
+
+  /// Shown when listening ended without any words.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was heard. Please try again.'**
+  String get chatMicNoSpeech;
+
+  /// Shown when the phone's speech recogniser gave up part-way.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening stopped. Please try again.'**
+  String get chatMicFailed;
+
+  /// Label of the button that scrolls the chat back down to the newest message.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get chatJumpToLatest;
 }
 
 class _AppLocalizationsDelegate

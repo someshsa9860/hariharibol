@@ -8,14 +8,40 @@ import { parseSse } from './sse.js';
 
 const BASE = 'https://api.openai.com/v1';
 
-// USD per million tokens.
+// USD per million tokens. `reasoning` marks a model that thinks before it answers:
+// those tokens are billed and reported as output, and the model takes different
+// request parameters (see `tuning`). A model used here wants a row, for its price
+// and for what it accepts; an unlisted one is priced as gpt-4o-mini and sent the
+// classic parameters.
 const PRICING = {
+  'gpt-6-luna': { input: 0.1, output: 0.5, reasoning: true },
   'gpt-4o-mini': { input: 0.15, output: 0.6 },
   'gpt-4o': { input: 2.5, output: 10 },
   'gpt-4.1-mini': { input: 0.4, output: 1.6 },
 };
 
 const DEFAULT_PRICE = { input: 0.15, output: 0.6 };
+
+// The sampling parameters of a request. A reasoning model refuses every
+// `temperature` but its own default unless it is told not to think, so it is
+// sent the effort (`OPENAI_REASONING_EFFORT`, `none` unless set) and the
+// temperature only alongside `none`. Every other model takes the temperature and
+// would refuse an effort.
+function tuning(model, temperature) {
+  if (!PRICING[model]?.reasoning) return { temperature };
+  const effort = env.OPENAI_REASONING_EFFORT;
+  return effort === 'none' ? { reasoning_effort: effort, temperature } : { reasoning_effort: effort };
+}
+
+// A message as the API takes it: its words, or — when it carries `image: { mimeType, base64 }` — a list of the words
+// and the picture as a data URL. Anything else on the message (the key it was fetched by) is left behind.
+function toApiMessage(m) {
+  if (!m.image) return { role: m.role, content: m.content };
+  const parts = [];
+  if (m.content) parts.push({ type: 'text', text: m.content });
+  parts.push({ type: 'image_url', image_url: { url: `data:${m.image.mimeType};base64,${m.image.base64}` } });
+  return { role: m.role, content: parts };
+}
 
 function failure(status, body) {
   const busy = status === 429 || status === 503;
@@ -38,7 +64,7 @@ async function complete({ model, system, prompt, messages: history, json = false
 
   const messages = [];
   if (system) messages.push({ role: 'system', content: system });
-  if (history) messages.push(...history);
+  if (history) messages.push(...history.map(toApiMessage));
   else messages.push({ role: 'user', content: prompt });
 
   const response = await fetch(`${BASE}/chat/completions`, {
@@ -47,8 +73,9 @@ async function complete({ model, system, prompt, messages: history, json = false
     body: JSON.stringify({
       model,
       messages,
-      temperature,
-      max_tokens: maxTokens,
+      ...tuning(model, temperature),
+      // Not `max_tokens`: reasoning models refuse it, and for them this also bounds the thinking.
+      max_completion_tokens: maxTokens,
       response_format: json ? { type: 'json_object' } : undefined,
     }),
   });
@@ -76,7 +103,7 @@ async function* stream({ model, system, messages: history, maxTokens = 1024, tem
 
   const messages = [];
   if (system) messages.push({ role: 'system', content: system });
-  messages.push(...history);
+  messages.push(...history.map(toApiMessage));
 
   const response = await fetch(`${BASE}/chat/completions`, {
     method: 'POST',
@@ -85,7 +112,7 @@ async function* stream({ model, system, messages: history, maxTokens = 1024, tem
     body: JSON.stringify({
       model,
       messages,
-      temperature,
+      ...tuning(model, temperature),
       max_completion_tokens: maxTokens,
       stream: true,
       // Without this the stream carries no token counts at all.
@@ -123,6 +150,8 @@ async function* stream({ model, system, messages: history, maxTokens = 1024, tem
 }
 
 export const name = 'OPENAI';
+// Whether a key is set — the engine chain in index.js leaves out a provider that could only answer "not configured".
+export const isConfigured = () => Boolean(env.OPENAI_API_KEY);
 export const defaultModel = env.OPENAI_MODEL;
 export const summaryModel = env.OPENAI_SUMMARY_MODEL;
 export const advancedModel = env.OPENAI_ADVANCED_MODEL || env.OPENAI_MODEL;

@@ -184,9 +184,9 @@ async function main() {
   check('removing by id cannot reach another user’s row', stolen.status === 200 && (await prisma.routineTask.count({ where: { userId: me.id, id: 't3' } })) === 1);
 
   const anon = await call('POST', `${API}/sync`, { body: { since: '2026-01-01' } });
-  check('a sync needs a signed-in user', anon.status === 401, `HTTP ${anon.status}`);
+  check('a sync needs a signed-in user', anon.status === 403, `HTTP ${anon.status}`);
   const anonRead = await call('GET', API);
-  check('and so does a read', anonRead.status === 401, `HTTP ${anonRead.status}`);
+  check('and so does a read', anonRead.status === 403, `HTTP ${anonRead.status}`);
 
   // The verses behind the standard routine's reminders (needs `npm run seed`).
   const nudges = await call('GET', `${API}/nudges`, as);
@@ -197,7 +197,7 @@ async function main() {
   check('a kind carries a voice script with {name} and no voice url yet', wake?.voiceScript?.includes('{name}') && wake.voiceUrl === null);
   check('the day-break chanting reminder exists', kinds.some((kind) => kind.key === 'breakChant'));
   const nudgesAnon = await call('GET', `${API}/nudges`);
-  check('nudges need a signed-in user', nudgesAnon.status === 401, `HTTP ${nudgesAnon.status}`);
+  check('nudges need a signed-in user', nudgesAnon.status === 403, `HTTP ${nudgesAnon.status}`);
 
   await wipe(me.id);
   await wipe(other.id);

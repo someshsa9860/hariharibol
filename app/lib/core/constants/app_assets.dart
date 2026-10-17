@@ -8,6 +8,11 @@ abstract final class AppAssets {
   /// logo uses this one picture.
   static const String logo = 'assets/hariharibol_trprt.png';
 
-  /// The peacock feather on the Reels button, in its own colours (`PeacockFeatherIcon`).
+  /// The peacock feather on the Reels screen's title chip, in its own colours (`PeacockFeatherIcon`).
   static const String peacockFeather = 'assets/peacock_feather.svg';
+
+  /// Sakha's icon — the centre button of the nav bar, the chat avatar and the
+  /// welcome (`SakhaIcon`). One file: replacing `assets/sakha_icon.svg` changes
+  /// all three, in its own colours in both themes.
+  static const String sakhaIcon = 'assets/sakha_icon.svg';
 }

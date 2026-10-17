@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/routine_config.dart';
+import '../../core/navigation/app_navigator.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -27,8 +28,14 @@ import '../../widgets/routine/routine_task_tile.dart';
 /// The list is kept on the device and mirrored to the account in the
 /// background (see `routine_syncer.dart`), so the screen never waits on the
 /// network and still works offline.
+///
+/// It is a screen of its own, opened from Home, rather than a tab of the bar:
+/// [showBack] puts the back arrow in front of the heading. (The file keeps the
+/// name it had when it was a tab.)
 class RoutineTab extends ConsumerWidget {
-  const RoutineTab({super.key});
+  const RoutineTab({super.key, this.showBack = false});
+
+  final bool showBack;
 
   Future<void> _addTask(BuildContext context, WidgetRef ref) async {
     final draft = await showAddRoutineTaskSheet(context);
@@ -136,6 +143,7 @@ class RoutineTab extends ConsumerWidget {
             Padding(
               padding: AppSpacing.screenH.copyWith(top: AppSpacing.lg),
               child: _Header(
+                showBack: showBack,
                 onManageDaily: () => showDailyRoutineSheet(context),
                 onAdd: () => _addTask(context, ref),
               ),
@@ -224,8 +232,9 @@ class RoutineTab extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onManageDaily, required this.onAdd});
+  const _Header({required this.showBack, required this.onManageDaily, required this.onAdd});
 
+  final bool showBack;
   final VoidCallback onManageDaily;
   final VoidCallback onAdd;
 
@@ -235,6 +244,14 @@ class _Header extends StatelessWidget {
 
     return Row(
       children: [
+        if (showBack) ...[
+          IconButton(
+            tooltip: text.actionBack,
+            onPressed: () => AppNavigator.instance.pop(),
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
         Expanded(
           child: Text(text.tabRoutine, style: context.texts.headlineMedium),
         ),

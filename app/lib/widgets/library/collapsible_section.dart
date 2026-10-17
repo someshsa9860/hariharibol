@@ -40,19 +40,32 @@ class CollapsibleSection extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: context.texts.labelLarge?.copyWith(color: context.colors.primary)),
+                  Text(
+                    label,
+                    style: context.texts.labelLarge?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   AnimatedRotation(
                     turns: expanded ? 0.5 : 0,
                     duration: AppDurations.fast,
-                    child: Icon(Icons.expand_more_rounded, size: AppSizes.iconSm, color: context.colors.primary),
+                    child: Icon(
+                      Icons.expand_more_rounded,
+                      size: AppSizes.iconSm,
+                      color: context.colors.primary,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-        if (expanded) Padding(padding: const EdgeInsets.only(top: AppSpacing.xs), child: child),
+        if (expanded)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: child,
+          ),
       ],
     );
   }

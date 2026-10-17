@@ -1,8 +1,13 @@
+import 'package:flutter/foundation.dart';
+
 import '../core/constants/api_paths.dart';
+import '../core/constants/storage_keys.dart';
 import '../models/chant_log.dart';
 import '../models/paged.dart';
+import '../models/routine_task.dart';
 import '../models/sadhana.dart';
 import 'api_client.dart';
+import 'local_store.dart';
 
 /// Daily practice: the round target, chanting, and the day it all rolls up
 /// into. Everything here is the signed-in reader's own — there is no public
@@ -16,12 +21,35 @@ class SadhanaService {
 
   /// The whole practice screen in one call. [date] defaults to the reader's
   /// own local today.
+  ///
+  /// The answer for today is also kept on the phone, for [saved].
   Future<SadhanaToday> today({String? date}) async {
     final response = await _api.get(
       ApiPaths.sadhanaToday,
       query: date == null ? null : {'date': date},
     );
+    if (date == null) {
+      try {
+        await LocalStore.instance.write(BoxKeys.sadhanaToday, response.json);
+      } catch (error) {
+        // A copy that cannot be kept is no reason to fail the request.
+        if (kDebugMode) debugPrint('[Sadhana] could not keep today: $error');
+      }
+    }
     return SadhanaToday.fromJson(response.json);
+  }
+
+  /// The last screen [today] answered, so the Jap tab draws with no
+  /// connection. Carried to the current day when it was saved on an earlier
+  /// one; null when nothing is saved.
+  SadhanaToday? saved() {
+    try {
+      final json = LocalStore.instance.readJson(BoxKeys.sadhanaToday);
+      if (json == null) return null;
+      return SadhanaToday.fromJson(json).carriedTo(routineDayKey(DateTime.now()));
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Sets today's round target or note. The standing target that prefills

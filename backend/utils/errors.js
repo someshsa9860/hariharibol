@@ -16,8 +16,13 @@ class AppError extends Error {
 const badRequest = (message = 'Bad request', details) =>
   new AppError(400, 'BAD_REQUEST', message, details);
 
+// "We do not know who you are" is a 403, not a 401: the apps treat 403 as the one
+// status that means the session is gone, and every other failure (network, 5xx,
+// timeout) as "try again later" that must never sign anyone out. The code tells
+// it apart from `forbidden` below — a signed-in person who may not do this —
+// which the apps must not answer with a refresh or a sign-out.
 const unauthorized = (message = 'Authentication required') =>
-  new AppError(401, 'UNAUTHORIZED', message);
+  new AppError(403, 'UNAUTHENTICATED', message);
 
 const forbidden = (message = 'You do not have access to this') =>
   new AppError(403, 'FORBIDDEN', message);

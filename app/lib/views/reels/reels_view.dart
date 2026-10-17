@@ -17,16 +17,20 @@ import '../../services/tracking_service.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/empty_state.dart';
+import '../../widgets/common/peacock_feather_icon.dart';
 import '../../widgets/reels/reel_comments_sheet.dart';
 import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
 
-/// The reels feed.
+/// The reels feed — the third tab.
 ///
-/// A vertical `PageView`, one reel per page. Pushed from the nav bar's action
-/// circle with the bar kept out of view — the same treatment the chant counter
-/// gets, and for the same reason: this is a mode, not a tab.
+/// A vertical `PageView`, one reel per page, running edge to edge under the
+/// status bar and the nav bar, which turns dark over it. Because it is a tab it
+/// stays alive while another tab is open, so it **stops itself when it is not
+/// the tab on screen** (`TickerMode`, which the shell switches off for a hidden
+/// branch and the navigator for a screen pushed over this one) and picks up
+/// where it was when it comes back.
 ///
 /// Two things this screen owns that nothing below it can:
 ///
@@ -53,6 +57,9 @@ class _ReelsViewState extends ConsumerState<ReelsView>
 
   int _index = 0;
 
+  /// Whether this tab was the one on screen at the last build.
+  bool _shown = true;
+
   /// The feed as of the last build. `dispose()` needs the current reel's id
   /// to report its watch, but `ref` is unsafe to read once the widget is
   /// unmounting — so this plain field stands in for `ref.read` there.
@@ -73,6 +80,21 @@ class _ReelsViewState extends ConsumerState<ReelsView>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     TrackingService.instance.log('reels_open');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (shown == _shown) return;
+    _shown = shown;
+    if (shown) {
+      TrackingService.instance.log('reels_open');
+    } else {
+      // Leaving the tab pauses the reel and reports how far it got — it may
+      // be a long time before it is swiped past, or never.
+      _playerKeys[_currentReelId]?.currentState?.reportProgress();
+    }
   }
 
   @override
@@ -252,7 +274,7 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                             key: ValueKey(reel.id),
                             reel: reel,
                             playerKey: _keyFor(reel.id),
-                            isActive: index == _index && !_suspended,
+                            isActive: index == _index && !_suspended && _shown,
                             isMuted: _muted,
                             onProgress: (watched, duration) =>
                                 _reportWatch(reel, watched, duration),
@@ -287,17 +309,43 @@ class _ReelsViewState extends ConsumerState<ReelsView>
             // reserve height at the top of a screen whose whole point is that
             // the media reaches the edges.
             Positioned(
-              top: AppSpacing.sm,
-              left: AppSpacing.sm,
-              child: SafeArea(
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: AppColors.reelInk,
-                  ),
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: () => AppNavigator.instance.pop(),
-                ),
+              top: AppSpacing.lg,
+              left: AppSpacing.lg,
+              child: SafeArea(child: _Title(label: text.reelsTitle)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What the tab is called, over the picture, where a screen would have a
+/// heading. A soft dark pill so it reads over any frame.
+class _Title extends StatelessWidget {
+  const _Title({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.reelControl,
+        borderRadius: BorderRadius.circular(AppSpacing.xl),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const PeacockFeatherIcon(size: AppSizes.iconMd),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppColors.reelInk,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

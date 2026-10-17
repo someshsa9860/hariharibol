@@ -57,14 +57,17 @@ router.post(
     description:
       'Rotates the refresh token: the one presented is spent and a fresh one is returned, ' +
       'valid for another year. Presenting a token that was already spent is treated as theft ' +
-      'and revokes every session for that account.',
+      'and revokes every session for that account — unless it was spent only a few seconds ' +
+      'ago (REFRESH_REUSE_GRACE_SECONDS), which is a lost response and gets a new pair. ' +
+      '403 means the session is over and the person must sign in; any other failure is ' +
+      'temporary and the same token should be sent again later.',
     public: true,
     limit: 'auth',
     body: z.object({
       refreshToken: z.string().min(20),
       deviceId: z.string().max(200).optional(),
     }),
-    responds: { 200: 'New access and refresh tokens', 401: 'Expired, revoked or replayed' },
+    responds: { 200: 'New access and refresh tokens', 403: 'Expired, revoked or replayed — sign in again' },
   },
   controller.refresh
 );
@@ -73,7 +76,11 @@ router.post(
   '/logout',
   {
     summary: 'Sign out on this device',
-    description: 'Revokes the refresh token supplied. Other devices stay signed in.',
+    description:
+      'Revokes the refresh token supplied. Other devices stay signed in. Public on purpose: ' +
+      'the refresh token in the body is the credential, so signing out works even when the ' +
+      'access token has already expired.',
+    public: true,
     limit: 'auth',
     body: z.object({ refreshToken: z.string().min(20) }),
     responds: { 200: 'Signed out' },

@@ -54,11 +54,13 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
 
     try {
       if (wasFavorite) {
-        if (favoriteId != null) await FavoriteService.instance.remove(favoriteId);
+        if (favoriteId != null)
+          await FavoriteService.instance.remove(favoriteId);
         if (mounted) setState(() => _favoriteIdOverrides[verse.id] = null);
       } else {
         final favorite = await FavoriteService.instance.add(verseId: verse.id);
-        if (mounted) setState(() => _favoriteIdOverrides[verse.id] = favorite.id);
+        if (mounted)
+          setState(() => _favoriteIdOverrides[verse.id] = favorite.id);
       }
     } on ApiFailure catch (failure) {
       if (mounted) setState(() => _favoriteOverrides[verse.id] = wasFavorite);
@@ -73,14 +75,16 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
 
     try {
       if (wasHighlighted) {
-        if (highlightId != null) await VerseHighlightService.instance.remove(highlightId);
+        if (highlightId != null)
+          await VerseHighlightService.instance.remove(highlightId);
         if (mounted) setState(() => _highlightIdOverrides[verse.id] = null);
       } else {
         final id = await VerseHighlightService.instance.add(verse.id);
         if (mounted) setState(() => _highlightIdOverrides[verse.id] = id);
       }
     } on ApiFailure catch (failure) {
-      if (mounted) setState(() => _highlightOverrides[verse.id] = wasHighlighted);
+      if (mounted)
+        setState(() => _highlightOverrides[verse.id] = wasHighlighted);
       AppNavigator.instance.showFailure(failure);
     }
   }
@@ -95,11 +99,16 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
     );
   }
 
-  void _openRelated(Verse verse) => showRelatedVersesSheet(context, verseId: verse.verseId);
+  void _openRelated(Verse verse) =>
+      showRelatedVersesSheet(context, verseId: verse.verseId);
 
   Future<void> _compareTranslations(Verse verse) async {
-    final picked = await showTranslationPickerSheet(context, verseId: verse.verseId);
-    if (picked != null && mounted) setState(() => _translationOverrides[verse.id] = picked);
+    final picked = await showTranslationPickerSheet(
+      context,
+      verseId: verse.verseId,
+    );
+    if (picked != null && mounted)
+      setState(() => _translationOverrides[verse.id] = picked);
   }
 
   @override
@@ -123,19 +132,27 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
         failure: error is ApiFailure
             ? error
             : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
-        onRetry: () async => ref.invalidate(bookVersesProvider(widget.book.slug)),
+        onRetry: () async =>
+            ref.invalidate(bookVersesProvider(widget.book.slug)),
       ),
       data: (list) => ListView.separated(
         padding: AppSpacing.page.copyWith(
           bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
         ),
         itemCount: list.isEmpty ? 2 : list.length + 1,
-        separatorBuilder: (context, index) =>
-            index == 0 ? const SizedBox(height: AppSpacing.lg) : const Divider(height: AppSpacing.xl),
+        separatorBuilder: (context, index) => index == 0
+            ? const SizedBox(height: AppSpacing.lg)
+            : const Divider(height: AppSpacing.xl),
         itemBuilder: (context, index) {
-          if (index == 0) return BookHeader(book: widget.book, titleKey: widget.titleKey);
+          if (index == 0)
+            return BookHeader(book: widget.book, titleKey: widget.titleKey);
           if (list.isEmpty) {
-            return Center(child: EmptyState(message: text.comingSoon, icon: Icons.menu_book_outlined));
+            return Center(
+              child: EmptyState(
+                message: text.comingSoon,
+                icon: Icons.menu_book_outlined,
+              ),
+            );
           }
 
           final verse = list[index - 1];
@@ -151,8 +168,9 @@ class _ShortWorkVersesState extends ConsumerState<ShortWorkVerses> {
             onToggleHighlight: () => _toggleHighlight(verse),
             onOpenNotes: () => _openNotes(verse),
             onOpenRelated: () => _openRelated(verse),
-            onCompareTranslations:
-                verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
+            onCompareTranslations: verse.availableTranslations.length > 1
+                ? () => _compareTranslations(verse)
+                : null,
           );
         },
       ),

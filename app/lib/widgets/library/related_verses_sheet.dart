@@ -10,7 +10,10 @@ import '../../providers/verse_provider.dart';
 
 /// Curated cross-links out of one verse — see `VerseLink` on the backend.
 /// Picking one closes the sheet and opens that verse's own chapter.
-Future<void> showRelatedVersesSheet(BuildContext context, {required String verseId}) {
+Future<void> showRelatedVersesSheet(
+  BuildContext context, {
+  required String verseId,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -25,7 +28,8 @@ class _RelatedVersesSheet extends ConsumerWidget {
 
   final String verseId;
 
-  String _relationLabel(AppLocalizations text, String relation) => switch (relation) {
+  String _relationLabel(AppLocalizations text, String relation) =>
+      switch (relation) {
         'EXPANDS_ON' => text.relationExpandsOn,
         'QUOTED_IN' => text.relationQuotedIn,
         'CONTRASTS_WITH' => text.relationContrastsWith,
@@ -40,9 +44,16 @@ class _RelatedVersesSheet extends ConsumerWidget {
     return SafeArea(
       top: false,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            AppSpacing.xl,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +94,11 @@ class _RelatedVersesSheet extends ConsumerWidget {
                                 children: [
                                   Text(_relationLabel(text, item.relation)),
                                   if (meaning != null && meaning.isNotEmpty)
-                                    Text(meaning, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                    Text(
+                                      meaning,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                 ],
                               ),
                               onTap: slug == null || chapterNumber == null

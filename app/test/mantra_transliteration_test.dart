@@ -21,13 +21,15 @@ Future<void> _open(WidgetTester tester, String text, String language, {String? t
     ProviderScope(
       overrides: [
         mantraDetailProvider.overrideWith(
-          (ref, slug) async => Mantra(
-            id: 'm',
-            slug: 'm',
-            name: 'Mahamantra',
-            text: text,
-            textLanguage: language,
-            transliteration: transliteration,
+          (ref, slug) => Stream.value(
+            Mantra(
+              id: 'm',
+              slug: 'm',
+              name: 'Mahamantra',
+              text: text,
+              textLanguage: language,
+              transliteration: transliteration,
+            ),
           ),
         ),
       ],

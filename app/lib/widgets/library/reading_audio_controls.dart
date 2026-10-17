@@ -27,7 +27,8 @@ class ReadingAudioAction extends ConsumerWidget {
         onPressed: audio.stop,
       );
     }
-    if (controller.items.isEmpty || !controller.items.any((i) => i.hasAnything)) return const SizedBox.shrink();
+    if (controller.items.isEmpty || !controller.items.any((i) => i.hasAnything))
+      return const SizedBox.shrink();
 
     final resumeAt = controller.resumeIndex();
     final channel = text.readingAudioChannel;
@@ -47,7 +48,10 @@ class ReadingAudioAction extends ConsumerWidget {
       tooltip: text.readingAudioPlayAll,
       onSelected: (from) => audio.playAll(from: from, channelName: channel),
       itemBuilder: (_) => [
-        PopupMenuItem(value: resumeAt, child: Text(text.readingAudioResumeFrom(number))),
+        PopupMenuItem(
+          value: resumeAt,
+          child: Text(text.readingAudioResumeFrom(number)),
+        ),
         PopupMenuItem(value: 0, child: Text(text.readingAudioFromStart)),
       ],
     );
@@ -68,7 +72,9 @@ class ReadingPlayerBar extends ConsumerWidget {
     final audio = ref.read(readingAudioProvider);
     final index = state.index ?? 0;
     final items = audio.controller.items;
-    final verseNumber = index < items.length ? (items[index].verse.verseNumber ?? index + 1) : index + 1;
+    final verseNumber = index < items.length
+        ? (items[index].verse.verseNumber ?? index + 1)
+        : index + 1;
     final isPaused = state.status == ReadingStatus.paused;
 
     return Material(
@@ -76,7 +82,10 @@ class ReadingPlayerBar extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -98,8 +107,12 @@ class ReadingPlayerBar extends ConsumerWidget {
                 onPressed: audio.controller.previous,
               ),
               IconButton(
-                icon: Icon(isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded),
-                tooltip: isPaused ? text.readingAudioResume : text.readingAudioPause,
+                icon: Icon(
+                  isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                ),
+                tooltip: isPaused
+                    ? text.readingAudioResume
+                    : text.readingAudioPause,
                 onPressed: audio.togglePause,
               ),
               IconButton(

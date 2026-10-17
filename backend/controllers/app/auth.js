@@ -11,6 +11,7 @@
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as authService from '../../services/auth.js';
+import * as chatImages from '../../services/chat-images.js';
 import { ok, created } from '../../utils/respond.js';
 import { badRequest, conflict, notFound } from '../../utils/errors.js';
 import { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } from '../../config/constants.js';
@@ -162,7 +163,10 @@ export const social = async (req, res) => {
  * POST /api/app/auth/refresh
  * Spends the refresh token and returns a new pair. The refresh token is valid
  * for a year and is re-issued on every use, so an app in regular use never asks
- * anyone to sign in again.
+ * anyone to sign in again. A token spent within REFRESH_REUSE_GRACE_SECONDS is
+ * answered with a fresh pair (a lost response), not treated as theft. A 403
+ * here is the one answer that ends a session; the apps keep the person signed
+ * in through every other failure.
  */
 export const refresh = async (req, res) => {
   const { refreshToken, deviceId } = req.valid.body;
@@ -190,7 +194,9 @@ export const logoutAll = async (req, res) => {
  */
 export const deleteAccount = async (req, res) => {
   const userId = req.auth.user.id;
+  const pictures = await chatImages.keysWhere({ conversation: { userId } });
   await prisma.user.delete({ where: { id: userId } });
+  await chatImages.deleteFiles(pictures);
   await authService.invalidateUser(userId);
   logger.info({ userId }, 'account deleted by user');
   return ok(res, { message: 'Account deleted' });

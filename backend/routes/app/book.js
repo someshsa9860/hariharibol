@@ -104,11 +104,16 @@ router.get(
     description:
       'The chapter and every verse in it, each already resolved to the reader’s language. ' +
       'This is the reading screen in one call — splitting the verses out would cost a second ' +
-      'round trip on every chapter opened.',
+      'round trip on every chapter opened. `languages` (`mr,en`) names the reading ' +
+      'languages for this call, which then win over the account’s saved ones — a phone ' +
+      'changes its own language before the account hears of it.',
     public: true,
     limit: 'read',
     params: z.object({ slug: z.string().min(1), number: z.coerce.number().int().min(1) }),
-    query: z.object({ canto: z.coerce.number().int().min(1).max(12).optional() }),
+    query: z.object({
+      canto: z.coerce.number().int().min(1).max(12).optional(),
+      languages: schemas.languages,
+    }),
     responds: {
       200: 'The chapter and its verses',
       400: 'Book is organised by canto and none was given',
@@ -125,10 +130,12 @@ router.get(
     description:
       'Every verse of a book with no chapters — a stotra, aarti, prayer or poem — in order, ' +
       'already resolved to the reader’s language. The equivalent of ' +
-      'GET /:slug/chapters/{number} for a book whose verses hang directly off it.',
+      'GET /:slug/chapters/{number} for a book whose verses hang directly off it. ' +
+      '`languages` (`mr,en`) names the reading languages for this call, as there.',
     public: true,
     limit: 'read',
     params: schemas.slug,
+    query: z.object({ languages: schemas.languages }),
     responds: {
       200: 'The book’s verses in order',
       400: 'Book is organised by chapter instead',

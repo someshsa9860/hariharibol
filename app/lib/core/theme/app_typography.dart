@@ -99,14 +99,20 @@ abstract final class AppTypography {
     );
   }
 
-  /// The romanised line under the Sanskrit. Playfair's italic, which is what
-  /// makes it read as a pronunciation aid rather than as more body copy.
+  /// The romanised line under the Sanskrit, set to be read: the platform font,
+  /// upright, at the size of the verse above it, with the muted colour doing
+  /// the work of marking it as a pronunciation aid. Not Playfair and not
+  /// italic — a slanted hairline serif lost the diacritics (ṛ ṣ ṭ ṇ ḥ ā) at
+  /// this size on a dark page, and a slanted sans is still slower to read.
   static TextStyle transliteration(BuildContext context, {double scale = 1.0}) {
-    return _serif(
-      size: 16 * scale,
-      height: 1.6,
-      style: FontStyle.italic,
-      letterSpacing: 0,
+    final base = Theme.of(context).textTheme.bodyLarge!;
+    return base.copyWith(
+      fontFamily: null,
+      fontSize: 17 * scale,
+      height: 1.7,
+      fontWeight: FontWeight.w400,
+      fontStyle: FontStyle.normal,
+      letterSpacing: 0.1,
       color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }

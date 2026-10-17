@@ -71,7 +71,7 @@ export const NAV: NavSection[] = [
       { label: 'Notifications', path: '/notifications', icon: Bell, permission: 'notification.send' },
       { label: 'Settings', path: '/settings', icon: Settings, permission: 'setting.read' },
       { label: 'AI usage', path: '/ai', icon: Sparkles, permission: 'ai.read' },
-      { label: 'AI chat', path: '/chat', icon: MessageCircle, permission: 'chat.manage' },
+      { label: 'Ask Sakha', path: '/chat', icon: MessageCircle, permission: 'chat.manage' },
       { label: 'Audit log', path: '/audit', icon: History, permission: 'audit.read' },
       { label: 'Jobs', path: '/jobs', icon: ListTodo, permission: 'job.manage' },
       { label: 'Analytics', path: '/analytics', icon: TrendingUp, permission: 'system.read' },

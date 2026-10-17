@@ -33,7 +33,10 @@ class CantoHeader extends ConsumerWidget {
           Text(summary, style: context.texts.bodyMedium),
         ],
         const SizedBox(height: AppSpacing.lg),
-        SectionCounts(chapters: canto.totalChapters ?? 0, verses: canto.totalVerses),
+        SectionCounts(
+          chapters: canto.totalChapters ?? 0,
+          verses: canto.totalVerses,
+        ),
       ],
     );
   }

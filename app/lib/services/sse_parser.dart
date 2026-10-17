@@ -108,9 +108,14 @@ class SseDecoder {
 
 /// Bytes in, events out. UTF-8 is decoded across chunk boundaries, so a
 /// Devanagari character split between two packets arrives whole.
+///
+/// `bind`, not `bytes.transform(...)`: Dio's body is really a
+/// `Stream<Uint8List>`, and `transform` checks its argument against the
+/// stream's *runtime* element type, so a decoder of `List<int>` is refused
+/// with a `TypeError` that the caller can only read as a dropped connection.
 Stream<SseEvent> parseSse(Stream<List<int>> bytes) async* {
   final decoder = SseDecoder();
-  await for (final text in bytes.transform(const Utf8Decoder(allowMalformed: true))) {
+  await for (final text in const Utf8Decoder(allowMalformed: true).bind(bytes)) {
     for (final event in decoder.add(text)) {
       yield event;
     }

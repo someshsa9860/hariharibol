@@ -7,6 +7,7 @@
 
 import * as settings from '../../services/setting.js';
 import * as audit from '../../services/audit.js';
+import { USABLE_MODELS } from '../../utils/ai-free-tier.js';
 import { ok } from '../../utils/respond.js';
 import { badRequest } from '../../utils/errors.js';
 import { parseTimeOfDay } from '../../utils/sloka-delivery.js';
@@ -23,7 +24,24 @@ const KNOWN = {
   },
   [SETTING_KEYS.AI_MODEL_TEXT]: {
     label: 'AI text model',
-    help: 'Model name as the provider spells it, e.g. gemini-2.0-flash.',
+    help: 'Model name as the provider spells it, e.g. gemini-3.5-flash-lite (Google retires models; the 2.0 ones answer 404).',
+  },
+  // The next three are written by the switch on the AI usage page, which says what it does; listed here so they are
+  // not shown as leftovers.
+  [SETTING_KEYS.AI_FREE_TIER_ENABLED]: {
+    label: 'Use OpenAI free tier',
+    help: 'true or false. Normally set with the switch on the AI usage page.',
+    options: ['true', 'false'],
+  },
+  [SETTING_KEYS.AI_FREE_TIER_TEXT_MODEL]: {
+    label: 'Free-tier model for chat',
+    help: `One of ${USABLE_MODELS.join(', ')}. Normally set on the AI usage page.`,
+    options: USABLE_MODELS,
+  },
+  [SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL]: {
+    label: 'Free-tier model for translations',
+    help: `One of ${USABLE_MODELS.join(', ')}. Normally set on the AI usage page.`,
+    options: USABLE_MODELS,
   },
   [SETTING_KEYS.AI_MONTHLY_BUDGET_MICROS]: {
     label: 'Monthly AI budget',

@@ -110,7 +110,7 @@ async function main() {
   const peek = await call('GET', `${API}/session/${id}`, asOther);
   check('or read it', peek.status === 403, `HTTP ${peek.status}`);
   const anon = await call('GET', `${API}/sessions`);
-  check('history needs a signed-in user', anon.status === 401, `HTTP ${anon.status}`);
+  check('history needs a signed-in user', anon.status === 403, `HTTP ${anon.status}`);
 
   console.log('\n4. Transcripts and their expiry');
   const heard = await call('POST', `${API}/session/${id}/transcripts`, {

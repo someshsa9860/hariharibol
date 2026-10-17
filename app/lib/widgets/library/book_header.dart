@@ -36,7 +36,10 @@ class BookHeader extends ConsumerWidget {
     final cover = book.coverImageUrl;
     final isLight = context.theme.brightness == Brightness.light;
     final motif = Motif.values[book.bookNumber.abs() % Motif.values.length];
-    final translatorNames = book.translators.map((t) => t.name).where((n) => n.isNotEmpty).join(', ');
+    final translatorNames = book.translators
+        .map((t) => t.name)
+        .where((n) => n.isNotEmpty)
+        .join(', ');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +58,9 @@ class BookHeader extends ConsumerWidget {
                   )
                 : MotifPanel(
                     motif: motif,
-                    from: isLight ? AppColors.panelFrom : AppColors.panelFromDark,
+                    from: isLight
+                        ? AppColors.panelFrom
+                        : AppColors.panelFromDark,
                     to: isLight ? AppColors.panelTo : AppColors.panelToDark,
                     lineColor: context.colors.primary,
                     lineOpacity: isLight ? 0.35 : 0.5,
@@ -63,18 +68,28 @@ class BookHeader extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(book.titleFor(chain), key: titleKey, style: context.texts.headlineMedium),
+        Text(
+          book.titleFor(chain),
+          key: titleKey,
+          style: context.texts.headlineMedium,
+        ),
         if (description != null && description.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(description, style: context.texts.bodyMedium),
         ],
         const SizedBox(height: AppSpacing.lg),
-        SectionCounts(cantos: book.totalCantos, chapters: book.totalChapters, verses: book.totalVerses),
+        SectionCounts(
+          cantos: book.totalCantos,
+          chapters: book.totalChapters,
+          verses: book.totalVerses,
+        ),
         if (translatorNames.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
             text.bookByTranslators(translatorNames),
-            style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+            style: context.texts.bodySmall?.copyWith(
+              color: context.colors.onSurfaceVariant,
+            ),
           ),
         ],
       ],

@@ -120,7 +120,7 @@ async function main() {
     // ── 1 ────────────────────────────────────────────────────────────────────
     console.log('\n1. Who may use it');
     const anon = await call('GET', '/api/admin/slokas/picker');
-    check('signed out is 401', anon.status === 401, `HTTP ${anon.status}`);
+    check('signed out is 403', anon.status === 403, `HTTP ${anon.status}`);
     const plain = await call('GET', '/api/admin/slokas/picker', { token: readerToken });
     check('a plain user is 403', plain.status === 403, `HTTP ${plain.status}`);
     if (moderator) {

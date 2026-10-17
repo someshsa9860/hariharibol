@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/subscription.dart';
 import '../../services/purchase_service.dart';
+import '../common/sakha_icon.dart';
 
 /// One plan: what it is, what it costs here, what it unlocks, and how to buy it.
 ///
@@ -72,10 +73,11 @@ class PlanCard extends StatelessWidget {
                   onBuy: onBuy,
                 ),
 
-            if (features.isNotEmpty) ...[
+            if (features.isNotEmpty || plan.sakhaReplies != null) ...[
               const SizedBox(height: AppSpacing.lg),
               const Divider(height: 1),
               const SizedBox(height: AppSpacing.md),
+              if (plan.sakhaReplies != null) _SakhaRow(replies: plan.sakhaReplies!),
               for (final feature in features)
                 _FeatureRow(feature: feature, value: plan.features[feature.key]),
             ],
@@ -135,11 +137,41 @@ class _PriceRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           FilledButton(
+            // The theme's buttons are full width (an infinite minimum), which a
+            // Row beside an Expanded cannot lay out — it threw, and the screen
+            // drew nothing. The width here is the label's.
+            style: FilledButton.styleFrom(minimumSize: const Size(0, AppSizes.buttonHeight)),
             // A product the store does not list cannot be bought; the button
             // waits for it rather than opening a sheet that errors.
             onPressed: product == null || isCurrent ? null : () => onBuy(price, product!),
             child: Text(price.hasTrial ? text.plansStartTrial : text.plansSubscribe),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What Ask Sakha gives the plan, in replies a month — the one unit a reader
+/// can weigh. It is a catalogue-wide benefit the admin sets on the Ask Sakha
+/// page rather than a [FeatureDef], so it is drawn here, first in the list.
+class _SakhaRow extends StatelessWidget {
+  const _SakhaRow({required this.replies});
+
+  final int replies;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          const SakhaIcon(size: AppSizes.iconMd),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(child: Text(text.chatTitle, style: context.texts.bodyMedium)),
+          Text(text.plansSakhaReplies(replies), style: context.texts.bodySmall),
         ],
       ),
     );

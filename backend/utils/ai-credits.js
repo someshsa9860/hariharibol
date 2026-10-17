@@ -103,6 +103,18 @@ export function spendable({ balance, dailyUsed = 0, dailyLimit = 0, conversation
 }
 
 /**
+ * How many ordinary replies a wallet of `tokens` pays for, said the way a reader can
+ * weigh it — a count, never the tokens. It is an estimate, so it is rounded down to a
+ * multiple of five once it is ten or more ("about 200", not 203): precision it does not
+ * have would read as a promise.
+ */
+export function repliesIn(tokens, perReply) {
+  if (!(tokens > 0) || !(perReply > 0)) return 0;
+  const whole = Math.floor(tokens / perReply);
+  return whole >= 10 ? whole - (whole % 5) : whole;
+}
+
+/**
  * Which limit stopped a call that `spendable()` said was too small. The order
  * is the order the reader can do something about: a full conversation is solved
  * by a new chat, a daily cap by tomorrow, an empty wallet by upgrading.

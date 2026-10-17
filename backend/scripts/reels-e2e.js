@@ -103,7 +103,7 @@ async function main() {
   check('follow state is present', 'isFollowingCreator' in (first ?? {}));
 
   const anonymous = await call('GET', '/api/app/reels');
-  check('the feed needs a signed-in reader', anonymous.status === 401, `HTTP ${anonymous.status}`);
+  check('the feed needs a signed-in reader', anonymous.status === 403, `HTTP ${anonymous.status}`);
 
   const mine = reels.filter((r) => r.isMine);
   check('the feed leaves out my own reels', mine.length === 0, `${mine.length} own reels`);

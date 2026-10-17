@@ -159,7 +159,7 @@ export const chaptersBulk = async (req, res) => {
  */
 export const chapter = async (req, res) => {
   const { slug, number } = req.valid.params;
-  const { canto } = req.valid.query;
+  const { canto, languages } = req.valid.query;
 
   const book = await prisma.book.findFirst({
     where: { slug, isPublished: true },
@@ -176,7 +176,10 @@ export const chapter = async (req, res) => {
   });
   if (!chapter) throw notFound('Chapter');
 
-  const readingChain = language.readingChain(req.auth.user);
+  // The languages the call names, else the account's. Favourites and notes below
+  // still belong to the account, whatever language is being read.
+  const reader = language.withReadingLanguages(req.auth.user, language.fromQuery(languages));
+  const readingChain = language.readingChain(reader);
 
   const verses = await prisma.verse.findMany({
     where: { chapterId: chapter.id },
@@ -185,8 +188,8 @@ export const chapter = async (req, res) => {
   });
 
   return ok(res, {
-    chapter: present.section(chapter, req.auth.user),
-    verses: await present.verses(verses, req.auth.user),
+    chapter: present.section(chapter, reader),
+    verses: await present.verses(verses, reader),
   });
 };
 
@@ -207,7 +210,11 @@ export const verses = async (req, res) => {
     throw badRequest('This book is organised by chapter — use GET /:slug/chapters/:number');
   }
 
-  const readingChain = language.readingChain(req.auth.user);
+  const reader = language.withReadingLanguages(
+    req.auth.user,
+    language.fromQuery(req.valid.query.languages)
+  );
+  const readingChain = language.readingChain(reader);
 
   const verseRows = await prisma.verse.findMany({
     where: { bookId: book.id },
@@ -215,5 +222,5 @@ export const verses = async (req, res) => {
     include: present.includes.verse(readingChain, req.auth.user?.id),
   });
 
-  return ok(res, await present.verses(verseRows, req.auth.user));
+  return ok(res, await present.verses(verseRows, reader));
 };

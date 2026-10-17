@@ -6,7 +6,6 @@ import '../../models/mantra.dart';
 import '../../models/search_result.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
-import '../../views/chat/chat_list_view.dart';
 import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
 import '../../views/chant/chant_view.dart';
@@ -190,13 +189,6 @@ GoRouter createRouter() {
         builder: (context, state) => ChantSessionView(sessionId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: AppRoutes.reels,
-        name: RouteNames.reels,
-        builder: (context, state) => const ReelsView(),
-      ),
-      // Registered after the feed, so `/reels` still matches the feed rather
-      // than being read as a reel whose id is empty.
-      GoRoute(
         path: AppRoutes.reelPattern,
         name: RouteNames.reelDetail,
         builder: (context, state) => ReelDetailView(reelId: state.pathParameters['id']!),
@@ -212,16 +204,38 @@ GoRouter createRouter() {
         builder: (context, state) => CreatorView(creatorId: state.pathParameters['id']!),
       ),
 
+      // Rises out of the bar's centre button, where it was opened from.
       GoRoute(
         path: AppRoutes.chat,
-        name: RouteNames.chatList,
-        builder: (context, state) => const ChatListView(),
+        name: RouteNames.chat,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const ChatView(),
+          transitionDuration: AppDurations.slow,
+          reverseTransitionDuration: AppDurations.normal,
+          transitionsBuilder: (context, animation, secondary, child) {
+            if (MediaQuery.disableAnimationsOf(context)) return child;
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.86, end: 1).animate(curved),
+                alignment: const Alignment(0, 1),
+                child: child,
+              ),
+            );
+          },
+        ),
       ),
-      // Also matches `/chat/new`, which ChatView reads as a chat not made yet.
+
       GoRoute(
-        path: AppRoutes.chatPattern,
-        name: RouteNames.chatDetail,
-        builder: (context, state) => ChatView(conversationId: state.pathParameters['id']!),
+        path: AppRoutes.routine,
+        name: RouteNames.routine,
+        builder: (context, state) => const RoutineTab(showBack: true),
       ),
 
       // The tabs. An indexed stack keeps each tab's scroll position and state
@@ -251,18 +265,18 @@ GoRouter createRouter() {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.library,
-                name: RouteNames.library,
-                builder: (context, state) => const LibraryTab(),
+                path: AppRoutes.reels,
+                name: RouteNames.reels,
+                builder: (context, state) => const ReelsView(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.routine,
-                name: RouteNames.routine,
-                builder: (context, state) => const RoutineTab(),
+                path: AppRoutes.library,
+                name: RouteNames.library,
+                builder: (context, state) => const LibraryTab(),
               ),
             ],
           ),

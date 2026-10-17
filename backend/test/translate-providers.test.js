@@ -35,6 +35,24 @@ describe('openai request', () => {
     assert.deepEqual(body.messages, [{ role: 'system', content: 'S' }, { role: 'user', content: 'U' }]);
   });
 
+  it('asks the free GPT-4 models for no reasoning at all — they refuse the parameter — and still rejects a bad effort', () => {
+    for (const model of ['gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4.1-nano']) {
+      const body = chatRequest({ model, effort: 'off', system: 'S', user: 'U', schema: { type: 'object' }, maxTokens: 100 });
+      assert.equal('reasoning_effort' in body, false, model);
+      assert.equal(body.model, model);
+      assert.equal(body.max_completion_tokens, 100);
+    }
+    assert.throws(() => chatRequest({ model: 'gpt-4.1-mini', effort: 'minimal', system: 'S', user: 'U', schema: {}, maxTokens: 1 }), /Unknown effort/);
+    assert.equal(chatRequest({ model: DEFAULT_MODEL, effort: 'off', system: 'S', user: 'U', schema: {}, maxTokens: 1 }).reasoning_effort, 'none', 'GPT-6 Luna still gets its reasoning level');
+  });
+
+  it('prices the free models at their standard rates, for the tokens past the allowance', () => {
+    const usage = { inputTokens: 1e6, outputTokens: 1e6, cacheReadTokens: 0, cacheWriteTokens: 0 };
+    assert.equal(costFor('openai', 'gpt-4.1-mini', usage), 0.4 + 1.6);
+    assert.equal(costFor('openai', 'gpt-4o-mini', usage), 0.15 + 0.6);
+    assert.equal(costFor('openai', 'gpt-4.1-nano', usage), 0.1 + 0.4);
+  });
+
   it('carries other efforts by name and rejects unknown ones before any verse is sent', () => {
     assert.equal(reasoningEffort('high'), 'high');
     assert.throws(() => createOpenAI({ apiKey: 'x', effort: 'minimal' }), /Unknown effort/);

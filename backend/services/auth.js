@@ -4,12 +4,17 @@
 // user whose role carries admin permissions.
 //
 // Token design:
-//   access   signed JWT, short-lived by config, verified in-process with no
-//            database hit on the hot path
+//   access   signed JWT, 7 days by config (ACCESS_TOKEN_TTL), verified
+//            in-process with no database hit on the hot path. The app renews it
+//            about once a day, so it is long enough to survive a week offline
+//            and never the thing a signed-in person trips over.
 //   refresh  opaque random string. Only its SHA-256 hash is stored, so a
 //            database leak does not hand over live sessions. Valid for a year
 //            and replaced on every use — `rotatedAt` marks a row spent, which
 //            is what makes replay detectable.
+//
+// Anything that means "this session is not valid" is a 403 (`unauthorized()` in
+// utils/errors.js) — the only status the apps sign anyone out on.
 
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
@@ -75,6 +80,14 @@ async function issueSession(user, deviceId) {
 // Presenting a refresh token spends it. Presenting one that was already spent
 // means it was captured — the whole family is killed and the user signs in
 // again, which is the only safe response.
+//
+// One exception: a token spent a few seconds ago (REFRESH_REUSE_GRACE_SECONDS) is
+// answered with another fresh pair and nothing is revoked. A phone that sent the
+// refresh and lost the reply on a bad connection asks again with the only token
+// it holds, and signing that person out for a dropped packet is the failure this
+// allowance exists to prevent. The pair the phone never received simply goes
+// unused. The price is that a thief who replays within the window gets a session
+// too; the window is short and `0` removes it.
 async function rotateRefreshToken(rawToken, deviceId) {
   if (!rawToken) throw badRequest('refreshToken is required');
 
@@ -85,7 +98,12 @@ async function rotateRefreshToken(rawToken, deviceId) {
 
   if (!existing) throw unauthorized('Invalid refresh token');
 
-  if (existing.rotatedAt) {
+  const spentRecently =
+    existing.rotatedAt &&
+    !existing.revokedAt &&
+    Date.now() - existing.rotatedAt.getTime() <= env.REFRESH_REUSE_GRACE_SECONDS * 1000;
+
+  if (existing.rotatedAt && !spentRecently) {
     logger.warn({ userId: existing.userId }, 'refresh token replay — revoking all sessions');
     await revokeAllForUser(existing.userId);
     throw unauthorized('Refresh token already used. Please sign in again.');
@@ -95,19 +113,25 @@ async function rotateRefreshToken(rawToken, deviceId) {
   if (existing.expiresAt < new Date()) throw unauthorized('Refresh token expired');
   if (existing.user.isBanned) throw unauthorized('This account is banned');
 
-  const [, session] = await prisma.$transaction([
-    prisma.refreshToken.update({
-      where: { id: existing.id },
-      data: { rotatedAt: new Date() },
-    }),
-    prisma.user.update({
-      where: { id: existing.userId },
-      data: { lastActiveAt: new Date() },
-      include: { role: true },
-    }),
-  ]);
+  let user = existing.user;
+  if (spentRecently) {
+    // `rotatedAt` stays as it was, so repeated asks cannot keep the window open.
+    logger.info({ userId: existing.userId }, 'refresh token reused inside the grace window');
+  } else {
+    [, user] = await prisma.$transaction([
+      prisma.refreshToken.update({
+        where: { id: existing.id },
+        data: { rotatedAt: new Date() },
+      }),
+      prisma.user.update({
+        where: { id: existing.userId },
+        data: { lastActiveAt: new Date() },
+        include: { role: true },
+      }),
+    ]);
+  }
 
-  return { user: session, session: await issueSession(session, deviceId || existing.deviceId) };
+  return { user, session: await issueSession(user, deviceId || existing.deviceId) };
 }
 
 async function revokeRefreshToken(rawToken) {

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'app_user.dart';
 import 'json.dart';
 
@@ -13,16 +15,47 @@ class AuthTokens {
   final String accessToken;
   final String refreshToken;
 
-  /// A year out, re-issued on every use. If this passes the person really does
-  /// have to sign in again — which should mean they have not opened the app in
-  /// twelve months.
+  /// A year out, re-issued on every use. Only the server decides whether it is
+  /// still good: a phone whose clock says it has passed is not signed out for
+  /// that — the next call asks, and a 403 is what ends the session.
   final DateTime? refreshExpiresAt;
 
   bool get isEmpty => accessToken.isEmpty || refreshToken.isEmpty;
 
-  bool get refreshLooksExpired {
-    final expiry = refreshExpiresAt;
-    return expiry != null && expiry.isBefore(DateTime.now());
+  /// When the server signed the access token, and when it lapses, read from the
+  /// token's own payload. Nothing here checks the signature — the server is the
+  /// judge of whether a token is good; this only decides when to ask for a new
+  /// one. Null for anything that is not a JWT with those claims.
+  DateTime? get accessIssuedAt => _claim('iat');
+  DateTime? get accessExpiresAt => _claim('exp');
+
+  /// True once the access token is [after] old, so it is swapped long before it
+  /// lapses. A token with a shorter life than twice [after] is renewed at half
+  /// of it, and one that cannot be read is left alone — the 403 path covers it.
+  bool accessDueForRenewal(DateTime now, Duration after) {
+    final issued = accessIssuedAt;
+    if (issued == null) return false;
+
+    final expires = accessExpiresAt;
+    var wait = after;
+    if (expires != null) {
+      final half = expires.difference(issued) ~/ 2;
+      if (half > Duration.zero && half < wait) wait = half;
+    }
+    return !now.isBefore(issued.add(wait));
+  }
+
+  DateTime? _claim(String name) {
+    try {
+      final parts = accessToken.split('.');
+      if (parts.length != 3) return null;
+      final payload = jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
+      final value = payload is Map ? payload[name] : null;
+      if (value is! num) return null;
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt() * 1000);
+    } catch (_) {
+      return null;
+    }
   }
 
   factory AuthTokens.fromJson(Json json) => AuthTokens(

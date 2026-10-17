@@ -25,6 +25,7 @@ import 'package:hariharibol/core/constants/storage_keys.dart';
 import 'package:hariharibol/services/local_store.dart';
 import 'package:hariharibol/views/auth/sign_in_view.dart';
 import 'package:hariharibol/views/dashboard/dashboard_view.dart';
+import 'package:hariharibol/views/dashboard/routine_tab.dart';
 import 'package:hariharibol/widgets/common/glass_nav_bar.dart';
 import 'package:hariharibol/views/onboarding/language_view.dart';
 import 'package:hariharibol/views/splash/splash_view.dart';
@@ -112,7 +113,10 @@ void main() {
       expect(AppSession.instance.user?.email, 'user@smoke.test');
     });
 
-    test('a refresh token past its year is not trusted', () async {
+    test('a phone clock past the refresh token\'s year does not sign anyone out', () async {
+      // Only the server decides whether a session is over (a 403 on the
+      // refresh). A clock that is wrong, or a date in the future, must not log
+      // someone out of a session the server would still honour.
       await AppSession.instance.start(
         AuthSession.fromJson(
           sessionPayload(refreshExpiresAt: DateTime.now().subtract(const Duration(days: 1))),
@@ -120,8 +124,19 @@ void main() {
       );
       await AppSession.instance.restore();
 
+      expect(AppSession.instance.status, SessionStatus.signedIn);
+      expect(AppSession.instance.refreshToken, 'r' * 64);
+    });
+
+    test('a stored pair with an empty token is not a session', () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      await AppSession.instance.start(AuthSession.fromJson(sessionPayload()));
+      await AppSession.instance.updateTokens(
+        const AuthTokens(accessToken: '', refreshToken: '', refreshExpiresAt: null),
+      );
+      await AppSession.instance.restore();
+
       expect(AppSession.instance.status, SessionStatus.signedOut);
-      expect(AppSession.instance.refreshToken, isNull);
     });
 
     test('a silent rotation swaps the tokens and leaves the user alone', () async {
@@ -197,8 +212,33 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       final bar = tester.widget<GlassNavBar>(find.byType(GlassNavBar));
-      expect(bar.items, hasLength(4));
+      expect(bar.items.map((item) => item.label), ['Home', 'Jap', 'Reels', 'Read']);
       expect(bar.selectedIndex, 0);
+      // Sakha is raised in the middle of them, and is not one of the four.
+      expect(bar.hero, isNotNull);
+      expect(bar.hero!.semanticLabel, 'Ask Sakha');
+      expect(bar.onMedia, isFalse);
+    });
+
+    testWidgets('the routine is a screen of its own, opened from Home', (tester) async {
+      await signIn(tester);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      AppNavigator.instance.push(AppRoutes.routine);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(RoutineTab), findsOneWidget);
+      expect(find.byTooltip('Back'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(RoutineTab), findsNothing);
+      expect(find.byType(DashboardView), findsOneWidget);
     });
 
     testWidgets('a new account is held at the language picker', (tester) async {

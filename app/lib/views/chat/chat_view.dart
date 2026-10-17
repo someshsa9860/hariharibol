@@ -12,25 +12,26 @@ import '../../models/chat.dart';
 import '../../providers/chat_controller.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/chat_state.dart';
+import '../../services/chat_image_picker.dart';
+import '../../widgets/chat/chat_attach_sheet.dart';
 import '../../widgets/chat/chat_composer.dart';
 import '../../widgets/chat/chat_credit_meter.dart';
 import '../../widgets/chat/chat_credits_card.dart';
-import '../../widgets/chat/chat_intro.dart';
-import '../../widgets/chat/chat_message_bubble.dart';
+import '../../widgets/chat/chat_dictation.dart';
+import '../../widgets/chat/chat_message_list.dart';
 import '../../widgets/chat/chat_notices.dart';
-import '../../widgets/chat/rename_chat_dialog.dart';
+import '../../widgets/chat/chat_suggestions.dart';
+import '../../widgets/chat/chat_welcome.dart';
+import '../../widgets/chat/sakha_avatar.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 
-enum _MenuAction { compact, rename, delete }
-
-/// One conversation: the messages, the box to type in, the credit meter, and
-/// the menu. A chat opened at `/chat/new` has no conversation yet; it is made
-/// on the server when the first message is sent.
+/// Ask Sakha: the reader's one conversation. The messages, the box to type,
+/// speak or add a picture in, the credit meter beside the title and a button to
+/// clear the chat. Opening it asks the server for the conversation; the first
+/// message creates it if there is none.
 class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key, required this.conversationId});
-
-  final String conversationId;
+  const ChatView({super.key});
 
   @override
   ConsumerState<ChatView> createState() => _ChatViewState();
@@ -39,17 +40,24 @@ class ChatView extends ConsumerStatefulWidget {
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _composer = TextEditingController();
   final ScrollController _scroll = ScrollController();
+  late final ChatDictation _dictation = ChatDictation(
+    input: ref.read(speechInputProvider),
+    text: _composer,
+    onNotice: _dictationNotice,
+  );
 
   @override
   void dispose() {
+    _dictation.dispose();
     _composer.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
-  ChatController get _chat => ref.read(chatControllerProvider(widget.conversationId).notifier);
+  ChatController get _chat => ref.read(chatControllerProvider.notifier);
 
   void _send(String value) {
+    _dictation.cancel();
     _composer.clear();
     _chat.send(value);
     // The list is upside down, so the newest message is at offset zero.
@@ -69,48 +77,75 @@ class _ChatViewState extends ConsumerState<ChatView> {
     _chat.draftRestored();
   }
 
+  // ── Pictures and voice ────────────────────────────────────────────────────
+
+  Future<void> _attach() async {
+    final source = await chooseChatPicture(context);
+    if (source == null || !mounted) return;
+    try {
+      final path = await ref.read(chatImagePickerProvider).pick(source);
+      if (path != null && mounted) await _chat.attachImage(path);
+    } on PictureAccessDenied {
+      if (mounted) AppNavigator.instance.showMessage(AppLocalizations.of(context).chatPictureDenied);
+    }
+  }
+
+  void _toggleVoice(int maxChars) {
+    _dictation.toggle(
+      languageCode: Localizations.localeOf(context).languageCode,
+      maxChars: maxChars,
+    );
+  }
+
+  void _dictationNotice(DictationNotice notice) {
+    if (!mounted) return;
+    final text = AppLocalizations.of(context);
+    AppNavigator.instance.showMessage(switch (notice) {
+      DictationNotice.denied => text.chatMicDenied,
+      DictationNotice.unavailable => text.chatMicUnavailable,
+      DictationNotice.heardNothing => text.chatMicNoSpeech,
+      DictationNotice.failed => text.chatMicFailed,
+    });
+  }
+
+  // ── Clearing, upgrading, carrying on ──────────────────────────────────────
+
+  Future<void> _clear() async {
+    final text = AppLocalizations.of(context);
+    final navigator = AppNavigator.instance;
+    final confirmed = await navigator.confirm(
+      title: text.chatClearTitle,
+      message: text.chatClearBody,
+      confirmLabel: text.chatClearConfirm,
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await _dictation.cancel();
+      await _chat.clear();
+      _composer.clear();
+      navigator.showMessage(text.chatCleared);
+    } on ApiFailure catch (failure) {
+      navigator.showFailure(failure);
+    }
+  }
+
   Future<void> _upgrade() async {
     await AppNavigator.instance.push(AppRoutes.plans);
     if (mounted) ref.read(chatStatusProvider.notifier).refresh();
   }
 
+  /// A full chat carries on in a new one: Sakha keeps the summary, the screen
+  /// starts empty.
   Future<void> _startNewChat() async {
     final text = AppLocalizations.of(context);
     try {
       final result = await _chat.startNewChat();
       if (result == null || !mounted) return;
       if (!result.carriedEverything) AppNavigator.instance.showMessage(text.chatContinuePartial);
-      await AppNavigator.instance.replace<void>(AppRoutes.chatPath(result.conversation.id));
     } on ApiFailure catch (failure) {
       AppNavigator.instance.showFailure(failure);
-    }
-  }
-
-  Future<void> _onMenu(_MenuAction action, ChatConversation conversation) async {
-    final text = AppLocalizations.of(context);
-    final navigator = AppNavigator.instance;
-
-    try {
-      switch (action) {
-        case _MenuAction.compact:
-          final compacted = await _chat.compact();
-          navigator.showMessage(compacted ? text.chatCompactDone : text.chatCompactNothing);
-        case _MenuAction.rename:
-          final name = await askChatName(context, current: conversation.title);
-          if (name != null && name != conversation.title) await _chat.rename(name);
-        case _MenuAction.delete:
-          final confirmed = await navigator.confirm(
-            title: text.chatDeleteTitle,
-            message: text.chatDeleteBody,
-            confirmLabel: text.actionDelete,
-            isDestructive: true,
-          );
-          if (!confirmed) return;
-          await _chat.delete();
-          navigator.pop();
-      }
-    } on ApiFailure catch (failure) {
-      navigator.showFailure(failure);
     }
   }
 
@@ -140,43 +175,43 @@ class _ChatViewState extends ConsumerState<ChatView> {
     return null;
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final id = widget.conversationId;
-    final state = ref.watch(chatControllerProvider(id));
+    final state = ref.watch(chatControllerProvider);
     final status = ref.watch(chatStatusProvider).value;
-    ref.listen(chatControllerProvider(id), _takeDraft);
+    ref.listen(chatControllerProvider, _takeDraft);
 
-    final conversation = state.conversation;
     final credits = status?.credits;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          conversation?.title ?? text.chatNewChat,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        // The meter shares the title's line instead of hanging below it.
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            const SakhaAvatar(size: AppSizes.avatarSm),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(text.chatTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            if (credits != null) ...[
+              const SizedBox(width: AppSpacing.sm),
+              ChatCreditMeter(credits: credits),
+            ],
+            const SizedBox(width: AppSpacing.xs),
+          ],
         ),
         actions: [
-          if (conversation != null && state.loaded)
-            PopupMenuButton<_MenuAction>(
-              tooltip: text.chatMoreActions,
-              enabled: !state.busy,
-              onSelected: (action) => _onMenu(action, conversation),
-              itemBuilder: (_) => [
-                PopupMenuItem(value: _MenuAction.compact, child: Text(text.chatMenuCompact)),
-                PopupMenuItem(value: _MenuAction.rename, child: Text(text.chatMenuRename)),
-                PopupMenuItem(value: _MenuAction.delete, child: Text(text.actionDelete)),
-              ],
+          if (state.loaded && state.hasHistory)
+            IconButton(
+              tooltip: text.chatClearTooltip,
+              onPressed: state.busy ? null : _clear,
+              icon: const Icon(Icons.delete_sweep_outlined),
             ),
         ],
-        bottom: credits == null
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(ChatCreditMeter.extent),
-                child: ChatCreditMeter(credits: credits),
-              ),
       ),
       body: _body(context, state, status),
     );
@@ -190,12 +225,22 @@ class _ChatViewState extends ConsumerState<ChatView> {
     if (!state.loaded) return const AppLoader();
 
     final text = AppLocalizations.of(context);
+    final still = MediaQuery.disableAnimationsOf(context);
     final problem = state.problem;
     final notice = _creditsNotice(problem, status?.credits);
     final showsProblem = problem != null &&
         problem.issue != ChatIssue.creditsExhausted &&
         problem.issue != ChatIssue.notAvailable &&
         problem.issue != ChatIssue.conversationFull;
+    final maxChars = status?.maxInputChars ?? ChatConfig.fallbackMaxInputChars;
+    final canAsk = notice == null && state.canSend;
+
+    final last = state.messages.isEmpty ? null : state.messages.last;
+    final offersFollowUps = canAsk &&
+        last != null &&
+        last.isAssistant &&
+        last.status == ChatMessageStatus.complete &&
+        last.content.isNotEmpty;
 
     return Center(
       child: ConstrainedBox(
@@ -203,20 +248,49 @@ class _ChatViewState extends ConsumerState<ChatView> {
         child: Column(
           children: [
             Expanded(
-              child: state.messages.isEmpty
-                  ? ChatIntro(description: status?.description ?? '')
-                  : _Messages(
-                      state: state,
-                      controller: _scroll,
-                      onRegenerate: _chat.regenerate,
+              child: Stack(
+                children: [
+                  ChatMessageList(
+                    state: state,
+                    controller: _scroll,
+                    onRegenerate: _chat.regenerate,
+                  ),
+                  Positioned.fill(
+                    child: AnimatedSwitcher(
+                      duration: still ? Duration.zero : AppDurations.normal,
+                      child: state.messages.isEmpty
+                          ? ChatWelcome(
+                              key: const ValueKey('welcome'),
+                              description: status?.description ?? '',
+                              onPick: canAsk ? _send : null,
+                            )
+                          : const SizedBox.shrink(key: ValueKey('conversation')),
                     ),
+                  ),
+                ],
+              ),
             ),
-            if (state.working)
+            if (state.working && state.compacting)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
                 child: Text(text.chatTidying, style: context.texts.bodySmall),
               ),
-            if (showsProblem) ChatProblemNotice(problem: problem, onRetry: _chat.retry),
+            AnimatedSwitcher(
+              duration: still ? Duration.zero : AppDurations.normal,
+              transitionBuilder: (child, animation) => SizeTransition(
+                sizeFactor: animation,
+                alignment: Alignment.topCenter,
+                child: FadeTransition(opacity: animation, child: child),
+              ),
+              child: showsProblem
+                  ? ChatProblemNotice(
+                      key: ObjectKey(problem),
+                      problem: problem,
+                      onRetry: _chat.retry,
+                      onDismiss: _chat.dismissProblem,
+                    )
+                  : const SizedBox.shrink(key: ValueKey('no-problem')),
+            ),
             if (state.isFull)
               ChatFullBanner(onStartNewChat: _startNewChat, busy: state.busy)
             else ...[
@@ -230,56 +304,37 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       ? _startNewChat
                       : null,
                 ),
-              ChatComposer(
-                controller: _composer,
-                maxChars: status?.maxInputChars ?? ChatConfig.fallbackMaxInputChars,
-                busy: state.phase != ChatPhase.idle,
-                enabled: notice == null && state.loaded && !state.working,
-                onSend: _send,
-                onStop: _chat.stop,
+              AnimatedSize(
+                duration: still ? Duration.zero : AppDurations.normal,
+                alignment: Alignment.bottomCenter,
+                child: offersFollowUps
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: ChatFollowUps(onPick: _send),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+              ListenableBuilder(
+                listenable: _dictation,
+                builder: (context, _) => ChatComposer(
+                  controller: _composer,
+                  maxChars: maxChars,
+                  busy: state.phase != ChatPhase.idle,
+                  enabled: notice == null && !state.working,
+                  listening: _dictation.listening,
+                  draftImage: state.draftImage,
+                  onSend: _send,
+                  onStop: _chat.stop,
+                  onAttach: _attach,
+                  onMic: () => _toggleVoice(maxChars),
+                  onRemoveImage: _chat.removeImage,
+                  onRetryImage: _chat.retryImage,
+                ),
               ),
             ],
           ],
         ),
       ),
-    );
-  }
-}
-
-/// The messages, newest at the bottom. The list is reversed, so a message that
-/// grows while it is written grows upward from a fixed bottom edge and the
-/// reader's place is never moved under them.
-class _Messages extends StatelessWidget {
-  const _Messages({required this.state, required this.controller, required this.onRegenerate});
-
-  final ChatState state;
-  final ScrollController controller;
-  final VoidCallback onRegenerate;
-
-  @override
-  Widget build(BuildContext context) {
-    final messages = state.messages;
-    final lastIndex = messages.length - 1;
-
-    return ListView.separated(
-      controller: controller,
-      reverse: true,
-      padding: AppSpacing.page.copyWith(top: AppSpacing.lg, bottom: AppSpacing.lg),
-      itemCount: messages.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xl),
-      itemBuilder: (context, index) {
-        final at = lastIndex - index;
-        final message = messages[at];
-        final isLast = at == lastIndex;
-
-        return ChatMessageBubble(
-          key: ValueKey(message.clientKey),
-          message: message,
-          streaming: isLast && message.isAssistant && state.phase != ChatPhase.idle,
-          compacting: state.compacting,
-          onRegenerate: isLast && message.isAssistant && !state.busy ? onRegenerate : null,
-        );
-      },
     );
   }
 }

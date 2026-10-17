@@ -100,6 +100,7 @@ class SubscriptionPlan {
     required this.prices,
     required this.features,
     this.description,
+    this.sakhaReplies,
   });
 
   final String id;
@@ -110,12 +111,19 @@ class SubscriptionPlan {
   final bool isFree;
   final List<PlanPrice> prices;
 
+  /// About how many Ask Sakha replies a month the plan gives — the one unit a
+  /// reader can weigh; the server never sends tokens. Null when the plan has
+  /// no chat or an older server does not say.
+  final int? sakhaReplies;
+
   /// By feature key.
   final Map<String, FeatureValue> features;
 
   factory SubscriptionPlan.fromJson(Json json) {
     final features = json['features'];
+    final sakha = json['sakha'];
     return SubscriptionPlan(
+      sakhaReplies: sakha is Map ? asIntOrNull(sakha['repliesPerMonth']) : null,
       id: asString(json['id']),
       slug: asString(json['slug']),
       name: asString(json['name']),

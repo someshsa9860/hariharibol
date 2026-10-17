@@ -168,12 +168,19 @@ async function deliver() {
   const targetMinutes = deliveryMinutes(await settings.get(SETTING_KEYS.SLOKA_DELIVERY_TIME));
   const now = new Date();
 
+  // A reader east of UTC is already on tomorrow's date for the first hours of
+  // their day (Kolkata until 05:30, so 04:30 is one of them), and nobody is
+  // more than a day ahead. Bounding at UTC's today would hide their row until
+  // after the delivery window had passed; the per-row check below is what
+  // keeps a stale one from going out.
+  const latestLocalDate = toDateColumn(shiftDays(localDateString('UTC'), 1));
+
   let sent = 0;
   let cursor = null;
 
   for (;;) {
     const pending = await prisma.userDailySloka.findMany({
-      where: { notifiedAt: null, date: { lte: toDateColumn(localDateString('UTC')) } },
+      where: { notifiedAt: null, date: { lte: latestLocalDate } },
       select: {
         id: true,
         userId: true,

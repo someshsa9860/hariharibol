@@ -15,18 +15,22 @@ class FakeBookService implements BookService {
   ChapterReading? chapterResult;
   Object? chapterError;
   int chapterCalls = 0;
+  List<String>? chapterLanguages;
+  List<String>? versesLanguages;
   List<Verse>? versesResult;
   Object? versesError;
 
   @override
-  Future<ChapterReading> chapter(String slug, int number, {int? canto}) async {
+  Future<ChapterReading> chapter(String slug, int number, {int? canto, List<String>? languages}) async {
     chapterCalls++;
+    chapterLanguages = languages;
     if (chapterError != null) throw chapterError!;
     return chapterResult!;
   }
 
   @override
-  Future<List<Verse>> verses(String slug) async {
+  Future<List<Verse>> verses(String slug, {List<String>? languages}) async {
+    versesLanguages = languages;
     if (versesError != null) throw versesError!;
     return versesResult!;
   }
@@ -151,6 +155,19 @@ void main() {
     final reading = await repo.chapter('srimad-bhagavatam', 5, canto: 5, chain: ['en']);
     expect(reading.chapter.title, 'From API');
     expect(service.chapterCalls, 1);
+  });
+
+  test('the API is asked in the reading chain, not left to the account\'s saved language', () async {
+    downloader.failure = (_) => Exception('nope');
+    service.chapterResult = const ChapterReading(chapter: BookSection(id: 'api', number: 5, title: 'From API'), verses: []);
+    await repo.chapter('srimad-bhagavatam', 5, canto: 5, chain: ['mr', 'en']);
+    expect(service.chapterLanguages, ['mr', 'en']);
+  });
+
+  test('a short work is asked for in the reading chain too', () async {
+    service.versesResult = const [];
+    await repo.shortWork('some-stotra', chain: ['hi', 'en']);
+    expect(service.versesLanguages, ['hi', 'en']);
   });
 
   test('offline and not downloaded is the API\'s failure, not a silent empty page', () async {

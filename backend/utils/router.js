@@ -162,6 +162,12 @@ const schemas = {
   // A yes/no query filter. z.coerce.boolean() is wrong for query strings —
   // Boolean('false') is true, so ?isBanned=false would return the banned users.
   flag: z.enum(['true', 'false']).transform((value) => value === 'true'),
+  // `?languages=mr,en` — up to three language codes, the reader's reading language
+  // first. Read with `language.fromQuery`; see there for why a call names them.
+  languages: z
+    .string()
+    .regex(/^[a-zA-Z]{2,3}(,[a-zA-Z]{2,3}){0,2}$/, 'Up to three language codes, comma separated')
+    .optional(),
 };
 
 export { createRouter, mount, registry, schemas, z };

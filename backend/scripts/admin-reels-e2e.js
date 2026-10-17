@@ -123,7 +123,7 @@ async function main() {
     // ── 1 ────────────────────────────────────────────────────────────────────
     console.log('\n1. Who may use it');
     const anon = await call('GET', '/api/admin/reels');
-    check('signed out is 401', anon.status === 401, `HTTP ${anon.status}`);
+    check('signed out is 403', anon.status === 403, `HTTP ${anon.status}`);
     const plain = await call('GET', '/api/admin/reels', { token: readerToken });
     check('a plain user is 403', plain.status === 403, `HTTP ${plain.status}`);
     const listed = await call('GET', '/api/admin/reels', as);
@@ -151,7 +151,7 @@ async function main() {
       headers: { 'content-type': 'video/mp4' },
       body: Buffer.from('x'),
     });
-    check('the PUT needs a signed-in admin', noToken.status === 401, `HTTP ${noToken.status}`);
+    check('the PUT needs a signed-in admin', noToken.status === 403, `HTTP ${noToken.status}`);
 
     const forged = await fetch(`${BASE}/api/admin/uploads/local/reels/videos/not-a-generated-name.mp4`, {
       method: 'PUT',

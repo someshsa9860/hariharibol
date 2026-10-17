@@ -82,11 +82,11 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
               appLanguage: syncApp ? code : null,
               readingLanguage: syncReading ? code : null,
             )
-            .then((_) {
+            .then((_) async {
           // The server shapes these by the language it now has on the account, so
           // what is already on screen (a mantra's title and script, the sloka's
           // transliteration) is asked for again.
-          if (ref.mounted) _refetchServerShaped();
+          await _refetchServerShaped();
         }, onError: (Object error) {
           if (kDebugMode) debugPrint('[Language] account not updated: $error');
         }),
@@ -94,7 +94,12 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
     }
   }
 
-  void _refetchServerShaped() {
+  Future<void> _refetchServerShaped() async {
+    // The mantras saved for offline are in the old language; showing one while
+    // the new one loads would flash it, and offline they would keep it.
+    await LocalStore.instance.deleteWithPrefix(BoxKeys.mantraCachePrefix);
+    if (!ref.mounted) return;
+
     ref
       ..invalidate(mantraListProvider)
       ..invalidate(mantraDetailProvider)

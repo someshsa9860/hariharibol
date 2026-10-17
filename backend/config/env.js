@@ -42,6 +42,11 @@ const schema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
   ACCESS_TOKEN_TTL: z.string().default('7d'),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(365),
+  // A refresh token that was spent this recently is answered with a fresh pair
+  // instead of being treated as stolen: the usual cause is a phone that sent the
+  // refresh, lost the reply, and asks again once its signal is back — which can
+  // be minutes later, hence five. 0 turns the allowance off.
+  REFRESH_REUSE_GRACE_SECONDS: z.coerce.number().min(0).default(300),
 
   GOOGLE_CLIENT_IDS: z.string().default(''),
   APPLE_BUNDLE_IDS: z.string().default(''),
@@ -77,15 +82,28 @@ const schema = z.object({
     .transform((value) => value.trim().toUpperCase())
     .pipe(z.enum(['GEMINI', 'OPENAI'])),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
+  // Google retires Gemini models without warning: every 2.0 model and 2.5 Flash-Lite answer 404 ("no longer
+  // available") as of 2026-10-17, and 3.5 Flash-Lite is the replacement its error message names.
+  GEMINI_MODEL: z.string().default('gemini-3.5-flash-lite'),
   // Chat: the cheap model that writes conversation summaries, and the stronger
   // one for plans whose model tier is ADVANCED. Both fall back to the main model.
-  GEMINI_SUMMARY_MODEL: z.string().default('gemini-2.0-flash-lite'),
+  GEMINI_SUMMARY_MODEL: z.string().default('gemini-3.5-flash-lite'),
   GEMINI_ADVANCED_MODEL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
   OPENAI_SUMMARY_MODEL: z.string().default('gpt-4o-mini'),
   OPENAI_ADVANCED_MODEL: z.string().optional(),
+  // The last resort of every AI call (chat included): when the free tier is spent and the provider that is set
+  // (Gemini, say) is not working, OpenAI answers with this model, at its paid rate. Blank turns the fallback off.
+  AI_FALLBACK_MODEL: z.string().default('gpt-6-luna').transform((value) => value.trim()),
+  // How hard a reasoning model (gpt-6-luna) thinks before it answers. Every thinking token is billed — and
+  // taken from a reader's wallet — as output, and the reply waits for them, so chat defaults to `none`.
+  // Models that do not reason ignore it. Blank means the default.
+  OPENAI_REASONING_EFFORT: z
+    .string()
+    .default('none')
+    .transform((value) => value.trim().toLowerCase() || 'none')
+    .pipe(z.enum(['none', 'low', 'medium', 'high'])),
 
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),

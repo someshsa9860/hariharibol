@@ -67,6 +67,18 @@ is no admin-specific password or session type. A signed-in account reaches
 admin screens only if its role carries the permission each screen needs;
 `GET /api/admin/me` is what the panel reads to decide what to show.
 
+**Staying signed in.** The panel follows the same rules as the app (see "Session and
+tokens" in [app/CLAUDE.md](../app/CLAUDE.md)): the server says "not signed in" with a
+403 whose code is `UNAUTHENTICATED`, which makes `lib/api.ts` swap the refresh token
+for a new pair and retry once (one refresh shared by every request that failed
+together). Only the refresh call itself being answered 403 sends the person to the
+sign-in page; a network error, a timeout, a 5xx or a 429 during the refresh leaves them
+signed in and the request fails with `ApiRequestError(503, 'SESSION_CHECK_FAILED')`.
+`restore()` in `lib/auth.tsx` does the same on a reload: it clears the stored tokens only
+when the server answers 403, so a refresh of the browser tab while the API is down does
+not sign anyone out. **Not driven in a browser after this change; the type check is the
+only check it has had.**
+
 The **first** admin account is not seeded with a literal email in a
 committed file — same reasoning `prisma/seed/index.js` already gives for not
 seeding one at all: a known email sitting in version control is a
@@ -340,23 +352,59 @@ Not done: the app does not read a translation row's transliteration or word mean
 was machine-made. The import puts them in the database (`VerseTranslation`); serving them is the next step — see "Translation
 runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md). The **Output** tab still reads the files in storage, not the database.
 
-## AI chat
+## AI usage and the OpenAI free tier
 
-`routes/chat.tsx` (`/chat`, System section beside AI usage, permission `chat.manage`) is where staff run the
-devotional assistant. One file, a usage summary on top and three tabs, all over `/api/admin/chat/*`
+`routes/ai-usage.tsx` (`/ai`, permission `ai.read`) opens with `components/ai-free-tier-card.tsx` — the card for OpenAI's
+free daily tokens — above the spend, coverage and recent-calls tables it already had. The rules live in
+[../backend/CLAUDE.md](../backend/CLAUDE.md#openais-free-tokens-the-engine-chain-and-the-token-calculator); the card only
+shows them and changes three settings, over `GET` / `PUT /api/admin/ai/free-tier`.
+
+- **The switch** (*Use OpenAI free tier*, the `Switch` primitive in `components/ui/switch.tsx`: a `role="switch"` button, name
+  from `aria-labelledby`) is **off until someone turns it on**. Next to it, an amber note says what goes to OpenAI while it is
+  on and to turn it off *before* data sharing is turned off at OpenAI. Two selects pick the free model for chat and for
+  translation runs; the API accepts only the models it offers (`usableModels`) and the select reverts if the save is refused.
+- **Without `setting.write` it is read-only** (a plain `admin` has `ai.read` but not `setting.write`): switch and selects are
+  disabled with a line saying why, and the API answers 403 to the `PUT` regardless.
+- **Right now** lists what chat would try, in order, and what translation runs would use, each with where the choice came from
+  (`components/ai-engines.tsx`, shared with Ask Sakha — the number is the order). **Free tokens today** shows each pool against
+  its 90% stop, and a table gives the day's count model by model with an *All models* total. The data refreshes every 30 s;
+  the count is the app's own (the footnote says what it cannot see) and the day is UTC, with the reset shown in the viewer's time.
+- **The token table scrolls inside its box on a phone** (`whitespace-nowrap`), not the page.
+- **Recent calls** now show the model by default (it was hidden), so which provider answered is visible per call.
+- Driven in a real headless Chrome against a second copy of the API and this dev server (a plain admin read-only and refused,
+  the super admin's switch and both selects saved and read back through the API, a model outside the list refused with the
+  select reverting, everything put back through the page, phone width with no sideways scroll, dark theme, the Ask Sakha card
+  against the API). That script is not kept in the repo; the API side is in `scripts/chat-e2e.js` section 17.
+- `components/ui/badge.tsx`: the **warning** variant now reads `dark:text-warning`. Its foreground token is near-black in the
+  dark theme, which is unreadable on the amber tint; the badge is shared by many pages ("Missing", "Paused", "Unpublished"…),
+  all of which gained readable dark-mode text.
+
+## Ask Sakha
+
+`routes/chat.tsx` (`/chat`, System section beside AI usage, permission `chat.manage`; the sidebar and the page say
+**Ask Sakha** — the route, the permission and the API path keep the name `chat`) is where staff run Sakha, the
+devotional friend readers talk to. One file, a usage summary on top and three tabs, all over `/api/admin/chat/*`
 (`backend/routes/admin/chat.js`):
 
-- **Persona & limits** — `GET`/`PUT /settings`: the system prompt, the description the app shows (it states the
-  Sri Vaishnava orientation), and the seven limits. "Reset to default" fills the field with the built-in default;
-  saving an empty prompt or description also restores it. `limits` is always sent whole.
+- **Persona & limits** — `GET`/`PUT /settings`: the system prompt, the description the app shows (it names no sampradaya,
+  and says plainly that Sakha is a digital companion, not a person — keep that line when editing), and the nine limits — the last two are **Pictures allowed** (`imageInput`, 1 or 0: whether a message may carry a picture; 0 switches pictures off for everyone and text still works) and **Picture size** (`imageMaxEdge`, 256–4096 pixels: a picture is kept and sent no larger than this on its longest side). A picture is sent to the model provider, so switching it off is the privacy lever. The persona never needs to mention pictures: the server adds its own note to the prompt only when a picture is really sent. "Reset to default" fills the field with the built-in default; saving an empty
+  prompt or description also restores it. **A saved prompt or description replaces the built-in default**, so a
+  changed default in `backend/config/chat.js` does not reach a database that already holds one — clear the field and
+  save. `limits` is always sent whole.
 - **Plan allowances** — `GET /plans`, `PUT /plans/:planId`, one row and one Save per plan: level name
-  (Jigyasu / Bhakta / …), enabled, daily tokens (0 = no cap), wallet tokens (what 100% of the user's meter means),
+  (Sadhaka / Arta / Jijnasu / …), enabled, daily tokens (0 = no cap), wallet tokens (what 100% of the user's meter means),
   renewal, per-conversation tokens (0 = no cap), model tier. A plan with `config: null` uses the free plan's
   allowance and is badged so.
 - **Wallets** — `GET /wallets?q=` (searchable, paged), then `GET /users/:userId` for balance, allocation, today's
   use, the meter percent, period end and the last 50 ledger rows. **Grant** (`POST …/grant`, tokens above 0) and
   **Adjust** (`POST …/adjust`, signed) both require a note; both land in the ledger and the audit log.
 - **Usage** — `GET /stats`: conversations, messages, active users and tokens by ledger source for the last 30 days.
+
+Above the tabs, **Answering with** says which provider and model are behind a reply: three lists — replies, replies on the
+stronger tier, chat summaries — each in the order it is tried (`engines` in `GET /settings`, drawn by `components/ai-engines.tsx`),
+with a link to the free-tier card on AI usage when the person has `ai.read`. It shows what is configured, not what is healthy:
+a first row naming a model that has been retired still reads as first while the `fallback` row behind it is the one answering
+(the Model column on AI usage → recent calls shows which engine really did).
 
 Raw token numbers appear only on this page; readers in the app see a percentage. Every query key starts with
 `chat`, so one invalidation refreshes the page after a write.

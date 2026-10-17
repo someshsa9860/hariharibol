@@ -21,7 +21,9 @@ class BookDownloadAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
     final bookId = ref.watch(bookDetailProvider(slug)).value?.id;
-    final summary = bookId == null ? null : ref.watch(bookSyncSummaryProvider(bookId)).value;
+    final summary = bookId == null
+        ? null
+        : ref.watch(bookSyncSummaryProvider(bookId)).value;
 
     if (summary != null && summary.isWorking) {
       return Padding(
@@ -29,7 +31,10 @@ class BookDownloadAction extends ConsumerWidget {
         child: SizedBox(
           width: AppSizes.iconMd,
           height: AppSizes.iconMd,
-          child: CircularProgressIndicator(strokeWidth: 2, value: summary.downloaded > 0 ? summary.fraction : null),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            value: summary.downloaded > 0 ? summary.fraction : null,
+          ),
         ),
       );
     }

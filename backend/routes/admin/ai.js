@@ -1,5 +1,6 @@
 import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/ai.js';
+import { USABLE_MODELS } from '../../utils/ai-free-tier.js';
 
 const router = createRouter({
   tag: 'Admin · AI',
@@ -53,6 +54,41 @@ router.get(
     responds: { 200: 'Coverage counts and what remains' },
   },
   controller.coverage
+);
+
+router.get(
+  '/free-tier',
+  {
+    summary: 'Get the OpenAI free-tier switch',
+    description:
+      'Whether the free daily tokens are used, which model stands in for chat and for translations, how much ' +
+      'of each pool this app has used today (UTC), and which provider and model chat and translations would ' +
+      'use right now.',
+    permission: 'ai.read',
+    limit: 'read',
+    responds: { 200: 'The switch, the pools and what is in use' },
+  },
+  controller.getFreeTier
+);
+
+router.put(
+  '/free-tier',
+  {
+    summary: 'Switch the OpenAI free tier on or off',
+    description:
+      'While on, chat and the admin translation runs use OpenAI’s free daily tokens first — which sends what ' +
+      'readers write to OpenAI under its data-sharing programme — and fall back to the paid model when the ' +
+      'day’s tokens are spent. Turn it off before turning data sharing off at OpenAI. Send only what changed.',
+    permission: 'setting.write',
+    limit: 'write',
+    body: z.object({
+      enabled: z.boolean().optional(),
+      textModel: z.enum(USABLE_MODELS).optional(),
+      translationModel: z.enum(USABLE_MODELS).optional(),
+    }),
+    responds: { 200: 'The new state, as GET returns it' },
+  },
+  controller.saveFreeTier
 );
 
 router.post(

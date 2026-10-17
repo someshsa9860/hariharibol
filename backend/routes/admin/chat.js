@@ -5,7 +5,7 @@ const router = createRouter({
   tag: 'Admin · AI chat',
   prefix: '/chat',
   description:
-    'The devotional assistant’s persona and limits, the allowance each plan gets, and individual ' +
+    'Ask Sakha’s (the AI chat’s) persona and limits, the allowance each plan gets, and individual ' +
     'token wallets. Raw token numbers appear only here — readers see a percentage.',
 });
 
@@ -44,6 +44,8 @@ router.put(
           maxMessages: z.number().int().min(0).max(10000),
           maxOutputTokens: z.number().int().min(64).max(8000),
           maxInputChars: z.number().int().min(100).max(20000),
+          imageInput: z.number().int().min(0).max(1).optional(),
+          imageMaxEdge: z.number().int().min(256).max(4096).optional(),
         })
         .optional(),
     }),

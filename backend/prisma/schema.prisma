@@ -2684,6 +2684,10 @@ model ChatMessage {
   content String            @db.Text
   status  ChatMessageStatus @default(COMPLETE)
 
+  // A picture the person sent with this message: a storage key (never a link), the server's own JPEG copy.
+  // Removed with the chat — clearing it, deleting it or deleting the account.
+  imagePath String? @db.VarChar(500)
+
   // Local estimate of this message's size — what compaction decisions use.
   tokenCount Int @default(0)
 

@@ -99,6 +99,105 @@ test('OpenAI: deltas, the usage-only final chunk, and [DONE]', async () => {
   assert.deepEqual(sent.messages.map((m) => m.role), ['system', 'user']);
 });
 
+// What each kind of OpenAI model is sent: a reasoning model (gpt-6-luna) answers 400 to a temperature other than
+// its default unless it is told not to think, and every older model answers 400 to a reasoning effort.
+async function bodiesSent(model, effort) {
+  const { default: env } = await import('../config/env.js');
+  const before = env.OPENAI_REASONING_EFFORT;
+  if (effort) env.OPENAI_REASONING_EFFORT = effort;
+  try {
+    const sent = [];
+    const onRequest = (url, init) => sent.push(JSON.parse(init.body));
+    fakeFetch(['data: {"choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1}}\n\ndata: [DONE]\n\n'], { onRequest });
+    await collect(openai.stream({ model, messages: [{ role: 'user', content: 'hi' }], maxTokens: 50 }));
+    fakeFetch([JSON.stringify({ choices: [{ message: { content: 'ok' } }], usage: { prompt_tokens: 3, completion_tokens: 2 } })], { onRequest });
+    const done = await openai.complete({ model, prompt: 'hi', maxTokens: 50, temperature: 0.2 });
+    assert.deepEqual([done.text, done.inputTokens, done.outputTokens], ['ok', 3, 2]);
+    return sent;
+  } finally {
+    env.OPENAI_REASONING_EFFORT = before;
+  }
+}
+
+test('OpenAI: gpt-6-luna is told not to think, which is what lets it keep the temperature', async () => {
+  const [streamed, completed] = await bodiesSent('gpt-6-luna');
+  assert.equal(streamed.reasoning_effort, 'none');
+  assert.equal(streamed.temperature, 0.6);
+  assert.equal(completed.reasoning_effort, 'none');
+  assert.equal(completed.temperature, 0.2);
+});
+
+test('OpenAI: gpt-6-luna set to think is sent the effort and no temperature', async () => {
+  for (const body of await bodiesSent('gpt-6-luna', 'low')) {
+    assert.equal(body.reasoning_effort, 'low');
+    assert.ok(!('temperature' in body), 'any temperature but the default is a 400 while it thinks');
+  }
+});
+
+test('OpenAI: an older model is sent a temperature and no effort', async () => {
+  for (const body of await bodiesSent('gpt-4o-mini', 'low')) {
+    assert.ok(!('reasoning_effort' in body));
+    assert.ok(typeof body.temperature === 'number');
+  }
+});
+
+test('OpenAI: both calls bound the reply with max_completion_tokens, which reasoning models need', async () => {
+  for (const body of await bodiesSent('gpt-6-luna')) {
+    assert.equal(body.max_completion_tokens, 50);
+    assert.ok(!('max_tokens' in body));
+  }
+});
+
+test('OpenAI: gpt-6-luna costs $0.10 in and $0.50 out per million tokens', () => {
+  assert.equal(openai.costMicros('gpt-6-luna', 1_000_000, 0), 100_000);
+  assert.equal(openai.costMicros('gpt-6-luna', 0, 1_000_000), 500_000);
+});
+
+const PICTURE = { mimeType: 'image/jpeg', base64: 'QUJD' };
+const done = 'data: {"choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1}}\n\ndata: [DONE]\n\n';
+
+test('Gemini: a picture goes in as an inline part beside its words, and a picture alone is still a message', async () => {
+  let sent;
+  fakeFetch(['data: {"candidates":[{"finishReason":"STOP","content":{"parts":[{"text":"ok"}]}}]}\n\n'], {
+    onRequest: (url, init) => { sent = JSON.parse(init.body); },
+  });
+  await collect(gemini.stream({
+    model: 'gemini-2.0-flash',
+    system: 's',
+    messages: [
+      { role: 'user', content: 'What is this?', image: PICTURE, imageKey: 'chat/images/a.jpg' },
+      { role: 'assistant', content: 'A temple.' },
+      { role: 'user', content: '', image: PICTURE },
+    ],
+  }));
+  assert.deepEqual(sent.contents[0].parts, [{ text: 'What is this?' }, { inlineData: { mimeType: 'image/jpeg', data: 'QUJD' } }]);
+  assert.deepEqual(sent.contents[1].parts, [{ text: 'A temple.' }]);
+  assert.deepEqual(sent.contents[2].parts, [{ inlineData: { mimeType: 'image/jpeg', data: 'QUJD' } }], 'no empty text part');
+  assert.ok(!JSON.stringify(sent).includes('chat/images'), 'the storage key is not sent to the provider');
+});
+
+test('OpenAI: a picture goes in as a data URL beside its words, and a plain message stays plain text', async () => {
+  const bodies = [];
+  fakeFetch([done], { onRequest: (url, init) => bodies.push(JSON.parse(init.body)) });
+  await collect(openai.stream({
+    model: 'gpt-6-luna',
+    system: 's',
+    messages: [
+      { role: 'user', content: 'What is this?', image: PICTURE, imageKey: 'chat/images/a.jpg' },
+      { role: 'assistant', content: 'A temple.' },
+      { role: 'user', content: '', image: PICTURE },
+    ],
+  }));
+  const [, first, second, third] = bodies[0].messages;
+  assert.deepEqual(first.content, [
+    { type: 'text', text: 'What is this?' },
+    { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,QUJD' } },
+  ]);
+  assert.equal(second.content, 'A temple.');
+  assert.deepEqual(third.content, [{ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,QUJD' } }], 'no empty text part');
+  assert.ok(!JSON.stringify(bodies[0]).includes('chat/images'), 'the storage key is not sent to the provider');
+});
+
 test('a provider that is busy is a retryable 503, any other failure a 502', async () => {
   fakeFetch([], { status: 429 });
   await assert.rejects(collect(openai.stream({ model: 'm', messages: [] })), { status: 503, code: 'AI_BUSY' });

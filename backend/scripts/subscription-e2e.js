@@ -74,7 +74,7 @@ async function main() {
   const free = await prisma.subscriptionPlan.findFirst({ where: { isFree: true } });
   const premium = await prisma.subscriptionPlan.findFirst({ where: { grantedToDonors: true }, orderBy: { tier: 'desc' } });
   if (!free || !premium) {
-    console.error('\nNeed the Free and Premium plans. Run `npm run seed` first.\n');
+    console.error('\nNeed the Free plan and a plan donors are granted. Run `npm run seed` first.\n');
     process.exit(1);
   }
 
@@ -94,6 +94,12 @@ async function main() {
     const plans = pub.json?.data?.plans ?? [];
     check('the free plan is listed, with no prices', plans.find((p) => p.isFree)?.prices.length === 0);
     check('plans come lowest tier first', plans.every((p, i) => i === 0 || plans[i - 1].tier <= p.tier));
+    check(
+      'every plan says what Ask Sakha gives it, as a reply count a month',
+      plans.every((p) => p.sakha === null || (Number.isInteger(p.sakha.repliesPerMonth) && p.sakha.repliesPerMonth >= 0))
+        && Number.isInteger(plans.find((p) => p.isFree)?.sakha?.repliesPerMonth)
+    );
+    check('…and no plan carries a token figure', !/token/i.test(JSON.stringify(plans)));
     const narrowed = await call('GET', '/api/app/subscription/plans?provider=APPLE_APP_STORE');
     check(
       'provider narrows prices',
@@ -109,7 +115,7 @@ async function main() {
 
     // ── 3 ──────────────────────────────────────────────────────────────────
     console.log('\n3. Admin: plans, prices, features');
-    const gold = await call('POST', '/api/admin/plans', { ...as, body: { slug: `${TAG}-gold`, name: 'Gold', tier: 2 } });
+    const gold = await call('POST', '/api/admin/plans', { ...as, body: { slug: `${TAG}-gold`, name: 'Gold', tier: premium.tier + 1 } });
     check('create a plan', gold.status === 201, `HTTP ${gold.status} ${JSON.stringify(gold.json?.error ?? '')}`);
     goldId = gold.json?.data?.id;
 

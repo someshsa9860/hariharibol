@@ -179,7 +179,7 @@ async function main() {
 
     // ── 1 ───────────────────────────────────────────────────────────────────
     console.log('\n1. Who may use it');
-    check('signed out is 401', (await call('GET', '/api/admin/reel-recipes/books')).status === 401);
+    check('signed out is 403', (await call('GET', '/api/admin/reel-recipes/books')).status === 403);
     check('a plain user is 403', (await call('GET', '/api/admin/reel-recipes/books', asReader)).status === 403);
 
     // ── 2 ───────────────────────────────────────────────────────────────────

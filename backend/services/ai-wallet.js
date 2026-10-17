@@ -123,7 +123,11 @@ export async function open(user) {
  * What the app is told: levels and percentages, never token counts.
  */
 export async function status(user) {
-  const { plan, allowance, wallet, daily } = await open(user);
+  return statusFrom(await open(user), user);
+}
+
+/** The same, from a wallet the caller has just opened, so a reply does not read it twice. */
+export async function statusFrom({ plan, allowance, wallet, daily }, user) {
   if (!allowance || !allowance.isEnabled || !wallet) {
     return { enabled: false, levelName: allowance?.levelName || null, percent: 0, exhausted: true, limitedBy: null, resetsAt: null, renewsAt: null, canUpgrade: await canUpgrade(plan) };
   }

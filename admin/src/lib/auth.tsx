@@ -55,8 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: { id: me.id, email: me.email, name: me.name, avatarUrl: me.avatarUrl, role: me.role.slug },
         me,
       });
-    } catch {
-      clearTokens();
+    } catch (err) {
+      // Only the server saying 403 ends a session. A network error or a 5xx on
+      // reload shows the sign-in screen but keeps the tokens, so the next reload
+      // picks the session up again.
+      if (err instanceof ApiRequestError && err.status === 403) clearTokens();
       setState({ status: 'signed-out' });
     }
   }, []);
@@ -67,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async (idToken: string) => {
     setState({ status: 'loading' });
+    // A leftover token from an earlier session would ride along on the sign-in
+    // call itself, and an expired one would be refused before the call is read.
+    clearTokens();
     try {
       const res = await api.post<SocialResponse>('/api/app/auth/social', {
         provider: 'GOOGLE',

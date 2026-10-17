@@ -49,11 +49,11 @@ class _ReadingSettingsSheet extends ConsumerWidget {
       };
 
   String _partLabel(AppLocalizations text, VersePart part) => switch (part) {
-        VersePart.sanskrit => text.readingHideSanskrit,
-        VersePart.transliteration => text.readingHideTransliteration,
-        VersePart.wordMeanings => text.verseWordMeanings,
-        VersePart.purport => text.mantraPurport,
-      };
+    VersePart.sanskrit => text.readingHideSanskrit,
+    VersePart.transliteration => text.readingHideTransliteration,
+    VersePart.wordMeanings => text.verseWordMeanings,
+    VersePart.purport => text.mantraPurport,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,7 +61,9 @@ class _ReadingSettingsSheet extends ConsumerWidget {
     final fontSize = ref.watch(readingFontSizeProvider);
     final hidden = ref.watch(hiddenVersePartsProvider);
     final languages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
-    final currentLanguage = ref.watch(languageSettingsProvider.select((s) => s.reading));
+    final currentLanguage = ref.watch(
+      languageSettingsProvider.select((s) => s.reading),
+    );
 
     return SafeArea(
       top: false,

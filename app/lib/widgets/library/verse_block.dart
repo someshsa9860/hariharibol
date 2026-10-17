@@ -73,7 +73,10 @@ class VerseBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final sanskrit = verse.sanskrit?.trim();
-    final showSanskrit = !hidden.contains(VersePart.sanskrit) && sanskrit != null && sanskrit.isNotEmpty;
+    final showSanskrit =
+        !hidden.contains(VersePart.sanskrit) &&
+        sanskrit != null &&
+        sanskrit.isNotEmpty;
     // A transliteration in the verse's own script (a Marathi reader's Devanagari
     // under the Devanagari verse) would only repeat it. A Tamil or Roman one is
     // a different way to read the same words, so it is shown.
@@ -89,17 +92,24 @@ class VerseBlock extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.lg,
+        horizontal: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         // Whole-verse emphasis, not colour-only — the filled highlight icon
         // below carries the same state, since dark mode has almost no tint to
         // spend here (see AppColors' note on why colour never carries meaning
         // alone).
-        color: isHighlighted ? context.colors.primaryContainer : Colors.transparent,
+        color: isHighlighted
+            ? context.colors.primaryContainer
+            : Colors.transparent,
         borderRadius: AppRadius.mdAll,
         // The verse being read aloud is outlined; the part being heard is
         // also named in words under the number, since an outline is only colour.
-        border: playing == true ? Border.all(color: context.colors.primary, width: 1.5) : null,
+        border: playing == true
+            ? Border.all(color: context.colors.primary, width: 1.5)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,24 +119,37 @@ class VerseBlock extends StatelessWidget {
             children: [
               if (onPlay != null)
                 _ActionIcon(
-                  icon: playing == true ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+                  icon: playing == true
+                      ? Icons.volume_up_rounded
+                      : Icons.play_arrow_rounded,
                   tooltip: text.readingAudioPlayVerse,
                   onPressed: onPlay!,
                 ),
               Expanded(
                 child: Text(
                   text.labelVerse(verse.verseNumber ?? 0),
-                  style: AppTypography.eyebrow(context, color: context.colors.primary),
+                  style: AppTypography.eyebrow(
+                    context,
+                    color: context.colors.primary,
+                  ),
                 ),
               ),
               _ActionIcon(
-                icon: isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                tooltip: isFavorite ? text.actionRemoveBookmark : text.actionBookmark,
+                icon: isFavorite
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                tooltip: isFavorite
+                    ? text.actionRemoveBookmark
+                    : text.actionBookmark,
                 onPressed: onToggleFavorite,
               ),
               _ActionIcon(
-                icon: isHighlighted ? Icons.format_paint_rounded : Icons.format_paint_outlined,
-                tooltip: isHighlighted ? text.actionRemoveHighlight : text.actionHighlight,
+                icon: isHighlighted
+                    ? Icons.format_paint_rounded
+                    : Icons.format_paint_outlined,
+                tooltip: isHighlighted
+                    ? text.actionRemoveHighlight
+                    : text.actionHighlight,
                 onPressed: onToggleHighlight,
               ),
               _ActionIcon(
@@ -151,14 +174,24 @@ class VerseBlock extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           if (showSanskrit)
-            Text(sanskrit, style: AppTypography.verse(context, scale: fontScale)),
+            Text(
+              sanskrit,
+              style: AppTypography.verse(context, scale: fontScale),
+            ),
           if (transliteration != null && transliteration.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text(transliteration, style: AppTypography.transliteration(context, scale: fontScale)),
+            Text(
+              transliteration,
+              style: AppTypography.transliteration(context, scale: fontScale),
+            ),
           ],
-          if (verse.wordMeanings.isNotEmpty && !hidden.contains(VersePart.wordMeanings)) ...[
+          if (verse.wordMeanings.isNotEmpty &&
+              !hidden.contains(VersePart.wordMeanings)) ...[
             const SizedBox(height: AppSpacing.sm),
-            WordMeaningsSection(words: verse.wordMeanings, fontScale: fontScale),
+            WordMeaningsSection(
+              words: verse.wordMeanings,
+              fontScale: fontScale,
+            ),
           ],
           if (meaning != null && meaning.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
@@ -169,15 +202,26 @@ class VerseBlock extends StatelessWidget {
           ],
           if (translatorName != null && translatorName.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
-            Text(text.labelTranslatorCredit(translatorName), style: context.texts.bodySmall),
+            Text(
+              text.labelTranslatorCredit(translatorName),
+              style: context.texts.bodySmall,
+            ),
           ],
           if (showCommentary && (rendering?.hasPurport ?? false)) ...[
             const SizedBox(height: AppSpacing.md),
-            _Commentary(label: text.mantraPurport, text: rendering!.purport!.trim(), scale: fontScale),
-          ] else if (showCommentary && explanation != null && explanation.text.trim().isNotEmpty) ...[
+            _Commentary(
+              label: text.mantraPurport,
+              text: rendering!.purport!.trim(),
+              scale: fontScale,
+            ),
+          ] else if (showCommentary &&
+              explanation != null &&
+              explanation.text.trim().isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             _Commentary(
-              label: explanation.isGenerated ? text.verseExplanationAiLabel : text.verseExplanationLabel,
+              label: explanation.isGenerated
+                  ? text.verseExplanationAiLabel
+                  : text.verseExplanationLabel,
               text: explanation.text.trim(),
               scale: fontScale,
             ),
@@ -232,7 +276,11 @@ class _ActionIcon extends StatelessWidget {
 /// the next verse well down the screen before anyone has decided to read it.
 /// Shut again every time the verse is built; only the word meanings are remembered.
 class _Commentary extends StatefulWidget {
-  const _Commentary({required this.label, required this.text, required this.scale});
+  const _Commentary({
+    required this.label,
+    required this.text,
+    required this.scale,
+  });
 
   final String label;
   final String text;

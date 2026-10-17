@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  addMonths, creditMeter, localDateKey, nextLocalMidnight, reconcileWallet, spendable, whyBlocked,
+  addMonths, creditMeter, localDateKey, nextLocalMidnight, reconcileWallet, repliesIn, spendable, whyBlocked,
 } from '../utils/ai-credits.js';
 
 test('the day is the local day, not the UTC day', () => {
@@ -57,6 +57,20 @@ test('spendable is the smallest of wallet, daily and conversation room; 0 means 
   assert.equal(spendable({ balance: 1000, dailyUsed: 0, dailyLimit: 0, conversationUsed: 900, conversationLimit: 1000 }), 100);
   assert.equal(spendable({ balance: -5, dailyUsed: 0, dailyLimit: 0 }), 0);
   assert.equal(spendable({ balance: 50, dailyUsed: 600, dailyLimit: 500 }), 0, 'over the cap never goes negative');
+});
+
+test('replies are a count rounded down to fives, and nothing for no wallet', () => {
+  assert.equal(repliesIn(60_000, 4000), 15);
+  assert.equal(repliesIn(800_000, 4000), 200);
+  assert.equal(repliesIn(815_000, 4000), 200, 'a figure it cannot stand behind is rounded down');
+  assert.equal(repliesIn(39_999, 4000), 9, 'under ten replies it is exact');
+  assert.equal(repliesIn(44_000, 4000), 10);
+  assert.equal(repliesIn(56_000, 4000), 10, 'fourteen replies is stated as ten');
+  assert.equal(repliesIn(4000, 4000), 1);
+  assert.equal(repliesIn(3999, 4000), 0);
+  assert.equal(repliesIn(0, 4000), 0);
+  assert.equal(repliesIn(-5, 4000), 0);
+  assert.equal(repliesIn(60_000, 0), 0, 'a bad divisor is not infinity');
 });
 
 test('whyBlocked names the limit the reader can act on', () => {

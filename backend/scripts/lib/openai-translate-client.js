@@ -13,6 +13,11 @@ export const DEFAULT_MODEL = 'gpt-6-luna';
 // its cost is reported as unknown (null). Cached input is billed at `cacheRead`.
 const PRICING = {
   'gpt-6-luna': { input: 0.1, output: 0.5, cacheRead: 0.01 },
+  // The free-tier models (services/ai/free-tier.js). Free only while OpenAI's daily allowance lasts; these are
+  // the rates for the tokens past it.
+  'gpt-4.1-mini': { input: 0.4, output: 1.6, cacheRead: 0.1 },
+  'gpt-4o-mini': { input: 0.15, output: 0.6, cacheRead: 0.075 },
+  'gpt-4.1-nano': { input: 0.1, output: 0.4, cacheRead: 0.025 },
 };
 
 export function costUsd(model, usage) {
@@ -31,12 +36,17 @@ export function reasoningEffort(effort) {
   return value;
 }
 
+// The GPT-4 family does not reason and refuses `reasoning_effort`; every other model sent here (GPT-6, GPT-5, the
+// o-series) takes it. The free-tier models are the first kind.
+const reasons = (model) => !/^gpt-4/.test(model);
+
 /** The body of one Chat Completions call. Pure, so the tests can check exactly what would be sent. */
 export function chatRequest({ model, effort, system, user, schema, maxTokens }) {
+  const level = reasoningEffort(effort); // an unknown effort fails for every model, reasoning or not
   return {
     model,
     max_completion_tokens: maxTokens,
-    reasoning_effort: reasoningEffort(effort),
+    ...(reasons(model) ? { reasoning_effort: level } : {}),
     response_format: { type: 'json_schema', json_schema: { name: 'translation', strict: true, schema } },
     messages: [
       { role: 'system', content: system },

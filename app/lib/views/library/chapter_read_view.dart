@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/book.dart';
+import '../../models/reading_place.dart';
 import '../../models/verse.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/language_settings_provider.dart';
 import '../../providers/reading_audio_provider.dart';
+import '../../providers/reading_place_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
 import '../../services/audio/reading_audio.dart';
 import '../../services/audio/reading_playback_controller.dart';
@@ -22,8 +24,8 @@ import '../../services/progress_service.dart';
 import '../../services/verse_highlight_service.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
-import '../../widgets/common/eyebrow.dart';
-import '../../widgets/common/motif.dart';
+import '../../widgets/library/chapter_header.dart';
+import '../../widgets/library/chapter_nav.dart';
 import '../../widgets/library/reading_audio_controls.dart';
 import '../../widgets/library/reading_settings_sheet.dart';
 import '../../widgets/library/related_verses_sheet.dart';
@@ -75,6 +77,17 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
 
   bool _openProgressSaved = false;
   bool _scrolledToTarget = false;
+  bool _placeRemembered = false;
+
+  // The chapter's verses as last drawn, and the verse the reader is on. Held
+  // here because dispose can no longer ask the list where it has scrolled to.
+  List<Verse> _verses = const [];
+  Verse? _currentVerse;
+
+  // Where down the screen the verse being read sits. A verse opened at is
+  // scrolled to this line, and the verse on this line is the one remembered,
+  // so reopening a chapter lands where it was left instead of a verse earlier.
+  static const double _readingLine = 0.1;
 
   // Reading aloud. Held here so dispose can stop it without touching `ref`.
   late final ReadingAudio _audio = ref.read(readingAudioProvider);
@@ -86,6 +99,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
   void dispose() {
     // Leaving the chapter ends its reading; the lock screen has nothing to show.
     if (_audio.controller.context == _audioContext) unawaited(_audio.stop());
+    _saveLeavingProgress();
     super.dispose();
   }
 
@@ -155,6 +169,68 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     );
   }
 
+  /// Remembers where the reader is in this book, so tapping the book later
+  /// opens here. Runs once, as the chapter loads — at the verse they were sent
+  /// to, or the first — and again each time they stop scrolling.
+  void _rememberPlace(Verse verse) {
+    final number = verse.verseNumber;
+    if (number == null) return;
+    _currentVerse = verse;
+    ref
+        .read(readingPlacesProvider.notifier)
+        .remember(widget.slug, ReadingPlace(canto: widget.canto, chapter: widget.number, verse: number));
+  }
+
+  void _rememberOpenedPlace(ChapterReading reading) {
+    if (_placeRemembered || reading.verses.isEmpty) return;
+    _placeRemembered = true;
+    final target = widget.targetVerseNumber;
+    final opened = reading.verses.firstWhere(
+      (verse) => verse.verseNumber == target,
+      orElse: () => reading.verses.first,
+    );
+    // Not during the build that is drawing the chapter.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _rememberPlace(opened);
+    });
+  }
+
+  /// A reader who has stopped scrolling by hand. The notification only fires for
+  /// the person's own scrolling, never for the scroll to a target verse or to
+  /// the verse being recited, so those cannot move the remembered place.
+  bool _onUserScroll(UserScrollNotification notification) {
+    if (notification.direction != ScrollDirection.idle) return false;
+    final verse = _verseOnReadingLine(notification.metrics);
+    if (verse != null) _rememberPlace(verse);
+    return false;
+  }
+
+  /// The last verse whose top has reached the reading line. Judged in scroll
+  /// offsets — where each verse sits in the list — rather than where it is drawn,
+  /// because a list that is still settling draws things where they will not stay.
+  /// Only verses near the screen are built, and the one on the line is among them.
+  Verse? _verseOnReadingLine(ScrollMetrics metrics) {
+    Verse? found;
+    for (final verse in _verses) {
+      final box = _verseKeys[verse.id]?.currentContext?.findRenderObject();
+      if (box == null || !box.attached) continue;
+      final viewport = RenderAbstractViewport.maybeOf(box);
+      if (viewport == null) continue;
+      final offset = viewport.getOffsetToReveal(box, _readingLine).offset;
+      if (offset <= metrics.pixels + 1) found = verse;
+    }
+    return found ?? (_verses.isEmpty ? null : _verses.first);
+  }
+
+  /// Tells the account where the reader got to, so the Home tab's "Continue
+  /// reading" agrees with the Read tab. `versesRead` is left out: it only ever
+  /// goes up server side, and is worked out where a chapter is finished.
+  void _saveLeavingProgress() {
+    final verse = _currentVerse;
+    if (verse == null || _verses.isEmpty || verse.id == _verses.first.id) return;
+    unawaited(ProgressService.instance.save(verse.verseId).catchError((_) {}));
+  }
+
   /// Scrolls to [ChapterReadView.targetVerseNumber] once the chapter carrying
   /// it has loaded. Runs at most once per screen — a rebuild triggered by,
   /// say, toggling a favourite must not yank the reader back to where they
@@ -184,7 +260,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
         contextAt: contextAt,
         duration: AppDurations.normal,
         curve: Curves.easeOut,
-        alignment: 0.1,
+        alignment: _readingLine,
       ));
     });
   }
@@ -266,6 +342,14 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
       final state = next.value;
       if (state != null) _followPlayback(previous?.value, state);
     });
+    // A rendering picked under "Compare translations" belongs to the language it
+    // was picked in: choosing another reading language shows that language's own,
+    // not the acharya still pinned from the one before.
+    ref.listen(languageSettingsProvider.select((s) => s.reading), (previous, next) {
+      if (previous != next && _translationOverrides.isNotEmpty && mounted) {
+        setState(_translationOverrides.clear);
+      }
+    });
     final fontScale = ref.watch(readingFontSizeProvider).scale;
     final hiddenParts = ref.watch(hiddenVersePartsProvider);
     final siblingChapters = ref.watch(bookChaptersProvider(_siblingArgs)).value ?? const <BookSection>[];
@@ -280,9 +364,14 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     return Scaffold(
       appBar: AppBar(
         title: readingData != null
-            ? _ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '')
+            ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '')
             : null,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.format_list_bulleted_rounded),
+            tooltip: text.readingContents,
+            onPressed: () => AppNavigator.instance.push(AppRoutes.bookPath(widget.slug)),
+          ),
           const ReadingAudioAction(),
           IconButton(
             icon: const Icon(Icons.tune_rounded),
@@ -304,199 +393,62 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           onRetry: () async => ref.invalidate(chapterReadingProvider(_chapterArgs)),
         ),
         data: (data) {
+          _verses = data.verses;
           _saveOpenProgress(data);
+          _rememberOpenedPlace(data);
           _scrollToTarget(data);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _prepareAudio(data);
           });
 
-          return ListView.separated(
-            padding: AppSpacing.page.copyWith(
-              bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
-            ),
-            itemCount: data.verses.length + 2,
-            separatorBuilder: (context, index) =>
-                index == 0 ? const SizedBox(height: AppSpacing.lg) : const Divider(height: AppSpacing.xl),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
-              }
-              if (index == data.verses.length + 1) {
-                return _ChapterNav(
-                  hasPrevious: hasPrevious,
-                  hasNext: hasNext,
-                  onPrevious: () => _goToChapter(data, widget.number - 1),
-                  onNext: () => _goToChapter(data, widget.number + 1),
-                );
-              }
+          return NotificationListener<UserScrollNotification>(
+            onNotification: _onUserScroll,
+            child: ListView.separated(
+              padding: AppSpacing.page.copyWith(
+                bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
+              ),
+              itemCount: data.verses.length + 2,
+              separatorBuilder: (context, index) =>
+                  index == 0 ? const SizedBox(height: AppSpacing.lg) : const Divider(height: AppSpacing.xl),
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
+                }
+                if (index == data.verses.length + 1) {
+                  return ChapterNav(
+                    hasPrevious: hasPrevious,
+                    hasNext: hasNext,
+                    onPrevious: () => _goToChapter(data, widget.number - 1),
+                    onNext: () => _goToChapter(data, widget.number + 1),
+                  );
+                }
 
-              final verse = data.verses[index - 1];
-              return KeyedSubtree(
-                key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
-                child: VerseBlock(
-                  verse: verse,
-                  fontScale: fontScale,
-                  hidden: hiddenParts,
-                  isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
-                  isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
-                  noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
-                  translation: _translationOverrides[verse.id],
-                  onToggleFavorite: () => _toggleFavorite(verse),
-                  onToggleHighlight: () => _toggleHighlight(verse),
-                  onOpenNotes: () => _openNotes(verse),
-                  onOpenRelated: () => _openRelated(verse),
-                  onCompareTranslations:
-                      verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
-                  onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
-                  playing: playback.isActive && playback.verseId == verse.id,
-                ),
-              );
-            },
+                final verse = data.verses[index - 1];
+                return KeyedSubtree(
+                  key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
+                  child: VerseBlock(
+                    verse: verse,
+                    fontScale: fontScale,
+                    hidden: hiddenParts,
+                    isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                    isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                    noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
+                    translation: _translationOverrides[verse.id],
+                    onToggleFavorite: () => _toggleFavorite(verse),
+                    onToggleHighlight: () => _toggleHighlight(verse),
+                    onOpenNotes: () => _openNotes(verse),
+                    onOpenRelated: () => _openRelated(verse),
+                    onCompareTranslations:
+                        verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
+                    onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
+                    playing: playback.isActive && playback.verseId == verse.id,
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
-    );
-  }
-}
-
-/// "Canto 1 · Chapter 1", or just "Chapter 1" for a book with no cantos —
-/// shared by the header card and the app bar title so the two never drift.
-String _chapterNumbering(AppLocalizations text, BookSection chapter) => chapter.cantoNumber != null
-    ? text.labelCantoChapter(chapter.cantoNumber!, chapter.number)
-    : text.labelChapter(chapter.number);
-
-/// The app bar title while a chapter is loaded: the book name as an eyebrow
-/// over "Canto N · Chapter N", so the reader still knows where they are once
-/// the header card below has scrolled out of view.
-class _ChapterAppBarTitle extends StatelessWidget {
-  const _ChapterAppBarTitle({required this.chapter, required this.bookTitle});
-
-  final BookSection chapter;
-  final String bookTitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (bookTitle.isNotEmpty) ...[
-          Eyebrow(bookTitle, color: context.colors.primary),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-        Text(_chapterNumbering(text, chapter), style: context.texts.titleMedium),
-      ],
-    );
-  }
-}
-
-/// The gradient-panel banner at the top of the chapter — the same
-/// `MotifPanel` treatment `VerseHeroCard` and a coverless `BookCard` use, not
-/// a new one.
-class _ChapterHeader extends StatelessWidget {
-  const _ChapterHeader({required this.chapter, required this.bookTitle});
-
-  final BookSection chapter;
-  final String bookTitle;
-
-  static const double _panelWidth = 96;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context);
-    final isLight = context.theme.brightness == Brightness.light;
-    final motif = Motif.values[chapter.number.abs() % Motif.values.length];
-    final summary = chapter.summary?.trim();
-    final numbering = _chapterNumbering(text, chapter);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (bookTitle.isNotEmpty) Eyebrow(bookTitle, color: context.colors.primary),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(numbering, style: context.texts.bodySmall),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(chapter.title, style: context.texts.headlineSmall),
-                    if (summary != null && summary.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        summary,
-                        style: context.texts.bodyMedium,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              width: _panelWidth,
-              child: MotifPanel(
-                motif: motif,
-                from: isLight ? AppColors.panelFrom : AppColors.panelFromDark,
-                to: isLight ? AppColors.panelTo : AppColors.panelToDark,
-                lineColor: context.colors.primary,
-                lineOpacity: isLight ? 0.45 : 0.60,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ChapterNav extends StatelessWidget {
-  const _ChapterNav({
-    required this.hasPrevious,
-    required this.hasNext,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final bool hasPrevious;
-  final bool hasNext;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!hasPrevious && !hasNext) return const SizedBox.shrink();
-    final text = AppLocalizations.of(context);
-
-    return Row(
-      children: [
-        if (hasPrevious)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onPrevious,
-              icon: const Icon(Icons.arrow_back_rounded),
-              label: Text(text.chapterPrevious),
-            ),
-          ),
-        if (hasPrevious && hasNext) const SizedBox(width: AppSpacing.md),
-        if (hasNext)
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: onNext,
-              icon: const Icon(Icons.arrow_forward_rounded),
-              label: Text(text.chapterNext),
-            ),
-          ),
-      ],
     );
   }
 }
