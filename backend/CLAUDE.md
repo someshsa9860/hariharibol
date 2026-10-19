@@ -771,6 +771,14 @@ AI-drafted and **not yet read by a native speaker**.
 - `npm run test:book-titles` walks the languages endpoint, saving on all three levels, whole-map replacement and the shape a
   phone is sent, against a running API with a throwaway book (deleted again). It uploads nothing, so the dev `.env` is fine.
 
+## Reels for a signed-out visitor (the website)
+
+`GET /reels`, `GET /reels/:id` and `GET /reel-comments` are `public: true`. Signed out, `req.auth.user` is null: the feed
+skips the "seen" penalty and the "not my own reel" filter, and `present.includes.reel` / `reelComment` swap the missing viewer id
+for a value that matches no one (`NO_ONE` in `utils/present.js` — a Prisma filter on `undefined` is no filter, which would
+show everyone's likes as the visitor's). Everything that writes, `/similar` and `/saved` still need an account.
+`npm run test:reels` checks the signed-out feed, one reel, and that liking is still refused.
+
 ## Book cache (offline books)
 
 Weekly export of book text to `s3://<bucket>/books/caches/` and the manifest / download-url

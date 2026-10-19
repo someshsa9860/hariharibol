@@ -54,25 +54,27 @@ const COMPLETED_PENALTY = 60;
 
 const eligibleWhere = (userId) => ({
   status: 'PUBLISHED',
-  creator: { status: 'APPROVED', userId: { not: userId } },
+  creator: { status: 'APPROVED', ...(userId ? { userId: { not: userId } } : {}) },
 });
 
 /** GET /api/app/reels */
 export const feed = async (req, res) => {
+  // Signed out is allowed (the website): nothing is "seen" and no reel is the reader's own.
   const user = req.auth.user;
+  const userId = user?.id ?? null;
   const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
   const [lang0 = null, lang1 = null, lang2 = null] = language.readingChain(user);
 
   const [total, ranked] = await Promise.all([
-    prisma.reel.count({ where: eligibleWhere(user.id) }),
+    prisma.reel.count({ where: eligibleWhere(userId) }),
     prisma.$queryRaw`
       SELECT r.id
       FROM "Reel" r
       JOIN "CreatorProfile" cp ON cp.id = r."creatorId"
-      LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${user.id}
+      LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${userId}
       WHERE r.status = 'PUBLISHED'::"ReelStatus"
         AND cp.status = 'APPROVED'::"CreatorStatus"
-        AND cp."userId" != ${user.id}
+        AND cp."userId" IS DISTINCT FROM ${userId}
       ORDER BY
         (
           CASE
@@ -110,7 +112,7 @@ export const feed = async (req, res) => {
   const ids = ranked.map((row) => row.id);
   const rows = await prisma.reel.findMany({
     where: { id: { in: ids } },
-    include: present.includes.reel(user.id, language.readingChain(user)),
+    include: present.includes.reel(userId, language.readingChain(user)),
   });
 
   // The raw query already returned ids in rank order; `findMany` with `in`
@@ -138,10 +140,10 @@ export const get = async (req, res) => {
         { status: 'PUBLISHED', creator: { status: 'APPROVED' } },
         // Your own, whatever state it is in — including one still awaiting
         // review, which is the only way a creator can check what they posted.
-        { creator: { userId: user.id } },
+        ...(user ? [{ creator: { userId: user.id } }] : []),
       ],
     },
-    include: present.includes.reel(user.id, language.readingChain(user)),
+    include: present.includes.reel(user?.id, language.readingChain(user)),
   });
   if (!row) throw notFound('Reel');
 

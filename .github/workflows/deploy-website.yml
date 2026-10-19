@@ -33,21 +33,32 @@ jobs:
         working-directory: website
         run: npm ci
 
+      # NEXT_PUBLIC_* values are baked into the browser bundle at build time, so they are set here.
       - name: Build website
         working-directory: website
         run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://hariharibol.com
+          NEXT_PUBLIC_API_BASE_URL: https://api.hariharibol.com
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.WEBSITE_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_APPLE_CLIENT_ID: ${{ secrets.WEBSITE_APPLE_CLIENT_ID }}
+          NEXT_PUBLIC_APPLE_REDIRECT_URI: https://hariharibol.com/
+          NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.WEBSITE_FIREBASE_CONFIG }}
+          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.WEBSITE_RECAPTCHA_SITE_KEY }}
 
-      # The built site (website/dist) goes straight into the folder nginx serves.
-      # No `rm: true`: it would delete the folder the container has mounted.
+      # The standalone build is one self-contained folder; it travels as a single archive (it holds dot-folders)
+      # and website.sh unpacks it beside the running container before restarting it.
+      - name: Pack website
+        run: tar czf website.tgz -C website/.next/standalone .
+
       - name: Upload website
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "website/dist"
+          source: "website.tgz"
           target: ${{ secrets.DEPLOY_PATH }}/website
-          strip_components: 2
 
       - name: Upload server config
         uses: appleboy/scp-action@v1.0.0

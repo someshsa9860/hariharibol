@@ -1,24 +1,98 @@
-/* Colours, fonts and sizes the rest of the styles are built from. */
+/* Colours, type and spacing everything else is built from.
+   Light is saffron on warm white; dark is soft charcoal with a white accent — the same rule the app follows. */
 :root {
-  --ink: #2a2825;
-  --muted: #5f5a53;
-  --cream: #f8f5ef;
-  --paper: #fffdf9;
-  --sand: #eee5d8;
-  --saffron: #c86736;
-  --saffron-dark: #a94f28;
-  --saffron-deep: #8f4020;
-  --gold: #e9b65c;
-  --sage: #8c9b75;
-  --plum: #63506c;
-  --line: #e8e2d8;
+  --bg: #fbf6ee;
+  --bg-soft: #f4ebdd;
+  --surface: #fffdf9;
+  --surface-2: #fbf3e6;
+  --ink: #2a2420;
+  --muted: #6a5f54;
+  --faint: #9a8d7f;
+  --line: #eadfce;
+  --accent: #e0782d;        /* a fill, never text */
+  --accent-strong: #c4621b;
+  --accent-ink: #9a4710;    /* accent used as text: 5.6:1 on --surface */
+  --accent-soft: #fde9d4;
+  --on-accent: #2a1608;
+  --gold: #eab75a;
+  --ok: #3f7d4f;
+  --warn: #b07a00;
+  --danger: #b3382c;
+  --overlay: rgba(42, 30, 18, .5);
+  --shadow-sm: 0 2px 8px rgba(96, 62, 30, .08);
+  --shadow: 0 14px 38px rgba(96, 62, 30, .13);
+  --shadow-lg: 0 28px 70px rgba(96, 62, 30, .2);
+  --glass: rgba(251, 246, 238, .82);
+
   --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --deva: 'Noto Serif Devanagari', 'Kohinoor Devanagari', 'Devanagari Sangam MN', Georgia, serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --header-height: 76px;
-  --shadow: 0 18px 40px rgba(96, 62, 30, .12);
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --header-h: 72px;
+  --tabbar-h: 64px;
+  --page-w: 1180px;
+  --read-w: 760px;
+  --ease: cubic-bezier(.22, .8, .24, 1);
+  color-scheme: light;
 }
 
-@media (max-width: 780px) {
-  :root { --header-height: 68px; }
+:root[data-theme='dark'] {
+  --bg: #1c1a18;
+  --bg-soft: #232120;
+  --surface: #262321;
+  --surface-2: #2d2a27;
+  --ink: #f4efe8;
+  --muted: #b5ada3;
+  --faint: #8a8279;
+  --line: #3a3632;
+  --accent: #f4efe8;
+  --accent-strong: #ffffff;
+  --accent-ink: #f4efe8;
+  --accent-soft: #34302c;
+  --on-accent: #1c1a18;
+  --gold: #d8c9a9;
+  --ok: #7fc08f;
+  --warn: #e0b341;
+  --danger: #ef8a7e;
+  --overlay: rgba(0, 0, 0, .62);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3);
+  --shadow: 0 14px 38px rgba(0, 0, 0, .38);
+  --shadow-lg: 0 28px 70px rgba(0, 0, 0, .5);
+  --glass: rgba(28, 26, 24, .82);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1c1a18;
+    --bg-soft: #232120;
+    --surface: #262321;
+    --surface-2: #2d2a27;
+    --ink: #f4efe8;
+    --muted: #b5ada3;
+    --faint: #8a8279;
+    --line: #3a3632;
+    --accent: #f4efe8;
+    --accent-strong: #ffffff;
+    --accent-ink: #f4efe8;
+    --accent-soft: #34302c;
+    --on-accent: #1c1a18;
+    --gold: #d8c9a9;
+    --ok: #7fc08f;
+    --warn: #e0b341;
+    --danger: #ef8a7e;
+    --overlay: rgba(0, 0, 0, .62);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3);
+    --shadow: 0 14px 38px rgba(0, 0, 0, .38);
+    --shadow-lg: 0 28px 70px rgba(0, 0, 0, .5);
+    --glass: rgba(28, 26, 24, .82);
+    color-scheme: dark;
+  }
+}
+
+@media (max-width: 899px) {
+  :root { --header-h: 60px; }
 }

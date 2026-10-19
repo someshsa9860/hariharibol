@@ -29,7 +29,8 @@ router.get(
       'comment’s replies, oldest first, because a reply thread is a conversation and reading ' +
       'one backwards makes no sense. Page size defaults to 20 for comments and 10 for ' +
       'replies. A comment hidden by moderation is returned with a null `text` rather than ' +
-      'dropped, so the replies under it still make sense.',
+      'dropped, so the replies under it still make sense. Public.',
+    public: true,
     limit: 'read',
     query: z.object({
       reelId: z.string().min(1),

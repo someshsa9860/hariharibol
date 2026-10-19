@@ -102,8 +102,15 @@ async function main() {
   check('engagement flags are present', 'isLiked' in (first ?? {}) && 'isSaved' in (first ?? {}));
   check('follow state is present', 'isFollowingCreator' in (first ?? {}));
 
+  // The website shows reels to someone with no account: they see the reels, with nothing liked, saved or followed.
   const anonymous = await call('GET', '/api/app/reels');
-  check('the feed needs a signed-in reader', anonymous.status === 403, `HTTP ${anonymous.status}`);
+  const anonymousFirst = anonymous.json?.data?.[0];
+  check('the feed is open to a signed-out visitor', anonymous.status === 200 && Array.isArray(anonymous.json?.data), `HTTP ${anonymous.status}`);
+  check('a visitor sees nothing liked, saved or followed', anonymousFirst && !anonymousFirst.isLiked && !anonymousFirst.isSaved && !anonymousFirst.isFollowingCreator && !anonymousFirst.isMine);
+  const anonymousOne = anonymousFirst ? await call('GET', `/api/app/reels/${anonymousFirst.id}`) : { status: 0 };
+  check('a visitor can open one reel', anonymousOne.status === 200, `HTTP ${anonymousOne.status}`);
+  const anonymousLike = anonymousFirst ? await call('POST', `/api/app/reels/${anonymousFirst.id}/like`) : { status: 0 };
+  check('liking still needs an account', anonymousLike.status === 403, `HTTP ${anonymousLike.status}`);
 
   const mine = reels.filter((r) => r.isMine);
   check('the feed leaves out my own reels', mine.length === 0, `${mine.length} own reels`);

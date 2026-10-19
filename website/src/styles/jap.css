@@ -1,0 +1,55 @@
+.subhead { font-size: 1.5rem; margin-block: 36px 8px; }
+.mantra-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); padding-block: 8px 40px; }
+.mantra-grid .mantra-card { width: auto; height: 100%; }
+
+/* ── Today panel ── */
+.jap-today { display: grid; gap: 22px; padding: clamp(20px, 3vw, 32px); grid-template-columns: auto 1fr; align-items: center; margin-top: 18px; background: linear-gradient(135deg, var(--surface), var(--accent-soft) 220%); }
+.jap-today .ring { width: 132px; height: 132px; }
+.jap-today-body { display: grid; gap: 10px; }
+.jap-today-body h2 { font-size: 1.5rem; }
+.target-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.target-row strong { min-width: 28px; text-align: center; font-family: var(--serif); font-size: 1.25rem; font-weight: 500; }
+.streak.small { margin-left: 12px; font-size: .9rem; font-weight: 600; display: inline-flex; gap: 4px; }
+.jap-today-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.small-note { font-size: .86rem; }
+.link-btn { color: var(--accent-ink); font-weight: 600; text-decoration: underline; }
+@media (max-width: 560px) { .jap-today { grid-template-columns: 1fr; justify-items: center; text-align: center; } .target-row, .jap-today-actions { justify-content: center; } .jap-today .ring { width: 116px; height: 116px; } }
+
+/* ── Counter ── */
+.counter { display: grid; gap: 22px; }
+.counter-modes { display: flex; gap: 8px; justify-content: center; }
+.bead-stage { display: grid; justify-items: center; gap: 14px; padding-block: 8px; }
+.bead-button {
+  --p: 0; position: relative; width: min(320px, 78vw); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow); transition: transform .12s var(--ease), box-shadow .2s;
+}
+.bead-button::before { content: ''; position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--surface), var(--surface-2)); box-shadow: inset 0 6px 18px rgba(0,0,0,.06); }
+.bead-button:active:not(:disabled) { transform: scale(.955); }
+.bead-button:disabled { opacity: .55; cursor: not-allowed; }
+.bead-button:focus-visible { outline-offset: 6px; }
+.bead-button.celebrate::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 3px solid var(--accent); animation: ring .9s ease-out both; pointer-events: none; }
+.bead-inner { position: relative; display: grid; text-align: center; line-height: 1; gap: 6px; }
+.bead-inner strong { font-family: var(--serif); font-weight: 400; font-size: clamp(4rem, 17vw, 6rem); }
+.bead-inner small { color: var(--muted); font-size: 1rem; }
+.bead-hint { font-size: .88rem; }
+.counter-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+.counter-stats div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 8px; display: grid; }
+.counter-stats strong { font-family: var(--serif); font-weight: 500; font-size: 1.7rem; line-height: 1.1; }
+.counter-stats small { color: var(--muted); font-size: .78rem; }
+.counter-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.prayer { padding: 18px 20px; display: grid; gap: 10px; justify-items: center; text-align: center; border-style: dashed; }
+.prayer.is-waiting { border-color: var(--accent); background: var(--accent-soft); animation: pop .4s var(--ease) both; }
+.prayer .deva { font-size: 1.2rem; line-height: 1.8; }
+.mantra-text { padding: clamp(20px, 3vw, 30px); display: grid; gap: 14px; text-align: center; justify-items: center; }
+.mantra-big { font-size: clamp(1.35rem, 3.6vw, 1.9rem); line-height: 1.9; white-space: pre-line; }
+.mantra-meaning { font-family: var(--serif); font-size: 1.12rem; color: var(--muted); max-width: 56ch; }
+.mantra-text-bar { display: grid; gap: 10px; justify-items: center; width: 100%; }
+.mantra-purport { padding-block: 40px 20px; display: grid; gap: 14px; color: var(--muted); line-height: 1.85; }
+.mantra-purport h2 { color: var(--ink); font-size: 1.5rem; }
+.along { padding: 28px 22px; display: grid; gap: 16px; justify-items: center; text-align: center; }
+.along input { width: 100%; accent-color: var(--accent); }
+.play-big { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 40%, transparent); transition: transform .2s var(--ease); }
+.play-big:hover { transform: scale(1.06); }
+.play-big.is-playing { animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: 0 0 0 18px transparent; } }

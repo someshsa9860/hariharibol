@@ -1,22 +1,10 @@
-/*
- * Every stylesheet on the page, in the order they apply. Order matters: where
- * two rules have equal weight, the later file wins. Page-wide rules come
- * first, then the pieces shared between sections, then each section in the
- * order it appears on the page.
- */
 @import './tokens.css';
 @import './base.css';
-@import './buttons.css';
-@import './verse.css';
-
-@import './header.css';
-@import './hero.css';
-@import './language-band.css';
-@import './why.css';
-@import './features.css';
-@import './practice.css';
+@import './components.css';
+@import './layout.css';
+@import './home.css';
+@import './read.css';
+@import './jap.css';
 @import './reels.css';
-@import './faq.css';
-@import './start.css';
-@import './footer.css';
-@import './scroll-top.css';
+@import './sakha.css';
+@import './misc.css';
