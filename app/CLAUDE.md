@@ -393,6 +393,25 @@ with "Free for everyone" in place of a price.
 - **Google and Apple sign-in only** — no email/password, no OTP. Keep it fast: the best-maintained packages and the fewest round trips.
 - The backend requires proof that account creation came from a real client, so sign-up carries a client attestation token — see [backend/CLAUDE.md](../backend/CLAUDE.md).
 
+## Carrying over the previous app's sign-in
+
+An update from the previous app signs the person in without a prompt. `main()` awaits `LegacyMigration.attempt()`
+(`services/legacy_migration.dart`) after the session is restored and before the first screen: if no session exists it reads
+the old token (`LegacyTokenStore`: `flutter_secure_storage` then `shared_preferences`, keys in `core/constants/legacy_config.dart`),
+`POST /auth/legacy` (`AuthService.signInWithLegacyToken`, App Check attached, no bearer — `_noBearerPaths`), starts the
+session from the answer under **this app's own keys** (`SecureKeys`, never the old ones), and deletes the old token.
+
+- **No old token → no network call.** Failures that may pass (no signal, a timeout past `LegacyConfig.attemptTimeout`, the
+  old server down, App Check) keep the token for the next launch; the old server not recognising it (403 `UNAUTHENTICATED`)
+  deletes it. Never throws, never shows text (no new strings), and once per launch.
+- **Deleting after success matters**: otherwise signing out would sign the person straight back in at the next launch.
+- A carried-over account is new here (201), so the language picker follows; the favourite mantra arrives with the first
+  `GET /sadhana/today` (see "Deity pictures and the favourite mantra" in [backend/CLAUDE.md](../backend/CLAUDE.md)).
+- **The old app's storage keys are guesses** (`access_token`, `token`, … — the previous app's source is not in this repo) and
+  whether `flutter_secure_storage` 11 can read what the old version wrote is unverified. **Check on a phone with a real
+  old install** and put the real key in `LegacyConfig`. `shared_preferences` was added for this (`pubspec.lock` needs
+  `flutter pub get`). `test/legacy_migration_test.dart` — **written without a Flutter SDK, not compiled or run**.
+
 ## Services and navigation
 
 - `services/` holds all services (FCM, socket, tracking/Firebase Analytics, …) — one self-contained file each.

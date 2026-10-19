@@ -203,6 +203,10 @@ model User {
   authProvider   AuthProvider
   providerUserId String       @unique
 
+  // The id this person had on the old (Laravel) server, set when they were carried over
+  // by POST /api/app/auth/legacy. Unique, so one old account can only ever be one new one.
+  legacyUserId String? @unique @db.VarChar(100)
+
   // Three independent language choices. They may all differ, or all match —
   // nothing is derived from another.
   //   appLanguage     — UI chrome. Most users pick English.
@@ -1810,6 +1814,11 @@ model SadhanaProfile {
   dailyRoundTarget  Int     @default(16)
   reminderTime      String? @db.VarChar(5) // "04:30", local to User.timezone
   preferredMantraId String? // what "Chant now" opens with when nothing more specific was tapped
+
+  // The mantra this person chanted most on the old server, matched to ours when they were carried over.
+  // Only a stand-in for the favourite until they have chanted enough here to say (see favouriteMantra in
+  // controllers/app/sadhana.js). A plain id, no relation: if the mantra goes, the stand-in is simply skipped.
+  legacyFavoriteMantraId String?
 
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt

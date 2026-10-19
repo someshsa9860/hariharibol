@@ -24,6 +24,7 @@ import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString 
 import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET, CHANT_TRANSCRIPT_TTL_DAYS } from '../../config/constants.js';
 import * as websocket from '../../services/websocket.js';
 import * as sampradaya from '../../services/sampradaya.js';
+import { favouriteCandidates } from '../../utils/favourite-mantra.js';
 
 /**
  * The day row for a user's local date, created on first touch.
@@ -111,25 +112,37 @@ async function currentStreak(userId, timezone) {
   return streak;
 }
 
-// "Chant now" opens the mantra a person keeps coming back to. Looked at over the
-// last stretch of days so it follows what they chant now, and rounds (not
-// sessions) decide it so one long sitting outweighs a few taps.
+// "Chant now" opens the mantra a person keeps coming back to (rules in utils/favourite-mantra.js). Looked at over the
+// last stretch of days so it follows what they chant now, and rounds (not sessions) decide it so one long sitting
+// outweighs a few taps. Someone who has not chanted in that stretch is still given the mantra they chanted most
+// ever, and someone carried over from the old server starts from the one they chanted most there.
 const FAVOURITE_WINDOW_DAYS = 60;
 
-async function favouriteMantra(user, mantraStub) {
-  const since = new Date(Date.now() - FAVOURITE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+async function rankedRounds(userId, where) {
   const grouped = await prisma.chantSession.groupBy({
     by: ['mantraId'],
-    where: { userId: user.id, mantraId: { not: null }, startedAt: { gte: since } },
+    where: { userId, mantraId: { not: null }, ...where },
     _sum: { rounds: true },
     _count: { _all: true },
   });
-  const ranked = grouped
-    .map((g) => ({ id: g.mantraId, rounds: g._sum.rounds || 0, sessions: g._count._all }))
-    .sort((a, b) => b.rounds - a.rounds || b.sessions - a.sessions);
+  return grouped.map((g) => ({ id: g.mantraId, rounds: g._sum.rounds || 0, sessions: g._count._all }));
+}
+
+async function favouriteMantra(user, mantraStub, profile) {
+  const since = new Date(Date.now() - FAVOURITE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const [recent, allTime] = await Promise.all([
+    rankedRounds(user.id, { startedAt: { gte: since } }),
+    rankedRounds(user.id, {}),
+  ]);
+
+  const candidates = favouriteCandidates({
+    recent,
+    allTime,
+    legacyId: profile?.legacyFavoriteMantraId || null,
+  });
 
   // The top one may have been unpublished since; fall through to the next.
-  for (const { id } of ranked.slice(0, 5)) {
+  for (const id of candidates.slice(0, 8)) {
     const mantra = await prisma.mantra.findFirst({ where: { id, isPublished: true }, ...mantraStub });
     if (mantra) return mantra;
   }
@@ -147,6 +160,11 @@ export const today = async (req, res) => {
   const day = await ensureDay(user, date);
   const mantraStub = present.includes.mantraStub(language.readingChain(user));
 
+  const profileRequest = prisma.sadhanaProfile.findUnique({
+    where: { userId: user.id },
+    include: { preferredMantra: mantraStub },
+  });
+
   const [tasks, sessions, profile, streak, favourite] = await Promise.all([
     prisma.sadhanaTask.findMany({
       where: { sadhanaDayId: day.id },
@@ -157,12 +175,9 @@ export const today = async (req, res) => {
       orderBy: { startedAt: 'desc' },
       include: { mantra: mantraStub },
     }),
-    prisma.sadhanaProfile.findUnique({
-      where: { userId: user.id },
-      include: { preferredMantra: mantraStub },
-    }),
+    profileRequest,
     currentStreak(user.id, user.timezone),
-    favouriteMantra(user, mantraStub),
+    profileRequest.then((p) => favouriteMantra(user, mantraStub, p)),
   ]);
 
   return ok(res, {

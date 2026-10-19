@@ -892,9 +892,37 @@ Three nullable columns on `Mantra`: `malaAudioPath` (an S3 **key**, under `mantr
 - A `Deity` has two pictures: `imagePath` (lists, and the middle of the chant counter) and `fullImagePath`
   (9:16, fills the chant screen; upload kind `deityFullImage`, folder `deities/full`). Both are set on the admin
   **Reference → Deities** tab and sent on a mantra's `deity` as `imageUrl` / `fullImageUrl`.
-- `GET /api/app/sadhana/today` also returns `favoriteMantra` (`{ id, slug, name }` or null): the published
-  mantra with the most rounds in the user's last 60 days of sessions. The app opens it from "Chant now" when
-  no preferred mantra is set.
+- `GET /api/app/sadhana/today` also returns `favoriteMantra` (`{ id, slug, name }` or null), which the app opens
+  from "Chant now" when no preferred mantra is set. Ranked by `favouriteCandidates` (`utils/favourite-mantra.js`, pure,
+  `test/favourite-mantra.test.js`): a mantra with at least 5 rounds in the last 60 days (most rounds, then most sittings);
+  else the stand-in carried over from the old server (below); else the recent leader however small; else the mantra
+  chanted most **ever**, so someone who stopped chanting still has one. The first that is still published wins.
+
+## Accounts carried over from the old (Laravel) server
+
+`POST /api/app/auth/legacy` signs in someone who used the previous app without asking them to sign in again. The app sends
+the token it held; `services/legacy.js` asks the old server `POST {LEGACY_API_URL}/api/migration/account` with that token as
+a bearer and `X-Migration-Key: LEGACY_MIGRATION_KEY` (the old server checks both); this server finds or makes the account and
+returns the same `{ user, tokens }` as `/auth/social` (201 new, 200 existing). Setup for both servers, the drop-in Laravel
+controller and what to adapt: [legacy/README.md](legacy/README.md). Blank `LEGACY_API_URL` / `LEGACY_MIGRATION_KEY` → 404.
+
+- **Found by**, in order: `User.legacyUserId`, the provider's own id the old server sent (`providerUserId`), the email.
+  Otherwise created — sign-up being closed does not apply. A different old id on an already-linked account is a 409.
+- **No provider id from the old server** → the account holds `legacy:<id>`; `social()` adopts it on the owner's first real
+  Google/Apple sign-in with the same email (instead of the usual "an account already exists" refusal). No email → a
+  `legacy-<id>@legacy.hariharibol.invalid` address.
+- **Failure shapes** are the app's contract: the old server not recognising the token is a 403 `UNAUTHENTICATED` (the app
+  then deletes its copy); the old server down, slow or answering rubbish is a 502 `LEGACY_UNAVAILABLE` (the app keeps the
+  token and tries next launch). Never anything that signs someone out.
+- **The old chanting is not imported as sittings** (it would count towards today's rounds, streaks and sampradaya). The old
+  server sends `mantras: [{ name, count }]`; the most chanted one that matches ours (`utils/legacy-mantra.js`: name, slug,
+  transliteration or a translated name, by sound, spaces ignored) is saved once as `SadhanaProfile.legacyFavoriteMantraId`,
+  the stand-in favourite above.
+- Migration `20261026000000_legacy_user_link` (`User.legacyUserId`, unique; `SadhanaProfile.legacyFavoriteMantraId`) —
+  `prisma migrate deploy` on every environment.
+- `npm run test:legacy` (a stand-in for the Laravel route is started by the script; 26 assertions) and
+  `test/legacy-mantra.test.js`. **Not run against the real Laravel API**, and the first-sign-in adoption in `social()` has no
+  test (a Google token cannot be forged).
 
 ## Routine (the app's Routine tab)
 

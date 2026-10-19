@@ -16,7 +16,13 @@ import { ok, created } from '../../utils/respond.js';
 import { badRequest, conflict, notFound } from '../../utils/errors.js';
 import { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } from '../../config/constants.js';
 import * as settings from '../../services/setting.js';
+import * as legacyServer from '../../services/legacy.js';
+import env from '../../config/env.js';
+import { pickLegacyFavourite } from '../../utils/legacy-mantra.js';
 import { isValidTimezone } from '../../utils/date.js';
+
+// What providerUserId holds for an account carried over from the old server that has not signed in with a provider here.
+const LEGACY_PROVIDER_PREFIX = 'legacy:';
 
 // Everything the app needs about the signed-in person, in the shape it gets
 // after a refresh too — one parser on the client, not two.
@@ -119,7 +125,29 @@ export const social = async (req, res) => {
   // Same email, different provider. Merging silently would let anyone who can
   // create a Google account with someone's Apple relay address walk into their
   // account, so it is refused and explained instead.
-  const emailTaken = await prisma.user.findUnique({ where: { email } });
+  const emailTaken = await prisma.user.findUnique({ where: { email }, include: { role: true } });
+
+  // An account carried over from the old server has no provider id of its own yet (`legacy:<id>`). The first time
+  // its owner signs in with Google or Apple here is that id arriving: the verified email is the same one the old
+  // server vouched for, so this is the same person and the account is theirs, not a second one.
+  if (emailTaken?.providerUserId.startsWith(LEGACY_PROVIDER_PREFIX)) {
+    if (emailTaken.isBanned) throw conflict('This account is banned');
+    user = await prisma.user.update({
+      where: { id: emailTaken.id },
+      data: {
+        authProvider: identity.provider,
+        providerUserId: identity.providerUserId,
+        name: identity.name || emailTaken.name,
+        avatarUrl: identity.avatarUrl || emailTaken.avatarUrl,
+        lastActiveAt: new Date(),
+      },
+      include: { role: true },
+    });
+    await linkDevice(user.id, req, body);
+    const session = await authService.issueSession(user, body.deviceId || req.deviceId);
+    return ok(res, sessionPayload(user, session));
+  }
+
   if (emailTaken) {
     throw conflict(
       `An account already exists for this email. Please sign in with ${emailTaken.authProvider.toLowerCase()}.`
@@ -200,4 +228,117 @@ export const deleteAccount = async (req, res) => {
   await authService.invalidateUser(userId);
   logger.info({ userId }, 'account deleted by user');
   return ok(res, { message: 'Account deleted' });
+};
+
+// The published mantras an old mantra name can be matched against, with the names they go by in other languages.
+async function mantrasToMatch() {
+  const rows = await prisma.mantra.findMany({
+    where: { isPublished: true },
+    select: { id: true, name: true, slug: true, transliteration: true, translations: { select: { name: true } } },
+  });
+  return rows.map((m) => ({
+    id: m.id,
+    name: m.name,
+    slug: m.slug,
+    transliteration: m.transliteration,
+    names: m.translations.map((t) => t.name).filter(Boolean),
+  }));
+}
+
+// The mantra they chanted most there becomes the stand-in favourite here (see favouriteMantra in sadhana.js). Set
+// once: a later call never moves it, because by then what they chant here is the better answer.
+async function carryFavouriteMantra(userId, entries) {
+  if (!entries.length) return;
+  const profile = await prisma.sadhanaProfile.findUnique({ where: { userId } });
+  if (profile?.legacyFavoriteMantraId) return;
+
+  const mantraId = pickLegacyFavourite(entries, await mantrasToMatch());
+  if (!mantraId) return;
+
+  await prisma.sadhanaProfile.upsert({
+    where: { userId },
+    update: { legacyFavoriteMantraId: mantraId },
+    create: { userId, dailyRoundTarget: DEFAULT_ROUND_TARGET, legacyFavoriteMantraId: mantraId },
+  });
+}
+
+/**
+ * POST /api/app/auth/legacy
+ * Someone who used the old app and is now on this one is signed in without asking them to sign in again: the
+ * old server's token is checked with the old server itself (services/legacy.js), the account is found or made
+ * here, and a session of this server's own is returned in the same shape as /auth/social.
+ *
+ * Found by, in order: the old id on a previous carry-over, the provider's id (so the person who already signed in
+ * here with the same Google account is the same account), then the email. Sign-up being closed does not apply — these
+ * people already have an account.
+ */
+export const legacy = async (req, res) => {
+  if (!env.legacyEnabled) throw notFound('Route');
+  const body = req.valid.body;
+
+  const old = await legacyServer.fetchAccount(body.legacyToken);
+
+  let user = await prisma.user.findUnique({ where: { legacyUserId: old.id }, include: { role: true } });
+  let isNew = false;
+
+  if (!user && old.providerUserId) {
+    user = await prisma.user.findUnique({ where: { providerUserId: old.providerUserId }, include: { role: true } });
+  }
+  if (!user && old.email) {
+    user = await prisma.user.findUnique({ where: { email: old.email }, include: { role: true } });
+  }
+
+  if (user) {
+    if (user.isBanned) throw conflict('This account is banned');
+    // One old account is one new one. A different old id on an account already linked is somebody else's.
+    if (user.legacyUserId && user.legacyUserId !== old.id) {
+      throw conflict('This account is already linked to another previous account');
+    }
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        legacyUserId: old.id,
+        name: user.name || old.name,
+        avatarUrl: user.avatarUrl || old.avatarUrl,
+        lastActiveAt: new Date(),
+      },
+      include: { role: true },
+    });
+  } else {
+    const role = await prisma.role.findUnique({ where: { slug: ROLES.USER } });
+    if (!role) throw notFound('Default role — run the seed');
+
+    const timezone = isValidTimezone(body.timezone) ? body.timezone : undefined;
+    user = await prisma.user.create({
+      data: {
+        // The email is required and unique. An old account that never had one gets an address that cannot receive
+        // mail and cannot collide; the account is still theirs by its legacy id.
+        email: old.email || `legacy-${old.id}@legacy.hariharibol.invalid`,
+        name: old.name || body.name || null,
+        avatarUrl: old.avatarUrl,
+        authProvider: old.provider,
+        providerUserId: old.providerUserId || `${LEGACY_PROVIDER_PREFIX}${old.id}`,
+        legacyUserId: old.id,
+        roleId: role.id,
+        appLanguage: body.appLanguage || 'en',
+        mantraLanguage: body.mantraLanguage || 'sa',
+        readingLanguage: body.readingLanguage || body.appLanguage || 'en',
+        ...(timezone ? { timezone } : {}),
+        sadhanaProfile: { create: { dailyRoundTarget: DEFAULT_ROUND_TARGET } },
+      },
+      include: { role: true },
+    });
+    isNew = true;
+  }
+
+  // The favourite is a nicety: failing to work it out must not stop anyone being signed in.
+  await carryFavouriteMantra(user.id, old.mantras).catch((err) =>
+    logger.warn({ err: err.message, userId: user.id }, 'could not carry the favourite mantra over')
+  );
+
+  await linkDevice(user.id, req, body);
+  const session = await authService.issueSession(user, body.deviceId || req.deviceId);
+
+  logger.info({ userId: user.id, legacyUserId: old.id, isNew }, 'account carried over from the old server');
+  return (isNew ? created : ok)(res, sessionPayload(user, session));
 };

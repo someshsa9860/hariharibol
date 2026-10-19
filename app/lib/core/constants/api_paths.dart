@@ -7,6 +7,7 @@ abstract final class ApiPaths {
 
   // Auth
   static const String signInSocial = '$_app/auth/social';
+  static const String signInLegacy = '$_app/auth/legacy';
   static const String refresh = '$_app/auth/refresh';
   static const String logout = '$_app/auth/logout';
   static const String logoutAll = '$_app/auth/logout-all';

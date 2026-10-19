@@ -37,6 +37,7 @@
     "test:book-cache": "node scripts/book-cache-e2e.js",
     "test:chat": "node scripts/chat-e2e.js",
     "test:auth": "node scripts/auth-e2e.js",
+    "test:legacy": "node scripts/legacy-e2e.js",
     "test:reels": "node scripts/reels-e2e.js",
     "test:admin-reels": "node scripts/admin-reels-e2e.js",
     "test:admin-sloka": "node scripts/admin-sloka-e2e.js",

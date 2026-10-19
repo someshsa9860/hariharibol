@@ -111,23 +111,38 @@ class AuthService {
     required String idToken,
     String? name,
   }) async {
-    final device = DeviceService.instance;
-
     final response = await _api.post(
       ApiPaths.signInSocial,
       attested: true,
-      body: {
-        'provider': provider,
-        'idToken': idToken,
-        'name': ?name,
-        'appLanguage': AppConfig.defaultAppLanguage,
-        'mantraLanguage': AppConfig.defaultMantraLanguage,
-        'readingLanguage': AppConfig.defaultReadingLanguage,
-        'timezone': device.timezone,
-        ...device.signInFields,
-      },
+      body: {'provider': provider, 'idToken': idToken, 'name': ?name, ..._accountFields()},
     );
+    return _begin(response);
+  }
 
+  /// Signs in someone who used the previous app: its token is sent to this app's server, which checks it with the
+  /// previous server and answers with a session of its own. Never prompts — see `LegacyMigration`.
+  Future<AuthSession> signInWithLegacyToken(String legacyToken) async {
+    final response = await _api.post(
+      ApiPaths.signInLegacy,
+      attested: true,
+      body: {'legacyToken': legacyToken, ..._accountFields()},
+    );
+    return _begin(response);
+  }
+
+  Map<String, dynamic> _accountFields() {
+    final device = DeviceService.instance;
+    return {
+      'appLanguage': AppConfig.defaultAppLanguage,
+      'mantraLanguage': AppConfig.defaultMantraLanguage,
+      'readingLanguage': AppConfig.defaultReadingLanguage,
+      'timezone': device.timezone,
+      ...device.signInFields,
+    };
+  }
+
+  /// What every sign-in does with the server's answer.
+  Future<AuthSession> _begin(ApiResponse response) async {
     final session = AuthSession.fromJson(response.json);
     await AppSession.instance.start(session);
 

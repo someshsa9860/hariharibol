@@ -51,6 +51,41 @@ router.post(
 );
 
 router.post(
+  '/legacy',
+  {
+    summary: 'Sign in with the token from the previous app',
+    description:
+      'For someone who used the old app: the token it held is checked with the previous server ' +
+      '(server to server, with a shared key in X-Migration-Key), the account is found or created ' +
+      'here and a session of this server\'s own is returned, in the shape /auth/social returns. ' +
+      'Their most chanted mantra is carried over as the stand-in favourite. 404 while the ' +
+      'previous server is not configured; 403 when it does not recognise the token; 502 when it ' +
+      'cannot be reached (try again later).',
+    public: true,
+    limit: 'auth',
+    middleware: attestation,
+    body: z.object({
+      legacyToken: z.string().min(10).max(4000),
+      name: z.string().max(100).optional(),
+      appLanguage: z.string().max(10).optional(),
+      mantraLanguage: z.string().max(10).optional(),
+      readingLanguage: z.string().max(10).optional(),
+      timezone: z.string().max(64).optional(),
+      ...deviceFields,
+    }),
+    responds: {
+      200: 'Existing account signed in',
+      201: 'New account created from the previous one',
+      403: 'The previous server does not recognise the token',
+      404: 'Carrying accounts over is not switched on',
+      409: 'Account banned, or already linked to a different previous account',
+      502: 'The previous server could not be reached',
+    },
+  },
+  controller.legacy
+);
+
+router.post(
   '/refresh',
   {
     summary: 'Exchange a refresh token for a new pair',

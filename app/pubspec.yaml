@@ -30,6 +30,8 @@ dependencies:
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
   flutter_secure_storage: ^11.0.0
+  # Only to read (and then delete) the token the previous app left behind — services/legacy_token_store.dart.
+  shared_preferences: ^2.5.3
 
   # Sign-in.
   google_sign_in: ^7.2.0

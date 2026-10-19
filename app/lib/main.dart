@@ -10,6 +10,7 @@ import 'services/book_sync_manager.dart';
 import 'services/device_service.dart';
 import 'services/fcm_service.dart';
 import 'services/firebase_service.dart';
+import 'services/legacy_migration.dart';
 import 'services/local_store.dart';
 import 'services/purchase_service.dart';
 import 'services/tracking_service.dart';
@@ -32,6 +33,10 @@ Future<void> main() async {
     FirebaseService.instance.init(),
     _openStore(),
   ]);
+
+  // Someone updating from the previous app is carried over to an account here before the first screen, so they are
+  // never asked to sign in again. Does nothing (and no network call) unless the previous app left a token behind.
+  await LegacyMigration.instance.attempt();
 
   unawaited(TrackingService.instance.init());
   unawaited(FcmService.instance.init());

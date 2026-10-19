@@ -279,7 +279,7 @@ class ApiClient {
   /// Calls that prove who is asking some other way, so they carry no bearer
   /// token and never start a refresh: sign-in presents the provider's token,
   /// and sign-out the refresh token itself.
-  static const Set<String> _noBearerPaths = {ApiPaths.signInSocial, ApiPaths.logout};
+  static const Set<String> _noBearerPaths = {ApiPaths.signInSocial, ApiPaths.signInLegacy, ApiPaths.logout};
 
   /// Everything here is wrapped, and `handler.next` is reached on every path.
   ///

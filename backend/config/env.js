@@ -52,6 +52,13 @@ const schema = z.object({
   APPLE_BUNDLE_IDS: z.string().default(''),
 
   APP_CHECK_ENABLED: flag(false),
+
+  // Carrying accounts over from the old (Laravel) server — POST /api/app/auth/legacy. The app sends the token it
+  // held from the old server; this server asks the old one who that is, presenting LEGACY_MIGRATION_KEY in the
+  // `X-Migration-Key` header (the old server checks the same value). Both must be set or the endpoint answers 404.
+  LEGACY_API_URL: z.string().default('').transform((value) => value.trim().replace(/\/+$/, '')),
+  LEGACY_MIGRATION_KEY: z.string().default('').transform((value) => value.trim()),
+  LEGACY_TIMEOUT_MS: z.coerce.number().int().min(1000).max(30000).default(10000),
   // Path to the Firebase service account JSON — see secrets/README.md. Either
   // absolute, or relative to the backend directory. Takes precedence over the
   // three FIREBASE_* fields below, which remain for hosts where mounting a
@@ -154,6 +161,7 @@ const env = {
   ...parsed.data,
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',
+  legacyEnabled: Boolean(parsed.data.LEGACY_API_URL.trim() && parsed.data.LEGACY_MIGRATION_KEY.trim()),
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
   // Resolved against the backend directory so the .env can hold the short,
