@@ -269,6 +269,8 @@ GoRouter createRouter() {
                 name: RouteNames.library,
                 builder: (context, state) => const LibraryTab(),
               ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -276,8 +278,6 @@ GoRouter createRouter() {
                 name: RouteNames.reels,
                 builder: (context, state) => const ReelsView(),
               ),
-            ],
-          ),
             ],
           ),
         ],
