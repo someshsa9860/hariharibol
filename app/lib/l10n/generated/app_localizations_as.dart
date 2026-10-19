@@ -840,6 +840,32 @@ class AppLocalizationsAs extends AppLocalizations {
   String get readingHideTransliteration => 'লিপ্যন্তৰ';
 
   @override
+  String get readingModeLabel => 'পঢ়াৰ ধৰণ';
+
+  @override
+  String get readingModeVerses => 'শ্লোক ধৰি ধৰি';
+
+  @override
+  String get readingModeStory => 'কথা';
+
+  @override
+  String get readingStoryShowLabel => 'কথাত কি দেখুৱাব';
+
+  @override
+  String get readingStoryNumbers => 'শ্লোক সংখ্যা';
+
+  @override
+  String get readingStoryHint =>
+      'কোনো শ্লোকত হেঁচি ধৰি ৰাখক — সেয়া শুনিবলৈ, বুকমাৰ্ক কৰিবলৈ, হাইলাইট কৰিবলৈ বা টোকা যোগ কৰিবলৈ।';
+
+  @override
+  String get readingStoryNothing =>
+      'এই অধ্যায়ত আপুনি বাছনি কৰা অংশৰ কোনো বস্তু নাই। ওপৰৰ পৰা আন এটা বাছক।';
+
+  @override
+  String get readingPartMeaning => 'অৰ্থ';
+
+  @override
   String get routineSubtitle => 'ভক্তি, কাম আৰু মাজৰ সাধাৰণ কথাবোৰ।';
 
   @override

@@ -18,11 +18,14 @@ import 'package:hariharibol/providers/language_settings_provider.dart';
 import 'package:hariharibol/providers/reading_audio_provider.dart';
 import 'package:hariharibol/providers/reading_place_provider.dart';
 import 'package:hariharibol/providers/reading_prefs_provider.dart';
+import 'support/story_fakes.dart';
 import 'package:hariharibol/services/audio/interruption_policy.dart';
 import 'package:hariharibol/services/audio/reading_audio.dart';
 import 'package:hariharibol/services/audio/reading_memory.dart';
 import 'package:hariharibol/services/audio/reading_playback_controller.dart';
+import 'package:hariharibol/models/reading_mode.dart';
 import 'package:hariharibol/services/reading_place_store.dart';
+import 'package:hariharibol/widgets/library/story_verse.dart';
 import 'package:hariharibol/views/dashboard/library_tab.dart';
 import 'package:hariharibol/views/library/chapter_read_view.dart';
 import 'package:hariharibol/widgets/dashboard/book_card.dart';
@@ -146,7 +149,7 @@ Verse _verse(int n) => Verse(
 
 const _chapter = BookSection(id: 'ch2', number: 2, title: 'Contents of the Gita Summarized', totalVerses: 30);
 
-Widget _reader({int? targetVerse, int verses = 30}) {
+Widget _reader({int? targetVerse, int verses = 30, ReadingMode mode = ReadingMode.verses}) {
   final log = <String>[];
   final controller = ReadingPlaybackController(
     player: FakePlayer(log),
@@ -164,6 +167,9 @@ Widget _reader({int? targetVerse, int verses = 30}) {
       readingAudioProvider.overrideWithValue(audio),
       readingFontSizeProvider.overrideWith(_FontInMemory.new),
       hiddenVersePartsProvider.overrideWith(_HiddenInMemory.new),
+      readingModeProvider.overrideWith(() => StoryModeInMemory(mode)),
+      storyPartProvider.overrideWith(StoryPartInMemory.new),
+      storyNumbersProvider.overrideWith(StoryNumbersInMemory.new),
       wordMeaningsOpenProvider.overrideWith(_WordMeaningsInMemory.new),
       chapterReadingProvider.overrideWith(
         (ref, args) async => ChapterReading(chapter: _chapter, verses: [for (var n = 1; n <= verses; n++) _verse(n)]),
@@ -349,6 +355,18 @@ void main() {
       // place a verse back, or every reopening would lose ground.
       expect(_placeIn(tester), const ReadingPlace(chapter: 2, verse: 12));
       expect(find.text('श्लोक 12'), findsOneWidget);
+      await _leave(tester);
+    });
+
+    testWidgets('read as a story, the chapter lands on the verse it was sent to and remembers it', (tester) async {
+      await tester.pumpWidget(_reader(targetVerse: 12, mode: ReadingMode.story));
+      await tester.pumpAndSettle();
+
+      // Story mode shows the meaning by default; this fixture has none, so the
+      // chip row says so, and the verses stay in the list with their keys.
+      expect(find.byType(StoryVerse), findsWidgets);
+      expect(find.byType(Divider), findsNothing, reason: 'verses run on, with nothing drawn between them');
+      expect(_placeIn(tester), const ReadingPlace(chapter: 2, verse: 12));
       await _leave(tester);
     });
 

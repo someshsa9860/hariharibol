@@ -842,6 +842,32 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingHideTransliteration => 'లిప్యంతరీకరణ';
 
   @override
+  String get readingModeLabel => 'చదివే విధానం';
+
+  @override
+  String get readingModeVerses => 'శ్లోకం వారీగా';
+
+  @override
+  String get readingModeStory => 'కథ';
+
+  @override
+  String get readingStoryShowLabel => 'కథలో చూపేది';
+
+  @override
+  String get readingStoryNumbers => 'శ్లోక సంఖ్యలు';
+
+  @override
+  String get readingStoryHint =>
+      'శ్లోకాన్ని నొక్కి పట్టుకోండి — దాన్ని ప్లే చేయడానికి, బుక్‌మార్క్ చేయడానికి, హైలైట్ చేయడానికి లేదా గమనిక జోడించడానికి.';
+
+  @override
+  String get readingStoryNothing =>
+      'మీరు ఎంచుకున్న భాగానికి ఈ అధ్యాయంలో ఏమీ లేదు. పైన మరొకటి ఎంచుకోండి.';
+
+  @override
+  String get readingPartMeaning => 'అర్థం';
+
+  @override
   String get routineSubtitle => 'భక్తి, పని, మధ్యలో ఉండే సాధారణ విషయాలు.';
 
   @override

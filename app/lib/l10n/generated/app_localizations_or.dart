@@ -840,6 +840,32 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingHideTransliteration => 'ଲିପ୍ୟନ୍ତର';
 
   @override
+  String get readingModeLabel => 'ପଢ଼ିବା ଶୈଳୀ';
+
+  @override
+  String get readingModeVerses => 'ଶ୍ଳୋକ ଅନୁଯାୟୀ';
+
+  @override
+  String get readingModeStory => 'କଥା';
+
+  @override
+  String get readingStoryShowLabel => 'କଥାରେ ଦେଖାଇବାକୁ';
+
+  @override
+  String get readingStoryNumbers => 'ଶ୍ଳୋକ ସଂଖ୍ୟା';
+
+  @override
+  String get readingStoryHint =>
+      'ଏକ ଶ୍ଳୋକକୁ ଦବାଇ ଧରନ୍ତୁ — ଏହାକୁ ପ୍ଲେ କରିବାକୁ, ବୁକ୍‌ମାର୍କ କରିବାକୁ, ହାଇଲାଇଟ୍ କରିବାକୁ କିମ୍ବା ଟିପ୍ପଣୀ ଯୋଡ଼ିବାକୁ।';
+
+  @override
+  String get readingStoryNothing =>
+      'ଆପଣ ବାଛିଥିବା ଅଂଶ ପାଇଁ ଏହି ଅଧ୍ୟାୟରେ କିଛି ନାହିଁ। ଉପରୁ ଅନ୍ୟ ଗୋଟିଏ ବାଛନ୍ତୁ।';
+
+  @override
+  String get readingPartMeaning => 'ଅର୍ଥ';
+
+  @override
   String get routineSubtitle => 'ଭକ୍ତି, କାମ ଓ ମଝିରେ ଥିବା ସାଧାରଣ ଜିନିଷ।';
 
   @override

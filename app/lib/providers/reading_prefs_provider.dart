@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/storage_keys.dart';
 import '../core/theme/app_typography.dart';
+import '../models/reading_mode.dart';
 import '../models/verse_part.dart';
 import '../services/local_store.dart';
 
@@ -65,3 +66,50 @@ class HiddenVersePartsNotifier extends Notifier<Set<VersePart>> {
 
 final hiddenVersePartsProvider =
     NotifierProvider<HiddenVersePartsNotifier, Set<VersePart>>(HiddenVersePartsNotifier.new);
+
+/// Whether a chapter is read verse by verse or as a story. Stored on the device,
+/// like the font size above.
+class ReadingModeNotifier extends Notifier<ReadingMode> {
+  @override
+  ReadingMode build() =>
+      LocalStore.instance.read<String>(BoxKeys.readingMode) == ReadingMode.story.name
+          ? ReadingMode.story
+          : ReadingMode.verses;
+
+  Future<void> set(ReadingMode mode) async {
+    state = mode;
+    await LocalStore.instance.write(BoxKeys.readingMode, mode.name);
+  }
+}
+
+final readingModeProvider = NotifierProvider<ReadingModeNotifier, ReadingMode>(ReadingModeNotifier.new);
+
+/// The part of a verse story mode shows. The meaning until somebody picks
+/// another: it is what reads like a story in every language.
+class StoryPartNotifier extends Notifier<StoryPart> {
+  @override
+  StoryPart build() {
+    final stored = LocalStore.instance.read<String>(BoxKeys.storyPart);
+    return StoryPart.values.firstWhere((part) => part.name == stored, orElse: () => StoryPart.translation);
+  }
+
+  Future<void> set(StoryPart part) async {
+    state = part;
+    await LocalStore.instance.write(BoxKeys.storyPart, part.name);
+  }
+}
+
+final storyPartProvider = NotifierProvider<StoryPartNotifier, StoryPart>(StoryPartNotifier.new);
+
+/// Whether story mode puts each verse's number in front of it. On by default.
+class StoryNumbersNotifier extends Notifier<bool> {
+  @override
+  bool build() => LocalStore.instance.read<bool>(BoxKeys.storyNumbers) ?? true;
+
+  Future<void> set(bool shown) async {
+    state = shown;
+    await LocalStore.instance.write(BoxKeys.storyNumbers, shown);
+  }
+}
+
+final storyNumbersProvider = NotifierProvider<StoryNumbersNotifier, bool>(StoryNumbersNotifier.new);

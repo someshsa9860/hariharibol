@@ -839,6 +839,32 @@ class AppLocalizationsMr extends AppLocalizations {
   String get readingHideTransliteration => 'लिप्यंतर';
 
   @override
+  String get readingModeLabel => 'वाचनाची पद्धत';
+
+  @override
+  String get readingModeVerses => 'श्लोकाश्लोकानुसार';
+
+  @override
+  String get readingModeStory => 'कथा';
+
+  @override
+  String get readingStoryShowLabel => 'कथेत दाखवा';
+
+  @override
+  String get readingStoryNumbers => 'श्लोक क्रमांक';
+
+  @override
+  String get readingStoryHint =>
+      'एखाद्या श्लोकावर दाबून धरा — तो ऐकण्यासाठी, बुकमार्क करण्यासाठी, हायलाइट करण्यासाठी किंवा नोंद जोडण्यासाठी.';
+
+  @override
+  String get readingStoryNothing =>
+      'या अध्यायात निवडलेल्या भागासाठी काही नाही. वरून दुसरा निवडा.';
+
+  @override
+  String get readingPartMeaning => 'अर्थ';
+
+  @override
   String get routineSubtitle => 'भक्ती, काम आणि मधले रोजचे क्षण.';
 
   @override

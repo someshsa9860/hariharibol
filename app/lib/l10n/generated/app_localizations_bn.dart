@@ -839,6 +839,32 @@ class AppLocalizationsBn extends AppLocalizations {
   String get readingHideTransliteration => 'লিপ্যন্তর';
 
   @override
+  String get readingModeLabel => 'পড়ার ধরন';
+
+  @override
+  String get readingModeVerses => 'শ্লোক ধরে ধরে';
+
+  @override
+  String get readingModeStory => 'কথা';
+
+  @override
+  String get readingStoryShowLabel => 'কথায় যা দেখাবে';
+
+  @override
+  String get readingStoryNumbers => 'শ্লোক সংখ্যা';
+
+  @override
+  String get readingStoryHint =>
+      'কোনো শ্লোকে চেপে ধরে রাখুন — তা শুনতে, বুকমার্ক করতে, হাইলাইট করতে বা নোট যোগ করতে।';
+
+  @override
+  String get readingStoryNothing =>
+      'এই অধ্যায়ে আপনার বেছে নেওয়া অংশের কিছু নেই। ওপর থেকে অন্য একটি বেছে নিন।';
+
+  @override
+  String get readingPartMeaning => 'অর্থ';
+
+  @override
   String get routineSubtitle => 'ভক্তি, কাজ আর মাঝের সাধারণ মুহূর্তগুলি।';
 
   @override

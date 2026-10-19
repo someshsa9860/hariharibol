@@ -836,6 +836,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingHideTransliteration => 'Transliteration';
 
   @override
+  String get readingModeLabel => 'Reading style';
+
+  @override
+  String get readingModeVerses => 'Verse by verse';
+
+  @override
+  String get readingModeStory => 'Story';
+
+  @override
+  String get readingStoryShowLabel => 'Story shows';
+
+  @override
+  String get readingStoryNumbers => 'Verse numbers';
+
+  @override
+  String get readingStoryHint =>
+      'Press and hold a verse to play it, bookmark it, highlight it or add a note.';
+
+  @override
+  String get readingStoryNothing =>
+      'This chapter has nothing for the part you chose. Try another one above.';
+
+  @override
+  String get readingPartMeaning => 'Meaning';
+
+  @override
   String get routineSubtitle => 'Devotion, work and the ordinary in between.';
 
   @override
