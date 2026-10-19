@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Library } from '@/components/read/library';
-import { ErrorState } from '@/components/ui/states';
+import { LibraryLoader } from '@/components/read/library-loader';
 import { serverGet } from '@/lib/api/server';
 import type { Book } from '@/lib/types';
 
@@ -20,7 +20,7 @@ export default async function ReadPage() {
         <h1>Read</h1>
         <p>Sacred texts with the Sanskrit, meaning and purport — in the language you read best. No account needed.</p>
       </header>
-      {books ? <Library books={books} /> : <ErrorState message="The library could not be reached. Please try again in a moment." />}
+      {books ? <Library books={books} /> : <LibraryLoader />}
     </div>
   );
 }

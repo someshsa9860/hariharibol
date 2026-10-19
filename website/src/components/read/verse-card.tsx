@@ -7,6 +7,8 @@ import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { AudioButton } from './audio-button';
 import { CompareSheet } from './compare-sheet';
+import { NotesSheet } from './notes-sheet';
+import { useAuth } from '@/lib/auth/auth-provider';
 import { SITE_URL } from '@/lib/config';
 import { useFavorite } from '@/lib/favorites';
 import { verseCitation, verseRef } from '@/lib/format';
@@ -28,7 +30,9 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const { reader } = usePrefs();
   const toast = useToast();
   const { isFavorite, toggle } = useFavorite('verse', verse.id);
+  const { requireSignIn } = useAuth();
   const [comparing, setComparing] = useState(false);
+  const [noting, setNoting] = useState(false);
   const [showWords, setShowWords] = useState(false);
   const [showPurport, setShowPurport] = useState(Boolean(expanded));
 
@@ -54,6 +58,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
           <button className="icon-btn" onClick={toggle} aria-pressed={isFavorite} aria-label={isFavorite ? 'Remove from favourites' : 'Save to favourites'}>
             <Icon name="heart" solid={isFavorite} />
           </button>
+          <button className="icon-btn" onClick={() => requireSignIn('Sign in to keep notes on verses.') && setNoting(true)} aria-label="My notes on this verse"><Icon name="text" /></button>
           <button className="icon-btn" onClick={onShare} aria-label="Share this verse"><Icon name="share" /></button>
           <button className="icon-btn" onClick={onCopy} aria-label="Copy this verse"><Icon name="copy" /></button>
         </div>
@@ -106,6 +111,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
         )}
         <Link className="btn btn-quiet btn-sm" href={verseHref(verse.verseId)}>Open verse page</Link>
       </footer>
+      {noting && <NotesSheet verse={verse} onClose={() => setNoting(false)} />}
       {comparing && <CompareSheet verse={verse} onClose={() => setComparing(false)} />}
     </article>
   );

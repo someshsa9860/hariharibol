@@ -9,6 +9,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/states';
 import { useToast } from '@/components/ui/toast';
 import { ThemeSwitch } from '@/components/layout/settings-menu';
+import { PracticeReport } from './practice-report';
 import { MantraCard } from '@/components/home/mantra-card';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { api, describeError } from '@/lib/api/client';
@@ -70,6 +71,7 @@ export function MeView() {
         <section className="profile card">
           <Avatar name={user.name ?? user.email} url={user.avatarUrl} size={64} />
           <div><strong>{user.name ?? 'Devotee'}</strong><p className="muted">{user.email}</p><span className="badge">{user.isPremium ? 'Plan active' : 'Free plan'}</span></div>
+          <Link href="/notifications" className="btn btn-ghost btn-sm">Notifications</Link>
           <Link href="/plans" className="btn btn-ghost btn-sm">Plans</Link>
         </section>
       ) : (
@@ -87,6 +89,8 @@ export function MeView() {
           <div className="card"><strong>{summary.data.favorites}</strong><small>favourites</small></div>
         </section>
       )}
+
+      {user && <PracticeReport />}
 
       {user && progress.data && progress.data.length > 0 && (
         <section className="me-section">

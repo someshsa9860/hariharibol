@@ -9,6 +9,7 @@ Sakha. Next.js (App Router) + TypeScript, plain hand-written CSS, no UI library.
 - **Reading, chanting, reels, search, plans are public.** No account is needed for them. **Only Ask Sakha needs one**
   (`components/sakha/sakha-gate.tsx`). Signed-in extras (favourites, progress, streak, routine sync) degrade to this
   browser's storage when signed out — never to a wall.
+- **The verse of the day, the library and the mantras always show.** The home page falls back to a day-of-year pick of well-loved verses (`lib/daily-verse.ts`) when none is set, and when the *server* cannot reach the API the same sections load in the browser (`LiveSections`, `LibraryLoader`, `MantraLoader`).
 - **Public content is server-rendered** so search engines get the words: books, chapters, verses, mantras, the home page.
   Pages fetch with `lib/api/server.ts` (no token, cached by Next for 1–10 minutes). Anything that depends on *who* is
   reading is a client component that fetches after load (`lib/api/client.ts`).
@@ -65,8 +66,11 @@ website/src/
 | Routine | `/routine` — local first, synced when signed in |
 | Plans | `/plans` — read-only; purchases happen in the apps |
 | Verse for how you feel | `/feel` |
+| Notes, related verses | notes sheet on each verse (account); "Related verses" on `/verse/<id>` |
+| Notifications, practice report | `/notifications`; 30-day report on `/me` |
+| Creator profile | `/creator/<id>` — reels grid, follow |
 
-**Not on the website:** auto-count by sound, offline books, push reminders, creator publishing, buying a plan.
+**Not on the website:** auto-count by sound, offline books, push reminders, creator publishing, buying a plan, donations.
 
 ## Commands
 

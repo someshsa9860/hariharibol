@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { MantraList } from '@/components/jap/mantra-list';
 import { TodayPanel } from '@/components/jap/today-panel';
-import { ErrorState } from '@/components/ui/states';
+import { MantraLoader } from '@/components/jap/mantra-loader';
 import { serverGet } from '@/lib/api/server';
 import type { Mantra } from '@/lib/types';
 
@@ -23,7 +23,7 @@ export default async function JapPage() {
       </header>
       <TodayPanel mantras={(mantras ?? []).map((m) => ({ id: m.id, slug: m.slug, name: m.name }))} />
       <h2 className="subhead">Mantras</h2>
-      {mantras ? <MantraList mantras={mantras} /> : <ErrorState message="The mantras could not be loaded right now." />}
+      {mantras ? <MantraList mantras={mantras} /> : <MantraLoader />}
     </div>
   );
 }

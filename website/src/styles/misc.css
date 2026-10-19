@@ -85,3 +85,20 @@
 .feel-chips .chip { padding: 9px 18px; font-size: .95rem; }
 .feel-result { display: grid; gap: 16px; margin-block: 26px 40px; }
 .feel-reason { font-family: var(--serif); font-size: 1.2rem; color: var(--muted); text-align: center; }
+
+/* ── Notes, notifications, report, creators ── */
+.note { padding: 14px 44px 14px 16px; display: grid; gap: 4px; position: relative; list-style: none; }
+.note .icon-btn { position: absolute; top: 6px; right: 6px; }
+.note.is-unread { border-color: var(--accent); background: var(--accent-soft); }
+.related { display: grid; gap: 12px; margin-top: 32px; }
+.report { padding: 20px; display: grid; gap: 18px; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 110px; }
+.bars i { flex: 1; background: var(--line); border-radius: 3px 3px 0 0; min-height: 4px; transition: height .6s var(--ease); }
+.bars i.met { background: var(--accent); }
+.report-stats { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+.report-stats strong { display: block; font-family: var(--serif); font-weight: 500; font-size: 1.6rem; }
+.report-stats small { color: var(--muted); }
+.creator-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding-bottom: 40px; }
+.creator-reel { display: grid; overflow: hidden; }
+.creator-reel img, .creator-reel .reel-blank { width: 100%; aspect-ratio: 9/14; object-fit: cover; position: static; display: block; }
+.creator-reel small { padding: 8px 10px; color: var(--muted); }

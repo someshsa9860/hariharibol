@@ -12,11 +12,17 @@ import { Start } from '@/components/home/start';
 import { Reveal } from '@/components/ui/reveal';
 import { Icon } from '@/components/ui/icon';
 import { serverGetOrNull } from '@/lib/api/server';
+import { LiveSections } from '@/components/home/live-sections';
+import { fallbackVerseId } from '@/lib/daily-verse';
 import { SITE_URL } from '@/lib/config';
-import type { HomeData } from '@/lib/types';
+import type { HomeData, Verse, WebVerse } from '@/lib/types';
 
 export default async function HomePage() {
   const home = await serverGetOrNull<HomeData>('/api/app/home', { revalidate: 300 }).catch(() => null);
+
+  // A verse is always shown: today's if one is set, else the day's pick from a short list of well-loved verses.
+  let verse: Verse | WebVerse | null = home?.slokaOfTheDay?.verse ?? null;
+  if (home && !verse) verse = await serverGetOrNull<WebVerse>(`/api/web/content/verses/${fallbackVerseId()}`, { revalidate: 3600 }).catch(() => null);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -31,12 +37,15 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Hero />
 
+      {!home && <LiveSections />}
+      {home && (
       <section className="page today-band" aria-label="Today">
         <div className="today-grid">
-          {home?.slokaOfTheDay && <SlokaCard verse={home.slokaOfTheDay.verse} />}
+          {verse && <SlokaCard verse={verse} />}
           <PersonalPanel />
         </div>
       </section>
+      )}
 
       <section className="page" aria-label="Where to go">
         <QuickActions />

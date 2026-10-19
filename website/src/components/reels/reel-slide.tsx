@@ -103,7 +103,7 @@ export function ReelSlide({ reel, active, muted, onToggleMute, onChange }: Props
         <div className="reel-info">
           {reel.creator && (
             <div className="reel-creator">
-              <Link href={`/reels`} aria-label={reel.creator.displayName}><Avatar name={reel.creator.displayName} url={reel.creator.avatarUrl} size={36} /></Link>
+              <Link href={`/creator/${reel.creator.id}`} aria-label={reel.creator.displayName}><Avatar name={reel.creator.displayName} url={reel.creator.avatarUrl} size={36} /></Link>
               <strong>{reel.creator.displayName}</strong>
               <button className={clsx('follow', reel.isFollowingCreator && 'is-on')} onClick={follow}>{reel.isFollowingCreator ? 'Following' : 'Follow'}</button>
             </div>

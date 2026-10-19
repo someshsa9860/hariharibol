@@ -8,7 +8,7 @@ import { readingLanguage } from '@/lib/prefs/server';
 import { excerpt, verseCitation } from '@/lib/format';
 import { verseHref, verseReadHref } from '@/lib/links';
 import { SITE_URL } from '@/lib/config';
-import type { WebVerse } from '@/lib/types';
+import type { Verse, WebVerse } from '@/lib/types';
 
 type Props = { params: Promise<{ verseId: string }> };
 
@@ -30,6 +30,7 @@ export default async function VersePage({ params }: Props) {
   const verse = await load(verseId, lang);
   if (!verse) notFound();
   const citation = verseCitation(verse);
+  const related = (await serverGetOrNull<{ relation: string; note: string | null; verse: Verse }[]>(`/api/app/verses/${verseId}/related`, { revalidate: 600 }).catch(() => null)) ?? [];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -59,6 +60,19 @@ export default async function VersePage({ params }: Props) {
       <div className="verse-page-actions">
         <Link className="btn btn-primary" href={verseReadHref(verse)}>Read it in the chapter <Icon name="arrow" size={16} /></Link>
       </div>
+
+      {related.length > 0 && (
+        <section className="related" aria-labelledby="related-title">
+          <h2 id="related-title">Related verses</h2>
+          {related.map((r) => (
+            <Link key={r.verse.id} href={verseHref(r.verse.verseId)} className="card card-hover result">
+              <span className="eyebrow">{r.relation.replace(/_/g, ' ').toLowerCase()}</span>
+              <strong>{verseCitation(r.verse)}</strong>
+              <span className="snippet">{r.note ?? r.verse.translation?.meaning}</span>
+            </Link>
+          ))}
+        </section>
+      )}
 
       <nav className="chapter-nav" aria-label="Neighbouring verses">
         {verse.previousVerseId ? <Link className="card card-hover" href={verseHref(verse.previousVerseId)} rel="prev"><small><Icon name="left" size={14} /> Previous verse</small><strong>{verse.previousVerseId}</strong></Link> : <span />}
