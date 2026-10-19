@@ -32,13 +32,6 @@ abstract final class AppRoutes {
   /// index, never a local one.
   static const String search = '/search';
 
-  /// One kind's full, lazy-loaded results — what a search's "see all" opens.
-  /// `query` rides in the query string, the same way [chapterPath] carries
-  /// its position, so the screen can always rebuild itself from the URL.
-  static const String searchResultsPattern = '/search/:scope';
-  static String searchResultsPath(String scope, String query) =>
-      '/search/$scope?q=${Uri.encodeQueryComponent(query)}';
-
   /// A single mantra. The `:slug` route is registered under [mantraPattern];
   /// this builds the concrete path for `push`/`go`.
   static const String mantraPattern = '/mantras/:slug';
@@ -123,7 +116,6 @@ abstract final class RouteNames {
   static const String plans = 'plans';
   static const String voices = 'voices';
   static const String search = 'search';
-  static const String searchResults = 'searchResults';
   static const String mantraDetail = 'mantraDetail';
   static const String bookDetail = 'bookDetail';
   static const String bookCanto = 'bookCanto';

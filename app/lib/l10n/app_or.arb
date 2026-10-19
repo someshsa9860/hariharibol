@@ -565,5 +565,13 @@
   "chatExplainVerse": "ଦୟାକରି ଏହି ଶ୍ଲୋକକୁ ସରଳ ଭାଷାରେ ବୁଝାନ୍ତୁ — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} ଖୋଲିବେ?",
   "chatActionOpen": "ଖୋଲନ୍ତୁ",
-  "chatActionNotNow": "ବର୍ତ୍ତମାନ ନୁହେଁ"
+  "chatActionNotNow": "ବର୍ତ୍ତମାନ ନୁହେଁ",
+  "searchTabAll": "ସମସ୍ତ",
+  "searchAllBooks": "ସମସ୍ତ ଗ୍ରନ୍ଥ",
+  "searchShowingFor": "“{query}” ପାଇଁ ଫଳାଫଳ ଦେଖାଉଛୁ",
+  "searchNoResultsInBook": "{book}ରେ କିଛି ମିଳିଲା ନାହିଁ। ସମସ୍ତ ଗ୍ରନ୍ଥରେ ଖୋଜନ୍ତୁ, କିମ୍ବା ଅନ୍ୟ ବନାନ ଚେଷ୍ଟା କରନ୍ତୁ।",
+  "searchTipsTitle": "ସନ୍ଧାନ ପାଇଁ ଟିପ୍ସ",
+  "searchTipSpelling": "ଯେପରି ଶୁଭୁଛି ସେପରି ଲେଖନ୍ତୁ। “krishna”, “krsna” ଓ “kṛṣṇa” ସମାନ ଶ୍ଳୋକ ଦେଖାଏ।",
+  "searchTipBook": "ଗ୍ରନ୍ଥର ନାମରେ ଆରମ୍ଭ କରନ୍ତୁ — “gita karma” କିମ୍ବା “bhagavatam surrender” — ତେବେ କେବଳ ସେଥିରେ ଖୋଜିବ।",
+  "searchTipPartial": "ଶ୍ଳୋକ, ତାହାର ଅର୍ଥ କିମ୍ବା ତାତ୍ପର୍ଯ୍ୟର କିଛି ଶବ୍ଦ ଲେଖନ୍ତୁ। ଛୋଟ ଭୁଲ ଚଳିବ।"
 }

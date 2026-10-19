@@ -140,6 +140,20 @@ class WordMeaning {
   }
 }
 
+/// Where a search found its words in a verse, and the passage around them.
+///
+/// [field] is `transliteration`, `sanskrit`, `meaning` or `purport`; [snippet] has the
+/// matched words in `[brackets]`.
+class SearchMatch {
+  const SearchMatch({required this.field, required this.snippet});
+
+  final String field;
+  final String snippet;
+
+  factory SearchMatch.fromJson(Json json) =>
+      SearchMatch(field: asString(json['field']), snippet: asString(json['snippet']));
+}
+
 /// A verse, already resolved into the reader's languages by the API.
 class Verse {
   const Verse({
@@ -168,6 +182,7 @@ class Verse {
     this.isHighlighted = false,
     this.noteCount = 0,
     this.relatedCount = 0,
+    this.searchMatch,
   });
 
   final String id;
@@ -230,6 +245,9 @@ class Verse {
   /// How many curated cross-links lead out of this verse — the reading
   /// screen only shows a "related" affordance when this is above zero.
   final int relatedCount;
+
+  /// Set only on a search result: which text the words were found in.
+  final SearchMatch? searchMatch;
 
   /// "Bhagavad Gita · 2.13" — the citation, with the book set off from the
   /// numbering. The same parts as [reference], punctuated for display.
@@ -299,6 +317,9 @@ class Verse {
         isHighlighted: asBool(json['isHighlighted']),
         noteCount: asInt(json['noteCount']),
         relatedCount: asInt(json['relatedCount']),
+        searchMatch: asJson(json['searchMatch']) == null
+            ? null
+            : SearchMatch.fromJson(asJson(json['searchMatch'])!),
       );
 }
 

@@ -565,5 +565,13 @@
   "chatExplainVerse": "કૃપા કરીને આ શ્લોક સરળ શબ્દોમાં સમજાવો — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} ખોલવું છે?",
   "chatActionOpen": "ખોલો",
-  "chatActionNotNow": "હમણાં નહીં"
+  "chatActionNotNow": "હમણાં નહીં",
+  "searchTabAll": "બધા",
+  "searchAllBooks": "બધા ગ્રંથ",
+  "searchShowingFor": "“{query}” ના પરિણામો બતાવી રહ્યા છીએ",
+  "searchNoResultsInBook": "{book} માં કંઈ મળ્યું નથી. બધા ગ્રંથ અજમાવો અથવા બીજી જોડણી વાપરો.",
+  "searchTipsTitle": "શોધ માટે સૂચનો",
+  "searchTipSpelling": "જેવું સંભળાય તેવું લખો. “krishna”, “krsna” અને “kṛṣṇa” એ જ શ્લોકો શોધે છે.",
+  "searchTipBook": "ગ્રંથના નામથી શરૂ કરો — “gita karma” અથવા “bhagavatam surrender” — તો શોધ ફક્ત તેમાં જ થશે.",
+  "searchTipPartial": "શ્લોક, તેના અર્થ કે તાત્પર્યના થોડા શબ્દો લખો. નાની ભૂલો ચાલશે."
 }

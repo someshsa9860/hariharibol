@@ -565,5 +565,13 @@
   "chatExplainVerse": "कृपया इस श्लोक को सरल शब्दों में समझाइए — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} खोलें?",
   "chatActionOpen": "खोलें",
-  "chatActionNotNow": "अभी नहीं"
+  "chatActionNotNow": "अभी नहीं",
+  "searchTabAll": "सभी",
+  "searchAllBooks": "सभी ग्रंथ",
+  "searchShowingFor": "“{query}” के परिणाम दिखा रहे हैं",
+  "searchNoResultsInBook": "{book} में कुछ नहीं मिला। सभी ग्रंथ आज़माएँ, या कोई और वर्तनी।",
+  "searchTipsTitle": "खोज के सुझाव",
+  "searchTipSpelling": "जैसा सुनाई दे वैसा लिखें। “krishna”, “krsna” और “kṛṣṇa” एक ही श्लोक खोजते हैं।",
+  "searchTipBook": "किसी ग्रंथ के नाम से शुरू करें — “gita karma” या “bhagavatam surrender” — तो खोज केवल उसी में होगी।",
+  "searchTipPartial": "श्लोक, उसके अर्थ या तात्पर्य के कुछ शब्द लिखें। छोटी गलतियाँ चल जाती हैं।"
 }

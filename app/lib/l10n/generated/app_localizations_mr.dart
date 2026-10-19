@@ -2023,4 +2023,32 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get chatActionNotNow => 'आत्ता नको';
+
+  @override
+  String get searchTabAll => 'सर्व';
+
+  @override
+  String get searchAllBooks => 'सर्व ग्रंथ';
+
+  @override
+  String searchShowingFor(String query) {
+    return '“\$query” साठी निकाल दाखवत आहे';
+  }
+
+  @override
+  String searchNoResultsInBook(String book) {
+    return '\$book मध्ये काही सापडले नाही. सर्व ग्रंथ पाहा किंवा वेगळे स्पेलिंग वापरा.';
+  }
+
+  @override
+  String get searchTipsTitle => 'शोधासाठी सूचना';
+
+  @override
+  String get searchTipSpelling => 'जसे ऐकू येते तसे लिहा. “krishna”, “krsna” आणि “kṛṣṇa” एकच श्लोक शोधतात.';
+
+  @override
+  String get searchTipBook => 'ग्रंथाच्या नावाने सुरुवात करा — “gita karma” किंवा “bhagavatam surrender” — शोध फक्त त्यातच होईल.';
+
+  @override
+  String get searchTipPartial => 'श्लोकाचे, त्याच्या अर्थाचे किंवा तात्पर्याचे काही शब्द लिहा. लहान चुका चालतात.';
 }

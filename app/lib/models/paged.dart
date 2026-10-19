@@ -9,6 +9,7 @@ class Paged<T> {
     required this.total,
     required this.totalPages,
     required this.hasMore,
+    this.loadMoreFailed = false,
   });
 
   final List<T> items;
@@ -17,6 +18,9 @@ class Paged<T> {
   final int total;
   final int totalPages;
   final bool hasMore;
+
+  /// The last request for the next page failed; the items so far are still good.
+  final bool loadMoreFailed;
 
   static Paged<T> empty<T>() => Paged<T>(
         items: const [],
@@ -39,6 +43,16 @@ class Paged<T> {
       hasMore: asBool(meta?['hasMore']),
     );
   }
+
+  Paged<T> withLoadMoreFailed(bool failed) => Paged<T>(
+        items: items,
+        page: page,
+        pageSize: pageSize,
+        total: total,
+        totalPages: totalPages,
+        hasMore: hasMore,
+        loadMoreFailed: failed,
+      );
 
   Paged<T> merge(Paged<T> next) => Paged<T>(
         items: [...items, ...next.items],

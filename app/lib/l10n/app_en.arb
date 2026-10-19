@@ -1458,5 +1458,29 @@
   "chatActionNotNow": "Not now",
   "@chatActionNotNow": {
     "description": "Button that declines what Sakha suggested."
-  }
+  },
+  "searchTabAll": "All",
+  "searchAllBooks": "All books",
+  "searchShowingFor": "Showing results for “{query}”",
+  "@searchShowingFor": {
+    "description": "Shown above search results when the typed words were read as a different spelling; query is the spelling used.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoResultsInBook": "Nothing found in {book}. Try all books, or another spelling.",
+  "@searchNoResultsInBook": {
+    "description": "Empty search result while the search is limited to one book; book is its title.",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTipsTitle": "Search tips",
+  "searchTipSpelling": "Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.",
+  "searchTipBook": "Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.",
+  "searchTipPartial": "Type a few words of the verse, its meaning or the purport. Small slips are forgiven."
 }

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
-import '../../models/search_result.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
@@ -23,7 +22,6 @@ import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
 import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
-import '../../views/search/search_results_view.dart';
 import '../../views/search/search_view.dart';
 import '../../views/premium/plans_view.dart';
 import '../../views/settings/voices_view.dart';
@@ -132,17 +130,6 @@ GoRouter createRouter() {
         path: AppRoutes.search,
         name: RouteNames.search,
         builder: (context, state) => const SearchView(),
-      ),
-      GoRoute(
-        path: AppRoutes.searchResultsPattern,
-        name: RouteNames.searchResults,
-        builder: (context, state) => SearchResultsView(
-          scope: SearchScope.values.firstWhere(
-            (scope) => scope.wire == state.pathParameters['scope'],
-            orElse: () => SearchScope.verse,
-          ),
-          query: state.uri.queryParameters['q'] ?? '',
-        ),
       ),
       GoRoute(
         path: AppRoutes.mantraPattern,

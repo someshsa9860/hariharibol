@@ -20,7 +20,7 @@ function noContent(res) {
 
 // `page` is what utils/pagination.js produced, so the caller does not assemble
 // the meta block by hand each time.
-function paginated(res, items, page) {
+function paginated(res, items, page, extra = {}) {
   return res.status(200).json({
     success: true,
     data: items,
@@ -30,6 +30,7 @@ function paginated(res, items, page) {
       total: page.total,
       totalPages: Math.ceil(page.total / page.pageSize) || 0,
       hasMore: page.page * page.pageSize < page.total,
+      ...extra,
     },
   });
 }

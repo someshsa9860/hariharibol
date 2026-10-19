@@ -565,5 +565,13 @@
   "chatExplainVerse": "ദയവായി ഈ ശ്ലോകം ലളിതമായി വിശദീകരിക്കൂ — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} തുറക്കണോ?",
   "chatActionOpen": "തുറക്കൂ",
-  "chatActionNotNow": "ഇപ്പോൾ വേണ്ട"
+  "chatActionNotNow": "ഇപ്പോൾ വേണ്ട",
+  "searchTabAll": "എല്ലാം",
+  "searchAllBooks": "എല്ലാ ഗ്രന്ഥങ്ങളും",
+  "searchShowingFor": "“{query}” എന്നതിനുള്ള ഫലങ്ങൾ കാണിക്കുന്നു",
+  "searchNoResultsInBook": "{book}-ൽ ഒന്നും കണ്ടെത്തിയില്ല. എല്ലാ ഗ്രന്ഥങ്ങളിലും തിരയുക, അല്ലെങ്കിൽ മറ്റൊരു അക്ഷരവിന്യാസം പരീക്ഷിക്കുക.",
+  "searchTipsTitle": "തിരയാനുള്ള നുറുങ്ങുകൾ",
+  "searchTipSpelling": "കേൾക്കുന്നതുപോലെ എഴുതുക. “krishna”, “krsna”, “kṛṣṇa” എന്നിവ ഒരേ ശ്ലോകങ്ങൾ കണ്ടെത്തും.",
+  "searchTipBook": "ഒരു ഗ്രന്ഥത്തിന്റെ പേരിൽ തുടങ്ങുക — “gita karma” അല്ലെങ്കിൽ “bhagavatam surrender” — എങ്കിൽ അതിൽ മാത്രം തിരയും.",
+  "searchTipPartial": "ശ്ലോകം, അതിന്റെ അർത്ഥം അല്ലെങ്കിൽ ഭാവാർത്ഥത്തിലെ ചില വാക്കുകൾ ടൈപ്പ് ചെയ്യുക. ചെറിയ തെറ്റുകൾ സാരമില്ല."
 }

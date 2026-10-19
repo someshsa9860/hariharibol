@@ -565,5 +565,13 @@
   "chatExplainVerse": "অনুগ্ৰহ কৰি এই শ্লোকটো সহজ ভাষাত বুজাই দিয়ক — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} খুলিব নেকি?",
   "chatActionOpen": "খুলক",
-  "chatActionNotNow": "এতিয়া নহয়"
+  "chatActionNotNow": "এতিয়া নহয়",
+  "searchTabAll": "সকলো",
+  "searchAllBooks": "সকলো গ্ৰন্থ",
+  "searchShowingFor": "“{query}”ৰ ফলাফল দেখুৱাই আছো",
+  "searchNoResultsInBook": "{book}ত একো পোৱা নাযায়। সকলো গ্ৰন্থত বিচাৰক, বা আন বানান চেষ্টা কৰক।",
+  "searchTipsTitle": "সন্ধানৰ পৰামৰ্শ",
+  "searchTipSpelling": "যেনেকৈ শুনা যায় তেনেকৈ লিখক। “krishna”, “krsna” আৰু “kṛṣṇa” একে শ্লোকক বিচাৰি উলিয়ায়।",
+  "searchTipBook": "গ্ৰন্থৰ নামেৰে আৰম্ভ কৰক — “gita karma” বা “bhagavatam surrender” — তেন্তে কেৱল তাতেই বিচাৰিব।",
+  "searchTipPartial": "শ্লোক, ইয়াৰ অৰ্থ বা তাৎপৰ্যৰ কিছুমান শব্দ লিখক। সৰু ভুলত অসুবিধা নাই।"
 }
