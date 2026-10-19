@@ -167,6 +167,8 @@ router.post(
     description:
       'Responds `text/event-stream`. Events: `meta` {conversation, userMessage, assistantMessageId}; ' +
       '`status` {phase:"compacting"} while older messages are summarized; `delta` {text} per piece; ' +
+      '`action` {type:"page"|"mantra"|"verse", …} just before `done` when the reader asked to be taken somewhere ' +
+      '(an offer only — the app asks before opening anything); ' +
       '`done` {message, conversation, credits}; `error` {code, message, retryable, partial, messageId}. ' +
       'Closing the connection stops the reply: what had arrived is kept as a STOPPED message and only ' +
       'the tokens actually used are charged. One reply at a time per person (409). A message is words, a ' +

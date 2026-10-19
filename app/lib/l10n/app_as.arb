@@ -560,5 +560,10 @@
   "chatMicUnavailable": "এই ফোনত কৈ লিখাৰ সুবিধা উপলব্ধ নহয়।",
   "chatMicNoSpeech": "একো শুনা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
   "chatMicFailed": "শুনা বন্ধ হৈ গ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
-  "chatJumpToLatest": "শেহতীয়া"
+  "chatJumpToLatest": "শেহতীয়া",
+  "verseAskSakha": "এই শ্লোকৰ বিষয়ে Sakha ক সোধক",
+  "chatExplainVerse": "অনুগ্ৰহ কৰি এই শ্লোকটো সহজ ভাষাত বুজাই দিয়ক — {reference}:\n\n{verse}",
+  "chatActionQuestion": "{place} খুলিব নেকি?",
+  "chatActionOpen": "খুলক",
+  "chatActionNotNow": "এতিয়া নহয়"
 }

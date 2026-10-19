@@ -3483,6 +3483,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Latest'**
   String get chatJumpToLatest;
+
+  /// Tooltip of the button on a verse that asks Sakha to explain it.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Sakha about this verse'**
+  String get verseAskSakha;
+
+  /// The message sent to Sakha from a verse. {reference} is like "Bhagavad Gita 2.47"; {verse} is the verse text.
+  ///
+  /// In en, this message translates to:
+  /// **'Please explain this verse to me in simple words — {reference}:\n\n{verse}'**
+  String chatExplainVerse(String reference, String verse);
+
+  /// Asks the reader to confirm before the app opens a place Sakha suggested. {place} is its name, like "Reels".
+  ///
+  /// In en, this message translates to:
+  /// **'Open {place}?'**
+  String chatActionQuestion(String place);
+
+  /// Button that confirms opening what Sakha suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get chatActionOpen;
+
+  /// Button that declines what Sakha suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get chatActionNotNow;
 }
 
 class _AppLocalizationsDelegate

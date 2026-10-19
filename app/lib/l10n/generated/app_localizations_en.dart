@@ -1999,4 +1999,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'Latest';
+
+  @override
+  String get verseAskSakha => 'Ask Sakha about this verse';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'Please explain this verse to me in simple words — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return 'Open $place?';
+  }
+
+  @override
+  String get chatActionOpen => 'Open';
+
+  @override
+  String get chatActionNotNow => 'Not now';
 }

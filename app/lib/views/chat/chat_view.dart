@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/chat_config.dart';
 import '../../core/navigation/app_navigator.dart';
+import '../../core/navigation/chat_action_route.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
@@ -13,6 +14,7 @@ import '../../providers/chat_controller.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/chat_state.dart';
 import '../../services/chat_image_picker.dart';
+import '../../widgets/chat/chat_action_card.dart';
 import '../../widgets/chat/chat_attach_sheet.dart';
 import '../../widgets/chat/chat_composer.dart';
 import '../../widgets/chat/chat_credit_meter.dart';
@@ -31,7 +33,11 @@ import '../../widgets/common/app_loader.dart';
 /// clear the chat. Opening it asks the server for the conversation; the first
 /// message creates it if there is none.
 class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key});
+  const ChatView({super.key, this.initialPrompt});
+
+  /// A question to ask as soon as the chat has loaded — what "Ask Sakha" on a verse opens it with. Sent once; if the
+  /// reader cannot send just now (no credits, a full chat) it waits in the box instead.
+  final String? initialPrompt;
 
   @override
   ConsumerState<ChatView> createState() => _ChatViewState();
@@ -47,6 +53,23 @@ class _ChatViewState extends ConsumerState<ChatView> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    final prompt = widget.initialPrompt?.trim();
+    if (prompt == null || prompt.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _chat.ready;
+      if (!mounted) return;
+      if (ref.read(chatControllerProvider).canSend) {
+        _send(prompt);
+      } else {
+        _composer.text = prompt;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _dictation.dispose();
     _composer.dispose();
@@ -55,6 +78,18 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   ChatController get _chat => ref.read(chatControllerProvider.notifier);
+
+  /// The reader said yes to what Sakha offered. A tab is switched to; anything else opens over the chat, so back
+  /// returns to it.
+  void _openOffer(ChatAction action) {
+    final route = chatActionRoute(action);
+    _chat.dismissOffer();
+    if (route.isTab) {
+      AppNavigator.instance.go(route.path);
+    } else {
+      AppNavigator.instance.push(route.path);
+    }
+  }
 
   void _send(String value) {
     _dictation.cancel();
@@ -294,6 +329,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
             if (state.isFull)
               ChatFullBanner(onStartNewChat: _startNewChat, busy: state.busy)
             else ...[
+              if (state.offer case final offer?)
+                ChatActionCard(
+                  key: ObjectKey(offer),
+                  action: offer,
+                  onOpen: () => _openOffer(offer),
+                  onDismiss: _chat.dismissOffer,
+                ),
               if (notice != null)
                 ChatCreditsCard(
                   kind: notice.kind,

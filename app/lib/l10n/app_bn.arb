@@ -560,5 +560,10 @@
   "chatMicUnavailable": "এই ফোনে বলে লেখা সম্ভব নয়।",
   "chatMicNoSpeech": "কিছু শোনা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
   "chatMicFailed": "শোনা বন্ধ হয়ে গেছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
-  "chatJumpToLatest": "সর্বশেষ"
+  "chatJumpToLatest": "সর্বশেষ",
+  "verseAskSakha": "এই শ্লোক সম্পর্কে Sakha-কে জিজ্ঞাসা করুন",
+  "chatExplainVerse": "অনুগ্রহ করে এই শ্লোকটি সহজ ভাষায় বুঝিয়ে দিন — {reference}:\n\n{verse}",
+  "chatActionQuestion": "{place} খুলবেন?",
+  "chatActionOpen": "খুলুন",
+  "chatActionNotNow": "এখন নয়"
 }

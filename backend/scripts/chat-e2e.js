@@ -293,7 +293,7 @@ async function picturesSection({ admin, bob }) {
 
   const cleo = await makeSpare('cleo');
   // A roomy window, so the chat is never compacted and no picture is folded into a summary part-way.
-  const limitsBody = { recentMessages: 40, compactAtTokens: 100000, keepRecentOnCompact: 4, summaryMaxTokens: 450, maxMessages: 120, maxOutputTokens: 1200, maxInputChars: 4000, imageMaxEdge: 1280 };
+  const limitsBody = { recentMessages: 40, compactAtTokens: 100000, keepRecentOnCompact: 4, summaryMaxTokens: 450, maxMessages: 120, maxOutputTokens: 1200, maxInputChars: 4000, appActions: 0, imageMaxEdge: 1280 };
   let r = await call('PUT', '/admin/chat/settings', { token: admin.token, body: { limits: { ...limitsBody, imageInput: 1 } } });
   check('(pictures on, up to 1280 px, and a window that never compacts)', r.status === 200 && r.json.data.limits.imageInput === 1 && r.json.data.limits.imageMaxEdge === 1280, JSON.stringify(r.json?.data?.limits));
 
@@ -461,6 +461,7 @@ const CHAT_SETTINGS = ['chat.system_prompt', 'chat.description', 'chat.limits'];
 const AI_SETTINGS = [
   SETTING_KEYS.AI_PROVIDER, SETTING_KEYS.AI_MODEL_TEXT,
   SETTING_KEYS.AI_FREE_TIER_ENABLED, SETTING_KEYS.AI_FREE_TIER_TEXT_MODEL, SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL,
+  SETTING_KEYS.AI_FREE_TIER_BONUS_POOL, SETTING_KEYS.AI_FREE_TIER_BONUS_MAX_USER,
 ];
 const SAVED_SETTINGS = [...CHAT_SETTINGS, ...AI_SETTINGS];
 
@@ -548,6 +549,123 @@ async function nameSection() {
   s = await stream(`/app/chat/conversations/${nid}/messages`, { token: none.token, body: { content: 'Hello' } });
   check('a reader whose account holds no usable name gets no note about it', !systemOf(lastStream()).includes(NAME_GUIDANCE) && !systemOf(lastStream()).includes('{name}'));
   check('…and a token that slips through is dropped, never shown', !text(s).includes('{') && last(s, 'done')?.message.content === 'Hari Bol! Welcome.', last(s, 'done')?.message.content);
+}
+
+// ── Taking the reader somewhere ─────────────────────────────────────────────
+
+async function actionsSection({ admin }) {
+  console.log('\n18. Opening things in the app — an offer, only for a place that exists');
+  const limitsBody = { recentMessages: 40, compactAtTokens: 100000, keepRecentOnCompact: 4, summaryMaxTokens: 450, maxMessages: 120, maxOutputTokens: 1200, maxInputChars: 4000, imageMaxEdge: 1280, imageInput: 1 };
+  const setActions = (on) => call('PUT', '/admin/chat/settings', { token: admin.token, body: { limits: { ...limitsBody, appActions: on } } });
+  const systemOf = (request) => request.body.systemInstruction.parts[0].text;
+  const reader = await makeSpare('ana');
+  const ask = async (pieces, content = 'Take me there') => {
+    const id = (await call('POST', '/app/chat/conversations', { token: reader.token, body: {} })).json.data.id;
+    reply = pieces;
+    return { id, s: await stream(`/app/chat/conversations/${id}/messages`, { token: reader.token, body: { content } }) };
+  };
+
+  const book = await prisma.book.findFirst({ where: { bookNumber: 1 }, select: { id: true, slug: true, isPublished: true } });
+  if (book && !book.isPublished) await prisma.book.update({ where: { id: book.id }, data: { isPublished: true } }); // an unpublished book is never offered
+  const verse = book && await prisma.verse.create({ data: { verseId: 'e2e.1.99.1', bookId: book.id, bookNumber: 1, chapterNumber: 99, verseNumber: 1 } });
+  const mantra = await prisma.mantra.create({ data: { slug: 'e2e-zorbax-mantra', name: 'Zorbax Mantra', sanskrit: 'ॐ', category: 'name', isPublished: true } });
+  try {
+    let r = await setActions(1);
+    check('an admin can switch opening things on', r.status === 200 && r.json.data.limits.appActions === 1);
+
+    let q = await ask(['Of course, here are the reels.\n\n[[open:pa', 'ge:reels]]']);
+    check('the marker is never shown, even when it is cut in two', text(q.s) === 'Of course, here are the reels.\n\n' && !q.s.events.some((e) => e.data?.text?.includes('[')), JSON.stringify(text(q.s)));
+    const offer = last(q.s, 'action');
+    check('the reader is offered the page', offer?.type === 'page' && offer.page === 'reels', JSON.stringify(offer));
+    check('…before the reply is done', q.s.events.findIndex((e) => e.name === 'action') < q.s.events.findIndex((e) => e.name === 'done'));
+    check('…and the saved reply holds no marker', (await prisma.chatMessage.findFirst({ where: { conversationId: q.id, role: 'ASSISTANT' } })).content === 'Of course, here are the reels.');
+    check('the model was told how to offer', systemOf(lastStream()).includes(chatConfig.ACTION_GUIDANCE));
+
+    q = await ask(['Opening it. [[open:mantra:zorbax mantra]]']);
+    check('a mantra is offered by its name', last(q.s, 'action')?.type === 'mantra' && last(q.s, 'action').slug === 'e2e-zorbax-mantra' && last(q.s, 'action').title === 'Zorbax Mantra', JSON.stringify(last(q.s, 'action')));
+    q = await ask(['Here. [[open:mantra:no such mantra anywhere]]']);
+    check('a mantra we do not have is not offered, and the text is intact', !last(q.s, 'action') && text(q.s) === 'Here. ' && !!last(q.s, 'done'));
+
+    if (verse) {
+      q = await ask([`Yes. [[open:verse:${book.slug}:99.1]]`]);
+      const v = last(q.s, 'action');
+      check('a verse that exists is offered with its place', v?.type === 'verse' && v.bookSlug === book.slug && v.chapter === 99 && v.verse === 1 && /99\.1$/.test(v.title), JSON.stringify(v));
+      q = await ask([`Yes. [[open:verse:${book.slug}:99.7]]`]);
+      check('a verse that does not exist is not offered', !last(q.s, 'action'));
+    }
+    q = await ask(['Sure. [[open:page:admin]]']);
+    check('a page the app does not offer is not offered', !last(q.s, 'action') && text(q.s) === 'Sure. ');
+
+    r = await setActions(0);
+    q = await ask(['Fine. [[open:page:home]]']);
+    check('switched off, the prompt carries no instructions and no offer is made', !systemOf(lastStream()).includes(chatConfig.ACTION_GUIDANCE) && !last(q.s, 'action') && text(q.s) === 'Fine. ');
+  } finally {
+    await prisma.mantra.delete({ where: { id: mantra.id } }).catch(() => null);
+    if (book && !book.isPublished) await prisma.book.update({ where: { id: book.id }, data: { isPublished: false } }).catch(() => null);
+    if (verse) await prisma.verse.delete({ where: { id: verse.id } }).catch(() => null);
+  }
+}
+
+// ── The daily bonus ─────────────────────────────────────────────────────────
+
+async function bonusSection({ admin, original }) {
+  console.log('\n19. The free-tier bonus — extra tokens a day, spent first, outside the wallet and the daily cap');
+  const reader = await makeSpare('bea');
+  const setFreeTier = (body) => call('PUT', '/admin/ai/free-tier', { token: admin.token, body });
+  const panel = async () => (await call('GET', '/admin/ai/free-tier', { token: admin.token })).json.data;
+  const date = (await import('../utils/ai-credits.js')).localDateKey(new Date(), reader.user.timezone);
+  const send = async (content) => {
+    const id = (await call('POST', '/app/chat/conversations', { token: reader.token, body: {} })).json.data.id;
+    reply = ['Hari Bol.'];
+    return stream(`/app/chat/conversations/${id}/messages`, { token: reader.token, body: { content } });
+  };
+  const day = () => prisma.aiDailyUsage.findUnique({ where: { userId_date: { userId: reader.user.id, date } } });
+
+  // A plan with a small daily cap, so the cap can be used up.
+  await prisma.aiPlanConfig.update({ where: { id: original.id }, data: { modelTier: 'BASIC', dailyTokens: 3000, walletTokens: 50000 } });
+  wallet.clearAllowanceCache();
+  await wallet.open(reader.user);
+  await prisma.aiDailyUsage.upsert({ where: { userId_date: { userId: reader.user.id, date } }, update: { tokens: 3000 }, create: { userId: reader.user.id, date, tokens: 3000 } });
+
+  await setFreeTier({ enabled: false, bonusPoolTokens: 100000, bonusMaxPerUser: 5000 });
+  let s = await send('With the switch off');
+  check('with the free tier off there is no bonus: the spent daily cap stops the reply', s.status === 402 && s.json.error.code === 'CREDITS_EXHAUSTED', String(s.status));
+
+  let r = await setFreeTier({ enabled: true });
+  let state = r.json.data;
+  const expected = Math.min(5000, Math.floor(100000 / Math.max(1, state.bonus.users)));
+  check('on, the panel shows the pool shared among the readers, to a ceiling each', state.bonus.active === true && state.bonus.tokens === expected && state.bonus.tokens > 0 && state.bonus.poolTokens === 100000 && state.bonus.maxPerUser === 5000, JSON.stringify(state.bonus));
+  r = await setFreeTier({ bonusPoolTokens: 999 * 1000 * 1000 });
+  check('a pool above what the free tier holds is refused', r.status === 400, String(r.status));
+
+  const walletBefore = (await prisma.aiWallet.findUnique({ where: { userId: reader.user.id } })).balance;
+  s = await send('With the bonus');
+  const done = last(s, 'done');
+  check('a reader whose daily cap is spent is still answered from the bonus', !!done && done.credits.exhausted === false, String(s.status));
+  const used = await day();
+  check('…the bonus paid for it, and the wallet and the cap were left alone', used.bonusTokens > 0 && used.tokens === 3000 && (await prisma.aiWallet.findUnique({ where: { userId: reader.user.id } })).balance === walletBefore, JSON.stringify(used));
+  check('…and no wallet debit was written', (await ledger(reader.user.id, { type: 'DEBIT', source: 'CHAT' })).length === 0);
+
+  // Only a little bonus left: it pays first, the wallet pays the rest.
+  await prisma.aiDailyUsage.update({ where: { userId_date: { userId: reader.user.id, date } }, data: { tokens: 0, bonusTokens: expected - 10 } });
+  s = await send('Part bonus, part wallet');
+  const after = await day();
+  const debit = (await ledger(reader.user.id, { type: 'DEBIT', source: 'CHAT' }))[0];
+  check('the last of the bonus is used first, then the wallet pays the rest', !!last(s, 'done') && after.bonusTokens === expected && after.tokens > 0 && debit?.tokens === after.tokens, JSON.stringify([after, debit?.tokens]));
+
+  // Gone for a plan on the stronger model, and when the pool is nothing.
+  await prisma.aiDailyUsage.update({ where: { userId_date: { userId: reader.user.id, date } }, data: { tokens: 3000, bonusTokens: 0 } });
+  await prisma.aiPlanConfig.update({ where: { id: original.id }, data: { modelTier: 'ADVANCED' } });
+  wallet.clearAllowanceCache();
+  s = await send('On the stronger model');
+  check('a plan on the stronger model gets no bonus', s.status === 402, String(s.status));
+  await prisma.aiPlanConfig.update({ where: { id: original.id }, data: { modelTier: 'BASIC' } });
+  wallet.clearAllowanceCache();
+  await setFreeTier({ bonusPoolTokens: 0 });
+  s = await send('With an empty pool');
+  check('a pool of nothing gives nothing', s.status === 402, String(s.status));
+  state = await panel();
+  check('…and the panel says it is not being given', state.bonus.tokens === 0);
 }
 
 // ── The engines ────────────────────────────────────────────────────────────
@@ -659,7 +777,7 @@ async function enginesSection({ admin, original }) {
     check('…or read it', r.status === 403, String(r.status));
     r = await setFreeTier({ textModel: 'gpt-6-luna' });
     check('a model that is not in a free pool is refused', r.status === 400, `${r.status} ${JSON.stringify(r.json?.error)}`);
-    r = await setFreeTier({ enabled: true, textModel: 'gpt-4o-mini', translationModel: 'gpt-4.1-mini' });
+    r = await setFreeTier({ enabled: true, textModel: 'gpt-4o-mini', translationModel: 'gpt-4.1-mini', bonusPoolTokens: 0 });
     check('an admin switches the free tier on and picks its models', r.status === 200 && r.json.data.enabled === true && r.json.data.models.text === 'gpt-4o-mini' && r.json.data.models.translation === 'gpt-4.1-mini', JSON.stringify(r.json?.data?.models));
     check('…and the change is in the audit log', !!(await prisma.auditLog.findFirst({ where: { actorId: admin.user.id, action: 'ai.free-tier.update' } })));
     let state = await panel();
@@ -794,6 +912,7 @@ async function main() {
     await settings.set(SETTING_KEYS.AI_PROVIDER, 'GEMINI');
     await settings.set(SETTING_KEYS.AI_MODEL_TEXT, 'gemini-reply-test');
     await settings.set(SETTING_KEYS.AI_FREE_TIER_ENABLED, 'false');
+    await settings.set(SETTING_KEYS.CHAT_LIMITS, JSON.stringify({ appActions: 0 })); // the sections below count tokens; section 18 turns actions on
 
     console.log('\n1. Status — a meter, never tokens');
     let r = await call('GET', '/app/chat/status', { token: asha.token });
@@ -995,7 +1114,7 @@ async function main() {
     check('the model tier takes effect at once, with no deploy', lastStream().url.includes('gemini-advanced-test'));
     check('raising the wallet credited the difference', !!(await prisma.aiWalletTransaction.findFirst({ where: { userId: asha.user.id, source: 'PLAN_RENEWAL', note: 'Allowance raised' } })));
 
-    r = await call('PUT', '/admin/chat/settings', { token: admin.token, body: { systemPrompt: 'You are a test persona.', limits: { recentMessages: 8, compactAtTokens: 3000, keepRecentOnCompact: 4, summaryMaxTokens: 450, maxMessages: 120, maxOutputTokens: 1200, maxInputChars: 4000 } } });
+    r = await call('PUT', '/admin/chat/settings', { token: admin.token, body: { systemPrompt: 'You are a test persona.', limits: { recentMessages: 8, compactAtTokens: 3000, keepRecentOnCompact: 4, summaryMaxTokens: 450, maxMessages: 120, maxOutputTokens: 1200, maxInputChars: 4000, appActions: 0 } } });
     check('the persona can be edited', r.status === 200);
     await new Promise((res) => setTimeout(res, 50));
     await redis.del('setting:chat.system_prompt');
@@ -1091,6 +1210,8 @@ async function main() {
     await picturesSection({ admin, bob });
     await nameSection();
     await enginesSection({ admin, original });
+    await actionsSection({ admin });
+    await bonusSection({ admin, original });
 
   } finally {
     const everyone = [asha.user.id, bob.user.id, admin.user.id, ...spareUsers];

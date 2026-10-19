@@ -2010,4 +2010,23 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'తాజా';
+
+  @override
+  String get verseAskSakha => 'ఈ శ్లోకం గురించి Sakha ని అడగండి';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'దయచేసి ఈ శ్లోకాన్ని సరళమైన మాటల్లో వివరించండి — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place తెరవాలా?';
+  }
+
+  @override
+  String get chatActionOpen => 'తెరవండి';
+
+  @override
+  String get chatActionNotNow => 'ఇప్పుడు వద్దు';
 }

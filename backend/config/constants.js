@@ -169,6 +169,9 @@ const SETTING_KEYS = {
   AI_FREE_TIER_ENABLED: 'ai.free_tier.enabled',
   AI_FREE_TIER_TEXT_MODEL: 'ai.free_tier.text_model',
   AI_FREE_TIER_TRANSLATION_MODEL: 'ai.free_tier.translation_model',
+  // The daily bonus every reader gets while the free tier is on — its pool, and the most one reader can be given.
+  AI_FREE_TIER_BONUS_POOL: 'ai.free_tier.bonus_pool',
+  AI_FREE_TIER_BONUS_MAX_USER: 'ai.free_tier.bonus_max_per_user',
   SLOKA_DELIVERY_TIME: 'sloka.delivery.time',
   SIGNUP_ENABLED: 'auth.signup.enabled',
   BOOK_CACHE_VERSION: 'book.cache_version',

@@ -38,12 +38,14 @@ import { IMAGE_TOKEN_ESTIMATE, IMAGE_UPLOAD_MAX_BYTES, MIN_REPLY_TOKENS } from '
 import * as ai from '../../services/ai/index.js';
 import * as tokens from '../../services/ai/tokens.js';
 import * as wallet from '../../services/ai-wallet.js';
+import * as chatActions from '../../services/chat-actions.js';
 import * as chatImages from '../../services/chat-images.js';
 import * as chatSettings from '../../services/chat-settings.js';
 import * as s3 from '../../services/s3.js';
 import * as chatImage from '../../utils/chat-image.js';
 import * as context from '../../utils/chat-context.js';
 import * as chatName from '../../utils/chat-name.js';
+import * as actionMarker from '../../utils/chat-actions.js';
 import { forReader } from '../../utils/chat-errors.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
@@ -228,7 +230,7 @@ async function compact({ conversationId, user, limits, force = false, keep, wait
 
       const spent = result.usage.inputTokens + result.usage.outputTokens;
       await wallet.debit({
-        userId: user.id, tokens: spent, source: 'SUMMARIZATION', referenceId: conversation.id, timezone: user.timezone,
+        userId: user.id, tokens: spent, source: 'SUMMARIZATION', referenceId: conversation.id, timezone: user.timezone, bonus: opened.bonus,
       });
       const updated = await prisma.chatConversation.update({
         where: { id: conversation.id },
@@ -398,10 +400,10 @@ async function claimedPicture(key, userId, limits) {
  * carries a picture. Good for the cost pre-check; `reply()` builds the system prompt again once the pictures are
  * read, because only then is it known which ones will really be sent.
  */
-function promptFor({ persona, conversation, live, limits, userText, pictureKey, withName }) {
+function promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions }) {
   const messages = context.buildMessages({ live, recentMessages: limits.recentMessages, userText, userImageKey: pictureKey });
   const withImage = messages.some((m) => m.imageKey);
-  return { messages, system: context.buildSystem({ persona, summary: conversation.contextSummary, withImage, withName }) };
+  return { messages, system: context.buildSystem({ persona, summary: conversation.contextSummary, withImage, withName, withActions }) };
 }
 
 /**
@@ -420,6 +422,16 @@ async function withPictures(messages, limits) {
 }
 
 // ── Sending ────────────────────────────────────────────────────────────────
+
+/** An offer that cannot be resolved (or a lookup that fails) is no offer; the reply is unaffected. */
+async function resolveAction(parsed, user) {
+  try {
+    return await chatActions.resolve(parsed, user);
+  } catch (error) {
+    logger.warn({ err: error.message }, 'chat action lookup failed');
+    return null;
+  }
+}
 
 async function reply(req, res, { regenerate }) {
   const user = req.auth.user;
@@ -469,7 +481,8 @@ async function reply(req, res, { regenerate }) {
 
     // Cheap pre-check, before opening a stream: can this person afford even the prompt?
     const withName = Boolean(firstName);
-    const quickPrompt = context.estimatePrompt(promptFor({ persona, conversation, live, limits, userText, pictureKey, withName }));
+    const withActions = limits.appActions > 0;
+    const quickPrompt = context.estimatePrompt(promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions }));
     const quick = wallet.room(opened, conversation);
     if (quick.available < quickPrompt + MIN_REPLY_TOKENS) {
       throw creditsError(opened, user, quick.blockedBy(quickPrompt + MIN_REPLY_TOKENS) || 'WALLET', await wallet.status(user));
@@ -493,13 +506,13 @@ async function reply(req, res, { regenerate }) {
       // 1. The prompt, and what is left to spend on the answer. A history that has outgrown its window is not
       //    compacted here: the prompt takes the newest messages and the summary as it stands, and the summary is
       //    brought up to date after the reply (below), so nobody waits for a model call that is not their answer.
-      const draft = promptFor({ persona, conversation, live, limits, userText, pictureKey, withName });
+      const draft = promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions });
       // Read before the question is saved: saving moves a fresh upload to its permanent key.
       const messages = await withPictures(draft.messages, limits);
       // Built from what is really sent: pictures switched off, or a file gone from storage, must not leave the
       // persona describing a picture the model was never given.
       const system = context.buildSystem({
-        persona, summary: conversation.contextSummary, withImage: messages.some((m) => m.image), withName,
+        persona, summary: conversation.contextSummary, withImage: messages.some((m) => m.image), withName, withActions,
       });
       const estimatedInput = context.estimatePrompt({ system, messages });
       const room = wallet.room(opened, conversation);
@@ -572,8 +585,16 @@ async function reply(req, res, { regenerate }) {
       // What is saved is what the model wrote, `{name}` and all; what is sent is the reader's first name in its place
       // (and again whenever the message is read back), so the name is never part of the history the model is shown.
       const filler = chatName.createFiller(firstName);
+      // Sakha may end a reply with a marker offering to open something in the app. It is taken out of the text here,
+      // before the text is saved or shown, and becomes an `action` event once the reply is whole.
+      const markers = actionMarker.createFilter();
+      let offered = null;
       const sendDelta = (text) => {
         if (text) stream.send('delta', { text });
+      };
+      const accept = ({ text, actions }) => {
+        offered ??= actions[0] || null;
+        return text;
       };
       let content = '';
       let status = 'COMPLETE';
@@ -584,8 +605,9 @@ async function reply(req, res, { regenerate }) {
       try {
         for await (const piece of run.text) {
           firstTokenAt ??= Date.now();
-          content += piece;
-          sendDelta(filler.push(piece));
+          const shown = accept(markers.push(piece));
+          content += shown;
+          sendDelta(filler.push(shown));
           if (Date.now() - lastFlush > 2500) {
             lastFlush = Date.now();
             prisma.chatMessage.update({ where: { id: assistant.id }, data: { content } }).catch(() => null);
@@ -599,7 +621,11 @@ async function reply(req, res, { regenerate }) {
         }
       }
       if (abort.signal.aborted && status === 'COMPLETE') status = 'STOPPED';
-      // Whatever the filler was holding back in case it was the start of `{name}` was only ever text.
+      // Whatever the filters were holding back in case it was the start of `{name}` or of a marker was only ever text.
+      const rest = accept(markers.flush());
+      content += rest;
+      if (offered) content = content.trimEnd();
+      sendDelta(filler.push(rest));
       sendDelta(filler.flush());
       const streamedAt = Date.now();
 
@@ -631,7 +657,7 @@ async function reply(req, res, { regenerate }) {
         spent > 0
           ? wallet.debit({
             userId: user.id, tokens: spent, source: 'CHAT',
-            referenceId: dropAnswer ? conversation.id : answerId, timezone: user.timezone,
+            referenceId: dropAnswer ? conversation.id : answerId, timezone: user.timezone, bonus: opened.bonus,
           }).then(() => wallet.open(user))
           : opened,
       ]);
@@ -644,6 +670,9 @@ async function reply(req, res, { regenerate }) {
         const reason = failure instanceof AppError ? failure : new AppError(502, 'AI_FAILED', failure.message);
         stream.send('error', { ...forReader(reason), partial: Boolean(content), messageId: assistant?.id || null });
       } else {
+        // Only an answer the reader received whole, and only where the place really exists, comes with an offer.
+        const action = offered && status === 'COMPLETE' && withActions ? await resolveAction(offered, user) : null;
+        if (action) stream.send('action', action);
         stream.send('done', {
           message: assistant ? await presentMessage(assistant, 0, firstName) : null,
           conversation: presentConversation(conversation, await limitFor(conversation, openedAfter, limits)),

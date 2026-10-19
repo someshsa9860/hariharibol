@@ -290,6 +290,19 @@ First value: stored → the account's own choice (app and reading only) → the 
 
 **A book call names the reading chain itself.** The chapter (`GET /books/:slug/chapters/:number`) and a short work (`/books/:slug/verses`) are sent `?languages=mr,en` — the reading chain, best first, at most three two- or three-letter codes (`_languagesQuery` in `services/book_service.dart` drops anything else, since the server answers 400 to it) — and the server shapes the text by that, not by the language saved on the account. Why: the phone changes its own reading language at once and tells the account afterwards (`LanguageSettingsNotifier._set`, unawaited), so a chapter asked for in between came back in the language the reader had just left, and nothing asked again once the account caught up — the book read **one change behind**. A unit already on the phone from the offline export was never affected (it is picked on the phone); this is the path for a book not yet downloaded — and, on a laptop, for the Gita, whose export has not been built there. **Picking a rendering under "Compare translations" is dropped when the reading language changes** (`ChapterReadView`), so an acharya pinned in the old language (the Marathi ovi) does not outlive it. `test/book_service_languages_test.dart`, `test/book_repository_test.dart`.
 
+## Ask Sakha from a verse, and Sakha opening things
+
+- **A verse's action row has an Ask Sakha button** (`VerseBlock.onAskSakha`, `ChapterReadView._askSakha`). It pushes the chat with
+  `extra` = the message `chatExplainVerse(reference, verse)` — the Sanskrit and the rendering the reader is looking at, cut at
+  1,500 characters — and `ChatView(initialPrompt:)` sends it once the chat has loaded (into the box instead when the reader
+  cannot send). It is an ordinary message, so it shows in the chat as the reader's own.
+- **Sakha can offer to open a place** (`ChatActionOffer` from the `action` event → `ChatState.offer` → `ChatActionCard`, "Open
+  Reels?" with Open / Not now). Nothing opens until Open is tapped; a tab is switched to, anything else is pushed over the chat
+  (`chatActionRoute`). The offer is cleared by the next message, a regenerate, Open or Not now, and is not saved. The app words
+  the question itself; only a mantra's or a verse's name comes from the server. `test/chat_action_test.dart`.
+- **Not run on a phone, and the Dart here was not compiled** (no Flutter in the session that wrote it): run `flutter analyze` and
+  the tests first.
+
 ## A verse on the reading screen
 
 `widgets/library/verse_block.dart` draws every verse (the chapter reader and short works alike), top to bottom: Devanagari → transliteration → **Word meanings** → translation → purport.

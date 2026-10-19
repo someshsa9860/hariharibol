@@ -560,5 +560,10 @@
   "chatMicUnavailable": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾತನಾಡಿ ಬರೆಯುವ ಸೌಲಭ್ಯ ಲಭ್ಯವಿಲ್ಲ.",
   "chatMicNoSpeech": "ಏನೂ ಕೇಳಿಸಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "chatMicFailed": "ಆಲಿಸುವುದು ನಿಂತುಹೋಯಿತು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-  "chatJumpToLatest": "ಇತ್ತೀಚಿನದು"
+  "chatJumpToLatest": "ಇತ್ತೀಚಿನದು",
+  "verseAskSakha": "ಈ ಶ್ಲೋಕದ ಬಗ್ಗೆ Sakha ಅವರನ್ನು ಕೇಳಿ",
+  "chatExplainVerse": "ದಯವಿಟ್ಟು ಈ ಶ್ಲೋಕವನ್ನು ಸರಳ ಮಾತುಗಳಲ್ಲಿ ವಿವರಿಸಿ — {reference}:\n\n{verse}",
+  "chatActionQuestion": "{place} ತೆರೆಯಬೇಕೇ?",
+  "chatActionOpen": "ತೆರೆಯಿರಿ",
+  "chatActionNotNow": "ಈಗ ಬೇಡ"
 }

@@ -1425,5 +1425,38 @@
   "chatJumpToLatest": "Latest",
   "@chatJumpToLatest": {
     "description": "Label of the button that scrolls the chat back down to the newest message."
+  },
+  "verseAskSakha": "Ask Sakha about this verse",
+  "@verseAskSakha": {
+    "description": "Tooltip of the button on a verse that asks Sakha to explain it."
+  },
+  "chatExplainVerse": "Please explain this verse to me in simple words — {reference}:\n\n{verse}",
+  "@chatExplainVerse": {
+    "description": "The message sent to Sakha from a verse. {reference} is like \"Bhagavad Gita 2.47\"; {verse} is the verse text.",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      },
+      "verse": {
+        "type": "String"
+      }
+    }
+  },
+  "chatActionQuestion": "Open {place}?",
+  "@chatActionQuestion": {
+    "description": "Asks the reader to confirm before the app opens a place Sakha suggested. {place} is its name, like \"Reels\".",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "chatActionOpen": "Open",
+  "@chatActionOpen": {
+    "description": "Button that confirms opening what Sakha suggested."
+  },
+  "chatActionNotNow": "Not now",
+  "@chatActionNotNow": {
+    "description": "Button that declines what Sakha suggested."
   }
 }

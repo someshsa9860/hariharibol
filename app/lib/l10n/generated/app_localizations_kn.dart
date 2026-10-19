@@ -2007,4 +2007,23 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'ಇತ್ತೀಚಿನದು';
+
+  @override
+  String get verseAskSakha => 'ಈ ಶ್ಲೋಕದ ಬಗ್ಗೆ Sakha ಅವರನ್ನು ಕೇಳಿ';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'ದಯವಿಟ್ಟು ಈ ಶ್ಲೋಕವನ್ನು ಸರಳ ಮಾತುಗಳಲ್ಲಿ ವಿವರಿಸಿ — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place ತೆರೆಯಬೇಕೇ?';
+  }
+
+  @override
+  String get chatActionOpen => 'ತೆರೆಯಿರಿ';
+
+  @override
+  String get chatActionNotNow => 'ಈಗ ಬೇಡ';
 }

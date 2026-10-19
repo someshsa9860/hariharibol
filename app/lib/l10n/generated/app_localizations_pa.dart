@@ -2005,4 +2005,23 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'ਤਾਜ਼ਾ';
+
+  @override
+  String get verseAskSakha => 'ਇਸ ਸ਼ਲੋਕ ਬਾਰੇ Sakha ਨੂੰ ਪੁੱਛੋ';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਸ਼ਲੋਕ ਨੂੰ ਸੌਖੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਸਮਝਾਓ — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place ਖੋਲ੍ਹਣਾ ਹੈ?';
+  }
+
+  @override
+  String get chatActionOpen => 'ਖੋਲ੍ਹੋ';
+
+  @override
+  String get chatActionNotNow => 'ਹੁਣੇ ਨਹੀਂ';
 }

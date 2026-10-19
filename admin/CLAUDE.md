@@ -379,6 +379,10 @@ shows them and changes three settings, over `GET` / `PUT /api/admin/ai/free-tier
   dark theme, which is unreadable on the amber tint; the badge is shared by many pages ("Missing", "Paused", "Unpublished"…),
   all of which gained readable dark-mode text.
 
+The free-tier card also has **Daily bonus for every reader**: the pool of tokens shared out each day (up to the large free pool)
+and the most one reader gets; it shows today's share and the readers counted. Both save with *Save bonus* over `PUT
+/api/admin/ai/free-tier`. The Ask Sakha limits gained **Open things in the app** (`appActions`, 1/0).
+
 ## Ask Sakha
 
 `routes/chat.tsx` (`/chat`, System section beside AI usage, permission `chat.manage`; the sidebar and the page say

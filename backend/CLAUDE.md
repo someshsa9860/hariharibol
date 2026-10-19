@@ -381,6 +381,41 @@ Rules worth knowing before changing it:
   **The summary memory still records "the tradition or sampradaya they lean towards"** (`summarizerRequest`) — that is
   private to the prompt and lets Sakha speak in a person's own terms; the persona forbids saying it back.
 
+### Opening things in the app (chat actions)
+
+Sakha can offer to open a page, a mantra or a verse when the reader plainly asks ("open the Gita 2.47", "take me to reels").
+The model never calls a tool: it ends its reply with one marker (`[[open:page:reels]]`, `[[open:mantra:maha mantra]]`,
+`[[open:verse:bhagavad-gita:2.47]]`) that `ACTION_GUIDANCE` (config/chat.js, added to the prompt only while `appActions` is
+on) teaches it.
+
+- `utils/chat-actions.js` (pure, `test/chat-actions.test.js`): `parse` knows the eight pages in `PAGES`, a mantra name and a
+  book + reference; `createFilter` takes markers out of the stream chunk-safely, like the `{name}` filler. A marker is removed
+  whether or not it is understood; only the first of a reply counts.
+- `services/chat-actions.js` checks it against the database — a published mantra (slug or name, in the reading chain), a verse
+  that exists in a published book (a compound verse is found by either number) — and an offer that resolves to nothing is **not
+  sent**. The result is the `action` SSE event, sent just before `done` and only for a reply that completed. The stored reply
+  has no marker; **the offer is not stored**, so it is gone when the chat is reopened.
+- **It is an offer only.** The app asks "Open X?" and opens nothing until the reader taps Open — a model can guess wrong.
+- Admin limit `appActions` (1/0, Ask Sakha → Persona & limits) switches it off; the guidance (~220 tokens a reply) then leaves the
+  prompt. Asking Sakha about a verse needs nothing here: the app sends the verse as an ordinary message.
+
+### The free-tier bonus (a larger daily credit while the free tier is on)
+
+While the OpenAI free-tier switch is on and the day's free pool has room, every reader on a plan that uses the ordinary model
+gets extra tokens a day. `ai.free_tier.bonus_pool` (default 1,500,000, at most the large free pool) is divided by the readers who
+used the chat in the last 7 days (counted from `AiDailyUsage`, cached 10 minutes), up to `ai.free_tier.bonus_max_per_user`
+(default 20,000): `utils/ai-bonus.js perUser`, `services/ai/free-tier.js bonus()`.
+
+- **Spent first, outside the wallet and the daily cap.** `AiDailyUsage.bonusTokens` (migration `20261025000000_ai_daily_bonus`)
+  counts it; `tokens` stays what the wallet paid, which is what the plan's cap counts. `ai-wallet.debit({ bonus })` splits a
+  debit (`ai-bonus.split`) and writes a ledger row only for the wallet's part. `open()` returns `bonus` and `bonusUsed`;
+  `room`, `creditMeter` and `whyBlocked` take them, so the meter and the 402 account for it. The bonus is per local day, like
+  the cap, and unspent bonus is simply gone.
+- **None for a plan on the stronger model** (it never uses the free models, so a bonus would cost money). A call that fails over
+  from the free model to a paid one is still charged against the bonus — bounded by the per-reader ceiling.
+- Admin: AI usage → *Use OpenAI free tier* → *Daily bonus* (`bonusPoolTokens`, `bonusMaxPerUser` on `PUT /ai/free-tier`;
+  `GET` returns `bonus.{tokens,users,active}`). Sections 18–19 of `npm run test:chat` walk both features.
+
 ## Subscriptions, donations and entitlement
 
 **The app is free — everything in it.** There is currently no paywalled

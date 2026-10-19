@@ -330,6 +330,20 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     );
   }
 
+  /// Opens Ask Sakha with this verse in the first message — the verse as the reader sees it (the rendering picked under
+  /// "Compare translations" if there is one) and where it comes from, so Sakha explains that verse and not another.
+  void _askSakha(Verse verse, String? bookTitle) {
+    final text = AppLocalizations.of(context);
+    final number = verse.verseNumberEnd != null ? '${verse.verseNumber}-${verse.verseNumberEnd}' : '${verse.verseNumber ?? ''}';
+    final place = [if (widget.canto != null) '${widget.canto}', '${widget.number}', number].join('.');
+    final reference = [if (bookTitle != null && bookTitle.isNotEmpty) bookTitle, place].join(' ');
+    final meaning = (_translationOverrides[verse.id] ?? verse.translation)?.meaning?.trim();
+    final body = [verse.sanskrit?.trim(), meaning].where((part) => part != null && part.isNotEmpty).join('\n\n');
+    // The chat takes a few thousand characters; a very long verse is cut rather than refused.
+    final clipped = body.length > 1500 ? '${body.substring(0, 1500)}…' : body;
+    AppNavigator.instance.push(AppRoutes.chat, extra: text.chatExplainVerse(reference, clipped));
+  }
+
   void _openRelated(Verse verse) => showRelatedVersesSheet(context, verseId: verse.verseId);
 
   void _openStoryActions(ChapterReading data, int at) {
@@ -484,6 +498,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                     onToggleHighlight: () => _toggleHighlight(verse),
                     onOpenNotes: () => _openNotes(verse),
                     onOpenRelated: () => _openRelated(verse),
+                    onAskSakha: () => _askSakha(verse, bookTitle),
                     onCompareTranslations:
                         verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
                     onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,

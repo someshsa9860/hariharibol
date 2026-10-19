@@ -336,6 +336,9 @@ sealed class ChatStreamEvent {
       case 'delta':
         final text = asString(json['text']);
         return text.isEmpty ? null : ChatDelta(text);
+      case 'action':
+        final action = ChatAction.fromJson(json);
+        return action == null ? null : ChatActionOffer(action);
       case 'done':
         final message = asJson(json['message']);
         return ChatDone(
@@ -376,6 +379,14 @@ class ChatCompacting extends ChatStreamEvent {
   const ChatCompacting();
 }
 
+/// Something Sakha offered to open, sent just before `done` when the reader asked to be taken somewhere. It is only
+/// an offer: nothing opens until the reader says so.
+class ChatActionOffer extends ChatStreamEvent {
+  const ChatActionOffer(this.action);
+
+  final ChatAction action;
+}
+
 class ChatDelta extends ChatStreamEvent {
   const ChatDelta(this.text);
 
@@ -408,4 +419,84 @@ class ChatStreamError extends ChatStreamEvent {
   final bool partial;
   final String? messageId;
   final Json? details;
+}
+
+/// What kind of place Sakha offered.
+enum ChatActionType { page, mantra, verse }
+
+/// A page of the app Sakha may offer; the wire names are the ones in the server's `PAGES`.
+enum ChatActionPage {
+  home,
+  jap,
+  reels,
+  read,
+  routine,
+  settings,
+  plans,
+  search;
+
+  static ChatActionPage? parse(String value) {
+    for (final page in values) {
+      if (page.name == value) return page;
+    }
+    return null;
+  }
+}
+
+/// A place in the app Sakha offered to open. The server has already checked that a mantra or verse exists; the app
+/// words the question itself and asks before going anywhere.
+class ChatAction {
+  const ChatAction({
+    required this.type,
+    this.page,
+    this.slug,
+    this.bookSlug,
+    this.canto,
+    this.chapter,
+    this.verse,
+    this.title,
+  });
+
+  final ChatActionType type;
+  final ChatActionPage? page;
+
+  /// A mantra's slug.
+  final String? slug;
+
+  /// A verse's place: the book, the canto (the Bhagavatam only), the chapter and the verse.
+  final String? bookSlug;
+  final int? canto;
+  final int? chapter;
+  final int? verse;
+
+  /// The name of a mantra, or the book and number of a verse, in the reader's reading language.
+  final String? title;
+
+  /// Null for an offer this app does not know, or one missing what it needs to open — it is then not shown.
+  static ChatAction? fromJson(Json json) {
+    switch (asString(json['type'])) {
+      case 'page':
+        final page = ChatActionPage.parse(asString(json['page']));
+        return page == null ? null : ChatAction(type: ChatActionType.page, page: page);
+      case 'mantra':
+        final slug = asString(json['slug']);
+        if (slug.isEmpty) return null;
+        return ChatAction(type: ChatActionType.mantra, slug: slug, title: asStringOrNull(json['title']));
+      case 'verse':
+        final book = asString(json['bookSlug']);
+        final chapter = asInt(json['chapter']);
+        final verse = asInt(json['verse']);
+        if (book.isEmpty || chapter <= 0 || verse <= 0) return null;
+        final canto = asInt(json['canto']);
+        return ChatAction(
+          type: ChatActionType.verse,
+          bookSlug: book,
+          canto: canto > 0 ? canto : null,
+          chapter: chapter,
+          verse: verse,
+          title: asStringOrNull(json['title']),
+        );
+    }
+    return null;
+  }
 }

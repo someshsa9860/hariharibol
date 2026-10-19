@@ -93,6 +93,11 @@ class ChatController extends Notifier<ChatState> {
     if (state.restoredDraft != null) state = state.copyWith(clearDraft: true);
   }
 
+  /// The reader turned down, or has opened, what Sakha offered.
+  void dismissOffer() {
+    if (state.offer != null) state = state.copyWith(clearOffer: true);
+  }
+
   /// The reader has read the notice above the box and sent it away.
   void dismissProblem() {
     if (state.problem != null) state = state.copyWith(clearProblem: true);
@@ -130,6 +135,7 @@ class ChatController extends Notifier<ChatState> {
       clearProblem: true,
       clearDraft: true,
       clearImage: true,
+      clearOffer: true,
     );
     _turn = turn;
 
@@ -171,6 +177,7 @@ class ChatController extends Notifier<ChatState> {
       messages: [...kept, ChatMessage.local(key: turn.answerKey, role: ChatRole.assistant)],
       phase: ChatPhase.waiting,
       clearProblem: true,
+      clearOffer: true,
     );
     _turn = turn;
     await _run(turn, () => _service.regenerate(conversation.id, cancel: turn.cancel));
@@ -227,6 +234,8 @@ class ChatController extends Notifier<ChatState> {
         );
       case ChatCompacting():
         state = state.copyWith(compacting: true);
+      case ChatActionOffer():
+        state = state.copyWith(offer: event.action);
       case ChatDelta():
         _pending.write(event.text);
         if (state.phase == ChatPhase.waiting) {

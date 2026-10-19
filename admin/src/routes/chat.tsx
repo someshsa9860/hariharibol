@@ -33,6 +33,7 @@ type Limits = {
   maxInputChars: number;
   imageInput: number;
   imageMaxEdge: number;
+  appActions: number;
 };
 type ChatSettings = {
   systemPrompt: string;
@@ -129,6 +130,7 @@ const LIMIT_FIELDS: { key: keyof Limits; label: string; help: string }[] = [
   { key: 'maxInputChars', label: 'Max message length (characters)', help: 'The longest message a user may send.' },
   { key: 'imageInput', label: 'Pictures allowed (1 yes, 0 no)', help: 'Whether a message may carry a picture. Pictures are sent to the model provider.' },
   { key: 'imageMaxEdge', label: 'Picture size (pixels)', help: 'A picture is kept and sent no larger than this on its longest side (256–4096).' },
+  { key: 'appActions', label: 'Open things in the app (1 yes, 0 no)', help: 'Whether Sakha may offer to open a page, a mantra or a verse when asked. The reader always confirms first; 0 removes the instructions from the prompt.' },
 ];
 
 function PersonaTab() {

@@ -210,7 +210,7 @@ GoRouter createRouter() {
         name: RouteNames.chat,
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
-          child: const ChatView(),
+          child: ChatView(initialPrompt: state.extra is String ? state.extra as String : null),
           transitionDuration: AppDurations.slow,
           reverseTransitionDuration: AppDurations.normal,
           transitionsBuilder: (context, animation, secondary, child) {

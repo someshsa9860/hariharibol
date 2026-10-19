@@ -1,6 +1,9 @@
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Label, Select } from '@/components/ui/input';
+import { Input, Label, Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -22,6 +25,16 @@ type FreeTier = {
   usableModels: string[];
   safetyPercent: number;
   day: string;
+  // The daily bonus every reader gets while the switch is on: `tokens` is each reader's share today (0 when it is not
+  // being given), worked out from the pool and the readers who used the chat this week.
+  bonus: {
+    poolTokens: number;
+    maxPerUser: number;
+    tokens: number;
+    users: number;
+    active: boolean;
+    limits: { poolTokens: { min: number; max: number }; maxPerUser: { min: number; max: number } };
+  };
   pools: Pool[];
   usage: TokenRow[];
   now: {
@@ -29,7 +42,7 @@ type FreeTier = {
     translation: { model: string; paidModel: string; onFreeTier: boolean; reason: 'off' | 'spent' | null };
   };
 };
-type Change = { enabled?: boolean; textModel?: string; translationModel?: string };
+type Change = { enabled?: boolean; textModel?: string; translationModel?: string; bonusPoolTokens?: number; bonusMaxPerUser?: number };
 
 // US grouping, to read against OpenAI’s own page ("2,500,000").
 const fmt = (n: number) => n.toLocaleString('en-US');
@@ -40,6 +53,61 @@ function resetTime() {
   const at = new Date();
   at.setUTCHours(24, 0, 0, 0);
   return at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+// The two numbers behind the bonus. Held as text while typing and sent on Save, so a half-typed figure is never saved;
+// remounted (by key) when the saved values change so it always shows what the server holds.
+function BonusFields({ bonus, canEdit, saving, onSave }: { bonus: FreeTier['bonus']; canEdit: boolean; saving: boolean; onSave: (change: Change) => void }) {
+  const [pool, setPool] = useState(String(bonus.poolTokens));
+  const [max, setMax] = useState(String(bonus.maxPerUser));
+  const poolValue = Number(pool);
+  const maxValue = Number(max);
+  const valid = (value: number, { min, max: top }: { min: number; max: number }) => pool !== '' && max !== '' && Number.isInteger(value) && value >= min && value <= top;
+  const ok = valid(poolValue, bonus.limits.poolTokens) && valid(maxValue, bonus.limits.maxPerUser);
+  const changed = poolValue !== bonus.poolTokens || maxValue !== bonus.maxPerUser;
+
+  return (
+    <div className="space-y-3 rounded-md border border-border p-3">
+      <div>
+        <p className="text-sm font-medium">Daily bonus for every reader</p>
+        <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
+          While the free tier is on and today’s free tokens have room, each reader gets extra chat tokens on top of their plan. They are spent
+          first, do not use up the plan’s daily cap or wallet, and are gone at the reader’s midnight. The pool is shared among the readers who
+          used the chat in the last 7 days, so the more there are, the smaller each share — up to the ceiling below. Plans on the stronger model
+          get none.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="bonus-pool">Tokens shared out each day</Label>
+          <Input id="bonus-pool" type="number" inputMode="numeric" min={bonus.limits.poolTokens.min} max={bonus.limits.poolTokens.max} step={10000}
+            className="mt-1 max-w-xs" value={pool} disabled={!canEdit || saving} onChange={(e) => setPool(e.target.value)} />
+          <p className="mt-1 text-xs text-muted-foreground">Up to {fmt(bonus.limits.poolTokens.max)}, the size of the large free pool. 0 turns the bonus off.</p>
+        </div>
+        <div>
+          <Label htmlFor="bonus-max">Most one reader gets a day</Label>
+          <Input id="bonus-max" type="number" inputMode="numeric" min={bonus.limits.maxPerUser.min} max={bonus.limits.maxPerUser.max} step={1000}
+            className="mt-1 max-w-xs" value={max} disabled={!canEdit || saving} onChange={(e) => setMax(e.target.value)} />
+          <p className="mt-1 text-xs text-muted-foreground">Keeps a quiet week from giving one person the whole pool.</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button size="sm" disabled={!canEdit || saving || !ok || !changed} onClick={() => onSave({ bonusPoolTokens: poolValue, bonusMaxPerUser: maxValue })}>
+          Save bonus
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          {bonus.active ? (
+            <>
+              Today each reader gets <span className="font-medium text-foreground tabular-nums">{fmt(bonus.tokens)}</span> tokens (
+              <span className="tabular-nums">{fmt(bonus.users)}</span> readers this week).
+            </>
+          ) : (
+            'Not being given right now — the free tier is off or today’s free tokens are spent.'
+          )}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function AiFreeTierCard() {
@@ -98,6 +166,8 @@ export function AiFreeTierCard() {
           </p>
         )}
         {!canEdit && <p className="text-xs text-muted-foreground">Changing this needs the setting.write permission.</p>}
+
+        <BonusFields key={`${s.bonus.poolTokens}|${s.bonus.maxPerUser}`} bonus={s.bonus} canEdit={canEdit} saving={save.isPending} onSave={change} />
 
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-3">

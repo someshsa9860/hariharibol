@@ -78,15 +78,19 @@ const clampPercent = (n) => Math.max(0, Math.min(100, Math.round(n)));
  *   limitedBy   — which of them is the lower: 'wallet' | 'daily' | null (both full)
  *   exhausted   — nothing can be spent right now.
  */
-export function creditMeter({ balance, allocation, dailyUsed = 0, dailyLimit = 0 }) {
-  const walletPercent = allocation > 0 ? clampPercent((balance / allocation) * 100) : 0;
-  const dailyPercent = dailyLimit > 0 ? clampPercent(((dailyLimit - dailyUsed) / dailyLimit) * 100) : 100;
+export function creditMeter({ balance, allocation, dailyUsed = 0, dailyLimit = 0, bonusTotal = 0, bonusUsed = 0 }) {
+  // Today's free-tier bonus is more of both: more to spend today, and more of the day's cap.
+  const bonusLeft = Math.max(0, bonusTotal - bonusUsed);
+  const walletPercent = allocation + bonusTotal > 0 ? clampPercent(((Math.max(0, balance) + bonusLeft) / (allocation + bonusTotal)) * 100) : 0;
+  const dailyPercent = dailyLimit > 0
+    ? clampPercent(((dailyLimit + bonusTotal - dailyUsed - Math.min(bonusUsed, bonusTotal)) / (dailyLimit + bonusTotal)) * 100)
+    : 100;
 
   const percent = Math.min(walletPercent, dailyPercent);
   let limitedBy = null;
   if (percent < 100) limitedBy = dailyPercent < walletPercent ? 'daily' : 'wallet';
 
-  const exhausted = balance <= 0 || (dailyLimit > 0 && dailyUsed >= dailyLimit);
+  const exhausted = balance + bonusLeft <= 0 || (dailyLimit > 0 && dailyUsed >= dailyLimit && bonusLeft <= 0);
   return { percent, walletPercent, dailyPercent, limitedBy, exhausted };
 }
 
@@ -95,9 +99,11 @@ export function creditMeter({ balance, allocation, dailyUsed = 0, dailyLimit = 0
  * holds, what is left of today's cap and what is left for this conversation.
  * A limit of 0 means "no limit".
  */
-export function spendable({ balance, dailyUsed = 0, dailyLimit = 0, conversationUsed = 0, conversationLimit = 0 }) {
-  const candidates = [Math.max(0, balance)];
-  if (dailyLimit > 0) candidates.push(Math.max(0, dailyLimit - dailyUsed));
+export function spendable({ balance, dailyUsed = 0, dailyLimit = 0, conversationUsed = 0, conversationLimit = 0, bonusLeft = 0 }) {
+  // The wallet's side is held back by the daily cap; today's bonus is spent beside it, outside both.
+  const walletSide = [Math.max(0, balance)];
+  if (dailyLimit > 0) walletSide.push(Math.max(0, dailyLimit - dailyUsed));
+  const candidates = [Math.min(...walletSide) + Math.max(0, bonusLeft)];
   if (conversationLimit > 0) candidates.push(Math.max(0, conversationLimit - conversationUsed));
   return Math.min(...candidates);
 }
@@ -119,10 +125,12 @@ export function repliesIn(tokens, perReply) {
  * is the order the reader can do something about: a full conversation is solved
  * by a new chat, a daily cap by tomorrow, an empty wallet by upgrading.
  */
-export function whyBlocked({ balance, dailyUsed = 0, dailyLimit = 0, conversationUsed = 0, conversationLimit = 0, needed = 1 }) {
+export function whyBlocked({
+  balance, dailyUsed = 0, dailyLimit = 0, conversationUsed = 0, conversationLimit = 0, needed = 1, bonusLeft = 0,
+}) {
   if (conversationLimit > 0 && conversationLimit - conversationUsed < needed) return 'CONVERSATION';
-  if (dailyLimit > 0 && dailyLimit - dailyUsed < needed) return 'DAILY';
-  if (balance < needed) return 'WALLET';
+  if (dailyLimit > 0 && dailyLimit - dailyUsed + bonusLeft < needed) return 'DAILY';
+  if (balance + bonusLeft < needed) return 'WALLET';
   return null;
 }
 
