@@ -203,6 +203,7 @@ class ChatState {
     this.problem,
     this.restoredDraft,
     this.draftImage,
+    this.offer,
   });
 
   /// Null until the first message is sent: the conversation is made on the
@@ -227,6 +228,9 @@ class ChatState {
   /// The picture chosen for the next question, if any.
   final ChatDraftImage? draftImage;
 
+  /// What Sakha offered to open after the last reply, until the reader opens it, turns it down or says something else.
+  final ChatAction? offer;
+
   bool get busy => phase != ChatPhase.idle || working;
   bool get isFull => conversation?.limitReached != null;
   bool get canSend => loaded && !busy && !isFull;
@@ -250,6 +254,8 @@ class ChatState {
     bool clearDraft = false,
     ChatDraftImage? draftImage,
     bool clearImage = false,
+    ChatAction? offer,
+    bool clearOffer = false,
   }) =>
       ChatState(
         conversation: conversation ?? this.conversation,
@@ -262,5 +268,6 @@ class ChatState {
         problem: clearProblem ? null : (problem ?? this.problem),
         restoredDraft: clearDraft ? null : (restoredDraft ?? this.restoredDraft),
         draftImage: clearImage ? null : (draftImage ?? this.draftImage),
+        offer: clearOffer ? null : (offer ?? this.offer),
       );
 }

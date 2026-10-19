@@ -2638,7 +2638,10 @@ model AiDailyUsage {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   date   String @db.VarChar(10) // user-local "YYYY-MM-DD"
-  tokens Int    @default(0)
+  tokens Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
+  // Paid from that day's free-tier bonus instead (services/ai/free-tier.js, utils/ai-bonus.js). Not part of `tokens`,
+  // so the bonus never uses up the cap and never touches the wallet.
+  bonusTokens Int @default(0)
 
   @@id([userId, date])
   @@index([date])

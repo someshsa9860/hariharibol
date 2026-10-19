@@ -552,5 +552,10 @@
   "chatMicUnavailable": "ਇਸ ਫ਼ੋਨ ਉੱਤੇ ਬੋਲ ਕੇ ਲਿਖਣਾ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
   "chatMicNoSpeech": "ਕੁਝ ਸੁਣਾਈ ਨਹੀਂ ਦਿੱਤਾ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
   "chatMicFailed": "ਸੁਣਨਾ ਰੁਕ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
-  "chatJumpToLatest": "ਤਾਜ਼ਾ"
+  "chatJumpToLatest": "ਤਾਜ਼ਾ",
+  "verseAskSakha": "ਇਸ ਸ਼ਲੋਕ ਬਾਰੇ Sakha ਨੂੰ ਪੁੱਛੋ",
+  "chatExplainVerse": "ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਸ਼ਲੋਕ ਨੂੰ ਸੌਖੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਸਮਝਾਓ — {reference}:\n\n{verse}",
+  "chatActionQuestion": "{place} ਖੋਲ੍ਹਣਾ ਹੈ?",
+  "chatActionOpen": "ਖੋਲ੍ਹੋ",
+  "chatActionNotNow": "ਹੁਣੇ ਨਹੀਂ"
 }

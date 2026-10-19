@@ -1981,4 +1981,23 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'শেহতীয়া';
+
+  @override
+  String get verseAskSakha => 'এই শ্লোকৰ বিষয়ে Sakha ক সোধক';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'অনুগ্ৰহ কৰি এই শ্লোকটো সহজ ভাষাত বুজাই দিয়ক — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place খুলিব নেকি?';
+  }
+
+  @override
+  String get chatActionOpen => 'খুলক';
+
+  @override
+  String get chatActionNotNow => 'এতিয়া নহয়';
 }

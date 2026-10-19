@@ -46,6 +46,7 @@ router.put(
           maxInputChars: z.number().int().min(100).max(20000),
           imageInput: z.number().int().min(0).max(1).optional(),
           imageMaxEdge: z.number().int().min(256).max(4096).optional(),
+          appActions: z.number().int().min(0).max(1).optional(),
         })
         .optional(),
     }),

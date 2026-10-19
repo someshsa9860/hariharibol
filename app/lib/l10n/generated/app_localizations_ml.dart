@@ -1993,4 +1993,23 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'ഏറ്റവും പുതിയത്';
+
+  @override
+  String get verseAskSakha => 'ഈ ശ്ലോകത്തെക്കുറിച്ച് Sakha യോട് ചോദിക്കൂ';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'ദയവായി ഈ ശ്ലോകം ലളിതമായി വിശദീകരിക്കൂ — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place തുറക്കണോ?';
+  }
+
+  @override
+  String get chatActionOpen => 'തുറക്കൂ';
+
+  @override
+  String get chatActionNotNow => 'ഇപ്പോൾ വേണ്ട';
 }

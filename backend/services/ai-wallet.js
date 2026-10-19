@@ -19,6 +19,8 @@
 import { prisma } from '../config/database.js';
 import logger from '../config/logger.js';
 import * as entitlement from './entitlement.js';
+import * as freeTier from './ai/free-tier.js';
+import * as bonusRules from '../utils/ai-bonus.js';
 import {
   creditMeter, localDateKey, nextLocalMidnight, reconcileWallet, spendable, whyBlocked,
 } from '../utils/ai-credits.js';
@@ -55,23 +57,40 @@ async function userPlan(userId) {
   return plan;
 }
 
-function present(wallet, allowance, daily, timezone) {
+function present(wallet, allowance, daily, timezone, bonus) {
   const now = new Date();
   const meter = creditMeter({
     balance: wallet.balance,
     allocation: wallet.allocation,
     dailyUsed: daily,
     dailyLimit: allowance.dailyTokens,
+    bonusTotal: bonus?.total || 0,
+    bonusUsed: bonus?.used || 0,
   });
   const resetsAt = nextLocalMidnight(now, timezone);
   return { meter, resetsAt };
 }
 
-async function dailyUsed(userId, timezone) {
+async function dailyRow(userId, timezone) {
   const row = await prisma.aiDailyUsage.findUnique({
     where: { userId_date: { userId, date: localDateKey(new Date(), timezone) } },
   });
-  return row?.tokens || 0;
+  return { tokens: row?.tokens || 0, bonusTokens: row?.bonusTokens || 0 };
+}
+
+/**
+ * Today's free-tier bonus for this reader: 0 unless the switch is on and the free pool has room, and 0 for a plan on
+ * the stronger model — its calls never go to the free models, so a bonus would be paid for in cash. A failure to work
+ * it out is no bonus, never a refused reply.
+ */
+async function bonusFor(allowance) {
+  if (!allowance?.isEnabled || allowance.modelTier === 'ADVANCED') return 0;
+  try {
+    return await freeTier.dailyBonus();
+  } catch (error) {
+    logger.warn({ err: error.message }, 'free-tier bonus unavailable');
+    return 0;
+  }
 }
 
 /**
@@ -81,7 +100,7 @@ async function dailyUsed(userId, timezone) {
 export async function open(user) {
   const plan = await userPlan(user.id);
   const allowance = plan ? await allowanceFor(plan.id) : null;
-  if (!plan || !allowance) return { plan, allowance: null, wallet: null, daily: 0 };
+  if (!plan || !allowance) return { plan, allowance: null, wallet: null, daily: 0, bonus: 0, bonusUsed: 0 };
 
   let wallet = await prisma.aiWallet.findUnique({ where: { userId: user.id } });
   const decision = reconcileWallet({ wallet, allowance, planId: plan.id });
@@ -116,7 +135,8 @@ export async function open(user) {
     });
   }
 
-  return { plan, allowance, wallet, daily: await dailyUsed(user.id, user.timezone) };
+  const [row, bonus] = await Promise.all([dailyRow(user.id, user.timezone), bonusFor(allowance)]);
+  return { plan, allowance, wallet, daily: row.tokens, bonus, bonusUsed: row.bonusTokens };
 }
 
 /**
@@ -127,12 +147,12 @@ export async function status(user) {
 }
 
 /** The same, from a wallet the caller has just opened, so a reply does not read it twice. */
-export async function statusFrom({ plan, allowance, wallet, daily }, user) {
+export async function statusFrom({ plan, allowance, wallet, daily, bonus = 0, bonusUsed = 0 }, user) {
   if (!allowance || !allowance.isEnabled || !wallet) {
     return { enabled: false, levelName: allowance?.levelName || null, percent: 0, exhausted: true, limitedBy: null, resetsAt: null, renewsAt: null, canUpgrade: await canUpgrade(plan) };
   }
 
-  const { meter, resetsAt } = present(wallet, allowance, daily, user.timezone);
+  const { meter, resetsAt } = present(wallet, allowance, daily, user.timezone, { total: bonus, used: bonusUsed });
   return {
     enabled: true,
     levelName: allowance.levelName,
@@ -156,8 +176,9 @@ async function canUpgrade(plan) {
  * zero, which limit is in the way. `conversation` is `{ tokensUsed }`.
  */
 export function room(opened, conversation) {
-  const { allowance, wallet, daily } = opened;
+  const { allowance, wallet, daily, bonus = 0, bonusUsed = 0 } = opened;
   const args = {
+    bonusLeft: bonusRules.left(bonus, bonusUsed),
     balance: wallet.balance,
     dailyUsed: daily,
     dailyLimit: allowance.dailyTokens,
@@ -173,19 +194,31 @@ export function room(opened, conversation) {
  * short — see services/ai/index.js). Always recorded, even when it takes the
  * balance a little below zero: the call has already been made.
  */
-export async function debit({ userId, tokens, source, referenceId = null, note = null, timezone }) {
+export async function debit({ userId, tokens, source, referenceId = null, note = null, timezone, bonus = 0 }) {
   if (!Number.isInteger(tokens) || tokens <= 0) return null;
   const date = localDateKey(new Date(), timezone);
 
   return prisma.$transaction(async (tx) => {
-    const wallet = await tx.aiWallet.update({ where: { userId }, data: { balance: { decrement: tokens } } });
-    await tx.aiWalletTransaction.create({
-      data: { userId, type: 'DEBIT', tokens, source, referenceId, note, balanceAfter: wallet.balance },
-    });
+    // Today's free-tier bonus pays first; only the rest comes out of the wallet and counts against the daily cap.
+    const day = bonus > 0 ? await tx.aiDailyUsage.findUnique({ where: { userId_date: { userId, date } } }) : null;
+    const { fromBonus, fromWallet } = bonusRules.split({ tokens, bonus, bonusUsed: day?.bonusTokens || 0 });
+
+    const wallet = fromWallet > 0
+      ? await tx.aiWallet.update({ where: { userId }, data: { balance: { decrement: fromWallet } } })
+      : await tx.aiWallet.findUnique({ where: { userId } });
+    if (fromWallet > 0) {
+      await tx.aiWalletTransaction.create({
+        data: {
+          userId, type: 'DEBIT', tokens: fromWallet, source, referenceId,
+          note: fromBonus > 0 ? [note, `${fromBonus} more came from the daily free-tier bonus`].filter(Boolean).join(' · ') : note,
+          balanceAfter: wallet.balance,
+        },
+      });
+    }
     await tx.aiDailyUsage.upsert({
       where: { userId_date: { userId, date } },
-      update: { tokens: { increment: tokens } },
-      create: { userId, date, tokens },
+      update: { tokens: { increment: fromWallet }, bonusTokens: { increment: fromBonus } },
+      create: { userId, date, tokens: fromWallet, bonusTokens: fromBonus },
     });
     return wallet.balance;
   });
@@ -220,13 +253,16 @@ export async function adjust({ userId, tokens, note, createdById }) {
 
 /** Raw numbers, for the admin panel only. */
 export async function raw(user) {
-  const { plan, allowance, wallet, daily } = await open(user);
+  const { plan, allowance, wallet, daily, bonus, bonusUsed } = await open(user);
   if (!wallet) return null;
   const meter = allowance
-    ? creditMeter({ balance: wallet.balance, allocation: wallet.allocation, dailyUsed: daily, dailyLimit: allowance.dailyTokens })
+    ? creditMeter({
+      balance: wallet.balance, allocation: wallet.allocation, dailyUsed: daily, dailyLimit: allowance.dailyTokens,
+      bonusTotal: bonus, bonusUsed,
+    })
     : null;
   return {
-    plan, allowance, balance: wallet.balance, allocation: wallet.allocation, dailyUsed: daily,
+    plan, allowance, balance: wallet.balance, allocation: wallet.allocation, dailyUsed: daily, bonus, bonusUsed,
     periodStart: wallet.periodStart, periodEnd: wallet.periodEnd, percent: meter?.percent ?? null,
   };
 }

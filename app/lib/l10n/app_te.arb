@@ -552,5 +552,10 @@
   "chatMicUnavailable": "ఈ ఫోన్‌లో మాట్లాడి రాసే సౌకర్యం అందుబాటులో లేదు.",
   "chatMicNoSpeech": "ఏమీ వినిపించలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.",
   "chatMicFailed": "వినడం ఆగిపోయింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
-  "chatJumpToLatest": "తాజా"
+  "chatJumpToLatest": "తాజా",
+  "verseAskSakha": "ఈ శ్లోకం గురించి Sakha ని అడగండి",
+  "chatExplainVerse": "దయచేసి ఈ శ్లోకాన్ని సరళమైన మాటల్లో వివరించండి — {reference}:\n\n{verse}",
+  "chatActionQuestion": "{place} తెరవాలా?",
+  "chatActionOpen": "తెరవండి",
+  "chatActionNotNow": "ఇప్పుడు వద్దు"
 }
