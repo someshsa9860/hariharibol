@@ -1,15 +1,15 @@
 name: Backend CI
 
-# Pushes and pull requests to main/develop/production run the checks only.
-# Deploying happens when main is merged into production (see deploy/README.md).
+# Runs only for the production branch: nothing happens when main is pushed. A release is
+# main merged into production, which checks the code and then deploys (see deploy/README.md).
 on:
   push:
-    branches: [main, develop, production]
+    branches: [production]
     paths:
       - backend/**
       - .github/workflows/build-and-push-api-ecr.yml
   pull_request:
-    branches: [main, develop, production]
+    branches: [production]
     paths:
       - backend/**
       - .github/workflows/build-and-push-api-ecr.yml

@@ -86,9 +86,10 @@ give the server 4 GB or more.
 
 ## Releasing: merge `main` into `production`
 
-Nothing deploys from `main`. Pushes and pull requests to `main` only run the checks (install and
-generate the Prisma client for the backend, typecheck and build for the admin panel). The server is
-updated when the **`production`** branch moves, so a release is:
+Nothing runs from `main`: pushing to it starts no workflow at all. Every workflow is tied to the
+**`production`** branch — a push to it (or a pull request into it) first checks the code (install and
+generate the Prisma client for the backend, typecheck and build for the admin panel) and then deploys,
+so a release is:
 
 ```bash
 git checkout production && git pull
@@ -98,8 +99,8 @@ git push origin production
 
 Each workflow still decides by what changed: a merge that only touches `backend/` deploys the backend,
 `admin/` the admin panel, `website/` the landing page. To redeploy without a new commit, use **Actions →
-the workflow → Run workflow** and pick the `production` branch; run from any other branch it checks the
-code and does not deploy. `production` is only ever updated by merging `main` into it, never committed to
+the workflow → Run workflow** and pick the `production` branch; run by hand from any other branch it only
+checks the code and does not deploy. `production` is only ever updated by merging `main` into it, never committed to
 directly.
 
 ## Deploying

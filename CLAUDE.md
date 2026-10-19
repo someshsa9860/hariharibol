@@ -37,7 +37,7 @@ Each part carries its own rules file. Read the relevant one before writing code 
 
 **App text** — a string added to `app/lib/l10n/app_en.arb` is translated into every other `app_*.arb` in the same change. `app/test/l10n_parity_test.dart` fails when one is missing; see [app/CLAUDE.md](app/CLAUDE.md).
 
-**CI and deploys** — `.github/workflows/` builds the backend and admin images (ECR) and the website. Pushes and PRs to `main` only run the checks; **the server is deployed only when `main` is merged into the `production` branch** (or a workflow is run by hand from `production`). See "Releasing" in [deploy/README.md](deploy/README.md).
+**CI and deploys** — `.github/workflows/` builds the backend and admin images (ECR) and the website. Nothing runs on `main` (no CI, no deploy); **the workflows run only for the `production` branch — check, then deploy to the server — when `main` is merged into it** (or a workflow is run by hand from `production`). See "Releasing" in [deploy/README.md](deploy/README.md).
 
 ## Status
 
