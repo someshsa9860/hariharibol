@@ -10,11 +10,21 @@ import 'nav_hero_button.dart';
 
 /// One destination in [GlassNavBar].
 class NavItem {
-  const NavItem({required this.icon, required this.selectedIcon, required this.label});
+  const NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    this.iconBuilder,
+  });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
+
+  /// A drawn glyph in its own colours (the peacock feather) in place of the
+  /// icon fonts. It keeps its colours whether or not the item is selected, so
+  /// the label alone carries the state.
+  final Widget Function(double size)? iconBuilder;
 }
 
 /// The button raised in the middle of the bar. It is not a destination of the
@@ -178,7 +188,9 @@ class _Pill extends StatelessWidget {
       blur: isLight ? 10 : 14,
       tint: Color.lerp(colors.surface, AppColors.black, media),
       opacity: lerpDouble(isLight ? 0.42 : 0.34, 0.5, media),
-      border: BorderSide(color: Color.lerp(colors.outlineVariant, AppColors.reelControl, media)!),
+      border: BorderSide(
+        color: Color.lerp(colors.outlineVariant.withValues(alpha: 0), AppColors.reelControl, media)!,
+      ),
       shadows: [
         BoxShadow(
           color: isLight
@@ -277,12 +289,20 @@ class _NavButton extends StatelessWidget {
               // behind it would fight the glass the whole bar is made of.
               AnimatedSwitcher(
                 duration: AppDurations.fast,
-                child: Icon(
-                  selected ? item.selectedIcon : item.icon,
-                  key: ValueKey(selected),
-                  size: AppSizes.iconMd,
-                  color: colour,
-                ),
+                child: item.iconBuilder != null
+                    ? KeyedSubtree(
+                        key: ValueKey(selected),
+                        child: Opacity(
+                          opacity: selected ? 1 : 0.7,
+                          child: item.iconBuilder!(AppSizes.iconMd),
+                        ),
+                      )
+                    : Icon(
+                        selected ? item.selectedIcon : item.icon,
+                        key: ValueKey(selected),
+                        size: AppSizes.iconMd,
+                        color: colour,
+                      ),
               ),
               const SizedBox(height: AppSpacing.xxs),
               AnimatedDefaultTextStyle(

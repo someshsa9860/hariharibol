@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 /// really the darkest. That is what keeps a screen with no brand colour on it
 /// still looking like this app rather than a default Material one.
 ///
-/// **Dark is black and white.** No orange at all: on a black ground the brand
+/// **Dark is soft charcoal and white** (a medium dark, not OLED black). No orange at all: on a black ground the brand
 /// orange glows and pulls the eye off the verse, which is the one thing on the
 /// screen meant to be read. So dark mode is a pure greyscale ramp and the
 /// accent is simply white.
@@ -23,13 +23,13 @@ abstract final class AppColors {
   // ── Orange ─────────────────────────────────────────────────────────────────
 
   /// The brand. Primary, and the only colour used for an action.
-  static const Color orange = Color(0xFFC2410C);
+  static const Color orange = Color(0xFFC74A12);
 
   /// Pressed and hovered states, and the darker half of a gradient.
-  static const Color orangeDark = Color(0xFF9A3412);
+  static const Color orangeDark = Color(0xFFA63F10);
 
   /// The deepest shade. Destructive actions and the darkest ink.
-  static const Color orangeDeep = Color(0xFF7C2D12);
+  static const Color orangeDeep = Color(0xFF8A3A18);
 
   // ── Saffron ────────────────────────────────────────────────────────────────
 
@@ -42,7 +42,7 @@ abstract final class AppColors {
   static const Color saffronLight = Color(0xFFFDBA4A);
 
   /// The tint that stands in for a "light grey" fill.
-  static const Color saffronPale = Color(0xFFFDF0DC);
+  static const Color saffronPale = Color(0xFFFBEBD6);
 
   // ── White, and the tints that stand in for grey ─────────────────────────────
 
@@ -50,32 +50,31 @@ abstract final class AppColors {
 
   /// The page. A white with the faintest saffron in it, so a pure-white card
   /// on top of it still reads as a separate plane.
-  static const Color paper = Color(0xFFFFFBF6);
+  static const Color paper = Color(0xFFF8F3EC);
 
   /// A filled input or a tinted panel.
-  static const Color paperTint = Color(0xFFFDF4EA);
+  static const Color paperTint = Color(0xFFF1E9DD);
 
   /// Borders and dividers.
-  static const Color hairline = Color(0xFFF0DFCB);
-  static const Color outline = Color(0xFFC9A184);
+  static const Color hairline = Color(0xFFE6DAC8);
+  static const Color outline = Color(0xFFBF9F85);
 
   /// Body text: the darkest tone of the same orange, not a neutral black.
-  static const Color ink = Color(0xFF2E1607);
+  static const Color ink = Color(0xFF3A2312);
 
   /// Secondary text. 5.8:1 on white — the lightest this is allowed to get.
-  static const Color inkMuted = Color(0xFF8A5A3B);
+  static const Color inkMuted = Color(0xFF7A5238);
 
   // ── Dark: black and white, and the greys between them ──────────────────────
 
-  /// True black, not a dark grey — it costs nothing on an OLED panel and it is
-  /// the only ground the white type sits on at full contrast.
+  /// True black: only the reel surface and text on a light accent use it.
   static const Color black = Color(0xFF000000);
 
-  static const Color paperDark = black;
-  static const Color cardDark = Color(0xFF121212);
-  static const Color paperTintDark = Color(0xFF1F1F1F);
-  static const Color hairlineDark = Color(0xFF262626);
-  static const Color outlineDark = Color(0xFF525252);
+  static const Color paperDark = Color(0xFF161616);
+  static const Color cardDark = Color(0xFF242424);
+  static const Color paperTintDark = Color(0xFF2E2E2E);
+  static const Color hairlineDark = Color(0xFF383838);
+  static const Color outlineDark = Color(0xFF6B6B6B);
   static const Color inkDark = white;
 
   /// Secondary text on black. 9:1 — well clear, because dark-mode type at low
@@ -203,8 +202,8 @@ abstract final class AppColors {
 
   static const Color panelFrom = Color(0xFFFDF0DC);
   static const Color panelTo = Color(0xFFF6D9AE);
-  static const Color panelFromDark = Color(0xFF141414);
-  static const Color panelToDark = Color(0xFF1F1F1F);
+  static const Color panelFromDark = Color(0xFF242424);
+  static const Color panelToDark = Color(0xFF2E2E2E);
 }
 
 /// Semantic colours that are not part of [ColorScheme], resolved per brightness.

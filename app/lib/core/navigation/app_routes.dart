@@ -82,7 +82,7 @@ abstract final class AppRoutes {
   static const String chantSessionPattern = '/chant/sessions/:id';
   static String chantSessionPath(String id) => '/chant/sessions/$id';
 
-  /// The reels feed — a tab, the third of the bar. It runs under the bar, which
+  /// The reels feed — a tab, the last of the bar. It runs under the bar, which
   /// turns dark over it. A single reel ([reelPattern]) is pushed over the tabs.
   static const String reels = '/reels';
 
@@ -107,7 +107,7 @@ abstract final class AppRoutes {
 
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
-  static const List<String> tabs = [home, sadhana, reels, library];
+  static const List<String> tabs = [home, sadhana, library, reels];
 }
 
 /// Route names, for `goNamed` calls where a path would need building.

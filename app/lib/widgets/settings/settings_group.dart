@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
-import '../common/eyebrow.dart';
 
 /// A titled block of settings rows, drawn as one card with dividers rather than
 /// as separate tiles — which is what makes a settings screen read as a few
@@ -19,15 +18,18 @@ class SettingsGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
-          child: Eyebrow(title),
+          padding: const EdgeInsets.only(left: AppSpacing.lg, bottom: AppSpacing.sm),
+          child: Text(
+            title,
+            style: context.texts.bodySmall?.copyWith(color: context.colors.onSurfaceVariant),
+          ),
         ),
         Card(
           clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) const Divider(height: 1, indent: AppSpacing.xxxl),
+                if (i > 0) const Divider(height: 1, indent: AppSpacing.xxxl + AppSpacing.xs),
                 children[i],
               ],
             ],
@@ -67,10 +69,7 @@ class SettingsRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: [
             Container(
