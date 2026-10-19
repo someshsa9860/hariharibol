@@ -212,7 +212,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       final bar = tester.widget<GlassNavBar>(find.byType(GlassNavBar));
-      expect(bar.items.map((item) => item.label), ['Home', 'Jap', 'Reels', 'Read']);
+      expect(bar.items.map((item) => item.label), ['Home', 'Jap', 'Read', 'Reels']);
       expect(bar.selectedIndex, 0);
       // Sakha is raised in the middle of them, and is not one of the four.
       expect(bar.hero, isNotNull);

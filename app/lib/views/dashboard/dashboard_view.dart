@@ -6,12 +6,13 @@ import '../../core/navigation/app_routes.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/push_link.dart';
 import '../../widgets/common/glass_nav_bar.dart';
+import '../../widgets/common/peacock_feather_icon.dart';
 import '../../widgets/common/sakha_icon.dart';
 
 /// The dashboard shell: the four tabs, the bar that switches them, and Sakha's
 /// button raised in the middle of it.
 ///
-/// Reels is the third tab, and the only one that runs edge to edge: the bar
+/// Reels is the last tab (Read is the third), and the only one that runs edge to edge: the bar
 /// stays, but turns dark over the video (`onMedia`) instead of laying cream
 /// glass across a picture.
 ///
@@ -114,14 +115,15 @@ class _DashboardViewState extends State<DashboardView> {
                   label: text.tabSadhana,
                 ),
                 NavItem(
-                  icon: Icons.play_circle_outline_rounded,
-                  selectedIcon: Icons.play_circle_rounded,
-                  label: text.reelsTitle,
-                ),
-                NavItem(
                   icon: Icons.menu_book_outlined,
                   selectedIcon: Icons.menu_book_rounded,
                   label: text.tabLibrary,
+                ),
+                NavItem(
+                  icon: Icons.play_circle_outline_rounded,
+                  selectedIcon: Icons.play_circle_rounded,
+                  label: text.reelsTitle,
+                  iconBuilder: (size) => PeacockFeatherIcon(size: size),
                 ),
               ],
             ),

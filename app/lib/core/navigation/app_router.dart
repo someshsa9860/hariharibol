@@ -265,18 +265,18 @@ GoRouter createRouter() {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.reels,
-                name: RouteNames.reels,
-                builder: (context, state) => const ReelsView(),
+                path: AppRoutes.library,
+                name: RouteNames.library,
+                builder: (context, state) => const LibraryTab(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.library,
-                name: RouteNames.library,
-                builder: (context, state) => const LibraryTab(),
+                path: AppRoutes.reels,
+                name: RouteNames.reels,
+                builder: (context, state) => const ReelsView(),
               ),
             ],
           ),
