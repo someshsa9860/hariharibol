@@ -1,8 +1,9 @@
 name: Website CI
 
+# Deploys when main is merged into production (see deploy/README.md).
 on:
   push:
-    branches: [main]
+    branches: [production]
     paths:
       - website/**
       - deploy/server/config.sh
@@ -16,6 +17,8 @@ jobs:
   deploy:
     name: Deploy landing page
     runs-on: ubuntu-latest
+    # "Run workflow" from any branch other than production does nothing.
+    if: github.ref == 'refs/heads/production'
     permissions:
       contents: read
     steps:

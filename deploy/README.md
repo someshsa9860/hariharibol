@@ -84,6 +84,24 @@ is left running by deploys: to apply a new limit, `docker rm -f hariharibol-redi
 together are about 1.7 GB if every container hit its ceiling at once; normal use is a quarter of that, so
 give the server 4 GB or more.
 
+## Releasing: merge `main` into `production`
+
+Nothing deploys from `main`. Pushes and pull requests to `main` only run the checks (install and
+generate the Prisma client for the backend, typecheck and build for the admin panel). The server is
+updated when the **`production`** branch moves, so a release is:
+
+```bash
+git checkout production && git pull
+git merge main            # or open a pull request main → production on GitHub
+git push origin production
+```
+
+Each workflow still decides by what changed: a merge that only touches `backend/` deploys the backend,
+`admin/` the admin panel, `website/` the landing page. To redeploy without a new commit, use **Actions →
+the workflow → Run workflow** and pick the `production` branch; run from any other branch it checks the
+code and does not deploy. `production` is only ever updated by merging `main` into it, never committed to
+directly.
+
 ## Deploying
 
 Deploy everything with `IMAGE_TAG=<git-sha> ./deploy.sh`, or one part with
