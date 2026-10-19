@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hariharibol/core/constants/book_sync_config.dart';
 import 'package:hariharibol/db/app_database.dart';
 import 'package:hariharibol/db/tables.dart';
 import 'package:hariharibol/services/book_sync_manager.dart';
@@ -16,12 +17,20 @@ void main() {
   late FakeConditions conditions;
   late BookSyncManager manager;
 
-  BookSyncManager build({int concurrency = 2, AppDatabase? database}) => BookSyncManager(
+  BookSyncManager build({
+    int concurrency = 2,
+    AppDatabase? database,
+    DateTime Function()? clock,
+    Duration? updateCheckInterval,
+  }) =>
+      BookSyncManager(
         db: database ?? db,
         api: api,
         downloader: downloader,
         conditions: conditions,
         maxConcurrent: concurrency,
+        clock: clock,
+        updateCheckInterval: updateCheckInterval ?? BookSyncConfig.updateCheckInterval,
       );
 
   setUpAll(() => driftRuntimeOptions.dontWarnAboutMultipleDatabases = true);
@@ -265,6 +274,188 @@ void main() {
     await pumpEventQueue();
     await manager.idle();
     expect(await statusOf('canto2'), UnitStatus.done);
+  });
+
+  group('content version', () {
+    Future<int> versionOnPhone() => db.bookDao.contentVersionOf('book1');
+
+    /// The server re-exports canto 2 and says the book's text has moved on.
+    void serverChangesCanto2({int contentVersion = 2}) {
+      api.units = [for (final u in api.units) u.number == 2 ? manifestUnit(2, version: 2, hash: 'new-hash') : u];
+      api.contentVersion = contentVersion;
+    }
+
+    test('is recorded once every unit of the book is on the device', () async {
+      api.contentVersion = 3;
+      await manager.syncBook('srimad-bhagavatam');
+      expect(await versionOnPhone(), 3);
+    });
+
+    test('is not recorded while a unit is missing, and is by the next open', () async {
+      api.contentVersion = 3;
+      downloader.failure = (id) => id == 'canto3' ? Exception('connection reset') : null;
+      await manager.syncBook('srimad-bhagavatam');
+      expect(await versionOnPhone(), 0, reason: "the book is only partly the server's version");
+
+      downloader.failure = null;
+      manager = build();
+      await manager.syncBook('srimad-bhagavatam');
+      expect(await versionOnPhone(), 3);
+    });
+
+    test('is recorded when the text moved on but this phone already held every unit', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      expect(await versionOnPhone(), 1);
+
+      // The number alone moved: every unit the phone holds is still the server's.
+      api.contentVersion = 5;
+      await manager.checkForUpdates(force: true);
+      expect(await versionOnPhone(), 5);
+      expect(downloader.started, hasLength(5), reason: 'nothing was fetched again');
+    });
+
+    test('an ordinary open within the minute does not see new text; an update check does', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+      serverChangesCanto2();
+
+      await manager.syncBook('srimad-bhagavatam');
+      expect(downloader.started, isEmpty, reason: 'the manifest from a moment ago is reused');
+      expect(await versionOnPhone(), 1);
+
+      await manager.checkForUpdates(force: true);
+      expect(downloader.started, ['canto2'], reason: 'only the unit that changed');
+      expect(await versionOnPhone(), 2);
+      final verse = (await db.bookDao.versesOfChapter('ch2-1')).first;
+      final translation = (await db.bookDao.translationsFor([verse.id]))[verse.id]!.firstWhere((t) => t.languageCode == 'en');
+      expect(translation.purport, startsWith('v2'));
+    });
+
+    test('a new version whose unit cannot be fetched keeps the old text and the old version', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      serverChangesCanto2();
+      downloader.failure = (id) => id == 'canto2' ? Exception('boom') : null;
+
+      await manager.checkForUpdates(force: true);
+
+      expect(await versionOnPhone(), 1, reason: 'canto 2 is still the old one');
+      expect(await db.bookDao.versesOfChapter('ch2-1'), isNotEmpty);
+
+      downloader.failure = null;
+      await manager.checkForUpdates(force: true);
+      expect(await versionOnPhone(), 2);
+    });
+
+    test('a change of the cache version downloads everything again and records the content version', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+
+      api.cacheVersion = 2;
+      api.contentVersion = 4;
+      await manager.checkForUpdates(force: true);
+
+      expect(downloader.started, hasLength(5));
+      expect(await versionOnPhone(), 4);
+    });
+
+    test('checks every book on the phone, and only those', () async {
+      expect(await db.downloadStateDao.heldBookIds(), isEmpty);
+      await manager.checkForUpdates(force: true);
+      expect(api.manifestCalls, 0, reason: 'a phone with no book has nothing to ask about');
+
+      await manager.syncBook('srimad-bhagavatam');
+      api.manifestCalls = 0;
+      await manager.checkForUpdates(force: true);
+      expect(api.manifestCalls, 1);
+    });
+
+    test('is silent offline: nothing thrown, nothing changed', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+      serverChangesCanto2();
+      api.manifestError = Exception('offline');
+
+      await manager.checkForUpdates(force: true);
+
+      expect(downloader.started, isEmpty);
+      expect(await versionOnPhone(), 1);
+      expect((await db.downloadStateDao.summary('book1')).isComplete, isTrue);
+    });
+
+    test('nothing downloads while the network is not allowed, and it carries on when it is', () async {
+      await manager.syncBook('srimad-bhagavatam');
+      downloader.started.clear();
+      serverChangesCanto2();
+
+      conditions.set(false);
+      await pumpEventQueue();
+      final check = manager.checkForUpdates(force: true);
+      await pumpEventQueue();
+      expect(downloader.started, isEmpty);
+      expect(await versionOnPhone(), 1);
+
+      conditions.set(true);
+      await check;
+      expect(downloader.started, ['canto2']);
+      expect(await versionOnPhone(), 2);
+    });
+
+    group('how often', () {
+      var skew = Duration.zero;
+      DateTime clock() => DateTime.now().add(skew);
+
+      setUp(() {
+        skew = Duration.zero;
+        manager = build(clock: clock);
+      });
+
+      test('a check within the interval of the last one does not ask the server', () async {
+        await manager.syncBook('srimad-bhagavatam');
+        await manager.checkForUpdates();
+        final calls = api.manifestCalls;
+
+        skew = BookSyncConfig.updateCheckInterval - const Duration(minutes: 1);
+        await manager.checkForUpdates();
+        expect(api.manifestCalls, calls);
+      });
+
+      test('after the interval it asks again', () async {
+        await manager.syncBook('srimad-bhagavatam');
+        await manager.checkForUpdates();
+        final calls = api.manifestCalls;
+        serverChangesCanto2();
+        downloader.started.clear();
+
+        skew = BookSyncConfig.updateCheckInterval + const Duration(minutes: 1);
+        await manager.checkForUpdates();
+        expect(api.manifestCalls, calls + 1);
+        expect(downloader.started, ['canto2']);
+      });
+
+      test('forcing it ignores the interval', () async {
+        await manager.syncBook('srimad-bhagavatam');
+        await manager.checkForUpdates();
+        final calls = api.manifestCalls;
+
+        await manager.checkForUpdates(force: true);
+        expect(api.manifestCalls, calls + 1);
+      });
+    });
+
+    test('starting the app finishes what was owed and then looks for new text', () async {
+      // A first run left canto 1 owed; meanwhile the server has moved on.
+      await manager.syncBook('srimad-bhagavatam');
+      await db.downloadStateDao.markFailed('book1', 'canto1', 'connection reset');
+      downloader.started.clear();
+      serverChangesCanto2();
+
+      manager = build();
+      await manager.onAppStart();
+
+      expect(downloader.started.toSet(), {'canto1', 'canto2'});
+      expect(await versionOnPhone(), 2);
+      expect((await db.downloadStateDao.summary('book1')).isComplete, isTrue);
+    });
   });
 
   group('book cache version', () {

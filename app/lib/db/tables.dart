@@ -28,6 +28,13 @@ class Books extends Table {
   /// How many units the server's manifest lists — what "n of m downloaded" is
   /// measured against.
   IntColumn get totalUnits => integer().withDefault(const Constant(0))();
+
+  /// The server's `contentVersion` of this book that every unit on the device was
+  /// last made current at — written only once the whole book matches a manifest
+  /// (`BookDao.setContentVersion`), never while units are still arriving. A
+  /// manifest naming a different number means the server has new text. 0 = not
+  /// known yet.
+  IntColumn get contentVersion => integer().withDefault(const Constant(0))();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

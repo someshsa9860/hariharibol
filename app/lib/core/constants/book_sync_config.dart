@@ -13,6 +13,10 @@ abstract final class BookSyncConfig {
   /// is one request.
   static const Duration manifestTtl = Duration(minutes: 1);
 
+  /// How often coming back to the app (not starting it) asks the server whether
+  /// a book the phone holds has new text. One small request per book held.
+  static const Duration updateCheckInterval = Duration(minutes: 15);
+
   // ── One download ──────────────────────────────────────────────────────
   static const Duration connectTimeout = Duration(seconds: 15);
 

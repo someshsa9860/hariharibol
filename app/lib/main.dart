@@ -40,10 +40,11 @@ Future<void> main() async {
   // the app was closed — so the store's stream is listened to from boot.
   PurchaseService.instance.start();
 
-  // Pick up any book downloads a previous run left unfinished, and let the OS
-  // finish them if the app goes to the background. Neither shows anything.
+  // Pick up any book downloads a previous run left unfinished, ask the server
+  // whether the books on the phone have new text, and let the OS finish the
+  // downloads if the app goes to the background. None of it shows anything.
   unawaited(BookSyncBackground.instance.start());
-  unawaited(BookSyncManager.instance.resumePending());
+  unawaited(BookSyncManager.instance.onAppStart());
 
   runApp(const ProviderScope(child: HariHariBolApp()));
 }

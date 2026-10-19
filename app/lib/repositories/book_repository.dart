@@ -59,6 +59,12 @@ class BookRepository {
 
   Future<String?> bookIdForSlug(String slug) async => (await _books.bookBySlug(slug))?.id;
 
+  /// Changes each time the copy of a chapter's unit on the device is replaced by a
+  /// newer one from the server; null while it is not on the device. For a screen
+  /// that shows the chapter to read it again — see `chapterReadingProvider`.
+  Stream<String?> watchChapterRevision(String slug, int number, {int? canto}) =>
+      _books.watchChapterRevision(slug, number, cantoNumber: canto);
+
   // ── Reading a chapter ─────────────────────────────────────────────────
 
   /// A chapter and its verses, in the reader's language ([chain], best first).

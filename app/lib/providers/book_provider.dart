@@ -57,12 +57,30 @@ final bookChaptersProvider =
   }
 });
 
+/// Which copy of a chapter is on the device (see `BookDao.watchChapterRevision`).
+final chapterRevisionProvider =
+    StreamProvider.family.autoDispose<String?, ({String slug, int number, int? canto})>((ref, args) {
+  return BookRepository.instance.watchChapterRevision(args.slug, args.number, canto: args.canto);
+});
+
 /// The reading screen's one call: a chapter and every verse in it. Read from
 /// the device first (see `BookRepository.chapter`); the network only when the
 /// chapter is not downloaded and could not be fetched in time.
+///
+/// Read again when the copy on the device is replaced by a newer one — the sync
+/// fetches new text from the server in the background while the old is on screen
+/// (a translation added since, a corrected verse) — so the reader sees it without
+/// leaving the chapter. The verses stay up while it reloads and nothing is shown.
 final chapterReadingProvider = FutureProvider.family
     .autoDispose<ChapterReading, ({String slug, int number, int? canto})>((ref, args) {
   final chain = ref.watch(readingChainProvider);
+  ref.listen(chapterRevisionProvider(args), (previous, next) {
+    final before = previous?.value;
+    final after = next.value;
+    // Only a copy replaced by another one counts. Arriving where there was none is
+    // the chapter being fetched for this very read, which already has it.
+    if (before != null && after != null && before != after) ref.invalidateSelf();
+  });
   return BookRepository.instance.chapter(args.slug, args.number, canto: args.canto, chain: chain);
 });
 

@@ -29,6 +29,7 @@ class BookSyncManager {
     required this._conditions,
     this._maxConcurrent = BookSyncConfig.maxConcurrent,
     this._manifestTtl = BookSyncConfig.manifestTtl,
+    this._updateCheckInterval = BookSyncConfig.updateCheckInterval,
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now {
     _conditionsSub = _conditions.changes.listen((_) => _onConditionsChanged());
@@ -59,7 +60,9 @@ class BookSyncManager {
   final SyncConditions _conditions;
   final int _maxConcurrent;
   final Duration _manifestTtl;
+  final Duration _updateCheckInterval;
   final DateTime Function() _now;
+  DateTime? _lastUpdateCheck;
 
   StreamSubscription<void>? _conditionsSub;
   bool _allowed = true;
@@ -94,10 +97,34 @@ class BookSyncManager {
     unawaited(syncBook(book, current: current));
   }
 
+  /// Asks the server whether any book the phone holds has new text, and brings
+  /// the phone up to date: a fresh manifest for each (not the one kept for a
+  /// minute), and every unit whose version or content the server has since
+  /// replaced is fetched and swapped in, the one being read first. A screen
+  /// showing a replaced unit is told by the database (`BookDao.watchChapterRevision`).
+  ///
+  /// Called when the app starts, when it comes back to the front and when the
+  /// reading language changes. Unless [force], a call within
+  /// `BookSyncConfig.updateCheckInterval` of the last does nothing, so returning
+  /// to the app often costs nothing. Never throws; completes when the books are
+  /// current or could not be.
+  Future<void> checkForUpdates({bool force = false}) async {
+    final last = _lastUpdateCheck;
+    if (!force && last != null && _now().difference(last) < _updateCheckInterval) return;
+    _lastUpdateCheck = _now();
+    try {
+      final held = await _db.downloadStateDao.heldBookIds();
+      await Future.wait(held.map((id) => syncBook(id, fresh: true)));
+    } catch (error) {
+      _log('checkForUpdates failed: $error');
+    }
+  }
+
   /// Plans and runs the sync for [book] (a slug or id); completes when every
   /// unit it queued has finished or failed. Errors are swallowed: a book that
-  /// cannot sync now simply tries again the next time it is opened.
-  Future<void> syncBook(String book, {int? current}) {
+  /// cannot sync now simply tries again the next time it is opened. [fresh]
+  /// asks the server again even if a manifest was fetched a moment ago.
+  Future<void> syncBook(String book, {int? current, bool fresh = false}) {
     _opened.add(book);
     final running = _planning[book];
     if (running != null) {
@@ -106,7 +133,7 @@ class BookSyncManager {
     }
     // A block body, not `=> remove(...)`: `remove` returns the very future
     // being completed, and whenComplete waits for whatever it returns.
-    final future = _plan(book, current: current).whenComplete(() {
+    final future = _plan(book, current: current, fresh: fresh).whenComplete(() {
       _planning.remove(book);
       _notifyIdleIfDone();
     });
@@ -129,6 +156,17 @@ class BookSyncManager {
       _log('ensureUnit($book, $number) failed: $error');
       return false;
     }
+  }
+
+  /// What starting the app does: finish what a previous run left owed, then ask
+  /// whether the server has new text for the books on the phone. Never throws.
+  Future<void> onAppStart() async {
+    try {
+      await resumePending();
+    } catch (error) {
+      _log('resumePending failed: $error');
+    }
+    await checkForUpdates(force: true);
   }
 
   /// Picks up what a previous run left owed — pending, interrupted and failed
@@ -164,10 +202,15 @@ class BookSyncManager {
 
   // ── Planning ──────────────────────────────────────────────────────────
 
-  Future<void> _plan(String book, {int? current}) async {
+  Future<void> _plan(String book, {int? current, bool fresh = false}) async {
     try {
-      final manifest = await _manifest(book);
+      final manifest = await _manifest(book, fresh: fresh);
       await _db.bookDao.setTotalUnits(manifest.bookId, manifest.totalUnits);
+
+      final known = await _db.bookDao.contentVersionOf(manifest.bookId);
+      if (known != manifest.contentVersion) {
+        _log('$book: text is at version ${manifest.contentVersion} on the server, ${known == 0 ? 'unknown' : known} here');
+      }
 
       final local = {for (final s in await _db.downloadStateDao.statesFor(manifest.bookId)) s.unitId: s};
       final wanted = BookSyncPlanner.plan(manifest, local, current: current);
@@ -177,6 +220,7 @@ class BookSyncManager {
         waits.add(_enqueue(manifest, wanted[i], priority: i.toDouble()));
       }
       await Future.wait(waits);
+      await _recordContentVersion(manifest);
     } catch (error) {
       _log('syncBook($book) failed: $error');
     } finally {
@@ -184,9 +228,19 @@ class BookSyncManager {
     }
   }
 
-  Future<CacheManifest> _manifest(String book) {
+  /// Saves the server's content version against the book once every unit the
+  /// manifest lists is on the device at the version and content it names — not
+  /// before, so a version on the phone always means "this much of the text is
+  /// here", and a download that was cut short is looked at again.
+  Future<void> _recordContentVersion(CacheManifest manifest) async {
+    final local = {for (final s in await _db.downloadStateDao.statesFor(manifest.bookId)) s.unitId: s};
+    final current = manifest.units.every((unit) => !BookSyncPlanner.needsDownload(unit, local[unit.unitId]));
+    if (current) await _db.bookDao.setContentVersion(manifest.bookId, manifest.contentVersion);
+  }
+
+  Future<CacheManifest> _manifest(String book, {bool fresh = false}) {
     final cached = _manifests[book];
-    if (cached != null && _now().difference(cached.fetchedAt) < _manifestTtl) return Future.value(cached);
+    if (!fresh && cached != null && _now().difference(cached.fetchedAt) < _manifestTtl) return Future.value(cached);
     return _manifestInFlight[book] ??= _fetchManifest(book).whenComplete(() {
       _manifestInFlight.remove(book);
     });
@@ -201,7 +255,11 @@ class BookSyncManager {
     final manifest = await _api.manifest(book);
     final dropped = await _db.bookDao.dropOutdatedUnits(manifest.bookId, manifest.cacheVersion);
     if (dropped > 0) _log('$book: cache version is now ${manifest.cacheVersion}, deleted $dropped units');
+    // Kept under every name the book is asked for by (slug, id), so a check made by
+    // id also refreshes what a reader opening it by slug is about to use.
     _manifests[book] = manifest;
+    _manifests[manifest.bookId] = manifest;
+    if (manifest.bookSlug.isNotEmpty) _manifests[manifest.bookSlug] = manifest;
     return manifest;
   }
 
