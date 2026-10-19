@@ -836,6 +836,32 @@ class AppLocalizationsGu extends AppLocalizations {
   String get readingHideTransliteration => 'લિપ્યંતર';
 
   @override
+  String get readingModeLabel => 'વાંચવાની રીત';
+
+  @override
+  String get readingModeVerses => 'શ્લોક પ્રમાણે';
+
+  @override
+  String get readingModeStory => 'કથા';
+
+  @override
+  String get readingStoryShowLabel => 'કથામાં બતાવો';
+
+  @override
+  String get readingStoryNumbers => 'શ્લોક ક્રમાંક';
+
+  @override
+  String get readingStoryHint =>
+      'કોઈ શ્લોક પર દબાવી રાખો — તે સાંભળવા, બુકમાર્ક કરવા, હાઇલાઇટ કરવા અથવા નોંધ ઉમેરવા માટે.';
+
+  @override
+  String get readingStoryNothing =>
+      'આ અધ્યાયમાં પસંદ કરેલા ભાગ માટે કશું નથી. ઉપરથી બીજો પસંદ કરો.';
+
+  @override
+  String get readingPartMeaning => 'અર્થ';
+
+  @override
   String get routineSubtitle => 'ભક્તિ, કામ અને વચ્ચેની રોજિંદી ક્ષણો.';
 
   @override

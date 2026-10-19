@@ -844,6 +844,32 @@ class AppLocalizationsTa extends AppLocalizations {
   String get readingHideTransliteration => 'எழுத்துப்பெயர்ப்பு';
 
   @override
+  String get readingModeLabel => 'வாசிக்கும் முறை';
+
+  @override
+  String get readingModeVerses => 'ஸ்லோகம் வாரியாக';
+
+  @override
+  String get readingModeStory => 'கதை';
+
+  @override
+  String get readingStoryShowLabel => 'கதையில் காட்டுவது';
+
+  @override
+  String get readingStoryNumbers => 'ஸ்லோக எண்கள்';
+
+  @override
+  String get readingStoryHint =>
+      'ஒரு ஸ்லோகத்தை அழுத்திப் பிடித்தால் அதை இயக்கலாம், புக்மார்க் செய்யலாம், முன்னிலைப்படுத்தலாம் அல்லது குறிப்பு சேர்க்கலாம்.';
+
+  @override
+  String get readingStoryNothing =>
+      'நீங்கள் தேர்ந்த பகுதிக்கு இந்த அத்தியாயத்தில் எதுவும் இல்லை. மேலே வேறொன்றைத் தேர்ந்தெடுங்கள்.';
+
+  @override
+  String get readingPartMeaning => 'பொருள்';
+
+  @override
   String get routineSubtitle => 'பக்தி, பணி, இடையிலுள்ள சாதாரணமானவை.';
 
   @override

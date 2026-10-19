@@ -48,6 +48,13 @@ abstract final class BoxKeys {
   /// part, so choosing one never rewrites the others.
   static String readingHiddenPart(String part) => 'settings.reading_hidden.$part';
 
+  /// How a chapter is laid out (`ReadingMode` name), which part story mode shows
+  /// (`StoryPart` name) and whether it numbers the verses. One answer for every
+  /// chapter in every book, like the font size.
+  static const String readingMode = 'settings.reading_mode';
+  static const String storyPart = 'settings.story_part';
+  static const String storyNumbers = 'settings.story_numbers';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 

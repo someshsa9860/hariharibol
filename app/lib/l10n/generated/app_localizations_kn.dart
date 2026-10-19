@@ -841,6 +841,32 @@ class AppLocalizationsKn extends AppLocalizations {
   String get readingHideTransliteration => 'ಲಿಪ್ಯಂತರ';
 
   @override
+  String get readingModeLabel => 'ಓದುವ ವಿಧಾನ';
+
+  @override
+  String get readingModeVerses => 'ಶ್ಲೋಕದಿಂದ ಶ್ಲೋಕಕ್ಕೆ';
+
+  @override
+  String get readingModeStory => 'ಕಥೆ';
+
+  @override
+  String get readingStoryShowLabel => 'ಕಥೆಯಲ್ಲಿ ತೋರಿಸುವುದು';
+
+  @override
+  String get readingStoryNumbers => 'ಶ್ಲೋಕ ಸಂಖ್ಯೆಗಳು';
+
+  @override
+  String get readingStoryHint =>
+      'ಶ್ಲೋಕವನ್ನು ಒತ್ತಿ ಹಿಡಿಯಿರಿ — ಅದನ್ನು ಪ್ಲೇ ಮಾಡಲು, ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಲು, ಹೈಲೈಟ್ ಮಾಡಲು ಅಥವಾ ಟಿಪ್ಪಣಿ ಸೇರಿಸಲು.';
+
+  @override
+  String get readingStoryNothing =>
+      'ನೀವು ಆರಿಸಿದ ಭಾಗಕ್ಕೆ ಈ ಅಧ್ಯಾಯದಲ್ಲಿ ಏನೂ ಇಲ್ಲ. ಮೇಲೆ ಬೇರೊಂದನ್ನು ಆರಿಸಿ.';
+
+  @override
+  String get readingPartMeaning => 'ಅರ್ಥ';
+
+  @override
   String get routineSubtitle => 'ಭಕ್ತಿ, ಕೆಲಸ ಮತ್ತು ನಡುವಿನ ಸಾಮಾನ್ಯ ವಿಷಯಗಳು.';
 
   @override

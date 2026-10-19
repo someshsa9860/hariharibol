@@ -838,6 +838,32 @@ class AppLocalizationsPa extends AppLocalizations {
   String get readingHideTransliteration => 'ਲਿਪੀਅੰਤਰ';
 
   @override
+  String get readingModeLabel => 'ਪੜ੍ਹਨ ਦਾ ਢੰਗ';
+
+  @override
+  String get readingModeVerses => 'ਸ਼ਲੋਕ ਦਰ ਸ਼ਲੋਕ';
+
+  @override
+  String get readingModeStory => 'ਕਥਾ';
+
+  @override
+  String get readingStoryShowLabel => 'ਕਥਾ ਵਿੱਚ ਕੀ ਦਿਖਾਉਣਾ ਹੈ';
+
+  @override
+  String get readingStoryNumbers => 'ਸ਼ਲੋਕ ਨੰਬਰ';
+
+  @override
+  String get readingStoryHint =>
+      'ਕਿਸੇ ਸ਼ਲੋਕ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ — ਉਸਨੂੰ ਚਲਾਉਣ, ਬੁੱਕਮਾਰਕ ਕਰਨ, ਹਾਈਲਾਈਟ ਕਰਨ ਜਾਂ ਨੋਟ ਜੋੜਨ ਲਈ।';
+
+  @override
+  String get readingStoryNothing =>
+      'ਤੁਹਾਡੇ ਚੁਣੇ ਹੋਏ ਹਿੱਸੇ ਲਈ ਇਸ ਅਧਿਆਇ ਵਿੱਚ ਕੁਝ ਨਹੀਂ ਹੈ। ਉੱਪਰੋਂ ਕੋਈ ਹੋਰ ਚੁਣੋ।';
+
+  @override
+  String get readingPartMeaning => 'ਅਰਥ';
+
+  @override
   String get routineSubtitle => 'ਭਗਤੀ, ਕੰਮ ਅਤੇ ਵਿਚਕਾਰ ਦੀਆਂ ਆਮ ਗੱਲਾਂ।';
 
   @override

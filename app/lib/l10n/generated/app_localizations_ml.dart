@@ -846,6 +846,32 @@ class AppLocalizationsMl extends AppLocalizations {
   String get readingHideTransliteration => 'ലിപ്യന്തരണം';
 
   @override
+  String get readingModeLabel => 'വായനാ രീതി';
+
+  @override
+  String get readingModeVerses => 'ശ്ലോകം ശ്ലോകമായി';
+
+  @override
+  String get readingModeStory => 'കഥ';
+
+  @override
+  String get readingStoryShowLabel => 'കഥയിൽ കാണിക്കുന്നത്';
+
+  @override
+  String get readingStoryNumbers => 'ശ്ലോക നമ്പറുകൾ';
+
+  @override
+  String get readingStoryHint =>
+      'ഒരു ശ്ലോകം അമർത്തിപ്പിടിക്കുക — അത് പ്ലേ ചെയ്യാനോ ബുക്ക്‌മാർക്ക് ചെയ്യാനോ ഹൈലൈറ്റ് ചെയ്യാനോ കുറിപ്പ് ചേർക്കാനോ.';
+
+  @override
+  String get readingStoryNothing =>
+      'നിങ്ങൾ തിരഞ്ഞെടുത്ത ഭാഗത്തിന് ഈ അധ്യായത്തിൽ ഒന്നുമില്ല. മുകളിൽ നിന്ന് മറ്റൊന്ന് തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get readingPartMeaning => 'അർത്ഥം';
+
+  @override
   String get routineSubtitle => 'ഭക്തി, ജോലി, അതിനിടയിലെ സാധാരണ കാര്യങ്ങൾ.';
 
   @override

@@ -1480,6 +1480,54 @@ abstract class AppLocalizations {
   /// **'Transliteration'**
   String get readingHideTransliteration;
 
+  /// No description provided for @readingModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading style'**
+  String get readingModeLabel;
+
+  /// No description provided for @readingModeVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse by verse'**
+  String get readingModeVerses;
+
+  /// No description provided for @readingModeStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Story'**
+  String get readingModeStory;
+
+  /// No description provided for @readingStoryShowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Story shows'**
+  String get readingStoryShowLabel;
+
+  /// No description provided for @readingStoryNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse numbers'**
+  String get readingStoryNumbers;
+
+  /// No description provided for @readingStoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold a verse to play it, bookmark it, highlight it or add a note.'**
+  String get readingStoryHint;
+
+  /// No description provided for @readingStoryNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This chapter has nothing for the part you chose. Try another one above.'**
+  String get readingStoryNothing;
+
+  /// No description provided for @readingPartMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get readingPartMeaning;
+
   /// No description provided for @routineSubtitle.
   ///
   /// In en, this message translates to:
