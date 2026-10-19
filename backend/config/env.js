@@ -74,6 +74,8 @@ const schema = z.object({
   BOOK_CACHE_TZ: z.string().default('Asia/Kolkata'),
   BOOK_CACHE_PREFIX: z.string().default('books/caches'),
   BOOK_CACHE_DOWNLOAD_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
+  // A changed book is exported once its writes have been quiet this long (an import is many statements).
+  BOOK_CACHE_QUIET_SECONDS: z.coerce.number().int().min(0).max(3600).default(90),
 
   // "gemini" or "openai", in any case.
   AI_PROVIDER: z

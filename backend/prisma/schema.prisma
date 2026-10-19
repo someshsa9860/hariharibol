@@ -438,6 +438,18 @@ model Book {
   displayOrder Int     @default(0)
   isPublished  Boolean @default(false)
 
+  // The version of the book's text. It goes up BY ITSELF — database triggers
+  // (migration 20261025000000_book_content_version), not code a writer has to
+  // remember to call — whenever a verse, a translation, a chapter, a canto, a
+  // translator's name or this row's own exported fields change, however it
+  // happened: an import script, the admin panel, psql.
+  contentVersion   Int       @default(1)
+  contentChangedAt DateTime? // when it last went up, UTC; the export waits for writes to go quiet
+  // The contentVersion the files on S3 were built from (services/book-cache.js).
+  // Behind contentVersion = the export owes this book a run. The app is told this
+  // number, because it is what the files it can download actually are.
+  exportedVersion  Int       @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

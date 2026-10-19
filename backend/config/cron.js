@@ -72,6 +72,14 @@ const schedules = [
           description:
             'Export every book to books/caches/ on S3 as one JSON per chapter or canto — only the ones that changed.',
         },
+        {
+          name: 'book.cache.sync',
+          queue: 'content',
+          cron: bookCache.syncCron,
+          description:
+            'Export any book whose text changed since its last export (Book.contentVersion ahead of exportedVersion) ' +
+            'once its writes have gone quiet — so an import reaches phones in minutes, not at the next weekly run.',
+        },
       ]
     : []),
   {

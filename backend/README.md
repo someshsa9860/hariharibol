@@ -161,6 +161,30 @@ and chapter metadata, `schemaVersion` and `updatedAt`.
    then upsert the row with `version + 1`. File missing but hash unchanged → re-upload at the same version.
 4. If anything changed, rewrite `manifest.json` from the table.
 
+### When a run happens
+
+- **Weekly** (`book.cache.export`, Sunday 00:00) — every book, as before.
+- **Within minutes of a change** (`book.cache.sync`, every minute). `Book.contentVersion` goes up **by itself**:
+  statement-level triggers on `Verse`, `VerseTranslation`, `Chapter`, `Canto`, `Translator` (a name shown beside a
+  translation) and `Book` itself (migration
+  `20261025000000_book_content_version`) bump it and stamp `contentChangedAt`, whoever wrote the rows — an import
+  script, the admin panel, the translation import, psql. A statement that touches 13,000 verses is one bump.
+  `Book.exportedVersion` is the version the files on S3 were last built from. The sync job exports exactly the books
+  where `contentVersion > exportedVersion` and writes have been quiet for `BOOK_CACHE_QUIET_SECONDS` (an import is many
+  statements; exporting mid-way would build files from half of it). Nothing is due almost every minute, so it costs one
+  small query.
+- **`exportedVersion` is set only after every unit and the manifest are in place**, to the `contentVersion` read *before*
+  the export began, so a write that lands during the run leaves the book due again. A book with a failed unit stays
+  due; the sync leaves a failing export alone for 5 minutes instead of retrying it every minute.
+- The manifest carries `contentVersion` (= `exportedVersion`, not `contentVersion`: the files can be a minute or two
+  behind the database). A phone that last synced a lower number knows there is new text; the per-unit `version` and
+  `hash` say which units. `0` = never exported. The admin `GET /api/admin/book-cache` shows `contentVersion`,
+  `exportedVersion` and `exportDue` per book.
+- `exportedVersion` starts at 0, so the first look after the migration exports every book once. A unit whose content
+  has not changed is skipped by its hash, so that uploads only what is really new.
+- This is separate from the admin **cache version** setting (`BOOK_CACHE_VERSION`), which means "throw away what you
+  hold", not "there is new text".
+
 A Redis lock (`lock:book-cache:export`, renewed while running, expires on its own) means two
 workers — or a worker and a manual trigger — never export at once; the second reports
 `locked: true`. Each unit retries 3× with exponential backoff, then the queue retries the
@@ -176,6 +200,7 @@ changed, repaired, skipped, failed, bytes uploaded.
 | `BOOK_CACHE_TZ` | `Asia/Kolkata` | IANA zone the cron is read in (other jobs are UTC) |
 | `BOOK_CACHE_PREFIX` | `books/caches` | |
 | `BOOK_CACHE_DOWNLOAD_TTL_SECONDS` | `900` | life of a download link |
+| `BOOK_CACHE_QUIET_SECONDS` | `90` | a changed book is exported once nothing has written to it for this long |
 
 ### Running it by hand
 

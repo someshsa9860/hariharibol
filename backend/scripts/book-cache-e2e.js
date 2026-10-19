@@ -23,6 +23,7 @@ import env from '../config/env.js';
 import { bookCache } from '../config/book-cache.js';
 import * as authService from '../services/auth.js';
 import * as s3 from '../services/s3.js';
+import { exportStaleBooks, staleBooks } from '../services/book-cache.js';
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:4000';
 const DEVICE = 'book-cache-e2e-device';
@@ -261,6 +262,64 @@ async function main() {
     const unitVerses = JSON.parse(unitBytes.toString('utf8')).verses;
     check('the cached file carries the folder key for that verse', unitVerses.find((x) => x.id === bare.id)?.audioPath === bareKey);
     check('and the verse\'s own key for the other', unitVerses.find((x) => x.id === aVerse.id)?.audioPath === `verses/audio/${TAG}.mp3`);
+
+    // ── the book's content version ──────────────────────────────────────────
+    // Book.contentVersion goes up by itself (triggers) whenever text the export carries changes;
+    // exportedVersion is what the last clean export was built from; the worker's every-minute job
+    // exports what is ahead once its writes have been quiet for a while, and the manifest tells phones.
+    console.log('\nContent version');
+    const vers = async (b) => prisma.book.findUnique({ where: { id: b.id }, select: { contentVersion: true, exportedVersion: true } });
+    const mine = { only: slugs, quietSeconds: 0 };
+
+    const settled = await vers(cantoBook);
+    check('building the fixture and exporting it left the book exported', settled.contentVersion > 1 && settled.exportedVersion === settled.contentVersion, JSON.stringify(settled));
+    check('so nothing of it is due', (await staleBooks(mine)).length === 0);
+
+    await prisma.verseTranslation.updateMany({ where: { verseId: aVerse.id, languageCode: 'hi' }, data: { meaning: 'edited in hindi' } });
+    const edited = await vers(cantoBook);
+    check('editing a translation raises the version by itself, once', edited.contentVersion === settled.contentVersion + 1 && edited.exportedVersion === settled.exportedVersion, JSON.stringify(edited));
+    check('and does not touch another book', (await vers(chapterBook)).contentVersion === (await vers(chapterBook)).exportedVersion);
+    check('the book is due, but not inside the quiet period (a burst of writes is still going)', (await staleBooks(mine)).join() === cantoBook.slug && (await staleBooks({ only: slugs })).length === 0);
+
+    const sync = await exportStaleBooks(mine);
+    check('the job exports it and only it', sync.stale.join() === cantoBook.slug && sync.report?.changed === 1 && sync.report?.failed === 0, JSON.stringify(sync.report ?? sync));
+    const exported = await vers(cantoBook);
+    check('the exported version catches up to the version it was built from', exported.exportedVersion === exported.contentVersion, JSON.stringify(exported));
+    check('the file carries the edit', (await readUnit(key(cantoBook, 'canto', 1))).verses[0].translations.find((t) => t.languageCode === 'hi')?.meaning === 'edited in hindi');
+    check('and nothing is due again', (await exportStaleBooks(mine)).stale.length === 0);
+
+    const mfv = await call('GET', `/api/app/books/${cantoBook.slug}/manifest`);
+    check('the manifest tells phones the version the files were built from', mfv.json.data.contentVersion === exported.exportedVersion, String(mfv.json.data.contentVersion));
+    const st = await call('GET', '/api/admin/book-cache', { token: admin.token });
+    const stRow = st.json?.data?.find((r) => r.book?.slug === cantoBook.slug);
+    check('the admin status shows both numbers and that nothing is due', stRow?.contentVersion === exported.contentVersion && stRow?.exportedVersion === exported.exportedVersion && stRow?.exportDue === false, JSON.stringify(stRow));
+
+    // Other writes the export carries count too; its own bookkeeping, and a field it does not carry, do not.
+    await prisma.verse.update({ where: { id: aVerse.id }, data: { transliteration: 'changed again' } });
+    const afterVerse = await vers(cantoBook);
+    check('a verse edit raises it', afterVerse.contentVersion === exported.contentVersion + 1);
+    await prisma.book.update({ where: { id: cantoBook.id }, data: { exportedVersion: afterVerse.contentVersion } });
+    check('writing exportedVersion does not count as a change', (await vers(cantoBook)).contentVersion === afterVerse.contentVersion);
+    await prisma.book.update({ where: { id: cantoBook.id }, data: { description: 'not part of the export' } });
+    check('nor does a field the files do not carry', (await vers(cantoBook)).contentVersion === afterVerse.contentVersion);
+    await prisma.book.update({ where: { id: cantoBook.id }, data: { title: 'E2E canto, retitled' } });
+    check('but the book\'s title does', (await vers(cantoBook)).contentVersion === afterVerse.contentVersion + 1);
+
+    // A book that is new is exported on its own, without waiting for the weekly run.
+    const fresh = await mkBook('fresh', 3);
+    books.push(fresh);
+    const freshChapter = await prisma.chapter.create({ data: { bookId: fresh.id, number: 1, title: 'Chapter 1' } });
+    await mkVerse(fresh, freshChapter, null, 1);
+    const freshOnly = { only: [fresh.slug], quietSeconds: 0 };
+    check('a new book is due before it has ever been exported', (await staleBooks(freshOnly)).join() === fresh.slug && (await vers(fresh)).exportedVersion === 0);
+    const created = await exportStaleBooks(freshOnly);
+    check('and is exported at once, with the manifest rewritten', created.report?.created === 1 && created.report?.manifestUpdated === true, JSON.stringify(created.report ?? created));
+    const mfFresh = await call('GET', `/api/app/books/${fresh.slug}/manifest`);
+    check('so phones find it, carrying its version', mfFresh.json.data.totalUnits === 1 && mfFresh.json.data.contentVersion === (await vers(fresh)).contentVersion);
+
+    // A book that is not published is never exported, whatever its version says.
+    await prisma.book.update({ where: { id: fresh.id }, data: { isPublished: false } });
+    check('an unpublished book is not due', (await staleBooks(freshOnly)).length === 0);
   } finally {
     for (const book of books) {
       await prisma.book.delete({ where: { id: book.id } }).catch(() => {});

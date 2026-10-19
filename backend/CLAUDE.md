@@ -717,6 +717,21 @@ Rules worth knowing before changing it:
 - **Bump `SCHEMA_VERSION`** (config/book-cache.js) when the file shape changes; it is hashed, so
   the next run rewrites every unit.
 - Work goes through the `content` queue; the export holds a Redis lock.
+- **A book's text has a version, and the database keeps it.** `Book.contentVersion` is bumped by triggers (migration
+  `20261025000000_book_content_version`), not by code in the writers — imports, the admin panel, the translation import and
+  psql all write these tables, and a writer that forgot to call something would leave phones on old text. A new table
+  the export reads must get the same trigger. A bump with nothing really changed is harmless (the hashes match and nothing is
+  uploaded); a missed bump is the harmful direction.
+- **`book.cache.sync` (every minute) exports what is due** — `contentVersion > exportedVersion` and `contentChangedAt`
+  older than `BOOK_CACHE_QUIET_SECONDS` (`staleBooks`, `exportStaleBooks` in `services/book-cache.js`). `runExport` stamps
+  `exportedVersion` only after every unit and the manifest succeeded, to the version it read **before** building; a failed
+  unit leaves the book due, and a failing export is left alone for 5 minutes. Do not stamp it anywhere else.
+- **The manifest sends `exportedVersion` as `contentVersion`**, never the live `contentVersion`: the files can be behind
+  the database, and a phone told the newer number would record a version the files do not hold. The admin status shows
+  both and `exportDue`.
+- After this migration `exportedVersion` is 0 for every book, so the first minute exports all of them (unchanged units are
+  skipped by hash). **Deploying needs `prisma migrate deploy` and a restart of the API and the worker** (so the new
+  repeatable job is registered).
 
 ## Verse word meanings and the default translation
 

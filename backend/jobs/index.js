@@ -41,6 +41,7 @@ const JOBS = {
   CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',
   S3_TEMP_PRUNE: 's3.temp.prune',
   BOOK_CACHE_EXPORT: 'book.cache.export',
+  BOOK_CACHE_SYNC: 'book.cache.sync',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
   TRANSLATION_RUN: 'translation.run',

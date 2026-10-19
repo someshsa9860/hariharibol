@@ -1,9 +1,14 @@
-// Content exports. Today that is one job: the weekly book cache.
+// Content exports: the weekly book cache, and the minute-by-minute look for a book that has changed since.
 
 import { JOBS } from '../index.js';
-import { runExport } from '../../services/book-cache.js';
+import { runExport, exportStaleBooks } from '../../services/book-cache.js';
 
 export default async function contentProcessor(job) {
+  if (job.name === JOBS.BOOK_CACHE_SYNC) {
+    // Nothing to do almost every minute; a failure is logged by the export and tried again after a pause,
+    // so it does not fail the job (a failing repeatable job every minute is only noise).
+    return exportStaleBooks();
+  }
   if (job.name === JOBS.BOOK_CACHE_EXPORT) {
     const report = await runExport({
       books: job.data?.books,
