@@ -100,6 +100,55 @@ class AppLocalizationsAs extends AppLocalizations {
       'অব্যাহত ৰাখি আপুনি আমাৰ চৰ্তাৱলী আৰু গোপনীয়তা নীতিত সন্মত হৈছে।';
 
   @override
+  String get introWelcomeTitle => 'HariHariBol-লৈ স্বাগতম';
+
+  @override
+  String get introWelcomeBody =>
+      'পঢ়িবলৈ, জপ কৰিবলৈ আৰু আপোনাৰ দৈনন্দিন সাধনা ৰাখিবলৈ এখন শান্ত ঠাই — সকলো এটা এপতে।';
+
+  @override
+  String get introReadTitle => 'শাস্ত্ৰ পঢ়ক';
+
+  @override
+  String get introReadBody =>
+      'ভগৱদ্গীতা আৰু শ্ৰীমদ্ভাগৱত, এটাৰ পাছত এটা শ্লোক, আপোনাৰ প্ৰিয় ভাষাত। পাঠ শুনক, ইণ্টাৰনেট নোহোৱাকৈয়ো।';
+
+  @override
+  String get introChantTitle => 'প্ৰতিটো উশাহৰ সৈতে জপ কৰক';
+
+  @override
+  String get introChantBody =>
+      'শব্দৰে বা টেপেৰে আপোনাৰ জপ গণনা কৰক, ৰেকৰ্ড কৰা মালাৰ সৈতে জপ কৰক, আৰু দিনক দিনে আপোনাৰ সাধনা বৃদ্ধি হোৱা চাওক।';
+
+  @override
+  String get introSakhaTitle => 'Sakha-ক সোধক, বাটৰ এজন বন্ধু';
+
+  @override
+  String get introSakhaBody =>
+      'এটা প্ৰশ্ন বা ভাৰাক্ৰান্ত মন লৈ আহক। Sakha এটা ডিজিটেল সংগী, যি আপোনাৰ ভাষাত, কোমলভাৱে, এটা এটা সৰু খোজত উত্তৰ দিয়ে।';
+
+  @override
+  String get introReelsTitle => 'আপোনাৰ দিনটোক উজ্জ্বল কৰা ৰীল';
+
+  @override
+  String get introReelsBody =>
+      'শ্লোক আৰু ক্ৰিয়েটৰসকলৰ চুটি ভক্তিমূলক ৰীল। অলপ সময় পালেই অলপ প্ৰেৰণা চাওক, ছেভ কৰক আৰু শ্বেয়াৰ কৰক।';
+
+  @override
+  String get introNext => 'পৰৱৰ্তী';
+
+  @override
+  String get introSkip => 'এৰি দিয়ক';
+
+  @override
+  String get introStart => 'আৰম্ভ কৰক';
+
+  @override
+  String introPageOf(int current, int total) {
+    return 'পৃষ্ঠা $current / $total';
+  }
+
+  @override
   String languageStepOf(int current, int total) {
     return 'পদক্ষেপ $current / $total';
   }

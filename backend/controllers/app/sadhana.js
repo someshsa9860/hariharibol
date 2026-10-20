@@ -133,7 +133,13 @@ async function favouriteMantra(user, mantraStub) {
     const mantra = await prisma.mantra.findFirst({ where: { id, isPublished: true }, ...mantraStub });
     if (mantra) return mantra;
   }
-  return null;
+
+  // Nothing chanted here lately. Someone carried over from the old app opens on the mantra they chanted most
+  // there (POST /auth/legacy) until they have chanted one here, which then takes over.
+  return prisma.mantra.findFirst({
+    where: { isPublished: true, legacyFavoriteOf: { some: { userId: user.id } } },
+    ...mantraStub,
+  });
 }
 
 /**

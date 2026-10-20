@@ -103,6 +103,10 @@ the workflow → Run workflow** and pick the `production` branch; run by hand fr
 checks the code and does not deploy. `production` is only ever updated by merging `main` into it, never committed to
 directly.
 
+The **iOS app** is released the same way, by Xcode Cloud rather than a GitHub workflow: its workflow starts on
+branch changes to `production` and ships a build to TestFlight. Its setup, secrets and what must be enabled on
+Apple's side are in "Releasing the iOS app (Xcode Cloud)" in [app/CLAUDE.md](../app/CLAUDE.md#releasing-the-ios-app-xcode-cloud).
+
 ## Deploying
 
 Deploy everything with `IMAGE_TAG=<git-sha> ./deploy.sh`, or one part with

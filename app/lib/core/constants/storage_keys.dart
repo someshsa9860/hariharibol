@@ -66,6 +66,13 @@ abstract final class BoxKeys {
   /// the point is that the reader never has to think about it.
   static const String syncWifiOnly = 'settings.sync_wifi_only';
   static const String onboardingSeen = 'onboarding.seen';
+
+  /// The welcome pages have been shown (or skipped) on this phone. About the
+  /// device, not the account, so `AppSession.clear` leaves it: signing out
+  /// does not bring the pages back. Written when they end, and whenever a
+  /// session starts or is restored, so an account that was signed in before the
+  /// pages existed does not meet them the first time it signs out.
+  static const String introSeen = 'intro.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
 

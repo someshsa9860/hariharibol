@@ -97,6 +97,55 @@ class AppLocalizationsEn extends AppLocalizations {
       'By continuing you agree to our Terms and Privacy Policy.';
 
   @override
+  String get introWelcomeTitle => 'Welcome to HariHariBol';
+
+  @override
+  String get introWelcomeBody =>
+      'A quiet place to read, chant and keep your daily practice, all in one app.';
+
+  @override
+  String get introReadTitle => 'Read the scriptures';
+
+  @override
+  String get introReadBody =>
+      'The Bhagavad Gita and Srimad Bhagavatam, verse by verse, in the language you love. Listen to the recitation, even offline.';
+
+  @override
+  String get introChantTitle => 'Chant with every breath';
+
+  @override
+  String get introChantBody =>
+      'Count your japa by sound or by tap, chant along with a recorded mala, and watch your practice grow day by day.';
+
+  @override
+  String get introSakhaTitle => 'Ask Sakha, a friend on the path';
+
+  @override
+  String get introSakhaBody =>
+      'Bring a question or a heavy heart. Sakha is a digital companion that answers gently, in your language, one small step at a time.';
+
+  @override
+  String get introReelsTitle => 'Reels to lift your day';
+
+  @override
+  String get introReelsBody =>
+      'Short devotional reels from verses and creators. Watch, save and share a little inspiration whenever you pause.';
+
+  @override
+  String get introNext => 'Next';
+
+  @override
+  String get introSkip => 'Skip';
+
+  @override
+  String get introStart => 'Get started';
+
+  @override
+  String introPageOf(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
   String languageStepOf(int current, int total) {
     return 'Step $current of $total';
   }

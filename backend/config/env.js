@@ -52,6 +52,23 @@ const schema = z.object({
   APPLE_BUNDLE_IDS: z.string().default(''),
 
   APP_CHECK_ENABLED: flag(false),
+
+  // Carrying people over from the old app's server (POST /auth/legacy, services/legacy.js). The URL is
+  // the old server's migration route in full; the key is the secret both servers hold (HHB_MIGRATION_KEY
+  // over there), sent as X-Migration-Key. Leave either blank and the feature is off: the endpoint answers
+  // 503 and the app keeps the old token for later.
+  LEGACY_MIGRATION_URL: z
+    .string()
+    .trim()
+    .refine((value) => !value || /^https?:\/\/\S+$/i.test(value), 'must be a full http(s) URL')
+    .default(''),
+  LEGACY_MIGRATION_KEY: z
+    .string()
+    .trim()
+    .refine((value) => !value || value.length >= 32, 'must be at least 32 characters')
+    .default(''),
+  LEGACY_MIGRATION_TIMEOUT_MS: z.coerce.number().int().min(1000).max(30000).default(8000),
+
   // Path to the Firebase service account JSON — see secrets/README.md. Either
   // absolute, or relative to the backend directory. Takes precedence over the
   // three FIREBASE_* fields below, which remain for hosts where mounting a
@@ -156,6 +173,7 @@ const env = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
+  legacyMigrationEnabled: Boolean(parsed.data.LEGACY_MIGRATION_URL && parsed.data.LEGACY_MIGRATION_KEY),
   // Resolved against the backend directory so the .env can hold the short,
   // obvious `secrets/…json` rather than a path that only works from one cwd.
   googleServiceAccountPath: parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH

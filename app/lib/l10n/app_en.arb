@@ -34,6 +34,34 @@
   "signInCancelled": "Sign-in was cancelled.",
   "signInFailed": "We could not sign you in. Please try again.",
   "signInLegal": "By continuing you agree to our Terms and Privacy Policy.",
+  "introWelcomeTitle": "Welcome to HariHariBol",
+  "introWelcomeBody": "A quiet place to read, chant and keep your daily practice, all in one app.",
+  "introReadTitle": "Read the scriptures",
+  "introReadBody": "The Bhagavad Gita and Srimad Bhagavatam, verse by verse, in the language you love. Listen to the recitation, even offline.",
+  "introChantTitle": "Chant with every breath",
+  "introChantBody": "Count your japa by sound or by tap, chant along with a recorded mala, and watch your practice grow day by day.",
+  "introSakhaTitle": "Ask Sakha, a friend on the path",
+  "introSakhaBody": "Bring a question or a heavy heart. Sakha is a digital companion that answers gently, in your language, one small step at a time.",
+  "@introSakhaBody": {
+    "description": "The line under the Ask Sakha welcome page's title. It says plainly that Sakha is a digital companion, so do not make it sound like a person."
+  },
+  "introReelsTitle": "Reels to lift your day",
+  "introReelsBody": "Short devotional reels from verses and creators. Watch, save and share a little inspiration whenever you pause.",
+  "introNext": "Next",
+  "introSkip": "Skip",
+  "introStart": "Get started",
+  "introPageOf": "Page {current} of {total}",
+  "@introPageOf": {
+    "description": "Read aloud by a screen reader for the page dots on the welcome pages: which page of how many. Nothing is shown.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "languageStepOf": "Step {current} of {total}",
   "@languageStepOf": {
     "placeholders": {

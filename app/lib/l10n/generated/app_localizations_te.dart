@@ -99,6 +99,55 @@ class AppLocalizationsTe extends AppLocalizations {
       'కొనసాగించడం ద్వారా మీరు మా నిబంధనలు మరియు గోప్యతా విధానానికి అంగీకరిస్తున్నారు.';
 
   @override
+  String get introWelcomeTitle => 'HariHariBolకు స్వాగతం';
+
+  @override
+  String get introWelcomeBody =>
+      'చదవడానికి, జపించడానికి, మీ దైనిక సాధనను ఉంచుకోవడానికి ఒక ప్రశాంతమైన చోటు — అన్నీ ఒకే యాప్‌లో.';
+
+  @override
+  String get introReadTitle => 'గ్రంథాలను చదవండి';
+
+  @override
+  String get introReadBody =>
+      'భగవద్గీత, శ్రీమద్భాగవతం, శ్లోకం శ్లోకంగా, మీకు ఇష్టమైన భాషలో. పారాయణం వినండి, ఆఫ్‌లైన్‌లో కూడా.';
+
+  @override
+  String get introChantTitle => 'ప్రతి శ్వాసతో జపించండి';
+
+  @override
+  String get introChantBody =>
+      'శబ్దంతో లేదా ట్యాప్‌తో మీ జపాన్ని లెక్కించండి, రికార్డ్ చేసిన మాలతో కలిసి జపించండి, మీ సాధన రోజురోజుకూ పెరగడం చూడండి.';
+
+  @override
+  String get introSakhaTitle => 'Sakhaను అడగండి, దారిలో ఒక స్నేహితుడు';
+
+  @override
+  String get introSakhaBody =>
+      'ఒక ప్రశ్నతో లేదా బరువెక్కిన మనసుతో రండి. Sakha ఒక డిజిటల్ తోడు; అది మీ భాషలో, మృదువుగా, ఒక్కో చిన్న అడుగుగా సమాధానం ఇస్తుంది.';
+
+  @override
+  String get introReelsTitle => 'మీ రోజును వెలిగించే రీల్స్';
+
+  @override
+  String get introReelsBody =>
+      'శ్లోకాల నుండి, క్రియేటర్ల నుండి చిన్న భక్తి రీల్స్. కాస్త ఆగినప్పుడల్లా కొంచెం స్ఫూర్తిని చూడండి, సేవ్ చేయండి, షేర్ చేయండి.';
+
+  @override
+  String get introNext => 'తర్వాత';
+
+  @override
+  String get introSkip => 'దాటవేయండి';
+
+  @override
+  String get introStart => 'ప్రారంభించండి';
+
+  @override
+  String introPageOf(int current, int total) {
+    return 'పేజీ $current / $total';
+  }
+
+  @override
   String languageStepOf(int current, int total) {
     return 'దశ $current / $total';
   }

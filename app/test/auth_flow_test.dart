@@ -8,6 +8,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/material.dart' show FilledButton, TextButton;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -26,7 +27,9 @@ import 'package:hariharibol/services/local_store.dart';
 import 'package:hariharibol/views/auth/sign_in_view.dart';
 import 'package:hariharibol/views/dashboard/dashboard_view.dart';
 import 'package:hariharibol/views/dashboard/routine_tab.dart';
+import 'package:hariharibol/core/constants/intro_config.dart';
 import 'package:hariharibol/widgets/common/glass_nav_bar.dart';
+import 'package:hariharibol/views/onboarding/intro_view.dart';
 import 'package:hariharibol/views/onboarding/language_view.dart';
 import 'package:hariharibol/views/splash/splash_view.dart';
 
@@ -169,6 +172,37 @@ void main() {
       await AppSession.instance.restore();
       expect(AppSession.instance.status, SessionStatus.signedOut);
     });
+
+    test('a phone with nobody on it has not seen the welcome pages', () async {
+      await AppSession.instance.restore();
+
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isNull);
+    });
+
+    test('someone who signs in has seen what is in the app', () async {
+      await AppSession.instance.start(AuthSession.fromJson(sessionPayload()));
+
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isTrue);
+    });
+
+    test('an account from before the welcome pages existed has seen them too', () async {
+      // Its session is stored; the flag never was. Without this it would meet
+      // the pages the first time it signed out.
+      await AppSession.instance.start(AuthSession.fromJson(sessionPayload()));
+      await LocalStore.instance.write(BoxKeys.introSeen, null);
+
+      await AppSession.instance.restore();
+
+      expect(AppSession.instance.status, SessionStatus.signedIn);
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isTrue);
+    });
+
+    test('signing out does not bring the welcome pages back', () async {
+      await AppSession.instance.start(AuthSession.fromJson(sessionPayload()));
+      await AppSession.instance.clear();
+
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isTrue);
+    });
   });
 
   group('where the app lands', () {
@@ -185,11 +219,34 @@ void main() {
           await AppSession.instance.restore();
         });
 
-    Future<void> signOut(WidgetTester tester) => tester.runAsync(() async {
+    // `seenIntro: false` is a phone that has never shown the welcome pages;
+    // every other signed-out test is about a phone that has.
+    Future<void> signOut(WidgetTester tester, {bool seenIntro = true}) =>
+        tester.runAsync(() async {
           await AppSession.instance.clear();
           await LocalStore.instance.write(BoxKeys.onboardingSeen, null);
+          await LocalStore.instance.write(BoxKeys.introSeen, seenIntro ? true : null);
           await AppSession.instance.restore();
         });
+
+    // The welcome pages' last button, and Skip, write the flag before they move
+    // on, and a write to the store is disk I/O that a test's fake clock never
+    // sees finish. The tap and a moment of real time go together.
+    Future<void> tapAndSave(WidgetTester tester, Finder finder) =>
+        tester.runAsync(() async {
+          await tester.tap(finder);
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
+
+    Future<void> openWelcomePages(WidgetTester tester) async {
+      await signOut(tester, seenIntro: false);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      // Long enough for the last button's staggered entrance to have started,
+      // so no timer is left pending when the test ends.
+      await tester.pump(const Duration(seconds: 1));
+    }
 
     testWidgets('a signed-in person goes straight to the dashboard', (tester) async {
       await signIn(tester);
@@ -261,6 +318,69 @@ void main() {
 
       expect(find.byType(SignInView), findsOneWidget);
       expect(find.byType(DashboardView), findsNothing);
+      expect(find.byType(IntroView), findsNothing);
+    });
+
+    testWidgets('a phone that has never shown the welcome pages shows them first', (tester) async {
+      await openWelcomePages(tester);
+
+      expect(find.byType(IntroView), findsOneWidget);
+      expect(find.byType(SignInView), findsNothing);
+      expect(find.byType(SplashView), findsNothing);
+    });
+
+    testWidgets('the last button leads to sign-in and the pages stay seen', (tester) async {
+      await openWelcomePages(tester);
+
+      for (var page = 1; page < IntroConfig.pageCount; page++) {
+        await tester.tap(find.byType(FilledButton));
+        await tester.pump();
+        await tester.pump(IntroConfig.pageTurn);
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+      expect(find.text('Get started'), findsOneWidget);
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isNull);
+
+      await tapAndSave(tester, find.byType(FilledButton));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(SignInView), findsOneWidget);
+      expect(find.byType(IntroView), findsNothing);
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isTrue);
+    });
+
+    testWidgets('Skip does the same from the first page', (tester) async {
+      await openWelcomePages(tester);
+
+      await tapAndSave(tester, find.widgetWithText(TextButton, 'Skip'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(SignInView), findsOneWidget);
+      expect(find.byType(IntroView), findsNothing);
+      expect(LocalStore.instance.read<bool>(BoxKeys.introSeen), isTrue);
+    });
+
+    testWidgets('the welcome pages, opened over the app, close back to it', (tester) async {
+      await signIn(tester);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      AppNavigator.instance.push(AppRoutes.intro);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(IntroView), findsOneWidget);
+
+      await tapAndSave(tester, find.widgetWithText(TextButton, 'Skip'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(IntroView), findsNothing);
+      expect(find.byType(DashboardView), findsOneWidget);
+      expect(find.byType(SignInView), findsNothing);
     });
 
     testWidgets('signing out from the dashboard returns to the sign-in screen', (tester) async {
@@ -353,6 +473,21 @@ void main() {
         await playOut(tester, SplashConfig.total);
 
         expect(find.byType(SignInView), findsOneWidget);
+        expect(find.byType(SplashView), findsNothing);
+      });
+
+      testWidgets('a phone that has never shown the welcome pages is sent to them',
+          (tester) async {
+        await signOut(tester, seenIntro: false);
+
+        await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+        await tester.pump();
+        expect(find.byType(SplashView), findsOneWidget);
+
+        await playOut(tester, SplashConfig.total);
+
+        expect(find.byType(IntroView), findsOneWidget);
+        expect(find.byType(SignInView), findsNothing);
         expect(find.byType(SplashView), findsNothing);
       });
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../models/api_failure.dart';
+import '../../models/mantra.dart';
 import '../../providers/mantra_provider.dart';
 
 /// Opens the counter already carrying [mantraSlug], the same way "chant this"
@@ -19,11 +20,25 @@ Future<void> openChant(WidgetRef ref, {String? mantraSlug}) async {
   }
 
   try {
-    final mantra = await navigator.loading.wrap(
-      () => ref.read(mantraDetailProvider(mantraSlug).future),
-    );
+    final mantra = await navigator.loading.wrap(() => loadMantra(ref, mantraSlug));
     navigator.push(AppRoutes.chant, extra: mantra);
   } on ApiFailure catch (failure) {
     navigator.showFailure(failure);
+  }
+}
+
+/// One mantra, by slug, from [mantraDetailProvider].
+///
+/// That provider is `autoDispose`, and a bare `ref.read(….future)` is no
+/// listener: Riverpod lets it go after the frame, and with nothing saved yet
+/// (the request still out) the future fails with a Bad state instead of an
+/// answer. A listener held until the mantra has arrived keeps it alive.
+Future<Mantra> loadMantra(WidgetRef ref, String slug) async {
+  final provider = mantraDetailProvider(slug);
+  final hold = ref.listenManual(provider, (_, _) {});
+  try {
+    return await ref.read(provider.future);
+  } finally {
+    hold.close();
   }
 }

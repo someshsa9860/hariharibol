@@ -18,6 +18,7 @@ import '../../views/library/book_detail_view.dart';
 import '../../views/library/chapter_list_view.dart';
 import '../../views/library/chapter_read_view.dart';
 import '../../views/mantra/mantra_detail_view.dart';
+import '../../views/onboarding/intro_view.dart';
 import '../../views/onboarding/language_view.dart';
 import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
@@ -74,6 +75,14 @@ GoRouter createRouter() {
           return location == AppRoutes.splash ? null : AppRoutes.splash;
 
         case SessionStatus.signedOut:
+          // A phone that has never shown the welcome pages shows them before
+          // anything else. The flag is the device's, so signing out later goes
+          // straight to sign-in.
+          final seenIntro =
+              LocalStore.instance.read<bool>(BoxKeys.introSeen) ?? false;
+          if (!seenIntro) {
+            return location == AppRoutes.intro ? null : AppRoutes.intro;
+          }
           return location == AppRoutes.signIn ? null : AppRoutes.signIn;
 
         case SessionStatus.signedIn:
@@ -102,6 +111,20 @@ GoRouter createRouter() {
         path: AppRoutes.splash,
         name: RouteNames.splash,
         builder: (context, state) => const SplashView(),
+      ),
+      // Fades in from the splash rather than cutting: the launch animation ends
+      // on the same warm ground, so the two read as one opening.
+      GoRoute(
+        path: AppRoutes.intro,
+        name: RouteNames.intro,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const IntroView(),
+          transitionDuration: AppDurations.page,
+          reverseTransitionDuration: AppDurations.page,
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
       ),
       GoRoute(
         path: AppRoutes.signIn,

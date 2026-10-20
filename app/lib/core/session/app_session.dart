@@ -62,6 +62,7 @@ class AppSession extends ChangeNotifier {
     _pair = stored;
     _user = cached == null ? null : AppUser.fromJson(cached);
     _status = SessionStatus.signedIn;
+    await _markIntroSeen();
     notifyListeners();
   }
 
@@ -73,7 +74,16 @@ class AppSession extends ChangeNotifier {
 
     await _tokens.write(session.tokens);
     await LocalStore.instance.write(BoxKeys.user, session.user.toJson());
+    await _markIntroSeen();
     notifyListeners();
+  }
+
+  /// Someone who is in the app has seen what is in it. Without this an account
+  /// that was signed in before the welcome pages existed would meet them the
+  /// first time it signed out.
+  Future<void> _markIntroSeen() async {
+    if (LocalStore.instance.read<bool>(BoxKeys.introSeen) ?? false) return;
+    await LocalStore.instance.write(BoxKeys.introSeen, true);
   }
 
   /// A fresh pair from a silent rotation. The user is unchanged, so no listener

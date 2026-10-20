@@ -6,6 +6,10 @@ abstract final class AppRoutes {
   static const String splash = '/splash';
   static const String signIn = '/sign-in';
 
+  /// The welcome pages: what is inside the app, shown once on a new phone,
+  /// before sign-in.
+  static const String intro = '/intro';
+
   /// Asked once, on the first run of a new account.
   static const String languageSetup = '/language';
 
@@ -114,6 +118,7 @@ abstract final class AppRoutes {
 abstract final class RouteNames {
   static const String splash = 'splash';
   static const String signIn = 'signIn';
+  static const String intro = 'intro';
   static const String languageSetup = 'languageSetup';
   static const String home = 'home';
   static const String sadhana = 'sadhana';

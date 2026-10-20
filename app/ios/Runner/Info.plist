@@ -52,6 +52,11 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- The app uses only the encryption the OS provides (HTTPS, Keychain). Saying so
+	     here is what lets TestFlight hand a build to testers with no export-compliance
+	     question on each upload, which Xcode Cloud's automatic distribution cannot answer. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- The microphone is used twice: auto-count listens for a known mantra's own
 	     sound to count repetitions (on-device, no audio leaves the phone), and
 	     speaking a message to Sakha in the chat. -->
@@ -123,6 +128,7 @@
 	<array>
 		<string>processing</string>
 		<string>audio</string>
+		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>

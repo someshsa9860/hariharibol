@@ -27,6 +27,10 @@ datasource db {
 enum AuthProvider {
   GOOGLE
   APPLE
+  // Carried over from the old app's server (POST /auth/legacy). Such an account has no
+  // Google or Apple identity yet; the first verified sign-in that matches its email adopts
+  // it and this value becomes GOOGLE or APPLE. See "Legacy users" in backend/CLAUDE.md.
+  LEGACY
 }
 
 // What kind of work a Book row is. SCRIPTURE has chapters (and cantos for SB);
@@ -202,6 +206,11 @@ model User {
   avatarUrl      String?
   authProvider   AuthProvider
   providerUserId String       @unique
+
+  // The id this person had on the old app's server, set only on an account carried over
+  // from it. It is what makes the carry-over safe to repeat: the same old account always
+  // lands on the same row here, however many times a phone asks.
+  legacyUserId Int? @unique
 
   // Three independent language choices. They may all differ, or all match —
   // nothing is derived from another.
@@ -1754,7 +1763,8 @@ model Mantra {
   chantSessions    ChantSession[]
   favorites        Favorite[]
   reels            Reel[]
-  preferredByUsers SadhanaProfile[]
+  preferredByUsers SadhanaProfile[] @relation("PreferredMantra")
+  legacyFavoriteOf SadhanaProfile[] @relation("LegacyFavoriteMantra")
 
   @@index([category])
   @@index([sampradaya])
@@ -1811,13 +1821,22 @@ model SadhanaProfile {
   reminderTime      String? @db.VarChar(5) // "04:30", local to User.timezone
   preferredMantraId String? // what "Chant now" opens with when nothing more specific was tapped
 
+  // The mantra this person chanted most on the old app, worked out once when their account
+  // was carried over. Only a starting point: `favouriteMantra()` (controllers/app/sadhana.js)
+  // uses it while there is no chanting here to go by, and the chanting here wins from the
+  // first sitting, so a wrong guess corrects itself. Never the user's explicit choice —
+  // that is `preferredMantraId`.
+  legacyFavoriteMantraId String?
+
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  preferredMantra Mantra? @relation(fields: [preferredMantraId], references: [id], onDelete: SetNull)
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredMantra      Mantra? @relation("PreferredMantra", fields: [preferredMantraId], references: [id], onDelete: SetNull)
+  legacyFavoriteMantra Mantra? @relation("LegacyFavoriteMantra", fields: [legacyFavoriteMantraId], references: [id], onDelete: SetNull)
 
   @@index([preferredMantraId])
+  @@index([legacyFavoriteMantraId])
 }
 
 // One row per user per calendar date — the anchor every report is built from.

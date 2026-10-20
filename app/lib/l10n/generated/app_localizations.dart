@@ -286,6 +286,90 @@ abstract class AppLocalizations {
   /// **'By continuing you agree to our Terms and Privacy Policy.'**
   String get signInLegal;
 
+  /// No description provided for @introWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to HariHariBol'**
+  String get introWelcomeTitle;
+
+  /// No description provided for @introWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A quiet place to read, chant and keep your daily practice, all in one app.'**
+  String get introWelcomeBody;
+
+  /// No description provided for @introReadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the scriptures'**
+  String get introReadTitle;
+
+  /// No description provided for @introReadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Bhagavad Gita and Srimad Bhagavatam, verse by verse, in the language you love. Listen to the recitation, even offline.'**
+  String get introReadBody;
+
+  /// No description provided for @introChantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant with every breath'**
+  String get introChantTitle;
+
+  /// No description provided for @introChantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Count your japa by sound or by tap, chant along with a recorded mala, and watch your practice grow day by day.'**
+  String get introChantBody;
+
+  /// No description provided for @introSakhaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Sakha, a friend on the path'**
+  String get introSakhaTitle;
+
+  /// The line under the Ask Sakha welcome page's title. It says plainly that Sakha is a digital companion, so do not make it sound like a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring a question or a heavy heart. Sakha is a digital companion that answers gently, in your language, one small step at a time.'**
+  String get introSakhaBody;
+
+  /// No description provided for @introReelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reels to lift your day'**
+  String get introReelsTitle;
+
+  /// No description provided for @introReelsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Short devotional reels from verses and creators. Watch, save and share a little inspiration whenever you pause.'**
+  String get introReelsBody;
+
+  /// No description provided for @introNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get introNext;
+
+  /// No description provided for @introSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get introSkip;
+
+  /// No description provided for @introStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get introStart;
+
+  /// Read aloud by a screen reader for the page dots on the welcome pages: which page of how many. Nothing is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String introPageOf(int current, int total);
+
   /// No description provided for @languageStepOf.
   ///
   /// In en, this message translates to:
