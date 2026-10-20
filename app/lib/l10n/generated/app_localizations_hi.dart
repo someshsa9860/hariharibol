@@ -2070,4 +2070,32 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chatActionNotNow => 'अभी नहीं';
+
+  @override
+  String get searchTabAll => 'सभी';
+
+  @override
+  String get searchAllBooks => 'सभी ग्रंथ';
+
+  @override
+  String searchShowingFor(String query) {
+    return '“\$query” के परिणाम दिखा रहे हैं';
+  }
+
+  @override
+  String searchNoResultsInBook(String book) {
+    return '\$book में कुछ नहीं मिला। सभी ग्रंथ आज़माएँ, या कोई और वर्तनी।';
+  }
+
+  @override
+  String get searchTipsTitle => 'खोज के सुझाव';
+
+  @override
+  String get searchTipSpelling => 'जैसा सुनाई दे वैसा लिखें। “krishna”, “krsna” और “kṛṣṇa” एक ही श्लोक खोजते हैं।';
+
+  @override
+  String get searchTipBook => 'किसी ग्रंथ के नाम से शुरू करें — “gita karma” या “bhagavatam surrender” — तो खोज केवल उसी में होगी।';
+
+  @override
+  String get searchTipPartial => 'श्लोक, उसके अर्थ या तात्पर्य के कुछ शब्द लिखें। छोटी गलतियाँ चल जाती हैं।';
 }

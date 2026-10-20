@@ -80,3 +80,4 @@ coverage/
 app/android/app/src/debug/assets/auto_chant/
 # Added by code-review-graph
 .code-review-graph/
+website/next-env.d.ts

@@ -15,7 +15,7 @@ ECR_REGISTRY="572638914162.dkr.ecr.ap-south-1.amazonaws.com"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 BACKEND_IMAGE="$ECR_REGISTRY/hariharibol-backend:$IMAGE_TAG"
 ADMIN_IMAGE="$ECR_REGISTRY/hariharibol-admin:$IMAGE_TAG"
-WEBSITE_IMAGE="nginx:1.27-alpine"
+WEBSITE_IMAGE="node:22-alpine"
 REDIS_IMAGE="redis:7-alpine"
 
 # Memory limits come from what the containers actually used (cgroup peak after a
@@ -49,8 +49,8 @@ DEEPLINK_CPU="0.5"
 ADMIN_MEMORY="64m"
 ADMIN_CPU="0.5"
 
-WEBSITE_MEMORY="64m"
-WEBSITE_CPU="0.25"
+WEBSITE_MEMORY="256m"
+WEBSITE_CPU="0.5"
 
 # Redis refuses writes at REDIS_MAXMEMORY instead of growing into its limit.
 # "noeviction" is deliberate: the job queue must never lose a job to make room.

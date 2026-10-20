@@ -2067,4 +2067,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatActionNotNow => 'Not now';
+
+  @override
+  String get searchTabAll => 'All';
+
+  @override
+  String get searchAllBooks => 'All books';
+
+  @override
+  String searchShowingFor(String query) {
+    return 'Showing results for “\$query”';
+  }
+
+  @override
+  String searchNoResultsInBook(String book) {
+    return 'Nothing found in \$book. Try all books, or another spelling.';
+  }
+
+  @override
+  String get searchTipsTitle => 'Search tips';
+
+  @override
+  String get searchTipSpelling => 'Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.';
+
+  @override
+  String get searchTipBook => 'Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.';
+
+  @override
+  String get searchTipPartial => 'Type a few words of the verse, its meaning or the purport. Small slips are forgiven.';
 }

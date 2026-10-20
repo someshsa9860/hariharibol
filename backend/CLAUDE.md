@@ -706,6 +706,39 @@ AI-drafted and **not yet read by a native speaker**.
   title-cased, untranslated — to name a new one, add a `mantraCategory*` key to all twelve ARBs and a line to
   `mantraCategoryLabel` (an app release).
 
+## Search (verses, mantras, books)
+
+`GET /api/app/search` forgives what a person types. Files: `controllers/app/search.js` (the queries),
+`utils/search-query.js` (**pure**, `test/search-query.test.js`), `services/search-vocabulary.js` (the words the library holds).
+
+- **A book named at the start of the query narrows it.** "gita karma", "bhagvat gita surrender", "sb 1.3.28": the leading one to
+  three words are matched, by sound and a letter or two out, to a book's slug words, initials, title and the extra names in
+  `EXTRA_ALIASES` (matched on the slug, so a renamed title cannot break it) and taken off the query. A bare book name ("gita") is
+  **not** a tag — it is a search for the book. The first number ends the name, so "gita 2.47" is the verse. The optional
+  `book` slug param (the app's chips) does the same and wins. `scope` in the response says which book and whether the query
+  named it (`fromQuery`, with the `text` left over).
+- **Words are matched by sound.** Each Roman word becomes a *sound key* (`soundKey`: ṛ→ri, ś/ṣ→s, aspirates and long vowels
+  flattened, w→v, doubled letters single), so "krishna", "krsna" and "kṛṣṇa" are one word and "bhagwad" is "bhagavad". A key a
+  letter or two away (`tolerance`: ≥3 letters 1, ≥6 letters 2) is the same word typed wrong. The stored spellings behind those
+  keys, diacritics and all, are what is matched against the text. The last word also matches longer words (it is still being
+  typed). Spacing: two words the library holds only joined are joined, a long unknown word is split in two when both halves
+  are words. `meta.corrected` / `corrected` is the query as read once typos are fixed, only when a word had **no** word that
+  sounds like it — a different Roman spelling of a known word is not a correction. Words in Devanagari or any other script are
+  matched as typed, no fuzziness.
+- **The vocabulary** is built from verse transliteration, English translations, book titles and mantra names with one query on the
+  first search after a boot and again hourly (`TTL_MS`); a failed build keeps the old one. It does **not** include purports.
+- **Verses match in four texts** — Sanskrit, transliteration, the translation and the purport (translations in the reader's
+  chain only) — with one regular expression per word, every word required. They are ranked in SQL: a word in the verse itself
+  3, in the meaning 2, in the purport 1, +6 when the words appear together as typed, then book order. `searchMatch`
+  (`{ field, snippet }`, matched words in `[brackets]`) says where the first hit was. Pages and a `total` come from
+  `count(*) OVER()`.
+- **Without `type`** the response is a preview (6 of each) with `verseTotal` / `mantraTotal` / `bookTotal`; with `type` it is one
+  kind, paginated, best first. A search narrowed to a book returns no mantras or books.
+- **Cost.** Every query scans verses (and purports) with `~*`, fine at ~18,700 verses; the next step is a `pg_trgm` GIN index
+  on the text columns, which would need a migration. No index exists for it today.
+- **Checked** by `npm test` (the pure parts) and by running the controller against a throwaway Postgres with a handful of
+  verses. There is no e2e script, and it has **not** been run against the full library, so ranking on real data is unseen.
+
 ## Translated titles of books, cantos and chapters
 
 `Book`, `Canto` and `Chapter` carry `titleI18n` (JSON `{ code: text }`); `Canto` and `Chapter` also `summaryI18n`, `Book`
@@ -737,6 +770,14 @@ AI-drafted and **not yet read by a native speaker**.
   "Book cache").
 - `npm run test:book-titles` walks the languages endpoint, saving on all three levels, whole-map replacement and the shape a
   phone is sent, against a running API with a throwaway book (deleted again). It uploads nothing, so the dev `.env` is fine.
+
+## Reels for a signed-out visitor (the website)
+
+`GET /reels`, `GET /reels/:id` and `GET /reel-comments` are `public: true`. Signed out, `req.auth.user` is null: the feed
+skips the "seen" penalty and the "not my own reel" filter, and `present.includes.reel` / `reelComment` swap the missing viewer id
+for a value that matches no one (`NO_ONE` in `utils/present.js` — a Prisma filter on `undefined` is no filter, which would
+show everyone's likes as the visitor's). Everything that writes, `/similar` and `/saved` still need an account.
+`npm run test:reels` checks the signed-out feed, one reel, and that liking is still refused.
 
 ## Book cache (offline books)
 

@@ -43,7 +43,8 @@ router.get(
       'library does not empty itself in an evening. The reader’s own reels are left out. ' +
       'Paginate by swiping — fetch the next page once the reader is a few reels from the end ' +
       'of what they already have, rather than waiting until the last one. `pageSize` ' +
-      'defaults to 11.',
+      'defaults to 11. Public: signed out (the website) nothing is seen, liked or saved.',
+    public: true,
     limit: 'read',
     query: z.object({
       page: z.coerce.number().int().min(1).optional(),
@@ -94,7 +95,8 @@ router.get(
     description:
       'The share and deeplink target. Unlike the feed this does not hide the reader’s own ' +
       'reels — following a link to something you posted should show it, including one still ' +
-      'awaiting review.',
+      'awaiting review. Public: a signed-out visitor sees it with nothing liked or saved.',
+    public: true,
     limit: 'read',
     params: schemas.id,
     responds: { 200: 'The reel', 404: 'No such reel, or not published' },

@@ -579,5 +579,13 @@
   "chatExplainVerse": "ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਸ਼ਲੋਕ ਨੂੰ ਸੌਖੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਸਮਝਾਓ — {reference}:\n\n{verse}",
   "chatActionQuestion": "{place} ਖੋਲ੍ਹਣਾ ਹੈ?",
   "chatActionOpen": "ਖੋਲ੍ਹੋ",
-  "chatActionNotNow": "ਹੁਣੇ ਨਹੀਂ"
+  "chatActionNotNow": "ਹੁਣੇ ਨਹੀਂ",
+  "searchTabAll": "ਸਭ",
+  "searchAllBooks": "ਸਾਰੇ ਗ੍ਰੰਥ",
+  "searchShowingFor": "“{query}” ਦੇ ਨਤੀਜੇ ਦਿਖਾ ਰਹੇ ਹਾਂ",
+  "searchNoResultsInBook": "{book} ਵਿੱਚ ਕੁਝ ਨਹੀਂ ਮਿਲਿਆ। ਸਾਰੇ ਗ੍ਰੰਥਾਂ ਵਿੱਚ ਲੱਭੋ, ਜਾਂ ਕੋਈ ਹੋਰ ਸ਼ਬਦ-ਜੋੜ ਅਜ਼ਮਾਓ।",
+  "searchTipsTitle": "ਖੋਜ ਲਈ ਸੁਝਾਅ",
+  "searchTipSpelling": "ਜਿਵੇਂ ਸੁਣਾਈ ਦੇਵੇ ਉਵੇਂ ਲਿਖੋ। “krishna”, “krsna” ਅਤੇ “kṛṣṇa” ਇੱਕੋ ਸ਼ਲੋਕ ਲੱਭਦੇ ਹਨ।",
+  "searchTipBook": "ਗ੍ਰੰਥ ਦੇ ਨਾਮ ਨਾਲ ਸ਼ੁਰੂ ਕਰੋ — “gita karma” ਜਾਂ “bhagavatam surrender” — ਤਾਂ ਖੋਜ ਸਿਰਫ਼ ਉਸੇ ਵਿੱਚ ਹੋਵੇਗੀ।",
+  "searchTipPartial": "ਸ਼ਲੋਕ, ਉਸਦੇ ਅਰਥ ਜਾਂ ਤਾਤਪਰਯ ਦੇ ਕੁਝ ਸ਼ਬਦ ਲਿਖੋ। ਛੋਟੀਆਂ ਗਲਤੀਆਂ ਚੱਲਣਗੀਆਂ।"
 }

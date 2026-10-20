@@ -2087,4 +2087,32 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get chatActionNotNow => 'ഇപ്പോൾ വേണ്ട';
+
+  @override
+  String get searchTabAll => 'എല്ലാം';
+
+  @override
+  String get searchAllBooks => 'എല്ലാ ഗ്രന്ഥങ്ങളും';
+
+  @override
+  String searchShowingFor(String query) {
+    return '“\$query” എന്നതിനുള്ള ഫലങ്ങൾ കാണിക്കുന്നു';
+  }
+
+  @override
+  String searchNoResultsInBook(String book) {
+    return '\$book-ൽ ഒന്നും കണ്ടെത്തിയില്ല. എല്ലാ ഗ്രന്ഥങ്ങളിലും തിരയുക, അല്ലെങ്കിൽ മറ്റൊരു അക്ഷരവിന്യാസം പരീക്ഷിക്കുക.';
+  }
+
+  @override
+  String get searchTipsTitle => 'തിരയാനുള്ള നുറുങ്ങുകൾ';
+
+  @override
+  String get searchTipSpelling => 'കേൾക്കുന്നതുപോലെ എഴുതുക. “krishna”, “krsna”, “kṛṣṇa” എന്നിവ ഒരേ ശ്ലോകങ്ങൾ കണ്ടെത്തും.';
+
+  @override
+  String get searchTipBook => 'ഒരു ഗ്രന്ഥത്തിന്റെ പേരിൽ തുടങ്ങുക — “gita karma” അല്ലെങ്കിൽ “bhagavatam surrender” — എങ്കിൽ അതിൽ മാത്രം തിരയും.';
+
+  @override
+  String get searchTipPartial => 'ശ്ലോകം, അതിന്റെ അർത്ഥം അല്ലെങ്കിൽ ഭാവാർത്ഥത്തിലെ ചില വാക്കുകൾ ടൈപ്പ് ചെയ്യുക. ചെറിയ തെറ്റുകൾ സാരമില്ല.';
 }

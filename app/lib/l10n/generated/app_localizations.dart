@@ -3597,6 +3597,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not now'**
   String get chatActionNotNow;
+
+  /// No description provided for @searchTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get searchTabAll;
+
+  /// No description provided for @searchAllBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'All books'**
+  String get searchAllBooks;
+
+  /// No description provided for @searchShowingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing results for “{query}”'**
+  String searchShowingFor(String query);
+
+  /// No description provided for @searchNoResultsInBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found in {book}. Try all books, or another spelling.'**
+  String searchNoResultsInBook(String book);
+
+  /// No description provided for @searchTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tips'**
+  String get searchTipsTitle;
+
+  /// No description provided for @searchTipSpelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.'**
+  String get searchTipSpelling;
+
+  /// No description provided for @searchTipBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.'**
+  String get searchTipBook;
+
+  /// No description provided for @searchTipPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a few words of the verse, its meaning or the purport. Small slips are forgiven.'**
+  String get searchTipPartial;
 }
 
 class _AppLocalizationsDelegate
