@@ -64,6 +64,7 @@ const PERMISSIONS = {
   'audit.read': { group: 'system', name: 'View the audit log' },
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
+  'console.run': { group: 'system', name: 'Run backend commands and SQL against the database (super admin only)' },
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSIONS);
@@ -82,7 +83,7 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund'].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'console.run'].includes(slug)
   ),
   [ROLES.SUPER_ADMIN]: ALL_PERMISSIONS,
 };

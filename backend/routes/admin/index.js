@@ -34,6 +34,7 @@ import translationRoutes from './translation.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
+import consoleRoutes from './console.js';
 
 const routers = [
   dashboardRoutes,
@@ -61,6 +62,7 @@ const routers = [
   bookCacheRoutes,
   systemRoutes,
   chatRoutes,
+  consoleRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

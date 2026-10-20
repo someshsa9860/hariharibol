@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Languages,
   MessageCircle,
+  TerminalSquare,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -76,6 +77,7 @@ export const NAV: NavSection[] = [
       { label: 'Jobs', path: '/jobs', icon: ListTodo, permission: 'job.manage' },
       { label: 'Analytics', path: '/analytics', icon: TrendingUp, permission: 'system.read' },
       { label: 'System health', path: '/system', icon: Activity, permission: 'system.read' },
+      { label: 'Console', path: '/console', icon: TerminalSquare, permission: 'console.run' },
     ],
   },
 ];
