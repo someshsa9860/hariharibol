@@ -211,11 +211,15 @@ class AppLocalizationsOr extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ଆଜି ଆପଣ କେମିତି ଅଛନ୍ତି?';
+  String get homeMoodPrompt => 'ଆଜି ଆପଣ କେଉଁ ଗୁଣରେ ଆଗକୁ ବଢ଼ିବାକୁ ଚାହାଁନ୍ତି?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ଆଜି ଆପଣ କିପରି ଅନୁଭବ କରୁଛନ୍ତି ତାହା ଆପଣ ଜଣାଇସାରିଛନ୍ତି। ନୂଆ କିଛି ଜଣାଇବାକୁ କାଲି ପୁଣି ଆସନ୍ତୁ।';
+      'ଆପଣ ଆଜିର ନିଜର ଲକ୍ଷ୍ୟ ବାଛି ସାରିଛନ୍ତି। ନୂଆ କିଛି ବିକଶିତ କରିବାକୁ କାଲି ପୁଣି ଆସନ୍ତୁ।';
+
+  @override
+  String get homeMoodHint =>
+      'ଯାହାକୁ ବଢ଼ାଇବାକୁ ଚାହାଁନ୍ତି ତାହା ବାଛନ୍ତୁ, ଗୋଟିଏ ଶ୍ଳୋକ ଆପଣଙ୍କ ସାଥିରେ ରହିବ।';
 
   @override
   String homeMoodViewToday(int count) {
@@ -237,6 +241,35 @@ class AppLocalizationsOr extends AppLocalizations {
       one: 'ମୋତେ ଗୋଟିଏ ଶ୍ଳୋକ ଦେଖାନ୍ତୁ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ଆତ୍ମସଂଯମ';
+
+  @override
+  String get growthKrodha => 'ଶାନ୍ତି';
+
+  @override
+  String get growthLobha => 'ସନ୍ତୋଷ';
+
+  @override
+  String get growthMoha => 'ବିବେକ';
+
+  @override
+  String get growthMada => 'ବିନମ୍ରତା';
+
+  @override
+  String get growthMatsarya => 'ସଦ୍ଭାବନା';
+
+  @override
+  String get growthMissedChantingTime => 'ସମୟରେ ଜପ';
+
+  @override
+  String get growthUnmetRoundTarget => 'ମୋ ମାଳା ସମ୍ପୂର୍ଣ୍ଣ କରିବା';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'ଆପଣଙ୍କ ଉନ୍ନତି ପାଇଁ: $quality';
   }
 
   @override
@@ -2106,4 +2139,66 @@ class AppLocalizationsOr extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'ଶ୍ଳୋକ, ତାହାର ଅର୍ଥ କିମ୍ବା ତାତ୍ପର୍ଯ୍ୟର କିଛି ଶବ୍ଦ ଲେଖନ୍ତୁ। ଛୋଟ ଭୁଲ ଚଳିବ।';
+
+  @override
+  String get settingsSectionAbout => 'ଆପ ବିଷୟରେ';
+
+  @override
+  String get sourcesTitle => 'ଉତ୍ସ ଓ ଦାୟମୁକ୍ତି';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol ଦୈନିକ ପାଠ ଓ ଜପ ପାଇଁ ପବିତ୍ର ଶାସ୍ତ୍ର ଉପସ୍ଥାପନ କରେ। ଯେଉଁ ଆଚାର୍ଯ୍ୟ, ଅନୁବାଦକ ଓ ବିଦ୍ୱାନଙ୍କ କାର୍ଯ୍ୟ ଯୋଗୁଁ ଏହା ସମ୍ଭବ ହୋଇଛି, ଆମେ ସେମାନଙ୍କ ପ୍ରତି କୃତଜ୍ଞ। ଶାସ୍ତ୍ରଗୁଡ଼ିକ କେଉଁଠାରୁ ନିଆଯାଇଛି ଓ କିପରି ଉପସ୍ଥାପିତ ହୋଇଛି, ତାହା ଏହି ପୃଷ୍ଠାରେ ଦିଆଯାଇଛି।';
+
+  @override
+  String get sourcesTextsHeading => 'ଅନୁବାଦ ଓ ଟୀକା';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ଭଗବଦ୍ଗୀତା ଯଥାଯଥ ଓ ଶ୍ରୀମଦ୍ଭାଗବତର ଇଂରାଜୀ ଅନୁବାଦ ଓ ତାତ୍ପର୍ଯ୍ୟ ଆନ୍ତର୍ଜାତୀୟ କୃଷ୍ଣଭାବନାମୃତ ସଂଘର ପ୍ରତିଷ୍ଠାତା-ଆଚାର୍ଯ୍ୟ କୃଷ୍ଣକୃପାଶ୍ରୀମୂର୍ତ୍ତି ଶ୍ରୀଲ ଅଭୟଚରଣାରବିନ୍ଦ ଭକ୍ତିବେଦାନ୍ତ ସ୍ୱାମୀ ପ୍ରଭୁପାଦଙ୍କ ରଚନା। © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ପ୍ରତ୍ୟେକ ଅନୁବାଦ, ତାତ୍ପର୍ଯ୍ୟ ଓ ଟୀକା ତାହାର ରଚୟିତାଙ୍କ କୃତି, ଏବଂ ସେଥିରେ ଥିବା ସମସ୍ତ ଅଧିକାର ତାହାର ରଚୟିତା ଓ ପ୍ରକାଶକଙ୍କ ପାଖରେ ହିଁ ରହେ। ଏଗୁଡ଼ିକ ଏଠାରେ ବ୍ୟକ୍ତିଗତ ଭକ୍ତିମୂଳକ ଅଧ୍ୟୟନ ପାଇଁ ଦିଆଯାଇଛି, ପୁନର୍ବଣ୍ଟନ ପାଇଁ ନୁହେଁ।';
+
+  @override
+  String get sourcesFromHeading => 'ଶାସ୍ତ୍ରଗୁଡ଼ିକ କେଉଁଠାରୁ ନିଆଯାଇଛି';
+
+  @override
+  String get sourcesGita =>
+      'ଭଗବଦ୍ଗୀତା: ସଂସ୍କୃତ ମୂଳ ପାଠ, ଇଂରାଜୀ ଅନୁବାଦ ଓ ତାତ୍ପର୍ଯ୍ୟ, ଏବଂ ଶ୍ରୀ ରାମାନୁଜାଚାର୍ଯ୍ୟ, ଶ୍ରୀ ମଧ୍ୱାଚାର୍ଯ୍ୟ ଓ ଶ୍ରୀଧର ସ୍ୱାମୀଙ୍କ ଟୀକା';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ଶ୍ରୀମଦ୍ଭାଗବତ, ସ୍କନ୍ଧ $from–$to: ସଂସ୍କୃତ ମୂଳ ପାଠ, ଇଂରାଜୀ ଅନୁବାଦ ଓ ତାତ୍ପର୍ଯ୍ୟ';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ଜ୍ଞାନେଶ୍ୱରୀ: ଭଗବଦ୍ଗୀତା ଉପରେ ସନ୍ଥ ଜ୍ଞାନେଶ୍ୱରଙ୍କ ମରାଠୀ ଓଭି';
+
+  @override
+  String get sourcesAiHeading => 'ଅନ୍ୟ ଭାଷାରେ ଅନୁବାଦ';
+
+  @override
+  String get sourcesAiBody =>
+      'ହିନ୍ଦୀ, ମରାଠୀ ଓ ଅନ୍ୟ ଭାରତୀୟ ଭାଷାର ଲେଖା — ଅନୁବାଦ, ତାତ୍ପର୍ଯ୍ୟ ଓ ଆପର ନିଜ କଥା — ଇଂରାଜୀରୁ AI ର ସହାୟତାରେ ପ୍ରସ୍ତୁତ କରାଯାଇଛି। ଏହା କୌଣସି ଆନୁଷ୍ଠାନିକ ବା ଅନୁମୋଦିତ ଅନୁବାଦ ନୁହେଁ ଏବଂ ଏଥିରେ ତ୍ରୁଟି ରହିପାରେ, ଯାହା ଜଣାପଡ଼ିବା ମାତ୍ରେ ଆମେ ସଂଶୋଧନ କରୁ। ଅଧ୍ୟୟନ ପାଇଁ ସଂସ୍କୃତ ଓ ମୂଳ ଇଂରାଜୀ ହିଁ ପ୍ରାମାଣିକ।';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ଜଣେ ଡିଜିଟାଲ ସାଥୀ, ଗୁରୁ ନୁହେଁ। ତାହାର ଉତ୍ତର କୌଣସି ଆଚାର୍ଯ୍ୟଙ୍କ ବାଣୀ ନୁହେଁ ଏବଂ ସେଥିରେ ଭୁଲ ହୋଇପାରେ; ଯେକୌଣସି ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ କଥା ଶାସ୍ତ୍ର ସହ ମିଳାଇ ଦେଖନ୍ତୁ।';
+
+  @override
+  String get sourcesIndependentHeading => 'ଏକ ସ୍ୱାଧୀନ ପ୍ରୟାସ';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ଏକ ସ୍ୱାଧୀନ ଭକ୍ତିମୂଳକ ପ୍ରୟାସ। ଏହା କୌଣସି ମନ୍ଦିର, ସଂସ୍ଥା ବା ପ୍ରକାଶକ ସହ ସମ୍ପୃକ୍ତ ନୁହେଁ, ସେମାନଙ୍କ ଦ୍ୱାରା ସମର୍ଥିତ ନୁହେଁ ଏବଂ ସେମାନଙ୍କ ତରଫରୁ କହେ ନାହିଁ।';
+
+  @override
+  String get sourcesContactHeading => 'ଅଧିକାର ଓ ସଂଶୋଧନ';
+
+  @override
+  String get sourcesContactBody =>
+      'ଏଠାରେ ଦେଖାଯାଇଥିବା କୌଣସି ଲେଖା ଉପରେ ଯଦି ଆପଣଙ୍କର ଅଧିକାର ଅଛି, କିମ୍ବା ସେଥିରେ କୌଣସି ଭୁଲ ପାଆନ୍ତି, ତେବେ ଦୟାକରି ଆମକୁ ଲେଖନ୍ତୁ। ଆମେ ଶୀଘ୍ର ଉତ୍ତର ଦେବୁ ଏବଂ ଅନୁରୋଧ କଲେ ତାହାକୁ ସଂଶୋଧନ କରିବୁ ବା କାଢ଼ିଦେବୁ।';
 }

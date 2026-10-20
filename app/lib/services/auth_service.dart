@@ -9,6 +9,7 @@ import '../core/constants/api_paths.dart';
 import '../core/constants/app_config.dart';
 import '../core/constants/storage_keys.dart';
 import '../core/session/app_session.dart';
+import '../core/session/legacy_token_store.dart';
 import '../models/api_failure.dart';
 import '../models/auth_session.dart';
 import 'api_client.dart';
@@ -28,12 +29,21 @@ class SignInCancelled implements Exception {
 /// the ID token that comes back, which it verifies against Google's or Apple's
 /// keys. This service never sees a password because there is none anywhere in
 /// the system.
+///
+/// There is one more way in, and it is not a person's doing: a phone that
+/// updated from the previous app still holds that app's token, and
+/// [signInWithLegacyToken] trades it for a session (`LegacySignIn` decides when).
 class AuthService {
-  AuthService._();
+  AuthService._() : _api = ApiClient.instance;
+
+  /// A service whose requests go to [api], for tests that script the server.
+  @visibleForTesting
+  AuthService.forTesting({required this._api});
 
   static final AuthService instance = AuthService._();
 
-  final ApiClient _api = ApiClient.instance;
+  final ApiClient _api;
+  final LegacyTokenStore _legacyToken = const LegacyTokenStore();
   bool _googleReady = false;
 
   /// google_sign_in 7 wants an explicit initialise before the first call.
@@ -102,24 +112,47 @@ class AuthService {
 
   bool get isAppleAvailable => Platform.isIOS || Platform.isMacOS;
 
-  /// Trades a provider token for our own session, and starts it.
+  /// Trades the previous app's access token for a session here.
   ///
-  /// This is the one call that carries an App Check token: it is the door
-  /// accounts are created through, and the backend refuses it without one.
+  /// The API asks the old server who the token belongs to and makes (or finds)
+  /// that person's account; nothing the phone says about them is trusted. A
+  /// failure carries what the server answered, and which answers mean the token
+  /// will never work is `LegacySignIn`'s business — this only reports. Cancel
+  /// [cancel] to give up on a reply that is taking too long.
+  Future<AuthSession> signInWithLegacyToken(String legacyToken, {ApiCancelToken? cancel}) {
+    return _open(ApiPaths.signInLegacy, {'legacyToken': legacyToken}, cancel: cancel);
+  }
+
   Future<AuthSession> _exchange({
     required String provider,
     required String idToken,
     String? name,
+  }) {
+    return _open(ApiPaths.signInSocial, {
+      'provider': provider,
+      'idToken': idToken,
+      'name': ?name,
+    });
+  }
+
+  /// Posts a sign-in and starts the session it returns.
+  ///
+  /// This is the one call that carries an App Check token: it is the door
+  /// accounts are created through, and the backend refuses it without one. The
+  /// languages and device fields are the same whichever way someone came in.
+  Future<AuthSession> _open(
+    String path,
+    Map<String, dynamic> credentials, {
+    ApiCancelToken? cancel,
   }) async {
     final device = DeviceService.instance;
 
     final response = await _api.post(
-      ApiPaths.signInSocial,
+      path,
       attested: true,
+      cancel: cancel,
       body: {
-        'provider': provider,
-        'idToken': idToken,
-        'name': ?name,
+        ...credentials,
         'appLanguage': AppConfig.defaultAppLanguage,
         'mantraLanguage': AppConfig.defaultMantraLanguage,
         'readingLanguage': AppConfig.defaultReadingLanguage,
@@ -129,6 +162,11 @@ class AuthService {
     );
 
     final session = AuthSession.fromJson(response.json);
+
+    // The parsers are lenient, so a 200 with the wrong shape reads as a session
+    // of empty tokens. Starting one would show the dashboard to nobody.
+    if (session.tokens.isEmpty) throw const ApiFailure.signIn();
+
     await AppSession.instance.start(session);
 
     // 201 means the backend just created the account, 200 that it already
@@ -136,6 +174,10 @@ class AuthService {
     // ones, so it is sent through the picker; a returning one never is.
     final isNewAccount = response.statusCode == 201;
     await LocalStore.instance.write(BoxKeys.onboardingSeen, !isNewAccount);
+
+    // A session started here is the end of the previous app's: its token must
+    // not be left to sign someone in again after they have signed out.
+    await _legacyToken.clear();
 
     // Now there is an account for the push token to belong to. Not awaited:
     // it ends in a permission dialog, and the dashboard should not wait behind
@@ -160,12 +202,14 @@ class AuthService {
     }
 
     await _signOutProviders();
+    await _legacyToken.clear();
     await AppSession.instance.clear();
   }
 
   Future<void> deleteAccount() async {
     await _api.delete(ApiPaths.deleteAccount);
     await _signOutProviders();
+    await _legacyToken.clear();
     await AppSession.instance.clear();
   }
 

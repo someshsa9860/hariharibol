@@ -1,3 +1,4 @@
+import '../core/constants/app_config.dart';
 import '../core/navigation/app_routes.dart';
 import 'json.dart';
 
@@ -20,6 +21,13 @@ class Translator {
         // `imagePath`, which is not fetchable — so only a signed URL is kept.
         imageUrl: asStringOrNull(json['imageUrl']),
       );
+
+  /// The name to credit beside this translator's text, or null when none is to
+  /// be shown — Śrīla Prabhupāda's while [AppConfig.showAuthorName] is off.
+  String? get creditName {
+    if (slug == AppConfig.authorSlug && !AppConfig.showAuthorName) return null;
+    return name.isEmpty ? null : name;
+  }
 }
 
 /// One rendering of a verse, in one language, by one translator.

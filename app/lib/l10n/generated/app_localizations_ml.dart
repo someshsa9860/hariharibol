@@ -213,11 +213,16 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെയുണ്ട്?';
+  String get homeMoodPrompt =>
+      'ഇന്ന് ഏത് ഗുണത്തിൽ വളരാനാണ് നിങ്ങൾ ആഗ്രഹിക്കുന്നത്?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെ തോന്നുന്നു എന്ന് നിങ്ങൾ പങ്കുവച്ചു കഴിഞ്ഞു. പുതിയത് പങ്കുവയ്ക്കാൻ നാളെ വീണ്ടും വരൂ.';
+      'ഇന്നത്തെ നിങ്ങളുടെ ലക്ഷ്യം നിങ്ങൾ തിരഞ്ഞെടുത്തു കഴിഞ്ഞു. പുതിയതൊന്ന് വളർത്തിയെടുക്കാൻ നാളെ വീണ്ടും വരൂ.';
+
+  @override
+  String get homeMoodHint =>
+      'ശക്തിപ്പെടുത്താൻ ആഗ്രഹിക്കുന്നത് തിരഞ്ഞെടുക്കൂ, ഒരു ശ്ലോകം നിങ്ങൾക്കൊപ്പം ഉണ്ടാകും.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -239,6 +244,35 @@ class AppLocalizationsMl extends AppLocalizations {
       one: 'എനിക്ക് ഒരു ശ്ലോകം കാണിക്കൂ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ആത്മസംയമനം';
+
+  @override
+  String get growthKrodha => 'ശാന്തത';
+
+  @override
+  String get growthLobha => 'സംതൃപ്തി';
+
+  @override
+  String get growthMoha => 'വിവേകം';
+
+  @override
+  String get growthMada => 'വിനയം';
+
+  @override
+  String get growthMatsarya => 'സദ്ഭാവന';
+
+  @override
+  String get growthMissedChantingTime => 'സമയത്തിന് ജപം';
+
+  @override
+  String get growthUnmetRoundTarget => 'എന്റെ മാലകൾ പൂർത്തിയാക്കൽ';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'നിങ്ങളുടെ വളർച്ചയ്ക്കായി: $quality';
   }
 
   @override
@@ -2118,4 +2152,66 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'ശ്ലോകം, അതിന്റെ അർത്ഥം അല്ലെങ്കിൽ ഭാവാർത്ഥത്തിലെ ചില വാക്കുകൾ ടൈപ്പ് ചെയ്യുക. ചെറിയ തെറ്റുകൾ സാരമില്ല.';
+
+  @override
+  String get settingsSectionAbout => 'ആപ്പിനെക്കുറിച്ച്';
+
+  @override
+  String get sourcesTitle => 'ഉറവിടങ്ങളും നിരാകരണവും';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol ദിവസേനയുള്ള വായനയ്ക്കും ജപത്തിനുമായി പവിത്ര ഗ്രന്ഥങ്ങൾ നൽകുന്നു. ഇത് സാധ്യമാക്കിയ ആചാര്യന്മാരോടും വിവർത്തകരോടും പണ്ഡിതന്മാരോടും ഞങ്ങൾ നന്ദിയുള്ളവരാണ്. ഈ ഗ്രന്ഥങ്ങൾ എവിടെ നിന്ന് എടുത്തതാണെന്നും എങ്ങനെ അവതരിപ്പിക്കുന്നുവെന്നും ഈ പേജ് വിശദീകരിക്കുന്നു.';
+
+  @override
+  String get sourcesTextsHeading => 'വിവർത്തനങ്ങളും വ്യാഖ്യാനങ്ങളും';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ഭഗവദ്ഗീത യഥാരൂപം, ശ്രീമദ് ഭാഗവതം എന്നിവയുടെ ഇംഗ്ലീഷ് വിവർത്തനങ്ങളും ഭാവാർത്ഥങ്ങളും അന്താരാഷ്ട്ര കൃഷ്ണാവബോധ സംഘത്തിന്റെ സ്ഥാപകാചാര്യനായ കൃഷ്ണകൃപാമൂർത്തി ശ്രീ ശ്രീമദ് എ. സി. ഭക്തിവേദാന്ത സ്വാമി പ്രഭുപാദരുടെ കൃതികളാണ്. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ഓരോ വിവർത്തനവും ഭാവാർത്ഥവും വ്യാഖ്യാനവും അതിന്റെ രചയിതാവിന്റെ കൃതിയാണ്; അതിന്മേലുള്ള എല്ലാ അവകാശങ്ങളും അതിന്റെ രചയിതാക്കൾക്കും പ്രസാധകർക്കും തന്നെയാണ്. വ്യക്തിപരമായ ഭക്തിപഠനത്തിനായാണ് ഇവ ഇവിടെ നൽകിയിരിക്കുന്നത്, പുനർവിതരണത്തിനല്ല.';
+
+  @override
+  String get sourcesFromHeading => 'ഗ്രന്ഥങ്ങൾ എവിടെ നിന്ന്';
+
+  @override
+  String get sourcesGita =>
+      'ഭഗവദ്ഗീത: സംസ്കൃത മൂലപാഠം, ഇംഗ്ലീഷ് വിവർത്തനവും ഭാവാർത്ഥവും, ശ്രീ രാമാനുജാചാര്യർ, ശ്രീ മധ്വാചാര്യർ, ശ്രീധര സ്വാമി എന്നിവരുടെ വ്യാഖ്യാനങ്ങളും';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ശ്രീമദ് ഭാഗവതം, സ്കന്ധം $from–$to: സംസ്കൃത മൂലപാഠം, ഇംഗ്ലീഷ് വിവർത്തനവും ഭാവാർത്ഥവും';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ജ്ഞാനേശ്വരി: ഭഗവദ്ഗീതയെക്കുറിച്ചുള്ള സന്ത് ജ്ഞാനേശ്വരന്റെ മറാത്തി ഓവികൾ';
+
+  @override
+  String get sourcesAiHeading => 'മറ്റു ഭാഷകളിലെ വിവർത്തനം';
+
+  @override
+  String get sourcesAiBody =>
+      'ഹിന്ദി, മറാത്തി, മറ്റ് ഇന്ത്യൻ ഭാഷകൾ എന്നിവയിലെ ഉള്ളടക്കം — വിവർത്തനങ്ങൾ, ഭാവാർത്ഥങ്ങൾ, ആപ്പിന്റെ സ്വന്തം വാക്കുകൾ — ഇംഗ്ലീഷിൽ നിന്ന് AI-യുടെ സഹായത്തോടെ തയ്യാറാക്കിയതാണ്. ഇത് ഔദ്യോഗികമോ അംഗീകൃതമോ ആയ വിവർത്തനമല്ല, ഇതിൽ പിശകുകൾ ഉണ്ടാകാം; ശ്രദ്ധയിൽപ്പെടുന്ന മുറയ്ക്ക് ഞങ്ങൾ അവ തിരുത്തുന്നു. പഠനത്തിന് സംസ്കൃതവും മൂല ഇംഗ്ലീഷുമാണ് പ്രമാണം.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ഒരു ഡിജിറ്റൽ കൂട്ടാളിയാണ്, ഗുരുവല്ല. അതിന്റെ മറുപടികൾ ഒരു ആചാര്യന്റെയും വാക്കുകളല്ല, അവയിൽ തെറ്റുണ്ടാകാം; പ്രധാനപ്പെട്ട എന്തും ഗ്രന്ഥങ്ങളുമായി ഒത്തുനോക്കുക.';
+
+  @override
+  String get sourcesIndependentHeading => 'ഒരു സ്വതന്ത്ര സംരംഭം';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ഒരു സ്വതന്ത്ര ഭക്തി സംരംഭമാണ്. ഇത് ഒരു ക്ഷേത്രവുമായോ സ്ഥാപനവുമായോ പ്രസാധകരുമായോ ബന്ധപ്പെട്ടതല്ല, അവരുടെ അംഗീകാരമുള്ളതല്ല, അവർക്കുവേണ്ടി സംസാരിക്കുന്നതുമല്ല.';
+
+  @override
+  String get sourcesContactHeading => 'അവകാശങ്ങളും തിരുത്തലുകളും';
+
+  @override
+  String get sourcesContactBody =>
+      'ഇവിടെ കാണിക്കുന്ന ഏതെങ്കിലും ഉള്ളടക്കത്തിൽ നിങ്ങൾക്ക് അവകാശമുണ്ടെങ്കിൽ, അല്ലെങ്കിൽ അതിൽ ഒരു പിശക് കണ്ടാൽ, ദയവായി ഞങ്ങൾക്ക് എഴുതുക. ഞങ്ങൾ വേഗത്തിൽ മറുപടി നൽകും; ആവശ്യപ്പെട്ടാൽ അത് തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.';
 }

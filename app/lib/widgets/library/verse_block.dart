@@ -89,7 +89,7 @@ class VerseBlock extends StatelessWidget {
         : _transliterationToShow(verse.transliteration?.trim(), sanskrit);
     final rendering = translation ?? verse.translation;
     final meaning = rendering?.meaning?.trim();
-    final translatorName = rendering?.translator?.name;
+    final translatorName = rendering?.translator?.creditName;
     final explanation = verse.explanation;
     // The purport and the explanation that stands in for it are one slot.
     final showCommentary = !hidden.contains(VersePart.purport);

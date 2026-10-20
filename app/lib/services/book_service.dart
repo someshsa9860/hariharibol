@@ -4,6 +4,7 @@ import '../core/constants/api_paths.dart';
 import '../models/book.dart';
 import '../models/verse.dart';
 import 'api_client.dart';
+import 'languages_query.dart';
 
 /// The library's books, and reading into one. Listing and reading are both
 /// public — signed out, the library still browses, the same as mantras.
@@ -72,7 +73,7 @@ class BookService {
       ApiPaths.bookChapter(slug, number),
       query: {
         'canto': ?canto,
-        ..._languagesQuery(languages),
+        ...languagesQuery(languages),
       },
     );
     return ChapterReading.fromJson(response.json);
@@ -99,22 +100,11 @@ class BookService {
   Future<List<Verse>> verses(String slug, {List<String>? languages}) async {
     final response = await _api.get(
       ApiPaths.bookVerses(slug),
-      query: _languagesQuery(languages),
+      query: languagesQuery(languages),
     );
     return response.list
         .whereType<Map>()
         .map((item) => Verse.fromJson(Map<String, dynamic>.from(item)))
         .toList();
   }
-}
-
-/// `languages=mr,en` for a book call. The server takes up to three codes of two
-/// or three letters and answers 400 to anything else, so a code that is not one
-/// is left out here rather than costing the reader their chapter.
-Map<String, dynamic> _languagesQuery(List<String>? languages) {
-  final codes = (languages ?? const <String>[])
-      .where((code) => RegExp(r'^[a-zA-Z]{2,3}$').hasMatch(code))
-      .take(3)
-      .toList();
-  return codes.isEmpty ? const {} : {'languages': codes.join(',')};
 }

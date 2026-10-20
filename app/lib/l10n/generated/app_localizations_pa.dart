@@ -211,11 +211,15 @@ class AppLocalizationsPa extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ਅੱਜ ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?';
+  String get homeMoodPrompt => 'ਅੱਜ ਤੁਸੀਂ ਕਿਹੜੇ ਗੁਣ ਵਿੱਚ ਅੱਗੇ ਵਧਣਾ ਚਾਹੁੰਦੇ ਹੋ?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ਤੁਸੀਂ ਅੱਜ ਦੱਸ ਚੁੱਕੇ ਹੋ ਕਿ ਤੁਸੀਂ ਕਿਹੋ ਜਿਹਾ ਮਹਿਸੂਸ ਕਰ ਰਹੇ ਹੋ। ਕੁਝ ਨਵਾਂ ਦੱਸਣ ਲਈ ਕੱਲ੍ਹ ਮੁੜ ਆਓ।';
+      'ਤੁਸੀਂ ਅੱਜ ਦਾ ਆਪਣਾ ਟੀਚਾ ਚੁਣ ਲਿਆ ਹੈ। ਕੁਝ ਨਵਾਂ ਨਿਖਾਰਨ ਲਈ ਕੱਲ੍ਹ ਮੁੜ ਆਓ।';
+
+  @override
+  String get homeMoodHint =>
+      'ਜਿਸ ਨੂੰ ਨਿਖਾਰਨਾ ਚਾਹੁੰਦੇ ਹੋ ਉਹ ਚੁਣੋ, ਇੱਕ ਸ਼ਲੋਕ ਤੁਹਾਡੇ ਨਾਲ ਰਹੇਗਾ।';
 
   @override
   String homeMoodViewToday(int count) {
@@ -237,6 +241,35 @@ class AppLocalizationsPa extends AppLocalizations {
       one: 'ਮੈਨੂੰ ਇੱਕ ਸ਼ਲੋਕ ਦਿਖਾਓ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ਆਤਮ-ਸੰਜਮ';
+
+  @override
+  String get growthKrodha => 'ਸ਼ਾਂਤੀ';
+
+  @override
+  String get growthLobha => 'ਸੰਤੋਖ';
+
+  @override
+  String get growthMoha => 'ਵਿਵੇਕ';
+
+  @override
+  String get growthMada => 'ਨਿਮਰਤਾ';
+
+  @override
+  String get growthMatsarya => 'ਸਦਭਾਵਨਾ';
+
+  @override
+  String get growthMissedChantingTime => 'ਸਮੇਂ ਸਿਰ ਜਪ';
+
+  @override
+  String get growthUnmetRoundTarget => 'ਮੇਰੀਆਂ ਮਾਲਾਵਾਂ ਪੂਰੀਆਂ ਕਰਨਾ';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'ਤੁਹਾਡੀ ਤਰੱਕੀ ਲਈ: $quality';
   }
 
   @override
@@ -2104,4 +2137,66 @@ class AppLocalizationsPa extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'ਸ਼ਲੋਕ, ਉਸਦੇ ਅਰਥ ਜਾਂ ਤਾਤਪਰਯ ਦੇ ਕੁਝ ਸ਼ਬਦ ਲਿਖੋ। ਛੋਟੀਆਂ ਗਲਤੀਆਂ ਚੱਲਣਗੀਆਂ।';
+
+  @override
+  String get settingsSectionAbout => 'ਐਪ ਬਾਰੇ';
+
+  @override
+  String get sourcesTitle => 'ਸਰੋਤ ਅਤੇ ਅਸਵੀਕਰਨ';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol ਰੋਜ਼ਾਨਾ ਪਾਠ ਅਤੇ ਜਪ ਲਈ ਪਵਿੱਤਰ ਗ੍ਰੰਥ ਪੇਸ਼ ਕਰਦਾ ਹੈ। ਜਿਨ੍ਹਾਂ ਆਚਾਰੀਆਂ, ਅਨੁਵਾਦਕਾਂ ਅਤੇ ਵਿਦਵਾਨਾਂ ਦੇ ਕਾਰਜ ਨਾਲ ਇਹ ਸੰਭਵ ਹੋਇਆ ਹੈ, ਅਸੀਂ ਉਨ੍ਹਾਂ ਦੇ ਧੰਨਵਾਦੀ ਹਾਂ। ਇਹ ਗ੍ਰੰਥ ਕਿੱਥੋਂ ਲਏ ਗਏ ਹਨ ਅਤੇ ਕਿਵੇਂ ਪੇਸ਼ ਕੀਤੇ ਗਏ ਹਨ, ਇਹ ਇਸ ਪੰਨੇ ਉੱਤੇ ਦੱਸਿਆ ਗਿਆ ਹੈ।';
+
+  @override
+  String get sourcesTextsHeading => 'ਅਨੁਵਾਦ ਅਤੇ ਟੀਕੇ';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ਭਗਵਦ ਗੀਤਾ ਜਿਉਂ ਦੀ ਤਿਉਂ ਅਤੇ ਸ਼੍ਰੀਮਦ ਭਾਗਵਤ ਦੇ ਅੰਗਰੇਜ਼ੀ ਅਨੁਵਾਦ ਅਤੇ ਤਾਤਪਰਯ ਅੰਤਰਰਾਸ਼ਟਰੀ ਕ੍ਰਿਸ਼ਨ ਭਾਵਨਾਮ੍ਰਿਤ ਸੰਘ ਦੇ ਸੰਸਥਾਪਕ-ਆਚਾਰੀਆ ਕ੍ਰਿਸ਼ਨਕ੍ਰਿਪਾਮੂਰਤੀ ਸ਼੍ਰੀ ਸ਼੍ਰੀਮਦ ਏ. ਸੀ. ਭਕਤੀਵੇਦਾਂਤ ਸਵਾਮੀ ਪ੍ਰਭੁਪਾਦ ਦੀ ਰਚਨਾ ਹਨ। © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ਹਰ ਅਨੁਵਾਦ, ਤਾਤਪਰਯ ਅਤੇ ਟੀਕਾ ਉਸਦੇ ਰਚਨਾਕਾਰ ਦੀ ਕਿਰਤ ਹੈ, ਅਤੇ ਉਸ ਉੱਤੇ ਸਾਰੇ ਅਧਿਕਾਰ ਉਸਦੇ ਰਚਨਾਕਾਰਾਂ ਅਤੇ ਪ੍ਰਕਾਸ਼ਕਾਂ ਕੋਲ ਹੀ ਰਹਿੰਦੇ ਹਨ। ਇਹ ਇੱਥੇ ਨਿੱਜੀ ਭਗਤੀ ਭਰੇ ਅਧਿਐਨ ਲਈ ਪੇਸ਼ ਕੀਤੇ ਗਏ ਹਨ, ਮੁੜ-ਵੰਡ ਲਈ ਨਹੀਂ।';
+
+  @override
+  String get sourcesFromHeading => 'ਗ੍ਰੰਥ ਕਿੱਥੋਂ ਲਏ ਗਏ ਹਨ';
+
+  @override
+  String get sourcesGita =>
+      'ਭਗਵਦ ਗੀਤਾ: ਸੰਸਕ੍ਰਿਤ ਮੂਲ ਪਾਠ, ਅੰਗਰੇਜ਼ੀ ਅਨੁਵਾਦ ਅਤੇ ਤਾਤਪਰਯ, ਅਤੇ ਸ਼੍ਰੀ ਰਾਮਾਨੁਜਾਚਾਰੀਆ, ਸ਼੍ਰੀ ਮਧਵਾਚਾਰੀਆ ਅਤੇ ਸ਼੍ਰੀਧਰ ਸਵਾਮੀ ਦੇ ਟੀਕੇ';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ਸ਼੍ਰੀਮਦ ਭਾਗਵਤ, ਸਕੰਧ $from–$to: ਸੰਸਕ੍ਰਿਤ ਮੂਲ ਪਾਠ, ਅੰਗਰੇਜ਼ੀ ਅਨੁਵਾਦ ਅਤੇ ਤਾਤਪਰਯ';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ਗਿਆਨੇਸ਼ਵਰੀ: ਭਗਵਦ ਗੀਤਾ ਉੱਤੇ ਸੰਤ ਗਿਆਨੇਸ਼ਵਰ ਦੀਆਂ ਮਰਾਠੀ ਓਵੀਆਂ';
+
+  @override
+  String get sourcesAiHeading => 'ਹੋਰ ਭਾਸ਼ਾਵਾਂ ਵਿੱਚ ਅਨੁਵਾਦ';
+
+  @override
+  String get sourcesAiBody =>
+      'ਹਿੰਦੀ, ਮਰਾਠੀ ਅਤੇ ਹੋਰ ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ ਦੀ ਲਿਖਤ — ਅਨੁਵਾਦ, ਤਾਤਪਰਯ ਅਤੇ ਐਪ ਦੇ ਆਪਣੇ ਸ਼ਬਦ — ਅੰਗਰੇਜ਼ੀ ਤੋਂ AI ਦੀ ਸਹਾਇਤਾ ਨਾਲ ਤਿਆਰ ਕੀਤੀ ਗਈ ਹੈ। ਇਹ ਕੋਈ ਅਧਿਕਾਰਤ ਜਾਂ ਪ੍ਰਮਾਣਿਤ ਅਨੁਵਾਦ ਨਹੀਂ ਹੈ ਅਤੇ ਇਸ ਵਿੱਚ ਗਲਤੀਆਂ ਹੋ ਸਕਦੀਆਂ ਹਨ, ਜਿਨ੍ਹਾਂ ਨੂੰ ਪਤਾ ਲੱਗਦੇ ਹੀ ਅਸੀਂ ਠੀਕ ਕਰਦੇ ਹਾਂ। ਅਧਿਐਨ ਲਈ ਸੰਸਕ੍ਰਿਤ ਅਤੇ ਮੂਲ ਅੰਗਰੇਜ਼ੀ ਹੀ ਪ੍ਰਮਾਣ ਹਨ।';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ਇੱਕ ਡਿਜੀਟਲ ਸਾਥੀ ਹੈ, ਗੁਰੂ ਨਹੀਂ। ਉਸਦੇ ਜਵਾਬ ਕਿਸੇ ਆਚਾਰੀਆ ਦੇ ਬਚਨ ਨਹੀਂ ਹਨ ਅਤੇ ਉਨ੍ਹਾਂ ਵਿੱਚ ਭੁੱਲ ਹੋ ਸਕਦੀ ਹੈ; ਕੋਈ ਵੀ ਮਹੱਤਵਪੂਰਨ ਗੱਲ ਗ੍ਰੰਥਾਂ ਨਾਲ ਜ਼ਰੂਰ ਮਿਲਾ ਲਵੋ।';
+
+  @override
+  String get sourcesIndependentHeading => 'ਇੱਕ ਸੁਤੰਤਰ ਉਪਰਾਲਾ';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ਇੱਕ ਸੁਤੰਤਰ ਭਗਤੀ ਭਰਿਆ ਉਪਰਾਲਾ ਹੈ। ਇਹ ਕਿਸੇ ਮੰਦਰ, ਸੰਸਥਾ ਜਾਂ ਪ੍ਰਕਾਸ਼ਕ ਨਾਲ ਜੁੜਿਆ ਨਹੀਂ ਹੈ, ਨਾ ਉਨ੍ਹਾਂ ਵੱਲੋਂ ਸਮਰਥਿਤ ਹੈ ਅਤੇ ਨਾ ਹੀ ਉਨ੍ਹਾਂ ਦੀ ਤਰਫ਼ੋਂ ਬੋਲਦਾ ਹੈ।';
+
+  @override
+  String get sourcesContactHeading => 'ਅਧਿਕਾਰ ਅਤੇ ਸੁਧਾਰ';
+
+  @override
+  String get sourcesContactBody =>
+      'ਜੇ ਇੱਥੇ ਦਿਖਾਈ ਗਈ ਕਿਸੇ ਲਿਖਤ ਉੱਤੇ ਤੁਹਾਡੇ ਅਧਿਕਾਰ ਹਨ, ਜਾਂ ਤੁਹਾਨੂੰ ਉਸ ਵਿੱਚ ਕੋਈ ਗਲਤੀ ਮਿਲੇ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਸਾਨੂੰ ਲਿਖੋ। ਅਸੀਂ ਜਲਦੀ ਜਵਾਬ ਦੇਵਾਂਗੇ ਅਤੇ ਕਹੇ ਜਾਣ ਉੱਤੇ ਉਸਨੂੰ ਠੀਕ ਕਰ ਦੇਵਾਂਗੇ ਜਾਂ ਹਟਾ ਦੇਵਾਂਗੇ।';
 }

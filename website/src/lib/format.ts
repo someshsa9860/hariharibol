@@ -1,4 +1,12 @@
-import type { Section, Verse, I18nMap } from '@/lib/types';
+import { AUTHOR_SLUG, SHOW_AUTHOR_NAME } from '@/lib/config';
+import type { Section, Translator, Verse, I18nMap } from '@/lib/types';
+
+/** The name to credit beside a translator's text, or null when none is to be shown (see `SHOW_AUTHOR_NAME`). */
+export function creditName(translator: Translator | null | undefined): string | null {
+  if (!translator?.name) return null;
+  if (translator.slug === AUTHOR_SLUG && !SHOW_AUTHOR_NAME) return null;
+  return translator.name;
+}
 
 /** "2.47", "1.3.28" or "2.47-48" — how a verse is cited. */
 export function verseRef(verse: Pick<Verse, 'cantoNumber' | 'chapterNumber' | 'verseNumber' | 'verseNumberEnd'>): string {

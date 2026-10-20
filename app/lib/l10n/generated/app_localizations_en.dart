@@ -207,11 +207,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'How are you today?';
+  String get homeMoodPrompt => 'Where would you like to grow today?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'You\'ve shared how you\'re feeling today. Come back tomorrow to share something new.';
+      'You\'ve chosen your focus for today. Come back tomorrow to grow in something new.';
+
+  @override
+  String get homeMoodHint =>
+      'Choose what to strengthen, and a verse will walk with you.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -233,6 +237,35 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Show me a verse',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'Self-mastery';
+
+  @override
+  String get growthKrodha => 'Calm';
+
+  @override
+  String get growthLobha => 'Contentment';
+
+  @override
+  String get growthMoha => 'Clarity';
+
+  @override
+  String get growthMada => 'Humility';
+
+  @override
+  String get growthMatsarya => 'Goodwill';
+
+  @override
+  String get growthMissedChantingTime => 'Chanting on time';
+
+  @override
+  String get growthUnmetRoundTarget => 'Finishing my rounds';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'For your growth: $quality';
   }
 
   @override
@@ -2098,4 +2131,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'Type a few words of the verse, its meaning or the purport. Small slips are forgiven.';
+
+  @override
+  String get settingsSectionAbout => 'About';
+
+  @override
+  String get sourcesTitle => 'Sources & disclaimer';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol offers the sacred texts for daily reading and chanting. We are grateful to the ācāryas, translators and scholars whose work makes this possible. This page sets out where the texts come from and how they are presented.';
+
+  @override
+  String get sourcesTextsHeading => 'Translations and commentaries';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'Every translation, purport and commentary is the work of its author, and all rights in it remain with its authors and publishers. They are reproduced here for personal devotional study, not for redistribution.';
+
+  @override
+  String get sourcesFromHeading => 'Where the texts come from';
+
+  @override
+  String get sourcesGita =>
+      'Bhagavad-gītā: the Sanskrit text, the English translation and purports, and the commentaries of Śrī Rāmānujācārya, Śrī Madhvācārya and Śrīdhara Svāmī';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'Śrīmad-Bhāgavatam, Cantos $from–$to: the Sanskrit text, the English translation and purports';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'Dnyāneshwarī: Sant Dnyāneshwar’s Marathi ovīs on the Bhagavad-gītā';
+
+  @override
+  String get sourcesAiHeading => 'Translations into other languages';
+
+  @override
+  String get sourcesAiBody =>
+      'Text in Hindi, Marathi and the other Indian languages — translations, purports and the app’s own wording — has been prepared from the English with the help of AI. It is not an official or authorised translation and may contain errors, which we correct as they are found. For study, the Sanskrit and the original English remain the authority.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha is a digital companion, not a teacher. Its replies are not the words of any ācārya and can be mistaken; please check anything important against the texts.';
+
+  @override
+  String get sourcesIndependentHeading => 'An independent project';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol is an independent devotional project. It is not affiliated with, endorsed by or speaking for any temple, organisation or publisher.';
+
+  @override
+  String get sourcesContactHeading => 'Rights and corrections';
+
+  @override
+  String get sourcesContactBody =>
+      'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.';
 }

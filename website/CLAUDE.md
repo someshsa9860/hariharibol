@@ -22,6 +22,13 @@ Sakha. Next.js (App Router) + TypeScript, plain hand-written CSS, no UI library.
   `GOOGLE_CLIENT_IDS`); Apple needs `NEXT_PUBLIC_APPLE_CLIENT_ID` + redirect URI (and the Services ID in `APPLE_BUNDLE_IDS`).
   Where the API runs with `APP_CHECK_ENABLED=true`, set `NEXT_PUBLIC_FIREBASE_CONFIG` and `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` —
   `lib/auth/app-check.ts` then sends the App Check token on sign-in. See `.env.example`.
+- **Śrīla Prabhupāda is not named yet** beside his translations (verse card, compare sheet) until permission is given:
+  `SHOW_AUTHOR_NAME` in `lib/config.ts` (false), matched on `AUTHOR_SLUG`. Show a credit through `creditName()`
+  (`lib/format.ts`), never `translator.name`. The app has the same switch (`AppConfig.showAuthorName`).
+- **`/sources` (Sources & disclaimer, linked from the footer)** names the sources (`TEXT_SOURCES` in `lib/config.ts`, shown
+  as text, not links), says the other languages are AI-assisted and Sakha is not a teacher, that the project is
+  independent, and gives `CONTACT_EMAIL` for rights and corrections — the same wording as the app's Settings page. Only
+  the Prabhupāda / © BBT line follows `SHOW_AUTHOR_NAME`.
 - **Colours** follow the app: saffron on warm white in light, charcoal with a white accent in dark (`styles/tokens.css`).
   Saffron is a fill, never text (`--accent-ink` is the text version). Status is never colour alone — the routine's
   Early / On time / Late carry words.
@@ -65,6 +72,7 @@ website/src/
 | Ask Sakha | `/sakha` — streaming, stop, answer again, clear, pictures, voice input, credit meter, "open this page" offers |
 | Routine | `/routine` — local first, synced when signed in |
 | Plans | `/plans` — read-only; purchases happen in the apps |
+| Settings → Sources & disclaimer | `/sources` |
 | Verse for how you feel | `/feel` |
 | Notes, related verses | notes sheet on each verse (account); "Related verses" on `/verse/<id>` |
 | Notifications, practice report | `/notifications`; 30-day report on `/me` |

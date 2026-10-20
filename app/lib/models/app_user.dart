@@ -58,6 +58,10 @@ class AppUser {
     return at > 0 ? email.substring(0, at) : email;
   }
 
+  /// The first word of [displayName], for a greeting: "Asha Devi" → "Asha".
+  /// Empty when there is nothing to call the person by.
+  String get firstName => displayName.split(RegExp(r'\s+')).first;
+
   String get initials {
     final parts = displayName.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';

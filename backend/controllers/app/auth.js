@@ -203,22 +203,75 @@ export const social = async (req, res) => {
   return created(res, sessionPayload(user, session));
 };
 
+// Everyone here with this address, however it was cased when they signed up. The old server's addresses reach us in
+// lower case (`usableEmail`), but a Google or Apple sign-in stores the address as the provider sent it and the
+// database counts `Anna@x.com` and `anna@x.com` as two people, so asking for the exact address would miss an
+// account that is theirs and make a second one.
+async function accountsWithEmail(email) {
+  const rows = await prisma.user.findMany({
+    where: { email: { equals: email, mode: 'insensitive' } },
+    select: { id: true, email: true, authProvider: true, legacyUserId: true },
+    take: 50,
+  });
+  // Insensitive matching may read `_` and `%` as wildcards; only an address that matches letter for letter counts.
+  return rows.filter((row) => row.email.toLowerCase() === email);
+}
+
+// The person already has an account here, made with Google or Apple before they updated the old app or on another
+// phone. The old token cannot open it: the old server gives a token to anyone who names an existing address, so a
+// token does not show who holds the address. What can be done is to record which old user this account is, and
+// which mantra they chanted most there, so that it already knows them when they sign in the usual way — which is
+// what the app does next, on the 409. Written favourite first, link last: the link is what stops this running
+// again, so a failure in between is tried again on the next launch rather than lost.
+async function linkOldIdentity(holder, old) {
+  // Linked already, to this old user or (oddly) another: left as it is.
+  if (holder.legacyUserId !== null) return;
+
+  const favouriteId = await legacyService.favouriteFor(old.mantras);
+  if (favouriteId) {
+    // Only where they have none. A favourite already there wins, and chanting here takes over from it anyway.
+    const { count } = await prisma.sadhanaProfile.updateMany({
+      where: { userId: holder.id, legacyFavoriteMantraId: null },
+      data: { legacyFavoriteMantraId: favouriteId },
+    });
+    // Nothing was updated: either there is no profile yet (this makes one) or it already has a favourite (the
+    // insert is skipped and it stays).
+    if (count === 0) {
+      await prisma.sadhanaProfile.createMany({
+        data: [{ userId: holder.id, dailyRoundTarget: DEFAULT_ROUND_TARGET, legacyFavoriteMantraId: favouriteId }],
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  try {
+    await prisma.user.update({ where: { id: holder.id }, data: { legacyUserId: old.legacyUserId } });
+    logger.info({ userId: holder.id, legacyUserId: old.legacyUserId }, 'account here linked to its old-server user');
+  } catch (error) {
+    // Two requests for one person at once: the other one linked an account first.
+    if (error.code !== 'P2002') throw error;
+  }
+}
+
 // The account for a person from the old server, made the first time its token is brought here.
 async function carryOver(old, body) {
+  // Their address there, unless it is not one or an account here already has it. An account that Google or Apple
+  // vouched for is never opened by an old token: it is linked to the old user and refused (`linkOldIdentity`).
+  // It is an existing account, not a new one, so closed sign-ups do not hold that back.
+  let email = old.email;
+  if (email) {
+    const holders = await accountsWithEmail(email);
+    const proved = holders.find((holder) => holder.authProvider !== 'LEGACY');
+    if (proved) {
+      await linkOldIdentity(proved, old);
+      throw conflict(`An account already exists for this email. Please sign in with ${proved.authProvider.toLowerCase()}.`);
+    }
+    if (holders.length > 0) email = null; // another account from the old server already has it
+  }
+
   // Not a refusal: this person is owed an account, and the app keeps their old token and asks again another day.
   if (!(await settings.getBoolean(SETTING_KEYS.SIGNUP_ENABLED, true))) {
     throw new AppError(503, 'LEGACY_UNAVAILABLE', 'New accounts are closed at the moment');
-  }
-
-  // Their address there, unless it is not one or an account here already has it. Taking over an account
-  // that someone proved with Google or Apple is the one thing that must never happen, so it is refused.
-  let email = old.email;
-  if (email) {
-    const holder = await prisma.user.findUnique({ where: { email }, select: { authProvider: true } });
-    if (holder && holder.authProvider !== 'LEGACY') {
-      throw conflict(`An account already exists for this email. Please sign in with ${holder.authProvider.toLowerCase()}.`);
-    }
-    if (holder) email = null; // another account from the old server already has it
   }
 
   const role = await prisma.role.findUnique({ where: { slug: ROLES.USER } });
@@ -268,6 +321,11 @@ async function carryOver(old, body) {
  * `UNAUTHENTICATED` means the old server does not accept the token and 409 that the account cannot be had this
  * way (an account here has that email, it now signs in with Google or Apple, or it is banned): the app drops the
  * token on either. 503 is anything that may pass — the app keeps the token and tries again on a later launch.
+ *
+ * An account here that already has the person's email (compared without regard to case) is linked to them — it
+ * is told which old user it is and keeps the mantra they chanted most there — but still answers 409: an old token
+ * is not proof of owning an address, so it never opens an account that Google or Apple has vouched for. The
+ * person signs in the usual way and arrives in that same account.
  */
 export const legacy = async (req, res) => {
   const body = req.valid.body;

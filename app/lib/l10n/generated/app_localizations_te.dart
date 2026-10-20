@@ -210,11 +210,15 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ఈ రోజు మీరు ఎలా ఉన్నారు?';
+  String get homeMoodPrompt => 'ఈ రోజు మీరు ఏ గుణంలో ఎదగాలనుకుంటున్నారు?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ఈ రోజు మీ అనుభూతిని పంచుకున్నారు. కొత్తది పంచుకోవడానికి రేపు మళ్లీ రండి.';
+      'మీరు ఈ రోజు మీ లక్ష్యాన్ని ఎంచుకున్నారు. కొత్తదాన్ని పెంపొందించుకోవడానికి రేపు మళ్లీ రండి.';
+
+  @override
+  String get homeMoodHint =>
+      'దేనిని బలపరచుకోవాలో ఎంచుకోండి, ఒక శ్లోకం మీకు తోడుగా ఉంటుంది.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -236,6 +240,35 @@ class AppLocalizationsTe extends AppLocalizations {
       one: 'నాకు ఒక శ్లోకం చూపించు',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ఆత్మనిగ్రహం';
+
+  @override
+  String get growthKrodha => 'ప్రశాంతత';
+
+  @override
+  String get growthLobha => 'సంతృప్తి';
+
+  @override
+  String get growthMoha => 'వివేకం';
+
+  @override
+  String get growthMada => 'వినయం';
+
+  @override
+  String get growthMatsarya => 'సద్భావన';
+
+  @override
+  String get growthMissedChantingTime => 'సమయానికి జపం';
+
+  @override
+  String get growthUnmetRoundTarget => 'నా మాలలను పూర్తి చేయడం';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'మీ ఎదుగుదల కోసం: $quality';
   }
 
   @override
@@ -2109,4 +2142,66 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'శ్లోకం, దాని అర్థం లేదా భాష్యంలోని కొన్ని పదాలు రాయండి. చిన్న తప్పులు పర్వాలేదు.';
+
+  @override
+  String get settingsSectionAbout => 'యాప్ గురించి';
+
+  @override
+  String get sourcesTitle => 'మూలాలు మరియు నిరాకరణ';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol రోజువారీ పఠనం మరియు జపం కోసం పవిత్ర గ్రంథాలను అందిస్తుంది. దీనిని సాధ్యం చేసిన ఆచార్యులకు, అనువాదకులకు, పండితులకు మేము కృతజ్ఞులం. ఈ గ్రంథాలు ఎక్కడి నుండి తీసుకున్నవో, ఎలా అందించబడుతున్నాయో ఈ పేజీ వివరిస్తుంది.';
+
+  @override
+  String get sourcesTextsHeading => 'అనువాదాలు మరియు వ్యాఖ్యానాలు';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'భగవద్గీత యథాతథం మరియు శ్రీమద్భాగవతం యొక్క ఆంగ్ల అనువాదాలు మరియు భాష్యాలు అంతర్జాతీయ కృష్ణ చైతన్య సంఘ వ్యవస్థాపకాచార్యులు కృష్ణకృపామూర్తి శ్రీ శ్రీమద్ ఎ. సి. భక్తివేదాంత స్వామి ప్రభుపాదుల రచనలు. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ప్రతి అనువాదం, భాష్యం మరియు వ్యాఖ్యానం దాని రచయిత కృషి, దానిపై ఉన్న అన్ని హక్కులు దాని రచయితలు మరియు ప్రచురణకర్తల వద్దనే ఉంటాయి. ఇవి ఇక్కడ వ్యక్తిగత భక్తి అధ్యయనం కోసం అందించబడ్డాయి, పునఃపంపిణీ కోసం కాదు.';
+
+  @override
+  String get sourcesFromHeading => 'గ్రంథాలు ఎక్కడి నుండి తీసుకున్నవి';
+
+  @override
+  String get sourcesGita =>
+      'భగవద్గీత: సంస్కృత మూలపాఠం, ఆంగ్ల అనువాదం మరియు భాష్యం, అలాగే శ్రీ రామానుజాచార్యులు, శ్రీ మధ్వాచార్యులు మరియు శ్రీధర స్వామి వ్యాఖ్యానాలు';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'శ్రీమద్భాగవతం, స్కంధం $from–$to: సంస్కృత మూలపాఠం, ఆంగ్ల అనువాదం మరియు భాష్యం';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'జ్ఞానేశ్వరి: భగవద్గీతపై సంత్ జ్ఞానేశ్వర్ రచించిన మరాఠీ ఓవీలు';
+
+  @override
+  String get sourcesAiHeading => 'ఇతర భాషల్లో అనువాదాలు';
+
+  @override
+  String get sourcesAiBody =>
+      'హిందీ, మరాఠీ మరియు ఇతర భారతీయ భాషల్లోని పాఠ్యం — అనువాదాలు, భాష్యాలు మరియు యాప్ సొంత పదాలు — ఆంగ్లం నుండి AI సహాయంతో సిద్ధం చేయబడింది. ఇది అధికారిక లేదా ఆమోదిత అనువాదం కాదు, ఇందులో పొరపాట్లు ఉండవచ్చు; అవి గుర్తించిన వెంటనే మేము సరిదిద్దుతాము. అధ్యయనానికి సంస్కృతం మరియు మూల ఆంగ్లమే ప్రమాణం.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ఒక డిజిటల్ సహచరుడు, గురువు కాదు. దాని సమాధానాలు ఏ ఆచార్యుల వాక్కులు కావు, వాటిలో పొరపాట్లు ఉండవచ్చు; ముఖ్యమైన ఏ విషయాన్నైనా గ్రంథాలతో సరిచూసుకోండి.';
+
+  @override
+  String get sourcesIndependentHeading => 'ఒక స్వతంత్ర ప్రయత్నం';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ఒక స్వతంత్ర భక్తి ప్రయత్నం. ఇది ఏ ఆలయం, సంస్థ లేదా ప్రచురణకర్తతోనూ అనుబంధం కలిగినది కాదు, వారి ఆమోదం పొందినది కాదు, వారి తరఫున మాట్లాడేది కాదు.';
+
+  @override
+  String get sourcesContactHeading => 'హక్కులు మరియు సవరణలు';
+
+  @override
+  String get sourcesContactBody =>
+      'ఇక్కడ చూపిన ఏదైనా పాఠ్యంపై మీకు హక్కులు ఉంటే, లేదా అందులో పొరపాటు కనిపిస్తే, దయచేసి మాకు రాయండి. మేము త్వరగా స్పందిస్తాము, కోరితే దానిని సరిదిద్దుతాము లేదా తొలగిస్తాము.';
 }

@@ -7,6 +7,9 @@ abstract final class ApiPaths {
 
   // Auth
   static const String signInSocial = '$_app/auth/social';
+
+  /// Trades the previous app's access token for a session here.
+  static const String signInLegacy = '$_app/auth/legacy';
   static const String refresh = '$_app/auth/refresh';
   static const String logout = '$_app/auth/logout';
   static const String logoutAll = '$_app/auth/logout-all';
@@ -156,6 +159,17 @@ abstract final class ApiPaths {
   static const String deities = '$_app/reference/deities';
   static const String gurus = '$_app/reference/gurus';
   static const String translators = '$_app/reference/translators';
+}
+
+/// Error codes the app acts on by name; every other code is only worded.
+/// `backend/utils/errors.js` is the other half.
+abstract final class ApiCodes {
+  /// 403: the server does not know who is asking (a missing, expired or
+  /// invalid token).
+  static const String unauthenticated = 'UNAUTHENTICATED';
+
+  /// 409: the request is well formed but the account cannot take it.
+  static const String conflict = 'CONFLICT';
 }
 
 /// Header names the API reads. `middleware/context.js` is the other half.

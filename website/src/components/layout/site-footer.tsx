@@ -24,6 +24,7 @@ export function SiteFooter() {
         <nav aria-label="About">
           <h4>About</h4>
           <Link href="/plans">Plans</Link>
+          <Link href="/sources">Sources &amp; disclaimer</Link>
           <a href={PLAY_STORE_URL} rel="noopener">Get the app</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
           {LEGAL_LINKS.map((link) => <a key={link.label} href={link.href} rel="noopener">{link.label}</a>)}

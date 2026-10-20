@@ -212,11 +212,15 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'আজ আপনি কেমন আছেন?';
+  String get homeMoodPrompt => 'আজ আপনি কোন গুণে এগিয়ে যেতে চান?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'আজ আপনার কেমন লাগছে তা আপনি জানিয়েছেন। নতুন কিছু জানাতে কাল আবার আসুন।';
+      'আপনি আজকের লক্ষ্য বেছে নিয়েছেন। নতুন কিছু বিকশিত করতে কাল আবার আসুন।';
+
+  @override
+  String get homeMoodHint =>
+      'যে গুণটি বিকশিত করতে চান তা বেছে নিন, একটি শ্লোক আপনার সঙ্গে থাকবে।';
 
   @override
   String homeMoodViewToday(int count) {
@@ -238,6 +242,35 @@ class AppLocalizationsBn extends AppLocalizations {
       one: 'আমাকে একটি শ্লোক দেখান',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'আত্মসংযম';
+
+  @override
+  String get growthKrodha => 'শান্তি';
+
+  @override
+  String get growthLobha => 'সন্তোষ';
+
+  @override
+  String get growthMoha => 'বিবেক';
+
+  @override
+  String get growthMada => 'বিনয়';
+
+  @override
+  String get growthMatsarya => 'সদ্ভাব';
+
+  @override
+  String get growthMissedChantingTime => 'সময়মতো জপ';
+
+  @override
+  String get growthUnmetRoundTarget => 'আমার মালা সম্পূর্ণ করা';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'আপনার অগ্রগতির জন্য: $quality';
   }
 
   @override
@@ -2105,4 +2138,66 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'শ্লোক, তার অর্থ বা তাৎপর্যের কয়েকটি শব্দ লিখুন। ছোটখাটো ভুল চলবে।';
+
+  @override
+  String get settingsSectionAbout => 'অ্যাপ সম্পর্কে';
+
+  @override
+  String get sourcesTitle => 'উৎস ও দায়মুক্তি';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol প্রতিদিনের পাঠ ও জপের জন্য পবিত্র শাস্ত্র উপস্থাপন করে। যে আচার্য, অনুবাদক ও পণ্ডিতদের কাজের ফলে এটি সম্ভব হয়েছে, আমরা তাঁদের কাছে কৃতজ্ঞ। শাস্ত্রগুলি কোথা থেকে নেওয়া হয়েছে এবং কীভাবে উপস্থাপন করা হয়েছে, তা এই পাতায় জানানো হল।';
+
+  @override
+  String get sourcesTextsHeading => 'অনুবাদ ও টীকা';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ভগবদ্গীতা যথাযথ ও শ্রীমদ্ভাগবতের ইংরেজি অনুবাদ ও তাৎপর্য আন্তর্জাতিক কৃষ্ণভাবনামৃত সংঘের প্রতিষ্ঠাতা-আচার্য কৃষ্ণকৃপাশ্রীমূর্তি শ্রীল অভয়চরণারবিন্দ ভক্তিবেদান্ত স্বামী প্রভুপাদের রচনা। © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'প্রতিটি অনুবাদ, তাৎপর্য ও টীকা তার রচয়িতার কাজ, এবং তার সমস্ত স্বত্ব তার রচয়িতা ও প্রকাশকদেরই থাকে। এগুলি এখানে ব্যক্তিগত ভক্তিমূলক অধ্যয়নের জন্য দেওয়া হয়েছে, পুনর্বিতরণের জন্য নয়।';
+
+  @override
+  String get sourcesFromHeading => 'শাস্ত্রগুলি কোথা থেকে নেওয়া';
+
+  @override
+  String get sourcesGita =>
+      'ভগবদ্গীতা: সংস্কৃত মূল পাঠ, ইংরেজি অনুবাদ ও তাৎপর্য, এবং শ্রী রামানুজাচার্য, শ্রী মধ্বাচার্য ও শ্রীধর স্বামীর টীকা';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'শ্রীমদ্ভাগবত, স্কন্ধ $from–$to: সংস্কৃত মূল পাঠ, ইংরেজি অনুবাদ ও তাৎপর্য';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'জ্ঞানেশ্বরী: ভগবদ্গীতার উপর সন্ত জ্ঞানেশ্বরের মারাঠি ওভি';
+
+  @override
+  String get sourcesAiHeading => 'অন্যান্য ভাষায় অনুবাদ';
+
+  @override
+  String get sourcesAiBody =>
+      'হিন্দি, মারাঠি ও অন্যান্য ভারতীয় ভাষার লেখা — অনুবাদ, তাৎপর্য ও অ্যাপের নিজস্ব কথা — ইংরেজি থেকে AI-এর সাহায্যে তৈরি করা হয়েছে। এটি কোনো আনুষ্ঠানিক বা অনুমোদিত অনুবাদ নয় এবং এতে ভুল থাকতে পারে, যা চোখে পড়লেই আমরা সংশোধন করি। অধ্যয়নের জন্য সংস্কৃত ও মূল ইংরেজিই প্রামাণিক।';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha একজন ডিজিটাল সঙ্গী, গুরু নয়। তার উত্তর কোনো আচার্যের বাণী নয় এবং তাতে ভুল হতে পারে; গুরুত্বপূর্ণ যে কোনো বিষয় শাস্ত্রের সঙ্গে মিলিয়ে নিন।';
+
+  @override
+  String get sourcesIndependentHeading => 'একটি স্বাধীন উদ্যোগ';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol একটি স্বাধীন ভক্তিমূলক উদ্যোগ। এটি কোনো মন্দির, প্রতিষ্ঠান বা প্রকাশকের সঙ্গে যুক্ত নয়, তাদের দ্বারা অনুমোদিত নয় এবং তাদের হয়ে কথা বলে না।';
+
+  @override
+  String get sourcesContactHeading => 'স্বত্ব ও সংশোধন';
+
+  @override
+  String get sourcesContactBody =>
+      'এখানে দেখানো কোনো লেখার উপর আপনার স্বত্ব থাকলে, বা তাতে কোনো ভুল পেলে, অনুগ্রহ করে আমাদের লিখুন। আমরা দ্রুত উত্তর দেব এবং অনুরোধ করা হলে তা সংশোধন করব বা সরিয়ে দেব।';
 }

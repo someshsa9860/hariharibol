@@ -26,19 +26,20 @@ loadEnv({ path: resolve(backend, '.env') });
 const { values } = parseArgs({
   options: {
     from: { type: 'string' }, langs: { type: 'string' }, chapters: { type: 'string' }, verses: { type: 'string' }, out: { type: 'string' },
-    model: { type: 'string' }, effort: { type: 'string' }, 'max-spend': { type: 'string' }, concurrency: { type: 'string' }, 'dry-run': { type: 'boolean' },
+    model: { type: 'string' }, provider: { type: 'string' }, effort: { type: 'string' }, 'max-spend': { type: 'string' }, concurrency: { type: 'string' }, 'dry-run': { type: 'boolean' },
   },
 });
 if (!values.from || !values.out) throw new Error('--from DIR and --out FILE are required');
 
-const { createAsk } = await import(resolve(backend, 'scripts/lib/translate-providers.js'));
+const { createAsk, providerOf } = await import(resolve(backend, 'scripts/lib/translate-providers.js'));
 const { language } = await import(resolve(backend, 'scripts/lib/claude-translate-languages.js'));
 const { FatalApiError, RefusalError } = await import(resolve(backend, 'scripts/lib/claude-translate-client.js'));
 
 const langs = (values.langs || 'hi,mr').split(',').map((s) => s.trim());
 const chapters = values.chapters ? values.chapters.split(',').map(Number) : Array.from({ length: 18 }, (_, i) => i + 1);
 const onlyVerses = values.verses ? new Set(values.verses.split(',')) : null;
-const model = values.model || 'claude-sonnet-5-5';
+const provider = values.provider || 'anthropic';
+const model = values.model || providerOf(provider).defaultModel;
 const effort = values.effort || 'off';
 const maxSpend = Number(values['max-spend'] ?? 5);
 const concurrency = Number(values.concurrency ?? 6);
@@ -184,9 +185,10 @@ if (values['dry-run']) {
 
 const controller = new AbortController();
 process.on('SIGINT', () => { console.log('\nstopping after the calls in progress …'); controller.abort(); });
-const apiKey = process.env.ANTHROPIC_API_KEY;
-if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-const { ask } = createAsk({ provider: 'anthropic', apiKey, model, effort, signal: controller.signal, onWait: (m) => console.log(`   ${m}`) });
+const { keyEnv } = providerOf(provider);
+const apiKey = process.env[keyEnv];
+if (!apiKey) throw new Error(`${keyEnv} is not set`);
+const { ask } = createAsk({ provider, apiKey, model, effort, signal: controller.signal, onWait: (m) => console.log(`   ${m}`) });
 
 let spent = 0, finished = 0, flagged = 0, kept = 0, dropped = 0, tokensIn = 0, tokensOut = 0;
 let stopped = null;

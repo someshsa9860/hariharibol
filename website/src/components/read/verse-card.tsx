@@ -11,7 +11,7 @@ import { NotesSheet } from './notes-sheet';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { SITE_URL } from '@/lib/config';
 import { useFavorite } from '@/lib/favorites';
-import { verseCitation, verseRef } from '@/lib/format';
+import { creditName, verseCitation, verseRef } from '@/lib/format';
 import { verseHref } from '@/lib/links';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
 import { copyText, share } from '@/lib/share';
@@ -37,6 +37,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const [showPurport, setShowPurport] = useState(Boolean(expanded));
 
   const translation = verse.translation;
+  const credit = creditName(translation?.translator);
   const words = verse.wordMeanings ?? [];
   const citation = verseCitation(verse);
   const hasPurport = Boolean(translation?.purport);
@@ -90,7 +91,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
       {translation?.meaning && (
         <div className="v-translation">
           <p>{translation.meaning}</p>
-          {translation.translator && <small>— {translation.translator.name}</small>}
+          {credit && <small>— {credit}</small>}
         </div>
       )}
 

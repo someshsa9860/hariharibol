@@ -8,7 +8,8 @@ export const MAX_LEGACY_MANTRAS = 10;
 // The old server's mantra ids → slugs of ours. Checked before any matching by name, for a mantra the
 // matching (utils/legacy.js) gets wrong or cannot tell — "Maha Mantra" could be the Hare Krishna one or
 // the Nrisimha one, and only someone who has seen the old `mantras` table knows. A slug that is not a
-// published mantra here is ignored. Empty until then:
+// published mantra here is ignored. Empty on purpose: the old table was compared with ours on 2026-10-20
+// and every automatic match was right; the rest are mantras this app does not have. Check with:
 //
 //   node scripts/legacy-match-mantras.js <the old mantras table as JSON>   → how each would match
 //

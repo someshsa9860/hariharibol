@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Sheet } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/states';
 import { webApi } from '@/lib/api/client';
-import { verseCitation } from '@/lib/format';
+import { creditName, verseCitation } from '@/lib/format';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
 import type { Verse, WebVerse } from '@/lib/types';
 
@@ -24,13 +24,16 @@ export function CompareSheet({ verse, onClose }: { verse: Verse; onClose: () => 
       {!data && !failed && <div className="center-state"><Spinner /></div>}
       {data && (
         <ul className="compare-list">
-          {data.translations.filter((t) => t.meaning).map((t, index) => (
-            <li key={index}>
-              <span className="badge">{t.languageCode.toUpperCase()}</span>
-              {t.translator && <strong>{t.translator.name}</strong>}
-              <p>{t.meaning}</p>
-            </li>
-          ))}
+          {data.translations.filter((t) => t.meaning).map((t, index) => {
+            const credit = creditName(t.translator);
+            return (
+              <li key={index}>
+                <span className="badge">{t.languageCode.toUpperCase()}</span>
+                {credit && <strong>{credit}</strong>}
+                <p>{t.meaning}</p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </Sheet>

@@ -1,0 +1,65 @@
+{"lang":"hi","ids":["1.1.5"],"issues":[],"rejected":[],"costUsd":0.00012648}
+{"lang":"hi","ids":["1.1.6"],"issues":[],"rejected":[],"costUsd":0.0002593}
+{"lang":"hi","ids":["1.1.7"],"issues":[],"rejected":[],"costUsd":0.00016058}
+{"lang":"hi","ids":["1.1.8"],"issues":[],"rejected":[],"costUsd":0.0002773}
+{"lang":"hi","ids":["1.1.2"],"issues":[],"rejected":[],"costUsd":0.00019358}
+{"lang":"hi","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"Dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल में","replace":"धर्मक्षेत्र में"},{"part":"translation","verseId":"1.1.1","index":-1,"reason":"Dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल कुरुक्षेत्र में","replace":"धर्मक्षेत्र कुरुक्षेत्र में"}],"rejected":[],"costUsd":0.00022378}
+{"lang":"hi","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.00021218000000000002}
+{"lang":"hi","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.00015168}
+{"lang":"hi","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.00014368}
+{"lang":"hi","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.00031068000000000003}
+{"lang":"hi","ids":["1.1.12"],"issues":[],"rejected":[],"costUsd":0.00017758}
+{"lang":"hi","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.00014978}
+{"lang":"hi","ids":["1.1.11"],"issues":[],"rejected":[],"costUsd":0.00013208000000000002}
+{"lang":"hi","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.00020798000000000002}
+{"lang":"hi","ids":["1.1.13"],"issues":[],"rejected":[],"costUsd":0.00024498}
+{"lang":"hi","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.00015018}
+{"lang":"hi","ids":["1.1.20"],"issues":[],"rejected":[],"costUsd":0.00017068}
+{"lang":"hi","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.00027378}
+{"lang":"hi","ids":["1.1.22"],"issues":[],"rejected":[],"costUsd":0.00017357999999999997}
+{"lang":"hi","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.00027178}
+{"lang":"hi","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.00014858}
+{"lang":"hi","ids":["1.1.26"],"issues":[],"rejected":[],"costUsd":0.00014248}
+{"lang":"hi","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.00020758}
+{"lang":"hi","ids":["1.1.27"],"issues":[],"rejected":[],"costUsd":0.00012998000000000003}
+{"lang":"hi","ids":["1.1.17"],"issues":[],"rejected":[],"costUsd":0.00045077999999999996}
+{"lang":"hi","ids":["1.1.29"],"issues":[],"rejected":[],"costUsd":0.00015628}
+{"lang":"hi","ids":["1.1.28"],"issues":[],"rejected":[],"costUsd":0.00025128}
+{"lang":"hi","ids":["1.1.30"],"issues":[],"rejected":[],"costUsd":0.00021678}
+{"lang":"hi","ids":["1.1.18"],"issues":[{"part":"wordMeanings","verseId":"1.1.18","index":9,"reason":"dadhmuḥ is plural, so the Hindi verb should agree with the plural subject.","genuine":true,"kind":"grammar","confidence":"likely","find":"बजाया","replace":"बजाए"}],"rejected":[],"costUsd":0.00066248}
+{"lang":"hi","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.00024438}
+{"lang":"hi","ids":["1.1.33"],"issues":[],"rejected":[],"costUsd":0.00024428}
+{"lang":"hi","ids":["1.1.31"],"error":"terminated"}
+{"lang":"hi","ids":["1.1.39"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.36"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.38"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.37"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.23"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.34"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.35"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.40"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.41"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.42"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.43"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.44"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.45"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.46"],"error":"Connection error."}
+{"lang":"hi","ids":["1.1.47"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.1"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.2"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.3"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.4"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.5"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.6"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.7"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.8"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.9"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.10"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.11"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.12"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.13"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.14"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.15"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.16"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.17"],"error":"Connection error."}
+{"lang":"mr","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.0003847}

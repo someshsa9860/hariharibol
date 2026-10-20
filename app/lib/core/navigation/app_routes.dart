@@ -32,6 +32,10 @@ abstract final class AppRoutes {
   /// Downloadable voices for reading aloud. Pushed from settings.
   static const String voices = '/settings/voices';
 
+  /// Where the texts come from, the AI-assisted translation notice and the
+  /// disclaimer. Pushed from settings.
+  static const String sources = '/settings/sources';
+
   /// The search screen. Pushed from Library's app bar; searches the server's
   /// index, never a local one.
   static const String search = '/search';
@@ -120,6 +124,7 @@ abstract final class RouteNames {
   static const String settings = 'settings';
   static const String plans = 'plans';
   static const String voices = 'voices';
+  static const String sources = 'sources';
   static const String search = 'search';
   static const String mantraDetail = 'mantraDetail';
   static const String bookDetail = 'bookDetail';

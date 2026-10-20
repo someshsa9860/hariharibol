@@ -469,14 +469,20 @@ abstract class AppLocalizations {
   /// No description provided for @homeMoodPrompt.
   ///
   /// In en, this message translates to:
-  /// **'How are you today?'**
+  /// **'Where would you like to grow today?'**
   String get homeMoodPrompt;
 
   /// No description provided for @homeMoodAnsweredToday.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve shared how you\'re feeling today. Come back tomorrow to share something new.'**
+  /// **'You\'ve chosen your focus for today. Come back tomorrow to grow in something new.'**
   String get homeMoodAnsweredToday;
+
+  /// No description provided for @homeMoodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to strengthen, and a verse will walk with you.'**
+  String get homeMoodHint;
 
   /// No description provided for @homeMoodViewToday.
   ///
@@ -489,6 +495,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Show me a verse} other{Show me {count} verses}}'**
   String homeMoodSubmit(int count);
+
+  /// No description provided for @growthKama.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-mastery'**
+  String get growthKama;
+
+  /// No description provided for @growthKrodha.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get growthKrodha;
+
+  /// No description provided for @growthLobha.
+  ///
+  /// In en, this message translates to:
+  /// **'Contentment'**
+  String get growthLobha;
+
+  /// No description provided for @growthMoha.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity'**
+  String get growthMoha;
+
+  /// No description provided for @growthMada.
+  ///
+  /// In en, this message translates to:
+  /// **'Humility'**
+  String get growthMada;
+
+  /// No description provided for @growthMatsarya.
+  ///
+  /// In en, this message translates to:
+  /// **'Goodwill'**
+  String get growthMatsarya;
+
+  /// No description provided for @growthMissedChantingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting on time'**
+  String get growthMissedChantingTime;
+
+  /// No description provided for @growthUnmetRoundTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing my rounds'**
+  String get growthUnmetRoundTarget;
+
+  /// Why the verse on the home screen was chosen: the quality the reader said they want to grow in, which is already worded in their language (growth*).
+  ///
+  /// In en, this message translates to:
+  /// **'For your growth: {quality}'**
+  String homeGrowReason(String quality);
 
   /// No description provided for @homeVerseOfTheDay.
   ///
@@ -3645,6 +3705,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a few words of the verse, its meaning or the purport. Small slips are forgiven.'**
   String get searchTipPartial;
+
+  /// Settings: title of the group that holds the Sources & disclaimer row.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsSectionAbout;
+
+  /// Settings row, and the title of the screen it opens: where the texts come from, who wrote them, and the notice that other languages are AI-assisted translations.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources & disclaimer'**
+  String get sourcesTitle;
+
+  /// Sources & disclaimer: the opening paragraph.
+  ///
+  /// In en, this message translates to:
+  /// **'HariHariBol offers the sacred texts for daily reading and chanting. We are grateful to the ācāryas, translators and scholars whose work makes this possible. This page sets out where the texts come from and how they are presented.'**
+  String get sourcesIntro;
+
+  /// Sources & disclaimer: heading over who the translations and commentaries belong to.
+  ///
+  /// In en, this message translates to:
+  /// **'Translations and commentaries'**
+  String get sourcesTextsHeading;
+
+  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin.
+  ///
+  /// In en, this message translates to:
+  /// **'The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.'**
+  String get sourcesAuthorCredit;
+
+  /// Sources & disclaimer: rights in every translation stay with its authors and publishers.
+  ///
+  /// In en, this message translates to:
+  /// **'Every translation, purport and commentary is the work of its author, and all rights in it remain with its authors and publishers. They are reproduced here for personal devotional study, not for redistribution.'**
+  String get sourcesTextsBody;
+
+  /// Sources & disclaimer: heading over the list of sources. Each entry has its web address under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the texts come from'**
+  String get sourcesFromHeading;
+
+  /// Sources & disclaimer: what was taken for the Bhagavad-gītā. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Bhagavad-gītā: the Sanskrit text, the English translation and purports, and the commentaries of Śrī Rāmānujācārya, Śrī Madhvācārya and Śrīdhara Svāmī'**
+  String get sourcesGita;
+
+  /// Sources & disclaimer: what was taken for a range of Śrīmad-Bhāgavatam cantos. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Śrīmad-Bhāgavatam, Cantos {from}–{to}: the Sanskrit text, the English translation and purports'**
+  String sourcesBhagavatam(int from, int to);
+
+  /// Sources & disclaimer: the Dnyāneshwarī. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Dnyāneshwarī: Sant Dnyāneshwar’s Marathi ovīs on the Bhagavad-gītā'**
+  String get sourcesDnyaneshwari;
+
+  /// Sources & disclaimer: heading over the notice about AI-assisted translations.
+  ///
+  /// In en, this message translates to:
+  /// **'Translations into other languages'**
+  String get sourcesAiHeading;
+
+  /// Sources & disclaimer: the other languages are prepared from English with AI and may contain errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Text in Hindi, Marathi and the other Indian languages — translations, purports and the app’s own wording — has been prepared from the English with the help of AI. It is not an official or authorised translation and may contain errors, which we correct as they are found. For study, the Sanskrit and the original English remain the authority.'**
+  String get sourcesAiBody;
+
+  /// Sources & disclaimer, under the "Ask Sakha" heading: Sakha is a digital companion. Do not call Sakha an AI, an assistant or a bot.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha is a digital companion, not a teacher. Its replies are not the words of any ācārya and can be mistaken; please check anything important against the texts.'**
+  String get sourcesSakhaBody;
+
+  /// Sources & disclaimer: heading over the no-affiliation statement.
+  ///
+  /// In en, this message translates to:
+  /// **'An independent project'**
+  String get sourcesIndependentHeading;
+
+  /// Sources & disclaimer: the app is not affiliated with any temple, organisation or publisher.
+  ///
+  /// In en, this message translates to:
+  /// **'HariHariBol is an independent devotional project. It is not affiliated with, endorsed by or speaking for any temple, organisation or publisher.'**
+  String get sourcesIndependentBody;
+
+  /// Sources & disclaimer: heading over how to write about rights or mistakes. The email address follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rights and corrections'**
+  String get sourcesContactHeading;
+
+  /// Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows.
+  ///
+  /// In en, this message translates to:
+  /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
+  String get sourcesContactBody;
 }
 
 class _AppLocalizationsDelegate

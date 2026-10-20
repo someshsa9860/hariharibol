@@ -68,8 +68,7 @@ async function main() {
     process.exit(1);
   }
 
-  // A reader who is not one of the demo creators, so the feed does not hide
-  // everything as "your own".
+  // A reader who is not one of the demo creators, so nothing below is the reader's own reel.
   const reader = await prisma.user.findFirst({
     where: { creatorProfile: null },
     include: { role: true },
@@ -112,8 +111,20 @@ async function main() {
   const anonymousLike = anonymousFirst ? await call('POST', `/api/app/reels/${anonymousFirst.id}/like`) : { status: 0 };
   check('liking still needs an account', anonymousLike.status === 403, `HTTP ${anonymousLike.status}`);
 
-  const mine = reels.filter((r) => r.isMine);
-  check('the feed leaves out my own reels', mine.length === 0, `${mine.length} own reels`);
+  // A creator sees their own reels in the feed, like any reader: the feed's total is every
+  // published reel of an approved creator, theirs included.
+  const owner = await prisma.user.findFirst({
+    where: { creatorProfile: { status: 'APPROVED', reels: { some: { status: 'PUBLISHED' } } } },
+    include: { role: true },
+  });
+  if (owner) {
+    const { accessToken: ownerToken } = await authService.issueSession(owner, 'reels-e2e-device');
+    const ownerFeed = await call('GET', '/api/app/reels', { token: ownerToken });
+    const everyPublished = await prisma.reel.count({ where: { status: 'PUBLISHED', creator: { status: 'APPROVED' } } });
+    check('a creator\'s feed includes their own reels', ownerFeed.json?.meta?.total === everyPublished, `${ownerFeed.json?.meta?.total} of ${everyPublished}`);
+  } else {
+    check('a creator\'s feed includes their own reels', false, 'no approved creator with a published reel to read as');
+  }
 
   // ── 2 ──────────────────────────────────────────────────────────────────────
   console.log('\n2. One reel, the share and deeplink target');

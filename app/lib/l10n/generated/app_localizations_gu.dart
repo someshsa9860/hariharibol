@@ -209,11 +209,15 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'આજે તમે કેમ છો?';
+  String get homeMoodPrompt => 'આજે તમે કયા ગુણમાં આગળ વધવા માંગો છો?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'આજે તમને કેવું લાગે છે તે તમે જણાવી દીધું છે. કંઈક નવું જણાવવા માટે કાલે ફરી આવો.';
+      'તમે આજનું તમારું લક્ષ્ય પસંદ કરી લીધું છે. કંઈક નવું કેળવવા માટે કાલે ફરી આવો.';
+
+  @override
+  String get homeMoodHint =>
+      'જેમાં આગળ વધવું છે તે પસંદ કરો, એક શ્લોક તમારી સાથે રહેશે.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -235,6 +239,35 @@ class AppLocalizationsGu extends AppLocalizations {
       one: 'મને એક શ્લોક બતાવો',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'આત્મસંયમ';
+
+  @override
+  String get growthKrodha => 'શાંતિ';
+
+  @override
+  String get growthLobha => 'સંતોષ';
+
+  @override
+  String get growthMoha => 'વિવેક';
+
+  @override
+  String get growthMada => 'નમ્રતા';
+
+  @override
+  String get growthMatsarya => 'સદ્ભાવના';
+
+  @override
+  String get growthMissedChantingTime => 'સમયસર જપ';
+
+  @override
+  String get growthUnmetRoundTarget => 'મારી માળાઓ પૂર્ણ કરવી';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'તમારી પ્રગતિ માટે: $quality';
   }
 
   @override
@@ -2097,4 +2130,66 @@ class AppLocalizationsGu extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'શ્લોક, તેના અર્થ કે તાત્પર્યના થોડા શબ્દો લખો. નાની ભૂલો ચાલશે.';
+
+  @override
+  String get settingsSectionAbout => 'એપ વિશે';
+
+  @override
+  String get sourcesTitle => 'સ્રોત અને અસ્વીકરણ';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol દૈનિક પાઠ અને જપ માટે પવિત્ર ગ્રંથો રજૂ કરે છે. જે આચાર્યો, અનુવાદકો અને વિદ્વાનોના કાર્યથી આ શક્ય બન્યું છે, તેમના અમે આભારી છીએ. આ ગ્રંથો ક્યાંથી લેવામાં આવ્યા છે અને કેવી રીતે રજૂ કરાયા છે, તે આ પાના પર જણાવ્યું છે.';
+
+  @override
+  String get sourcesTextsHeading => 'અનુવાદ અને ટીકાઓ';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ભગવદ્ગીતા તેના મૂળ રૂપમાં અને શ્રીમદ્ભાગવતના અંગ્રેજી અનુવાદ અને તાત્પર્ય આંતરરાષ્ટ્રીય કૃષ્ણભાવનામૃત સંઘના સંસ્થાપક-આચાર્ય કૃષ્ણકૃપામૂર્તિ શ્રી શ્રીમદ્ એ. સી. ભક્તિવેદાંત સ્વામી પ્રભુપાદની કૃતિ છે. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'દરેક અનુવાદ, તાત્પર્ય અને ટીકા તેના રચયિતાની કૃતિ છે, અને તેના પરના બધા અધિકારો તેના રચયિતાઓ અને પ્રકાશકો પાસે જ રહે છે. તે અહીં વ્યક્તિગત ભક્તિમય અભ્યાસ માટે રજૂ કરાયા છે, પુનઃવિતરણ માટે નહીં.';
+
+  @override
+  String get sourcesFromHeading => 'ગ્રંથો ક્યાંથી લેવામાં આવ્યા છે';
+
+  @override
+  String get sourcesGita =>
+      'ભગવદ્ગીતા: સંસ્કૃત મૂળ પાઠ, અંગ્રેજી અનુવાદ અને તાત્પર્ય, તથા શ્રી રામાનુજાચાર્ય, શ્રી મધ્વાચાર્ય અને શ્રીધર સ્વામીની ટીકાઓ';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'શ્રીમદ્ભાગવત, સ્કંધ $from–$to: સંસ્કૃત મૂળ પાઠ, અંગ્રેજી અનુવાદ અને તાત્પર્ય';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'જ્ઞાનેશ્વરી: ભગવદ્ગીતા પર સંત જ્ઞાનેશ્વરની મરાઠી ઓવીઓ';
+
+  @override
+  String get sourcesAiHeading => 'અન્ય ભાષાઓમાં અનુવાદ';
+
+  @override
+  String get sourcesAiBody =>
+      'હિન્દી, મરાઠી અને અન્ય ભારતીય ભાષાઓનું લખાણ — અનુવાદ, તાત્પર્ય અને એપના પોતાના શબ્દો — અંગ્રેજી પરથી AI ની મદદથી તૈયાર કરાયું છે. તે કોઈ સત્તાવાર કે અધિકૃત અનુવાદ નથી અને તેમાં ભૂલો હોઈ શકે છે, જે ધ્યાનમાં આવતાં જ અમે સુધારીએ છીએ. અભ્યાસ માટે સંસ્કૃત અને મૂળ અંગ્રેજી જ પ્રમાણ છે.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha એક ડિજિટલ સાથી છે, ગુરુ નહીં. તેના જવાબો કોઈ આચાર્યના વચનો નથી અને તેમાં ભૂલ થઈ શકે છે; કોઈ પણ મહત્વની વાત ગ્રંથો સાથે અવશ્ય મેળવી લો.';
+
+  @override
+  String get sourcesIndependentHeading => 'એક સ્વતંત્ર પ્રયાસ';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol એક સ્વતંત્ર ભક્તિમય પ્રયાસ છે. તે કોઈ મંદિર, સંસ્થા કે પ્રકાશક સાથે સંકળાયેલું નથી, તેમના દ્વારા સમર્થિત નથી અને તેમના વતી બોલતું નથી.';
+
+  @override
+  String get sourcesContactHeading => 'અધિકારો અને સુધારા';
+
+  @override
+  String get sourcesContactBody =>
+      'જો અહીં દર્શાવેલા કોઈ લખાણ પર તમારા અધિકારો હોય, અથવા તેમાં કોઈ ભૂલ જણાય, તો કૃપા કરીને અમને લખો. અમે તરત જવાબ આપીશું અને કહેવામાં આવે તો તેને સુધારીશું અથવા દૂર કરીશું.';
 }

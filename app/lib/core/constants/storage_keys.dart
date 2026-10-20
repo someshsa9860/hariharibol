@@ -8,6 +8,18 @@ abstract final class SecureKeys {
   static const String refreshExpiresAt = 'auth.refresh_expires_at';
 }
 
+/// What the previous app left on the phone. It was a different app with the same
+/// bundle id, so an update finds its files; these are read, never written, and
+/// the one that matters is removed once it has been traded for a session here.
+/// None of the keys above is reused for it: the two apps' tokens never share a
+/// name.
+abstract final class LegacyKeys {
+  /// Where the previous app kept its access token, in `shared_preferences` (the
+  /// plugin adds its own `flutter.` prefix, so this is the key as the Dart code
+  /// of both apps writes it).
+  static const String token = 'token';
+}
+
 abstract final class BoxNames {
   static const String app = 'app';
 }
@@ -75,6 +87,10 @@ abstract final class BoxKeys {
   static const String introSeen = 'intro.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
+
+  /// The languages the saved Home payload was asked for in (`hi,en`), so a copy
+  /// in a language the reader has since left is not shown in place of their own.
+  static const String lastHomeLanguages = 'cache.home_languages';
 
   /// Everything the Jap tab keeps so it can draw with no connection: today's
   /// practice screen and the mantras, as the API last sent them. Personal (a

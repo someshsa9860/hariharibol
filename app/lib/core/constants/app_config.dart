@@ -40,7 +40,34 @@ abstract final class AppConfig {
   /// the next try waits this long. The token in hand is still good meanwhile.
   static const Duration renewRetryAfter = Duration(minutes: 15);
 
+  /// Signing in someone from the previous app happens at launch, with the first
+  /// screen waiting, so it is given this long in all and then let go: the token
+  /// stays on the phone and the next launch tries again. A little longer than
+  /// the API's own wait on the old server (8 seconds).
+  static const Duration legacySignInTimeout = Duration(seconds: 12);
+
+  /// How long an access token of the previous app can be, and still be sent. The
+  /// API refuses anything outside this (`legacyToken` in `routes/app/auth.js`),
+  /// so a stray value in that slot is never posted.
+  static const int legacyTokenMinLength = 10;
+  static const int legacyTokenMaxLength = 300;
+
   static const int defaultPageSize = 20;
+
+  /// Śrīla Prabhupāda's name is not shown beside his translations and purports
+  /// until permission to name him has been given. When it has, set this to true
+  /// — that is the whole change. Only the credit goes: his texts are still
+  /// shown, and every other translator is still named. The website has the same
+  /// switch (`SHOW_AUTHOR_NAME` in `website/src/lib/config.ts`).
+  static const bool showAuthorName = false;
+
+  /// The translator [showAuthorName] is about, by the slug both the API and the
+  /// offline book copies carry.
+  static const String authorSlug = 'prabhupada';
+
+  /// Where readers write about rights in a text or a mistake in one — named on
+  /// Settings → Sources & disclaimer; the address the terms page gives too.
+  static const String supportEmail = 'support@hariharibol.com';
 
   /// Fallbacks for the three language settings until the account says otherwise.
   static const String defaultAppLanguage = 'en';

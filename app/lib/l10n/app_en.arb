@@ -106,8 +106,9 @@
       }
     }
   },
-  "homeMoodPrompt": "How are you today?",
-  "homeMoodAnsweredToday": "You've shared how you're feeling today. Come back tomorrow to share something new.",
+  "homeMoodPrompt": "Where would you like to grow today?",
+  "homeMoodAnsweredToday": "You've chosen your focus for today. Come back tomorrow to grow in something new.",
+  "homeMoodHint": "Choose what to strengthen, and a verse will walk with you.",
   "homeMoodViewToday": "{count, plural, =1{Read today's verse again} other{Read today's {count} verses again}}",
   "@homeMoodViewToday": {
     "placeholders": {
@@ -121,6 +122,23 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "growthKama": "Self-mastery",
+  "growthKrodha": "Calm",
+  "growthLobha": "Contentment",
+  "growthMoha": "Clarity",
+  "growthMada": "Humility",
+  "growthMatsarya": "Goodwill",
+  "growthMissedChantingTime": "Chanting on time",
+  "growthUnmetRoundTarget": "Finishing my rounds",
+  "homeGrowReason": "For your growth: {quality}",
+  "@homeGrowReason": {
+    "description": "Why the verse on the home screen was chosen: the quality the reader said they want to grow in, which is already worded in their language (growth*).",
+    "placeholders": {
+      "quality": {
+        "type": "String"
       }
     }
   },
@@ -1510,5 +1528,83 @@
   "searchTipsTitle": "Search tips",
   "searchTipSpelling": "Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.",
   "searchTipBook": "Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.",
-  "searchTipPartial": "Type a few words of the verse, its meaning or the purport. Small slips are forgiven."
+  "searchTipPartial": "Type a few words of the verse, its meaning or the purport. Small slips are forgiven.",
+  "settingsSectionAbout": "About",
+  "@settingsSectionAbout": {
+    "description": "Settings: title of the group that holds the Sources & disclaimer row."
+  },
+  "sourcesTitle": "Sources & disclaimer",
+  "@sourcesTitle": {
+    "description": "Settings row, and the title of the screen it opens: where the texts come from, who wrote them, and the notice that other languages are AI-assisted translations."
+  },
+  "sourcesIntro": "HariHariBol offers the sacred texts for daily reading and chanting. We are grateful to the ācāryas, translators and scholars whose work makes this possible. This page sets out where the texts come from and how they are presented.",
+  "@sourcesIntro": {
+    "description": "Sources & disclaimer: the opening paragraph."
+  },
+  "sourcesTextsHeading": "Translations and commentaries",
+  "@sourcesTextsHeading": {
+    "description": "Sources & disclaimer: heading over who the translations and commentaries belong to."
+  },
+  "sourcesAuthorCredit": "The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.",
+  "@sourcesAuthorCredit": {
+    "description": "Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin."
+  },
+  "sourcesTextsBody": "Every translation, purport and commentary is the work of its author, and all rights in it remain with its authors and publishers. They are reproduced here for personal devotional study, not for redistribution.",
+  "@sourcesTextsBody": {
+    "description": "Sources & disclaimer: rights in every translation stay with its authors and publishers."
+  },
+  "sourcesFromHeading": "Where the texts come from",
+  "@sourcesFromHeading": {
+    "description": "Sources & disclaimer: heading over the list of sources. Each entry has its web address under it."
+  },
+  "sourcesGita": "Bhagavad-gītā: the Sanskrit text, the English translation and purports, and the commentaries of Śrī Rāmānujācārya, Śrī Madhvācārya and Śrīdhara Svāmī",
+  "@sourcesGita": {
+    "description": "Sources & disclaimer: what was taken for the Bhagavad-gītā. Its address is shown under it."
+  },
+  "sourcesBhagavatam": "Śrīmad-Bhāgavatam, Cantos {from}–{to}: the Sanskrit text, the English translation and purports",
+  "@sourcesBhagavatam": {
+    "description": "Sources & disclaimer: what was taken for a range of Śrīmad-Bhāgavatam cantos. Its address is shown under it.",
+    "placeholders": {
+      "from": {
+        "type": "int",
+        "example": "1"
+      },
+      "to": {
+        "type": "int",
+        "example": "9"
+      }
+    }
+  },
+  "sourcesDnyaneshwari": "Dnyāneshwarī: Sant Dnyāneshwar’s Marathi ovīs on the Bhagavad-gītā",
+  "@sourcesDnyaneshwari": {
+    "description": "Sources & disclaimer: the Dnyāneshwarī. Its address is shown under it."
+  },
+  "sourcesAiHeading": "Translations into other languages",
+  "@sourcesAiHeading": {
+    "description": "Sources & disclaimer: heading over the notice about AI-assisted translations."
+  },
+  "sourcesAiBody": "Text in Hindi, Marathi and the other Indian languages — translations, purports and the app’s own wording — has been prepared from the English with the help of AI. It is not an official or authorised translation and may contain errors, which we correct as they are found. For study, the Sanskrit and the original English remain the authority.",
+  "@sourcesAiBody": {
+    "description": "Sources & disclaimer: the other languages are prepared from English with AI and may contain errors."
+  },
+  "sourcesSakhaBody": "Sakha is a digital companion, not a teacher. Its replies are not the words of any ācārya and can be mistaken; please check anything important against the texts.",
+  "@sourcesSakhaBody": {
+    "description": "Sources & disclaimer, under the \"Ask Sakha\" heading: Sakha is a digital companion. Do not call Sakha an AI, an assistant or a bot."
+  },
+  "sourcesIndependentHeading": "An independent project",
+  "@sourcesIndependentHeading": {
+    "description": "Sources & disclaimer: heading over the no-affiliation statement."
+  },
+  "sourcesIndependentBody": "HariHariBol is an independent devotional project. It is not affiliated with, endorsed by or speaking for any temple, organisation or publisher.",
+  "@sourcesIndependentBody": {
+    "description": "Sources & disclaimer: the app is not affiliated with any temple, organisation or publisher."
+  },
+  "sourcesContactHeading": "Rights and corrections",
+  "@sourcesContactHeading": {
+    "description": "Sources & disclaimer: heading over how to write about rights or mistakes. The email address follows."
+  },
+  "sourcesContactBody": "If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.",
+  "@sourcesContactBody": {
+    "description": "Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows."
+  }
 }

@@ -220,6 +220,18 @@ class SettingsView extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.xl),
+
+          SettingsGroup(
+            title: text.settingsSectionAbout,
+            children: [
+              SettingsRow(
+                icon: Icons.info_outline_rounded,
+                label: text.sourcesTitle,
+                onTap: () => AppNavigator.instance.push(AppRoutes.sources),
+              ),
+            ],
+          ),
 
           const SizedBox(height: AppSpacing.xxl),
           Center(

@@ -8,7 +8,6 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/language_settings.dart';
 import '../services/local_store.dart';
 import '../services/user_service.dart';
-import 'home_provider.dart';
 import 'mantra_provider.dart';
 import 'session_provider.dart';
 
@@ -84,8 +83,9 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
             )
             .then((_) async {
           // The server shapes these by the language it now has on the account, so
-          // what is already on screen (a mantra's title and script, the sloka's
-          // transliteration) is asked for again.
+          // what is already on screen (a mantra's title and script) is asked for
+          // again. The Home feed is not among them: it names the languages itself
+          // and rebuilds the moment they change (`homeFeedProvider`).
           await _refetchServerShaped();
         }, onError: (Object error) {
           if (kDebugMode) debugPrint('[Language] account not updated: $error');
@@ -102,8 +102,7 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
 
     ref
       ..invalidate(mantraListProvider)
-      ..invalidate(mantraDetailProvider)
-      ..invalidate(homeFeedProvider);
+      ..invalidate(mantraDetailProvider);
   }
 }
 

@@ -102,6 +102,11 @@ dependencies:
   image_picker: ^1.2.4
   speech_to_text: ^7.5.0
 
+  # Read only, once: the previous app kept its sign-in token in the plugin's
+  # store, and this app has the same bundle id, so an update finds it there
+  # (core/session/legacy_token_store.dart). Nothing else uses it.
+  shared_preferences: ^2.5.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -119,6 +124,7 @@ flutter:
     - assets/hariharibol_trprt.png
     - assets/peacock_feather.svg
     - assets/sakha_icon.svg
+    - assets/verse_backdrop.jpg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/tts/

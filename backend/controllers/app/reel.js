@@ -16,8 +16,9 @@
 // builder cannot express, so it runs as a single raw, parameterised query
 // that returns ids in rank order; the rows are then hydrated and shaped
 // through Prisma as usual. Everything that decides *which* reels are eligible
-// (published, creator in good standing, not the reader's own) lives in both
-// this query and the `where` used for the count, so the two never disagree.
+// (published, creator in good standing) lives in both this query and the
+// `where` used for the count, so the two never disagree. A reader's own reels
+// are in the feed like anyone's — a creator can see their reel where readers do.
 //
 // Every counter on Reel is denormalised, so each write here changes two rows —
 // the engagement row and the count that summarises it. They go in one
@@ -52,21 +53,18 @@ const UNSPECIFIED_LANG_BOOST = 10;
 const SEEN_PENALTY = 25;
 const COMPLETED_PENALTY = 60;
 
-const eligibleWhere = (userId) => ({
-  status: 'PUBLISHED',
-  creator: { status: 'APPROVED', ...(userId ? { userId: { not: userId } } : {}) },
-});
+const ELIGIBLE_WHERE = { status: 'PUBLISHED', creator: { status: 'APPROVED' } };
 
 /** GET /api/app/reels */
 export const feed = async (req, res) => {
-  // Signed out is allowed (the website): nothing is "seen" and no reel is the reader's own.
+  // Signed out is allowed (the website): nothing is "seen" there.
   const user = req.auth.user;
   const userId = user?.id ?? null;
   const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
   const [lang0 = null, lang1 = null, lang2 = null] = language.readingChain(user);
 
   const [total, ranked] = await Promise.all([
-    prisma.reel.count({ where: eligibleWhere(userId) }),
+    prisma.reel.count({ where: ELIGIBLE_WHERE }),
     prisma.$queryRaw`
       SELECT r.id
       FROM "Reel" r
@@ -74,7 +72,6 @@ export const feed = async (req, res) => {
       LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${userId}
       WHERE r.status = 'PUBLISHED'::"ReelStatus"
         AND cp.status = 'APPROVED'::"CreatorStatus"
-        AND cp."userId" IS DISTINCT FROM ${userId}
       ORDER BY
         (
           CASE
@@ -126,9 +123,9 @@ export const feed = async (req, res) => {
 /**
  * GET /api/app/reels/:id
  *
- * The share target and the deeplink landing point. Unlike the feed this does
- * not exclude the reader's own reels — following a link to something you
- * posted yourself should show it, not 404.
+ * The share target and the deeplink landing point. Unlike the feed this also
+ * shows the reader's own reels in any state (a draft, one awaiting review) —
+ * following a link to something you posted yourself should show it, not 404.
  */
 export const get = async (req, res) => {
   const user = req.auth.user;

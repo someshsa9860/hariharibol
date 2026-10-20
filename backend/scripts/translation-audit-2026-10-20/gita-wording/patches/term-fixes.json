@@ -1,0 +1,182 @@
+[
+ {
+  "lang": "hi",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "तीर्थस्थल कुरुक्षेत्र में",
+  "replace": "धर्मक्षेत्र कुरुक्षेत्र में",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "hi",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "तीर्थस्थल में",
+  "replace": "धर्मक्षेत्र में",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "mr",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "कुरुक्षेत्र या तीर्थस्थानी",
+  "replace": "धर्मक्षेत्र कुरुक्षेत्र येथे",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "mr",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "तीर्थस्थानी",
+  "replace": "धर्मक्षेत्री",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "bn",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "কুরুক্ষেত্রের তীর্থক্ষেত্রে",
+  "replace": "ধর্মক্ষেত্র কুরুক্ষেত্রে",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "bn",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "তীর্থক্ষেত্রে",
+  "replace": "ধর্মক্ষেত্রে",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "ta",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "குருக்ஷேத்திரம் என்னும் புனித யாத்திரைத் தலத்தில்",
+  "replace": "தர்மக்ஷேத்திரமான குருக்ஷேத்திரத்தில்",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "ta",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "புனித யாத்திரைத் தலத்தில்",
+  "replace": "தர்மக்ஷேத்திரத்தில்",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "te",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "కురుక్షేత్రమనే పుణ్యక్షేత్రంలో",
+  "replace": "ధర్మక్షేత్రమైన కురుక్షేత్రంలో",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "te",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "పుణ్యక్షేత్రంలో",
+  "replace": "ధర్మక్షేత్రంలో",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "kn",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "ಕುರುಕ್ಷೇತ್ರದ ತೀರ್ಥಕ್ಷೇತ್ರದಲ್ಲಿ",
+  "replace": "ಧರ್ಮಕ್ಷೇತ್ರ ಕುರುಕ್ಷೇತ್ರದಲ್ಲಿ",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "kn",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "ತೀರ್ಥಕ್ಷೇತ್ರದಲ್ಲಿ",
+  "replace": "ಧರ್ಮಕ್ಷೇತ್ರದಲ್ಲಿ",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "ml",
+  "verseId": "1.1.1",
+  "part": "translation",
+  "find": "തീർത്ഥസ്ഥാനമായ കുരുക്ഷേത്രത്തിൽ",
+  "replace": "ധർമ്മക്ഷേത്രമായ കുരുക്ഷേത്രത്തിൽ",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "ml",
+  "verseId": "1.1.1",
+  "part": "wordMeanings",
+  "i": 1,
+  "find": "തീർത്ഥാടനസ്ഥലത്ത്",
+  "replace": "ധർമ്മക്ഷേത്രത്തിൽ",
+  "why": "dharma-kṣetre means the field of dharma; the text followed the English gloss \"place of pilgrimage\" (tīrtha)"
+ },
+ {
+  "lang": "hi",
+  "verseId": "1.3.34",
+  "part": "wordMeanings",
+  "i": 3,
+  "find": "तथा विरक्ति भी",
+  "replace": "तथा द्वेष भी",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ },
+ {
+  "lang": "bn",
+  "verseId": "1.3.34",
+  "part": "wordMeanings",
+  "i": 3,
+  "find": "এবং অনাসক্তিও",
+  "replace": "এবং বিদ্বেষও",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ },
+ {
+  "lang": "te",
+  "verseId": "1.3.34",
+  "part": "wordMeanings",
+  "i": 3,
+  "find": "ద్వేషం (విరక్తి)",
+  "replace": "ద్వేషం",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ },
+ {
+  "lang": "kn",
+  "verseId": "1.3.34",
+  "part": "wordMeanings",
+  "i": 3,
+  "find": "ಹಾಗೂ ವಿರಕ್ತಿ",
+  "replace": "ಹಾಗೂ ದ್ವೇಷ",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ },
+ {
+  "lang": "kn",
+  "verseId": "1.3.34",
+  "part": "translation",
+  "find": "ಆಸಕ್ತಿ ಮತ್ತು ವಿರಕ್ತಿಯನ್ನು",
+  "replace": "ಆಸಕ್ತಿ ಮತ್ತು ದ್ವೇಷವನ್ನು",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment (detachment = vairāgya, not dveṣa)"
+ },
+ {
+  "lang": "kn",
+  "verseId": "1.3.34",
+  "part": "translation",
+  "find": "ಆಸಕ್ತಿ ಮತ್ತು ವಿರಕ್ತಿಗಳ ವಶಕ್ಕೆ",
+  "replace": "ಆಸಕ್ತಿ ಮತ್ತು ದ್ವೇಷಗಳ ವಶಕ್ಕೆ",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ },
+ {
+  "lang": "ml",
+  "verseId": "1.3.34",
+  "part": "wordMeanings",
+  "i": 3,
+  "find": "വിരക്തിയും",
+  "replace": "ദ്വേഷവും",
+  "why": "dveṣau is aversion/hatred (the verse translation says so); the word list said detachment"
+ }
+]

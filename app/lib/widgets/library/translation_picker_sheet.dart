@@ -80,8 +80,8 @@ class _TranslationPickerSheet extends ConsumerWidget {
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                rendering.translator?.name ??
-                                    rendering.languageCode,
+                                rendering.translator?.creditName ??
+                                    rendering.languageCode.toUpperCase(),
                               ),
                               subtitle: meaning == null || meaning.isEmpty
                                   ? null

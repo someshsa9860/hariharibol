@@ -210,11 +210,15 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'இன்று எப்படி இருக்கிறீர்கள்?';
+  String get homeMoodPrompt => 'இன்று எந்தப் பண்பில் வளர விரும்புகிறீர்கள்?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'இன்று உங்கள் உணர்வைப் பகிர்ந்துவிட்டீர்கள். புதிதாகப் பகிர நாளை மீண்டும் வாருங்கள்.';
+      'இன்றைய உங்கள் கவனத்தைத் தேர்ந்தெடுத்துவிட்டீர்கள். புதியதொன்றில் வளர நாளை மீண்டும் வாருங்கள்.';
+
+  @override
+  String get homeMoodHint =>
+      'எதை வலுப்படுத்த விரும்புகிறீர்களோ அதைத் தேர்ந்தெடுங்கள்; ஒரு ஸ்லோகம் உங்களுடன் வரும்.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -236,6 +240,35 @@ class AppLocalizationsTa extends AppLocalizations {
       one: 'ஒரு ஸ்லோகத்தைக் காட்டு',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'தன்னடக்கம்';
+
+  @override
+  String get growthKrodha => 'அமைதி';
+
+  @override
+  String get growthLobha => 'மனநிறைவு';
+
+  @override
+  String get growthMoha => 'தெளிவு';
+
+  @override
+  String get growthMada => 'பணிவு';
+
+  @override
+  String get growthMatsarya => 'நல்லெண்ணம்';
+
+  @override
+  String get growthMissedChantingTime => 'நேரத்தில் ஜபம்';
+
+  @override
+  String get growthUnmetRoundTarget => 'என் மாலாக்களை முடித்தல்';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'உங்கள் வளர்ச்சிக்காக: $quality';
   }
 
   @override
@@ -2119,4 +2152,66 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'ஸ்லோகம், அதன் பொருள் அல்லது பொருளுரையின் சில சொற்களை எழுதுங்கள். சிறு பிழைகள் பரவாயில்லை.';
+
+  @override
+  String get settingsSectionAbout => 'செயலி பற்றி';
+
+  @override
+  String get sourcesTitle => 'மூலங்களும் பொறுப்புத் துறப்பும்';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol தினசரி வாசிப்புக்கும் ஜபத்துக்கும் புனித நூல்களை வழங்குகிறது. இதைச் சாத்தியமாக்கிய ஆச்சாரியர்கள், மொழிபெயர்ப்பாளர்கள், அறிஞர்கள் அனைவருக்கும் நாங்கள் நன்றியுடையவர்கள். இந்த நூல்கள் எங்கிருந்து எடுக்கப்பட்டன, எவ்வாறு வழங்கப்படுகின்றன என்பதை இந்தப் பக்கம் விளக்குகிறது.';
+
+  @override
+  String get sourcesTextsHeading => 'மொழிபெயர்ப்புகளும் உரைகளும்';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'பகவத் கீதை உண்மையுருவில் மற்றும் ஸ்ரீமத் பாகவதத்தின் ஆங்கில மொழிபெயர்ப்பும் பொருளுரையும், அகில உலக கிருஷ்ண பக்தி இயக்கத்தின் ஸ்தாபக ஆச்சாரியரான தெய்வத்திரு அ. ச. பக்திவேதாந்த சுவாமி பிரபுபாதர் அவர்களின் படைப்பாகும். © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ஒவ்வொரு மொழிபெயர்ப்பும் பொருளுரையும் உரையும் அதன் ஆசிரியரின் படைப்பு; அதன் மீதான எல்லா உரிமைகளும் அதன் ஆசிரியர்களிடமும் வெளியீட்டாளர்களிடமுமே உள்ளன. இவை இங்கு தனிப்பட்ட பக்தி வாசிப்புக்காக வழங்கப்படுகின்றன, மறுவிநியோகத்துக்காக அல்ல.';
+
+  @override
+  String get sourcesFromHeading => 'நூல்கள் எங்கிருந்து எடுக்கப்பட்டன';
+
+  @override
+  String get sourcesGita =>
+      'பகவத் கீதை: சமஸ்கிருத மூலம், ஆங்கில மொழிபெயர்ப்பும் பொருளுரையும், ஸ்ரீ ராமானுஜாச்சாரியர், ஸ்ரீ மத்வாச்சாரியர், ஸ்ரீதர ஸ்வாமி ஆகியோரின் உரைகளும்';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ஸ்ரீமத் பாகவதம், ஸ்கந்தம் $from–$to: சமஸ்கிருத மூலம், ஆங்கில மொழிபெயர்ப்பும் பொருளுரையும்';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ஞானேஸ்வரி: பகவத் கீதை குறித்து சந்த் ஞானேஸ்வரரின் மராத்தி ஓவிகள்';
+
+  @override
+  String get sourcesAiHeading => 'பிற மொழிகளில் மொழிபெயர்ப்பு';
+
+  @override
+  String get sourcesAiBody =>
+      'இந்தி, மராத்தி மற்றும் பிற இந்திய மொழிகளில் உள்ள உள்ளடக்கம் — மொழிபெயர்ப்புகள், பொருளுரைகள், செயலியின் சொந்த வாசகங்கள் — ஆங்கிலத்திலிருந்து AI உதவியுடன் தயாரிக்கப்பட்டது. இது அதிகாரப்பூர்வமான அல்லது அங்கீகரிக்கப்பட்ட மொழிபெயர்ப்பு அல்ல; இதில் பிழைகள் இருக்கலாம், அவை தெரியவந்தவுடன் நாங்கள் திருத்துகிறோம். ஆய்வுக்கு சமஸ்கிருதமும் மூல ஆங்கிலமுமே ஆதாரம்.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ஒரு டிஜிட்டல் துணை, குரு அல்ல. அதன் பதில்கள் எந்த ஆச்சாரியரின் வாக்கும் அல்ல, அவற்றில் தவறு இருக்கலாம்; முக்கியமான எதையும் நூல்களுடன் சரிபார்த்துக்கொள்ளுங்கள்.';
+
+  @override
+  String get sourcesIndependentHeading => 'ஒரு சுயாதீன முயற்சி';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ஒரு சுயாதீன பக்தி முயற்சி. இது எந்தக் கோயில், அமைப்பு அல்லது வெளியீட்டாளருடனும் இணைந்ததல்ல, அவர்களால் அங்கீகரிக்கப்பட்டதல்ல, அவர்கள் சார்பாகப் பேசுவதுமல்ல.';
+
+  @override
+  String get sourcesContactHeading => 'உரிமைகளும் திருத்தங்களும்';
+
+  @override
+  String get sourcesContactBody =>
+      'இங்கு காட்டப்படும் ஏதேனும் உள்ளடக்கத்தின் மீது உங்களுக்கு உரிமை இருந்தால், அல்லது அதில் பிழை கண்டால், தயவுசெய்து எங்களுக்கு எழுதுங்கள். நாங்கள் விரைவில் பதிலளிப்போம்; கேட்டுக்கொண்டால் அதைத் திருத்துவோம் அல்லது நீக்குவோம்.';
 }

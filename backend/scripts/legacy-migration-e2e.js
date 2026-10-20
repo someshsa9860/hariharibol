@@ -13,7 +13,8 @@
 //   4  everything that goes wrong — the app is told 403 UNAUTHENTICATED only when the token itself is no good,
 //      and 503 for every other reason, none of which creates anything or tells the app why
 //   5  people with no usable email: a stand-in address that is never shown to them
-//   6  an account here that already has the email, a banned account, closed sign-ups, two requests at once
+//   6  an account here that already has the email (however it is cased): linked to the old user, never opened by
+//      the old token; a banned account, closed sign-ups, two requests at once
 //   7  Google signing in with a carried-over email: it takes the account over, ends the sessions made from the
 //      old token, and the old token stops working
 //   8  the favourite mantra: the old one opens "Chant now" until a mantra is chanted here, then that one does
@@ -78,7 +79,8 @@ const { OAuth2Client } = await import('google-auth-library');
 const { prisma } = await import('../config/database.js');
 const { redis } = await import('../config/redis.js');
 const { default: env } = await import('../config/env.js');
-const authService = await import('../services/auth.js');
+const { default: logger } = await import('../config/logger.js');
+logger.level = 'error'; // a line for every request would bury the results
 const { CACHE, SETTING_KEYS } = await import('../config/constants.js');
 const { default: app } = await import('../app.js');
 
@@ -171,7 +173,7 @@ async function main() {
   try {
     const ASHA = FIRST_ID + 1;
     const ashaEmail = `Legacy-E2E-Asha-${RUN}@Example.com`; // the old server keeps whatever case it was typed in
-    answers.set('tok-asha', known(ASHA, [
+    answers.set('legacy-e2e-tok-asha', known(ASHA, [
       { id: 3, title: 'Om Namah Shivay', subtitle: 'Shiv mantra', mantra: 'ॐ नमः शिवाय', count: 12000 },
       { id: 1, title: 'Hare Krishna', subtitle: null, mantra: 'हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे', count: 700 },
       { id: 9, title: 'Some chant nobody here has', subtitle: null, mantra: 'qzx qzx', count: 30 },
@@ -179,7 +181,7 @@ async function main() {
 
     // ── 1–2 ────────────────────────────────────────────────────────────────
     section('1. A first sign-in with the old token');
-    let r = await legacy('tok-asha', { appLanguage: 'hi', timezone: 'Asia/Kolkata' });
+    let r = await legacy('legacy-e2e-tok-asha', { appLanguage: 'hi', timezone: 'Asia/Kolkata' });
     check('answers 201 for an account it just made', r.status === 201 && r.json?.success === true, `${r.status}`);
     const asha = r.json?.data;
     check('sends the same shape /auth/social does: user and tokens', Boolean(asha?.user?.id && asha?.tokens?.accessToken && asha?.tokens?.refreshToken && asha?.tokens?.refreshExpiresAt));
@@ -187,18 +189,18 @@ async function main() {
     check('the email is shown in lower case', asha?.user?.email === ashaEmail.toLowerCase(), asha?.user?.email);
     check('the language and timezone the app sent are used', asha?.user?.appLanguage === 'hi' && asha?.user?.readingLanguage === 'hi' && asha?.user?.timezone === 'Asia/Kolkata');
 
-    const sent = hitsFor('tok-asha');
+    const sent = hitsFor('legacy-e2e-tok-asha');
     check('the old server was asked exactly once', sent.length === 1, `${sent.length}`);
     check('…with the shared key in X-Migration-Key', sent[0]?.key === KEY);
-    check('…the token in a JSON body and nothing else in it', sent[0]?.raw === JSON.stringify({ token: 'tok-asha' }) && /json/.test(sent[0]?.contentType || ''));
+    check('…the token in a JSON body and nothing else in it', sent[0]?.raw === JSON.stringify({ token: 'legacy-e2e-tok-asha' }) && /json/.test(sent[0]?.contentType || ''));
     check('…at the configured route', sent[0]?.method === 'POST' && sent[0]?.url === '/api/migration/hariharibol');
-    check('neither the key nor the old token is in what the app is sent', !JSON.stringify(r.json).includes(KEY) && !JSON.stringify(r.json).includes('tok-asha'));
+    check('neither the key nor the old token is in what the app is sent', !JSON.stringify(r.json).includes(KEY) && !JSON.stringify(r.json).includes('legacy-e2e-tok-asha'));
 
     let row = await rowOf(ASHA);
     check('the account is in the database under the old user id', Boolean(row) && row.authProvider === 'LEGACY' && row.providerUserId === `legacy:${ASHA}`);
     check('…with the plain user role, not banned, and its email lower-cased', row?.role.slug === 'user' && row?.isBanned === false && row?.email === ashaEmail.toLowerCase());
     check('…and a sadhana profile that remembers the mantra chanted most there', row?.sadhanaProfile?.legacyFavoriteMantraId === shiva.id, `${row?.sadhanaProfile?.legacyFavoriteMantraId}`);
-    check('the old token is not stored anywhere on the account', !JSON.stringify(row).includes('tok-asha'));
+    check('the old token is not stored anywhere on the account', !JSON.stringify(row).includes('legacy-e2e-tok-asha'));
 
     r = await call('GET', '/app/me', { token: asha.tokens.accessToken });
     check('the access token works', r.status === 200 && r.json?.data?.id === asha.user.id, `${r.status}`);
@@ -210,13 +212,15 @@ async function main() {
 
     // ── 3 ──────────────────────────────────────────────────────────────────
     section('3. The same person again');
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     check('answers 200, not 201', r.status === 200, `${r.status}`);
     check('…the same account', r.json?.data?.user?.id === asha.user.id);
-    check('…with a session of its own', r.json?.data?.tokens?.accessToken && r.json.data.tokens.accessToken !== asha.tokens.accessToken && r.json.data.tokens.refreshToken !== asha.tokens.refreshToken);
-    check('…and the old server was asked again (nothing about the token is remembered here)', hitsFor('tok-asha').length === 2);
-    answers.set('tok-asha-phone-2', known(ASHA, [], { name: 'Asha K.' }));
-    r = await legacy('tok-asha-phone-2');
+    // An access token holds no session (user, role and times only), so two made in one second are the same string;
+    // the session is the refresh token.
+    check('…with a session of its own', Boolean(r.json?.data?.tokens?.accessToken) && ![asha.tokens.refreshToken, ashaTokens.refreshToken].includes(r.json.data.tokens.refreshToken));
+    check('…and the old server was asked again (nothing about the token is remembered here)', hitsFor('legacy-e2e-tok-asha').length === 2);
+    answers.set('legacy-e2e-tok-asha-phone-2', known(ASHA, [], { name: 'Asha K.' }));
+    r = await legacy('legacy-e2e-tok-asha-phone-2');
     check('another token of the same old person is the same account', r.status === 200 && r.json?.data?.user?.id === asha.user.id);
     check('…whose name is not rewritten by the old server\'s', r.json?.data?.user?.name === 'Asha Kulkarni');
     check('still one account for that old user id', (await prisma.user.count({ where: { legacyUserId: ASHA } })) === 1);
@@ -226,17 +230,17 @@ async function main() {
     section('4. Everything that goes wrong');
     const before = await people();
     const dead = FIRST_ID + 2;
-    answers.set('tok-bad', { status: 401, body: { code: 'invalid_token' } });
-    answers.set('tok-deleted', { status: 401, body: { code: 'account_deleted' } });
-    answers.set('tok-500', { status: 500, body: { message: 'Server Error' } });
-    answers.set('tok-html', { status: 502, raw: '<html>Bad gateway</html>', body: null });
-    answers.set('tok-empty', { status: 200, body: {} });
-    answers.set('tok-noid', { status: 200, body: { user: { name: 'No Id' }, mantras: [] } });
-    answers.set('tok-slow', { ...known(dead), delayMs: 3000 });
+    answers.set('legacy-e2e-tok-bad', { status: 401, body: { code: 'invalid_token' } });
+    answers.set('legacy-e2e-tok-deleted', { status: 401, body: { code: 'account_deleted' } });
+    answers.set('legacy-e2e-tok-500', { status: 500, body: { message: 'Server Error' } });
+    answers.set('legacy-e2e-tok-html', { status: 502, raw: '<html>Bad gateway</html>', body: null });
+    answers.set('legacy-e2e-tok-empty', { status: 200, body: {} });
+    answers.set('legacy-e2e-tok-noid', { status: 200, body: { user: { name: 'No Id' }, mantras: [] } });
+    answers.set('legacy-e2e-tok-slow', { ...known(dead), delayMs: 3000 });
 
-    r = await legacy('tok-bad');
+    r = await legacy('legacy-e2e-tok-bad');
     check('a token the old server rejects → 403 UNAUTHENTICATED', r.status === 403 && code(r) === 'UNAUTHENTICATED', `${r.status} ${code(r)}`);
-    r = await legacy('tok-deleted');
+    r = await legacy('legacy-e2e-tok-deleted');
     check('an account the old server says was deleted → 403 UNAUTHENTICATED', r.status === 403 && code(r) === 'UNAUTHENTICATED', `${r.status} ${code(r)}`);
 
     r = await legacy('x'.repeat(9));
@@ -246,28 +250,28 @@ async function main() {
     r = await call('POST', '/app/auth/legacy', { body: {} });
     check('no token at all → 400', r.status === 400, `${r.status}`);
 
-    for (const [label, token] of [['answers 500', 'tok-500'], ['answers with a page that is not JSON', 'tok-html'], ['answers 200 with no user', 'tok-empty'], ['answers a user with no id', 'tok-noid']]) {
+    for (const [label, token] of [['answers 500', 'legacy-e2e-tok-500'], ['answers with a page that is not JSON', 'legacy-e2e-tok-html'], ['answers 200 with no user', 'legacy-e2e-tok-empty'], ['answers a user with no id', 'legacy-e2e-tok-noid']]) {
       r = await legacy(token);
       check(`the old server ${label} → 503 LEGACY_UNAVAILABLE`, r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE', `${r.status} ${code(r)}`);
     }
 
     mode.rejectKey = true;
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     check('the old server rejecting OUR key → 503, not 403 (that is not the token\'s fault)', r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE', `${r.status} ${code(r)}`);
     mode.rejectKey = false;
 
     mode.notConfigured = true;
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     check('the old server\'s route not switched on yet (404) → 503', r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE', `${r.status} ${code(r)}`);
     mode.notConfigured = false;
 
     const started = Date.now();
-    r = await legacy('tok-slow');
+    r = await legacy('legacy-e2e-tok-slow');
     check('a slow old server → 503 once the timeout passes', r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE' && Date.now() - started < 2500, `${r.status} after ${Date.now() - started} ms`);
 
     check('none of that made an account', (await people()) === before, `${before} → ${await people()}`);
     check('the 503 does not say why', !/timed out|status 500|invalid_key|not_configured|502|key/i.test(r.json?.error?.message || ''), r.json?.error?.message);
-    r = await call('POST', '/app/auth/legacy', { body: { legacyToken: 'tok-500', deviceId: 'legacy-e2e-device' }, headers: { 'accept-language': 'hi' } });
+    r = await call('POST', '/app/auth/legacy', { body: { legacyToken: 'legacy-e2e-tok-500', deviceId: 'legacy-e2e-device' }, headers: { 'accept-language': 'hi' } });
     check('…and it is worded in the reader\'s language', r.status === 503 && /[ऀ-ॿ]/.test(r.json?.error?.message || ''), r.json?.error?.message);
 
     // ── 5 ──────────────────────────────────────────────────────────────────
@@ -275,10 +279,10 @@ async function main() {
     const NOMAIL = FIRST_ID + 3;
     const FAKEMAIL = FIRST_ID + 4;
     const NOTMAIL = FIRST_ID + 5;
-    answers.set('tok-nomail', known(NOMAIL, [], { email: null, name: 'Mobile Only' }));
-    answers.set('tok-fakemail', known(FAKEMAIL, [], { email: 'someone@2024-05-01-12:30:00', name: 'Made Up' }));
-    answers.set('tok-notmail', known(NOTMAIL, [], { email: 'not an email', name: '\u0007Ctrl  Name\n' }));
-    for (const [token, id] of [['tok-nomail', NOMAIL], ['tok-fakemail', FAKEMAIL], ['tok-notmail', NOTMAIL]]) {
+    answers.set('legacy-e2e-tok-nomail', known(NOMAIL, [], { email: null, name: 'Mobile Only' }));
+    answers.set('legacy-e2e-tok-fakemail', known(FAKEMAIL, [], { email: 'someone@2024-05-01-12:30:00', name: 'Made Up' }));
+    answers.set('legacy-e2e-tok-notmail', known(NOTMAIL, [], { email: 'not an email', name: '\u0007Ctrl  Name\n' }));
+    for (const [token, id] of [['legacy-e2e-tok-nomail', NOMAIL], ['legacy-e2e-tok-fakemail', FAKEMAIL], ['legacy-e2e-tok-notmail', NOTMAIL]]) {
       r = await legacy(token);
       row = await rowOf(id);
       check(`${token}: 201 and an account`, r.status === 201 && Boolean(row), `${r.status}`);
@@ -290,12 +294,12 @@ async function main() {
       check(`${token}: nor does saving their profile`, patched.status === 200 && patched.json?.data?.email === null && patched.json?.data?.name === 'New Name');
     }
     check('a name with control characters comes out as one clean line', (await rowOf(NOTMAIL)) && (await prisma.user.findFirst({ where: { legacyUserId: NOTMAIL } })).name === 'New Name');
-    r = await legacy('tok-nomail');
+    r = await legacy('legacy-e2e-tok-nomail');
     check('coming back is the same account', r.status === 200 && r.json?.data?.user?.id === (await rowOf(NOMAIL)).id);
 
     const TWIN = FIRST_ID + 6;
-    answers.set('tok-twin', known(TWIN, [], { email: ashaEmail, name: 'Twin' }));
-    r = await legacy('tok-twin');
+    answers.set('legacy-e2e-tok-twin', known(TWIN, [], { email: ashaEmail, name: 'Twin' }));
+    r = await legacy('legacy-e2e-tok-twin');
     row = await rowOf(TWIN);
     check('a second old account with the same email gets a stand-in address, not the first one\'s', r.status === 201 && row?.email === `legacy-${TWIN}@legacy.invalid`, `${r.status} ${row?.email}`);
 
@@ -303,43 +307,113 @@ async function main() {
     section('6. Accounts that must not be taken, and requests that arrive together');
     const TAKEN = FIRST_ID + 7;
     const takenEmail = `legacy-e2e-taken-${RUN}@example.com`;
-    await realUser('taken', takenEmail);
-    answers.set('tok-taken', known(TAKEN, [], { email: takenEmail.toUpperCase().replace('@EXAMPLE.COM', '@example.com') }));
-    r = await legacy('tok-taken');
+    const taken = await realUser('taken', takenEmail);
+    answers.set('legacy-e2e-tok-taken', known(TAKEN, [], { email: takenEmail.toUpperCase().replace('@EXAMPLE.COM', '@example.com') }));
+    r = await legacy('legacy-e2e-tok-taken');
     check('an account here already has that email (Google) → 409 CONFLICT', r.status === 409 && code(r) === 'CONFLICT', `${r.status} ${code(r)}`);
-    check('…and no account was made for the old user', !(await rowOf(TAKEN)));
     check('…the message names the way to sign in', /google/i.test(r.json?.error?.message || ''), r.json?.error?.message);
-    check('…and the real account is untouched', (await prisma.user.findUnique({ where: { email: takenEmail } }))?.authProvider === 'GOOGLE');
+    check('…no session was made: the old token does not open an account Google vouched for', !r.json?.data && (await prisma.refreshToken.count({ where: { userId: taken.id } })) === 0);
+    row = await rowOf(TAKEN);
+    check('…and no second account: the old user is linked to the one that is there', row?.id === taken.id && row?.authProvider === 'GOOGLE' && row?.providerUserId === taken.providerUserId, `${row?.authProvider}`);
+    check('…whose own address, provider and role are untouched', row?.email === takenEmail && row?.role.slug === 'user');
+    r = await legacy('legacy-e2e-tok-taken');
+    check('asking again gives the same 409, found by the old user id this time', r.status === 409 && code(r) === 'CONFLICT' && /google/i.test(r.json?.error?.message || ''), `${r.status} ${code(r)}`);
+    check('…still one account for that old user', (await prisma.user.count({ where: { legacyUserId: TAKEN } })) === 1);
+
+    // The address is the same however it is cased: Google stores what it sent, the old server's is lower-cased here.
+    const MIXED = FIRST_ID + 15;
+    const mixedEmail = `Legacy-E2E-Mixed-${RUN}@Example.com`;
+    const mixed = await realUser('mixed', mixedEmail);
+    answers.set('legacy-e2e-tok-mixed', known(MIXED, [
+      { id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 800 },
+      { id: 1, title: 'Hare Krishna', subtitle: null, mantra: 'हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे', count: 60 },
+    ], { email: mixedEmail.toLowerCase() }));
+    check('(before: the account has no sadhana profile yet)', (await prisma.sadhanaProfile.count({ where: { userId: mixed.id } })) === 0);
+    r = await legacy('legacy-e2e-tok-mixed');
+    check('an account stored with other capitals is found too → 409 CONFLICT', r.status === 409 && code(r) === 'CONFLICT', `${r.status} ${code(r)}`);
+    check('…and no duplicate with a lower-case address was made', (await prisma.user.count({ where: { email: { equals: mixedEmail, mode: 'insensitive' } } })) === 1);
+    row = await rowOf(MIXED);
+    check('…the old user is linked to it, which is still Google, with its address as it was', row?.id === mixed.id && row?.authProvider === 'GOOGLE' && row?.email === mixedEmail, `${row?.authProvider} ${row?.email}`);
+    check('…and it now remembers the mantra they chanted most there', row?.sadhanaProfile?.legacyFavoriteMantraId === shiva.id && row?.sadhanaProfile?.dailyRoundTarget === 16, `${row?.sadhanaProfile?.legacyFavoriteMantraId}`);
+    check('…with no session made', (await prisma.refreshToken.count({ where: { userId: mixed.id } })) === 0);
+
+    // …and the one Google sign-in the app then asks for lands in that account, which already knows them.
+    r = await google({ sub: mixed.providerUserId, email: mixedEmail, name: 'Mixed' });
+    check('signing in with Google afterwards is the same account', r.status === 200 && r.json?.data?.user?.id === mixed.id, `${r.status} ${code(r)}`);
+    let linkedToday = await call('GET', '/app/sadhana/today', { token: r.json?.data?.tokens?.accessToken });
+    check('…where "Chant now" opens the mantra from the old app', linkedToday.status === 200 && linkedToday.json?.data?.favoriteMantra?.slug === 'om-namah-shivaya', `${linkedToday.json?.data?.favoriteMantra?.slug}`);
+
+    // What is already on the account is not overwritten, and an account tied to another old user is not retied.
+    const KEEPS = FIRST_ID + 16;
+    const keepsEmail = `legacy-e2e-keeps-${RUN}@example.com`;
+    const keeps = await realUser('keeps', keepsEmail);
+    await prisma.sadhanaProfile.create({ data: { userId: keeps.id, dailyRoundTarget: 32, legacyFavoriteMantraId: hare.id } });
+    answers.set('legacy-e2e-tok-keeps', known(KEEPS, [{ id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 50 }], { email: keepsEmail }));
+    r = await legacy('legacy-e2e-tok-keeps');
+    row = await rowOf(KEEPS);
+    check('an account that already has a favourite mantra keeps it, and its own round target', r.status === 409 && row?.id === keeps.id && row?.sadhanaProfile?.legacyFavoriteMantraId === hare.id && row?.sadhanaProfile?.dailyRoundTarget === 32, `${r.status} ${row?.sadhanaProfile?.legacyFavoriteMantraId}`);
+
+    const OTHER_OLD = FIRST_ID + 17;
+    const TWO_OLD = FIRST_ID + 18;
+    const tiedEmail = `legacy-e2e-tied-${RUN}@example.com`;
+    const tied = await realUser('tied', tiedEmail);
+    await prisma.user.update({ where: { id: tied.id }, data: { legacyUserId: OTHER_OLD } });
+    answers.set('legacy-e2e-tok-tied', known(TWO_OLD, [{ id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 50 }], { email: tiedEmail }));
+    r = await legacy('legacy-e2e-tok-tied');
+    check('an account already tied to another old user is left as it is: 409, nothing rewritten', r.status === 409 && !(await rowOf(TWO_OLD)) && (await rowOf(OTHER_OLD))?.id === tied.id && (await prisma.sadhanaProfile.count({ where: { userId: tied.id } })) === 0, `${r.status}`);
+
+    // Nothing but the address decides it: a stranger's old token for an address nobody here has is a new account.
+    const ELSEWHERE = FIRST_ID + 19;
+    answers.set('legacy-e2e-tok-elsewhere', known(ELSEWHERE, [], { email: `legacy-e2e-elsewhere-${RUN}@example.com` }));
+    r = await legacy('legacy-e2e-tok-elsewhere');
+    check('an address nobody here has is still carried over as a new account (201)', r.status === 201 && (await rowOf(ELSEWHERE))?.authProvider === 'LEGACY', `${r.status}`);
 
     const BANNED = FIRST_ID + 8;
-    answers.set('tok-banned', known(BANNED, []));
-    r = await legacy('tok-banned');
+    answers.set('legacy-e2e-tok-banned', known(BANNED, []));
+    r = await legacy('legacy-e2e-tok-banned');
     await prisma.user.update({ where: { legacyUserId: BANNED }, data: { isBanned: true } });
-    r = await legacy('tok-banned');
+    r = await legacy('legacy-e2e-tok-banned');
     check('a banned account is refused with 409', r.status === 409 && code(r) === 'CONFLICT', `${r.status} ${code(r)}`);
 
     const RACE = FIRST_ID + 9;
-    answers.set('tok-race', { ...known(RACE, [{ id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 10 }]), delayMs: 150 });
-    const results = await Promise.all([1, 2, 3, 4].map(() => legacy('tok-race')));
+    answers.set('legacy-e2e-tok-race', { ...known(RACE, [{ id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 10 }]), delayMs: 150 });
+    const results = await Promise.all([1, 2, 3, 4].map(() => legacy('legacy-e2e-tok-race')));
     const statuses = results.map((x) => x.status).sort();
     check('four requests at once make exactly one account', (await prisma.user.count({ where: { legacyUserId: RACE } })) === 1, statuses.join(','));
     check('…every one is answered with a session for it', results.every((x) => (x.status === 200 || x.status === 201) && x.json?.data?.user?.id === results[0].json?.data?.user?.id), statuses.join(','));
     check('…and at most one says "new"', results.filter((x) => x.status === 201).length <= 1, statuses.join(','));
 
+    // The same, for someone who already has an account here: the link is written once and every request is refused.
+    const RACE_LINK = FIRST_ID + 21;
+    const raceLinkEmail = `legacy-e2e-racelink-${RUN}@example.com`;
+    const raceLink = await realUser('racelink', raceLinkEmail);
+    answers.set('legacy-e2e-tok-racelink', { ...known(RACE_LINK, [{ id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 10 }], { email: raceLinkEmail }), delayMs: 150 });
+    const linkResults = await Promise.all([1, 2, 3, 4].map(() => legacy('legacy-e2e-tok-racelink')));
+    const linkStatuses = linkResults.map((x) => x.status).join(',');
+    check('four requests at once for an account that exists are all refused with 409', linkResults.every((x) => x.status === 409 && code(x) === 'CONFLICT'), linkStatuses);
+    row = await rowOf(RACE_LINK);
+    check('…and it is linked once, with one profile and the favourite on it', row?.id === raceLink.id && (await prisma.user.count({ where: { legacyUserId: RACE_LINK } })) === 1 && (await prisma.sadhanaProfile.count({ where: { userId: raceLink.id } })) === 1 && row?.sadhanaProfile?.legacyFavoriteMantraId === shiva.id, linkStatuses);
+
     const CLOSED = FIRST_ID + 10;
-    answers.set('tok-closed', known(CLOSED, []));
+    answers.set('legacy-e2e-tok-closed', known(CLOSED, []));
     await setSignup('false');
-    r = await legacy('tok-closed');
+    r = await legacy('legacy-e2e-tok-closed');
     check('with sign-ups closed a NEW old person gets 503 (the app keeps the token and asks again)', r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE' && !(await rowOf(CLOSED)), `${r.status} ${code(r)}`);
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     check('…but someone already carried over still gets in', r.status === 200, `${r.status}`);
+    const SHUT = FIRST_ID + 20;
+    const shutEmail = `legacy-e2e-shut-${RUN}@example.com`;
+    const shut = await realUser('shut', shutEmail);
+    answers.set('legacy-e2e-tok-shut', known(SHUT, [], { email: shutEmail }));
+    r = await legacy('legacy-e2e-tok-shut');
+    check('…and someone who already has an account here is linked and told 409, not asked to come back later', r.status === 409 && code(r) === 'CONFLICT' && (await rowOf(SHUT))?.id === shut.id, `${r.status} ${code(r)}`);
     await setSignup(signupBefore?.value ?? 'true');
-    r = await legacy('tok-closed');
+    r = await legacy('legacy-e2e-tok-closed');
     check('…and when sign-ups open again the same person is carried over', r.status === 201 && Boolean(await rowOf(CLOSED)), `${r.status}`);
 
     // ── 7 ──────────────────────────────────────────────────────────────────
     section('7. Google signing in with a carried-over email');
-    const cap = await legacy('tok-asha');
+    const cap = await legacy('legacy-e2e-tok-asha');
     const cappedRefresh = cap.json?.data?.tokens?.refreshToken;
     const cappedAccess = cap.json?.data?.tokens?.accessToken;
     check('(before: the old-token session works)', (await call('GET', '/app/me', { token: cappedAccess })).status === 200);
@@ -358,7 +432,7 @@ async function main() {
     check('…every one of them, whichever phone it is on', r.status === 403 && code(r) === 'UNAUTHENTICATED', `${r.status} ${code(r)}`);
     check('…and the Google session is not caught up in that', (await call('POST', '/app/auth/refresh', { body: { refreshToken: googleTokens?.refreshToken } })).status === 200);
 
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     check('the old token no longer gets in: 409', r.status === 409 && code(r) === 'CONFLICT', `${r.status} ${code(r)}`);
     check('…and says to sign in with Google', /google/i.test(r.json?.error?.message || ''), r.json?.error?.message);
     check('…and made no second account', (await prisma.user.count({ where: { legacyUserId: ASHA } })) === 1);
@@ -375,40 +449,40 @@ async function main() {
     // Sign-ups closed does not stop someone who already has an account here.
     const CLAIMME = FIRST_ID + 11;
     const claimEmail = `legacy-e2e-claimme-${RUN}@example.com`;
-    answers.set('tok-claimme', known(CLAIMME, [], { email: claimEmail }));
-    await legacy('tok-claimme');
+    answers.set('legacy-e2e-tok-claimme', known(CLAIMME, [], { email: claimEmail }));
+    await legacy('legacy-e2e-tok-claimme');
     await setSignup('false');
     r = await google({ sub: `g-claimme-${RUN}`, email: claimEmail, name: 'Claim Me' });
     check('with sign-ups closed, claiming a carried-over account still works', r.status === 200 && r.json?.data?.user?.authProvider === 'GOOGLE', `${r.status} ${code(r)}`);
     await setSignup(signupBefore?.value ?? 'true');
 
     // An account with a stand-in address has nothing for Google to match: it keeps the old way in.
-    r = await legacy('tok-nomail');
+    r = await legacy('legacy-e2e-tok-nomail');
     check('an account with a stand-in address still signs in with the old token', r.status === 200, `${r.status}`);
 
     // ── 8 ──────────────────────────────────────────────────────────────────
     section('8. The favourite mantra');
     const ravi = FIRST_ID + 12;
-    answers.set('tok-ravi', known(ravi, [
+    answers.set('legacy-e2e-tok-ravi', known(ravi, [
       { id: 7, title: 'Hare Krishna Mahamantra', subtitle: null, mantra: 'Hare Krishna Hare Krishna Krishna Krishna Hare Hare Hare Rama Hare Rama Rama Rama Hare Hare', count: 5400 },
       { id: 3, title: 'Om Namah Shivay', subtitle: null, mantra: 'ॐ नमः शिवाय', count: 200 },
     ]));
-    r = await legacy('tok-ravi');
+    r = await legacy('legacy-e2e-tok-ravi');
     const raviTokens = r.json?.data?.tokens;
     row = await rowOf(ravi);
     check('the most chanted old mantra is matched to ours by what it says', row?.sadhanaProfile?.legacyFavoriteMantraId === hare.id, `${row?.sadhanaProfile?.legacyFavoriteMantraId}`);
 
     const lena = FIRST_ID + 13;
-    answers.set('tok-lena', known(lena, [{ id: 9, title: 'Some chant nobody here has', subtitle: null, mantra: 'qzx qzx', count: 99 }]));
-    r = await legacy('tok-lena');
+    answers.set('legacy-e2e-tok-lena', known(lena, [{ id: 9, title: 'Some chant nobody here has', subtitle: null, mantra: 'qzx qzx', count: 99 }]));
+    r = await legacy('legacy-e2e-tok-lena');
     row = await rowOf(lena);
     check('a mantra that is not ours is simply left unmatched', r.status === 201 && row?.sadhanaProfile?.legacyFavoriteMantraId === null);
     let today = await call('GET', '/app/sadhana/today', { token: r.json?.data?.tokens?.accessToken });
     check('…and "Chant now" has no favourite for them', today.status === 200 && today.json?.data?.favoriteMantra === null, `${today.status}`);
 
     const noMantras = FIRST_ID + 14;
-    answers.set('tok-nomantras', known(noMantras, []));
-    r = await legacy('tok-nomantras');
+    answers.set('legacy-e2e-tok-nomantras', known(noMantras, []));
+    r = await legacy('legacy-e2e-tok-nomantras');
     check('someone who never chanted there has none either, and is carried over all the same', r.status === 201 && (await rowOf(noMantras)).sadhanaProfile.legacyFavoriteMantraId === null);
 
     today = await call('GET', '/app/sadhana/today', { token: raviTokens.accessToken });
@@ -433,22 +507,22 @@ async function main() {
     section('9. Attestation, the feature switched off, deleting the account');
     const callsBefore = hits.length;
     env.APP_CHECK_ENABLED = true;
-    r = await legacy('tok-asha');
+    r = await legacy('legacy-e2e-tok-asha');
     env.APP_CHECK_ENABLED = false;
     check('an unattested client gets 403 FORBIDDEN — the app must NOT read that as a bad token', r.status === 403 && code(r) === 'FORBIDDEN', `${r.status} ${code(r)}`);
     check('…and the old server was not asked', hits.length === callsBefore);
 
     env.legacyMigrationEnabled = false;
-    r = await legacy('tok-ravi');
+    r = await legacy('legacy-e2e-tok-ravi');
     env.legacyMigrationEnabled = true;
     check('with the URL or key not set here → 503, without calling anyone', r.status === 503 && code(r) === 'LEGACY_UNAVAILABLE' && hits.length === callsBefore, `${r.status} ${code(r)}`);
 
-    r = await call('POST', '/app/auth/legacy', { body: { legacyToken: 'tok-ravi' }, headers: { authorization: 'Bearer not-a-token' } });
+    r = await call('POST', '/app/auth/legacy', { body: { legacyToken: 'legacy-e2e-tok-ravi' }, headers: { authorization: 'Bearer not-a-token' } });
     check('a bad bearer on this public route is refused like on every other (the app sends none)', r.status === 403 && code(r) === 'UNAUTHENTICATED', `${r.status} ${code(r)}`);
 
     r = await call('DELETE', '/app/auth/account', { token: raviTokens.accessToken });
     check('a carried-over person can delete their account', r.status === 200 && !(await rowOf(ravi)), `${r.status}`);
-    r = await legacy('tok-ravi');
+    r = await legacy('legacy-e2e-tok-ravi');
     check('…the old server still knows them, so the same token would make a fresh account', r.status === 201, `${r.status}`);
   } finally {
     OAuth2Client.prototype.verifyIdToken = realVerifyIdToken;

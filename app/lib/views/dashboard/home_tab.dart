@@ -20,6 +20,7 @@ import '../../widgets/common/motif.dart';
 import '../../widgets/common/section_header.dart';
 import '../../widgets/dashboard/book_card.dart';
 import '../../widgets/dashboard/continue_reading_card.dart';
+import '../../widgets/dashboard/growth_label.dart';
 import '../../widgets/dashboard/home_header.dart';
 import '../../widgets/dashboard/home_stats_card.dart';
 import '../../widgets/dashboard/mantra_row.dart';
@@ -51,6 +52,9 @@ class HomeTab extends ConsumerWidget {
       body: SafeArea(
         bottom: false,
         child: feed.when(
+          // A new reading language builds the feed again; keep the screen up (in
+          // the old language, for the moment the new one takes) instead of a spinner.
+          skipLoadingOnReload: true,
           loading: () => const AppLoader(),
           error: (error, _) => AppErrorView(
             failure: error is ApiFailure
@@ -123,6 +127,7 @@ class _HomeContent extends ConsumerWidget {
         VerseHeroCard(
           label: text.homeVerseOfTheDay,
           verse: daily.verse,
+          onPhoto: true,
           onTap: _openVerse(daily.verse),
         ),
 
@@ -153,7 +158,7 @@ class _HomeContent extends ConsumerWidget {
         VerseHeroCard(
           label: text.homeSlokaForYou,
           verse: mine.verse,
-          reason: mine.reason,
+          reason: growthReason(text, mine),
           motif: Motif.crescent,
           onTap: _openVerse(mine.verse),
         ),

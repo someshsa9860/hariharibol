@@ -21,6 +21,29 @@ export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com
 export const CONTACT_EMAIL = 'hello@hariharibol.com';
 export const APP_VERSION = '2.0.0';
 
+/**
+ * Śrīla Prabhupāda's name is not shown beside his translations and purports until permission to name him has been
+ * given; set this to true then. Only the credit goes — his texts stay, and every other translator is still named.
+ * The app has the same switch (`AppConfig.showAuthorName`).
+ */
+export const SHOW_AUTHOR_NAME = false;
+/** The translator `SHOW_AUTHOR_NAME` is about. */
+export const AUTHOR_SLUG = 'prabhupada';
+
+/**
+ * Where the library's texts were taken from, named on `/sources`. Shown as text, not links: the page names its sources,
+ * it does not send anyone to them. The app lists the same (`app/lib/core/constants/text_sources.dart`).
+ */
+export const TEXT_SOURCES = [
+  {
+    label: 'Bhagavad-gītā: the Sanskrit text, the English translation and purports, and the commentaries of Śrī Rāmānujācārya, Śrī Madhvācārya and Śrīdhara Svāmī',
+    address: 'github.com/vedicscriptures/bhagavad-gita',
+  },
+  { label: 'Śrīmad-Bhāgavatam, Cantos 1–9: the Sanskrit text, the English translation and purports', address: 'srimad-bhagavatam.github.io' },
+  { label: 'Śrīmad-Bhāgavatam, Cantos 10–12: the Sanskrit text, the English translation and purports', address: 'vedabase.io' },
+  { label: 'Dnyāneshwarī: Sant Dnyāneshwar’s Marathi ovīs on the Bhagavad-gītā', address: 'mr.wikisource.org' },
+] as const;
+
 export const DEFAULT_LANGUAGE = 'en';
 /** Cookie the server reads to render a chapter in the reader's language; the browser writes it. */
 export const READING_COOKIE = 'hhb_read';

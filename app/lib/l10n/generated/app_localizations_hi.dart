@@ -209,11 +209,15 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'आज आप कैसे हैं?';
+  String get homeMoodPrompt => 'आज आप किस गुण में आगे बढ़ना चाहेंगे?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'आपने आज बता दिया कि आप कैसा महसूस कर रहे हैं। कुछ नया बताने के लिए कल फिर आइए।';
+      'आपने आज का अपना लक्ष्य चुन लिया है। कुछ नया निखारने के लिए कल फिर आइए।';
+
+  @override
+  String get homeMoodHint =>
+      'जिसे निखारना चाहते हैं उसे चुनिए, एक श्लोक आपका साथ देगा।';
 
   @override
   String homeMoodViewToday(int count) {
@@ -235,6 +239,35 @@ class AppLocalizationsHi extends AppLocalizations {
       one: 'मुझे एक श्लोक दिखाएँ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'आत्म-संयम';
+
+  @override
+  String get growthKrodha => 'शांति';
+
+  @override
+  String get growthLobha => 'संतोष';
+
+  @override
+  String get growthMoha => 'विवेक';
+
+  @override
+  String get growthMada => 'विनम्रता';
+
+  @override
+  String get growthMatsarya => 'सद्भावना';
+
+  @override
+  String get growthMissedChantingTime => 'समय पर जप';
+
+  @override
+  String get growthUnmetRoundTarget => 'अपनी मालाएँ पूरी करना';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'आपकी प्रगति के लिए: $quality';
   }
 
   @override
@@ -2101,4 +2134,66 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'श्लोक, उसके अर्थ या तात्पर्य के कुछ शब्द लिखें। छोटी गलतियाँ चल जाती हैं।';
+
+  @override
+  String get settingsSectionAbout => 'ऐप के बारे में';
+
+  @override
+  String get sourcesTitle => 'स्रोत और अस्वीकरण';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol दैनिक पाठ और जप के लिए पवित्र ग्रंथ प्रस्तुत करता है। हम उन आचार्यों, अनुवादकों और विद्वानों के आभारी हैं जिनके कार्य से यह संभव हुआ है। इस पृष्ठ पर बताया गया है कि ये ग्रंथ कहाँ से लिए गए हैं और इन्हें किस प्रकार प्रस्तुत किया गया है।';
+
+  @override
+  String get sourcesTextsHeading => 'अनुवाद और टीकाएँ';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'भगवद्गीता यथारूप और श्रीमद्भागवत के अंग्रेज़ी अनुवाद और तात्पर्य अंतर्राष्ट्रीय कृष्णभावनामृत संघ के संस्थापकाचार्य कृष्णकृपामूर्ति श्री श्रीमद् ए. सी. भक्तिवेदान्त स्वामी प्रभुपाद की कृति हैं। © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'प्रत्येक अनुवाद, तात्पर्य और टीका उसके रचयिता की कृति है, और उस पर सभी अधिकार उसके रचयिताओं और प्रकाशकों के पास ही रहते हैं। इन्हें यहाँ व्यक्तिगत भक्तिमय अध्ययन के लिए प्रस्तुत किया गया है, पुनर्वितरण के लिए नहीं।';
+
+  @override
+  String get sourcesFromHeading => 'ग्रंथ कहाँ से लिए गए हैं';
+
+  @override
+  String get sourcesGita =>
+      'भगवद्गीता: संस्कृत मूल पाठ, अंग्रेज़ी अनुवाद और तात्पर्य, तथा श्री रामानुजाचार्य, श्री मध्वाचार्य और श्रीधर स्वामी की टीकाएँ';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'श्रीमद्भागवत, स्कंध $from–$to: संस्कृत मूल पाठ, अंग्रेज़ी अनुवाद और तात्पर्य';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ज्ञानेश्वरी: भगवद्गीता पर संत ज्ञानेश्वर की मराठी ओवियाँ';
+
+  @override
+  String get sourcesAiHeading => 'अन्य भाषाओं में अनुवाद';
+
+  @override
+  String get sourcesAiBody =>
+      'हिंदी, मराठी और अन्य भारतीय भाषाओं का पाठ — अनुवाद, तात्पर्य और ऐप के अपने शब्द — अंग्रेज़ी से AI की सहायता से तैयार किया गया है। यह कोई आधिकारिक या अधिकृत अनुवाद नहीं है और इसमें त्रुटियाँ हो सकती हैं, जिन्हें पता चलते ही हम सुधारते हैं। अध्ययन के लिए संस्कृत और मूल अंग्रेज़ी ही प्रमाण हैं।';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha एक डिजिटल साथी है, गुरु नहीं। उसके उत्तर किसी आचार्य के वचन नहीं हैं और उनमें भूल हो सकती है; कोई भी महत्वपूर्ण बात ग्रंथों से अवश्य मिला लें।';
+
+  @override
+  String get sourcesIndependentHeading => 'एक स्वतंत्र प्रयास';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol एक स्वतंत्र भक्तिमय प्रयास है। यह किसी मंदिर, संस्था या प्रकाशक से संबद्ध नहीं है, न उनके द्वारा समर्थित है और न ही उनकी ओर से बोलता है।';
+
+  @override
+  String get sourcesContactHeading => 'अधिकार और सुधार';
+
+  @override
+  String get sourcesContactBody =>
+      'यदि यहाँ दिखाए गए किसी पाठ पर आपके अधिकार हैं, या आपको उसमें कोई त्रुटि मिले, तो कृपया हमें लिखें। हम शीघ्र उत्तर देंगे और कहे जाने पर उसे सुधार देंगे या हटा देंगे।';
 }

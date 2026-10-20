@@ -211,11 +211,15 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ಇಂದು ನೀವು ಹೇಗಿದ್ದೀರಿ?';
+  String get homeMoodPrompt => 'ಇಂದು ನೀವು ಯಾವ ಗುಣದಲ್ಲಿ ಬೆಳೆಯಲು ಬಯಸುತ್ತೀರಿ?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ಇಂದು ನಿಮ್ಮ ಭಾವನೆಯನ್ನು ಹಂಚಿಕೊಂಡಿದ್ದೀರಿ. ಹೊಸದನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ನಾಳೆ ಮತ್ತೆ ಬನ್ನಿ.';
+      'ನೀವು ಇಂದಿನ ನಿಮ್ಮ ಗುರಿಯನ್ನು ಆರಿಸಿದ್ದೀರಿ. ಹೊಸದನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಲು ನಾಳೆ ಮತ್ತೆ ಬನ್ನಿ.';
+
+  @override
+  String get homeMoodHint =>
+      'ಯಾವುದನ್ನು ಬಲಪಡಿಸಲು ಬಯಸುತ್ತೀರೋ ಅದನ್ನು ಆರಿಸಿ, ಒಂದು ಶ್ಲೋಕ ನಿಮ್ಮೊಂದಿಗೆ ಇರುತ್ತದೆ.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -237,6 +241,35 @@ class AppLocalizationsKn extends AppLocalizations {
       one: 'ನನಗೊಂದು ಶ್ಲೋಕ ತೋರಿಸಿ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ಆತ್ಮಸಂಯಮ';
+
+  @override
+  String get growthKrodha => 'ಶಾಂತಿ';
+
+  @override
+  String get growthLobha => 'ತೃಪ್ತಿ';
+
+  @override
+  String get growthMoha => 'ವಿವೇಕ';
+
+  @override
+  String get growthMada => 'ವಿನಯ';
+
+  @override
+  String get growthMatsarya => 'ಸದ್ಭಾವನೆ';
+
+  @override
+  String get growthMissedChantingTime => 'ಸಮಯಕ್ಕೆ ಜಪ';
+
+  @override
+  String get growthUnmetRoundTarget => 'ನನ್ನ ಮಾಲೆಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸುವುದು';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'ನಿಮ್ಮ ಬೆಳವಣಿಗೆಗಾಗಿ: $quality';
   }
 
   @override
@@ -2106,4 +2139,66 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get searchTipPartial =>
       'ಶ್ಲೋಕ, ಅದರ ಅರ್ಥ ಅಥವಾ ತಾತ್ಪರ್ಯದ ಕೆಲವು ಪದಗಳನ್ನು ಬರೆಯಿರಿ. ಸಣ್ಣ ತಪ್ಪುಗಳು ಪರವಾಗಿಲ್ಲ.';
+
+  @override
+  String get settingsSectionAbout => 'ಆ್ಯಪ್ ಬಗ್ಗೆ';
+
+  @override
+  String get sourcesTitle => 'ಮೂಲಗಳು ಮತ್ತು ಹಕ್ಕು ನಿರಾಕರಣೆ';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol ದೈನಂದಿನ ಓದು ಮತ್ತು ಜಪಕ್ಕಾಗಿ ಪವಿತ್ರ ಗ್ರಂಥಗಳನ್ನು ನೀಡುತ್ತದೆ. ಇದನ್ನು ಸಾಧ್ಯವಾಗಿಸಿದ ಆಚಾರ್ಯರು, ಅನುವಾದಕರು ಮತ್ತು ವಿದ್ವಾಂಸರಿಗೆ ನಾವು ಕೃತಜ್ಞರು. ಈ ಗ್ರಂಥಗಳನ್ನು ಎಲ್ಲಿಂದ ಪಡೆಯಲಾಗಿದೆ ಮತ್ತು ಹೇಗೆ ನೀಡಲಾಗಿದೆ ಎಂಬುದನ್ನು ಈ ಪುಟ ವಿವರಿಸುತ್ತದೆ.';
+
+  @override
+  String get sourcesTextsHeading => 'ಅನುವಾದಗಳು ಮತ್ತು ವ್ಯಾಖ್ಯಾನಗಳು';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ಭಗವದ್ಗೀತೆ ಯಥಾರೂಪ ಮತ್ತು ಶ್ರೀಮದ್ಭಾಗವತದ ಇಂಗ್ಲಿಷ್ ಅನುವಾದ ಮತ್ತು ತಾತ್ಪರ್ಯಗಳು ಅಂತಾರಾಷ್ಟ್ರೀಯ ಕೃಷ್ಣಪ್ರಜ್ಞಾ ಸಂಘದ ಸಂಸ್ಥಾಪಕಾಚಾರ್ಯರಾದ ಕೃಷ್ಣಕೃಪಾಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀಮದ್ ಎ. ಸಿ. ಭಕ್ತಿವೇದಾಂತ ಸ್ವಾಮಿ ಪ್ರಭುಪಾದರ ಕೃತಿಗಳು. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ಪ್ರತಿಯೊಂದು ಅನುವಾದ, ತಾತ್ಪರ್ಯ ಮತ್ತು ವ್ಯಾಖ್ಯಾನವು ಅದರ ಕರ್ತೃವಿನ ಕೃತಿ, ಮತ್ತು ಅದರ ಮೇಲಿನ ಎಲ್ಲ ಹಕ್ಕುಗಳು ಅದರ ಕರ್ತೃಗಳು ಮತ್ತು ಪ್ರಕಾಶಕರಲ್ಲೇ ಉಳಿಯುತ್ತವೆ. ಇವುಗಳನ್ನು ಇಲ್ಲಿ ವೈಯಕ್ತಿಕ ಭಕ್ತಿ ಅಧ್ಯಯನಕ್ಕಾಗಿ ನೀಡಲಾಗಿದೆ, ಮರುಹಂಚಿಕೆಗಾಗಿ ಅಲ್ಲ.';
+
+  @override
+  String get sourcesFromHeading => 'ಗ್ರಂಥಗಳನ್ನು ಎಲ್ಲಿಂದ ಪಡೆಯಲಾಗಿದೆ';
+
+  @override
+  String get sourcesGita =>
+      'ಭಗವದ್ಗೀತೆ: ಸಂಸ್ಕೃತ ಮೂಲಪಾಠ, ಇಂಗ್ಲಿಷ್ ಅನುವಾದ ಮತ್ತು ತಾತ್ಪರ್ಯ, ಹಾಗೂ ಶ್ರೀ ರಾಮಾನುಜಾಚಾರ್ಯರು, ಶ್ರೀ ಮಧ್ವಾಚಾರ್ಯರು ಮತ್ತು ಶ್ರೀಧರ ಸ್ವಾಮಿಗಳ ವ್ಯಾಖ್ಯಾನಗಳು';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ಶ್ರೀಮದ್ಭಾಗವತ, ಸ್ಕಂಧ $from–$to: ಸಂಸ್ಕೃತ ಮೂಲಪಾಠ, ಇಂಗ್ಲಿಷ್ ಅನುವಾದ ಮತ್ತು ತಾತ್ಪರ್ಯ';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ಜ್ಞಾನೇಶ್ವರಿ: ಭಗವದ್ಗೀತೆಯ ಮೇಲೆ ಸಂತ ಜ್ಞಾನೇಶ್ವರರ ಮರಾಠಿ ಓವಿಗಳು';
+
+  @override
+  String get sourcesAiHeading => 'ಇತರ ಭಾಷೆಗಳಲ್ಲಿ ಅನುವಾದ';
+
+  @override
+  String get sourcesAiBody =>
+      'ಹಿಂದಿ, ಮರಾಠಿ ಮತ್ತು ಇತರ ಭಾರತೀಯ ಭಾಷೆಗಳಲ್ಲಿನ ಪಠ್ಯ — ಅನುವಾದಗಳು, ತಾತ್ಪರ್ಯಗಳು ಮತ್ತು ಆ್ಯಪ್‌ನ ಸ್ವಂತ ಪದಗಳು — ಇಂಗ್ಲಿಷ್‌ನಿಂದ AI ಸಹಾಯದಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಇದು ಅಧಿಕೃತ ಅಥವಾ ಅನುಮೋದಿತ ಅನುವಾದವಲ್ಲ ಮತ್ತು ಇದರಲ್ಲಿ ತಪ್ಪುಗಳಿರಬಹುದು; ಅವು ಗಮನಕ್ಕೆ ಬಂದ ಕೂಡಲೇ ನಾವು ಸರಿಪಡಿಸುತ್ತೇವೆ. ಅಧ್ಯಯನಕ್ಕೆ ಸಂಸ್ಕೃತ ಮತ್ತು ಮೂಲ ಇಂಗ್ಲಿಷ್ ಪಠ್ಯವೇ ಪ್ರಮಾಣ.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ಒಬ್ಬ ಡಿಜಿಟಲ್ ಸಂಗಾತಿ, ಗುರುವಲ್ಲ. ಅದರ ಉತ್ತರಗಳು ಯಾವುದೇ ಆಚಾರ್ಯರ ವಚನಗಳಲ್ಲ ಮತ್ತು ಅವುಗಳಲ್ಲಿ ತಪ್ಪಾಗಬಹುದು; ಯಾವುದೇ ಮುಖ್ಯ ವಿಷಯವನ್ನು ಗ್ರಂಥಗಳೊಂದಿಗೆ ತಪ್ಪದೇ ಹೋಲಿಸಿ ನೋಡಿ.';
+
+  @override
+  String get sourcesIndependentHeading => 'ಒಂದು ಸ್ವತಂತ್ರ ಪ್ರಯತ್ನ';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ಒಂದು ಸ್ವತಂತ್ರ ಭಕ್ತಿ ಪ್ರಯತ್ನ. ಇದು ಯಾವುದೇ ದೇವಾಲಯ, ಸಂಸ್ಥೆ ಅಥವಾ ಪ್ರಕಾಶಕರೊಂದಿಗೆ ಸಂಯೋಜಿತವಾಗಿಲ್ಲ, ಅವರಿಂದ ಅನುಮೋದಿತವಾಗಿಲ್ಲ ಮತ್ತು ಅವರ ಪರವಾಗಿ ಮಾತನಾಡುವುದಿಲ್ಲ.';
+
+  @override
+  String get sourcesContactHeading => 'ಹಕ್ಕುಗಳು ಮತ್ತು ತಿದ್ದುಪಡಿಗಳು';
+
+  @override
+  String get sourcesContactBody =>
+      'ಇಲ್ಲಿ ತೋರಿಸಿರುವ ಯಾವುದೇ ಪಠ್ಯದ ಮೇಲೆ ನಿಮಗೆ ಹಕ್ಕುಗಳಿದ್ದರೆ, ಅಥವಾ ಅದರಲ್ಲಿ ತಪ್ಪು ಕಂಡುಬಂದರೆ, ದಯವಿಟ್ಟು ನಮಗೆ ಬರೆಯಿರಿ. ನಾವು ಶೀಘ್ರವಾಗಿ ಉತ್ತರಿಸುತ್ತೇವೆ ಮತ್ತು ಕೇಳಿದರೆ ಅದನ್ನು ಸರಿಪಡಿಸುತ್ತೇವೆ ಅಥವಾ ತೆಗೆದುಹಾಕುತ್ತೇವೆ.';
 }
