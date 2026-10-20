@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { Hero } from '@/components/home/hero';
 import { PersonalPanel } from '@/components/home/personal-panel';
@@ -74,6 +75,18 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      <section className="page" aria-label="A verse to begin with">
+        <Reveal className="photo-band">
+          <img src="/img/krishna.jpg" alt="Lord Krishna playing the flute" loading="lazy" />
+          <div className="photo-band-text">
+            <p className="eyebrow">From the Gita</p>
+            <blockquote lang="sa">योगस्थः कुरु कर्माणि</blockquote>
+            <p>Be steady in yoga, and then act. Begin the day with a verse, and let it travel with you.</p>
+            <Link className="btn btn-light" href="/read/bhagavad-gita/2">Read chapter 2 <Icon name="arrow" size={16} /></Link>
+          </div>
+        </Reveal>
+      </section>
 
       <Why />
       <Inside />

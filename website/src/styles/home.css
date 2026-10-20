@@ -1,5 +1,5 @@
 /* ── Hero ── */
-.hero { display: grid; gap: 48px; padding-block: clamp(36px, 6vw, 84px) clamp(32px, 5vw, 64px); align-items: center; position: relative; }
+.hero { isolation: isolate; display: grid; gap: 48px; padding-block: clamp(36px, 6vw, 84px) clamp(32px, 5vw, 64px); align-items: center; position: relative; }
 @media (min-width: 960px) { .hero { grid-template-columns: 1.05fr .95fr; } }
 .hero-copy { display: grid; gap: 22px; justify-items: start; }
 .hero h1 { max-width: 15ch; }
@@ -12,6 +12,9 @@
 .center-quote { margin: 48px auto 0; text-align: center; border-left: 0; padding: 0; justify-items: center; }
 
 .hero-visual { position: relative; aspect-ratio: 1 / 1; max-width: 560px; width: 100%; justify-self: center; display: grid; place-items: center; }
+.hero::before { content: ''; position: absolute; width: min(780px, 90vw); aspect-ratio: 1; right: -12%; top: -8%; background: url('/img/mandala.svg') center / contain no-repeat; opacity: .35; pointer-events: none; animation: spin 120s linear infinite; z-index: -1; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .hero::before { animation: none; } }
 .hero-sun {
   position: absolute; inset: 4%; border-radius: 50%;
   background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--gold) 70%, transparent) 0, color-mix(in srgb, var(--accent) 38%, transparent) 46%, transparent 70%);
@@ -143,6 +146,7 @@
 .start-section { background: linear-gradient(150deg, #5a2f12, #8f4a1a 55%, #c4621b); color: #fff7ee; padding-block: clamp(64px, 10vw, 120px); text-align: center; position: relative; overflow: hidden; }
 :root[data-theme='dark'] .start-section { background: linear-gradient(150deg, #262321, #34302c); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .start-section { background: linear-gradient(150deg, #262321, #34302c); } }
+.start-section::after { content: ''; position: absolute; width: 560px; aspect-ratio: 1; left: -200px; bottom: -260px; background: url('/img/mandala.svg') center / contain no-repeat; opacity: .28; pointer-events: none; }
 .start-section::before { content: ''; position: absolute; width: 520px; height: 520px; border-radius: 50%; right: -160px; top: -200px; background: radial-gradient(circle, rgba(255,214,150,.35), transparent 70%); }
 .start-inner { position: relative; display: grid; gap: 18px; justify-items: center; }
 .start-inner .eyebrow { color: #ffd9a8; }
@@ -155,3 +159,13 @@
 .start-verse { margin-top: 28px; border-left-color: #ffd9a8; text-align: left; }
 .start-verse figcaption { color: #ffe9cf; }
 .start-verse figcaption strong { color: #ffd9a8; }
+
+/* ── Picture band: the photo with a verse laid over it ── */
+.photo-band { position: relative; margin-block: clamp(28px, 5vw, 64px); border-radius: var(--radius-lg); overflow: hidden; min-height: clamp(300px, 42vw, 460px); display: grid; align-items: end; box-shadow: var(--shadow); }
+.photo-band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transition: transform 1.2s var(--ease); }
+.photo-band:hover img { transform: scale(1.04); }
+.photo-band::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(20,12,6,.88) 0%, rgba(20,12,6,.35) 55%, rgba(20,12,6,.05) 100%); }
+.photo-band-text { position: relative; z-index: 1; padding: clamp(22px, 4vw, 52px); color: #fff7ee; display: grid; gap: 10px; max-width: 640px; }
+.photo-band-text .eyebrow { color: #ffd9a8; }
+.photo-band-text blockquote { margin: 0; font-family: var(--deva); font-size: clamp(1.4rem, 3vw, 2.2rem); line-height: 1.6; }
+.photo-band-text p { opacity: .9; }
