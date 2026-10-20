@@ -51,7 +51,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const onCopy = async () => toast((await copyText(`${verse.sanskrit ?? ''}\n\n${verse.transliteration ?? ''}\n\n${translation?.meaning ?? ''}\n— ${citation}`)) ? 'Verse copied' : 'Could not copy');
 
   return (
-    <article id={`v-${verse.verseNumber}`} className={clsx('verse-card', active && 'is-active')} style={{ '--scale': reader.fontScale } as React.CSSProperties}>
+    <article id={`v-${verse.verseNumber}`} className={clsx('verse-card', active && 'is-active', expanded && 'is-expanded')} style={{ '--scale': reader.fontScale } as React.CSSProperties}>
       <header className="verse-head">
         <Link href={`#v-${verse.verseNumber}`} className="verse-no" aria-label={`Verse ${verseRef(verse)}`}>{verseRef(verse)}</Link>
         <div className="verse-tools">
@@ -65,9 +65,19 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
         </div>
       </header>
 
+      <div className="v-main">
       {reader.showSanskrit && verse.sanskrit && <p className="v-sanskrit deva" lang="sa">{verse.sanskrit}</p>}
       {reader.showTransliteration && verse.transliteration && <p className="v-translit">{verse.transliteration}</p>}
 
+      {translation?.meaning && (
+        <div className="v-translation">
+          <p>{translation.meaning}</p>
+          {credit && <small>— {credit}</small>}
+        </div>
+      )}
+
+      </div>
+      <div className="v-side">
       {words.length > 0 && (
         <div className="v-words">
           {!expanded && !reader.showWordMeanings && (
@@ -88,13 +98,6 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
         </div>
       )}
 
-      {translation?.meaning && (
-        <div className="v-translation">
-          <p>{translation.meaning}</p>
-          {credit && <small>— {credit}</small>}
-        </div>
-      )}
-
       {hasPurport && reader.showPurport && (
         <div className="v-purport">
           <button className="text-link" onClick={() => setShowPurport((v) => !v)} aria-expanded={showPurport}>
@@ -105,6 +108,8 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
       )}
 
       {verse.explanation && <p className="v-explain"><strong>In simple words</strong>{verse.explanation.text}</p>}
+
+      </div>
 
       <footer className="verse-foot">
         {verse.availableTranslations.length > 1 && (

@@ -30,6 +30,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .skip-link:focus { top: 12px; }
 
 .page { width: min(var(--page-w), 100% - 40px); margin-inline: auto; }
+.page-read { width: min(1560px, 100% - 48px); margin-inline: auto; }
 .page-narrow { width: min(var(--read-w), 100% - 32px); margin-inline: auto; }
 .main { min-height: 70vh; padding-bottom: calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) { .main { padding-bottom: 0; } }

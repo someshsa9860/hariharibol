@@ -92,3 +92,19 @@
 .result .snippet { color: var(--muted); font-size: .95rem; }
 .result mark { background: var(--accent-soft); color: var(--ink); padding: 0 2px; border-radius: 3px; }
 .result .deva { font-size: 1.15rem; }
+
+/* ── Two-column verse (wide screens): the verse and its meaning stay in view while the longer text scrolls ── */
+.v-main, .v-side { display: grid; gap: calc(16px * var(--scale)); align-content: start; min-width: 0; }
+.v-side:empty { display: none; }
+.chapter-head, .chapter-nav { max-width: 1100px; }
+@media (min-width: 1040px) {
+  .verse-card:not(.is-expanded) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: clamp(32px, 4vw, 64px); row-gap: 20px; align-items: start; }
+  .verse-card:not(.is-expanded) > .verse-head, .verse-card:not(.is-expanded) > .verse-foot { grid-column: 1 / -1; }
+  .verse-card:not(.is-expanded) > .verse-head { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .verse-card:not(.is-expanded) .v-main { position: sticky; top: calc(var(--header-h) + 84px); padding: 24px; border-radius: var(--radius); background: linear-gradient(160deg, var(--accent-soft), var(--surface) 75%); border: 1px solid var(--line); }
+  .verse-card:not(.is-expanded) .v-sanskrit { font-size: calc(clamp(1.45rem, 1.9vw, 1.9rem) * var(--scale)); }
+  .verse-card:not(.is-expanded) .v-side { padding-top: 4px; }
+  .verse-card:not(.is-expanded) .v-side .word-list { margin-top: 0; font-size: calc(1rem * var(--scale)); }
+  .verse-card:not(.is-expanded) .purport-text { font-size: calc(1.06rem * var(--scale)); max-width: 72ch; }
+  .verse-card:not(.is-expanded) .v-side > .v-words:empty { display: none; }
+}

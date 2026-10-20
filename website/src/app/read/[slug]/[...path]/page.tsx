@@ -72,7 +72,7 @@ export default async function ChapterPage({ params }: Props) {
   };
 
   return (
-    <div className="page-narrow">
+    <div className="page-read">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link href="/read">Read</Link><Icon name="right" size={14} />
