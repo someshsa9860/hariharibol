@@ -2087,23 +2087,26 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String searchShowingFor(String query) {
-    return '“\$query” కోసం ఫలితాలు చూపిస్తున్నాం';
+    return '“$query” కోసం ఫలితాలు చూపిస్తున్నాం';
   }
 
   @override
   String searchNoResultsInBook(String book) {
-    return '\$bookలో ఏమీ దొరకలేదు. అన్ని గ్రంథాల్లో వెతకండి, లేదా మరో స్పెల్లింగ్ ప్రయత్నించండి.';
+    return '$bookలో ఏమీ దొరకలేదు. అన్ని గ్రంథాల్లో వెతకండి, లేదా మరో స్పెల్లింగ్ ప్రయత్నించండి.';
   }
 
   @override
   String get searchTipsTitle => 'శోధన చిట్కాలు';
 
   @override
-  String get searchTipSpelling => 'ఎలా వినిపిస్తే అలా రాయండి. “krishna”, “krsna”, “kṛṣṇa” అన్నీ ఒకే శ్లోకాలను చూపిస్తాయి.';
+  String get searchTipSpelling =>
+      'ఎలా వినిపిస్తే అలా రాయండి. “krishna”, “krsna”, “kṛṣṇa” అన్నీ ఒకే శ్లోకాలను చూపిస్తాయి.';
 
   @override
-  String get searchTipBook => 'గ్రంథం పేరుతో మొదలుపెట్టండి — “gita karma” లేదా “bhagavatam surrender” — అప్పుడు అందులో మాత్రమే వెతుకుతుంది.';
+  String get searchTipBook =>
+      'గ్రంథం పేరుతో మొదలుపెట్టండి — “gita karma” లేదా “bhagavatam surrender” — అప్పుడు అందులో మాత్రమే వెతుకుతుంది.';
 
   @override
-  String get searchTipPartial => 'శ్లోకం, దాని అర్థం లేదా భాష్యంలోని కొన్ని పదాలు రాయండి. చిన్న తప్పులు పర్వాలేదు.';
+  String get searchTipPartial =>
+      'శ్లోకం, దాని అర్థం లేదా భాష్యంలోని కొన్ని పదాలు రాయండి. చిన్న తప్పులు పర్వాలేదు.';
 }

@@ -130,9 +130,10 @@ class _SearchViewState extends ConsumerState<SearchView> {
     SearchOverview? overview;
     AsyncValue<SearchOverview>? overviewState;
     if (_searching) {
-      overviewState = ref.watch(searchOverviewProvider(_request));
-      if (overviewState.hasValue) _lastOverview = overviewState.value;
-      overview = overviewState.value ?? _lastOverview;
+      final state = ref.watch(searchOverviewProvider(_request));
+      if (state.hasValue) _lastOverview = state.value;
+      overview = state.value ?? _lastOverview;
+      overviewState = state;
     }
 
     return Scaffold(

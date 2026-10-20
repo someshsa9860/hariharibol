@@ -3610,13 +3610,13 @@ abstract class AppLocalizations {
   /// **'All books'**
   String get searchAllBooks;
 
-  /// No description provided for @searchShowingFor.
+  /// Shown above search results when the typed words were read as a different spelling; query is the spelling used.
   ///
   /// In en, this message translates to:
   /// **'Showing results for “{query}”'**
   String searchShowingFor(String query);
 
-  /// No description provided for @searchNoResultsInBook.
+  /// Empty search result while the search is limited to one book; book is its title.
   ///
   /// In en, this message translates to:
   /// **'Nothing found in {book}. Try all books, or another spelling.'**

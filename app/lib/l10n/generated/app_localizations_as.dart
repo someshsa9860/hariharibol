@@ -2084,23 +2084,26 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String searchShowingFor(String query) {
-    return '“\$query”ৰ ফলাফল দেখুৱাই আছো';
+    return '“$query”ৰ ফলাফল দেখুৱাই আছো';
   }
 
   @override
   String searchNoResultsInBook(String book) {
-    return '\$bookত একো পোৱা নাযায়। সকলো গ্ৰন্থত বিচাৰক, বা আন বানান চেষ্টা কৰক।';
+    return '$bookত একো পোৱা নাযায়। সকলো গ্ৰন্থত বিচাৰক, বা আন বানান চেষ্টা কৰক।';
   }
 
   @override
   String get searchTipsTitle => 'সন্ধানৰ পৰামৰ্শ';
 
   @override
-  String get searchTipSpelling => 'যেনেকৈ শুনা যায় তেনেকৈ লিখক। “krishna”, “krsna” আৰু “kṛṣṇa” একে শ্লোকক বিচাৰি উলিয়ায়।';
+  String get searchTipSpelling =>
+      'যেনেকৈ শুনা যায় তেনেকৈ লিখক। “krishna”, “krsna” আৰু “kṛṣṇa” একে শ্লোকক বিচাৰি উলিয়ায়।';
 
   @override
-  String get searchTipBook => 'গ্ৰন্থৰ নামেৰে আৰম্ভ কৰক — “gita karma” বা “bhagavatam surrender” — তেন্তে কেৱল তাতেই বিচাৰিব।';
+  String get searchTipBook =>
+      'গ্ৰন্থৰ নামেৰে আৰম্ভ কৰক — “gita karma” বা “bhagavatam surrender” — তেন্তে কেৱল তাতেই বিচাৰিব।';
 
   @override
-  String get searchTipPartial => 'শ্লোক, ইয়াৰ অৰ্থ বা তাৎপৰ্যৰ কিছুমান শব্দ লিখক। সৰু ভুলত অসুবিধা নাই।';
+  String get searchTipPartial =>
+      'শ্লোক, ইয়াৰ অৰ্থ বা তাৎপৰ্যৰ কিছুমান শব্দ লিখক। সৰু ভুলত অসুবিধা নাই।';
 }
