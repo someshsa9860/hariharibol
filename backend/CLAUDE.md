@@ -786,8 +786,7 @@ AI-drafted and **not yet read by a native speaker**.
   (`prisma/seed/index.js`, after `seedBooks`) goes through `fillMissing`: **a language is added only where the row has none**,
   so an admin's edit is never put back, and a corrected seed file does not reach a row that is already filled — fix that row
   on the admin Books page → **Titles**. Chapters exist only once the importers have run, so a new database takes
-  seed → importers → seed. **The Bhagavatam's 335 chapters have no seeded titles** (there is no authoritative list to follow),
-  so they read in English until an admin fills them. The Gita's titles are its traditional names in the reader's own script;
+  seed → importers → seed. **The Bhagavatam's 335 chapters are not in the seed files**; `npm run translate:chapter-titles` (`scripts/translate-chapter-titles.js`) reads each chapter's English heading from the database and has the translation provider (Claude by default, `--provider`) write all 11 languages, one call per canto per language, saving only languages a chapter lacks (so an admin edit is never replaced; `--dry-run`, `--cantos`, `--langs`). Needs the chapters imported and `ANTHROPIC_API_KEY`; run it on the server, then the book export. Until then they read in English. `test/chapter-titles.test.js` covers its checks with a fake model; **no live call has been made**. The Gita's titles are its traditional names in the reader's own script;
   the cantos' are translations of Prabhupāda's headings. They are AI-drafted and **not yet read by a native speaker**.
   `test/section-titles.test.js` fails on a missing language, a list of the wrong length, or text in the wrong script.
 - **Admin**: `GET /api/admin/books/languages` (`book.read`) lists the languages a title can be written in — active reading
