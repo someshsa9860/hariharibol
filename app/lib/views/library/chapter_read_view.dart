@@ -420,7 +420,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           IconButton(
             icon: const Icon(Icons.tune_rounded),
             tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(context),
+            onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
           ),
         ],
       ),

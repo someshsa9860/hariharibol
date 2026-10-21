@@ -98,7 +98,7 @@ export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapte
           ))}
         </div>
       )}
-      {settings && <ReaderSettingsSheet onClose={() => setSettings(false)} />}
+      {settings && <ReaderSettingsSheet onClose={() => setSettings(false)} bookSlug={bookSlug} />}
     </>
   );
 }
