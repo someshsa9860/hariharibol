@@ -15,12 +15,31 @@ export interface RuntimeConfig {
 const GLOBAL = '__HHB_CONFIG__';
 const EMPTY: RuntimeConfig = { googleClientId: '', appleClientId: '', firebaseConfig: '', recaptchaSiteKey: '' };
 
+/** The keys a Firebase *web* app config has. Nothing else is ever sent to a browser. */
+const FIREBASE_WEB_KEYS = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+
+/**
+ * Keeps only the web app config's own keys. A service-account file pointed at by mistake carries a private key; with
+ * this it comes out empty (no apiKey) instead of reaching the page. Anything that is not a config comes out empty too.
+ */
+function publicFirebaseConfig(raw: string): string {
+  if (!raw) return '';
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const kept: Record<string, string> = {};
+    for (const key of FIREBASE_WEB_KEYS) if (typeof parsed[key] === 'string') kept[key] = parsed[key] as string;
+    return kept.apiKey && kept.appId ? JSON.stringify(kept) : '';
+  } catch {
+    return '';
+  }
+}
+
 /** What this server process was started with. Only call it on the server. */
 function configFromEnvironment(): RuntimeConfig {
   return {
     googleClientId: process.env.WEBSITE_GOOGLE_CLIENT_ID ?? '',
     appleClientId: process.env.WEBSITE_APPLE_CLIENT_ID ?? '',
-    firebaseConfig: process.env.WEBSITE_FIREBASE_CONFIG ?? '',
+    firebaseConfig: publicFirebaseConfig(process.env.WEBSITE_FIREBASE_CONFIG ?? ''),
     recaptchaSiteKey: process.env.WEBSITE_RECAPTCHA_SITE_KEY ?? '',
   };
 }
