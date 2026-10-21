@@ -1224,3 +1224,7 @@ still work; nothing rewrites them.
 - **Place**: `AppSetting` `panchang.location`; places are `LOCATIONS` in `services/panchang.js`. Generate a year for a place before selecting it.
 - **Push**: `jobs/processors/festival-notify.js`, run by the `notification` queue's `festival.notify` schedule (02:30 UTC). It uses `Festival.notifyDaysBefore` (default `[1]`) and records `notifiedDays`, so a rerun never repeats a push. It goes to every user with a push-capable device, dated by the calendar place's today.
 - **API**: public `GET /api/app/calendar?from&to` (max 62 days) and `/calendar/upcoming`; admin `/api/admin/panchang` (permission `panchang.manage`).
+
+## Maintenance commands
+
+The admin **Maintenance** page (`system.maintenance`, super admin only — `admin` does not carry it) runs scripts from the fixed list in `config/maintenance.js` (`seed`, `seed:panchang`, `recount:books` …) through `services/maintenance.js`: `npm run <script>` spawned in the API container, one at a time, killed after 15 minutes, output kept in memory (256 KB) and polled by the page every second. It is not a shell — the request names an id from the list. Every start and finish is an `AuditLog` row (`maintenance.start` / `maintenance.finish`). Output is per API process, so with several API containers each has its own run. `prisma migrate` is not on the list: the production image installs without dev dependencies. Production needs `npm run seed` once after this ships (adds the permission).
