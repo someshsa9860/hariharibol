@@ -1,0 +1,38 @@
+/* ── Chanting groups ── */
+.groups-page, .group-page { padding-block: 24px 90px; display: grid; gap: 18px; align-content: start; }
+.back-link { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .9rem; width: fit-content; }
+.group-h2 { font-size: 1.25rem; margin: 0; }
+.group-h3 { font-size: .95rem; color: var(--muted); margin: 18px 0 8px; font-weight: 500; }
+.group-mantra { display: inline-flex; gap: 6px; align-items: center; color: var(--accent-ink); font-size: .92rem; margin: 0; }
+
+.group-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.group-card { display: flex; align-items: center; gap: 14px; padding: 16px; color: inherit; }
+.group-card-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-ink); flex: none; }
+.group-card-body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.group-card-body strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.group-invites { display: grid; gap: 10px; }
+.group-invite { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; flex-wrap: wrap; }
+.group-invite > div:first-child { display: grid; gap: 2px; }
+.group-invite-actions { display: flex; gap: 8px; }
+
+.live-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.live-badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-ink); animation: live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse { 50% { transform: scale(1.6); opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .live-badge i { animation: none; } }
+
+.live-panel { padding: 18px; display: grid; gap: 14px; }
+.live-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.live-actions .is-on { border-color: var(--accent-ink); }
+.live-stage { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+
+.invite-form { display: flex; gap: 10px; margin: 12px 0; }
+.invite-form .input { flex: 1; min-width: 0; }
+.member-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.member { display: flex; align-items: center; gap: 12px; padding: 8px 4px; }
+.member-name { display: grid; flex: 1; min-width: 0; }
+.member-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.group-danger { display: grid; gap: 8px; justify-items: start; border-top: 1px solid var(--line); padding-top: 18px; }
+
+.form-stack { display: grid; gap: 14px; }
+.form-stack label { display: grid; gap: 6px; font-size: .9rem; }

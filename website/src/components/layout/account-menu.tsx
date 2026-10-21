@@ -27,6 +27,7 @@ export function AccountMenu() {
             <small>{user.email}</small>
           </div>
           <Link className="menu-item" href="/me"><Icon name="user" size={18} /> Your page</Link>
+          <Link className="menu-item" href="/groups"><Icon name="chant" size={18} /> Chant together</Link>
           <Link className="menu-item" href="/routine"><Icon name="routine" size={18} /> Routine</Link>
           <Link className="menu-item" href="/notifications"><Icon name="info" size={18} /> Notifications</Link>
           <Link className="menu-item" href="/plans"><Icon name="sakha" size={18} /> Plans</Link>

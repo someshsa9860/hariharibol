@@ -6,6 +6,24 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hariharibo
 /** The API as the browser reaches it. */
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.hariharibol.com').replace(/\/$/, '');
 
+/**
+ * The websocket the API's realtime container serves. Set it when it is not the API's own host at /ws (locally the
+ * socket container has its own port, 4001).
+ */
+export const WS_URL = (() => {
+  const set = process.env.NEXT_PUBLIC_WS_URL;
+  if (set) return set;
+  try {
+    const url = new URL(API_BASE);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') url.port = '4001';
+    url.pathname = '/ws';
+    return url.toString();
+  } catch {
+    return '';
+  }
+})();
+
 /** The API as the Next server reaches it — may be an internal address. */
 export const SERVER_API_BASE = (process.env.API_BASE_URL ?? API_BASE).replace(/\/$/, '');
 
