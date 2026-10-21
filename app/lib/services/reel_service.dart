@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../core/constants/api_paths.dart';
+import '../models/book_reel.dart';
 import '../models/creator.dart';
 import '../models/json.dart';
 import '../models/paged.dart';
@@ -90,6 +91,21 @@ class ReelService {
   Future<Paged<Reel>> similar(String id, {int page = 1, int? pageSize}) async {
     final response = await _api.get(
       ApiPaths.reelSimilar(id),
+      query: {'page': page, 'pageSize': ?pageSize},
+    );
+    return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
+  }
+
+  /// How book reels look and which buttons they show.
+  Future<BookReelStyle> bookStyle() async {
+    final response = await _api.get(ApiPaths.reelBookStyle);
+    return BookReelStyle.fromJson(response.json);
+  }
+
+  /// The book reels of [verseId]'s book in reading order, starting at that verse.
+  Future<Paged<Reel>> fromVerse(String verseId, {int page = 1, int? pageSize}) async {
+    final response = await _api.get(
+      ApiPaths.reelsFromVerse(verseId),
       query: {'page': page, 'pageSize': ?pageSize},
     );
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);

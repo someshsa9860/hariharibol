@@ -2279,6 +2279,11 @@ model Reel {
   // silently change a published reel.
   overlays Json @default("[]")
 
+  // How the app draws it: 'MEDIA' plays the video/audio/images above; 'VERSE_PAGES' draws the
+  // reel's verse itself as pages (Sanskrit, meaning, purport) in the reader's reading language —
+  // the book reels made from templates. See config/book-reel.js.
+  layout String @default("MEDIA") @db.VarChar(20)
+
   sampradaya String @default("vaishnav") @db.VarChar(50)
 
   status          ReelStatus @default(PENDING_REVIEW)
@@ -2319,6 +2324,7 @@ model Reel {
   @@index([creatorId])
   @@index([status, publishedAt])
   @@index([verseId])
+  @@index([layout, verseId])
   @@index([mantraId])
   @@index([deityId])
   @@index([sampradaya])

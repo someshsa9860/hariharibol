@@ -86,6 +86,56 @@ router.get(
   controller.list
 );
 
+const flag = z.number().int().min(0).max(1);
+const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
+router.get(
+  '/book-style',
+  {
+    summary: 'Get the book reel look',
+    description: 'Background, text colours and sizes, page timing and the buttons a book reel shows, beside the built-in defaults.',
+    permission: 'reel.read',
+    limit: 'read',
+    responds: { 200: 'Style and defaults' },
+  },
+  controller.getBookStyle
+);
+
+router.put(
+  '/book-style',
+  {
+    summary: 'Save the book reel look',
+    description:
+      'Replaces the whole style. `imageKey` is an upload key (`POST /uploads`) used when `background` is ' +
+      '`image`. Applies to the next reel a reader opens.',
+    permission: 'reel.write',
+    limit: 'write',
+    body: z.object({
+      background: z.enum(['gradient', 'solid', 'image']),
+      colorTop: hex,
+      colorBottom: hex,
+      imageKey: key.nullable(),
+      imageDim: z.number().min(0).max(90),
+      sanskritColor: hex,
+      transliterationColor: hex,
+      meaningColor: hex,
+      purportColor: hex,
+      accentColor: hex,
+      textScale: z.number().min(0.7).max(1.5),
+      minPageSeconds: z.number().min(2).max(30),
+      wordsPerSecond: z.number().min(1).max(8),
+      showLike: flag,
+      showComments: flag,
+      showSave: flag,
+      showShare: flag,
+      showMore: flag,
+      showReference: flag,
+    }),
+    responds: { 200: 'The saved style' },
+  },
+  controller.saveBookStyle
+);
+
 router.get(
   '/creators',
   {

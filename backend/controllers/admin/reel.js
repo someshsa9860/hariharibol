@@ -15,6 +15,8 @@
 import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as s3 from '../../services/s3.js';
+import * as bookReel from '../../services/book-reel-settings.js';
+import { DEFAULT_BOOK_REEL_STYLE } from '../../config/book-reel.js';
 import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
@@ -326,4 +328,32 @@ export const remove = async (req, res) => {
   });
 
   return noContent(res);
+};
+
+/** GET /api/admin/reels/book-style */
+export const getBookStyle = async (req, res) => {
+  const style = await bookReel.style();
+  return ok(res, {
+    style,
+    imageUrl: style.imageKey ? await s3.presignGet(style.imageKey) : null,
+    defaults: DEFAULT_BOOK_REEL_STYLE,
+  });
+};
+
+/** PUT /api/admin/reels/book-style */
+export const saveBookStyle = async (req, res) => {
+  const before = await bookReel.style();
+  const after = await bookReel.save(req.valid.body, req.auth.user.id);
+  await audit.record(req, {
+    action: 'reel.book_style.update',
+    entityType: 'BookReelStyle',
+    entityId: 'book-reel',
+    before: { style: JSON.stringify(before) },
+    after: { style: JSON.stringify(after) },
+  });
+  return ok(res, {
+    style: after,
+    imageUrl: after.imageKey ? await s3.presignGet(after.imageKey) : null,
+    defaults: DEFAULT_BOOK_REEL_STYLE,
+  });
 };

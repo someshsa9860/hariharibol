@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../models/book_reel.dart';
 import '../../models/reel.dart';
+import '../../providers/reel_provider.dart';
 import 'reel_action_rail.dart';
 import 'reel_audio_player.dart';
 import 'reel_caption.dart';
@@ -11,6 +14,7 @@ import 'reel_overlays.dart';
 import 'reel_slideshow.dart';
 import 'reel_soundtrack.dart';
 import 'reel_video_player.dart';
+import 'verse_reel_pages.dart';
 
 /// One reel, filling the screen.
 ///
@@ -18,7 +22,7 @@ import 'reel_video_player.dart';
 /// it, then the controls. The scrim is what makes white text readable over
 /// footage nobody has seen — it is a gradient rather than a flat wash so the
 /// middle of the frame, which is usually the subject, stays untouched.
-class ReelPage extends StatefulWidget {
+class ReelPage extends ConsumerStatefulWidget {
   const ReelPage({
     super.key,
     required this.reel,
@@ -35,6 +39,7 @@ class ReelPage extends StatefulWidget {
     this.onSubjectTap,
     this.onSimilarTap,
     this.onProgress,
+    this.onEnded,
     this.playerKey,
     this.bottomInset = 0,
   });
@@ -57,6 +62,10 @@ class ReelPage extends StatefulWidget {
   final VoidCallback? onSimilarTap;
   final void Function(int watchedMs, int durationMs)? onProgress;
 
+  /// Called when the reel has played to its end, so the feed can move on to the
+  /// next one. Without it a reel loops, as it always did.
+  final VoidCallback? onEnded;
+
   /// Lets the feed reach this page's player to report a watch when the whole
   /// screen closes, not only when the reel is swiped past.
   final GlobalKey<ReelVideoPlayerState>? playerKey;
@@ -66,10 +75,10 @@ class ReelPage extends StatefulWidget {
   final double bottomInset;
 
   @override
-  State<ReelPage> createState() => _ReelPageState();
+  ConsumerState<ReelPage> createState() => _ReelPageState();
 }
 
-class _ReelPageState extends State<ReelPage> {
+class _ReelPageState extends ConsumerState<ReelPage> {
   /// The track under a video or slideshow, so a tap that pauses the picture can
   /// pause it too.
   final GlobalKey<ReelSoundtrackState> _soundtrack = GlobalKey<ReelSoundtrackState>();
@@ -79,6 +88,7 @@ class _ReelPageState extends State<ReelPage> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    if (reel.isVersePages) return _versePages(context);
 
     return ColoredBox(
       color: AppColors.reelGround,
@@ -146,6 +156,72 @@ class _ReelPageState extends State<ReelPage> {
     );
   }
 
+  /// A book reel: the app draws the verse as pages. No creator, no caption —
+  /// the verse is the content — and the buttons are the ones the admin left on.
+  Widget _versePages(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    final style = ref.watch(bookReelStyleProvider).maybeWhen(data: (value) => value, orElse: () => BookReelStyle.fallback);
+    // Wide enough for the rail's buttons; the text takes everything when none is shown.
+    final railWidth = style.hasRail ? 60.0 : 0.0;
+
+    return ColoredBox(
+      color: AppColors.reelGround,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          VerseReelPages(
+            content: reel.verseContent!,
+            style: style,
+            isActive: widget.isActive,
+            onEnded: widget.onEnded,
+            rightInset: railWidth,
+            bottomInset: widget.bottomInset,
+          ),
+          if (reel.hasSoundtrack)
+            ReelSoundtrack(
+              key: _soundtrack,
+              url: reel.audioUrl!,
+              isActive: widget.isActive,
+              isMuted: widget.isMuted,
+            ),
+          if (style.hasRail)
+            Positioned(
+              right: AppSpacing.sm,
+              bottom: widget.bottomInset + AppSpacing.lg,
+              child: SafeArea(
+                top: false,
+                child: ReelActionRail(
+                  reel: reel,
+                  onLike: widget.onLike,
+                  onComment: widget.onComment,
+                  onShare: widget.onShare,
+                  onSave: widget.onSave,
+                  onMore: widget.onMore,
+                  showLike: style.showLike,
+                  showComments: style.showComments,
+                  showShare: style.showShare,
+                  showSave: style.showSave,
+                  showMore: style.showMore,
+                ),
+              ),
+            ),
+          if ((reel.audioUrl ?? '').isNotEmpty)
+            Positioned(
+              top: AppSpacing.xl + AppSpacing.lg,
+              right: AppSpacing.lg,
+              child: SafeArea(
+                child: _MuteButton(
+                  isMuted: widget.isMuted,
+                  label: widget.isMuted ? text.reelMuted : text.reelUnmuted,
+                  onTap: widget.onToggleMute,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _media(BuildContext context) {
     if (reel.isVideo) {
       if (!reel.hasPlayableVideo) {
@@ -164,6 +240,7 @@ class _ReelPageState extends State<ReelPage> {
         thumbnailUrl: reel.thumbnailUrl,
         cacheKey: reel.id,
         onProgress: widget.onProgress,
+        onEnded: widget.onEnded,
         onTap: _toggleVideo,
       );
     }
@@ -179,10 +256,11 @@ class _ReelPageState extends State<ReelPage> {
         thumbnailUrl: reel.thumbnailUrl,
         cacheKey: reel.id,
         onProgress: widget.onProgress,
+        onEnded: widget.onEnded,
       );
     }
 
-    return ReelSlideshow(reel: reel, isActive: widget.isActive);
+    return ReelSlideshow(reel: reel, isActive: widget.isActive, onEnded: widget.onEnded);
   }
 
   /// Tap to pause or resume the picture, and the track with it.

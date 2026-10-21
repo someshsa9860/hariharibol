@@ -2096,6 +2096,23 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chatJumpToLatest => 'ନବୀନତମ';
 
   @override
+  String get verseStartReels => 'ଏହି ଶ୍ଲୋକରୁ ରିଲ୍ ଦେଖନ୍ତୁ';
+
+  @override
+  String get reelChantTapHint => 'ଜପ ପାଇଁ ଟାପ୍ କରନ୍ତୁ';
+
+  @override
+  String get reelChantDone => 'ମାଳା ସମ୍ପୂର୍ଣ୍ଣ';
+
+  @override
+  String get reelChantSkipHint => 'ଛାଡ଼ିବାକୁ ଉପରକୁ ସ୍ୱାଇପ୍ କରନ୍ତୁ';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ଏହି ଶ୍ଲୋକ ବିଷୟରେ Sakha କୁ ପଚାରନ୍ତୁ';
 
   @override

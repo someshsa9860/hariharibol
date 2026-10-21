@@ -179,6 +179,8 @@ const SETTING_KEYS = {
   CHAT_SYSTEM_PROMPT: 'chat.system_prompt',
   CHAT_DESCRIPTION: 'chat.description',
   CHAT_LIMITS: 'chat.limits',
+  // How book reels (verses drawn as pages) look and which buttons they show — see config/book-reel.js.
+  BOOK_REEL_STYLE: 'reels.book_style',
 };
 
 // When the daily sloka is pushed, in each reader's own timezone, if the

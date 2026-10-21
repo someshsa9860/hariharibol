@@ -2099,6 +2099,23 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chatJumpToLatest => 'తాజా';
 
   @override
+  String get verseStartReels => 'ఈ శ్లోకం నుండి రీల్స్ చూడండి';
+
+  @override
+  String get reelChantTapHint => 'జపం కోసం నొక్కండి';
+
+  @override
+  String get reelChantDone => 'మాల పూర్తయింది';
+
+  @override
+  String get reelChantSkipHint => 'దాటవేయడానికి పైకి స్వైప్ చేయండి';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ఈ శ్లోకం గురించి Sakha ని అడగండి';
 
   @override

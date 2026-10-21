@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -22,6 +24,7 @@ class ReelSlideshow extends StatefulWidget {
     required this.reel,
     required this.isActive,
     this.onTap,
+    this.onEnded,
   });
 
   final Reel reel;
@@ -32,13 +35,41 @@ class ReelSlideshow extends StatefulWidget {
 
   final VoidCallback? onTap;
 
+  /// Called when the last picture has been shown for its time. Setting it also
+  /// makes the slideshow move through its pictures by itself.
+  final VoidCallback? onEnded;
+
   @override
   State<ReelSlideshow> createState() => _ReelSlideshowState();
 }
 
 class _ReelSlideshowState extends State<ReelSlideshow> {
+  /// How long each picture stays when the slideshow moves on by itself.
+  static const Duration _perPicture = Duration(seconds: 4);
+
   late final PageController _controller = PageController();
   int _index = 0;
+  Timer? _advance;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedule();
+  }
+
+  void _schedule() {
+    _advance?.cancel();
+    if (!widget.isActive || widget.onEnded == null) return;
+    _advance = Timer(_perPicture, () {
+      if (!mounted) return;
+      final last = widget.reel.media.length <= 1 || _index >= widget.reel.media.length - 1;
+      if (last) {
+        widget.onEnded?.call();
+      } else {
+        _controller.nextPage(duration: AppDurations.slow, curve: Curves.easeOutCubic);
+      }
+    });
+  }
 
   @override
   void didUpdateWidget(covariant ReelSlideshow oldWidget) {
@@ -47,10 +78,12 @@ class _ReelSlideshowState extends State<ReelSlideshow> {
       _controller.jumpToPage(0);
       setState(() => _index = 0);
     }
+    if (widget.isActive != oldWidget.isActive) _schedule();
   }
 
   @override
   void dispose() {
+    _advance?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -80,7 +113,10 @@ class _ReelSlideshowState extends State<ReelSlideshow> {
           PageView.builder(
             controller: _controller,
             itemCount: images.length,
-            onPageChanged: (index) => setState(() => _index = index),
+            onPageChanged: (index) {
+              setState(() => _index = index);
+              _schedule();
+            },
             itemBuilder: (context, index) => AppImage(
               url: images[index].imageUrl,
               // Keyed on the row id, not the signed URL, so a re-signed link

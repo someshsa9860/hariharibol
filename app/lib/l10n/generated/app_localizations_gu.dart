@@ -2087,6 +2087,23 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chatJumpToLatest => 'નવીનતમ';
 
   @override
+  String get verseStartReels => 'આ શ્લોકથી રીલ્સ જુઓ';
+
+  @override
+  String get reelChantTapHint => 'જપ માટે ટેપ કરો';
+
+  @override
+  String get reelChantDone => 'માળા પૂર્ણ';
+
+  @override
+  String get reelChantSkipHint => 'છોડવા માટે ઉપર સ્વાઇપ કરો';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'આ શ્લોક વિશે Sakha ને પૂછો';
 
   @override

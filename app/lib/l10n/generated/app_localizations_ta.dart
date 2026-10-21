@@ -2109,6 +2109,23 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatJumpToLatest => 'சமீபத்தியது';
 
   @override
+  String get verseStartReels => 'இந்த ஸ்லோகத்திலிருந்து ரீல்ஸ் பாருங்கள்';
+
+  @override
+  String get reelChantTapHint => 'ஜபிக்க தட்டவும்';
+
+  @override
+  String get reelChantDone => 'மாலை நிறைவு';
+
+  @override
+  String get reelChantSkipHint => 'தவிர்க்க மேலே ஸ்வைப் செய்யவும்';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'இந்த ஸ்லோகம் பற்றி Sakha-விடம் கேளுங்கள்';
 
   @override

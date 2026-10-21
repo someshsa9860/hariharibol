@@ -127,6 +127,36 @@ router.get(
 );
 
 router.get(
+  '/book-style',
+  {
+    summary: 'How book reels look',
+    description:
+      'The background, text colours and sizes, page timing and which buttons (like, comments, save, ' +
+      'share, more) a book reel shows — edited in the admin panel. Public.',
+    public: true,
+    limit: 'read',
+    responds: { 200: 'The style' },
+  },
+  controller.bookStyle
+);
+
+router.get(
+  '/book/:verseId',
+  {
+    summary: 'Book reels from a verse on',
+    description:
+      'The book reels of the verse’s book in reading order, starting at that verse. `verseId` is the ' +
+      'dotted id (`1.2.47`). Public: signed out nothing is liked or saved.',
+    public: true,
+    limit: 'read',
+    params: z.object({ verseId: z.string().min(1).max(40) }),
+    query: schemas.page,
+    responds: { 200: 'A page of reels', 404: 'No such verse' },
+  },
+  controller.fromVerse
+);
+
+router.get(
   '/:id/similar',
   {
     summary: 'More reels like this one',

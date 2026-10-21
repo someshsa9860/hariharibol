@@ -2096,6 +2096,23 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chatJumpToLatest => 'ಇತ್ತೀಚಿನದು';
 
   @override
+  String get verseStartReels => 'ಈ ಶ್ಲೋಕದಿಂದ ರೀಲ್ಸ್ ನೋಡಿ';
+
+  @override
+  String get reelChantTapHint => 'ಜಪಕ್ಕಾಗಿ ಟ್ಯಾಪ್ ಮಾಡಿ';
+
+  @override
+  String get reelChantDone => 'ಮಾಲೆ ಪೂರ್ಣ';
+
+  @override
+  String get reelChantSkipHint => 'ಬಿಟ್ಟುಬಿಡಲು ಮೇಲೆ ಸ್ವೈಪ್ ಮಾಡಿ';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ಈ ಶ್ಲೋಕದ ಬಗ್ಗೆ Sakha ಅವರನ್ನು ಕೇಳಿ';
 
   @override

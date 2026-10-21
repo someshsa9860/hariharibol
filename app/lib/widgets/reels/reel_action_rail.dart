@@ -25,6 +25,11 @@ class ReelActionRail extends StatelessWidget {
     required this.onShare,
     required this.onSave,
     required this.onMore,
+    this.showLike = true,
+    this.showComments = true,
+    this.showShare = true,
+    this.showSave = true,
+    this.showMore = true,
   });
 
   final Reel reel;
@@ -34,6 +39,13 @@ class ReelActionRail extends StatelessWidget {
   final VoidCallback onSave;
   final VoidCallback onMore;
 
+  /// Which buttons to draw — a book reel's are set in the admin panel.
+  final bool showLike;
+  final bool showComments;
+  final bool showShare;
+  final bool showSave;
+  final bool showMore;
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -42,6 +54,7 @@ class ReelActionRail extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        if (showLike)
         _RailButton(
           icon: reel.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           label: text.reelLike,
@@ -50,12 +63,14 @@ class ReelActionRail extends StatelessWidget {
           isOn: reel.isLiked,
           onTap: onLike,
         ),
+        if (showComments)
         _RailButton(
           icon: Icons.mode_comment_outlined,
           label: text.reelComment,
           count: reel.commentCount,
           onTap: onComment,
         ),
+        if (showShare)
         _RailButton(
           icon: Icons.reply_rounded,
           label: text.reelShare,
@@ -65,6 +80,7 @@ class ReelActionRail extends StatelessWidget {
           flipped: true,
           onTap: onShare,
         ),
+        if (showSave)
         _RailButton(
           icon: reel.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
           label: text.reelSave,
@@ -72,6 +88,7 @@ class ReelActionRail extends StatelessWidget {
           isOn: reel.isSaved,
           onTap: onSave,
         ),
+        if (showMore)
         _RailButton(
           icon: Icons.more_horiz_rounded,
           label: text.reelMore,

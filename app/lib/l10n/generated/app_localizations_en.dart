@@ -2088,6 +2088,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatJumpToLatest => 'Latest';
 
   @override
+  String get verseStartReels => 'Watch reels from this verse';
+
+  @override
+  String get reelChantTapHint => 'Tap to chant';
+
+  @override
+  String get reelChantDone => 'Round complete';
+
+  @override
+  String get reelChantSkipHint => 'Swipe up to skip';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'Ask Sakha about this verse';
 
   @override

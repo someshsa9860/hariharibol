@@ -1481,6 +1481,30 @@
   "@chatJumpToLatest": {
     "description": "Label of the button that scrolls the chat back down to the newest message."
   },
+  "verseStartReels": "Watch reels from this verse",
+  "@verseStartReels": {
+    "description": "Tooltip of the peacock-feather button on a verse that starts book reels from that verse."
+  },
+  "reelChantTapHint": "Tap to chant",
+  "@reelChantTapHint": {
+    "description": "Hint on a chanting reel in the feed: each tap counts one chant."
+  },
+  "reelChantDone": "Round complete",
+  "@reelChantDone": {
+    "description": "Shown on a chanting reel when the 108th chant is counted, just before the feed moves on."
+  },
+  "reelChantSkipHint": "Swipe up to skip",
+  "@reelChantSkipHint": {
+    "description": "Hint on a chanting reel: swiping goes on to the next reel without finishing."
+  },
+  "reelChantCount": "{count} / {total}",
+  "@reelChantCount": {
+    "description": "Chants counted of the round on a chanting reel, like 12 / 108.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "verseAskSakha": "Ask Sakha about this verse",
   "@verseAskSakha": {
     "description": "Tooltip of the button on a verse that asks Sakha to explain it."

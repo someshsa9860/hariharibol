@@ -85,7 +85,7 @@ const includes = {
         translations: {
           where: { isPublished: true, languageCode: { in: readingChain } },
           orderBy: { displayOrder: 'asc' },
-          select: { languageCode: true, type: true, meaning: true, transliteration: true },
+          select: { languageCode: true, type: true, meaning: true, purport: true, transliteration: true },
         },
       },
     },
@@ -438,6 +438,27 @@ function bindOverlays(overlays, verse, user) {
   });
 }
 
+/** What a book reel draws: the verse in the reader's reading language, page by page. */
+function reelVerseContent(verse, user) {
+  if (!verse) return null;
+  const chain = language.readingChain(user);
+  const translation = language.pickTranslation(verse.translations, chain);
+  // The purport may be in another row of the same language than the meaning; take the first that has one.
+  const purportRow =
+    translation?.purport?.trim()
+      ? translation
+      : language.pick((verse.translations || []).filter((row) => row.purport?.trim()), chain);
+  return {
+    label: reelVerseLabel(verse, chain),
+    bookTitle: language.localised(verse.book, 'title', 'titleI18n', chain),
+    sanskrit: verse.sanskrit?.trim() || null,
+    transliteration:
+      language.pickTransliteration(verse.translations, chain, verse.transliteration, verse.sanskrit)?.trim() || null,
+    meaning: translation?.meaning?.trim() || null,
+    purport: purportRow?.purport?.trim() || null,
+  };
+}
+
 /**
  * One reel, shaped for the feed.
  *
@@ -501,6 +522,10 @@ async function reel(row, user) {
     // Text placed on the frame in the admin editor, drawn by the app at watch
     // time — percentages of the frame, see routes/admin/reel.js.
     overlays: bindOverlays(row.overlays, row.verse, user),
+
+    // 'VERSE_PAGES': the app draws the verse itself, in the reader's language, instead of the media.
+    layout: row.layout,
+    verseContent: row.layout === 'VERSE_PAGES' ? reelVerseContent(row.verse, user) : null,
 
     viewCount: row.viewCount,
     likeCount: row.likeCount,

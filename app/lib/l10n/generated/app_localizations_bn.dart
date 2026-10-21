@@ -2095,6 +2095,23 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chatJumpToLatest => 'সর্বশেষ';
 
   @override
+  String get verseStartReels => 'এই শ্লোক থেকে রিল দেখুন';
+
+  @override
+  String get reelChantTapHint => 'জপ করতে ট্যাপ করুন';
+
+  @override
+  String get reelChantDone => 'মালা সম্পূর্ণ';
+
+  @override
+  String get reelChantSkipHint => 'এড়াতে উপরে সোয়াইপ করুন';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'এই শ্লোক সম্পর্কে Sakha-কে জিজ্ঞাসা করুন';
 
   @override

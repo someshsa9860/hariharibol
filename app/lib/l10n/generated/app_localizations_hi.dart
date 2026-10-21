@@ -2091,6 +2091,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chatJumpToLatest => 'नवीनतम';
 
   @override
+  String get verseStartReels => 'इस श्लोक से रील देखें';
+
+  @override
+  String get reelChantTapHint => 'जप के लिए टैप करें';
+
+  @override
+  String get reelChantDone => 'माला पूरी हुई';
+
+  @override
+  String get reelChantSkipHint => 'छोड़ने के लिए ऊपर स्वाइप करें';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'इस श्लोक के बारे में Sakha से पूछें';
 
   @override

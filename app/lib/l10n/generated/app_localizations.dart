@@ -3634,6 +3634,36 @@ abstract class AppLocalizations {
   /// **'Latest'**
   String get chatJumpToLatest;
 
+  /// Tooltip of the peacock-feather button on a verse that starts book reels from that verse.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch reels from this verse'**
+  String get verseStartReels;
+
+  /// Hint on a chanting reel in the feed: each tap counts one chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to chant'**
+  String get reelChantTapHint;
+
+  /// Shown on a chanting reel when the 108th chant is counted, just before the feed moves on.
+  ///
+  /// In en, this message translates to:
+  /// **'Round complete'**
+  String get reelChantDone;
+
+  /// Hint on a chanting reel: swiping goes on to the next reel without finishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up to skip'**
+  String get reelChantSkipHint;
+
+  /// Chants counted of the round on a chanting reel, like 12 / 108.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {total}'**
+  String reelChantCount(int count, int total);
+
   /// Tooltip of the button on a verse that asks Sakha to explain it.
   ///
   /// In en, this message translates to:

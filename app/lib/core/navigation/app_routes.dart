@@ -99,6 +99,11 @@ abstract final class AppRoutes {
   static const String similarPattern = '/reels/:id/similar';
   static String similarPath(String id) => '/reels/$id/similar';
 
+  /// The book's reels in reading order from one verse on — opened by the
+  /// peacock feather on a verse. `verseId` is the dotted id (`1.2.47`).
+  static const String bookReelsPattern = '/reels/book/:verseId';
+  static String bookReelsPath(String verseId) => '/reels/book/$verseId';
+
   /// A creator's profile and everything they have posted.
   static const String creatorPattern = '/creators/:id';
   static String creatorPath(String id) => '/creators/$id';
@@ -140,6 +145,7 @@ abstract final class RouteNames {
   static const String reels = 'reels';
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';
+  static const String bookReels = 'bookReels';
   static const String creatorProfile = 'creatorProfile';
   static const String chat = 'chat';
 }

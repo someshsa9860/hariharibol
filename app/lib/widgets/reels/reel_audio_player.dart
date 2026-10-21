@@ -29,6 +29,7 @@ class ReelAudioPlayer extends StatefulWidget {
     this.thumbnailUrl,
     this.cacheKey,
     this.onProgress,
+    this.onEnded,
   });
 
   final String url;
@@ -42,6 +43,9 @@ class ReelAudioPlayer extends StatefulWidget {
 
   /// Furthest point reached, in milliseconds, and the track's own length.
   final void Function(int watchedMs, int durationMs)? onProgress;
+
+  /// Called once when the track finishes. With it the track stops instead of looping.
+  final VoidCallback? onEnded;
 
   @override
   State<ReelAudioPlayer> createState() => ReelAudioPlayerState();
@@ -71,7 +75,7 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
   Future<void> _open() async {
     try {
       final duration = await _player.setUrl(widget.url);
-      await _player.setLoopMode(LoopMode.one);
+      await _player.setLoopMode(widget.onEnded == null ? LoopMode.one : LoopMode.off);
       await _player.setVolume(widget.isMuted ? 0 : 1);
       if (!mounted) return;
       setState(() {
@@ -91,8 +95,14 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
     if (mounted) setState(() => _position = position);
   }
 
+  bool _endedReported = false;
+
   void _onState(PlayerState state) {
     if (mounted) setState(() => _playing = state.playing);
+    if (state.processingState == ProcessingState.completed && widget.isActive && !_endedReported) {
+      _endedReported = true;
+      widget.onEnded?.call();
+    }
   }
 
   @override
@@ -112,6 +122,7 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
         _player.pause();
         _player.seek(Duration.zero);
         _furthestMs = 0;
+        _endedReported = false;
       }
     }
   }

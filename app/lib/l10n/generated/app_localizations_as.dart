@@ -2096,6 +2096,23 @@ class AppLocalizationsAs extends AppLocalizations {
   String get chatJumpToLatest => 'শেহতীয়া';
 
   @override
+  String get verseStartReels => 'এই শ্লোকৰ পৰা ৰীল চাওক';
+
+  @override
+  String get reelChantTapHint => 'জপ কৰিবলৈ টেপ কৰক';
+
+  @override
+  String get reelChantDone => 'মালা সম্পূৰ্ণ';
+
+  @override
+  String get reelChantSkipHint => 'এৰিবলৈ ওপৰলৈ স্বাইপ কৰক';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'এই শ্লোকৰ বিষয়ে Sakha ক সোধক';
 
   @override

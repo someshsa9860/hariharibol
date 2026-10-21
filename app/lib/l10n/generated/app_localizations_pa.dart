@@ -2094,6 +2094,23 @@ class AppLocalizationsPa extends AppLocalizations {
   String get chatJumpToLatest => 'ਤਾਜ਼ਾ';
 
   @override
+  String get verseStartReels => 'ਇਸ ਸ਼ਲੋਕ ਤੋਂ ਰੀਲਾਂ ਵੇਖੋ';
+
+  @override
+  String get reelChantTapHint => 'ਜਪ ਲਈ ਟੈਪ ਕਰੋ';
+
+  @override
+  String get reelChantDone => 'ਮਾਲਾ ਪੂਰੀ ਹੋਈ';
+
+  @override
+  String get reelChantSkipHint => 'ਛੱਡਣ ਲਈ ਉੱਪਰ ਸਵਾਈਪ ਕਰੋ';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ਇਸ ਸ਼ਲੋਕ ਬਾਰੇ Sakha ਨੂੰ ਪੁੱਛੋ';
 
   @override

@@ -2109,6 +2109,23 @@ class AppLocalizationsMl extends AppLocalizations {
   String get chatJumpToLatest => 'ഏറ്റവും പുതിയത്';
 
   @override
+  String get verseStartReels => 'ഈ ശ്ലോകം മുതൽ റീലുകൾ കാണുക';
+
+  @override
+  String get reelChantTapHint => 'ജപിക്കാൻ ടാപ്പ് ചെയ്യുക';
+
+  @override
+  String get reelChantDone => 'മാല പൂർത്തിയായി';
+
+  @override
+  String get reelChantSkipHint => 'ഒഴിവാക്കാൻ മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ഈ ശ്ലോകത്തെക്കുറിച്ച് Sakha യോട് ചോദിക്കൂ';
 
   @override
