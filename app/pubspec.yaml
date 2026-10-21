@@ -106,6 +106,8 @@ dependencies:
   # store, and this app has the same bundle id, so an update finds it there
   # (core/session/legacy_token_store.dart). Nothing else uses it.
   shared_preferences: ^2.5.6
+  flutter_webrtc: ^1.6.2+hotfix.4
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:

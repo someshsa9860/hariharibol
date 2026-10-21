@@ -2204,4 +2204,198 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ఇక్కడ చూపిన ఏదైనా పాఠ్యంపై మీకు హక్కులు ఉంటే, లేదా అందులో పొరపాటు కనిపిస్తే, దయచేసి మాకు రాయండి. మేము త్వరగా స్పందిస్తాము, కోరితే దానిని సరిదిద్దుతాము లేదా తొలగిస్తాము.';
+
+  @override
+  String get groupsTitle => 'కలిసి జపం చేయండి';
+
+  @override
+  String get groupsEntrySubtitle =>
+      'స్వరంతో కలిసి జపం చేయడానికి ప్రైవేట్ సమూహాలు';
+
+  @override
+  String get groupsEmpty =>
+      'ఇంకా సమూహాలు లేవు. ఒకటి సృష్టించి మీ కుటుంబాన్ని లేదా స్నేహితులను ఆహ్వానించండి.';
+
+  @override
+  String get groupsNew => 'కొత్త సమూహం';
+
+  @override
+  String get groupsInvitations => 'ఆహ్వానాలు';
+
+  @override
+  String groupInvitedBy(String name) {
+    return 'మిమ్మల్ని ఆహ్వానించినవారు: $name';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'మీకు ఆహ్వానం అందింది';
+
+  @override
+  String get groupJoin => 'చేరండి';
+
+  @override
+  String get groupDecline => 'తిరస్కరించండి';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count మంది',
+      one: '1 వ్యక్తి',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'సమూహం పేరు';
+
+  @override
+  String get groupAboutLabel => 'వివరణ (ఐచ్ఛికం)';
+
+  @override
+  String get groupCreate => 'సమూహాన్ని సృష్టించండి';
+
+  @override
+  String get groupOwnerNote =>
+      'మీరు దీనికి యజమాని. సమూహాన్ని తొలగించగలిగేది మీరు మాత్రమే, ఇతరులను నిర్వాహకులుగా చేయవచ్చు.';
+
+  @override
+  String get groupPeopleHeading => 'సభ్యులు';
+
+  @override
+  String get groupWaitingHeading => 'సమాధానం కోసం వేచి ఉన్నవారు';
+
+  @override
+  String get groupInviteHint => 'ఇమెయిల్‌తో ఆహ్వానించండి';
+
+  @override
+  String get groupInviteAction => 'ఆహ్వానించండి';
+
+  @override
+  String get groupInviteSent => 'ఆహ్వానం పంపబడింది.';
+
+  @override
+  String get groupInviteNoAccount => 'ఈ ఇమెయిల్‌తో ఇంకా ఎవరూ సైన్ అప్ చేయలేదు.';
+
+  @override
+  String get groupRoleOwner => 'యజమాని';
+
+  @override
+  String get groupRoleAdmin => 'నిర్వాహకుడు';
+
+  @override
+  String get groupRoleMember => 'సభ్యుడు';
+
+  @override
+  String get groupRoleInvited => 'ఆహ్వానించబడినవారు';
+
+  @override
+  String get groupMakeAdmin => 'నిర్వాహకుడిగా చేయండి';
+
+  @override
+  String get groupRemoveAdmin => 'నిర్వాహక హోదా తొలగించండి';
+
+  @override
+  String get groupRemoveMember => 'సమూహం నుండి తొలగించండి';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'ఈ సమూహం నుండి తొలగించాలా: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'ఆహ్వానాన్ని రద్దు చేయండి';
+
+  @override
+  String get groupCancelInviteConfirm => 'ఈ ఆహ్వానాన్ని రద్దు చేయాలా?';
+
+  @override
+  String get groupLeave => 'సమూహాన్ని వదిలివేయండి';
+
+  @override
+  String get groupLeaveConfirm => 'ఈ సమూహాన్ని వదిలివేయాలా?';
+
+  @override
+  String get groupDelete => 'సమూహాన్ని తొలగించండి';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'అందరికీ “$name” సమూహాన్ని తొలగించాలా? దీన్ని వెనక్కి తీసుకోలేరు.';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'సమూహాన్ని సృష్టించిన వ్యక్తి మాత్రమే దాన్ని తొలగించగలరు.';
+
+  @override
+  String get groupYou => 'మీరు';
+
+  @override
+  String get groupNotFound => 'ఈ సమూహం లేదు, లేదా మీరు అందులో లేరు.';
+
+  @override
+  String get groupWasDeleted => 'ఈ సమూహం తొలగించబడింది.';
+
+  @override
+  String get groupWasRemoved => 'మిమ్మల్ని ఈ సమూహం నుండి తొలగించారు.';
+
+  @override
+  String get liveHeading => 'జప గది';
+
+  @override
+  String get liveNow => 'ఇప్పుడు జపం జరుగుతోంది';
+
+  @override
+  String get liveIdleAdmin =>
+      'గదిని ప్రారంభిస్తే సమూహంలోని అందరికీ తెలియజేయబడుతుంది. ప్రతిధ్వని రాకుండా హెడ్‌ఫోన్లు వాడండి.';
+
+  @override
+  String get liveIdleMember =>
+      'ఇప్పుడు ఎవరూ జపం చేయడం లేదు. నిర్వాహకుడు ప్రారంభించినప్పుడు మీకు తెలియజేయబడుతుంది.';
+
+  @override
+  String get liveStart => 'కలిసి జపం ప్రారంభించండి';
+
+  @override
+  String get liveJoin => 'జపంలో చేరండి';
+
+  @override
+  String get liveMute => 'మ్యూట్ చేయండి';
+
+  @override
+  String get liveUnmute => 'అన్‌మ్యూట్ చేయండి';
+
+  @override
+  String get liveLeave => 'వదిలివేయండి';
+
+  @override
+  String get liveEnd => 'అందరికీ ముగించండి';
+
+  @override
+  String get liveEndConfirm => 'అందరికీ జపాన్ని ముగించాలా?';
+
+  @override
+  String get liveMuted => 'మ్యూట్ అయింది';
+
+  @override
+  String get liveChanting => 'జపం చేస్తున్నారు';
+
+  @override
+  String get liveConnecting => 'కలుస్తోంది…';
+
+  @override
+  String get liveLost => 'కనెక్షన్ తెగిపోయింది';
+
+  @override
+  String get liveInRoom => 'గదిలో';
+
+  @override
+  String get liveMicDenied => 'కలిసి జపం చేయడానికి మైక్రోఫోన్ అనుమతి ఇవ్వండి.';
+
+  @override
+  String get liveClosed => 'గది ఇప్పుడే మూసివేయబడింది.';
+
+  @override
+  String get liveFull => 'గది నిండిపోయింది.';
 }

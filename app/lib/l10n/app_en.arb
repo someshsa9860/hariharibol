@@ -1606,5 +1606,257 @@
   "sourcesContactBody": "If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.",
   "@sourcesContactBody": {
     "description": "Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows."
+  },
+  "groupsTitle": "Chant together",
+  "@groupsTitle": {
+    "description": "Chanting groups: the screen title, and the Home card title."
+  },
+  "groupsEntrySubtitle": "Private groups to chant with, by voice",
+  "@groupsEntrySubtitle": {
+    "description": "Chanting groups: the line under the title on the Home card."
+  },
+  "groupsEmpty": "No groups yet. Make one and invite your family or friends.",
+  "@groupsEmpty": {
+    "description": "Chanting groups: shown when the person is in no group yet."
+  },
+  "groupsNew": "New group",
+  "@groupsNew": {
+    "description": "Chanting groups: button that starts making a group."
+  },
+  "groupsInvitations": "Invitations",
+  "@groupsInvitations": {
+    "description": "Chanting groups: heading over the invitations waiting for an answer."
+  },
+  "groupInvitedBy": "{name} invited you",
+  "@groupInvitedBy": {
+    "description": "Chanting groups: an invitation card. {name} is the person who invited.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "groupInvitedGeneric": "You are invited",
+  "@groupInvitedGeneric": {
+    "description": "Chanting groups: an invitation card when the inviter is not known."
+  },
+  "groupJoin": "Join",
+  "@groupJoin": {
+    "description": "Chanting groups: accept an invitation."
+  },
+  "groupDecline": "Decline",
+  "@groupDecline": {
+    "description": "Chanting groups: decline an invitation."
+  },
+  "groupMembersCount": "{count, plural, =1{1 person} other{{count} people}}",
+  "@groupMembersCount": {
+    "description": "Chanting groups: how many people are in a group.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupNameLabel": "Group name",
+  "@groupNameLabel": {
+    "description": "Chanting groups: the name field when making a group."
+  },
+  "groupAboutLabel": "About (optional)",
+  "@groupAboutLabel": {
+    "description": "Chanting groups: the optional description field."
+  },
+  "groupCreate": "Create group",
+  "@groupCreate": {
+    "description": "Chanting groups: button that makes the group."
+  },
+  "groupOwnerNote": "You will be the owner. Only you can delete the group, and you can make others admins.",
+  "@groupOwnerNote": {
+    "description": "Chanting groups: tells the maker what being the owner means."
+  },
+  "groupPeopleHeading": "People",
+  "@groupPeopleHeading": {
+    "description": "Chanting groups: heading over the members."
+  },
+  "groupWaitingHeading": "Waiting to answer",
+  "@groupWaitingHeading": {
+    "description": "Chanting groups: heading over people invited who have not answered."
+  },
+  "groupInviteHint": "Invite by email",
+  "@groupInviteHint": {
+    "description": "Chanting groups: hint in the email box for inviting."
+  },
+  "groupInviteAction": "Invite",
+  "@groupInviteAction": {
+    "description": "Chanting groups: button that sends the invitation."
+  },
+  "groupInviteSent": "Invitation sent.",
+  "@groupInviteSent": {
+    "description": "Chanting groups: shown after an invitation is sent."
+  },
+  "groupInviteNoAccount": "No one has signed up with that email yet.",
+  "@groupInviteNoAccount": {
+    "description": "Chanting groups: shown when no account has the email that was typed."
+  },
+  "groupRoleOwner": "Owner",
+  "@groupRoleOwner": {
+    "description": "Chanting groups: the person who made the group."
+  },
+  "groupRoleAdmin": "Admin",
+  "@groupRoleAdmin": {
+    "description": "Chanting groups: a member who can invite and remove people."
+  },
+  "groupRoleMember": "Member",
+  "@groupRoleMember": {
+    "description": "Chanting groups: an ordinary member."
+  },
+  "groupRoleInvited": "Invited",
+  "@groupRoleInvited": {
+    "description": "Chanting groups: invited and not yet answered."
+  },
+  "groupMakeAdmin": "Make admin",
+  "@groupMakeAdmin": {
+    "description": "Chanting groups: gives a member the admin role."
+  },
+  "groupRemoveAdmin": "Remove admin",
+  "@groupRemoveAdmin": {
+    "description": "Chanting groups: takes the admin role away (the owner only)."
+  },
+  "groupRemoveMember": "Remove from group",
+  "@groupRemoveMember": {
+    "description": "Chanting groups: removes a member from the group."
+  },
+  "groupRemoveConfirm": "Remove {name} from this group?",
+  "@groupRemoveConfirm": {
+    "description": "Chanting groups: asks before removing. {name} is the member.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "groupCancelInvite": "Cancel invitation",
+  "@groupCancelInvite": {
+    "description": "Chanting groups: takes back an invitation."
+  },
+  "groupCancelInviteConfirm": "Cancel this invitation?",
+  "@groupCancelInviteConfirm": {
+    "description": "Chanting groups: asks before taking back an invitation."
+  },
+  "groupLeave": "Leave group",
+  "@groupLeave": {
+    "description": "Chanting groups: leave the group."
+  },
+  "groupLeaveConfirm": "Leave this group?",
+  "@groupLeaveConfirm": {
+    "description": "Chanting groups: asks before leaving."
+  },
+  "groupDelete": "Delete group",
+  "@groupDelete": {
+    "description": "Chanting groups: delete the group (the owner only)."
+  },
+  "groupDeleteConfirm": "Delete “{name}” for everyone? This cannot be undone.",
+  "@groupDeleteConfirm": {
+    "description": "Chanting groups: asks before deleting. {name} is the group name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "groupOnlyOwnerDeletes": "Only the person who made the group can delete it.",
+  "@groupOnlyOwnerDeletes": {
+    "description": "Chanting groups: tells non-owners why they cannot delete the group."
+  },
+  "groupYou": "You",
+  "@groupYou": {
+    "description": "Chanting groups: the person themselves in a list of people."
+  },
+  "groupNotFound": "This group does not exist, or you are not in it.",
+  "@groupNotFound": {
+    "description": "Chanting groups: shown when the group does not exist or the person is not in it."
+  },
+  "groupWasDeleted": "This group was deleted.",
+  "@groupWasDeleted": {
+    "description": "Chanting groups: shown when the group is deleted while it is open."
+  },
+  "groupWasRemoved": "You were removed from this group.",
+  "@groupWasRemoved": {
+    "description": "Chanting groups: shown when the person is removed while the group is open."
+  },
+  "liveHeading": "Chanting room",
+  "@liveHeading": {
+    "description": "Chanting groups: heading over the live voice room."
+  },
+  "liveNow": "Chanting now",
+  "@liveNow": {
+    "description": "Chanting groups: badge shown while people are chanting in the room."
+  },
+  "liveIdleAdmin": "Start the room and everyone in the group is told. Use headphones to avoid echo.",
+  "@liveIdleAdmin": {
+    "description": "Chanting groups: explains starting the room, to an admin."
+  },
+  "liveIdleMember": "Nobody is chanting right now. You will be told when an admin starts.",
+  "@liveIdleMember": {
+    "description": "Chanting groups: tells a member nobody is chanting yet."
+  },
+  "liveStart": "Start chanting together",
+  "@liveStart": {
+    "description": "Chanting groups: an admin opens the room and joins it."
+  },
+  "liveJoin": "Join the chanting",
+  "@liveJoin": {
+    "description": "Chanting groups: a member joins the open room."
+  },
+  "liveMute": "Mute",
+  "@liveMute": {
+    "description": "Chanting groups: turns the microphone off."
+  },
+  "liveUnmute": "Unmute",
+  "@liveUnmute": {
+    "description": "Chanting groups: turns the microphone on."
+  },
+  "liveLeave": "Leave",
+  "@liveLeave": {
+    "description": "Chanting groups: leaves the room."
+  },
+  "liveEnd": "End for everyone",
+  "@liveEnd": {
+    "description": "Chanting groups: an admin closes the room for everyone."
+  },
+  "liveEndConfirm": "End the chanting for everyone?",
+  "@liveEndConfirm": {
+    "description": "Chanting groups: asks before closing the room for everyone."
+  },
+  "liveMuted": "Muted",
+  "@liveMuted": {
+    "description": "Chanting groups: status of the person whose microphone is off."
+  },
+  "liveChanting": "Chanting",
+  "@liveChanting": {
+    "description": "Chanting groups: status of a connected person in the room."
+  },
+  "liveConnecting": "Connecting…",
+  "@liveConnecting": {
+    "description": "Chanting groups: status while the connection to a person is being made."
+  },
+  "liveLost": "Connection lost",
+  "@liveLost": {
+    "description": "Chanting groups: status when the connection to a person failed."
+  },
+  "liveInRoom": "In the room",
+  "@liveInRoom": {
+    "description": "Chanting groups: a person who is in the room, seen from outside it."
+  },
+  "liveMicDenied": "Allow the microphone to chant together.",
+  "@liveMicDenied": {
+    "description": "Chanting groups: shown when the microphone is not allowed."
+  },
+  "liveClosed": "The room has just closed.",
+  "@liveClosed": {
+    "description": "Chanting groups: shown when the room closed just as someone joined."
+  },
+  "liveFull": "The room is full.",
+  "@liveFull": {
+    "description": "Chanting groups: shown when the room already holds the most people it can."
   }
 }

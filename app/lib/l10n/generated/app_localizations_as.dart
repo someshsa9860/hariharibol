@@ -2201,4 +2201,198 @@ class AppLocalizationsAs extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ইয়াত দেখুওৱা কোনো লেখাৰ ওপৰত যদি আপোনাৰ স্বত্ব আছে, বা তাত কোনো ভুল পায়, তেন্তে অনুগ্ৰহ কৰি আমাক লিখক। আমি সোনকালে উত্তৰ দিম আৰু অনুৰোধ কৰিলে সেয়া শুধৰাই দিম বা আঁতৰাই দিম।';
+
+  @override
+  String get groupsTitle => 'লগে লগে জপ কৰক';
+
+  @override
+  String get groupsEntrySubtitle => 'কণ্ঠেৰে লগে লগে জপ কৰিবলৈ ব্যক্তিগত গোট';
+
+  @override
+  String get groupsEmpty =>
+      'এতিয়ালৈকে কোনো গোট নাই। এটা বনাওক আৰু আপোনাৰ পৰিয়াল বা বন্ধুবৰ্গক আমন্ত্ৰণ জনাওক।';
+
+  @override
+  String get groupsNew => 'নতুন গোট';
+
+  @override
+  String get groupsInvitations => 'আমন্ত্ৰণ';
+
+  @override
+  String groupInvitedBy(String name) {
+    return '$name এ আপোনাক আমন্ত্ৰণ জনাইছে';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'আপোনাক আমন্ত্ৰণ জনোৱা হৈছে';
+
+  @override
+  String get groupJoin => 'যোগ দিয়ক';
+
+  @override
+  String get groupDecline => 'প্ৰত্যাখ্যান কৰক';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count জন',
+      one: '1 জন',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'গোটৰ নাম';
+
+  @override
+  String get groupAboutLabel => 'পৰিচয় (ঐচ্ছিক)';
+
+  @override
+  String get groupCreate => 'গোট বনাওক';
+
+  @override
+  String get groupOwnerNote =>
+      'আপুনি ইয়াৰ গৰাকী হ’ব। কেৱল আপুনিহে গোটটো মচিব পাৰিব, আৰু আপুনি আনক প্ৰশাসক বনাব পাৰিব।';
+
+  @override
+  String get groupPeopleHeading => 'সদস্যসকল';
+
+  @override
+  String get groupWaitingHeading => 'উত্তৰৰ অপেক্ষাত';
+
+  @override
+  String get groupInviteHint => 'ইমেইলেৰে আমন্ত্ৰণ জনাওক';
+
+  @override
+  String get groupInviteAction => 'আমন্ত্ৰণ জনাওক';
+
+  @override
+  String get groupInviteSent => 'আমন্ত্ৰণ পঠিওৱা হ’ল।';
+
+  @override
+  String get groupInviteNoAccount =>
+      'এই ইমেইলেৰে এতিয়ালৈকে কোনেও চাইন আপ কৰা নাই।';
+
+  @override
+  String get groupRoleOwner => 'গৰাকী';
+
+  @override
+  String get groupRoleAdmin => 'প্ৰশাসক';
+
+  @override
+  String get groupRoleMember => 'সদস্য';
+
+  @override
+  String get groupRoleInvited => 'আমন্ত্ৰিত';
+
+  @override
+  String get groupMakeAdmin => 'প্ৰশাসক বনাওক';
+
+  @override
+  String get groupRemoveAdmin => 'প্ৰশাসক আঁতৰাওক';
+
+  @override
+  String get groupRemoveMember => 'গোটৰ পৰা আঁতৰাওক';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'এই গোটৰ পৰা আঁতৰাব নেকি: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'আমন্ত্ৰণ বাতিল কৰক';
+
+  @override
+  String get groupCancelInviteConfirm => 'এই আমন্ত্ৰণ বাতিল কৰিব নেকি?';
+
+  @override
+  String get groupLeave => 'গোট এৰক';
+
+  @override
+  String get groupLeaveConfirm => 'এই গোট এৰিব নেকি?';
+
+  @override
+  String get groupDelete => 'গোট মচক';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'সকলোৰে বাবে “$name” মচিব নেকি? ইয়াক উভটাব নোৱাৰি।';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'গোটটো কেৱল ইয়াক বনোৱা ব্যক্তিজনেহে মচিব পাৰে।';
+
+  @override
+  String get groupYou => 'আপুনি';
+
+  @override
+  String get groupNotFound => 'এই গোটটো নাই, বা আপুনি ইয়াত নাই।';
+
+  @override
+  String get groupWasDeleted => 'এই গোটটো মচা হ’ল।';
+
+  @override
+  String get groupWasRemoved => 'আপোনাক এই গোটৰ পৰা আঁতৰোৱা হ’ল।';
+
+  @override
+  String get liveHeading => 'জপ কোঠা';
+
+  @override
+  String get liveNow => 'এতিয়া জপ চলি আছে';
+
+  @override
+  String get liveIdleAdmin =>
+      'কোঠা আৰম্ভ কৰিলে গোটৰ সকলোকে জনোৱা হ’ব। প্ৰতিধ্বনি এৰাবলৈ হেডফোন ব্যৱহাৰ কৰক।';
+
+  @override
+  String get liveIdleMember =>
+      'এতিয়া কোনেও জপ কৰি থকা নাই। প্ৰশাসকে আৰম্ভ কৰিলে আপোনাক জনোৱা হ’ব।';
+
+  @override
+  String get liveStart => 'লগে লগে জপ আৰম্ভ কৰক';
+
+  @override
+  String get liveJoin => 'জপত যোগ দিয়ক';
+
+  @override
+  String get liveMute => 'মিউট কৰক';
+
+  @override
+  String get liveUnmute => 'আনমিউট কৰক';
+
+  @override
+  String get liveLeave => 'এৰক';
+
+  @override
+  String get liveEnd => 'সকলোৰে বাবে শেষ কৰক';
+
+  @override
+  String get liveEndConfirm => 'সকলোৰে বাবে জপ শেষ কৰিব নেকি?';
+
+  @override
+  String get liveMuted => 'মিউট';
+
+  @override
+  String get liveChanting => 'জপ কৰি আছে';
+
+  @override
+  String get liveConnecting => 'সংযোগ হৈ আছে…';
+
+  @override
+  String get liveLost => 'সংযোগ বিচ্ছিন্ন হ’ল';
+
+  @override
+  String get liveInRoom => 'কোঠাত';
+
+  @override
+  String get liveMicDenied => 'লগে লগে জপ কৰিবলৈ মাইক্ৰফোনৰ অনুমতি দিয়ক।';
+
+  @override
+  String get liveClosed => 'কোঠাটো এইমাত্ৰ বন্ধ হ’ল।';
+
+  @override
+  String get liveFull => 'কোঠাটো ভৰি পৰিছে।';
 }

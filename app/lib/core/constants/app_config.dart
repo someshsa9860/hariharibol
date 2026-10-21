@@ -12,6 +12,22 @@ abstract final class AppConfig {
     defaultValue: 'https://api.hariharibol.com',
   );
 
+  /// The realtime socket (`backend/websocket/`). Left unset it is the API's own
+  /// host at `/ws` — behind the proxy — or port 4001 when the API is on a laptop.
+  static const String _wsUrlOverride = String.fromEnvironment('WS_URL');
+
+  static String get wsUrl {
+    if (_wsUrlOverride.isNotEmpty) return _wsUrlOverride;
+    final api = Uri.parse(apiBaseUrl);
+    final local = api.host == 'localhost' || api.host == '127.0.0.1' || api.host == '10.0.2.2';
+    return Uri(
+      scheme: api.scheme == 'https' ? 'wss' : 'ws',
+      host: api.host,
+      port: local ? 4001 : api.port,
+      path: '/ws',
+    ).toString();
+  }
+
   /// Deep links arrive as `hariharibol://…` — the backend signs them with the
   /// same scheme (`APP_SCHEME` in its environment).
   static const String appScheme = 'hariharibol';

@@ -2199,4 +2199,199 @@ class AppLocalizationsPa extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ਜੇ ਇੱਥੇ ਦਿਖਾਈ ਗਈ ਕਿਸੇ ਲਿਖਤ ਉੱਤੇ ਤੁਹਾਡੇ ਅਧਿਕਾਰ ਹਨ, ਜਾਂ ਤੁਹਾਨੂੰ ਉਸ ਵਿੱਚ ਕੋਈ ਗਲਤੀ ਮਿਲੇ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਸਾਨੂੰ ਲਿਖੋ। ਅਸੀਂ ਜਲਦੀ ਜਵਾਬ ਦੇਵਾਂਗੇ ਅਤੇ ਕਹੇ ਜਾਣ ਉੱਤੇ ਉਸਨੂੰ ਠੀਕ ਕਰ ਦੇਵਾਂਗੇ ਜਾਂ ਹਟਾ ਦੇਵਾਂਗੇ।';
+
+  @override
+  String get groupsTitle => 'ਇਕੱਠੇ ਜਪ ਕਰੋ';
+
+  @override
+  String get groupsEntrySubtitle => 'ਆਵਾਜ਼ ਨਾਲ ਇਕੱਠੇ ਜਪ ਕਰਨ ਲਈ ਨਿੱਜੀ ਸਮੂਹ';
+
+  @override
+  String get groupsEmpty =>
+      'ਹਾਲੇ ਕੋਈ ਸਮੂਹ ਨਹੀਂ ਹੈ। ਇੱਕ ਬਣਾਓ ਅਤੇ ਆਪਣੇ ਪਰਿਵਾਰ ਜਾਂ ਮਿੱਤਰਾਂ ਨੂੰ ਸੱਦਾ ਦਿਓ।';
+
+  @override
+  String get groupsNew => 'ਨਵਾਂ ਸਮੂਹ';
+
+  @override
+  String get groupsInvitations => 'ਸੱਦੇ';
+
+  @override
+  String groupInvitedBy(String name) {
+    return '$name ਨੇ ਤੁਹਾਨੂੰ ਸੱਦਾ ਦਿੱਤਾ';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'ਤੁਹਾਨੂੰ ਸੱਦਾ ਦਿੱਤਾ ਗਿਆ ਹੈ';
+
+  @override
+  String get groupJoin => 'ਸ਼ਾਮਲ ਹੋਵੋ';
+
+  @override
+  String get groupDecline => 'ਇਨਕਾਰ ਕਰੋ';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ਵਿਅਕਤੀ',
+      one: '1 ਵਿਅਕਤੀ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'ਸਮੂਹ ਦਾ ਨਾਮ';
+
+  @override
+  String get groupAboutLabel => 'ਜਾਣ-ਪਛਾਣ (ਵਿਕਲਪਿਕ)';
+
+  @override
+  String get groupCreate => 'ਸਮੂਹ ਬਣਾਓ';
+
+  @override
+  String get groupOwnerNote =>
+      'ਤੁਸੀਂ ਇਸ ਦੇ ਮਾਲਕ ਹੋਵੋਗੇ। ਸਿਰਫ਼ ਤੁਸੀਂ ਸਮੂਹ ਨੂੰ ਹਟਾ ਸਕਦੇ ਹੋ, ਅਤੇ ਤੁਸੀਂ ਹੋਰਾਂ ਨੂੰ ਪ੍ਰਬੰਧਕ ਬਣਾ ਸਕਦੇ ਹੋ।';
+
+  @override
+  String get groupPeopleHeading => 'ਮੈਂਬਰ';
+
+  @override
+  String get groupWaitingHeading => 'ਜਵਾਬ ਦੀ ਉਡੀਕ ਵਿੱਚ';
+
+  @override
+  String get groupInviteHint => 'ਈਮੇਲ ਰਾਹੀਂ ਸੱਦਾ ਦਿਓ';
+
+  @override
+  String get groupInviteAction => 'ਸੱਦਾ ਦਿਓ';
+
+  @override
+  String get groupInviteSent => 'ਸੱਦਾ ਭੇਜ ਦਿੱਤਾ ਗਿਆ।';
+
+  @override
+  String get groupInviteNoAccount =>
+      'ਇਸ ਈਮੇਲ ਨਾਲ ਹਾਲੇ ਕਿਸੇ ਨੇ ਸਾਈਨ ਅੱਪ ਨਹੀਂ ਕੀਤਾ।';
+
+  @override
+  String get groupRoleOwner => 'ਮਾਲਕ';
+
+  @override
+  String get groupRoleAdmin => 'ਪ੍ਰਬੰਧਕ';
+
+  @override
+  String get groupRoleMember => 'ਮੈਂਬਰ';
+
+  @override
+  String get groupRoleInvited => 'ਸੱਦਿਆ ਹੋਇਆ';
+
+  @override
+  String get groupMakeAdmin => 'ਪ੍ਰਬੰਧਕ ਬਣਾਓ';
+
+  @override
+  String get groupRemoveAdmin => 'ਪ੍ਰਬੰਧਕ ਹਟਾਓ';
+
+  @override
+  String get groupRemoveMember => 'ਸਮੂਹ ਵਿੱਚੋਂ ਹਟਾਓ';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'ਇਸ ਸਮੂਹ ਵਿੱਚੋਂ ਹਟਾਉਣਾ ਹੈ: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'ਸੱਦਾ ਰੱਦ ਕਰੋ';
+
+  @override
+  String get groupCancelInviteConfirm => 'ਇਹ ਸੱਦਾ ਰੱਦ ਕਰਨਾ ਹੈ?';
+
+  @override
+  String get groupLeave => 'ਸਮੂਹ ਛੱਡੋ';
+
+  @override
+  String get groupLeaveConfirm => 'ਇਹ ਸਮੂਹ ਛੱਡਣਾ ਹੈ?';
+
+  @override
+  String get groupDelete => 'ਸਮੂਹ ਹਟਾਓ';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'ਸਾਰਿਆਂ ਲਈ “$name” ਹਟਾਉਣਾ ਹੈ? ਇਹ ਵਾਪਸ ਨਹੀਂ ਹੋ ਸਕਦਾ।';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'ਸਮੂਹ ਨੂੰ ਸਿਰਫ਼ ਉਸ ਨੂੰ ਬਣਾਉਣ ਵਾਲਾ ਹੀ ਹਟਾ ਸਕਦਾ ਹੈ।';
+
+  @override
+  String get groupYou => 'ਤੁਸੀਂ';
+
+  @override
+  String get groupNotFound =>
+      'ਇਹ ਸਮੂਹ ਮੌਜੂਦ ਨਹੀਂ ਹੈ, ਜਾਂ ਤੁਸੀਂ ਇਸ ਵਿੱਚ ਨਹੀਂ ਹੋ।';
+
+  @override
+  String get groupWasDeleted => 'ਇਹ ਸਮੂਹ ਹਟਾ ਦਿੱਤਾ ਗਿਆ।';
+
+  @override
+  String get groupWasRemoved => 'ਤੁਹਾਨੂੰ ਇਸ ਸਮੂਹ ਵਿੱਚੋਂ ਹਟਾ ਦਿੱਤਾ ਗਿਆ।';
+
+  @override
+  String get liveHeading => 'ਜਪ ਕਮਰਾ';
+
+  @override
+  String get liveNow => 'ਹੁਣ ਜਪ ਹੋ ਰਿਹਾ ਹੈ';
+
+  @override
+  String get liveIdleAdmin =>
+      'ਕਮਰਾ ਸ਼ੁਰੂ ਕਰੋ, ਸਮੂਹ ਵਿੱਚ ਸਭ ਨੂੰ ਦੱਸਿਆ ਜਾਵੇਗਾ। ਗੂੰਜ ਤੋਂ ਬਚਣ ਲਈ ਹੈੱਡਫ਼ੋਨ ਲਗਾਓ।';
+
+  @override
+  String get liveIdleMember =>
+      'ਹੁਣ ਕੋਈ ਜਪ ਨਹੀਂ ਕਰ ਰਿਹਾ। ਪ੍ਰਬੰਧਕ ਦੇ ਸ਼ੁਰੂ ਕਰਨ ’ਤੇ ਤੁਹਾਨੂੰ ਦੱਸਿਆ ਜਾਵੇਗਾ।';
+
+  @override
+  String get liveStart => 'ਇਕੱਠੇ ਜਪ ਸ਼ੁਰੂ ਕਰੋ';
+
+  @override
+  String get liveJoin => 'ਜਪ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋਵੋ';
+
+  @override
+  String get liveMute => 'ਮਿਊਟ ਕਰੋ';
+
+  @override
+  String get liveUnmute => 'ਅਨਮਿਊਟ ਕਰੋ';
+
+  @override
+  String get liveLeave => 'ਛੱਡੋ';
+
+  @override
+  String get liveEnd => 'ਸਾਰਿਆਂ ਲਈ ਖ਼ਤਮ ਕਰੋ';
+
+  @override
+  String get liveEndConfirm => 'ਸਾਰਿਆਂ ਲਈ ਜਪ ਖ਼ਤਮ ਕਰਨਾ ਹੈ?';
+
+  @override
+  String get liveMuted => 'ਮਿਊਟ';
+
+  @override
+  String get liveChanting => 'ਜਪ ਕਰ ਰਹੇ ਹਨ';
+
+  @override
+  String get liveConnecting => 'ਜੁੜ ਰਿਹਾ ਹੈ…';
+
+  @override
+  String get liveLost => 'ਕੁਨੈਕਸ਼ਨ ਟੁੱਟ ਗਿਆ';
+
+  @override
+  String get liveInRoom => 'ਕਮਰੇ ਵਿੱਚ';
+
+  @override
+  String get liveMicDenied => 'ਇਕੱਠੇ ਜਪ ਕਰਨ ਲਈ ਮਾਈਕ੍ਰੋਫ਼ੋਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ।';
+
+  @override
+  String get liveClosed => 'ਕਮਰਾ ਹੁਣੇ ਬੰਦ ਹੋਇਆ ਹੈ।';
+
+  @override
+  String get liveFull => 'ਕਮਰਾ ਭਰ ਗਿਆ ਹੈ।';
 }

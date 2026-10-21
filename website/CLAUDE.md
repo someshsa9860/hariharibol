@@ -77,6 +77,7 @@ website/src/
 | Notes, related verses | notes sheet on each verse (account); "Related verses" on `/verse/<id>` |
 | Notifications, practice report | `/notifications`; 30-day report on `/me` |
 | Creator profile | `/creator/<id>` — reels grid, follow |
+| Chant together | `/groups`, `/groups/<id>` — private groups, invitations, members and admins, and a live voice room (WebRTC); needs sign-in |
 
 **Not on the website:** auto-count by sound, offline books, push reminders, creator publishing, buying a plan, donations.
 
@@ -106,3 +107,13 @@ Run against a local API with seeded test content in a real browser (home, librar
 Bhagavatam canto route, search, jap counter and its sync, routine sync, favourites, reels, Sakha's error path, mobile and desktop).
 **Not run:** Google / Apple sign-in itself (needs real client ids), App Check, Sakha against a live model, video reels, chant-along
 audio, the production deploy. The 404 status of unknown chapters, verses and mantras was checked on the built server.
+
+## Chanting groups
+
+`/groups` (list, invitations, make a group) and `/groups/<id>` (people, admin actions, the voice room) — `components/groups/`, `lib/groups/`, `styles/groups.css`. Needs an account (`GroupGate`, like Ask Sakha). The API half, roles and limits are "Group chanting" in [backend/CLAUDE.md](../backend/CLAUDE.md).
+
+- **The voice room is `lib/groups/live-room.ts`**: one `RTCPeerConnection` per other person (a mesh), the microphone from `getUserMedia`, remote audio in hidden `<audio>` elements. The person who arrives offers to everyone already there; two arriving at once are settled by "perfect negotiation" (the larger user id is polite and rolls back). Candidates that overtake their offer are queued. Handshake messages go out through `POST …/live/signal` and arrive as the socket event `group.signal`.
+- **Two bugs worth remembering** (both found by the browser test, neither visible in types): an answerer's `getSenders()` already lists an empty sender, so "has my microphone been added?" must test `sender.track`, not the count; and `ontrack` can arrive with no `streams`, so the track is wrapped in a `MediaStream` itself.
+- **`lib/socket.ts`** is the site's first websocket client: one shared socket, opened with the access token, reopened with a growing wait, token refreshed on close code 4001. `NEXT_PUBLIC_WS_URL` overrides the default (API host at `/ws`, port 4001 on localhost). Pages must work without it (the room's heartbeat is plain HTTP).
+- **Tested** by `backend/scripts/group-webrtc-e2e.mjs` (`npm run test:groups-webrtc` in `backend/`): three headless Chromium pages with fake microphones, against the real API, websocket container and site — connect in a full mesh, audio tracks attach, leave/mute/end behave. **Not tried:** Safari and Firefox, real microphones and speakers, phones on mobile networks (no TURN configured), echo without headphones.
+

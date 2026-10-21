@@ -27,6 +27,17 @@ abstract final class ApiPaths {
   static const String meSadhanaProfile = '$_app/me/sadhana-profile';
   static const String meSummary = '$_app/me/summary';
 
+  // Chanting groups
+  static const String groups = '$_app/groups';
+  static String group(String id) => '$_app/groups/$id';
+  static String groupInvite(String id) => '$_app/groups/$id/invite';
+  static String groupAccept(String id) => '$_app/groups/$id/accept';
+  static String groupDecline(String id) => '$_app/groups/$id/decline';
+  static String groupLeave(String id) => '$_app/groups/$id/leave';
+  static String groupMember(String id, String userId) => '$_app/groups/$id/members/$userId';
+  static String groupMemberRole(String id, String userId) => '$_app/groups/$id/members/$userId/role';
+  static String groupLive(String id, String action) => '$_app/groups/$id/live/$action';
+
   // Dashboard
   static const String home = '$_app/home';
 

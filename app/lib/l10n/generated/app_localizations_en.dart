@@ -2193,4 +2193,199 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.';
+
+  @override
+  String get groupsTitle => 'Chant together';
+
+  @override
+  String get groupsEntrySubtitle => 'Private groups to chant with, by voice';
+
+  @override
+  String get groupsEmpty =>
+      'No groups yet. Make one and invite your family or friends.';
+
+  @override
+  String get groupsNew => 'New group';
+
+  @override
+  String get groupsInvitations => 'Invitations';
+
+  @override
+  String groupInvitedBy(String name) {
+    return '$name invited you';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'You are invited';
+
+  @override
+  String get groupJoin => 'Join';
+
+  @override
+  String get groupDecline => 'Decline';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'Group name';
+
+  @override
+  String get groupAboutLabel => 'About (optional)';
+
+  @override
+  String get groupCreate => 'Create group';
+
+  @override
+  String get groupOwnerNote =>
+      'You will be the owner. Only you can delete the group, and you can make others admins.';
+
+  @override
+  String get groupPeopleHeading => 'People';
+
+  @override
+  String get groupWaitingHeading => 'Waiting to answer';
+
+  @override
+  String get groupInviteHint => 'Invite by email';
+
+  @override
+  String get groupInviteAction => 'Invite';
+
+  @override
+  String get groupInviteSent => 'Invitation sent.';
+
+  @override
+  String get groupInviteNoAccount =>
+      'No one has signed up with that email yet.';
+
+  @override
+  String get groupRoleOwner => 'Owner';
+
+  @override
+  String get groupRoleAdmin => 'Admin';
+
+  @override
+  String get groupRoleMember => 'Member';
+
+  @override
+  String get groupRoleInvited => 'Invited';
+
+  @override
+  String get groupMakeAdmin => 'Make admin';
+
+  @override
+  String get groupRemoveAdmin => 'Remove admin';
+
+  @override
+  String get groupRemoveMember => 'Remove from group';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'Remove $name from this group?';
+  }
+
+  @override
+  String get groupCancelInvite => 'Cancel invitation';
+
+  @override
+  String get groupCancelInviteConfirm => 'Cancel this invitation?';
+
+  @override
+  String get groupLeave => 'Leave group';
+
+  @override
+  String get groupLeaveConfirm => 'Leave this group?';
+
+  @override
+  String get groupDelete => 'Delete group';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'Delete “$name” for everyone? This cannot be undone.';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'Only the person who made the group can delete it.';
+
+  @override
+  String get groupYou => 'You';
+
+  @override
+  String get groupNotFound =>
+      'This group does not exist, or you are not in it.';
+
+  @override
+  String get groupWasDeleted => 'This group was deleted.';
+
+  @override
+  String get groupWasRemoved => 'You were removed from this group.';
+
+  @override
+  String get liveHeading => 'Chanting room';
+
+  @override
+  String get liveNow => 'Chanting now';
+
+  @override
+  String get liveIdleAdmin =>
+      'Start the room and everyone in the group is told. Use headphones to avoid echo.';
+
+  @override
+  String get liveIdleMember =>
+      'Nobody is chanting right now. You will be told when an admin starts.';
+
+  @override
+  String get liveStart => 'Start chanting together';
+
+  @override
+  String get liveJoin => 'Join the chanting';
+
+  @override
+  String get liveMute => 'Mute';
+
+  @override
+  String get liveUnmute => 'Unmute';
+
+  @override
+  String get liveLeave => 'Leave';
+
+  @override
+  String get liveEnd => 'End for everyone';
+
+  @override
+  String get liveEndConfirm => 'End the chanting for everyone?';
+
+  @override
+  String get liveMuted => 'Muted';
+
+  @override
+  String get liveChanting => 'Chanting';
+
+  @override
+  String get liveConnecting => 'Connecting…';
+
+  @override
+  String get liveLost => 'Connection lost';
+
+  @override
+  String get liveInRoom => 'In the room';
+
+  @override
+  String get liveMicDenied => 'Allow the microphone to chant together.';
+
+  @override
+  String get liveClosed => 'The room has just closed.';
+
+  @override
+  String get liveFull => 'The room is full.';
 }

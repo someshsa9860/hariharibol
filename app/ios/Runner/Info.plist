@@ -61,7 +61,7 @@
 	     sound to count repetitions (on-device, no audio leaves the phone), and
 	     speaking a message to Sakha in the chat. -->
 	<key>NSMicrophoneUsageDescription</key>
-	<string>HariHariBol listens while you chant to count your repetitions, and when you tap the microphone to speak a message to Sakha.</string>
+	<string>HariHariBol listens while you chant to count your repetitions, when you tap the microphone to speak a message to Sakha, and when you chant together with your group.</string>
 	<!-- Speaking a message to Sakha: the phone's own speech recognition turns
 	     it into text. Apple may process the audio on its servers. -->
 	<key>NSSpeechRecognitionUsageDescription</key>

@@ -2214,4 +2214,200 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ഇവിടെ കാണിക്കുന്ന ഏതെങ്കിലും ഉള്ളടക്കത്തിൽ നിങ്ങൾക്ക് അവകാശമുണ്ടെങ്കിൽ, അല്ലെങ്കിൽ അതിൽ ഒരു പിശക് കണ്ടാൽ, ദയവായി ഞങ്ങൾക്ക് എഴുതുക. ഞങ്ങൾ വേഗത്തിൽ മറുപടി നൽകും; ആവശ്യപ്പെട്ടാൽ അത് തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.';
+
+  @override
+  String get groupsTitle => 'ഒരുമിച്ച് ജപിക്കാം';
+
+  @override
+  String get groupsEntrySubtitle =>
+      'ശബ്ദത്തിൽ ഒരുമിച്ച് ജപിക്കാനുള്ള സ്വകാര്യ ഗ്രൂപ്പുകൾ';
+
+  @override
+  String get groupsEmpty =>
+      'ഇതുവരെ ഗ്രൂപ്പുകളില്ല. ഒന്ന് ഉണ്ടാക്കി നിങ്ങളുടെ കുടുംബത്തെയോ സുഹൃത്തുക്കളെയോ ക്ഷണിക്കൂ.';
+
+  @override
+  String get groupsNew => 'പുതിയ ഗ്രൂപ്പ്';
+
+  @override
+  String get groupsInvitations => 'ക്ഷണങ്ങൾ';
+
+  @override
+  String groupInvitedBy(String name) {
+    return 'നിങ്ങളെ ക്ഷണിച്ചത്: $name';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'നിങ്ങളെ ക്ഷണിച്ചിരിക്കുന്നു';
+
+  @override
+  String get groupJoin => 'ചേരൂ';
+
+  @override
+  String get groupDecline => 'നിരസിക്കൂ';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count പേർ',
+      one: '1 വ്യക്തി',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'ഗ്രൂപ്പിന്റെ പേര്';
+
+  @override
+  String get groupAboutLabel => 'വിവരണം (ഓപ്ഷണൽ)';
+
+  @override
+  String get groupCreate => 'ഗ്രൂപ്പ് ഉണ്ടാക്കൂ';
+
+  @override
+  String get groupOwnerNote =>
+      'നിങ്ങളായിരിക്കും ഉടമ. ഗ്രൂപ്പ് ഇല്ലാതാക്കാൻ നിങ്ങൾക്ക് മാത്രമേ കഴിയൂ, മറ്റുള്ളവരെ അഡ്മിനാക്കാം.';
+
+  @override
+  String get groupPeopleHeading => 'അംഗങ്ങൾ';
+
+  @override
+  String get groupWaitingHeading => 'മറുപടി കാത്തിരിക്കുന്നവർ';
+
+  @override
+  String get groupInviteHint => 'ഇമെയിൽ വഴി ക്ഷണിക്കൂ';
+
+  @override
+  String get groupInviteAction => 'ക്ഷണിക്കൂ';
+
+  @override
+  String get groupInviteSent => 'ക്ഷണം അയച്ചു.';
+
+  @override
+  String get groupInviteNoAccount =>
+      'ഈ ഇമെയിലിൽ ഇതുവരെ ആരും സൈൻ അപ്പ് ചെയ്തിട്ടില്ല.';
+
+  @override
+  String get groupRoleOwner => 'ഉടമ';
+
+  @override
+  String get groupRoleAdmin => 'അഡ്മിൻ';
+
+  @override
+  String get groupRoleMember => 'അംഗം';
+
+  @override
+  String get groupRoleInvited => 'ക്ഷണിച്ചത്';
+
+  @override
+  String get groupMakeAdmin => 'അഡ്മിനാക്കൂ';
+
+  @override
+  String get groupRemoveAdmin => 'അഡ്മിൻ സ്ഥാനം നീക്കൂ';
+
+  @override
+  String get groupRemoveMember => 'ഗ്രൂപ്പിൽ നിന്ന് നീക്കൂ';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'ഈ ഗ്രൂപ്പിൽ നിന്ന് നീക്കണോ: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'ക്ഷണം റദ്ദാക്കൂ';
+
+  @override
+  String get groupCancelInviteConfirm => 'ഈ ക്ഷണം റദ്ദാക്കണോ?';
+
+  @override
+  String get groupLeave => 'ഗ്രൂപ്പ് വിടൂ';
+
+  @override
+  String get groupLeaveConfirm => 'ഈ ഗ്രൂപ്പ് വിടണോ?';
+
+  @override
+  String get groupDelete => 'ഗ്രൂപ്പ് ഇല്ലാതാക്കൂ';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'എല്ലാവർക്കും വേണ്ടി “$name” ഇല്ലാതാക്കണോ? ഇത് തിരികെ കൊണ്ടുവരാനാകില്ല.';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'ഗ്രൂപ്പ് ഉണ്ടാക്കിയ ആൾക്ക് മാത്രമേ അത് ഇല്ലാതാക്കാനാകൂ.';
+
+  @override
+  String get groupYou => 'നിങ്ങൾ';
+
+  @override
+  String get groupNotFound =>
+      'ഈ ഗ്രൂപ്പ് നിലവിലില്ല, അല്ലെങ്കിൽ നിങ്ങൾ അതിൽ ഇല്ല.';
+
+  @override
+  String get groupWasDeleted => 'ഈ ഗ്രൂപ്പ് ഇല്ലാതാക്കി.';
+
+  @override
+  String get groupWasRemoved => 'നിങ്ങളെ ഈ ഗ്രൂപ്പിൽ നിന്ന് നീക്കി.';
+
+  @override
+  String get liveHeading => 'ജപമുറി';
+
+  @override
+  String get liveNow => 'ഇപ്പോൾ ജപം നടക്കുന്നു';
+
+  @override
+  String get liveIdleAdmin =>
+      'മുറി തുടങ്ങിയാൽ ഗ്രൂപ്പിലെ എല്ലാവരെയും അറിയിക്കും. പ്രതിധ്വനി ഒഴിവാക്കാൻ ഹെഡ്ഫോൺ ഉപയോഗിക്കൂ.';
+
+  @override
+  String get liveIdleMember =>
+      'ഇപ്പോൾ ആരും ജപിക്കുന്നില്ല. അഡ്മിൻ തുടങ്ങുമ്പോൾ നിങ്ങളെ അറിയിക്കും.';
+
+  @override
+  String get liveStart => 'ഒരുമിച്ച് ജപം തുടങ്ങൂ';
+
+  @override
+  String get liveJoin => 'ജപത്തിൽ ചേരൂ';
+
+  @override
+  String get liveMute => 'മ്യൂട്ട് ചെയ്യൂ';
+
+  @override
+  String get liveUnmute => 'അൺമ്യൂട്ട് ചെയ്യൂ';
+
+  @override
+  String get liveLeave => 'വിടൂ';
+
+  @override
+  String get liveEnd => 'എല്ലാവർക്കും അവസാനിപ്പിക്കൂ';
+
+  @override
+  String get liveEndConfirm => 'എല്ലാവർക്കും ജപം അവസാനിപ്പിക്കണോ?';
+
+  @override
+  String get liveMuted => 'മ്യൂട്ട് ആണ്';
+
+  @override
+  String get liveChanting => 'ജപിക്കുന്നു';
+
+  @override
+  String get liveConnecting => 'ബന്ധിപ്പിക്കുന്നു…';
+
+  @override
+  String get liveLost => 'കണക്ഷൻ നഷ്ടമായി';
+
+  @override
+  String get liveInRoom => 'മുറിയിൽ';
+
+  @override
+  String get liveMicDenied => 'ഒരുമിച്ച് ജപിക്കാൻ മൈക്രോഫോൺ അനുമതി നൽകൂ.';
+
+  @override
+  String get liveClosed => 'മുറി ഇപ്പോൾ അടച്ചു.';
+
+  @override
+  String get liveFull => 'മുറി നിറഞ്ഞു.';
 }

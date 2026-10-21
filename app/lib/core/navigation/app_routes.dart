@@ -106,6 +106,13 @@ abstract final class AppRoutes {
   /// tab: a composer and a keyboard cannot share the bottom with a bar.
   static const String chat = '/chat';
 
+  /// Chanting groups: the list, and one group with its live room. Pushed from
+  /// Home over the tabs — a room with a microphone open is not a place to
+  /// half-see while switching tabs.
+  static const String groups = '/groups';
+  static const String groupPattern = '/groups/:id';
+  static String groupPath(String id) => '/groups/$id';
+
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
   static const List<String> tabs = [home, sadhana, library, reels];
@@ -138,4 +145,6 @@ abstract final class RouteNames {
   static const String reelSimilar = 'reelSimilar';
   static const String creatorProfile = 'creatorProfile';
   static const String chat = 'chat';
+  static const String groups = 'groups';
+  static const String groupDetail = 'groupDetail';
 }

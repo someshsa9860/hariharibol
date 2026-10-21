@@ -3807,6 +3807,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
   String get sourcesContactBody;
+
+  /// Chanting groups: the screen title, and the Home card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant together'**
+  String get groupsTitle;
+
+  /// Chanting groups: the line under the title on the Home card.
+  ///
+  /// In en, this message translates to:
+  /// **'Private groups to chant with, by voice'**
+  String get groupsEntrySubtitle;
+
+  /// Chanting groups: shown when the person is in no group yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No groups yet. Make one and invite your family or friends.'**
+  String get groupsEmpty;
+
+  /// Chanting groups: button that starts making a group.
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get groupsNew;
+
+  /// Chanting groups: heading over the invitations waiting for an answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get groupsInvitations;
+
+  /// Chanting groups: an invitation card. {name} is the person who invited.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} invited you'**
+  String groupInvitedBy(String name);
+
+  /// Chanting groups: an invitation card when the inviter is not known.
+  ///
+  /// In en, this message translates to:
+  /// **'You are invited'**
+  String get groupInvitedGeneric;
+
+  /// Chanting groups: accept an invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get groupJoin;
+
+  /// Chanting groups: decline an invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get groupDecline;
+
+  /// Chanting groups: how many people are in a group.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person} other{{count} people}}'**
+  String groupMembersCount(int count);
+
+  /// Chanting groups: the name field when making a group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get groupNameLabel;
+
+  /// Chanting groups: the optional description field.
+  ///
+  /// In en, this message translates to:
+  /// **'About (optional)'**
+  String get groupAboutLabel;
+
+  /// Chanting groups: button that makes the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Create group'**
+  String get groupCreate;
+
+  /// Chanting groups: tells the maker what being the owner means.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be the owner. Only you can delete the group, and you can make others admins.'**
+  String get groupOwnerNote;
+
+  /// Chanting groups: heading over the members.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get groupPeopleHeading;
+
+  /// Chanting groups: heading over people invited who have not answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to answer'**
+  String get groupWaitingHeading;
+
+  /// Chanting groups: hint in the email box for inviting.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by email'**
+  String get groupInviteHint;
+
+  /// Chanting groups: button that sends the invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get groupInviteAction;
+
+  /// Chanting groups: shown after an invitation is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent.'**
+  String get groupInviteSent;
+
+  /// Chanting groups: shown when no account has the email that was typed.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has signed up with that email yet.'**
+  String get groupInviteNoAccount;
+
+  /// Chanting groups: the person who made the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get groupRoleOwner;
+
+  /// Chanting groups: a member who can invite and remove people.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get groupRoleAdmin;
+
+  /// Chanting groups: an ordinary member.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get groupRoleMember;
+
+  /// Chanting groups: invited and not yet answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited'**
+  String get groupRoleInvited;
+
+  /// Chanting groups: gives a member the admin role.
+  ///
+  /// In en, this message translates to:
+  /// **'Make admin'**
+  String get groupMakeAdmin;
+
+  /// Chanting groups: takes the admin role away (the owner only).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove admin'**
+  String get groupRemoveAdmin;
+
+  /// Chanting groups: removes a member from the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from group'**
+  String get groupRemoveMember;
+
+  /// Chanting groups: asks before removing. {name} is the member.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from this group?'**
+  String groupRemoveConfirm(String name);
+
+  /// Chanting groups: takes back an invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel invitation'**
+  String get groupCancelInvite;
+
+  /// Chanting groups: asks before taking back an invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this invitation?'**
+  String get groupCancelInviteConfirm;
+
+  /// Chanting groups: leave the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave group'**
+  String get groupLeave;
+
+  /// Chanting groups: asks before leaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this group?'**
+  String get groupLeaveConfirm;
+
+  /// Chanting groups: delete the group (the owner only).
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group'**
+  String get groupDelete;
+
+  /// Chanting groups: asks before deleting. {name} is the group name.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}” for everyone? This cannot be undone.'**
+  String groupDeleteConfirm(String name);
+
+  /// Chanting groups: tells non-owners why they cannot delete the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the person who made the group can delete it.'**
+  String get groupOnlyOwnerDeletes;
+
+  /// Chanting groups: the person themselves in a list of people.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get groupYou;
+
+  /// Chanting groups: shown when the group does not exist or the person is not in it.
+  ///
+  /// In en, this message translates to:
+  /// **'This group does not exist, or you are not in it.'**
+  String get groupNotFound;
+
+  /// Chanting groups: shown when the group is deleted while it is open.
+  ///
+  /// In en, this message translates to:
+  /// **'This group was deleted.'**
+  String get groupWasDeleted;
+
+  /// Chanting groups: shown when the person is removed while the group is open.
+  ///
+  /// In en, this message translates to:
+  /// **'You were removed from this group.'**
+  String get groupWasRemoved;
+
+  /// Chanting groups: heading over the live voice room.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting room'**
+  String get liveHeading;
+
+  /// Chanting groups: badge shown while people are chanting in the room.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting now'**
+  String get liveNow;
+
+  /// Chanting groups: explains starting the room, to an admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the room and everyone in the group is told. Use headphones to avoid echo.'**
+  String get liveIdleAdmin;
+
+  /// Chanting groups: tells a member nobody is chanting yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is chanting right now. You will be told when an admin starts.'**
+  String get liveIdleMember;
+
+  /// Chanting groups: an admin opens the room and joins it.
+  ///
+  /// In en, this message translates to:
+  /// **'Start chanting together'**
+  String get liveStart;
+
+  /// Chanting groups: a member joins the open room.
+  ///
+  /// In en, this message translates to:
+  /// **'Join the chanting'**
+  String get liveJoin;
+
+  /// Chanting groups: turns the microphone off.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get liveMute;
+
+  /// Chanting groups: turns the microphone on.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get liveUnmute;
+
+  /// Chanting groups: leaves the room.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get liveLeave;
+
+  /// Chanting groups: an admin closes the room for everyone.
+  ///
+  /// In en, this message translates to:
+  /// **'End for everyone'**
+  String get liveEnd;
+
+  /// Chanting groups: asks before closing the room for everyone.
+  ///
+  /// In en, this message translates to:
+  /// **'End the chanting for everyone?'**
+  String get liveEndConfirm;
+
+  /// Chanting groups: status of the person whose microphone is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get liveMuted;
+
+  /// Chanting groups: status of a connected person in the room.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting'**
+  String get liveChanting;
+
+  /// Chanting groups: status while the connection to a person is being made.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get liveConnecting;
+
+  /// Chanting groups: status when the connection to a person failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get liveLost;
+
+  /// Chanting groups: a person who is in the room, seen from outside it.
+  ///
+  /// In en, this message translates to:
+  /// **'In the room'**
+  String get liveInRoom;
+
+  /// Chanting groups: shown when the microphone is not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the microphone to chant together.'**
+  String get liveMicDenied;
+
+  /// Chanting groups: shown when the room closed just as someone joined.
+  ///
+  /// In en, this message translates to:
+  /// **'The room has just closed.'**
+  String get liveClosed;
+
+  /// Chanting groups: shown when the room already holds the most people it can.
+  ///
+  /// In en, this message translates to:
+  /// **'The room is full.'**
+  String get liveFull;
 }
 
 class _AppLocalizationsDelegate

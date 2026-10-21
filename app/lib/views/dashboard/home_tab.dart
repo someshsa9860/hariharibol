@@ -13,6 +13,7 @@ import '../../providers/profile_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../providers/session_provider.dart';
 import '../../widgets/chat/chat_entry_card.dart';
+import '../../widgets/groups/groups_entry_card.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/animations.dart';
 import '../../widgets/common/app_loader.dart';
@@ -153,6 +154,9 @@ class _HomeContent extends ConsumerWidget {
 
       // Ask Sakha is for people with an account — it has credits to spend.
       if (user != null) const ChatEntryCard(),
+
+      // Chanting with others by voice, in a private group.
+      if (user != null) const GroupsEntryCard(),
 
       if (mine != null)
         VerseHeroCard(

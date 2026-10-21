@@ -2200,4 +2200,198 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'এখানে দেখানো কোনো লেখার উপর আপনার স্বত্ব থাকলে, বা তাতে কোনো ভুল পেলে, অনুগ্রহ করে আমাদের লিখুন। আমরা দ্রুত উত্তর দেব এবং অনুরোধ করা হলে তা সংশোধন করব বা সরিয়ে দেব।';
+
+  @override
+  String get groupsTitle => 'একসঙ্গে জপ করুন';
+
+  @override
+  String get groupsEntrySubtitle =>
+      'কণ্ঠে একসঙ্গে জপ করার জন্য ব্যক্তিগত গোষ্ঠী';
+
+  @override
+  String get groupsEmpty =>
+      'এখনও কোনো গোষ্ঠী নেই। একটি তৈরি করুন এবং আপনার পরিবার বা বন্ধুদের আমন্ত্রণ জানান।';
+
+  @override
+  String get groupsNew => 'নতুন গোষ্ঠী';
+
+  @override
+  String get groupsInvitations => 'আমন্ত্রণ';
+
+  @override
+  String groupInvitedBy(String name) {
+    return '$name আপনাকে আমন্ত্রণ জানিয়েছেন';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'আপনাকে আমন্ত্রণ জানানো হয়েছে';
+
+  @override
+  String get groupJoin => 'যোগ দিন';
+
+  @override
+  String get groupDecline => 'প্রত্যাখ্যান করুন';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count জন',
+      one: '1 জন',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'গোষ্ঠীর নাম';
+
+  @override
+  String get groupAboutLabel => 'পরিচিতি (ঐচ্ছিক)';
+
+  @override
+  String get groupCreate => 'গোষ্ঠী তৈরি করুন';
+
+  @override
+  String get groupOwnerNote =>
+      'আপনি এর মালিক হবেন। শুধু আপনিই গোষ্ঠী মুছতে পারবেন, এবং আপনি অন্যদের অ্যাডমিন করতে পারবেন।';
+
+  @override
+  String get groupPeopleHeading => 'সদস্যরা';
+
+  @override
+  String get groupWaitingHeading => 'উত্তরের অপেক্ষায়';
+
+  @override
+  String get groupInviteHint => 'ইমেল দিয়ে আমন্ত্রণ জানান';
+
+  @override
+  String get groupInviteAction => 'আমন্ত্রণ জানান';
+
+  @override
+  String get groupInviteSent => 'আমন্ত্রণ পাঠানো হয়েছে।';
+
+  @override
+  String get groupInviteNoAccount => 'এই ইমেলে এখনও কেউ সাইন আপ করেননি।';
+
+  @override
+  String get groupRoleOwner => 'মালিক';
+
+  @override
+  String get groupRoleAdmin => 'অ্যাডমিন';
+
+  @override
+  String get groupRoleMember => 'সদস্য';
+
+  @override
+  String get groupRoleInvited => 'আমন্ত্রিত';
+
+  @override
+  String get groupMakeAdmin => 'অ্যাডমিন করুন';
+
+  @override
+  String get groupRemoveAdmin => 'অ্যাডমিন সরান';
+
+  @override
+  String get groupRemoveMember => 'গোষ্ঠী থেকে সরান';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'এই গোষ্ঠী থেকে সরাবেন: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'আমন্ত্রণ বাতিল করুন';
+
+  @override
+  String get groupCancelInviteConfirm => 'এই আমন্ত্রণ বাতিল করবেন?';
+
+  @override
+  String get groupLeave => 'গোষ্ঠী ছাড়ুন';
+
+  @override
+  String get groupLeaveConfirm => 'এই গোষ্ঠী ছাড়বেন?';
+
+  @override
+  String get groupDelete => 'গোষ্ঠী মুছুন';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'সবার জন্য “$name” মুছবেন? এটি ফেরানো যাবে না।';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'গোষ্ঠী শুধু যিনি তৈরি করেছেন তিনিই মুছতে পারেন।';
+
+  @override
+  String get groupYou => 'আপনি';
+
+  @override
+  String get groupNotFound => 'এই গোষ্ঠী নেই, অথবা আপনি এতে নেই।';
+
+  @override
+  String get groupWasDeleted => 'এই গোষ্ঠী মুছে ফেলা হয়েছে।';
+
+  @override
+  String get groupWasRemoved => 'আপনাকে এই গোষ্ঠী থেকে সরানো হয়েছে।';
+
+  @override
+  String get liveHeading => 'জপ কক্ষ';
+
+  @override
+  String get liveNow => 'এখন জপ চলছে';
+
+  @override
+  String get liveIdleAdmin =>
+      'কক্ষ শুরু করুন, গোষ্ঠীর সবাইকে জানানো হবে। প্রতিধ্বনি এড়াতে হেডফোন ব্যবহার করুন।';
+
+  @override
+  String get liveIdleMember =>
+      'এখন কেউ জপ করছেন না। অ্যাডমিন শুরু করলে আপনাকে জানানো হবে।';
+
+  @override
+  String get liveStart => 'একসঙ্গে জপ শুরু করুন';
+
+  @override
+  String get liveJoin => 'জপে যোগ দিন';
+
+  @override
+  String get liveMute => 'মিউট করুন';
+
+  @override
+  String get liveUnmute => 'আনমিউট করুন';
+
+  @override
+  String get liveLeave => 'ছাড়ুন';
+
+  @override
+  String get liveEnd => 'সবার জন্য শেষ করুন';
+
+  @override
+  String get liveEndConfirm => 'সবার জন্য জপ শেষ করবেন?';
+
+  @override
+  String get liveMuted => 'মিউট';
+
+  @override
+  String get liveChanting => 'জপ করছেন';
+
+  @override
+  String get liveConnecting => 'সংযুক্ত হচ্ছে…';
+
+  @override
+  String get liveLost => 'সংযোগ বিচ্ছিন্ন হয়েছে';
+
+  @override
+  String get liveInRoom => 'কক্ষে';
+
+  @override
+  String get liveMicDenied => 'একসঙ্গে জপ করতে মাইক্রোফোনের অনুমতি দিন।';
+
+  @override
+  String get liveClosed => 'কক্ষটি এইমাত্র বন্ধ হয়েছে।';
+
+  @override
+  String get liveFull => 'কক্ষ পূর্ণ।';
 }

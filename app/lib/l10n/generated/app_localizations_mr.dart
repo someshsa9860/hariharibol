@@ -2198,4 +2198,197 @@ class AppLocalizationsMr extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'येथे दाखवलेल्या एखाद्या मजकुरावर तुमचे हक्क असल्यास, किंवा त्यात चूक आढळल्यास, कृपया आम्हाला लिहा. आम्ही लवकर उत्तर देऊ आणि सांगितल्यास तो दुरुस्त करू किंवा काढून टाकू.';
+
+  @override
+  String get groupsTitle => 'एकत्र जप करा';
+
+  @override
+  String get groupsEntrySubtitle => 'आवाजात एकत्र जप करण्यासाठी खाजगी गट';
+
+  @override
+  String get groupsEmpty =>
+      'अजून कोणताही गट नाही. एक तयार करा आणि तुमच्या कुटुंबाला किंवा मित्रांना आमंत्रित करा.';
+
+  @override
+  String get groupsNew => 'नवीन गट';
+
+  @override
+  String get groupsInvitations => 'आमंत्रणे';
+
+  @override
+  String groupInvitedBy(String name) {
+    return '$name यांनी तुम्हाला आमंत्रित केले';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'तुम्हाला आमंत्रित केले आहे';
+
+  @override
+  String get groupJoin => 'सामील व्हा';
+
+  @override
+  String get groupDecline => 'नाकारा';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count व्यक्ती',
+      one: '1 व्यक्ती',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'गटाचे नाव';
+
+  @override
+  String get groupAboutLabel => 'माहिती (ऐच्छिक)';
+
+  @override
+  String get groupCreate => 'गट तयार करा';
+
+  @override
+  String get groupOwnerNote =>
+      'तुम्ही या गटाचे मालक असाल. फक्त तुम्ही गट हटवू शकता आणि तुम्ही इतरांना प्रशासक बनवू शकता.';
+
+  @override
+  String get groupPeopleHeading => 'व्यक्ती';
+
+  @override
+  String get groupWaitingHeading => 'उत्तराच्या प्रतीक्षेत';
+
+  @override
+  String get groupInviteHint => 'ईमेलने आमंत्रित करा';
+
+  @override
+  String get groupInviteAction => 'आमंत्रित करा';
+
+  @override
+  String get groupInviteSent => 'आमंत्रण पाठवले.';
+
+  @override
+  String get groupInviteNoAccount =>
+      'या ईमेलने अजून कोणीही नोंदणी केलेली नाही.';
+
+  @override
+  String get groupRoleOwner => 'मालक';
+
+  @override
+  String get groupRoleAdmin => 'प्रशासक';
+
+  @override
+  String get groupRoleMember => 'सदस्य';
+
+  @override
+  String get groupRoleInvited => 'आमंत्रित';
+
+  @override
+  String get groupMakeAdmin => 'प्रशासक बनवा';
+
+  @override
+  String get groupRemoveAdmin => 'प्रशासक काढा';
+
+  @override
+  String get groupRemoveMember => 'गटातून काढा';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'या गटातून काढायचे: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'आमंत्रण रद्द करा';
+
+  @override
+  String get groupCancelInviteConfirm => 'हे आमंत्रण रद्द करायचे?';
+
+  @override
+  String get groupLeave => 'गट सोडा';
+
+  @override
+  String get groupLeaveConfirm => 'हा गट सोडायचा?';
+
+  @override
+  String get groupDelete => 'गट हटवा';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'सर्वांसाठी “$name” हटवायचा? हे परत करता येणार नाही.';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes => 'गट फक्त तो बनवणारी व्यक्तीच हटवू शकते.';
+
+  @override
+  String get groupYou => 'तुम्ही';
+
+  @override
+  String get groupNotFound => 'हा गट अस्तित्वात नाही, किंवा तुम्ही त्यात नाही.';
+
+  @override
+  String get groupWasDeleted => 'हा गट हटवला गेला.';
+
+  @override
+  String get groupWasRemoved => 'तुम्हाला या गटातून काढून टाकले.';
+
+  @override
+  String get liveHeading => 'जप कक्ष';
+
+  @override
+  String get liveNow => 'आता जप सुरू आहे';
+
+  @override
+  String get liveIdleAdmin =>
+      'कक्ष सुरू करा, गटातील सर्वांना कळवले जाईल. प्रतिध्वनी टाळण्यासाठी हेडफोन वापरा.';
+
+  @override
+  String get liveIdleMember =>
+      'सध्या कोणीही जप करत नाही. प्रशासकाने सुरू केल्यावर तुम्हाला कळवले जाईल.';
+
+  @override
+  String get liveStart => 'एकत्र जप सुरू करा';
+
+  @override
+  String get liveJoin => 'जपात सामील व्हा';
+
+  @override
+  String get liveMute => 'म्यूट करा';
+
+  @override
+  String get liveUnmute => 'अनम्यूट करा';
+
+  @override
+  String get liveLeave => 'सोडा';
+
+  @override
+  String get liveEnd => 'सर्वांसाठी संपवा';
+
+  @override
+  String get liveEndConfirm => 'सर्वांसाठी जप संपवायचा?';
+
+  @override
+  String get liveMuted => 'म्यूट';
+
+  @override
+  String get liveChanting => 'जप करत आहे';
+
+  @override
+  String get liveConnecting => 'जोडले जात आहे…';
+
+  @override
+  String get liveLost => 'कनेक्शन तुटले';
+
+  @override
+  String get liveInRoom => 'कक्षात';
+
+  @override
+  String get liveMicDenied => 'एकत्र जप करण्यासाठी मायक्रोफोनची परवानगी द्या.';
+
+  @override
+  String get liveClosed => 'कक्ष आत्ताच बंद झाला.';
+
+  @override
+  String get liveFull => 'कक्ष भरला आहे.';
 }

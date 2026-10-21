@@ -2201,4 +2201,199 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ಇಲ್ಲಿ ತೋರಿಸಿರುವ ಯಾವುದೇ ಪಠ್ಯದ ಮೇಲೆ ನಿಮಗೆ ಹಕ್ಕುಗಳಿದ್ದರೆ, ಅಥವಾ ಅದರಲ್ಲಿ ತಪ್ಪು ಕಂಡುಬಂದರೆ, ದಯವಿಟ್ಟು ನಮಗೆ ಬರೆಯಿರಿ. ನಾವು ಶೀಘ್ರವಾಗಿ ಉತ್ತರಿಸುತ್ತೇವೆ ಮತ್ತು ಕೇಳಿದರೆ ಅದನ್ನು ಸರಿಪಡಿಸುತ್ತೇವೆ ಅಥವಾ ತೆಗೆದುಹಾಕುತ್ತೇವೆ.';
+
+  @override
+  String get groupsTitle => 'ಒಟ್ಟಿಗೆ ಜಪ ಮಾಡಿ';
+
+  @override
+  String get groupsEntrySubtitle =>
+      'ಧ್ವನಿಯಲ್ಲಿ ಒಟ್ಟಿಗೆ ಜಪ ಮಾಡಲು ಖಾಸಗಿ ಗುಂಪುಗಳು';
+
+  @override
+  String get groupsEmpty =>
+      'ಇನ್ನೂ ಯಾವುದೇ ಗುಂಪು ಇಲ್ಲ. ಒಂದನ್ನು ರಚಿಸಿ, ನಿಮ್ಮ ಕುಟುಂಬ ಅಥವಾ ಸ್ನೇಹಿತರನ್ನು ಆಹ್ವಾನಿಸಿ.';
+
+  @override
+  String get groupsNew => 'ಹೊಸ ಗುಂಪು';
+
+  @override
+  String get groupsInvitations => 'ಆಹ್ವಾನಗಳು';
+
+  @override
+  String groupInvitedBy(String name) {
+    return 'ನಿಮ್ಮನ್ನು ಆಹ್ವಾನಿಸಿದವರು: $name';
+  }
+
+  @override
+  String get groupInvitedGeneric => 'ನಿಮಗೆ ಆಹ್ವಾನ ಬಂದಿದೆ';
+
+  @override
+  String get groupJoin => 'ಸೇರಿ';
+
+  @override
+  String get groupDecline => 'ತಿರಸ್ಕರಿಸಿ';
+
+  @override
+  String groupMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ಮಂದಿ',
+      one: '1 ವ್ಯಕ್ತಿ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupNameLabel => 'ಗುಂಪಿನ ಹೆಸರು';
+
+  @override
+  String get groupAboutLabel => 'ವಿವರ (ಐಚ್ಛಿಕ)';
+
+  @override
+  String get groupCreate => 'ಗುಂಪು ರಚಿಸಿ';
+
+  @override
+  String get groupOwnerNote =>
+      'ನೀವು ಇದರ ಮಾಲೀಕರು. ಗುಂಪನ್ನು ಅಳಿಸಲು ನಿಮಗೆ ಮಾತ್ರ ಸಾಧ್ಯ, ಮತ್ತು ಇತರರನ್ನು ನಿರ್ವಾಹಕರನ್ನಾಗಿ ಮಾಡಬಹುದು.';
+
+  @override
+  String get groupPeopleHeading => 'ಸದಸ್ಯರು';
+
+  @override
+  String get groupWaitingHeading => 'ಉತ್ತರಕ್ಕಾಗಿ ಕಾಯುತ್ತಿರುವವರು';
+
+  @override
+  String get groupInviteHint => 'ಇಮೇಲ್ ಮೂಲಕ ಆಹ್ವಾನಿಸಿ';
+
+  @override
+  String get groupInviteAction => 'ಆಹ್ವಾನಿಸಿ';
+
+  @override
+  String get groupInviteSent => 'ಆಹ್ವಾನ ಕಳುಹಿಸಲಾಗಿದೆ.';
+
+  @override
+  String get groupInviteNoAccount =>
+      'ಈ ಇಮೇಲ್‌ನಿಂದ ಇನ್ನೂ ಯಾರೂ ಸೈನ್ ಅಪ್ ಮಾಡಿಲ್ಲ.';
+
+  @override
+  String get groupRoleOwner => 'ಮಾಲೀಕರು';
+
+  @override
+  String get groupRoleAdmin => 'ನಿರ್ವಾಹಕರು';
+
+  @override
+  String get groupRoleMember => 'ಸದಸ್ಯ';
+
+  @override
+  String get groupRoleInvited => 'ಆಹ್ವಾನಿತರು';
+
+  @override
+  String get groupMakeAdmin => 'ನಿರ್ವಾಹಕರನ್ನಾಗಿ ಮಾಡಿ';
+
+  @override
+  String get groupRemoveAdmin => 'ನಿರ್ವಾಹಕ ಸ್ಥಾನ ತೆಗೆಯಿರಿ';
+
+  @override
+  String get groupRemoveMember => 'ಗುಂಪಿನಿಂದ ತೆಗೆಯಿರಿ';
+
+  @override
+  String groupRemoveConfirm(String name) {
+    return 'ಈ ಗುಂಪಿನಿಂದ ತೆಗೆಯಬೇಕೆ: $name?';
+  }
+
+  @override
+  String get groupCancelInvite => 'ಆಹ್ವಾನ ರದ್ದುಗೊಳಿಸಿ';
+
+  @override
+  String get groupCancelInviteConfirm => 'ಈ ಆಹ್ವಾನವನ್ನು ರದ್ದುಗೊಳಿಸಬೇಕೆ?';
+
+  @override
+  String get groupLeave => 'ಗುಂಪನ್ನು ಬಿಡಿ';
+
+  @override
+  String get groupLeaveConfirm => 'ಈ ಗುಂಪನ್ನು ಬಿಡಬೇಕೆ?';
+
+  @override
+  String get groupDelete => 'ಗುಂಪನ್ನು ಅಳಿಸಿ';
+
+  @override
+  String groupDeleteConfirm(String name) {
+    return 'ಎಲ್ಲರಿಗಾಗಿ “$name” ಗುಂಪನ್ನು ಅಳಿಸಬೇಕೆ? ಇದನ್ನು ಹಿಂದಿರುಗಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.';
+  }
+
+  @override
+  String get groupOnlyOwnerDeletes =>
+      'ಗುಂಪನ್ನು ರಚಿಸಿದವರು ಮಾತ್ರ ಅದನ್ನು ಅಳಿಸಬಹುದು.';
+
+  @override
+  String get groupYou => 'ನೀವು';
+
+  @override
+  String get groupNotFound => 'ಈ ಗುಂಪು ಇಲ್ಲ, ಅಥವಾ ನೀವು ಅದರಲ್ಲಿಲ್ಲ.';
+
+  @override
+  String get groupWasDeleted => 'ಈ ಗುಂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ.';
+
+  @override
+  String get groupWasRemoved => 'ನಿಮ್ಮನ್ನು ಈ ಗುಂಪಿನಿಂದ ತೆಗೆಯಲಾಗಿದೆ.';
+
+  @override
+  String get liveHeading => 'ಜಪ ಕೊಠಡಿ';
+
+  @override
+  String get liveNow => 'ಈಗ ಜಪ ನಡೆಯುತ್ತಿದೆ';
+
+  @override
+  String get liveIdleAdmin =>
+      'ಕೊಠಡಿ ಆರಂಭಿಸಿದರೆ ಗುಂಪಿನ ಎಲ್ಲರಿಗೂ ತಿಳಿಸಲಾಗುತ್ತದೆ. ಪ್ರತಿಧ್ವನಿ ತಪ್ಪಿಸಲು ಹೆಡ್‌ಫೋನ್ ಬಳಸಿ.';
+
+  @override
+  String get liveIdleMember =>
+      'ಈಗ ಯಾರೂ ಜಪ ಮಾಡುತ್ತಿಲ್ಲ. ನಿರ್ವಾಹಕರು ಆರಂಭಿಸಿದಾಗ ನಿಮಗೆ ತಿಳಿಸಲಾಗುತ್ತದೆ.';
+
+  @override
+  String get liveStart => 'ಒಟ್ಟಿಗೆ ಜಪ ಆರಂಭಿಸಿ';
+
+  @override
+  String get liveJoin => 'ಜಪದಲ್ಲಿ ಸೇರಿ';
+
+  @override
+  String get liveMute => 'ಮ್ಯೂಟ್ ಮಾಡಿ';
+
+  @override
+  String get liveUnmute => 'ಅನ್‌ಮ್ಯೂಟ್ ಮಾಡಿ';
+
+  @override
+  String get liveLeave => 'ಬಿಡಿ';
+
+  @override
+  String get liveEnd => 'ಎಲ್ಲರಿಗೂ ಮುಗಿಸಿ';
+
+  @override
+  String get liveEndConfirm => 'ಎಲ್ಲರಿಗೂ ಜಪವನ್ನು ಮುಗಿಸಬೇಕೆ?';
+
+  @override
+  String get liveMuted => 'ಮ್ಯೂಟ್ ಆಗಿದೆ';
+
+  @override
+  String get liveChanting => 'ಜಪ ಮಾಡುತ್ತಿದ್ದಾರೆ';
+
+  @override
+  String get liveConnecting => 'ಸಂಪರ್ಕಿಸುತ್ತಿದೆ…';
+
+  @override
+  String get liveLost => 'ಸಂಪರ್ಕ ಕಡಿತವಾಯಿತು';
+
+  @override
+  String get liveInRoom => 'ಕೊಠಡಿಯಲ್ಲಿ';
+
+  @override
+  String get liveMicDenied => 'ಒಟ್ಟಿಗೆ ಜಪ ಮಾಡಲು ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ನೀಡಿ.';
+
+  @override
+  String get liveClosed => 'ಕೊಠಡಿ ಈಗಷ್ಟೇ ಮುಚ್ಚಿದೆ.';
+
+  @override
+  String get liveFull => 'ಕೊಠಡಿ ತುಂಬಿದೆ.';
 }

@@ -13,6 +13,8 @@ import '../../views/dashboard/home_tab.dart';
 import '../../views/dashboard/library_tab.dart';
 import '../../views/dashboard/routine_tab.dart';
 import '../../views/dashboard/sadhana_tab.dart';
+import '../../views/groups/group_view.dart';
+import '../../views/groups/groups_view.dart';
 import '../../views/library/book_detail_view.dart';
 import '../../views/library/chapter_list_view.dart';
 import '../../views/library/chapter_read_view.dart';
@@ -246,6 +248,17 @@ GoRouter createRouter() {
             );
           },
         ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.groups,
+        name: RouteNames.groups,
+        builder: (context, state) => const GroupsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.groupPattern,
+        name: RouteNames.groupDetail,
+        builder: (context, state) => GroupView(groupId: state.pathParameters['id']!),
       ),
 
       GoRoute(
