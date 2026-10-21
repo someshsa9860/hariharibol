@@ -20,6 +20,7 @@ import { PrismaClient } from '@prisma/client';
 import * as data from './data.js';
 import { translations } from './mantra-translations/index.js';
 import { bookTitles, cantoTitles, chapterTitles, fillMissing } from './section-titles/index.js';
+import { bhagavatamChapterTitles } from './section-titles/bhagavatam/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
 import { routineKinds } from './routine-nudges.js';
@@ -264,6 +265,13 @@ async function seedSectionTitles() {
     select: { id: true, number: true, titleI18n: true, book: { select: { slug: true } } },
   });
   for (const chapter of chapters) await update('chapter', chapter, chapterTitles(chapter.book.slug, chapter.number));
+
+  // The Bhagavatam's, found by canto and number (a chapter number repeats in every canto).
+  const bhagavatam = await prisma.chapter.findMany({
+    where: { book: { slug: 'srimad-bhagavatam' }, cantoNumber: { not: null } },
+    select: { id: true, number: true, cantoNumber: true, titleI18n: true },
+  });
+  for (const chapter of bhagavatam) await update('chapter', chapter, bhagavatamChapterTitles(chapter.cantoNumber, chapter.number));
 
   log(`${filled} book, canto and chapter titles completed`);
 }

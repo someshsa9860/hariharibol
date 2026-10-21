@@ -127,7 +127,7 @@ test('lookups return the right title for each language', () => {
   assert.equal(chapterTitles(GITA, 18).hi, 'मोक्षसंन्यासयोग');
   assert.equal(chapterTitles(GITA, 19).hi, undefined, 'there is no chapter 19');
   assert.deepEqual(cantoTitles(BHAGAVATAM, 13), {});
-  assert.deepEqual(chapterTitles('srimad-bhagavatam', 1), {}, 'the Bhagavatam has no seeded chapter titles');
+  assert.deepEqual(chapterTitles('srimad-bhagavatam', 1), {}, 'the Bhagavatam chapters are seeded by canto, in bhagavatam/');
   assert.deepEqual(booksWithChapterTitles(), [GITA]);
 });
 
