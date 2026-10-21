@@ -27,6 +27,7 @@ import { AiUsagePage } from '@/routes/ai-usage';
 import { ChatPage } from '@/routes/chat';
 import { AuditPage } from '@/routes/audit';
 import { JobsPage } from '@/routes/jobs';
+import { MaintenancePage } from '@/routes/maintenance';
 import { TranslationsPage } from '@/routes/translations';
 import { ScenesPage } from '@/routes/scenes';
 import { AnalyticsPage } from '@/routes/analytics';
@@ -278,6 +279,14 @@ export function Router() {
         element={
           <Protected permission="scenes.read">
             <ScenesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/maintenance"
+        element={
+          <Protected permission="system.maintenance">
+            <MaintenancePage />
           </Protected>
         }
       />

@@ -70,6 +70,7 @@ const PERMISSIONS = {
   'audit.read': { group: 'system', name: 'View the audit log' },
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
+  'system.maintenance': { group: 'system', name: 'Run the listed maintenance scripts (seed and similar) from the panel' },
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSIONS);
@@ -90,7 +91,7 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', ...AUDITOR_ONLY].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', ...AUDITOR_ONLY].includes(slug)
   ),
   // Everything, including permissions added later — except the auditor-only ones: a book's
   // text is corrected by one named role so every correction has one accountable hand.
