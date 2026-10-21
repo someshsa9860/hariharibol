@@ -91,6 +91,7 @@
   "labelCanto": "ಸ್ಕಂಧ {number}",
   "labelChapter": "ಅಧ್ಯಾಯ {number}",
   "labelVerse": "ಶ್ಲೋಕ {number}",
+  "labelVerseShort": "ಶ್ಲೋ. {number}",
   "labelCantoChapter": "ಸ್ಕಂಧ {canto} · ಅಧ್ಯಾಯ {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

@@ -664,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Verse {number}'**
   String labelVerse(int number);
 
+  /// Short verse label above a verse; must stay on one line.
+  ///
+  /// In en, this message translates to:
+  /// **'Śl. {number}'**
+  String labelVerseShort(int number);
+
   /// No description provided for @labelCantoChapter.
   ///
   /// In en, this message translates to:

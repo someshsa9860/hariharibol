@@ -91,6 +91,7 @@
   "labelCanto": "സ്കന്ധം {number}",
   "labelChapter": "അധ്യായം {number}",
   "labelVerse": "ശ്ലോകം {number}",
+  "labelVerseShort": "ശ്ലോ. {number}",
   "labelCantoChapter": "സ്കന്ധം {canto} · അധ്യായം {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

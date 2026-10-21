@@ -357,6 +357,11 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'శ్లో. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'స్కంధం $canto · అధ్యాయం $chapter';
   }

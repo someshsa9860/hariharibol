@@ -355,6 +355,11 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'શ્લો. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'સ્કંધ $canto · અધ્યાય $chapter';
   }

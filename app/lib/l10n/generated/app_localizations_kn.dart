@@ -357,6 +357,11 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'ಶ್ಲೋ. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'ಸ್ಕಂಧ $canto · ಅಧ್ಯಾಯ $chapter';
   }

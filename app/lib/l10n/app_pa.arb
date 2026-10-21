@@ -91,6 +91,7 @@
   "labelCanto": "ਸਕੰਧ {number}",
   "labelChapter": "ਅਧਿਆਇ {number}",
   "labelVerse": "ਸ਼ਲੋਕ {number}",
+  "labelVerseShort": "ਸ਼ਲੋ. {number}",
   "labelCantoChapter": "ਸਕੰਧ {canto} · ਅਧਿਆਇ {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

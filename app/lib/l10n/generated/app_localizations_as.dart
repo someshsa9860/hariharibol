@@ -358,6 +358,11 @@ class AppLocalizationsAs extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'শ্লো. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'স্কন্ধ $canto · অধ্যায় $chapter';
   }

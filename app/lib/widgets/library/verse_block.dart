@@ -133,7 +133,10 @@ class VerseBlock extends StatelessWidget {
                 ),
               Expanded(
                 child: Text(
-                  text.labelVerse(verse.verseNumber ?? 0),
+                  text.labelVerseShort(verse.verseNumber ?? 0),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.eyebrow(
                     context,
                     color: context.colors.primary,

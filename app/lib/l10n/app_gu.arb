@@ -91,6 +91,7 @@
   "labelCanto": "સ્કંધ {number}",
   "labelChapter": "અધ્યાય {number}",
   "labelVerse": "શ્લોક {number}",
+  "labelVerseShort": "શ્લો. {number}",
   "labelCantoChapter": "સ્કંધ {canto} · અધ્યાય {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

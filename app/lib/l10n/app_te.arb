@@ -91,6 +91,7 @@
   "labelCanto": "స్కంధం {number}",
   "labelChapter": "అధ్యాయం {number}",
   "labelVerse": "శ్లోకం {number}",
+  "labelVerseShort": "శ్లో. {number}",
   "labelCantoChapter": "స్కంధం {canto} · అధ్యాయం {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

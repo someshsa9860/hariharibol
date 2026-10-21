@@ -91,6 +91,7 @@
   "labelCanto": "स्कंध {number}",
   "labelChapter": "अध्याय {number}",
   "labelVerse": "श्लोक {number}",
+  "labelVerseShort": "श्लो. {number}",
   "labelCantoChapter": "स्कंध {canto} · अध्याय {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

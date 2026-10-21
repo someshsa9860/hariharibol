@@ -91,6 +91,7 @@
   "labelCanto": "ஸ்கந்தம் {number}",
   "labelChapter": "அத்தியாயம் {number}",
   "labelVerse": "ஸ்லோகம் {number}",
+  "labelVerseShort": "ஸ்லோ. {number}",
   "labelCantoChapter": "ஸ்கந்தம் {canto} · அத்தியாயம் {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",

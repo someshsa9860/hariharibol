@@ -214,6 +214,15 @@
       }
     }
   },
+  "labelVerseShort": "Śl. {number}",
+  "@labelVerseShort": {
+    "description": "Short verse label above a verse; must stay on one line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelCantoChapter": "Canto {canto} · Chapter {chapter}",
   "@labelCantoChapter": {
     "placeholders": {

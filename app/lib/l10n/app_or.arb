@@ -91,6 +91,7 @@
   "labelCanto": "ସ୍କନ୍ଧ {number}",
   "labelChapter": "ଅଧ୍ୟାୟ {number}",
   "labelVerse": "ଶ୍ଳୋକ {number}",
+  "labelVerseShort": "ଶ୍ଳୋ. {number}",
   "labelCantoChapter": "ସ୍କନ୍ଧ {canto} · ଅଧ୍ୟାୟ {chapter}",
   "labelQuotedMeaning": "“{meaning}”",
   "labelTranslatorCredit": "— {name}",
