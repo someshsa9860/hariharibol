@@ -14,7 +14,8 @@ import { useFavorite } from '@/lib/favorites';
 import { creditName, verseCitation, verseRef } from '@/lib/format';
 import { verseHref } from '@/lib/links';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
-import { copyText, share } from '@/lib/share';
+import { copyText } from '@/lib/share';
+import { ShareButton, verseTarget } from '@/components/share/share-button';
 import type { Verse } from '@/lib/types';
 
 interface Props {
@@ -43,11 +44,6 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const hasPurport = Boolean(translation?.purport);
   const wordsOpen = expanded || reader.showWordMeanings || showWords;
 
-  const onShare = async () => {
-    const result = await share({ title: citation, text: `${verse.sanskrit ?? ''}\n\n${translation?.meaning ?? ''}\n— ${citation}`, url: `${SITE_URL}${verseHref(verse.verseId)}` });
-    if (result === 'copied') toast('Link copied');
-    if (result === 'failed') toast('Could not share this verse');
-  };
   const onCopy = async () => toast((await copyText(`${verse.sanskrit ?? ''}\n\n${verse.transliteration ?? ''}\n\n${translation?.meaning ?? ''}\n— ${citation}`)) ? 'Verse copied' : 'Could not copy');
 
   return (
@@ -60,7 +56,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
             <Icon name="heart" solid={isFavorite} />
           </button>
           <button className="icon-btn" onClick={() => requireSignIn('Sign in to keep notes on verses.') && setNoting(true)} aria-label="My notes on this verse"><Icon name="text" /></button>
-          <button className="icon-btn" onClick={onShare} aria-label="Share this verse"><Icon name="share" /></button>
+          <ShareButton target={verseTarget(verse)} ariaLabel="Share this verse" />
           <button className="icon-btn" onClick={onCopy} aria-label="Copy this verse"><Icon name="copy" /></button>
         </div>
       </header>

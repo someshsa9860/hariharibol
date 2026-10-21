@@ -53,3 +53,6 @@ export const LEGAL_LINKS = [
   { label: 'Terms', href: `${API_BASE}/api/web/pages/terms` },
   { label: 'Delete account', href: `${API_BASE}/api/web/pages/account-deletion` },
 ] as const;
+
+/** The App Store listing, when there is one. Empty until the iOS app is published — the share page then shows no Apple badge. */
+export const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL ?? '';

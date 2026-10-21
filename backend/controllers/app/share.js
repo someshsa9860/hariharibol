@@ -1,6 +1,7 @@
 // Sharing: public links for content, and AI backgrounds for share cards.
 
 import * as share from '../../services/share.js';
+import * as s3 from '../../services/s3.js';
 import * as shareImage from '../../services/share-image.js';
 import { ok, created } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
@@ -26,4 +27,17 @@ export const background = async (req, res) => {
   const job = await shareImage.find(req.auth.user, req.valid.params.id);
   if (!job) throw notFound('Background');
   return ok(res, job);
+};
+
+/**
+ * GET /api/app/share/background/:id/image — the picture itself, with the API's CORS headers, so the website can draw it
+ * on a canvas and still export the card (a cross-origin storage link would taint the canvas).
+ */
+export const backgroundImage = async (req, res) => {
+  const job = await shareImage.find(req.auth.user, req.valid.params.id);
+  if (!job || job.status !== 'DONE') throw notFound('Background');
+  const bytes = await s3.getObjectBuffer(await shareImage.pathOf(req.auth.user, req.valid.params.id));
+  if (!bytes) throw notFound('Background');
+  res.set('Cache-Control', 'private, max-age=3600');
+  return res.type('image/png').send(bytes);
 };

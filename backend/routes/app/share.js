@@ -68,4 +68,16 @@ router.get(
   controller.background
 );
 
+router.get(
+  '/background/:id/image',
+  {
+    summary: 'Download a background',
+    description: 'The finished picture as image/png, served through the API so a browser can draw it on a canvas.',
+    limit: 'read',
+    params: z.object({ id: z.string().min(1).max(40) }),
+    responds: { 200: 'image/png', 404: 'Not yours, unknown or not finished' },
+  },
+  controller.backgroundImage
+);
+
 export default router;

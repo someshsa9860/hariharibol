@@ -11,9 +11,9 @@ import { ReelMedia } from './reel-media';
 import { CommentsSheet } from './comments-sheet';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { api } from '@/lib/api/client';
-import { SITE_URL } from '@/lib/config';
 import { compactCount } from '@/lib/format';
 import { share } from '@/lib/share';
+import { linkFor } from '@/lib/share-link';
 import type { Reel } from '@/lib/types';
 
 interface Props {
@@ -66,7 +66,10 @@ export function ReelSlide({ reel, active, muted, onToggleMute, onChange }: Props
   };
 
   const onShare = async () => {
-    const result = await share({ title: reel.caption?.slice(0, 80) || 'A reel on HariHariBol', url: `${SITE_URL}/reels/${reel.id}` });
+    const title = reel.caption?.slice(0, 80) || 'A reel on HariHariBol';
+    // A personal /darshan link when signed in, so the share can be told apart from the reel's own page.
+    const made = await linkFor({ type: 'REEL', id: reel.id, title, path: `/reels/${reel.id}` });
+    const result = await share({ title, url: made.url });
     if (result === 'copied') toast('Link copied');
     if (result !== 'failed') {
       onChange({ ...reel, shareCount: reel.shareCount + 1 });

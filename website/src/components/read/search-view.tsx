@@ -9,6 +9,7 @@ import { BookCard } from '@/components/home/book-card';
 import { MantraCard } from '@/components/home/mantra-card';
 import { api, describeError } from '@/lib/api/client';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
+import { ShareButton, verseTarget } from '@/components/share/share-button';
 import { verseCitation } from '@/lib/format';
 import { verseHref } from '@/lib/links';
 import type { Book, Mantra, Verse } from '@/lib/types';
@@ -80,11 +81,14 @@ export function SearchView({ initialQuery }: { initialQuery: string }) {
             <section className="result-group" aria-label="Verses">
               <h2>Verses <span className="badge">{data.verseTotal}</span></h2>
               {data.verses.map((verse) => (
-                <Link key={verse.id} href={verseHref(verse.verseId)} className="result card card-hover">
-                  <strong>{verseCitation(verse)}</strong>
-                  {verse.sanskrit && <span className="deva" lang="sa">{verse.sanskrit.split('\n')[0]}</span>}
-                  <span className="snippet">{verse.searchMatch?.snippet ? <Highlighted text={verse.searchMatch.snippet} /> : verse.translation?.meaning}</span>
-                </Link>
+                <div key={verse.id} className="has-share">
+                  <Link href={verseHref(verse.verseId)} className="result card card-hover">
+                    <strong>{verseCitation(verse)}</strong>
+                    {verse.sanskrit && <span className="deva" lang="sa">{verse.sanskrit.split('\n')[0]}</span>}
+                    <span className="snippet">{verse.searchMatch?.snippet ? <Highlighted text={verse.searchMatch.snippet} /> : verse.translation?.meaning}</span>
+                  </Link>
+                  <span className="share-corner"><ShareButton target={verseTarget(verse)} ariaLabel={`Share ${verseCitation(verse)}`} /></span>
+                </div>
               ))}
             </section>
           )}

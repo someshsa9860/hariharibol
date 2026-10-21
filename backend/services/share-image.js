@@ -206,3 +206,9 @@ async function callProvider(prompt) {
 }
 
 export const newKey = () => crypto.randomBytes(12).toString('hex');
+
+/** The storage key of a finished background that belongs to this person, or null. */
+export async function pathOf(user, id) {
+  const job = await prisma.shareImageJob.findFirst({ where: { id, userId: user.id, status: 'DONE' }, select: { imagePath: true } });
+  return job?.imagePath ?? null;
+}
