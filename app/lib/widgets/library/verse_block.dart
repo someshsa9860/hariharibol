@@ -9,6 +9,8 @@ import '../../models/verse.dart';
 import '../../models/verse_part.dart';
 import 'collapsible_section.dart';
 import 'word_meanings_section.dart';
+import '../../views/share/share_studio_view.dart';
+import '../share/share_target.dart';
 
 /// One verse in the reading screen: script, transliteration, word meanings,
 /// translation, commentary, and the action row (favourite, highlight, notes,
@@ -161,6 +163,11 @@ class VerseBlock extends StatelessWidget {
                 tooltip: text.verseNotesTitle,
                 badgeCount: noteCount,
                 onPressed: onOpenNotes,
+              ),
+              _ActionIcon(
+                icon: Icons.ios_share_rounded,
+                tooltip: text.shareTitle,
+                onPressed: () => ShareStudio.open(context, ShareTarget.verse(verse, translation: translation)),
               ),
               if (onAskSakha != null)
                 _ActionIcon(

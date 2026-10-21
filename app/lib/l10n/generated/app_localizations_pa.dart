@@ -2199,4 +2199,117 @@ class AppLocalizationsPa extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ਜੇ ਇੱਥੇ ਦਿਖਾਈ ਗਈ ਕਿਸੇ ਲਿਖਤ ਉੱਤੇ ਤੁਹਾਡੇ ਅਧਿਕਾਰ ਹਨ, ਜਾਂ ਤੁਹਾਨੂੰ ਉਸ ਵਿੱਚ ਕੋਈ ਗਲਤੀ ਮਿਲੇ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਸਾਨੂੰ ਲਿਖੋ। ਅਸੀਂ ਜਲਦੀ ਜਵਾਬ ਦੇਵਾਂਗੇ ਅਤੇ ਕਹੇ ਜਾਣ ਉੱਤੇ ਉਸਨੂੰ ਠੀਕ ਕਰ ਦੇਵਾਂਗੇ ਜਾਂ ਹਟਾ ਦੇਵਾਂਗੇ।';
+
+  @override
+  String get shareTitle => 'ਸਾਂਝਾ ਕਰੋ';
+
+  @override
+  String get shareAsText => 'ਲਿਖਤ ਵਜੋਂ ਸਾਂਝਾ ਕਰੋ';
+
+  @override
+  String get shareCopied => 'ਕਾਪੀ ਹੋ ਗਿਆ';
+
+  @override
+  String get shareCopyLink => 'ਲਿੰਕ ਕਾਪੀ ਕਰੋ';
+
+  @override
+  String get shareFailed => 'ਅਸੀਂ ਇਹ ਸਾਂਝਾ ਨਹੀਂ ਕਰ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
+
+  @override
+  String get shareImageTooBig => 'ਉਹ ਤਸਵੀਰ ਬਹੁਤ ਵੱਡੀ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਛੋਟੀ ਤਸਵੀਰ ਚੁਣੋ।';
+
+  @override
+  String get shareLinkShare => 'ਲਿੰਕ ਸਾਂਝਾ ਕਰੋ';
+
+  @override
+  String get shareMakeIt => 'ਬਣਾਓ';
+
+  @override
+  String get shareMakePicture => 'ਤਸਵੀਰ ਬਣਾਓ';
+
+  @override
+  String get sharePickPicture => 'ਤਸਵੀਰ ਚੁਣੋ';
+
+  @override
+  String sharePictureCost(int percent) {
+    return 'ਤੁਹਾਡੇ Sakha ਕ੍ਰੈਡਿਟ ਦਾ ਲਗਭਗ $percent% ਵਰਤਿਆ ਜਾਵੇਗਾ';
+  }
+
+  @override
+  String get sharePictureFailed => 'ਤਸਵੀਰ ਨਹੀਂ ਬਣ ਸਕੀ। ਤੁਹਾਡਾ ਕ੍ਰੈਡਿਟ ਵਾਪਸ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।';
+
+  @override
+  String get sharePictureNoCredit => 'ਅੱਜ ਲਈ ਤੁਹਾਡਾ Sakha ਕ੍ਰੈਡਿਟ ਮੁੱਕ ਗਿਆ ਹੈ।';
+
+  @override
+  String get sharePicturePrompt => 'ਤਸਵੀਰ ਦਾ ਵੇਰਵਾ ਦਿਓ';
+
+  @override
+  String get sharePictureShare => 'ਤਸਵੀਰ ਸਾਂਝੀ ਕਰੋ';
+
+  @override
+  String get shareRemovePicture => 'ਤਸਵੀਰ ਹਟਾਓ';
+
+  @override
+  String get shareShowMeaning => 'ਅਰਥ';
+
+  @override
+  String get shareShowTransliteration => 'ਲਿਪੀਅੰਤਰ';
+
+  @override
+  String get shareTextSize => 'ਅੱਖਰਾਂ ਦਾ ਆਕਾਰ';
+
+  @override
+  String get shareLinkGone => 'ਇਹ ਲਿੰਕ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।';
+
+  @override
+  String get settingsRefer => 'ਮਿੱਤਰਾਂ ਨੂੰ ਸੱਦੋ, ਇਨਾਮ ਪਾਓ';
+
+  @override
+  String get referTitle => 'ਮਿੱਤਰਾਂ ਨੂੰ ਸੱਦੋ, ਇਨਾਮ ਪਾਓ';
+
+  @override
+  String referIntro(int days) {
+    return 'ਕਿਸੇ ਮਿੱਤਰ ਨੂੰ ਸੱਦਾ ਦਿਓ। ਜਦੋਂ ਉਹ ਜਪ ਦਾ ਪਹਿਲਾ ਗੇੜਾ ਪੂਰਾ ਕਰਨਗੇ, ਤੁਹਾਨੂੰ $days ਦਿਨਾਂ ਦਾ Ārta ਮੁਫ਼ਤ ਮਿਲੇਗਾ।';
+  }
+
+  @override
+  String get referYourCode => 'ਤੁਹਾਡਾ ਸੱਦਾ ਕੋਡ';
+
+  @override
+  String get referInvite => 'ਮਿੱਤਰ ਨੂੰ ਸੱਦਾ ਦਿਓ';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'ਮੇਰੇ ਨਾਲ ਹਰਿਹਰਿਬੋਲ ਉੱਤੇ ਆਓ: ਸ਼ਲੋਕ, ਮੰਤਰ ਅਤੇ ਜਪ ਇੱਕੋ ਥਾਂ। $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta $date ਤੱਕ ਤੁਹਾਡੇ ਕੋਲ ਹੈ';
+  }
+
+  @override
+  String get referStatInvited => 'ਸੱਦੇ ਗਏ';
+
+  @override
+  String get referStatWaiting => 'ਉਡੀਕ ਵਿੱਚ';
+
+  @override
+  String get referStatRewarded => 'ਇਨਾਮ ਮਿਲਿਆ';
+
+  @override
+  String get referNone => 'ਹਾਲੇ ਕੋਈ ਸੱਦਾ ਨਹੀਂ।';
+
+  @override
+  String get referEnterCode => 'ਕੀ ਤੁਹਾਡੇ ਕੋਲ ਕਿਸੇ ਮਿੱਤਰ ਦਾ ਕੋਡ ਹੈ?';
+
+  @override
+  String get referUseCode => 'ਕੋਡ ਵਰਤੋ';
+
+  @override
+  String get referAccepted => 'ਕੋਡ ਮਨਜ਼ੂਰ ਹੋ ਗਿਆ। ਜਪ ਦਾ ਇੱਕ ਗੇੜਾ ਪੂਰਾ ਕਰੋ, ਤਾਂ ਜੋ ਤੁਹਾਡੇ ਮਿੱਤਰ ਨੂੰ ਉਨ੍ਹਾਂ ਦਾ ਇਨਾਮ ਮਿਲੇ।';
+
+  @override
+  String get referRefused => 'ਇਹ ਕੋਡ ਵਰਤਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।';
 }

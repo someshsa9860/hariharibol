@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,6 +27,8 @@ import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_view.dart';
 import '../../views/premium/plans_view.dart';
+import '../../views/premium/refer_view.dart';
+import '../share_links.dart';
 import '../../views/settings/sources_view.dart';
 import '../../views/settings/voices_view.dart';
 import '../../views/settings/settings_view.dart';
@@ -32,6 +36,7 @@ import '../../views/splash/splash_view.dart';
 import '../constants/storage_keys.dart';
 import '../session/app_session.dart';
 import '../theme/app_spacing.dart';
+import '../../services/deep_link_service.dart';
 import '../../services/local_store.dart';
 import 'app_navigator.dart';
 import 'app_routes.dart';
@@ -65,6 +70,14 @@ GoRouter createRouter() {
     refreshListenable: Listenable.merge([status, gate]),
     debugLogDiagnostics: false,
     redirect: (context, state) {
+      // A shared link that reached the router as a path is not a screen. DeepLinkService opens
+      // what it points at (once, however many times the system announces it); the router goes on
+      // to wherever the session says.
+      if (ShareLinks.claims(state.uri)) {
+        unawaited(DeepLinkService.instance.handle(state.uri));
+        return AppRoutes.splash;
+      }
+
       final location = state.matchedLocation;
 
       if (location == AppRoutes.splash && !gate.isOpen) return null;
@@ -139,6 +152,11 @@ GoRouter createRouter() {
         path: AppRoutes.settings,
         name: RouteNames.settings,
         builder: (context, state) => const SettingsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.refer,
+        name: RouteNames.refer,
+        builder: (context, state) => const ReferView(),
       ),
       GoRoute(
         path: AppRoutes.plans,

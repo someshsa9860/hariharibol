@@ -2214,4 +2214,117 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ഇവിടെ കാണിക്കുന്ന ഏതെങ്കിലും ഉള്ളടക്കത്തിൽ നിങ്ങൾക്ക് അവകാശമുണ്ടെങ്കിൽ, അല്ലെങ്കിൽ അതിൽ ഒരു പിശക് കണ്ടാൽ, ദയവായി ഞങ്ങൾക്ക് എഴുതുക. ഞങ്ങൾ വേഗത്തിൽ മറുപടി നൽകും; ആവശ്യപ്പെട്ടാൽ അത് തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.';
+
+  @override
+  String get shareTitle => 'പങ്കിടുക';
+
+  @override
+  String get shareAsText => 'വാചകമായി പങ്കിടുക';
+
+  @override
+  String get shareCopied => 'പകർത്തി';
+
+  @override
+  String get shareCopyLink => 'ലിങ്ക് പകർത്തുക';
+
+  @override
+  String get shareFailed => 'ഇത് പങ്കിടാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get shareImageTooBig => 'ആ ചിത്രം വളരെ വലുതാണ്. ദയവായി ചെറിയ ചിത്രം തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get shareLinkShare => 'ലിങ്ക് പങ്കിടുക';
+
+  @override
+  String get shareMakeIt => 'സൃഷ്ടിക്കുക';
+
+  @override
+  String get shareMakePicture => 'ചിത്രം ഉണ്ടാക്കുക';
+
+  @override
+  String get sharePickPicture => 'ചിത്രം തിരഞ്ഞെടുക്കുക';
+
+  @override
+  String sharePictureCost(int percent) {
+    return 'നിങ്ങളുടെ Sakha ക്രെഡിറ്റിന്റെ ഏകദേശം $percent% ഉപയോഗിക്കും';
+  }
+
+  @override
+  String get sharePictureFailed => 'ചിത്രം ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. നിങ്ങളുടെ ക്രെഡിറ്റ് തിരികെ നൽകി.';
+
+  @override
+  String get sharePictureNoCredit => 'ഇന്നത്തേക്കുള്ള നിങ്ങളുടെ Sakha ക്രെഡിറ്റ് തീർന്നു.';
+
+  @override
+  String get sharePicturePrompt => 'ചിത്രം വിവരിക്കുക';
+
+  @override
+  String get sharePictureShare => 'ചിത്രം പങ്കിടുക';
+
+  @override
+  String get shareRemovePicture => 'ചിത്രം നീക്കുക';
+
+  @override
+  String get shareShowMeaning => 'അർത്ഥം';
+
+  @override
+  String get shareShowTransliteration => 'ലിപ്യന്തരീകരണം';
+
+  @override
+  String get shareTextSize => 'അക്ഷരവലുപ്പം';
+
+  @override
+  String get shareLinkGone => 'ഈ ലിങ്ക് ഇപ്പോൾ ലഭ്യമല്ല.';
+
+  @override
+  String get settingsRefer => 'സുഹൃത്തുക്കളെ ക്ഷണിക്കൂ, സമ്മാനം നേടൂ';
+
+  @override
+  String get referTitle => 'സുഹൃത്തുക്കളെ ക്ഷണിക്കൂ, സമ്മാനം നേടൂ';
+
+  @override
+  String referIntro(int days) {
+    return 'ഒരു സുഹൃത്തിനെ ക്ഷണിക്കൂ. അവർ ജപത്തിന്റെ ആദ്യ റൗണ്ട് പൂർത്തിയാക്കുമ്പോൾ നിങ്ങൾക്ക് $days ദിവസത്തെ Ārta സൗജന്യമായി ലഭിക്കും.';
+  }
+
+  @override
+  String get referYourCode => 'നിങ്ങളുടെ ക്ഷണ കോഡ്';
+
+  @override
+  String get referInvite => 'സുഹൃത്തിനെ ക്ഷണിക്കുക';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'എന്നോടൊപ്പം ഹരിഹരിബോലിൽ ചേരൂ: ശ്ലോകങ്ങളും മന്ത്രങ്ങളും ജപവും ഒരിടത്ത്. $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta $date വരെ നിങ്ങൾക്കുണ്ട്';
+  }
+
+  @override
+  String get referStatInvited => 'ക്ഷണിച്ചവർ';
+
+  @override
+  String get referStatWaiting => 'കാത്തിരിക്കുന്നു';
+
+  @override
+  String get referStatRewarded => 'സമ്മാനം ലഭിച്ചു';
+
+  @override
+  String get referNone => 'ഇതുവരെ ക്ഷണങ്ങളൊന്നുമില്ല.';
+
+  @override
+  String get referEnterCode => 'ഒരു സുഹൃത്തിന്റെ കോഡ് ഉണ്ടോ?';
+
+  @override
+  String get referUseCode => 'കോഡ് ഉപയോഗിക്കുക';
+
+  @override
+  String get referAccepted => 'കോഡ് സ്വീകരിച്ചു. ജപത്തിന്റെ ഒരു റൗണ്ട് പൂർത്തിയാക്കൂ, അപ്പോൾ നിങ്ങളുടെ സുഹൃത്തിന് അവരുടെ സമ്മാനം ലഭിക്കും.';
+
+  @override
+  String get referRefused => 'ഈ കോഡ് ഉപയോഗിക്കാൻ കഴിയില്ല.';
 }

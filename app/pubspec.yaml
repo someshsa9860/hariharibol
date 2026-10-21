@@ -61,6 +61,8 @@ dependencies:
   video_player: ^2.10.0
   visibility_detector: ^0.4.0+2
   share_plus: ^13.3.0
+  # Hands the app the https link (App Links / Universal Links) or hariharibol:// link it was opened with, cold or warm.
+  app_links: ^6.4.0
 
   # Subscriptions. The first-party plugin: StoreKit on iOS, Play Billing on
   # Android. Purchases are verified server to server by the backend, never here.

@@ -25,6 +25,10 @@ abstract final class BoxNames {
 }
 
 abstract final class BoxKeys {
+  /// An invitation code from a link, kept until there is an account to present
+  /// it with (DeepLinkService). Only the first is kept.
+  static const String pendingInvite = 'referral.pending_invite';
+
   /// The signed-in user, as returned by the API. Kept so the app can draw the
   /// first frame without waiting on the network.
   static const String user = 'user';

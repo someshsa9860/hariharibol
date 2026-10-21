@@ -2201,4 +2201,117 @@ class AppLocalizationsAs extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ইয়াত দেখুওৱা কোনো লেখাৰ ওপৰত যদি আপোনাৰ স্বত্ব আছে, বা তাত কোনো ভুল পায়, তেন্তে অনুগ্ৰহ কৰি আমাক লিখক। আমি সোনকালে উত্তৰ দিম আৰু অনুৰোধ কৰিলে সেয়া শুধৰাই দিম বা আঁতৰাই দিম।';
+
+  @override
+  String get shareTitle => 'শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareAsText => 'লিখনী হিচাপে শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareCopied => 'কপি হ’ল';
+
+  @override
+  String get shareCopyLink => 'লিংক কপি কৰক';
+
+  @override
+  String get shareFailed => 'এইটো শ্বেয়াৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get shareImageTooBig => 'সেই ছবিখন বেছি ডাঙৰ। অনুগ্ৰহ কৰি সৰু ছবি বাছনি কৰক।';
+
+  @override
+  String get shareLinkShare => 'লিংক শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareMakeIt => 'বনাওক';
+
+  @override
+  String get shareMakePicture => 'ছবি বনাওক';
+
+  @override
+  String get sharePickPicture => 'ছবি বাছনি কৰক';
+
+  @override
+  String sharePictureCost(int percent) {
+    return 'আপোনাৰ Sakha ক্ৰেডিটৰ প্ৰায় $percent% খৰচ হ’ব';
+  }
+
+  @override
+  String get sharePictureFailed => 'ছবিখন বনাব পৰা নগ’ল। আপোনাৰ ক্ৰেডিট ঘূৰাই দিয়া হ’ল।';
+
+  @override
+  String get sharePictureNoCredit => 'আজিৰ বাবে আপোনাৰ Sakha ক্ৰেডিট শেষ হৈছে।';
+
+  @override
+  String get sharePicturePrompt => 'ছবিখনৰ বৰ্ণনা কৰক';
+
+  @override
+  String get sharePictureShare => 'ছবি শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareRemovePicture => 'ছবি আঁতৰাওক';
+
+  @override
+  String get shareShowMeaning => 'অৰ্থ';
+
+  @override
+  String get shareShowTransliteration => 'লিপ্যন্তৰ';
+
+  @override
+  String get shareTextSize => 'আখৰৰ আকাৰ';
+
+  @override
+  String get shareLinkGone => 'এই লিংক আৰু উপলব্ধ নহয়।';
+
+  @override
+  String get settingsRefer => 'বন্ধুক মাতক, পুৰস্কাৰ পাওক';
+
+  @override
+  String get referTitle => 'বন্ধুক মাতক, পুৰস্কাৰ পাওক';
+
+  @override
+  String referIntro(int days) {
+    return 'এজন বন্ধুক নিমন্ত্ৰণ কৰক। তেওঁ জপৰ প্ৰথম পাক সম্পূৰ্ণ কৰিলে, আপুনি $days দিনৰ Ārta বিনামূলীয়াকৈ পাব।';
+  }
+
+  @override
+  String get referYourCode => 'আপোনাৰ নিমন্ত্ৰণ ক’ড';
+
+  @override
+  String get referInvite => 'বন্ধুক নিমন্ত্ৰণ কৰক';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'মোৰ লগত হৰিহৰিবোলত যোগ দিয়ক: শ্লোক, মন্ত্ৰ আৰু জপ এটাই ঠাইত। $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta $date লৈকে আপোনাৰ ওচৰত আছে';
+  }
+
+  @override
+  String get referStatInvited => 'নিমন্ত্ৰিত';
+
+  @override
+  String get referStatWaiting => 'অপেক্ষাত';
+
+  @override
+  String get referStatRewarded => 'পুৰস্কৃত';
+
+  @override
+  String get referNone => 'এতিয়ালৈকে কোনো নিমন্ত্ৰণ নাই।';
+
+  @override
+  String get referEnterCode => 'বন্ধুৰ ক’ড আছে নেকি?';
+
+  @override
+  String get referUseCode => 'ক’ড ব্যৱহাৰ কৰক';
+
+  @override
+  String get referAccepted => 'ক’ড গ্ৰহণ কৰা হ’ল। জপৰ এটা পাক সম্পূৰ্ণ কৰক, তেতিয়া আপোনাৰ বন্ধুৱে তেওঁৰ পুৰস্কাৰ পাব।';
+
+  @override
+  String get referRefused => 'এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।';
 }

@@ -55,7 +55,7 @@ export function ShareStudio({ target, onClose }: { target: ShareTarget; onClose:
 
   useEffect(() => {
     let live = true;
-    Promise.all([loadImage('/img/logo.png'), loadCardFonts()]).then(([img]) => { if (live) { logo.current = img; setReady(true); } }, () => { if (live) toast('The logo could not be loaded'); });
+    Promise.all([loadImage('/img/logo-transparent.png'), loadCardFonts()]).then(([img]) => { if (live) { logo.current = img; setReady(true); } }, () => { if (live) toast('The logo could not be loaded'); });
     return () => { live = false; };
   }, [toast]);
 

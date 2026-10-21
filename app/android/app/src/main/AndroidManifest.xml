@@ -36,6 +36,26 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Shared verses, mantras, reels and invitations on hariharibol.com. autoVerify makes
+                 Android check https://hariharibol.com/.well-known/assetlinks.json (served by the
+                 deeplink container from ANDROID_CERT_SHA256); until that lists this app's signing
+                 certificate the links open in the browser, which shows the page and its Open button. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/shloka/"/>
+                <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/naam/"/>
+                <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/darshan/"/>
+                <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/satsang/"/>
+            </intent-filter>
+            <!-- The website's "Open in the app" button: hariharibol://open?path=/shloka/<code>. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="hariharibol"/>
+            </intent-filter>
         </activity>
         <!-- Lock-screen and notification controls for reading aloud. -->
         <service

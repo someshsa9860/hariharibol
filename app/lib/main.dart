@@ -7,6 +7,7 @@ import 'app.dart';
 import 'core/session/app_session.dart';
 import 'services/book_sync_background.dart';
 import 'services/book_sync_manager.dart';
+import 'services/deep_link_service.dart';
 import 'services/device_service.dart';
 import 'services/fcm_service.dart';
 import 'services/firebase_service.dart';
@@ -44,6 +45,9 @@ Future<void> main() async {
   // nothing and returns at once; on the one that matters it is capped at
   // `AppConfig.legacySignInTimeout` and never throws.
   await LegacySignIn.instance.run();
+
+  // Links the app is opened with (shared verses, mantras, reels, invitations), cold or warm.
+  unawaited(DeepLinkService.instance.start());
 
   unawaited(TrackingService.instance.init());
   unawaited(FcmService.instance.init());

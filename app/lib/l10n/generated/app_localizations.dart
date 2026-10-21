@@ -3807,6 +3807,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
   String get sourcesContactBody;
+
+  /// Title of the share sheet, and the tooltip of the share buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareTitle;
+
+  /// No description provided for @shareAsText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as text'**
+  String get shareAsText;
+
+  /// No description provided for @shareCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get shareCopied;
+
+  /// No description provided for @shareCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get shareCopyLink;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t share this. Please try again.'**
+  String get shareFailed;
+
+  /// No description provided for @shareImageTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too large. Please choose a smaller one.'**
+  String get shareImageTooBig;
+
+  /// No description provided for @shareLinkShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share link'**
+  String get shareLinkShare;
+
+  /// No description provided for @shareMakeIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get shareMakeIt;
+
+  /// Makes a background picture for the share card with the reader's Ask Sakha credit.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a picture'**
+  String get shareMakePicture;
+
+  /// No description provided for @sharePickPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a picture'**
+  String get sharePickPicture;
+
+  /// How much of the day's Ask Sakha credit a picture uses. Keep the product name Sakha as it is.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses about {percent}% of your Sakha credit'**
+  String sharePictureCost(int percent);
+
+  /// No description provided for @sharePictureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture could not be made. Your credit was returned.'**
+  String get sharePictureFailed;
+
+  /// No description provided for @sharePictureNoCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Sakha credit for today is used up.'**
+  String get sharePictureNoCredit;
+
+  /// No description provided for @sharePicturePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the picture'**
+  String get sharePicturePrompt;
+
+  /// No description provided for @sharePictureShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share picture'**
+  String get sharePictureShare;
+
+  /// No description provided for @shareRemovePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove picture'**
+  String get shareRemovePicture;
+
+  /// No description provided for @shareShowMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get shareShowMeaning;
+
+  /// No description provided for @shareShowTransliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'Transliteration'**
+  String get shareShowTransliteration;
+
+  /// No description provided for @shareTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get shareTextSize;
+
+  /// Shown when a shared link has been withdrawn or never existed.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is no longer available.'**
+  String get shareLinkGone;
+
+  /// No description provided for @settingsRefer.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer and earn'**
+  String get settingsRefer;
+
+  /// No description provided for @referTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer and earn'**
+  String get referTitle;
+
+  /// Under the Refer and earn title. {days} is the length of the reward in days; Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend. When they finish their first round of chanting, you receive {days} days of Ārta, free.'**
+  String referIntro(int days);
+
+  /// No description provided for @referYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get referYourCode;
+
+  /// No description provided for @referInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend'**
+  String get referInvite;
+
+  /// The text sent with an invitation. {url} is the invitation link, placed where the sentence ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on HariHariBol: verses, mantras and chanting in one place. {url}'**
+  String referInviteMessage(String url);
+
+  /// {date} is a formatted date. Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Ārta is yours until {date}'**
+  String referActiveUntil(String date);
+
+  /// No description provided for @referStatInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited'**
+  String get referStatInvited;
+
+  /// No description provided for @referStatWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get referStatWaiting;
+
+  /// No description provided for @referStatRewarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewarded'**
+  String get referStatRewarded;
+
+  /// No description provided for @referNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations yet.'**
+  String get referNone;
+
+  /// No description provided for @referEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a friend’s code?'**
+  String get referEnterCode;
+
+  /// No description provided for @referUseCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code'**
+  String get referUseCode;
+
+  /// Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting.
+  ///
+  /// In en, this message translates to:
+  /// **'Code accepted. Finish a round of chanting so your friend receives their reward.'**
+  String get referAccepted;
+
+  /// No description provided for @referRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'This code can’t be used.'**
+  String get referRefused;
 }
 
 class _AppLocalizationsDelegate

@@ -1141,6 +1141,37 @@ Things to know before changing it:
   `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
   Gita's real S3 files either; do a `dryRun` from the page first.
 
+## Sharing, deep links and refer and earn
+
+One feature on three parts (backend, website, app); the three must agree on the link grammar.
+
+**Links.** A piece of content gets an opaque random code (base58, 10 chars, `ShareLink` row) and is shared as
+`https://hariharibol.com/shloka/<code>` (verse), `/naam/<code>` (mantra), `/darshan/<code>` (reel). The route words are
+the app's own terms; the code reveals nothing about the content and is not guessable. An invitation is
+`/satsang/<REFERRALCODE>` and is a separate family: opening content never attributes a referral. The grammar lives in
+`utils/share.js` (`parseLink`, `contentUrl`, `referralUrl`), `website/src/lib/share-link.ts` and
+`app/lib/core/share_links.dart`; change one, change all three (each has a test).
+
+**Routes** (`routes/app/share.js`, `routes/app/referral.js`, `routes/web/share.js`, all documented in the route table):
+`POST /api/app/share/link`, `GET /share/background/quote`, `POST /share/background` (AI card picture, debits the
+reader's AI wallet, refunds once on failure, idempotent per request key), `GET /share/background/:id[/image]`;
+`GET /referral/me`, `/referral/mine`, `POST /referral/attribute`; public `GET /api/web/share/:route/:code`,
+`/referral/:code`, `/app-links`. Image generation uses `services/share-image.js`.
+
+**Referral rules** are in `config/referral.js`, each with an env override: attributed once, only within 7 days of
+signing up; the new person qualifies by finishing one full round within 30 days; the referrer then gets 30 days of
+Ārta (`REFERRAL_REWARD_PLAN_SLUG`), at most 12 rewards a rolling year. The reward is an **`EntitlementGrant`** row,
+not a fake subscription: `services/entitlement.js` reads grants beside subscriptions and payments, a grant starts
+after the paid period or the previous grant so it never shortens anything, and a unique `(userId, requestKey)` makes
+a retry grant nothing twice. Qualification runs from `controllers/app/sadhana.js` when a round is saved.
+
+**Deploy.** `prisma migrate deploy` for `20261027000000_share_referral` (the seed is not involved). Env:
+`APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` (comma separated), `PLAY_STORE_URL`, `APP_STORE_URL`. Empty is deliberate: the
+association files then list nothing and the page hides the store badge instead of linking somewhere invented.
+`deeplink/index.js` serves `/.well-known/apple-app-site-association` and `assetlinks.json`; `deploy/server/nginx.conf`
+proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
+`node --test test/share.test.js`.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.

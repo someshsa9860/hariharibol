@@ -12,5 +12,5 @@ export function OpenInApp({ path }: { path: string }) {
   const [mobile, setMobile] = useState(false);
   useEffect(() => { setMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)); }, []);
   if (!mobile) return null;
-  return <a className="btn btn-primary btn-block" href={`hariharibol://${path.replace(/^\//, '')}`}>Open in the app</a>;
+  return <a className="btn btn-primary btn-block" href={`hariharibol://open?path=${encodeURIComponent(path.startsWith('/') ? path : `/${path}`)}`}>Open in the app</a>;
 }

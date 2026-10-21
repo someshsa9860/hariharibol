@@ -107,6 +107,8 @@ async function load(type, targetId, language) {
       title: `${verse.book.title} ${verse.verseId}`,
       reference: verse.book.title,
       verseId: verse.verseId,
+      // Where the verse is read, so the app can open its chapter without a second lookup.
+      place: { bookSlug: verse.book.slug, cantoNumber: verse.cantoNumber, chapterNumber: verse.chapterNumber, verseNumber: verse.verseNumber },
       sanskrit: shown.sanskrit,
       transliteration: shown.transliteration,
       text: shown.translation?.meaning || null,
@@ -125,6 +127,7 @@ async function load(type, targetId, language) {
     if (!mantra) return null;
     return {
       title: mantra.name,
+      mantraSlug: mantra.slug,
       reference: 'Mantra',
       sanskrit: mantra.sanskrit,
       transliteration: mantra.transliteration,
@@ -142,6 +145,7 @@ async function load(type, targetId, language) {
   if (!reel) return null;
   return {
     title: reel.caption ? reel.caption.slice(0, 80) : 'A reel on HariHariBol',
+    reelId: reel.id,
     reference: reel.creator?.displayName ? `By ${reel.creator.displayName}` : 'Reel',
     sanskrit: null,
     transliteration: null,
