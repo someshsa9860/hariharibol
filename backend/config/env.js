@@ -163,6 +163,14 @@ const schema = z.object({
   TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
+  // Video scene prompts for the chapters of a book (admin → Scenes). Gemini unless a run says otherwise; the model and
+  // the free tier's limits (requests and tokens a minute, requests a day) are settings so a plan change is not a deploy.
+  SCENES_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
+  SCENES_GEMINI_MODEL: z.string().optional(),
+  SCENES_RPM: z.coerce.number().int().min(1).optional(),
+  SCENES_TPM: z.coerce.number().int().min(1000).optional(),
+  SCENES_RPD: z.coerce.number().int().min(0).optional(), // 0 = no daily cap of our own
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 

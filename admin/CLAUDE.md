@@ -412,3 +412,7 @@ a first row naming a model that has been retired still reads as first while the 
 
 Raw token numbers appear only on this page; readers in the app see a percentage. Every query key starts with
 `chat`, so one invalidation refreshes the page after a write.
+
+## Scenes page
+
+`routes/scenes.tsx`, `components/scenes-run.tsx` (run panel, start dialog), `components/scenes-viewer.tsx` (reading-style view with copy and download), `lib/scenes.ts`. State is in the URL (`tab`, `canto`, `chapter`, `run`). Permissions `scenes.read` / `scenes.run`.

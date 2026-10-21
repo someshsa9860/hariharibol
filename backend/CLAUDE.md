@@ -1211,3 +1211,7 @@ columns alike, so no controller has to call anything. The monthly `s3.temp.prune
 (`config/cron.js`, 1st of the month 04:00 UTC) deletes temp days older than 30 days —
 uploads nobody saved. Keys saved before this layout have no `hariharibol/` root and
 still work; nothing rewrites them.
+
+## Scene prompts (admin → Scenes)
+
+`SceneRun` + `jobs/processors/scenes.js` + `services/scenes.js` + `utils/scenes.js` (pure: file names, prompt, schema, checks, limiter) + `controllers/admin/scene.js`. Built like translation runs; read those first. One request per chapter with the Hindi meaning of each verse (from `hi/` in the bucket, else `VerseTranslation`), answer checked so every verse is in a scene (asked again once with the problems), saved to `json/<book>/scenes/sk-<canto>-ch-<n>.json` (old file backed up) and listed in `_index.json`. A 429 is always a wait, never "credit". One run at a time. Settings: `SCENES_PROVIDER`, `SCENES_GEMINI_MODEL`, `SCENES_RPM`, `SCENES_TPM`, `SCENES_RPD`. Tests: `npm run test:scenes`, `test/scenes.test.js`.

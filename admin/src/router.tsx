@@ -26,6 +26,7 @@ import { ChatPage } from '@/routes/chat';
 import { AuditPage } from '@/routes/audit';
 import { JobsPage } from '@/routes/jobs';
 import { TranslationsPage } from '@/routes/translations';
+import { ScenesPage } from '@/routes/scenes';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
 
@@ -242,6 +243,14 @@ export function Router() {
         element={
           <Protected permission="translation.read">
             <TranslationsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/scenes"
+        element={
+          <Protected permission="scenes.read">
+            <ScenesPage />
           </Protected>
         }
       />

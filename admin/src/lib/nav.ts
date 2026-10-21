@@ -19,6 +19,7 @@ import {
   Activity,
   TrendingUp,
   Languages,
+  Film,
   MessageCircle,
   type LucideIcon,
 } from 'lucide-react';
@@ -51,6 +52,7 @@ export const NAV: NavSection[] = [
       { label: 'Mantras', path: '/mantras', icon: Music, permission: 'mantra.read' },
       { label: 'Reels', path: '/reels', icon: Clapperboard, permission: 'reel.read' },
       { label: 'Translations', path: '/translations', icon: Languages, permission: 'translation.read' },
+      { label: 'Scenes', path: '/scenes', icon: Film, permission: 'scenes.read' },
       { label: 'Reference data', path: '/reference', icon: Library, permission: 'reference.manage' },
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
     ],
