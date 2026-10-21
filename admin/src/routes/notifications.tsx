@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input, Label, Select, Textarea } from '@/components/ui/input';
+import { UserPicker, type PickedUser } from '@/components/user-picker';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect } from '@/components/table-filters';
@@ -32,7 +33,7 @@ export function NotificationsPage() {
   const [target, setTarget] = useState<'audience' | 'topic' | 'user'>('audience');
   const [audience, setAudience] = useState('active');
   const [topicKey, setTopicKey] = useState('');
-  const [userId, setUserId] = useState('');
+  const [user, setUser] = useState<PickedUser | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [viewing, setViewing] = useState<Notification | null>(null);
@@ -63,8 +64,8 @@ export function NotificationsPage() {
         await mutate.mutateAsync({ path: '/api/admin/notifications/topic', method: 'post', body: { topicKey, title, body } });
         setResult({ tone: 'success', text: `Sent to topic "${topicKey}".` });
       } else {
-        await mutate.mutateAsync({ path: `/api/admin/notifications/user/${userId}`, method: 'post', body: { title, body } });
-        setResult({ tone: 'success', text: 'Sent.' });
+        await mutate.mutateAsync({ path: `/api/admin/notifications/user/${user?.id}`, method: 'post', body: { title, body } });
+        setResult({ tone: 'success', text: `Sent to ${user?.email}.` });
       }
       // Only a sent message is cleared — a failed one stays in the form to fix and retry.
       setTitle('');
@@ -133,8 +134,8 @@ export function NotificationsPage() {
           )}
           {target === 'user' && (
             <div>
-              <Label>User id</Label>
-              <Input className="mt-1 w-64" value={userId} onChange={(e) => setUserId(e.target.value)} />
+              <Label>User</Label>
+              <UserPicker value={user} onChange={setUser} />
             </div>
           )}
 
@@ -155,7 +156,7 @@ export function NotificationsPage() {
               !title ||
               !body ||
               (target === 'topic' && !topicKey) ||
-              (target === 'user' && !userId) ||
+              (target === 'user' && !user) ||
               mutate.isPending
             }
           >
