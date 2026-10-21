@@ -104,7 +104,7 @@ dependencies:
   image_picker: ^1.2.4
   # Music from the phone's own files for a reel made in the share studio
   # (services/reel_music_picker.dart).
-  file_picker: ^10.0.0
+  file_picker: ^13.1.0
   speech_to_text: ^7.5.0
 
   # Read only, once: the previous app kept its sign-in token in the plugin's
