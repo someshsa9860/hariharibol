@@ -417,7 +417,7 @@ async function finish(row, status, extra, ctx) {
   });
   service.publishRun(next);
   service.pushFeed(row.id, { kind: 'status', level: status === 'COMPLETED' ? 'success' : status === 'FAILED' ? 'error' : 'info', text: extra.statusMessage });
-  service.forgetCoverage();
+  service.refreshRunProgress(row);
   return next;
 }
 
@@ -444,7 +444,7 @@ async function pause(ctx, decision, job, token) {
     kind: 'status', level: 'warn',
     text: resumeAt ? `${decision.message} Trying again in ${waitWords(decision.retryInMs)}.` : decision.message,
   });
-  service.forgetCoverage();
+  service.refreshRunProgress(row);
   if (resumeAt) {
     await job.moveToDelayed(resumeAt.getTime(), token);
     throw new DelayedError();
@@ -467,5 +467,5 @@ export async function onJobFailed(job, err) {
   });
   service.publishRun(next);
   service.pushFeed(runId, { kind: 'status', level: 'error', text: next.statusMessage });
-  service.forgetCoverage();
+  service.refreshRunProgress(row);
 }

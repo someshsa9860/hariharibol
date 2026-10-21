@@ -20,6 +20,7 @@ export const maintenance = {
     { id: 'recount-books', script: 'recount:books', title: 'Recount book verses', description: 'Rebuilds the verse counts on books, cantos and chapters from the rows.' },
     { id: 'cache-books', script: 'cache:books', title: 'Export the offline books', description: 'Rebuilds the weekly book export the app downloads.' },
     { id: 'backfill-sampradaya', script: 'backfill:sampradaya', title: 'Backfill sampradaya', description: 'Fills the sampradaya on existing rows that lack one.' },
+    { id: 'backfill-translation-progress', script: 'backfill:translation-progress', title: 'Count translations from storage', description: 'Fills the table the Translations page reads from the translated chapter files in S3. Run it once after the release that adds the table; safe to run again, it skips chapters already counted. (The page’s Recount button does the same for one book.)' },
     { id: 'fill-status', script: 'fill:status', title: 'Show fill status', description: 'Reports how much of the Prabhupāda source text is filled. Reads only.' },
   ],
 };

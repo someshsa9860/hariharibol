@@ -3091,3 +3091,29 @@ model Festival {
   @@index([locationKey, date])
   @@index([date, notify])
 }
+
+// What each translated chapter file in S3 holds, counted once and kept here so the admin Translations page reads a
+// table instead of ~3,700 objects. One row per book × chapter × language. The worker rewrites a run's rows when it
+// stops, and Recount (or the first visit, or a new TRANSLATION_VERSION) refills them from S3. See services/translation.js.
+model TranslationProgress {
+  book     String @db.VarChar(40)
+  chapter  Int // the book's chapter id (canto × 100 + chapter for the Bhagavatam)
+  language String @db.VarChar(10)
+
+  total    Int // verses in the chapter
+  saved    Int @default(0) // verses with a translation
+  upToDate Int @default(0) // saved under `version`, or by a person
+  byClaude Int @default(0)
+  scores   Json @default("{}") // { 1, 2, 3, unscored }
+  versions Json @default("{}") // translation version -> verses
+  parts    Json @default("{}") // part -> verses current for it
+  status   String @default("EMPTY") @db.VarChar(10) // EMPTY | PARTIAL | COMPLETE
+  version  String? @db.VarChar(40) // the TRANSLATION_VERSION `upToDate` was worked out under
+  s3Key    String @db.VarChar(200)
+
+  syncedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([book, chapter, language])
+  @@index([book, language])
+}
