@@ -14,6 +14,7 @@ import { ScenesViewer } from '@/components/scenes-viewer';
 import { ProgressBar, StatusBadge, formatCount, timeAgo } from '@/components/translation-bits';
 import { useAuth } from '@/lib/auth';
 import { useSocketStatus } from '@/lib/socket';
+import { useNow } from '@/lib/translation';
 import { useChapters, useSceneRun, useScenesLive, useScenesOverview, useSceneRuns, type ChapterRow, type ScenesOverview, type SceneRun } from '@/lib/scenes';
 import { cn } from '@/lib/utils';
 
@@ -251,7 +252,9 @@ function Limits({ data }: { data: ScenesOverview }) {
   const { limits, model } = data.settings;
   const minute = data.usage.minute;
   const today = data.usage.today;
-  const fresh = minute && Date.now() - new Date(minute.at).getTime() < 90_000;
+  // The worker's window is a sliding minute: a snapshot older than that has emptied itself.
+  const now = useNow(!!minute);
+  const fresh = minute && now - new Date(minute.at).getTime() < 60_000;
   return (
     <Card>
       <CardContent className="grid gap-5 p-4 md:grid-cols-[1fr_1fr_auto] md:items-center">

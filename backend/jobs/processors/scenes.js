@@ -68,6 +68,20 @@ export async function processRun(job, token, deps) {
     return { cancelled: true };
   }
 
+  // Runs go in the order they were made. An earlier one that is waiting, working, or paused to try again by itself comes
+  // first; this one looks again in a few seconds. (One that is paused for a person does not hold the queue up.)
+  const ahead = await runs.findFirst({
+    where: {
+      id: { not: runId }, createdAt: { lt: row.createdAt },
+      OR: [{ status: 'QUEUED' }, { status: 'RUNNING', heartbeatAt: { gt: new Date(Date.now() - scenes.staleHeartbeatSeconds * 1000) } }, { status: 'PAUSED', resumeAt: { not: null } }],
+    },
+    select: { id: true },
+  });
+  if (ahead) {
+    await job.moveToDelayed(Date.now() + scenes.sameBookWaitMs, token);
+    throw new DelayedError();
+  }
+
   const now = new Date();
   const claimed = await runs.updateMany({
     where: { id: runId, jobId: job.id, status: { in: ['QUEUED', 'PAUSED', 'RUNNING'] }, cancelRequested: false },
@@ -203,21 +217,21 @@ async function execute(ctx, entry, deps) {
         signal: entry.controller.signal,
         onWait: (ms, why) => {
           ctx.say('info', `Waiting ${words(ms)} to stay under the model's ${why === 'tokens' ? 'tokens' : 'requests'} a minute limit.`);
-          service.rememberMinute(limiter.usage());
+          service.rememberMinute(limiter.usage(), row);
         },
       });
-      service.rememberMinute(limiter.usage());
+      service.rememberMinute(limiter.usage(), row);
 
       let result;
       try {
         result = await ask({ system: SYSTEM_PROMPT, user: attempt === 1 ? user : `${user}\n\nYour last answer had these problems; fix them: ${problems.join('; ')}.`, schema: SCENES_SCHEMA, maxTokens: scenes.maxTokens });
       } catch (err) {
-        if (err?.usage) count(ctx, row, err.usage, sent, limiter); // a call that was paid for and gave nothing used the tokens too
+        if (err?.usage) await count(ctx, row, err.usage, sent, limiter); // a call that was paid for and gave nothing used the tokens too
         throw err;
       }
-      const used = count(ctx, row, result.usage, sent, limiter);
+      const used = await count(ctx, row, result.usage, sent, limiter);
       usage = { inputTokens: usage.inputTokens + used.inputTokens, outputTokens: usage.outputTokens + used.outputTokens };
-      service.rememberMinute(limiter.usage());
+      service.rememberMinute(limiter.usage(), row);
 
       checked = checkAnswer(result.data, verseRefs);
       if (!checked.ok) {
@@ -247,14 +261,14 @@ async function execute(ctx, entry, deps) {
 }
 
 /** One call's tokens: on the row, in the token calculator, and in the limiter's minute (the provider's count replaces our estimate). */
-function count(ctx, row, usage, sent, limiter) {
+async function count(ctx, row, usage, sent, limiter) {
   const inputTokens = (usage?.inputTokens ?? 0) + (usage?.cacheReadTokens ?? 0) + (usage?.cacheWriteTokens ?? 0);
   const outputTokens = usage?.outputTokens ?? 0;
   ctx.state.calls += 1;
   ctx.state.inputTokens += inputTokens;
   ctx.state.outputTokens += outputTokens;
   limiter.settle(sent, inputTokens);
-  service.countTokens({ provider: row.provider, model: row.model, inputTokens, outputTokens });
+  await service.countTokens({ provider: row.provider, model: row.model, inputTokens, outputTokens });
   ctx.flush();
   return { inputTokens, outputTokens };
 }
