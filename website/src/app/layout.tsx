@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { SITE_URL } from '@/lib/config';
 import { readingLanguage } from '@/lib/prefs/server';
+import { configScript } from '@/lib/runtime-config';
 import { PrefsProvider } from '@/lib/prefs/prefs-provider';
 import { AuthProvider } from '@/lib/auth/auth-provider';
 import { ToastProvider } from '@/components/ui/toast';
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap"
         />
         <script dangerouslySetInnerHTML={{ __html: BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: configScript() }} />
       </head>
       <body>
         <PrefsProvider initialLanguage={language}>

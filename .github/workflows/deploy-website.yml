@@ -87,24 +87,17 @@ jobs:
             exit 1
           fi
 
-      # NEXT_PUBLIC_* values are baked into the browser bundle at build time, so they are build arguments.
-      # The four sign-in / App Check ones are optional: left unset, the site builds and only sign-in is off.
+      # The three addresses are baked into the browser bundle at build time, so they are build arguments. The sign-in
+      # and App Check values are not here: the container reads them from the server's .env when it starts
+      # (deploy/server/website.sh), so no GitHub secret is needed for them.
       - name: Build and push website image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.WEBSITE_GOOGLE_CLIENT_ID }}
-          NEXT_PUBLIC_APPLE_CLIENT_ID: ${{ secrets.WEBSITE_APPLE_CLIENT_ID }}
-          NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.WEBSITE_FIREBASE_CONFIG }}
-          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.WEBSITE_RECAPTCHA_SITE_KEY }}
         run: |
           docker build \
             --build-arg NEXT_PUBLIC_SITE_URL=https://hariharibol.com \
             --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.hariharibol.com \
             --build-arg NEXT_PUBLIC_APPLE_REDIRECT_URI=https://hariharibol.com/ \
-            --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID="$NEXT_PUBLIC_GOOGLE_CLIENT_ID" \
-            --build-arg NEXT_PUBLIC_APPLE_CLIENT_ID="$NEXT_PUBLIC_APPLE_CLIENT_ID" \
-            --build-arg NEXT_PUBLIC_FIREBASE_CONFIG="$NEXT_PUBLIC_FIREBASE_CONFIG" \
-            --build-arg NEXT_PUBLIC_RECAPTCHA_SITE_KEY="$NEXT_PUBLIC_RECAPTCHA_SITE_KEY" \
             -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
             -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" \
             website

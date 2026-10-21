@@ -3,8 +3,30 @@ set -e
 source "$(dirname "$0")/common.sh"
 
 # The website is a Next.js server in its own image (hariharibol-website, built by deploy-website.yml);
-# ./pull.sh website fetches it. NEXT_PUBLIC_* values are already inside the image. API_BASE_URL is only how this
-# server reaches the API when it renders a page.
+# ./pull.sh website fetches it. The image holds no settings of its own: the sign-in values come from the same
+# server/.env the backend reads, so changing one is an edit there and `./deploy.sh website` (a restart, no rebuild).
+#
+# Only the WEBSITE_* keys are handed over, never the whole file — it also holds the database URL, the JWT secret, the
+# AWS and AI keys, and a web server has no use for them. The file is read line by line instead of sourced because its
+# values contain & and ?; a value may be wrapped in one pair of quotes (docker's --env-file would keep them).
+env_value () {
+  local line
+  line="$(grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -n 1 || true)"
+  line="${line#*=}"
+  line="${line%$'\r'}"
+  if [[ "$line" =~ ^\"(.*)\"$ || "$line" =~ ^\'(.*)\'$ ]]; then line="${BASH_REMATCH[1]}"; fi
+  printf '%s' "$line"
+}
+
+# API_BASE_URL is how this server reaches the API when it renders a page (the backend's own API_BASE_URL is another
+# thing and is never passed on).
+api_url="$(env_value WEBSITE_API_URL)"
+env_args=(-e "API_BASE_URL=${api_url:-https://api.hariharibol.com}")
+for key in WEBSITE_GOOGLE_CLIENT_ID WEBSITE_APPLE_CLIENT_ID WEBSITE_FIREBASE_CONFIG WEBSITE_RECAPTCHA_SITE_KEY; do
+  value="$(env_value "$key")"
+  [ -z "$value" ] || env_args+=(-e "$key=$value")
+done
+
 stop_remove_container hariharibol-website
 
 docker run -d \
@@ -17,5 +39,5 @@ docker run -d \
   --log-opt max-size=10m \
   --log-opt max-file=3 \
   -e NODE_OPTIONS="--max-old-space-size=$WEBSITE_HEAP_MB" \
-  -e API_BASE_URL="${WEBSITE_API_URL:-https://api.hariharibol.com}" \
+  "${env_args[@]}" \
   "$WEBSITE_IMAGE"

@@ -18,10 +18,16 @@ Sakha. Next.js (App Router) + TypeScript, plain hand-written CSS, no UI library.
   The site's own wording is English only; verses, meanings, titles and mantras follow the reading language.
 - **Sign-in is Google or Apple** (`lib/auth/social.ts`): the browser gets an identity token, `POST /auth/social` verifies it
   and returns the session. Tokens live in `localStorage` (`lib/auth/session-store.ts`); `lib/api/client.ts` renews them on a
-  403 `UNAUTHENTICATED` exactly as the app does. Needs `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (and the same id in the API's
-  `GOOGLE_CLIENT_IDS`); Apple needs `NEXT_PUBLIC_APPLE_CLIENT_ID` + redirect URI (and the Services ID in `APPLE_BUNDLE_IDS`).
-  Where the API runs with `APP_CHECK_ENABLED=true`, set `NEXT_PUBLIC_FIREBASE_CONFIG` and `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` —
-  `lib/auth/app-check.ts` then sends the App Check token on sign-in. See `.env.example`.
+  403 `UNAUTHENTICATED` exactly as the app does. Needs `WEBSITE_GOOGLE_CLIENT_ID` (and the same id in the API's
+  `GOOGLE_CLIENT_IDS`); Apple needs `WEBSITE_APPLE_CLIENT_ID` + `NEXT_PUBLIC_APPLE_REDIRECT_URI` (and the Services ID in
+  `APPLE_BUNDLE_IDS`). Where the API runs with `APP_CHECK_ENABLED=true`, set `WEBSITE_FIREBASE_CONFIG` and
+  `WEBSITE_RECAPTCHA_SITE_KEY` — `lib/auth/app-check.ts` then sends the App Check token on sign-in. See `.env.example`.
+- **The four `WEBSITE_*` sign-in values are read at run time, not build time** (`lib/runtime-config.ts`): the server reads
+  `process.env` on each request, the root layout writes them into the page as `window.__HHB_CONFIG__`, and the browser code
+  reads them back through `runtimeConfig()` — so `googleEnabled()` / `appleEnabled()` are functions, not constants. They
+  are public values (a browser needs them), nothing secret goes through that path. Never name one `NEXT_PUBLIC_*`: that is
+  written into the bundle by `next build` and could not be changed on a running container. On the server they live in the
+  backend's own `.env` (below).
 - **Śrīla Prabhupāda is not named yet** beside his translations (verse card, compare sheet) until permission is given:
   `SHOW_AUTHOR_NAME` in `lib/config.ts` (false), matched on `AUTHOR_SLUG`. Show a credit through `creditName()`
   (`lib/format.ts`), never `translator.name`. The app has the same switch (`AppConfig.showAuthorName`).
@@ -96,13 +102,19 @@ Point it at a local API with `NEXT_PUBLIC_API_BASE_URL` in `.env.local` (see `.e
 `website/Dockerfile` builds the site into one small image (`npm run build`, then only `.next/standalone` is copied into a
 `node:22-alpine` runtime that runs as the `node` user under tini). `.github/workflows/deploy-website.yml` — which, like the
 backend and admin workflows, runs only for the `production` branch — typechecks and builds, then builds that image with the
-`NEXT_PUBLIC_*` values as build arguments (the addresses are in the workflow; `WEBSITE_GOOGLE_CLIENT_ID`,
-`WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG` and `WEBSITE_RECAPTCHA_SITE_KEY` are optional secrets), pushes it to
-the ECR repository `hariharibol-website` as `:<sha>` and `:latest`, and runs `deploy/server/deploy.sh website` over SSH: pull
-the image, restart `hariharibol-website` on `127.0.0.1:8081` (the port the host's web server already proxies). The smoke
-check greps the home page for its headline. A `NEXT_PUBLIC_*` value cannot be changed on a running container — it is in the
-browser bundle — so changing one means a new build. The API's `WEB_BASE_URL` must be the site's origin (CORS), and
-`GOOGLE_CLIENT_IDS` must include the web client id.
+three addresses (`NEXT_PUBLIC_*`, written in the workflow) as build arguments, pushes it to the ECR repository
+`hariharibol-website` as `:<sha>` and `:latest`, and runs `deploy/server/deploy.sh website` over SSH: pull the image,
+restart `hariharibol-website` on `127.0.0.1:8081` (the port the host's web server already proxies). The smoke check greps
+the home page for its headline. A `NEXT_PUBLIC_*` value cannot be changed on a running container — it is in the browser
+bundle — so changing one means a new build.
+
+**The container's settings come from the backend's `.env`**, `/var/www/hariharibol/server/.env`, not from GitHub secrets:
+`deploy/server/website.sh` reads `WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG`,
+`WEBSITE_RECAPTCHA_SITE_KEY` and optionally `WEBSITE_API_URL` (how the container reaches the API; not the backend's own
+`API_BASE_URL`, which is never passed on) from it and gives the container only those, with `-e`, never the whole file (it
+holds the database URL, the JWT secret and the AWS and AI keys). After editing the file, `cd /var/www/hariharibol/server &&
+./deploy.sh website` restarts the container with the new values — no build. The API's `WEB_BASE_URL` must be the site's
+origin (CORS), `GOOGLE_CLIENT_IDS` must include the web client id and `APPLE_BUNDLE_IDS` the Apple Services ID.
 
 The sitemap files are made at build time from the API (`app/sitemap.ts`), so a build made while the API is down ships an
 empty sitemap until the next deploy. The build itself still succeeds.
@@ -116,8 +128,11 @@ audio, the production deploy. The 404 status of unknown chapters, verses and man
 The standalone build was run as the container will run it (a bare copy of `.next/standalone`, the container's env vars)
 and answered every page checked, the static files and `public/`. **First deployed 2026-10-21** by `deploy-website.yml` (built in
 CI, pushed to ECR, pulled and started on the server); on the live site the home page, `/read`, `/jap`, `/plans`, `/sources`, the
-sitemap files (about 13,700 verse URLs) and a 404 were checked. Not checked live: sign-in (the `WEBSITE_*` secrets are unset, so
-no web client id is in the bundle) and reels while signed out (the live API answers a signed-out `GET /api/app/reels` with 403
-until the backend on `main` is released).
+sitemap files (about 13,700 verse URLs) and a 404 were checked. Not checked live: sign-in (no `WEBSITE_*` key is in the
+server's `.env` yet, so no web client id reaches the page) and reels while signed out (the live API answers a signed-out
+`GET /api/app/reels` with 403 until the backend on `main` is released). The run-time config was checked on a build made with no
+sign-in values: the standalone server, started with the four `WEBSITE_*` variables, wrote them into the page (a `</script>` inside
+a value came out escaped) and none of them is in `.next/static`; `website.sh`'s reading of the `.env` was run against a stub
+`docker` (CRLF line ends, quoted values, an empty key, a missing file; no backend key reaches the container).
 
 - **Story mode** (`components/read/story-reader.tsx`): Reading settings → *Reading style*, or the Story button on the reader bar. One part of every verse (Sanskrit, transliteration, meaning, purport) as running text with small verse numbers; clicking a verse opens play / save / copy / open. Kept in `usePrefs().reader` (`mode`, `storyPart`, `storyNumbers`). Same behaviour as the app's story mode; not tried against a live API in a browser.

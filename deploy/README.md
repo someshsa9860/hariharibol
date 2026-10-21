@@ -160,7 +160,11 @@ Add these under **Settings → Secrets and variables → Actions**.
 | `DEPLOY_USER` | SSH user, normally `ubuntu` |
 | `DEPLOY_SSH_KEY` | Full private SSH key contents |
 | `DEPLOY_PATH` | Server folder, `/var/www/hariharibol` |
-| `WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG`, `WEBSITE_RECAPTCHA_SITE_KEY` | Optional, for the website's sign-in and App Check (see `website/.env.example`). They are baked into the public bundle. Unset, the site builds and only sign-in is off. |
+
+The website's sign-in and App Check values (`WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`,
+`WEBSITE_FIREBASE_CONFIG`, `WEBSITE_RECAPTCHA_SITE_KEY`) are **not** GitHub secrets: they go in the server's `.env`, the
+file the backend reads (`/var/www/hariharibol/server/.env`). `website.sh` hands the container only those keys, never the
+rest of the file, and `./deploy.sh website` on the server applies a change with a restart — no build.
 
 **Variables** (not secret):
 
