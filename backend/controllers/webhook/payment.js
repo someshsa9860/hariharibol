@@ -17,13 +17,19 @@
 //      retries harder, and a handler that does its work after responding is
 //      easier to reason about than one holding the connection open.
 
+import crypto from 'node:crypto';
+import { OAuth2Client } from 'google-auth-library';
+
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import env from '../../config/env.js';
 import * as payments from '../../services/payments/index.js';
 import * as entitlement from '../../services/entitlement.js';
 import { ok } from '../../utils/respond.js';
-import { forbidden } from '../../utils/errors.js';
+import { forbidden, AppError } from '../../utils/errors.js';
+import * as lifecycle from '../../services/payments/lifecycle.js';
+import * as google_ from '../../services/payments/google.js';
+import * as apple_ from '../../services/payments/apple.js';
 
 /**
  * POST /api/webhooks/razorpay
@@ -104,6 +110,41 @@ export const razorpay = async (req, res) => {
   return ok(res, { received: true });
 };
 
+// A store lookup that failed for a reason that may pass (the store is down, our
+// credentials expired) must answer with an error so the sender retries: Pub/Sub
+// redelivers for days, Apple a handful of times. A purchase the store does not know,
+// or one we cannot attach to anybody, is final — that is answered 200.
+const isTransient = (err) => err instanceof AppError && err.status >= 500;
+
+const sameSecret = (a, b) => {
+  const left = Buffer.from(String(a || ''));
+  const right = Buffer.from(String(b || ''));
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+};
+
+let oidc = null;
+
+// Pub/Sub push proves itself one of two ways: a Google-signed token in the
+// Authorization header (the subscription's "authentication" setting; audience and
+// service account in the env), or a shared secret on the URL. Either is enough.
+// Neither configured is refused in production — an open endpoint would let anyone
+// make us re-read a purchase.
+async function pubsubAuthorised(req) {
+  const bearer = req.get('Authorization')?.replace(/^Bearer /i, '');
+  if (env.PUBSUB_AUDIENCE && bearer) {
+    try {
+      oidc ??= new OAuth2Client();
+      const ticket = await oidc.verifyIdToken({ idToken: bearer, audience: env.PUBSUB_AUDIENCE });
+      const claims = ticket.getPayload();
+      if (!env.PUBSUB_SERVICE_ACCOUNT_EMAIL || claims.email === env.PUBSUB_SERVICE_ACCOUNT_EMAIL) return true;
+    } catch (err) {
+      logger.warn({ err: err.message }, 'pubsub token did not verify');
+    }
+  }
+  if (env.PUBSUB_VERIFICATION_TOKEN) return sameSecret(req.query.token, env.PUBSUB_VERIFICATION_TOKEN);
+  return !env.isProduction && !env.PUBSUB_AUDIENCE;
+}
+
 /**
  * POST /api/webhooks/google
  *
@@ -112,60 +153,90 @@ export const razorpay = async (req, res) => {
  * always re-read from the Play API before anything is written.
  */
 export const google = async (req, res) => {
-  // Pub/Sub push subscriptions authenticate with a shared token on the URL. It
-  // is the mechanism Google offers for this; keep the URL out of logs.
-  if (env.NODE_ENV === 'production' && req.query.token !== env.PUBSUB_VERIFICATION_TOKEN) {
-    logger.warn({ ip: req.ip }, 'google webhook token rejected');
+  if (!(await pubsubAuthorised(req))) {
+    logger.warn({ ip: req.ip }, 'google webhook not authorised');
     throw forbidden('Not authorised');
   }
 
   const encoded = req.body?.message?.data;
   if (!encoded) return ok(res, { received: true });
 
-  const payload = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
-  const notification = payload.subscriptionNotification || payload.oneTimeProductNotification;
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
+  } catch {
+    return ok(res, { received: true });
+  }
 
-  logger.info({ type: notification?.notificationType }, 'google play webhook');
-
-  if (!notification) return ok(res, { received: true });
-
-  const { purchaseToken, subscriptionId, sku } = notification;
-
-  // The notification says nothing about which user this is. The purchase token
-  // does — it is what we stored as `externalId` when the client verified, and
-  // it stays the same across every renewal. A notification for a purchase we
-  // never saw is logged and dropped rather than guessed at.
-  const existing = await prisma.subscription.findUnique({
-    where: { provider_externalId: { provider: 'GOOGLE_PLAY', externalId: purchaseToken } },
-    select: { userId: true, planId: true },
-  });
-
-  if (!existing) {
-    logger.warn({ sku: subscriptionId || sku }, 'google notification for an unknown purchase');
+  if (payload.packageName && env.GOOGLE_PLAY_PACKAGE_NAME && payload.packageName !== env.GOOGLE_PLAY_PACKAGE_NAME) {
+    logger.warn({ packageName: payload.packageName }, 'google notification for another app');
+    return ok(res, { received: true });
+  }
+  if (payload.testNotification) {
+    logger.info('google play test notification received');
     return ok(res, { received: true });
   }
 
   try {
-    const verified = await payments.providers.GOOGLE_PLAY.verifySubscription({
-      productId: subscriptionId || sku,
-      purchaseToken,
-    });
+    // Refunds and chargebacks.
+    const voided = payload.voidedPurchaseNotification;
+    if (voided) {
+      logger.info({ productType: voided.productType, refundType: voided.refundType }, 'google voided purchase');
+      if (voided.productType === 2) {
+        await payments.markRefunded({ provider: 'GOOGLE_PLAY', externalId: voided.orderId });
+      } else {
+        await lifecycle.applyRefund({
+          provider: 'GOOGLE_PLAY',
+          orderId: voided.orderId,
+          subscriptionExternalId: voided.purchaseToken,
+        });
+      }
+      return ok(res, { received: true });
+    }
 
-    await payments.upsertSubscription({
-      userId: existing.userId,
-      planId: existing.planId,
-      provider: 'GOOGLE_PLAY',
-      externalId: verified.externalId,
-      status: verified.isValid ? 'ACTIVE' : 'EXPIRED',
-      currentPeriodEnd: verified.expiresAt,
-      autoRenew: verified.autoRenew,
-    });
+    const notification = payload.subscriptionNotification;
+    if (!notification) {
+      logger.debug('google notification ignored (not a subscription)');
+      return ok(res, { received: true });
+    }
+
+    const type = google_.NOTIFICATION_TYPES[notification.notificationType] || String(notification.notificationType);
+    logger.info({ type }, 'google play subscription notification');
+
+    if (type === 'REVOKED') {
+      await lifecycle.applyRefund({ provider: 'GOOGLE_PLAY', subscriptionExternalId: notification.purchaseToken });
+      return ok(res, { received: true });
+    }
+
+    const verified = await google_.verifySubscription({ purchaseToken: notification.purchaseToken });
+    await lifecycle.applyStoreState({ provider: 'GOOGLE_PLAY', verified, event: type });
+
+    // Google refunds a purchase nobody acknowledges within three days.
+    if (['PURCHASED', 'RESTARTED', 'RECOVERED'].includes(type) && verified.productId) {
+      await google_.acknowledge({ productId: verified.productId, purchaseToken: notification.purchaseToken });
+    }
   } catch (err) {
-    logger.error({ err: err.message }, 'google notification could not be verified');
+    if (isTransient(err)) throw err;
+    logger.error({ err: err.message }, 'google notification could not be applied');
   }
 
   return ok(res, { received: true });
 };
+
+// Apple notification types that mean "look at this subscription again".
+const APPLE_RESYNC = new Set([
+  'SUBSCRIBED',
+  'DID_RENEW',
+  'DID_CHANGE_RENEWAL_STATUS',
+  'DID_CHANGE_RENEWAL_PREF',
+  'DID_FAIL_TO_RENEW',
+  'EXPIRED',
+  'GRACE_PERIOD_EXPIRED',
+  'OFFER_REDEEMED',
+  'RENEWAL_EXTENDED',
+  'RENEWAL_EXTENSION',
+  'PRICE_INCREASE',
+]);
 
 /**
  * POST /api/webhooks/apple
@@ -181,50 +252,40 @@ export const apple = async (req, res) => {
 
   let notification;
   try {
-    notification = payments.providers.APPLE_APP_STORE.decodeNotification(signedPayload);
+    notification = apple_.decodeNotification(signedPayload);
   } catch (err) {
     logger.warn({ err: err.message }, 'apple notification could not be decoded');
     return ok(res, { received: true });
   }
 
-  const originalTransactionId = notification.transaction?.originalTransactionId;
-  logger.info({ type: notification.type, subtype: notification.subtype }, 'apple webhook');
+  const { type, subtype } = notification;
+  logger.info({ type, subtype }, 'apple webhook');
 
-  if (!originalTransactionId) return ok(res, { received: true });
-
-  const subscription = await prisma.subscription.findFirst({
-    where: { provider: 'APPLE_APP_STORE', externalId: originalTransactionId },
-    select: { userId: true, planId: true },
-  });
-
-  if (!subscription) {
-    logger.warn({ originalTransactionId }, 'apple notification for an unknown subscription');
+  if (env.appleBundleIds.length && notification.bundleId && !env.appleBundleIds.includes(notification.bundleId)) {
+    logger.warn({ bundleId: notification.bundleId }, 'apple notification for another app');
     return ok(res, { received: true });
   }
 
+  const originalTransactionId = notification.transaction?.originalTransactionId;
+  if (!originalTransactionId) return ok(res, { received: true });
+
   try {
-    if (notification.type === 'REFUND') {
-      await payments.markRefunded({
+    if (type === 'REFUND' || type === 'REVOKE') {
+      await lifecycle.applyRefund({
         provider: 'APPLE_APP_STORE',
-        externalId: notification.transaction.transactionId,
+        orderId: notification.transaction.transactionId,
+        subscriptionExternalId: originalTransactionId,
       });
       return ok(res, { received: true });
     }
 
-    const verified =
-      await payments.providers.APPLE_APP_STORE.verifySubscription(originalTransactionId);
+    if (!APPLE_RESYNC.has(type)) return ok(res, { received: true });
 
-    await payments.upsertSubscription({
-      userId: subscription.userId,
-      planId: subscription.planId,
-      provider: 'APPLE_APP_STORE',
-      externalId: verified.externalId,
-      status: verified.isValid ? 'ACTIVE' : 'EXPIRED',
-      currentPeriodEnd: verified.expiresAt,
-      autoRenew: verified.autoRenew,
-    });
+    const verified = await apple_.verifySubscription(originalTransactionId);
+    await lifecycle.applyStoreState({ provider: 'APPLE_APP_STORE', verified, event: subtype ? `${type}/${subtype}` : type, subtype });
   } catch (err) {
-    logger.error({ err: err.message }, 'apple notification could not be verified');
+    if (isTransient(err)) throw err;
+    logger.error({ err: err.message }, 'apple notification could not be applied');
   }
 
   return ok(res, { received: true });

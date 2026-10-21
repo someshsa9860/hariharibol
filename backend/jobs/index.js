@@ -39,6 +39,8 @@ const JOBS = {
   FINANCE_REMIND: 'finance.remind',
   PREFERENCES_REBUILD: 'preferences.rebuild',
   ENTITLEMENT_SWEEP: 'entitlement.sweep',
+  SUBSCRIPTION_RECONCILE: 'subscription.reconcile',
+  PAYMENT_FX_BACKFILL: 'payment.fx.backfill',
   AUDIT_PRUNE: 'audit.prune',
   AI_CREDITS_MAINTAIN: 'ai.credits.maintain',
   CHANT_TRANSCRIPTS_PRUNE: 'chant.transcripts.prune',

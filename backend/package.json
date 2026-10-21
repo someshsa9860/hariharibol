@@ -47,6 +47,7 @@
     "test:admin-sloka": "node scripts/admin-sloka-e2e.js",
     "test:sloka-deliver": "AWS_ACCESS_KEY_ID= AWS_SECRET_ACCESS_KEY= node scripts/sloka-deliver-e2e.js",
     "test:subscriptions": "node scripts/subscription-e2e.js",
+    "test:store-subscriptions": "node scripts/store-subscriptions-e2e.js",
     "test:reel-recipes": "node scripts/reel-recipes-e2e.js",
     "test:chant": "node scripts/chant-e2e.js",
     "test:routine": "node scripts/routine-e2e.js",

@@ -64,7 +64,14 @@ class PurchaseService {
   /// a return value: a purchase can complete seconds later, or after a restart.
   Future<void> buy(ProductDetails product) async {
     start();
-    await _store.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: product));
+    // The account id travels with the purchase (Google keeps it as the obfuscated account id), so a store
+    // notification that arrives before the app has verified can still be tied to this reader.
+    await _store.buyNonConsumable(
+      purchaseParam: PurchaseParam(
+        productDetails: product,
+        applicationUserName: AppSession.instance.user?.id,
+      ),
+    );
   }
 
   /// Asks the store to re-send what this account already owns.

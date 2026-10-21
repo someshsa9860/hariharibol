@@ -524,6 +524,19 @@ splitting them would mean maintaining two of everything.
 every provider retries webhooks — without that constraint a retry credits the
 user twice. Store money as integer minor units (paise, cents); floats drift.
 
+### Store subscriptions and revenue
+
+Google Play (Pub/Sub RTDN) and App Store (Server Notifications V2) both end in `services/payments/lifecycle.js`
+(`applyStoreState`, `applyRefund`, `reconcile`): subscription status, one `Payment` per charge (a free trial is a row of 0,
+`isTrial`), and a push to the reader on subscribe / upgrade / renewal / cancel / grace / expiry / refund. `google.js` and
+`apple.js` only normalise the store's answer. Every payment stores, once, its original amount and currency, **`grossInrMinor`,
+`commissionInrMinor`, `netInrMinor`** (paise), the rate used and where it came from (`money.js`, `fx.js`; Frankfurter then
+open.er-api.com, cached per day in `FxRate`). Commission is a configured rate (`PLAY_COMMISSION_RATE`, `APPLE_COMMISSION_RATE`,
+`RAZORPAY_FEE_RATE`) because the stores do not report it. Credentials are file paths (`GOOGLE_PLAY_SERVICE_ACCOUNT_PATH`,
+`APPLE_PRIVATE_KEY_PATH`). Worker jobs `subscription.reconcile` (6-hourly) and `payment.fx.backfill` (daily). Console steps and
+limits: [docs/store-subscriptions.md](docs/store-subscriptions.md). `npm run test:store-subscriptions` (needs only the database
+and Redis). **Not run against the real stores. Production needs `prisma migrate deploy` for `20261101000000_store_revenue`.**
+
 ## Server wording in the user's language
 
 What the server says in its own voice — error messages and the daily sloka's title — is in the person's language;

@@ -57,6 +57,18 @@ const schedules = [
     description: 'Rebuild UserPreferenceProfile from the last 8 weeks of activity.',
   },
   {
+    name: 'subscription.reconcile',
+    queue: 'payment',
+    cron: '10 */6 * * *',
+    description: 'Re-read from Google Play / the App Store every subscription whose paid period has run out, in case a notification was missed.',
+  },
+  {
+    name: 'payment.fx.backfill',
+    queue: 'payment',
+    cron: '45 0 * * *',
+    description: 'Convert payments recorded while no exchange rate was available to INR.',
+  },
+  {
     name: 'entitlement.sweep',
     queue: 'payment',
     cron: '30 0 * * *',

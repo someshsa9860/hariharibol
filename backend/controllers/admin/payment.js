@@ -99,8 +99,28 @@ export const summary = async (req, res) => {
     _count: { _all: true },
   });
 
+  // The figure that matters: everything in rupees, as recorded when each payment was
+  // made (money.js). Free trials are rows of 0 and add nothing.
+  const inr = await prisma.payment.groupBy({
+    by: ['purpose'],
+    where: { status: 'SUCCEEDED', paidAt: { gte: from } },
+    _sum: { grossInrMinor: true, commissionInrMinor: true, netInrMinor: true },
+    _count: { _all: true },
+  });
+  const trials = await prisma.payment.count({ where: { isTrial: true, createdAt: { gte: from } } });
+
   return ok(res, {
     from,
+    inr: {
+      trials,
+      byPurpose: inr.map((row) => ({
+        purpose: row.purpose,
+        count: row._count._all,
+        grossInrMinor: row._sum.grossInrMinor || 0,
+        commissionInrMinor: row._sum.commissionInrMinor || 0,
+        netInrMinor: row._sum.netInrMinor || 0,
+      })),
+    },
     totals: rows.map((row) => ({
       purpose: row.purpose,
       currency: row.currency,
