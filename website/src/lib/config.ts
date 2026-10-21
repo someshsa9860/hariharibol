@@ -18,6 +18,8 @@ export const FIREBASE_CONFIG = process.env.NEXT_PUBLIC_FIREBASE_CONFIG ?? '';
 export const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '';
 
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sss.ramkrishnahari';
+/** The App Store listing, once there is one. Blank means no App Store button anywhere (a listing is never invented). */
+export const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL?.trim() || null;
 export const CONTACT_EMAIL = 'hello@hariharibol.com';
 export const APP_VERSION = '2.0.0';
 
