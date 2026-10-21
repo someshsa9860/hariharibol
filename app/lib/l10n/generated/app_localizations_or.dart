@@ -1727,6 +1727,9 @@ class AppLocalizationsOr extends AppLocalizations {
   String get pushChannelName => 'ଦୈନିକ ଶ୍ଳୋକ ଏବଂ ସୂଚନା';
 
   @override
+  String get pushQuietChannelName => 'ଶାନ୍ତ ସୂଚନା';
+
+  @override
   String get readingSectionVerse => 'ଶ୍ଳୋକ';
 
   @override

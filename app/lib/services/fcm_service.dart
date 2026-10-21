@@ -8,6 +8,8 @@ import 'api_client.dart';
 import 'device_service.dart';
 import 'firebase_service.dart';
 import 'push_analytics.dart';
+import 'local_push_service.dart';
+import 'push_actions.dart';
 import 'push_link.dart';
 
 /// Push.
@@ -43,6 +45,8 @@ class FcmService {
 
     try {
       final messaging = FirebaseMessaging.instance;
+      // Pushes with buttons arrive as data only and are drawn by the app.
+      FirebaseMessaging.onBackgroundMessage(pushBackgroundHandler);
       messaging.onTokenRefresh.listen(_sendToken);
       // iOS draws a push that arrives while the app is open only when asked to;
       // Android never does, which is what `PushForeground` is for.
@@ -52,6 +56,7 @@ class FcmService {
       FirebaseMessaging.onMessage.listen((message) => PushAnalytics.instance.delivered(message.data));
       PushLinks.instance.onTapped =
           (data, route) => PushAnalytics.instance.opened(data, screen: route);
+      await PushActionChannel.instance.start();
       if (kDebugMode) await _logDelivery(messaging);
 
       final launchedBy = await messaging.getInitialMessage();

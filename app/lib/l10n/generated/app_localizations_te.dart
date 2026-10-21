@@ -1732,6 +1732,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get pushChannelName => 'రోజువారీ శ్లోకం మరియు సూచనలు';
 
   @override
+  String get pushQuietChannelName => 'నిశ్శబ్ద నోటిఫికేషన్లు';
+
+  @override
   String get readingSectionVerse => 'శ్లోకం';
 
   @override

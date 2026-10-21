@@ -1727,6 +1727,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get pushChannelName => 'ਰੋਜ਼ਾਨਾ ਸ਼ਲੋਕ ਅਤੇ ਸੂਚਨਾਵਾਂ';
 
   @override
+  String get pushQuietChannelName => 'ਸ਼ਾਂਤ ਸੂਚਨਾਵਾਂ';
+
+  @override
   String get readingSectionVerse => 'ਸ਼ਲੋਕ';
 
   @override

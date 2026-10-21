@@ -1723,6 +1723,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pushChannelName => 'Daily sloka and updates';
 
   @override
+  String get pushQuietChannelName => 'Quiet updates';
+
+  @override
   String get readingSectionVerse => 'Verse';
 
   @override

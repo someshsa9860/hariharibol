@@ -1722,6 +1722,9 @@ class AppLocalizationsGu extends AppLocalizations {
   String get pushChannelName => 'દૈનિક શ્લોક અને સૂચનાઓ';
 
   @override
+  String get pushQuietChannelName => 'શાંત સૂચનાઓ';
+
+  @override
   String get readingSectionVerse => 'શ્લોક';
 
   @override

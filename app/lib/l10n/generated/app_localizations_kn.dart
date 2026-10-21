@@ -1729,6 +1729,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get pushChannelName => 'ದೈನಿಕ ಶ್ಲೋಕ ಮತ್ತು ಸೂಚನೆಗಳು';
 
   @override
+  String get pushQuietChannelName => 'ಶಾಂತ ಅಧಿಸೂಚನೆಗಳು';
+
+  @override
   String get readingSectionVerse => 'ಶ್ಲೋಕ';
 
   @override

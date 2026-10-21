@@ -1739,6 +1739,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get pushChannelName => 'ദിവസേനയുള്ള ശ്ലോകവും അറിയിപ്പുകളും';
 
   @override
+  String get pushQuietChannelName => 'നിശ്ശബ്ദ അറിയിപ്പുകൾ';
+
+  @override
   String get readingSectionVerse => 'ശ്ലോകം';
 
   @override

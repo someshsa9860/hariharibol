@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/constants/push_config.dart';
@@ -17,8 +18,14 @@ import 'push_link.dart';
 /// this — `setForegroundNotificationPresentationOptions` (in `FcmService`) makes
 /// the system draw it.
 ///
-/// **Writes no words.** The channel's name is passed in by a widget that has a
-/// `BuildContext` ([ensureChannel], [show]); the title and body are the push's.
+/// Also draws the pushes that carry action buttons, which reach Android as data
+/// only (`backend/utils/push-message.js`): FCM cannot draw buttons, so the app
+/// does, from [pushBackgroundHandler] when it is not open and from
+/// `PushForeground` when it is. A button press opens the app at that button's own
+/// link ([PushLinks.tapped] with an `actionId`).
+///
+/// **Writes no words.** The channels' names are passed in by a widget that has a
+/// `BuildContext` ([ensureChannels], [show]); the title and body are the push's.
 class LocalPushService {
   LocalPushService._();
 
@@ -35,6 +42,7 @@ class LocalPushService {
 
   Future<bool>? _ready;
   String? _channelName;
+  String? _quietChannelName;
   int _nextId = 0;
 
   /// Only Android needs this (see above).
@@ -51,14 +59,14 @@ class LocalPushService {
         settings: const InitializationSettings(
           android: AndroidInitializationSettings(PushConfig.androidSmallIcon),
         ),
-        onDidReceiveNotificationResponse: (response) => _tapped(response.payload),
+        onDidReceiveNotificationResponse: (response) => _tapped(response.payload, response.actionId),
       );
 
       // A notification drawn here and tapped after the app was closed starts it
       // with the tap as the launch reason.
       final launch = await _plugin.getNotificationAppLaunchDetails();
       if (launch?.didNotificationLaunchApp ?? false) {
-        _tapped(launch?.notificationResponse?.payload);
+        _tapped(launch?.notificationResponse?.payload, launch?.notificationResponse?.actionId);
       }
       return true;
     } catch (error) {
@@ -67,38 +75,54 @@ class LocalPushService {
     }
   }
 
-  /// Makes sure the push channel exists under [name], so a push drawn by the
-  /// system — app closed — is on a channel the reader can recognise in settings
-  /// and that appears on screen. Safe to repeat: it renames, and leaves alone
-  /// whatever the reader has set on it.
-  Future<void> ensureChannel(String name) async {
-    if (name == _channelName || !await _init()) return;
+  /// Makes sure both push channels exist, so a push drawn by the system — app
+  /// closed — is on a channel the reader can recognise in settings and that
+  /// appears on screen. `default` pops up with sound; `updates` is the quiet one
+  /// an admin's "quiet" push names. Safe to repeat: it renames, and leaves alone
+  /// whatever the reader has set on them.
+  Future<void> ensureChannels(String name, String quietName) async {
+    if (name == _channelName && quietName == _quietChannelName) return;
+    if (!await _init()) return;
     try {
-      await _plugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(
-            AndroidNotificationChannel(PushConfig.androidChannelId, name, importance: Importance.high),
-          );
+      final android =
+          _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.createNotificationChannel(
+        AndroidNotificationChannel(PushConfig.androidChannelId, name, importance: Importance.high),
+      );
+      await android?.createNotificationChannel(
+        AndroidNotificationChannel(PushConfig.androidQuietChannelId, quietName, importance: Importance.low),
+      );
       _channelName = name;
+      _quietChannelName = quietName;
     } catch (error) {
-      debugPrint('Push channel could not be created: $error');
+      debugPrint('Push channels could not be created: $error');
     }
   }
 
-  /// Shows a push that arrived while the app was open. [data] is the push's
-  /// payload and comes back, to open what it points at, when the reader taps.
+  /// Shows a push that arrived while the app was open, or a data-only one with
+  /// buttons. [data] is the push's payload and comes back, to open what it points
+  /// at, when the reader taps.
+  ///
+  /// `style` in the payload is `text` for the whole body with no picture;
+  /// anything else draws the picture big when there is one. `importance` is
+  /// `quiet` for the quiet channel. The two buttons come from `actions`.
   Future<void> show({
     required String channelName,
+    String? quietChannelName,
     required Map<String, dynamic> data,
     String? title,
     String? body,
     String? imageUrl,
   }) async {
     if (!await _init()) return;
-    await ensureChannel(channelName);
+    if (quietChannelName != null) await ensureChannels(channelName, quietChannelName);
+
+    final quiet = data[PushConfig.importanceKey]?.toString() == PushConfig.importanceQuiet;
+    final bigText = data[PushConfig.styleKey]?.toString() == PushConfig.styleText;
+    final channelId = quiet ? PushConfig.androidQuietChannelId : PushConfig.androidChannelId;
 
     try {
-      final picture = imageUrl == null ? null : await _fetch(imageUrl);
+      final picture = imageUrl == null || bigText ? null : await _fetch(imageUrl);
       await _plugin.show(
         id: _nextId++,
         title: title,
@@ -106,12 +130,12 @@ class LocalPushService {
         payload: jsonEncode(data),
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
-            PushConfig.androidChannelId,
+            channelId,
             channelName,
             icon: PushConfig.androidSmallIcon,
             color: AppColors.saffron,
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: quiet ? Importance.low : Importance.high,
+            priority: quiet ? Priority.low : Priority.high,
             // The expanded form carries the whole body (the verse and its
             // meaning), with the picture above it when there is one.
             styleInformation: picture == null
@@ -121,11 +145,21 @@ class LocalPushService {
                     contentTitle: title,
                     summaryText: body,
                   ),
+            actions: [
+              for (final action in pushActions(data))
+                AndroidNotificationAction(
+                  action.id,
+                  action.label,
+                  // The button opens the app, at its own link.
+                  showsUserInterface: true,
+                  cancelNotification: true,
+                ),
+            ],
           ),
         ),
       );
     } catch (error) {
-      debugPrint('Push could not be shown while the app is open: $error');
+      debugPrint('Push could not be shown: $error');
     }
   }
 
@@ -142,13 +176,41 @@ class LocalPushService {
     }
   }
 
-  void _tapped(String? payload) {
+  void _tapped(String? payload, String? actionId) {
     if (payload == null || payload.isEmpty) return;
     try {
       final data = jsonDecode(payload);
-      if (data is Map) PushLinks.instance.tapped(Map<String, dynamic>.from(data));
+      if (data is Map) {
+        // An empty action id is the notification itself, not a button.
+        PushLinks.instance.tapped(Map<String, dynamic>.from(data),
+            actionId: actionId == null || actionId.isEmpty ? null : actionId);
+      }
     } catch (error) {
       debugPrint('Push tap payload unreadable: $error');
     }
   }
+}
+
+/// Runs when a data-only push (one with buttons) arrives with the app closed or
+/// in the background — in its own isolate, so it starts what it needs itself.
+/// A push FCM draws (the usual kind) never reaches this.
+///
+/// The channels already exist: the app creates them whenever it is opened, and
+/// no push can be sent to a phone that has not opened it. So the names here are
+/// only a fallback and are the ids.
+@pragma('vm:entry-point')
+Future<void> pushBackgroundHandler(RemoteMessage message) async {
+  final data = message.data;
+  if (message.notification != null) return;
+  final title = data[PushConfig.titleKey]?.toString();
+  final body = data[PushConfig.bodyKey]?.toString();
+  if (title == null && body == null) return;
+
+  await LocalPushService.instance.show(
+    channelName: PushConfig.androidChannelId,
+    data: data,
+    title: title,
+    body: body,
+    imageUrl: data[PushConfig.imageKey]?.toString(),
+  );
 }

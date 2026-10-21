@@ -1739,6 +1739,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get pushChannelName => 'தினசரி ஸ்லோகம் மற்றும் அறிவிப்புகள்';
 
   @override
+  String get pushQuietChannelName => 'அமைதியான அறிவிப்புகள்';
+
+  @override
   String get readingSectionVerse => 'ஸ்லோகம்';
 
   @override

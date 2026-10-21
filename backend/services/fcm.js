@@ -13,6 +13,7 @@
 import { prisma } from '../config/database.js';
 import logger from '../config/logger.js';
 import * as firebase from './firebase.js';
+import { buildMessage } from '../utils/push-message.js';
 
 // Firebase says the token is dead. Keeping it means retrying a delivery that
 // can never land, on every send, forever.
@@ -21,21 +22,6 @@ const DEAD_TOKEN_CODES = new Set([
   'messaging/invalid-registration-token',
   'messaging/invalid-argument',
 ]);
-
-function buildMessage({ title, body, image, data }) {
-  return {
-    // `imageUrl` is the big picture on Android. It must be a link a phone can
-    // open — one FCM refuses fails the whole send, and an invalid-argument
-    // failure reads as a dead token below, so callers pass only https links.
-    notification: { title, body, ...(image ? { imageUrl: image } : {}) },
-    // FCM data values must all be strings — a number here fails the whole send.
-    data: Object.fromEntries(
-      Object.entries(data || {}).map(([key, value]) => [key, String(value ?? '')])
-    ),
-    android: { priority: 'high', notification: { channelId: 'default' } },
-    apns: { payload: { aps: { sound: 'default' } } },
-  };
-}
 
 async function dropDeadTokens(tokens) {
   if (!tokens.length) return;
