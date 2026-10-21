@@ -31,6 +31,7 @@ import auditRoutes from './audit.js';
 import uploadRoutes from './upload.js';
 import jobRoutes from './job.js';
 import translationRoutes from './translation.js';
+import sceneRoutes from './scene.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
@@ -58,6 +59,7 @@ const routers = [
   uploadRoutes,
   jobRoutes,
   translationRoutes,
+  sceneRoutes,
   bookCacheRoutes,
   systemRoutes,
   chatRoutes,

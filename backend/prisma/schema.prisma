@@ -2892,3 +2892,49 @@ model ShareImageJob {
   @@unique([userId, requestKey])
   @@index([createdAt])
 }
+
+// One admin-started run that writes video scene prompts for the chapters of a book (admin → Scenes). Same shape as
+// TranslationRun, smaller: one AI provider and model, one request per chapter, the output a JSON file per chapter in S3
+// (json/<book>/scenes/sk-<canto>-ch-<n>.json). The row is the truth; the BullMQ job only works it.
+model SceneRun {
+  id String @id @default(cuid())
+
+  book     String @default("srimad-bhagavatam") @db.VarChar(40)
+  provider String @default("gemini") @db.VarChar(20)
+  model    String @db.VarChar(100)
+
+  chapters Int[] // chapter ids of the book (canto × 100 + chapter for the Bhagavatam); the chapters this run was asked for
+  force    Boolean @default(false) // write again chapters that already have a scene file
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30) // credit | auth | config | storage | rate_limit | unavailable | source | error
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | limit
+  errorChapter    Int? // the chapter a FAILED run stopped on
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalChapters  Int  @default(0)
+  doneChapters   Int  @default(0)
+  skippedChapters Int @default(0) // chapters with no Hindi meanings to work from
+  currentChapter Int?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+}

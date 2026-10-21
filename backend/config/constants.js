@@ -41,6 +41,8 @@ const PERMISSIONS = {
   'reel.delete': { group: 'content', name: 'Delete reels' },
   'translation.read': { group: 'content', name: 'View Claude translation runs and their output' },
   'translation.run': { group: 'content', name: 'Start, resume and cancel Claude translation runs' },
+  'scenes.read': { group: 'content', name: 'View AI reel scene prompts and their runs' },
+  'scenes.run': { group: 'content', name: 'Start, resume and cancel AI reel scene prompt runs' },
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
 
   // users
