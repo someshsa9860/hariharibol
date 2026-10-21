@@ -1496,6 +1496,12 @@ model Subscription {
   cancelledAt      DateTime?
   autoRenew        Boolean   @default(true)
 
+  // Last store event applied, for support ("why is this cancelled?").
+  lastEvent   String?
+  lastEventAt DateTime?
+  // Set while the store is retrying a failed renewal (grace or on hold).
+  billingIssueAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1537,6 +1543,38 @@ model Payment {
   paidAt     DateTime?
   refundedAt DateTime?
 
+  // ── Revenue (see services/payments/money.js) ──────────────────────────────
+  // `amountMinor` + `currency` above are what the payer was charged, in the
+  // payer's own currency (tax included where the store includes it). Everything
+  // below is derived once, when the payment is recorded, and never re-derived,
+  // so a month's revenue does not change when exchange rates move later.
+  //
+  // A free trial is a real row with amountMinor 0 and isTrial true, so the
+  // subscriber's history is complete and the revenue is zero.
+  isTrial Boolean @default(false)
+
+  // Original currency: what the platform kept and what reaches the bank.
+  commissionMinor Int?
+  netMinor        Int?
+
+  // INR (paise) — the figures the admin panel and the finance section read.
+  // gross = what the payer paid, commission = the platform's cut, net = what we
+  // earn. Null while the exchange rate could not be fetched (the nightly job
+  // fills them in); 0 for a free trial.
+  grossInrMinor      Int?
+  commissionInrMinor Int?
+  netInrMinor        Int?
+
+  // How the commission was found: STORE (the store reported it), RATE (our
+  // configured rate x the price), NONE (a trial).
+  commissionSource String?
+  commissionRate   Decimal? @db.Decimal(6, 4)
+
+  // INR per one unit of `currency`, where it came from and the day it is for.
+  fxRate   Decimal?  @db.Decimal(18, 8)
+  fxSource String?
+  fxDate   DateTime? @db.Date
+
   // The provider's raw webhook body, kept for disputes and for replaying a
   // payment that failed to process on our side.
   providerPayload Json?
@@ -1551,6 +1589,22 @@ model Payment {
   @@index([userId, purpose])
   @@index([status, createdAt])
   @@index([purpose, paidAt])
+  @@index([grossInrMinor, paidAt])
+}
+
+// One day's exchange rate into INR, so each rate is fetched once and every
+// payment of that day and currency is converted with the same number.
+model FxRate {
+  id String @id @default(cuid())
+
+  currency   String   @db.VarChar(3)
+  date       DateTime @db.Date
+  inrPerUnit Decimal  @db.Decimal(18, 8)
+  source     String // FRANKFURTER, OPEN_ER_API, MANUAL
+
+  createdAt DateTime @default(now())
+
+  @@unique([currency, date])
 }
 
 // ============================================================================
