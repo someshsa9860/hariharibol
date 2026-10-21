@@ -48,6 +48,7 @@
                 <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/naam/"/>
                 <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/darshan/"/>
                 <data android:scheme="https" android:host="hariharibol.com" android:pathPrefix="/satsang/"/>
+                <data android:scheme="https" android:host="hariharibol.com" android:path="/get-app"/>
             </intent-filter>
             <!-- The website's "Open in the app" button: hariharibol://open?path=/shloka/<code>. -->
             <intent-filter>
