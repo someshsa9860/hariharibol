@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
+import '../../views/calendar/calendar_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
@@ -23,6 +24,7 @@ import '../../views/onboarding/intro_view.dart';
 import '../../views/onboarding/language_view.dart';
 import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
+import '../../views/reels/book_reels_view.dart';
 import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_view.dart';
@@ -228,6 +230,11 @@ GoRouter createRouter() {
         builder: (context, state) => ReelDetailView(reelId: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: AppRoutes.bookReelsPattern,
+        name: RouteNames.bookReels,
+        builder: (context, state) => BookReelsView(verseId: state.pathParameters['verseId']!),
+      ),
+      GoRoute(
         path: AppRoutes.similarPattern,
         name: RouteNames.reelSimilar,
         builder: (context, state) => SimilarReelsView(reelId: state.pathParameters['id']!),
@@ -264,6 +271,12 @@ GoRouter createRouter() {
             );
           },
         ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.calendar,
+        name: RouteNames.calendar,
+        builder: (context, state) => const CalendarView(),
       ),
 
       GoRoute(

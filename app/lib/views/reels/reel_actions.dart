@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -9,6 +10,29 @@ import '../../providers/reel_provider.dart';
 import '../../services/reel_service.dart';
 import '../../core/share_links.dart';
 import '../../services/share_service.dart';
+import '../../widgets/share/share_target.dart';
+import '../share/share_studio_view.dart';
+
+/// Opens the Share Studio for a book reel — the verse as the reading page
+/// shares it (Sanskrit, transliteration, meaning, its picture and its link),
+/// not a link to a reel.
+void openVerseShareStudio(BuildContext context, Reel reel) {
+  final content = reel.verseContent;
+  final verse = reel.verse;
+  if (content == null || verse == null) return;
+  ShareStudio.open(
+    context,
+    ShareTarget(
+      type: ShareType.verse,
+      id: verse.verseId,
+      title: content.label ?? reel.shareLabel,
+      sanskrit: content.sanskrit,
+      transliteration: content.transliteration,
+      meaning: content.meaning,
+      reference: content.label,
+    ),
+  );
+}
 
 /// What a reader does to a reel on a screen that holds its own copy of it —
 /// like, save, follow, share, and the watch report.
@@ -78,6 +102,10 @@ mixin ReelActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   Future<void> shareReel(Reel reel) async {
+    if (reel.isVersePages) {
+      openVerseShareStudio(context, reel);
+      return;
+    }
     final text = AppLocalizations.of(context);
     // The public /darshan link when the server can make one; the app's own address otherwise.
     final link = await ShareService.instance.linkOrFallback(

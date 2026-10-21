@@ -33,6 +33,12 @@ class BookService {
     return Book.fromJson(response.json);
   }
 
+  /// Codes of the reading languages the book has text in.
+  Future<Set<String>> languages(String slug) async {
+    final response = await _api.get(ApiPaths.bookLanguages(slug));
+    return response.list.whereType<String>().toSet();
+  }
+
   /// Empty for a book with no canto level — the caller does not have to
   /// branch on [Book.hasCantos] before calling this.
   Future<List<BookSection>> cantos(String slug) async {

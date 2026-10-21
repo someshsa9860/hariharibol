@@ -23,6 +23,10 @@ abstract final class AppRoutes {
   /// place, and is a screen of its own with a back button now.
   static const String routine = '/routine';
 
+  /// The Hindu calendar: tithi, nakshatra, Ekadashi, Chaturthi and the festivals.
+  /// Pushed from Home, and where the festival push opens.
+  static const String calendar = '/calendar';
+
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
@@ -99,6 +103,11 @@ abstract final class AppRoutes {
   static const String similarPattern = '/reels/:id/similar';
   static String similarPath(String id) => '/reels/$id/similar';
 
+  /// The book's reels in reading order from one verse on — opened by the
+  /// peacock feather on a verse. `verseId` is the dotted id (`1.2.47`).
+  static const String bookReelsPattern = '/reels/book/:verseId';
+  static String bookReelsPath(String verseId) => '/reels/book/$verseId';
+
   /// A creator's profile and everything they have posted.
   static const String creatorPattern = '/creators/:id';
   static String creatorPath(String id) => '/creators/$id';
@@ -124,6 +133,7 @@ abstract final class RouteNames {
   static const String sadhana = 'sadhana';
   static const String library = 'library';
   static const String routine = 'routine';
+  static const String calendar = 'calendar';
   static const String settings = 'settings';
   static const String plans = 'plans';
   static const String refer = 'refer';
@@ -140,6 +150,7 @@ abstract final class RouteNames {
   static const String reels = 'reels';
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';
+  static const String bookReels = 'bookReels';
   static const String creatorProfile = 'creatorProfile';
   static const String chat = 'chat';
 }

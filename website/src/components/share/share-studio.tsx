@@ -16,9 +16,9 @@ import {
   type CardSpec, type FontKey, type Layout, type PatternKey, type RatioKey,
 } from '@/lib/share-card';
 
-type Tab = 'look' | 'text' | 'layout' | 'ai' | 'share';
+type Tab = 'look' | 'text' | 'layout' | 'ai' | 'reel' | 'share';
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'look', label: 'Background' }, { id: 'text', label: 'Text' }, { id: 'layout', label: 'Layout' }, { id: 'ai', label: 'AI picture' }, { id: 'share', label: 'Share' },
+  { id: 'look', label: 'Background' }, { id: 'text', label: 'Text' }, { id: 'layout', label: 'Layout' }, { id: 'ai', label: 'AI picture' }, { id: 'reel', label: 'Make reel' }, { id: 'share', label: 'Share' },
 ];
 
 interface Quote { enabled: boolean; affordable: boolean; costPercent: number | null; blockedBy: string | null; canUpgrade: boolean; suggestions: string[] }
@@ -153,6 +153,37 @@ export function ShareStudio({ target, onClose }: { target: ShareTarget; onClose:
     } finally { setBusy(null); }
   };
 
+  // ── Make reel ──
+  // The card becomes a reel for everyone, and the reader becomes an approved creator on the spot (no review).
+  const [music, setMusic] = useState<File | null>(null);
+  const [reelDone, setReelDone] = useState(false);
+  const musicInput = useRef<HTMLInputElement>(null);
+  const pickMusic = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) { toast('That music file is too large (up to 25 MB)'); return; }
+    if (!/\.(mp3|m4a|mp4|aac|wav)$/i.test(file.name)) { toast('Please choose an MP3, M4A, AAC or WAV file'); return; }
+    setMusic(file);
+  };
+  const audioType = (file: File) => /\.(m4a|mp4)$/i.test(file.name) ? 'audio/mp4' : /\.aac$/i.test(file.name) ? 'audio/aac' : /\.wav$/i.test(file.name) ? 'audio/wav' : 'audio/mpeg';
+  const postReel = async () => {
+    if (!requireSignIn('Sign in to make a reel')) return;
+    setBusy('reel');
+    try {
+      const blob = await exportBlob();
+      if (!blob) { toast('The picture could not be made'); return; }
+      const up = (kind: 'image' | 'audio', body: Blob) => api<{ key: string }>('/reels/media', { method: 'POST', auth: 'required', query: { kind }, body });
+      const image = await up('image', blob);
+      const audio = music ? await up('audio', new Blob([music], { type: audioType(music) })) : null;
+      await api('/reels/make', { method: 'POST', auth: 'required', body: {
+        imageKey: image.key, ...(audio ? { audioKey: audio.key } : {}), caption: target.title, ...(target.type === 'MANTRA' ? { mantraSlug: target.id } : {}),
+      } });
+      setReelDone(true);
+      toast('Your reel is live');
+    } catch (error) {
+      toast(describeError(error, 'The reel could not be posted. Please try again.'));
+    } finally { setBusy(null); }
+  };
+
   // ── Sharing ──
   const exportBlob = async (): Promise<Blob | null> => {
     if (!logo.current) return null;
@@ -229,7 +260,7 @@ export function ShareStudio({ target, onClose }: { target: ShareTarget; onClose:
         <div className="studio-panel">
           <div className="chip-row" role="tablist" aria-label="Studio tools">
             {TABS.map((item) => (
-              <button key={item.id} role="tab" aria-selected={tab === item.id} className="chip" onClick={() => setTab(item.id)}>{item.label}</button>
+              <button key={item.id} role="tab" aria-selected={tab === item.id} className="chip" onClick={() => setTab(item.id)}>{item.id === 'reel' && <Icon name="feather" size={14} />} {item.label}</button>
             ))}
           </div>
 
@@ -383,6 +414,35 @@ export function ShareStudio({ target, onClose }: { target: ShareTarget; onClose:
                       <button className="btn btn-primary btn-sm" onClick={() => { applyImage(job.image!, job.image!.width, job.image!.height); setTab('look'); }}>Use as background</button>
                     </div>
                   )}
+                </>
+              )}
+            </div>
+          )}
+
+          {tab === 'reel' && (
+            <div className="studio-section">
+              {status !== 'in' ? (
+                <div className="studio-note">
+                  <p>Sign in to turn your card into a reel.</p>
+                  <button className="btn btn-primary btn-sm" onClick={() => requireSignIn('Sign in to make a reel')}>Sign in</button>
+                </div>
+              ) : reelDone ? (
+                <div className="studio-note">
+                  <p>Your reel is live for everyone.</p>
+                  <Link className="btn btn-primary btn-sm" href="/reels" onClick={onClose}>Open Reels</Link>
+                </div>
+              ) : (
+                <>
+                  <p className="muted small">Your card becomes a reel that everyone in Reels can watch — in the app and on the website.</p>
+                  <input ref={musicInput} type="file" accept=".mp3,.m4a,.mp4,.aac,.wav,audio/*" hidden onChange={(e) => { pickMusic(e.target.files?.[0]); e.target.value = ''; }} />
+                  <div className="studio-row">
+                    <button className="btn btn-ghost" disabled={busy !== null} onClick={() => musicInput.current?.click()}>{music ? 'Choose other music' : 'Add music from your device'}</button>
+                    {music && <button className="btn btn-quiet btn-sm" disabled={busy !== null} onClick={() => setMusic(null)}>Remove music</button>}
+                  </div>
+                  {music && <p className="muted small">Music: {music.name}</p>}
+                  <button className="btn btn-primary" disabled={!ready || busy !== null} onClick={postReel}>
+                    <Icon name="feather" size={16} /> {busy === 'reel' ? 'Posting your reel…' : 'Post reel'}
+                  </button>
                 </>
               )}
             </div>

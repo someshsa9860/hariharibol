@@ -102,6 +102,9 @@ dependencies:
   # (Apple's on iOS, Google's on Android). Both sit behind a service in
   # lib/services/ so the screens can be tested without a phone.
   image_picker: ^1.2.4
+  # Music from the phone's own files for a reel made in the share studio
+  # (services/reel_music_picker.dart).
+  file_picker: ^10.0.0
   speech_to_text: ^7.5.0
 
   # Read only, once: the previous app kept its sign-in token in the plugin's
@@ -126,6 +129,7 @@ flutter:
     - assets/hariharibol_trprt.png
     - assets/peacock_feather.svg
     - assets/sakha_icon.svg
+    - assets/calendar/
     - assets/verse_backdrop.jpg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/

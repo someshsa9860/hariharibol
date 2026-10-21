@@ -103,6 +103,7 @@ enum NotificationType {
   SYSTEM // account, payment, security
   REEL // someone engaged with your reel, or with you as a creator
   REFERRAL // a referral qualified and earned a month
+  FESTIVAL // an upcoming Ekadashi, Chaturthi or festival
 }
 
 enum VerseLinkRelation {
@@ -2279,6 +2280,11 @@ model Reel {
   // silently change a published reel.
   overlays Json @default("[]")
 
+  // How the app draws it: 'MEDIA' plays the video/audio/images above; 'VERSE_PAGES' draws the
+  // reel's verse itself as pages (Sanskrit, meaning, purport) in the reader's reading language —
+  // the book reels made from templates. See config/book-reel.js.
+  layout String @default("MEDIA") @db.VarChar(20)
+
   sampradaya String @default("vaishnav") @db.VarChar(50)
 
   status          ReelStatus @default(PENDING_REVIEW)
@@ -2319,6 +2325,7 @@ model Reel {
   @@index([creatorId])
   @@index([status, publishedAt])
   @@index([verseId])
+  @@index([layout, verseId])
   @@index([mantraId])
   @@index([deityId])
   @@index([sampradaya])
@@ -2885,4 +2892,137 @@ model ShareImageJob {
 
   @@unique([userId, requestKey])
   @@index([createdAt])
+}
+
+// One admin-started run that writes video scene prompts for the chapters of a book (admin → Scenes). Same shape as
+// TranslationRun, smaller: one AI provider and model, one request per chapter, the output a JSON file per chapter in S3
+// (json/<book>/scenes/sk-<canto>-ch-<n>.json). The row is the truth; the BullMQ job only works it.
+model SceneRun {
+  id String @id @default(cuid())
+
+  book     String @default("srimad-bhagavatam") @db.VarChar(40)
+  provider String @default("gemini") @db.VarChar(20)
+  model    String @db.VarChar(100)
+
+  chapters Int[] // chapter ids of the book (canto × 100 + chapter for the Bhagavatam); the chapters this run was asked for
+  force    Boolean @default(false) // write again chapters that already have a scene file
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30) // credit | auth | config | storage | rate_limit | unavailable | source | error
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | limit
+  errorChapter    Int? // the chapter a FAILED run stopped on
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalChapters  Int  @default(0)
+  doneChapters   Int  @default(0)
+  skippedChapters Int @default(0) // chapters with no Hindi meanings to work from
+  currentChapter Int?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+// ============================================================================
+// Hindu calendar (panchang)
+// ============================================================================
+
+enum FestivalKind {
+  EKADASHI
+  CHATURTHI // Vinayaka, Sankashti and Ganesh Chaturthi
+  PRADOSH
+  PURNIMA
+  AMAVASYA
+  SANKRANTI
+  FESTIVAL
+}
+
+// One civil day of the panchang for one place. Worked out by services/panchang.js
+// (astronomy-engine) and saved by `npm run seed:panchang`; an admin can correct a
+// field, which sets `isEdited` so the next seed leaves the row alone.
+model PanchangDay {
+  id String @id @default(cuid())
+
+  date        DateTime @db.Date
+  locationKey String   @db.VarChar(40) // "new-delhi", "ujjain"
+
+  weekday  Int // 0 = Sunday
+  sunrise  DateTime?
+  sunset   DateTime?
+  moonrise DateTime?
+
+  tithiNumber     Int // 1–30 at sunrise
+  tithiName       String    @db.VarChar(40)
+  paksha          String    @db.VarChar(10) // SHUKLA | KRISHNA
+  tithiEndsAt     DateTime?
+  nakshatra       String    @db.VarChar(40)
+  nakshatraNumber Int
+  nakshatraEndsAt DateTime?
+  yoga            String    @db.VarChar(40)
+  yogaEndsAt      DateTime?
+  karana          String    @db.VarChar(40)
+  monthAmanta     String    @db.VarChar(40)
+  monthPurnimanta String    @db.VarChar(40)
+  isAdhika        Boolean   @default(false)
+  sunSign         String    @db.VarChar(40)
+  moonSign        String    @db.VarChar(40)
+  vikramSamvat    Int
+  shakaSamvat     Int
+
+  notes    String? @db.Text // an admin's remark shown with the day
+  isEdited Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, locationKey])
+  @@index([locationKey, date])
+}
+
+// A festival or observance on a date. `notifyDaysBefore` lists how many days ahead a push
+// goes out (1 = the evening before is reached the day before; 0 = the day itself);
+// `notifiedDays` records which were sent so a restart never repeats one.
+model Festival {
+  id String @id @default(cuid())
+
+  date        DateTime     @db.Date
+  locationKey String       @db.VarChar(40)
+  slug        String       @db.VarChar(80)
+  kind        FestivalKind
+  name        String       @db.VarChar(120)
+  description String?      @db.Text
+  paksha      String?      @db.VarChar(10)
+  tithiNumber Int?
+  month       String?      @db.VarChar(40)
+  details     Json? // { vaishnavaDate, anchor, ... }
+
+  isActive         Boolean @default(true)
+  notify           Boolean @default(true)
+  notifyDaysBefore Int[]   @default([1])
+  notifiedDays     Int[]   @default([])
+  isEdited         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, locationKey, slug])
+  @@index([locationKey, date])
+  @@index([date, notify])
 }

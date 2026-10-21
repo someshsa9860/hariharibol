@@ -362,6 +362,11 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'ശ്ലോ. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'സ്കന്ധം $canto · അധ്യായം $chapter';
   }
@@ -2104,6 +2109,23 @@ class AppLocalizationsMl extends AppLocalizations {
   String get chatJumpToLatest => 'ഏറ്റവും പുതിയത്';
 
   @override
+  String get verseStartReels => 'ഈ ശ്ലോകം മുതൽ റീലുകൾ കാണുക';
+
+  @override
+  String get reelChantTapHint => 'ജപിക്കാൻ ടാപ്പ് ചെയ്യുക';
+
+  @override
+  String get reelChantDone => 'മാല പൂർത്തിയായി';
+
+  @override
+  String get reelChantSkipHint => 'ഒഴിവാക്കാൻ മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ഈ ശ്ലോകത്തെക്കുറിച്ച് Sakha യോട് ചോദിക്കൂ';
 
   @override
@@ -2332,4 +2354,48 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get referRefused => 'ഈ കോഡ് ഉപയോഗിക്കാൻ കഴിയില്ല.';
+
+  @override
+  String get shareMakeReel => 'റീൽ ഉണ്ടാക്കുക';
+
+  @override
+  String get shareReelIntro => 'നിങ്ങളുടെ കാർഡ് ഒരു റീൽ ആകും, റീൽസിൽ എല്ലാവർക്കും അത് കാണാം.';
+
+  @override
+  String get shareReelAddMusic => 'ഫോണിൽ നിന്ന് സംഗീതം ചേർക്കുക';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'സംഗീതം: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'സംഗീതം നീക്കുക';
+
+  @override
+  String get shareReelPost => 'റീൽ പോസ്റ്റ് ചെയ്യുക';
+
+  @override
+  String get shareReelPosting => 'നിങ്ങളുടെ റീൽ പോസ്റ്റ് ചെയ്യുന്നു…';
+
+  @override
+  String get shareReelDone => 'നിങ്ങളുടെ റീൽ ലൈവ് ആണ്. റീൽസിൽ കാണുക.';
+
+  @override
+  String get shareReelFailed => 'റീൽ പോസ്റ്റ് ചെയ്യാനായില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get shareReelTooBig => 'ഈ സംഗീത ഫയൽ വളരെ വലുതാണ് (പരമാവധി 25 MB).';
+
+  @override
+  String get calendarTitle => 'ഹിന്ദു പഞ്ചാംഗം';
+
+  @override
+  String get calendarEmpty => 'ഈ മാസത്തെ പഞ്ചാംഗം ഇതുവരെ ചേർത്തിട്ടില്ല.';
+
+  @override
+  String get calendarUpcoming => 'ഏകാദശി, ചതുർഥി, ഉത്സവ ദിനങ്ങൾ';
+
+  @override
+  String get calendarVaishnavaNote => 'വൈഷ്ണവർ ഈ വ്രതം അടുത്ത ദിവസം ആചരിച്ചേക്കാം.';
 }

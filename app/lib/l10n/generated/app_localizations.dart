@@ -664,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Verse {number}'**
   String labelVerse(int number);
 
+  /// Short verse label above a verse; must stay on one line.
+  ///
+  /// In en, this message translates to:
+  /// **'Śl. {number}'**
+  String labelVerseShort(int number);
+
   /// No description provided for @labelCantoChapter.
   ///
   /// In en, this message translates to:
@@ -3628,6 +3634,36 @@ abstract class AppLocalizations {
   /// **'Latest'**
   String get chatJumpToLatest;
 
+  /// Tooltip of the peacock-feather button on a verse that starts book reels from that verse.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch reels from this verse'**
+  String get verseStartReels;
+
+  /// Hint on a chanting reel in the feed: each tap counts one chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to chant'**
+  String get reelChantTapHint;
+
+  /// Shown on a chanting reel when the 108th chant is counted, just before the feed moves on.
+  ///
+  /// In en, this message translates to:
+  /// **'Round complete'**
+  String get reelChantDone;
+
+  /// Hint on a chanting reel: swiping goes on to the next reel without finishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up to skip'**
+  String get reelChantSkipHint;
+
+  /// Chants counted of the round on a chanting reel, like 12 / 108.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {total}'**
+  String reelChantCount(int count, int total);
+
   /// Tooltip of the button on a verse that asks Sakha to explain it.
   ///
   /// In en, this message translates to:
@@ -4017,6 +4053,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This code can’t be used.'**
   String get referRefused;
+
+  /// Button in the share studio that turns the card into a reel everyone can watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Make reel'**
+  String get shareMakeReel;
+
+  /// No description provided for @shareReelIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card becomes a reel that everyone in Reels can watch.'**
+  String get shareReelIntro;
+
+  /// No description provided for @shareReelAddMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Add music from your phone'**
+  String get shareReelAddMusic;
+
+  /// The music file chosen for the reel.
+  ///
+  /// In en, this message translates to:
+  /// **'Music: {name}'**
+  String shareReelMusic(String name);
+
+  /// No description provided for @shareReelRemoveMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove music'**
+  String get shareReelRemoveMusic;
+
+  /// No description provided for @shareReelPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post reel'**
+  String get shareReelPost;
+
+  /// No description provided for @shareReelPosting.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting your reel…'**
+  String get shareReelPosting;
+
+  /// No description provided for @shareReelDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reel is live. Find it in Reels.'**
+  String get shareReelDone;
+
+  /// No description provided for @shareReelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The reel could not be posted. Please try again.'**
+  String get shareReelFailed;
+
+  /// No description provided for @shareReelTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That music file is too large (up to 25 MB).'**
+  String get shareReelTooBig;
 }
 
 class _AppLocalizationsDelegate
@@ -4083,4 +4179,28 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
     'that was used.',
   );
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar for this month is not filled in yet.'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi, Chaturthi and festival days'**
+  String get calendarUpcoming;
+
+  /// No description provided for @calendarVaishnavaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaishnavas may keep this fast the next day.'**
+  String get calendarVaishnavaNote;
 }

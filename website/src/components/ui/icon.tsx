@@ -2,6 +2,7 @@ import type { SVGProps } from 'react';
 
 // 24×24 line icons, drawn here so the site loads no icon font. `fill` icons are the solid versions of a few of them.
 const PATHS = {
+  feather: 'M12 22c0-3-1-5.500 0-7.500M12 2.500c4.500 2.500 6 6.500 5 9.500-1 2.500-3 3-5 3s-4-.5-5-3c-1-3 .5-7 5-9.500ZM12 6.500c1.100 0 2 1.100 2 2.500s-.9 2.500-2 2.500-2-1.100-2-2.500.9-2.500 2-2.500Z',
   home: 'M3 11.5 12 4l9 7.5M5.5 10v9.5h4.5v-5h4v5h4.5V10',
   book: 'M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5v-15ZM5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 7.5h6',
   chant: 'M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z',

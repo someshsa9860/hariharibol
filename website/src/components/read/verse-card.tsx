@@ -34,8 +34,8 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const { requireSignIn } = useAuth();
   const [comparing, setComparing] = useState(false);
   const [noting, setNoting] = useState(false);
-  const [showWords, setShowWords] = useState(false);
-  const [showPurport, setShowPurport] = useState(Boolean(expanded));
+  const [showWords, setShowWords] = useState(true);
+  const [showPurport, setShowPurport] = useState(true);
 
   const translation = verse.translation;
   const credit = creditName(translation?.translator);
@@ -65,15 +65,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
       {reader.showSanskrit && verse.sanskrit && <p className="v-sanskrit deva" lang="sa">{verse.sanskrit}</p>}
       {reader.showTransliteration && verse.transliteration && <p className="v-translit">{verse.transliteration}</p>}
 
-      {translation?.meaning && (
-        <div className="v-translation">
-          <p>{translation.meaning}</p>
-          {credit && <small>— {credit}</small>}
-        </div>
-      )}
 
-      </div>
-      <div className="v-side">
       {words.length > 0 && (
         <div className="v-words">
           {!expanded && !reader.showWordMeanings && (
@@ -91,6 +83,15 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
               ))}
             </dl>
           )}
+        </div>
+      )}
+
+      </div>
+      <div className="v-side">
+      {translation?.meaning && (
+        <div className="v-translation">
+          <p>{translation.meaning}</p>
+          {credit && <small>— {credit}</small>}
         </div>
       )}
 

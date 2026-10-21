@@ -355,6 +355,11 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'श्लो. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'स्कंध $canto · अध्याय $chapter';
   }
@@ -2086,6 +2091,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chatJumpToLatest => 'नवीनतम';
 
   @override
+  String get verseStartReels => 'इस श्लोक से रील देखें';
+
+  @override
+  String get reelChantTapHint => 'जप के लिए टैप करें';
+
+  @override
+  String get reelChantDone => 'माला पूरी हुई';
+
+  @override
+  String get reelChantSkipHint => 'छोड़ने के लिए ऊपर स्वाइप करें';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'इस श्लोक के बारे में Sakha से पूछें';
 
   @override
@@ -2313,4 +2335,48 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get referRefused => 'यह कोड इस्तेमाल नहीं हो सकता।';
+
+  @override
+  String get shareMakeReel => 'रील बनाएँ';
+
+  @override
+  String get shareReelIntro => 'आपका कार्ड एक रील बन जाएगा, जिसे रील्स में सब देख सकेंगे।';
+
+  @override
+  String get shareReelAddMusic => 'फ़ोन से संगीत जोड़ें';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'संगीत: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'संगीत हटाएँ';
+
+  @override
+  String get shareReelPost => 'रील पोस्ट करें';
+
+  @override
+  String get shareReelPosting => 'आपकी रील पोस्ट हो रही है…';
+
+  @override
+  String get shareReelDone => 'आपकी रील लाइव है। उसे रील्स में देखें।';
+
+  @override
+  String get shareReelFailed => 'रील पोस्ट नहीं हो सकी। कृपया फिर कोशिश करें।';
+
+  @override
+  String get shareReelTooBig => 'यह संगीत फ़ाइल बहुत बड़ी है (अधिकतम 25 MB)।';
+
+  @override
+  String get calendarTitle => 'हिंदू पंचांग';
+
+  @override
+  String get calendarEmpty => 'इस महीने का पंचांग अभी भरा नहीं गया है।';
+
+  @override
+  String get calendarUpcoming => 'एकादशी, चतुर्थी और त्योहार के दिन';
+
+  @override
+  String get calendarVaishnavaNote => 'वैष्णव यह व्रत अगले दिन रख सकते हैं।';
 }

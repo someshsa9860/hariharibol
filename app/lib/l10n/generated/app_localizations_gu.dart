@@ -355,6 +355,11 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'શ્લો. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'સ્કંધ $canto · અધ્યાય $chapter';
   }
@@ -2082,6 +2087,23 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chatJumpToLatest => 'નવીનતમ';
 
   @override
+  String get verseStartReels => 'આ શ્લોકથી રીલ્સ જુઓ';
+
+  @override
+  String get reelChantTapHint => 'જપ માટે ટેપ કરો';
+
+  @override
+  String get reelChantDone => 'માળા પૂર્ણ';
+
+  @override
+  String get reelChantSkipHint => 'છોડવા માટે ઉપર સ્વાઇપ કરો';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'આ શ્લોક વિશે Sakha ને પૂછો';
 
   @override
@@ -2310,4 +2332,48 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get referRefused => 'આ કોડ વાપરી શકાતો નથી.';
+
+  @override
+  String get shareMakeReel => 'રીલ બનાવો';
+
+  @override
+  String get shareReelIntro => 'તમારું કાર્ડ એક રીલ બનશે, જે રીલ્સમાં બધા જોઈ શકશે.';
+
+  @override
+  String get shareReelAddMusic => 'ફોનમાંથી સંગીત ઉમેરો';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'સંગીત: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'સંગીત દૂર કરો';
+
+  @override
+  String get shareReelPost => 'રીલ પોસ્ટ કરો';
+
+  @override
+  String get shareReelPosting => 'તમારી રીલ પોસ્ટ થઈ રહી છે…';
+
+  @override
+  String get shareReelDone => 'તમારી રીલ લાઇવ છે. તેને રીલ્સમાં જુઓ.';
+
+  @override
+  String get shareReelFailed => 'રીલ પોસ્ટ થઈ શકી નથી. કૃપા કરીને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get shareReelTooBig => 'આ સંગીત ફાઇલ ખૂબ મોટી છે (વધુમાં વધુ 25 MB).';
+
+  @override
+  String get calendarTitle => 'હિન્દુ પંચાંગ';
+
+  @override
+  String get calendarEmpty => 'આ મહિનાનું પંચાંગ હજી ભરાયું નથી.';
+
+  @override
+  String get calendarUpcoming => 'એકાદશી, ચતુર્થી અને તહેવારના દિવસો';
+
+  @override
+  String get calendarVaishnavaNote => 'વૈષ્ણવો આ વ્રત બીજા દિવસે રાખી શકે છે.';
 }

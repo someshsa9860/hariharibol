@@ -356,6 +356,11 @@ class AppLocalizationsMr extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'श्लो. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'स्कंध $canto · अध्याय $chapter';
   }
@@ -2088,6 +2093,23 @@ class AppLocalizationsMr extends AppLocalizations {
   String get chatJumpToLatest => 'नवीनतम';
 
   @override
+  String get verseStartReels => 'या श्लोकापासून रील्स पहा';
+
+  @override
+  String get reelChantTapHint => 'जपासाठी टॅप करा';
+
+  @override
+  String get reelChantDone => 'माळा पूर्ण झाली';
+
+  @override
+  String get reelChantSkipHint => 'वगळण्यासाठी वर स्वाइप करा';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'या श्लोकाबद्दल Sakha ला विचारा';
 
   @override
@@ -2314,4 +2336,48 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get referRefused => 'हा कोड वापरता येत नाही.';
+
+  @override
+  String get shareMakeReel => 'रील बनवा';
+
+  @override
+  String get shareReelIntro => 'तुमचे कार्ड एक रील बनेल, जी रील्समध्ये सर्वांना पाहता येईल.';
+
+  @override
+  String get shareReelAddMusic => 'फोनमधून संगीत जोडा';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'संगीत: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'संगीत काढा';
+
+  @override
+  String get shareReelPost => 'रील पोस्ट करा';
+
+  @override
+  String get shareReelPosting => 'तुमची रील पोस्ट होत आहे…';
+
+  @override
+  String get shareReelDone => 'तुमची रील लाइव्ह आहे. ती रील्समध्ये पाहा.';
+
+  @override
+  String get shareReelFailed => 'रील पोस्ट होऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.';
+
+  @override
+  String get shareReelTooBig => 'ही संगीत फाइल खूप मोठी आहे (कमाल 25 MB).';
+
+  @override
+  String get calendarTitle => 'हिंदू पंचांग';
+
+  @override
+  String get calendarEmpty => 'या महिन्याचे पंचांग अजून भरलेले नाही.';
+
+  @override
+  String get calendarUpcoming => 'एकादशी, चतुर्थी आणि सणांचे दिवस';
+
+  @override
+  String get calendarVaishnavaNote => 'वैष्णव हे व्रत दुसऱ्या दिवशी करू शकतात.';
 }

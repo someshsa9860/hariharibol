@@ -33,6 +33,7 @@ import logger from '../../config/logger.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
+import * as bookReel from '../../services/book-reel-settings.js';
 import { keyTagsOf, TAG_BOOK, TAG_CANTO, TAG_CHAPTER } from '../../utils/reel-tags.js';
 import {
   REEL_PAGE_SIZE_DEFAULT,
@@ -225,6 +226,64 @@ export const similar = async (req, res) => {
   const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
 
   return paginated(res, await present.reels(ordered, user), { page, pageSize, total: ranked.length });
+};
+
+/** GET /api/app/reels/book-style — how book reels look and which buttons they show. */
+export const bookStyle = async (req, res) => ok(res, await bookReel.forApp());
+
+// Reading order inside a book: canto, chapter, verse. A book without cantos has a null canto on every
+// verse, which compares equal to itself, so each level is "smaller, or equal and the next is smaller".
+function before(verse) {
+  const levels = [verse.cantoNumber, verse.chapterNumber, verse.verseNumber];
+  const names = ['cantoNumber', 'chapterNumber', 'verseNumber'];
+  const clauses = [];
+  levels.forEach((value, i) => {
+    if (value == null) return;
+    const equal = {};
+    for (let j = 0; j < i; j++) equal[names[j]] = levels[j];
+    clauses.push({ ...equal, [names[i]]: { lt: value } });
+  });
+  return clauses;
+}
+
+/**
+ * GET /api/app/reels/book/:verseId
+ *
+ * The book reels of a verse's book in reading order, beginning at that verse — what the peacock
+ * feather on the reading page opens. `:verseId` is the dotted id ("1.2.47"). Paginated like the feed;
+ * the page after the last verse is empty.
+ */
+export const fromVerse = async (req, res) => {
+  const user = req.auth.user;
+  const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
+
+  const start = await prisma.verse.findUnique({
+    where: { verseId: req.valid.params.verseId },
+    select: { bookId: true, cantoNumber: true, chapterNumber: true, verseNumber: true },
+  });
+  if (!start) throw notFound('Verse');
+
+  const inBook = { layout: 'VERSE_PAGES', ...ELIGIBLE_WHERE, verse: { bookId: start.bookId } };
+  const preceding = before(start);
+  // Reels of the verses before this one are skipped by count, so the page offset stays a plain number.
+  const skipped = preceding.length
+    ? await prisma.reel.count({
+        where: { layout: 'VERSE_PAGES', ...ELIGIBLE_WHERE, verse: { bookId: start.bookId, OR: preceding } },
+      })
+    : 0;
+
+  const [total, rows] = await Promise.all([
+    prisma.reel.count({ where: inBook }),
+    prisma.reel.findMany({
+      where: inBook,
+      include: present.includes.reel(user?.id ?? null, language.readingChain(user)),
+      orderBy: [{ verse: { cantoNumber: 'asc' } }, { verse: { chapterNumber: 'asc' } }, { verse: { verseNumber: 'asc' } }, { id: 'asc' }],
+      skip: skipped + skip,
+      take: pageSize,
+    }),
+  ]);
+
+  return paginated(res, await present.reels(rows, user), { page, pageSize, total: Math.max(total - skipped, 0) });
 };
 
 // Loads a reel for a write, and refuses one the reader should not be acting

@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import '../core/constants/api_paths.dart';
+import '../models/book_reel.dart';
 import '../models/creator.dart';
 import '../models/json.dart';
 import '../models/paged.dart';
@@ -42,6 +46,42 @@ class ReelService {
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
   }
 
+  // ── Making a reel ──────────────────────────────────────────────────────────
+
+  /// Sends one file (the share card, or a music file) and returns the key to
+  /// name in [make].
+  Future<String> uploadMedia({required bool audio, required Uint8List bytes, required String contentType}) async {
+    final response = await _api.postBytes(
+      '${ApiPaths.reelMedia}?kind=${audio ? 'audio' : 'image'}',
+      bytes,
+      contentType: contentType,
+    );
+    return asString(response.json['key']);
+  }
+
+  /// Publishes the reel. The reader becomes an approved creator on the spot, so
+  /// it is live for everyone as soon as this answers.
+  Future<String> make({
+    required String imageKey,
+    String? audioKey,
+    String? caption,
+    String? mantraSlug,
+    String? languageCode,
+  }) async {
+    final response = await _api.post(ApiPaths.reelMake, body: {
+      'imageKey': imageKey,
+      'audioKey': ?audioKey,
+      if (caption != null && caption.isNotEmpty) 'caption': caption,
+      'mantraSlug': ?mantraSlug,
+      'languageCode': ?languageCode,
+    });
+    return asString(response.json['id']);
+  }
+
+  /// Reads a music file from the phone and sends it.
+  Future<String> uploadMusicFile(String path, String contentType) async =>
+      uploadMedia(audio: true, bytes: await File(path).readAsBytes(), contentType: contentType);
+
   Future<Reel> get(String id) async {
     final response = await _api.get(ApiPaths.reel(id));
     return Reel.fromJson(response.json);
@@ -51,6 +91,21 @@ class ReelService {
   Future<Paged<Reel>> similar(String id, {int page = 1, int? pageSize}) async {
     final response = await _api.get(
       ApiPaths.reelSimilar(id),
+      query: {'page': page, 'pageSize': ?pageSize},
+    );
+    return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
+  }
+
+  /// How book reels look and which buttons they show.
+  Future<BookReelStyle> bookStyle() async {
+    final response = await _api.get(ApiPaths.reelBookStyle);
+    return BookReelStyle.fromJson(response.json);
+  }
+
+  /// The book reels of [verseId]'s book in reading order, starting at that verse.
+  Future<Paged<Reel>> fromVerse(String verseId, {int page = 1, int? pageSize}) async {
+    final response = await _api.get(
+      ApiPaths.reelsFromVerse(verseId),
       query: {'page': page, 'pageSize': ?pageSize},
     );
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);

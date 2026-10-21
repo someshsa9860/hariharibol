@@ -354,6 +354,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'Śl. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'Canto $canto · Chapter $chapter';
   }
@@ -2083,6 +2088,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatJumpToLatest => 'Latest';
 
   @override
+  String get verseStartReels => 'Watch reels from this verse';
+
+  @override
+  String get reelChantTapHint => 'Tap to chant';
+
+  @override
+  String get reelChantDone => 'Round complete';
+
+  @override
+  String get reelChantSkipHint => 'Swipe up to skip';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'Ask Sakha about this verse';
 
   @override
@@ -2309,4 +2331,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referRefused => 'This code can’t be used.';
+
+  @override
+  String get shareMakeReel => 'Make reel';
+
+  @override
+  String get shareReelIntro => 'Your card becomes a reel that everyone in Reels can watch.';
+
+  @override
+  String get shareReelAddMusic => 'Add music from your phone';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'Music: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'Remove music';
+
+  @override
+  String get shareReelPost => 'Post reel';
+
+  @override
+  String get shareReelPosting => 'Posting your reel…';
+
+  @override
+  String get shareReelDone => 'Your reel is live. Find it in Reels.';
+
+  @override
+  String get shareReelFailed => 'The reel could not be posted. Please try again.';
+
+  @override
+  String get shareReelTooBig => 'That music file is too large (up to 25 MB).';
+
+  @override
+  String get calendarTitle => 'Hindu calendar';
+
+  @override
+  String get calendarEmpty => 'The calendar for this month is not filled in yet.';
+
+  @override
+  String get calendarUpcoming => 'Ekadashi, Chaturthi and festival days';
+
+  @override
+  String get calendarVaishnavaNote => 'Vaishnavas may keep this fast the next day.';
 }

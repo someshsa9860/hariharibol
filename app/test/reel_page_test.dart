@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hariharibol/core/theme/app_colors.dart';
@@ -58,7 +59,8 @@ Reel reel({
 
 Future<void> pumpReel(WidgetTester tester, Reel subject, {ThemeData? theme, VoidCallback? onSimilarTap}) {
   return tester.pumpWidget(
-    MaterialApp(
+    ProviderScope(
+      child: MaterialApp(
       theme: theme ?? AppTheme.light,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -81,6 +83,7 @@ Future<void> pumpReel(WidgetTester tester, Reel subject, {ThemeData? theme, Void
         onToggleMute: () {},
         onSimilarTap: onSimilarTap,
       ),
+    ),
     ),
   );
 }

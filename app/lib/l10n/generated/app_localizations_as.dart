@@ -358,6 +358,11 @@ class AppLocalizationsAs extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'শ্লো. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'স্কন্ধ $canto · অধ্যায় $chapter';
   }
@@ -2091,6 +2096,23 @@ class AppLocalizationsAs extends AppLocalizations {
   String get chatJumpToLatest => 'শেহতীয়া';
 
   @override
+  String get verseStartReels => 'এই শ্লোকৰ পৰা ৰীল চাওক';
+
+  @override
+  String get reelChantTapHint => 'জপ কৰিবলৈ টেপ কৰক';
+
+  @override
+  String get reelChantDone => 'মালা সম্পূৰ্ণ';
+
+  @override
+  String get reelChantSkipHint => 'এৰিবলৈ ওপৰলৈ স্বাইপ কৰক';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'এই শ্লোকৰ বিষয়ে Sakha ক সোধক';
 
   @override
@@ -2318,4 +2340,48 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get referRefused => 'এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।';
+
+  @override
+  String get shareMakeReel => 'ৰিল বনাওক';
+
+  @override
+  String get shareReelIntro => 'আপোনাৰ কাৰ্ডখন এটা ৰিল হৈ যাব, যিটো ৰিলছত সকলোৱে চাব পাৰিব।';
+
+  @override
+  String get shareReelAddMusic => 'ফোনৰ পৰা সংগীত যোগ কৰক';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'সংগীত: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'সংগীত আঁতৰাওক';
+
+  @override
+  String get shareReelPost => 'ৰিল পোষ্ট কৰক';
+
+  @override
+  String get shareReelPosting => 'আপোনাৰ ৰিল পোষ্ট হৈ আছে…';
+
+  @override
+  String get shareReelDone => 'আপোনাৰ ৰিল লাইভ হৈছে। ৰিলছত চাওক।';
+
+  @override
+  String get shareReelFailed => 'ৰিল পোষ্ট কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get shareReelTooBig => 'এই সংগীত ফাইলটো বহুত ডাঙৰ (সৰ্বোচ্চ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'হিন্দু পঞ্জিকা';
+
+  @override
+  String get calendarEmpty => 'এই মাহৰ পঞ্জিকা এতিয়াও পূৰণ কৰা হোৱা নাই।';
+
+  @override
+  String get calendarUpcoming => 'একাদশী, চতুৰ্থী আৰু উৎসৱৰ দিন';
+
+  @override
+  String get calendarVaishnavaNote => 'বৈষ্ণৱসকলে এই ব্ৰত পিছৰ দিনা পালন কৰিব পাৰে।';
 }

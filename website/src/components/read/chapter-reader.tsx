@@ -53,6 +53,23 @@ export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapte
     };
   }, [verses, bookSlug, bookTitle, cantoNumber, chapterNumber, reader.mode, reader.storyPart]);
 
+  // Hide the site header and the toolbar while scrolling down, bring them back on scroll up.
+  useEffect(() => {
+    const root = document.documentElement;
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 8) return;
+      root.classList.toggle('reading-focus', y > last && y > 120);
+      last = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      root.classList.remove('reading-focus');
+    };
+  }, []);
+
   return (
     <>
       <div className="reader-bar" role="toolbar" aria-label="Reading tools">
@@ -81,7 +98,7 @@ export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapte
           ))}
         </div>
       )}
-      {settings && <ReaderSettingsSheet onClose={() => setSettings(false)} />}
+      {settings && <ReaderSettingsSheet onClose={() => setSettings(false)} bookSlug={bookSlug} />}
     </>
   );
 }

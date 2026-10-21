@@ -358,6 +358,11 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'শ্লো. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'স্কন্ধ $canto · অধ্যায় $chapter';
   }
@@ -2090,6 +2095,23 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chatJumpToLatest => 'সর্বশেষ';
 
   @override
+  String get verseStartReels => 'এই শ্লোক থেকে রিল দেখুন';
+
+  @override
+  String get reelChantTapHint => 'জপ করতে ট্যাপ করুন';
+
+  @override
+  String get reelChantDone => 'মালা সম্পূর্ণ';
+
+  @override
+  String get reelChantSkipHint => 'এড়াতে উপরে সোয়াইপ করুন';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'এই শ্লোক সম্পর্কে Sakha-কে জিজ্ঞাসা করুন';
 
   @override
@@ -2317,4 +2339,48 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get referRefused => 'এই কোডটি ব্যবহার করা যাবে না।';
+
+  @override
+  String get shareMakeReel => 'রিল বানান';
+
+  @override
+  String get shareReelIntro => 'আপনার কার্ড একটি রিল হয়ে যাবে, যা রিলসে সবাই দেখতে পারবে।';
+
+  @override
+  String get shareReelAddMusic => 'ফোন থেকে গান যোগ করুন';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'গান: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'গান সরান';
+
+  @override
+  String get shareReelPost => 'রিল পোস্ট করুন';
+
+  @override
+  String get shareReelPosting => 'আপনার রিল পোস্ট হচ্ছে…';
+
+  @override
+  String get shareReelDone => 'আপনার রিল লাইভ হয়েছে। রিলসে দেখুন।';
+
+  @override
+  String get shareReelFailed => 'রিল পোস্ট করা যায়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get shareReelTooBig => 'এই গানের ফাইলটি অনেক বড় (সর্বোচ্চ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'হিন্দু পঞ্জিকা';
+
+  @override
+  String get calendarEmpty => 'এই মাসের পঞ্জিকা এখনও ভরা হয়নি।';
+
+  @override
+  String get calendarUpcoming => 'একাদশী, চতুর্থী ও উৎসবের দিন';
+
+  @override
+  String get calendarVaishnavaNote => 'বৈষ্ণবেরা এই ব্রত পরের দিন পালন করতে পারেন।';
 }

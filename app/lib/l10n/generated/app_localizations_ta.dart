@@ -358,6 +358,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'ஸ்லோ. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'ஸ்கந்தம் $canto · அத்தியாயம் $chapter';
   }
@@ -2104,6 +2109,23 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatJumpToLatest => 'சமீபத்தியது';
 
   @override
+  String get verseStartReels => 'இந்த ஸ்லோகத்திலிருந்து ரீல்ஸ் பாருங்கள்';
+
+  @override
+  String get reelChantTapHint => 'ஜபிக்க தட்டவும்';
+
+  @override
+  String get reelChantDone => 'மாலை நிறைவு';
+
+  @override
+  String get reelChantSkipHint => 'தவிர்க்க மேலே ஸ்வைப் செய்யவும்';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'இந்த ஸ்லோகம் பற்றி Sakha-விடம் கேளுங்கள்';
 
   @override
@@ -2331,4 +2353,48 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get referRefused => 'இந்தக் குறியீட்டைப் பயன்படுத்த முடியாது.';
+
+  @override
+  String get shareMakeReel => 'ரீல் உருவாக்கு';
+
+  @override
+  String get shareReelIntro => 'உங்கள் அட்டை ஒரு ரீலாக மாறும்; ரீல்ஸில் அனைவரும் பார்க்கலாம்.';
+
+  @override
+  String get shareReelAddMusic => 'போனிலிருந்து இசை சேர்க்கவும்';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'இசை: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'இசையை நீக்கு';
+
+  @override
+  String get shareReelPost => 'ரீலை பதிவிடு';
+
+  @override
+  String get shareReelPosting => 'உங்கள் ரீல் பதிவிடப்படுகிறது…';
+
+  @override
+  String get shareReelDone => 'உங்கள் ரீல் நேரலையில் உள்ளது. ரீல்ஸில் பாருங்கள்.';
+
+  @override
+  String get shareReelFailed => 'ரீலை பதிவிட முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get shareReelTooBig => 'இந்த இசைக் கோப்பு மிகப் பெரியது (அதிகபட்சம் 25 MB).';
+
+  @override
+  String get calendarTitle => 'இந்து பஞ்சாங்கம்';
+
+  @override
+  String get calendarEmpty => 'இந்த மாதத்தின் பஞ்சாங்கம் இன்னும் நிரப்பப்படவில்லை.';
+
+  @override
+  String get calendarUpcoming => 'ஏகாதசி, சதுர்த்தி மற்றும் பண்டிகை நாட்கள்';
+
+  @override
+  String get calendarVaishnavaNote => 'வைஷ்ணவர்கள் இந்த விரதத்தை மறுநாள் அனுசரிக்கலாம்.';
 }

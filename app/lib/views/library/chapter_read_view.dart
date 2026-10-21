@@ -420,7 +420,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           IconButton(
             icon: const Icon(Icons.tune_rounded),
             tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(context),
+            onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
           ),
         ],
       ),
@@ -499,6 +499,9 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                     onOpenNotes: () => _openNotes(verse),
                     onOpenRelated: () => _openRelated(verse),
                     onAskSakha: () => _askSakha(verse, bookTitle),
+                    onStartReels: verse.bookNumber <= 2
+                        ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
+                        : null,
                     onCompareTranslations:
                         verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
                     onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,

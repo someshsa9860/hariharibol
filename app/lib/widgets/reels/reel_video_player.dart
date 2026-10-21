@@ -31,6 +31,7 @@ class ReelVideoPlayer extends StatefulWidget {
     this.thumbnailUrl,
     this.cacheKey,
     this.onProgress,
+    this.onEnded,
     this.onTap,
   });
 
@@ -45,6 +46,10 @@ class ReelVideoPlayer extends StatefulWidget {
 
   /// Furthest point reached, in milliseconds, and the clip's own length.
   final void Function(int watchedMs, int durationMs)? onProgress;
+
+  /// Called once when the clip plays to its end. With it the clip stops
+  /// there instead of looping, and the feed moves on.
+  final VoidCallback? onEnded;
 
   final VoidCallback? onTap;
 
@@ -61,6 +66,7 @@ class ReelVideoPlayerState extends State<ReelVideoPlayer> {
   /// the end and left looping must not report two seconds because that is
   /// where the loop happened to be when it was swiped away.
   int _furthestMs = 0;
+  bool _endedReported = false;
 
   @override
   void initState() {
@@ -75,7 +81,7 @@ class ReelVideoPlayerState extends State<ReelVideoPlayer> {
 
     try {
       await controller.initialize();
-      await controller.setLooping(true);
+      await controller.setLooping(widget.onEnded == null);
       await controller.setVolume(widget.isMuted ? 0 : 1);
       if (!mounted) return;
       setState(() => _ready = true);
@@ -92,6 +98,17 @@ class ReelVideoPlayerState extends State<ReelVideoPlayer> {
     if (controller == null || !controller.value.isInitialized) return;
     final position = controller.value.position.inMilliseconds;
     if (position > _furthestMs) _furthestMs = position;
+
+    // Played to the end (not looping): tell the feed once.
+    final duration = controller.value.duration.inMilliseconds;
+    if (widget.onEnded != null &&
+        widget.isActive &&
+        !_endedReported &&
+        duration > 0 &&
+        position >= duration - 100) {
+      _endedReported = true;
+      widget.onEnded!();
+    }
   }
 
   @override
@@ -112,6 +129,7 @@ class ReelVideoPlayerState extends State<ReelVideoPlayer> {
         controller.pause();
         controller.seekTo(Duration.zero);
         _furthestMs = 0;
+        _endedReported = false;
       }
     }
   }

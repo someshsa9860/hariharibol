@@ -214,6 +214,15 @@
       }
     }
   },
+  "labelVerseShort": "Śl. {number}",
+  "@labelVerseShort": {
+    "description": "Short verse label above a verse; must stay on one line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelCantoChapter": "Canto {canto} · Chapter {chapter}",
   "@labelCantoChapter": {
     "placeholders": {
@@ -1472,6 +1481,30 @@
   "@chatJumpToLatest": {
     "description": "Label of the button that scrolls the chat back down to the newest message."
   },
+  "verseStartReels": "Watch reels from this verse",
+  "@verseStartReels": {
+    "description": "Tooltip of the peacock-feather button on a verse that starts book reels from that verse."
+  },
+  "reelChantTapHint": "Tap to chant",
+  "@reelChantTapHint": {
+    "description": "Hint on a chanting reel in the feed: each tap counts one chant."
+  },
+  "reelChantDone": "Round complete",
+  "@reelChantDone": {
+    "description": "Shown on a chanting reel when the 108th chant is counted, just before the feed moves on."
+  },
+  "reelChantSkipHint": "Swipe up to skip",
+  "@reelChantSkipHint": {
+    "description": "Hint on a chanting reel: swiping goes on to the next reel without finishing."
+  },
+  "reelChantCount": "{count} / {total}",
+  "@reelChantCount": {
+    "description": "Chants counted of the round on a chanting reel, like 12 / 108.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "verseAskSakha": "Ask Sakha about this verse",
   "@verseAskSakha": {
     "description": "Tooltip of the button on a verse that asks Sakha to explain it."
@@ -1685,5 +1718,30 @@
   "@referAccepted": {
     "description": "Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting."
   },
-  "referRefused": "This code can’t be used."
+  "referRefused": "This code can’t be used.",
+  "shareMakeReel": "Make reel",
+  "@shareMakeReel": {
+    "description": "Button in the share studio that turns the card into a reel everyone can watch."
+  },
+  "shareReelIntro": "Your card becomes a reel that everyone in Reels can watch.",
+  "shareReelAddMusic": "Add music from your phone",
+  "shareReelMusic": "Music: {name}",
+  "@shareReelMusic": {
+    "description": "The music file chosen for the reel.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shareReelRemoveMusic": "Remove music",
+  "shareReelPost": "Post reel",
+  "shareReelPosting": "Posting your reel…",
+  "shareReelDone": "Your reel is live. Find it in Reels.",
+  "shareReelFailed": "The reel could not be posted. Please try again.",
+  "shareReelTooBig": "That music file is too large (up to 25 MB).",
+  "calendarTitle": "Hindu calendar",
+  "calendarEmpty": "The calendar for this month is not filled in yet.",
+  "calendarUpcoming": "Ekadashi, Chaturthi and festival days",
+  "calendarVaishnavaNote": "Vaishnavas may keep this fast the next day."
 }

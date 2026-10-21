@@ -357,6 +357,11 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'ಶ್ಲೋ. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'ಸ್ಕಂಧ $canto · ಅಧ್ಯಾಯ $chapter';
   }
@@ -2091,6 +2096,23 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chatJumpToLatest => 'ಇತ್ತೀಚಿನದು';
 
   @override
+  String get verseStartReels => 'ಈ ಶ್ಲೋಕದಿಂದ ರೀಲ್ಸ್ ನೋಡಿ';
+
+  @override
+  String get reelChantTapHint => 'ಜಪಕ್ಕಾಗಿ ಟ್ಯಾಪ್ ಮಾಡಿ';
+
+  @override
+  String get reelChantDone => 'ಮಾಲೆ ಪೂರ್ಣ';
+
+  @override
+  String get reelChantSkipHint => 'ಬಿಟ್ಟುಬಿಡಲು ಮೇಲೆ ಸ್ವೈಪ್ ಮಾಡಿ';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ಈ ಶ್ಲೋಕದ ಬಗ್ಗೆ Sakha ಅವರನ್ನು ಕೇಳಿ';
 
   @override
@@ -2318,4 +2340,48 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get referRefused => 'ಈ ಕೋಡ್ ಬಳಸಲು ಸಾಧ್ಯವಿಲ್ಲ.';
+
+  @override
+  String get shareMakeReel => 'ರೀಲ್ ಮಾಡಿ';
+
+  @override
+  String get shareReelIntro => 'ನಿಮ್ಮ ಕಾರ್ಡ್ ಒಂದು ರೀಲ್ ಆಗುತ್ತದೆ; ರೀಲ್ಸ್‌ನಲ್ಲಿ ಎಲ್ಲರೂ ನೋಡಬಹುದು.';
+
+  @override
+  String get shareReelAddMusic => 'ಫೋನ್‌ನಿಂದ ಸಂಗೀತ ಸೇರಿಸಿ';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'ಸಂಗೀತ: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'ಸಂಗೀತ ತೆಗೆಯಿರಿ';
+
+  @override
+  String get shareReelPost => 'ರೀಲ್ ಪೋಸ್ಟ್ ಮಾಡಿ';
+
+  @override
+  String get shareReelPosting => 'ನಿಮ್ಮ ರೀಲ್ ಪೋಸ್ಟ್ ಆಗುತ್ತಿದೆ…';
+
+  @override
+  String get shareReelDone => 'ನಿಮ್ಮ ರೀಲ್ ಲೈವ್ ಆಗಿದೆ. ರೀಲ್ಸ್‌ನಲ್ಲಿ ನೋಡಿ.';
+
+  @override
+  String get shareReelFailed => 'ರೀಲ್ ಪೋಸ್ಟ್ ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get shareReelTooBig => 'ಈ ಸಂಗೀತ ಫೈಲ್ ತುಂಬಾ ದೊಡ್ಡದು (ಗರಿಷ್ಠ 25 MB).';
+
+  @override
+  String get calendarTitle => 'ಹಿಂದೂ ಪಂಚಾಂಗ';
+
+  @override
+  String get calendarEmpty => 'ಈ ತಿಂಗಳ ಪಂಚಾಂಗವನ್ನು ಇನ್ನೂ ತುಂಬಿಲ್ಲ.';
+
+  @override
+  String get calendarUpcoming => 'ಏಕಾದಶಿ, ಚತುರ್ಥಿ ಮತ್ತು ಹಬ್ಬದ ದಿನಗಳು';
+
+  @override
+  String get calendarVaishnavaNote => 'ವೈಷ್ಣವರು ಈ ವ್ರತವನ್ನು ಮರುದಿನ ಆಚರಿಸಬಹುದು.';
 }

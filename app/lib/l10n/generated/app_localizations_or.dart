@@ -357,6 +357,11 @@ class AppLocalizationsOr extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'ଶ୍ଳୋ. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'ସ୍କନ୍ଧ $canto · ଅଧ୍ୟାୟ $chapter';
   }
@@ -2091,6 +2096,23 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chatJumpToLatest => 'ନବୀନତମ';
 
   @override
+  String get verseStartReels => 'ଏହି ଶ୍ଲୋକରୁ ରିଲ୍ ଦେଖନ୍ତୁ';
+
+  @override
+  String get reelChantTapHint => 'ଜପ ପାଇଁ ଟାପ୍ କରନ୍ତୁ';
+
+  @override
+  String get reelChantDone => 'ମାଳା ସମ୍ପୂର୍ଣ୍ଣ';
+
+  @override
+  String get reelChantSkipHint => 'ଛାଡ଼ିବାକୁ ଉପରକୁ ସ୍ୱାଇପ୍ କରନ୍ତୁ';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'ଏହି ଶ୍ଲୋକ ବିଷୟରେ Sakha କୁ ପଚାରନ୍ତୁ';
 
   @override
@@ -2319,4 +2341,48 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get referRefused => 'ଏହି କୋଡ୍ ବ୍ୟବହାର କରାଯାଇପାରିବ ନାହିଁ।';
+
+  @override
+  String get shareMakeReel => 'ରିଲ୍ ତିଆରି କରନ୍ତୁ';
+
+  @override
+  String get shareReelIntro => 'ଆପଣଙ୍କ କାର୍ଡ ଏକ ରିଲ୍ ହୋଇଯିବ, ଯାହାକୁ ରିଲ୍ସରେ ସମସ୍ତେ ଦେଖିପାରିବେ।';
+
+  @override
+  String get shareReelAddMusic => 'ଫୋନରୁ ସଙ୍ଗୀତ ଯୋଡନ୍ତୁ';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'ସଙ୍ଗୀତ: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'ସଙ୍ଗୀତ ହଟାନ୍ତୁ';
+
+  @override
+  String get shareReelPost => 'ରିଲ୍ ପୋଷ୍ଟ କରନ୍ତୁ';
+
+  @override
+  String get shareReelPosting => 'ଆପଣଙ୍କ ରିଲ୍ ପୋଷ୍ଟ ହେଉଛି…';
+
+  @override
+  String get shareReelDone => 'ଆପଣଙ୍କ ରିଲ୍ ଲାଇଭ୍ ଅଛି। ଏହାକୁ ରିଲ୍ସରେ ଦେଖନ୍ତୁ।';
+
+  @override
+  String get shareReelFailed => 'ରିଲ୍ ପୋଷ୍ଟ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get shareReelTooBig => 'ଏହି ସଙ୍ଗୀତ ଫାଇଲ୍ ବହୁତ ବଡ଼ (ସର୍ବାଧିକ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'ହିନ୍ଦୁ ପଞ୍ଜିକା';
+
+  @override
+  String get calendarEmpty => 'ଏହି ମାସର ପଞ୍ଜିକା ଏପର୍ଯ୍ୟନ୍ତ ଭରାଯାଇ ନାହିଁ।';
+
+  @override
+  String get calendarUpcoming => 'ଏକାଦଶୀ, ଚତୁର୍ଥୀ ଓ ପର୍ବ ଦିନ';
+
+  @override
+  String get calendarVaishnavaNote => 'ବୈଷ୍ଣବମାନେ ଏହି ବ୍ରତ ପରଦିନ ପାଳନ କରିପାରନ୍ତି।';
 }

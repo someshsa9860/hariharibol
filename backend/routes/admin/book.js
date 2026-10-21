@@ -58,6 +58,25 @@ router.get(
 );
 
 router.get(
+  '/:id/reader',
+  {
+    summary: 'A chapter’s verses, as the reader shows them',
+    description:
+      'Every verse of one chapter (or of the whole book when it has no chapters, up to 300) ' +
+      'with all its translations in every language, published or not. Read-only.',
+    permission: 'verse.read',
+    limit: 'read',
+    params: schemas.id,
+    query: z.object({
+      canto: z.coerce.number().int().optional(),
+      chapter: z.coerce.number().int().optional(),
+    }),
+    responds: { 200: 'The verses', 404: 'No such book' },
+  },
+  controller.reader
+);
+
+router.get(
   '/:id',
   {
     summary: 'Get one book with its structure',

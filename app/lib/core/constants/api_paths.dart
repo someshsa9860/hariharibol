@@ -21,6 +21,10 @@ abstract final class ApiPaths {
   static const String topics = '$_app/devices/topics';
   static String topic(String key) => '$_app/devices/topics/$key';
 
+  // Hindu calendar
+  static const String calendar = '$_app/calendar';
+  static const String calendarUpcoming = '$_app/calendar/upcoming';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';
@@ -52,6 +56,7 @@ abstract final class ApiPaths {
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
+  static String bookLanguages(String slug) => '$_app/books/$slug/languages';
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';
@@ -79,7 +84,11 @@ abstract final class ApiPaths {
   // Reels
   static const String reels = '$_app/reels';
   static const String savedReels = '$_app/reels/saved';
+  static const String reelMedia = '$_app/reels/media';
+  static const String reelMake = '$_app/reels/make';
   static String reel(String id) => '$_app/reels/$id';
+  static const String reelBookStyle = '$_app/reels/book-style';
+  static String reelsFromVerse(String verseId) => '$_app/reels/book/$verseId';
   static String reelSimilar(String id) => '$_app/reels/$id/similar';
   static String reelLike(String id) => '$_app/reels/$id/like';
   static String reelView(String id) => '$_app/reels/$id/view';
