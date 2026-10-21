@@ -34,8 +34,8 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const { requireSignIn } = useAuth();
   const [comparing, setComparing] = useState(false);
   const [noting, setNoting] = useState(false);
-  const [showWords, setShowWords] = useState(true);
-  const [showPurport, setShowPurport] = useState(true);
+  const [showWords, setShowWords] = useState(false);
+  const [showPurport, setShowPurport] = useState(false);
 
   const translation = verse.translation;
   const credit = creditName(translation?.translator);
