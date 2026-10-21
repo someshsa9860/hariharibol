@@ -247,12 +247,12 @@ export const preview = async (req, res) => {
 
   const [total, rows] = await Promise.all([
     prisma.verse.count({ where }),
-    prisma.verse.findMany({ where, orderBy: ORDER, take: Math.min(selection.limit, 12), include: VERSE_INCLUDE(selection.languageCode) }),
+    prisma.verse.findMany({ where, orderBy: ORDER, take: 12, include: VERSE_INCLUDE(selection.languageCode) }),
   ]);
 
   return ok(res, {
     total,
-    willCreate: Math.min(total, selection.limit),
+    willCreate: selection.limit ? Math.min(total, selection.limit) : total,
     sample: rows.map((verse) => ({
       id: verse.id,
       verseId: verse.verseId,
@@ -297,7 +297,7 @@ export const generate = async (req, res) => {
   const verses = await prisma.verse.findMany({
     where: whereFor(selection, { templateId, useVerseAudio }),
     orderBy: ORDER,
-    take: Math.min(selection.limit, GENERATE_MAX),
+    take: Math.min(selection.limit ?? GENERATE_MAX, GENERATE_MAX),
     include: VERSE_INCLUDE(selection.languageCode),
   });
   if (!verses.length) throw badRequest('No verses match, or all of them already have a reel from this template');

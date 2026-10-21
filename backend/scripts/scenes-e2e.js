@@ -236,6 +236,19 @@ async function main() {
       check('and the earlier file is kept as a backup', readdirBackup(dir));
     }
 
+    section('A queue of runs');
+    {
+      const first = await newRun({ chapters: [101], force: true });
+      await sleep(20);
+      const later = await newRun({ chapters: [102], force: true });
+      const model = fakeModel();
+      const early = await work(later, model);
+      check('a run waits while an earlier one is queued', early.delayed === true && model.asked.length === 0 && (await fresh(later)).status === 'QUEUED');
+      await work(first, fakeModel());
+      const after = await work(later, model);
+      check('and starts once the earlier one has finished', after.completed === true && model.asked.length === 1 && (await fresh(later)).status === 'COMPLETED');
+    }
+
     section('Every way a run can stop');
     {
       const run = (extra) => newRun({ chapters: [101], force: true, ...extra });
@@ -249,6 +262,9 @@ async function main() {
       result = await work(row, fakeModel(async () => { throw Object.assign(new Error('quota'), { status: 429, provider: 'gemini' }); }));
       after = await fresh(row);
       check('a provider’s limit (even one that says “quota”) pauses it and it tries again by itself', result.delayed === true && after.status === 'PAUSED' && after.pauseReason === 'rate_limit' && after.resumeAt && after.retriesInARow === 1, `${after.pauseReason} ${after.resumeAt}`);
+
+      // A run paused to retry by itself holds its place in the queue; this one is done with.
+      await prisma.sceneRun.update({ where: { id: row.id }, data: { status: 'CANCELLED' } });
 
       row = await run();
       result = await work(row, fakeModel(async () => { throw Object.assign(new FatalApiError('spend limit reached, billing', 402), { provider: 'gemini' }); }));
@@ -334,8 +350,11 @@ async function main() {
       const started = await call('POST', '/api/admin/scenes/runs', { token: runner, body: { chapters: [103] } });
       check('starting queues a run for gemini and the configured model', started.status === 201 && started.data.status === 'QUEUED' && started.data.provider === 'gemini' && started.data.model === MODEL && started.data.progress.total === 0, JSON.stringify(started.data));
       if (started.data?.id) made.runs.push(started.data.id);
-      const second = await call('POST', '/api/admin/scenes/runs', { token: runner, body: { chapters: [103] } });
-      check('only one run is active at a time', second.status === 409);
+      const second = await call('POST', '/api/admin/scenes/runs', { token: runner, body: { chapters: [103], force: true } });
+      check('a second run is queued behind the first, not refused', second.status === 201 && second.data.status === 'QUEUED', String(second.status));
+      if (second.data?.id) made.runs.push(second.data.id);
+      const waiting = await call('POST', `/api/admin/scenes/runs/${second.data.id}/cancel`, { token: runner });
+      check('and a queued run can be removed', waiting.status === 200 && waiting.data.status === 'CANCELLED');
       const got = await call('GET', `/api/admin/scenes/runs/${started.data.id}`, { token: reader });
       check('the run and its feed can be read', got.status === 200 && got.data.feed?.some((l) => /Queued by/.test(l.text)), JSON.stringify(got).slice(0, 300));
       check('Resume refuses a run that is waiting', (await call('POST', `/api/admin/scenes/runs/${started.data.id}/resume`, { token: runner })).status === 409);

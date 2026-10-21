@@ -182,8 +182,16 @@ export async function saveOutput(book, chapterId, file) {
 /** Counts a finished call in the token calculator (the AI usage page) under its provider and model. */
 export const countTokens = ({ provider, model: modelId, inputTokens, outputTokens }) => tally.record({ provider, model: modelId, inputTokens, outputTokens });
 
-/** The worker tells the page how full its minute is; the page reads it here. Expires, so an idle worker shows nothing. */
-export const rememberMinute = (usage) => redis.set(scenes.statusKey, JSON.stringify({ at: new Date().toISOString(), ...usage }), 'EX', 120).catch(() => {});
+/**
+ * The worker tells the page how full its minute is: kept in Redis for the page's first load (it expires, so an idle worker
+ * shows nothing) and sent over the websocket with today's tokens, so the meters move as the run does.
+ */
+export async function rememberMinute(usage, { provider, model: modelId } = {}) {
+  const minute = { at: new Date().toISOString(), ...usage };
+  await redis.set(scenes.statusKey, JSON.stringify(minute), 'EX', 120).catch(() => {});
+  const today = provider && modelId ? await todayFor(provider, modelId).catch(() => null) : null;
+  toPermission('scenes.read', EVENTS.SCENES_USAGE, { minute, today });
+}
 export async function minuteUsage() {
   const text = await redis.get(scenes.statusKey).catch(() => null);
   return text ? JSON.parse(text) : null;

@@ -89,7 +89,7 @@ function toSelection(form: Form) {
     verseTo: num(form.verseTo),
     tag: form.tag || null,
     hints: keywords(form.hints),
-    limit: Math.min(100, Math.max(1, Number(form.limit) || 20)),
+    limit: Number(form.limit) > 0 ? Math.floor(Number(form.limit)) : null,
     languageCode: form.languageCode,
   };
 }
@@ -161,7 +161,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
     verseTo: '',
     tag: '',
     hints: '',
-    limit: '20',
+    limit: '',
     languageCode: 'en',
   });
   const [useVerseAudio, setUseVerseAudio] = useState(false);
@@ -297,6 +297,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
   const [publish, setPublish] = useState(false);
   const [extraTags, setExtraTags] = useState('');
   const [result, setResult] = useState<Result | null>(null);
+  const [progress, setProgress] = useState(0);
 
   const backgroundReady = doc.mediaType === 'VIDEO' ? Boolean(doc.videoPath) : doc.images.length > 0;
 
@@ -306,20 +307,34 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
     if (!id) return;
 
     setBusy('create');
+    setProgress(0);
     try {
-      const { data } = await api.post<Result>('/api/admin/reel-recipes/generate', {
-        templateId: id,
-        creatorId,
-        selection: toSelection(form),
-        useVerseAudio,
-        publish: publish && canPublish,
-        extraTags: keywords(extraTags),
-      });
-      setResult(data);
+      // Up to 100 reels a request; the API leaves out verses already made from
+      // this design, so asking again continues where the last call stopped.
+      const target = willCreate;
+      const all: Result = { created: 0, published: false, reels: [], skipped: [] };
+      while (all.created < target) {
+        const { data } = await api.post<Result>('/api/admin/reel-recipes/generate', {
+          templateId: id,
+          creatorId,
+          selection: { ...toSelection(form), limit: Math.min(100, target - all.created) },
+          useVerseAudio,
+          publish: publish && canPublish,
+          extraTags: keywords(extraTags),
+        });
+        all.published = data.published;
+        all.created += data.created;
+        all.reels.push(...data.reels);
+        all.skipped.push(...data.skipped);
+        setProgress(all.created);
+        if (data.created === 0) break;
+      }
+      setResult(all);
       queryClient.invalidateQueries({ queryKey: ['reels'] });
       queryClient.invalidateQueries({ queryKey: ['recipe-preview'] });
     } catch (e) {
-      setError(messageOf(e, 'Could not create the reels.'));
+      setError(messageOf(e, 'Could not create the reels. Reels already made are kept; run it again to continue.'));
+      queryClient.invalidateQueries({ queryKey: ['recipe-preview'] });
     } finally {
       setBusy(null);
     }
@@ -446,8 +461,8 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Most reels to make" htmlFor="rl" hint="Up to 100 a run.">
-                <Input id="rl" type="number" min={1} max={100} value={form.limit} onChange={(e) => field('limit', e.target.value)} />
+              <Field label="Most reels to make" htmlFor="rl" hint="Leave blank to make a reel for every matching verse.">
+                <Input id="rl" type="number" min={1} placeholder="All" value={form.limit} onChange={(e) => field('limit', e.target.value)} />
               </Field>
               <Field label="Text written in" htmlFor="rlang" hint="Readers still see their own language.">
                 <Select id="rlang" value={form.languageCode} onChange={(e) => field('languageCode', e.target.value)}>
@@ -576,7 +591,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
                 {busy === 'template' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save design
               </Button>
-              <Button onClick={() => go(3)} disabled={!backgroundReady}>
+              <Button onClick={() => go(3)}>
                 Next
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -584,7 +599,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
           </div>
 
           {!backgroundReady && (
-            <Notice tone="info">Add a background {doc.mediaType === 'VIDEO' ? 'video' : 'image'} in the Media tab — every reel is made on it.</Notice>
+            <Notice tone="info">Add a background {doc.mediaType === 'VIDEO' ? 'video' : 'image'} in the Media tab — every reel is made on it, and reels cannot be created without one.</Notice>
           )}
           {backgroundReady && !hasBinding && (
             <Notice tone="info">
@@ -678,6 +693,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
                   </label>
                 )}
 
+                {!backgroundReady && <Notice tone="error">The design has no background {doc.mediaType === 'VIDEO' ? 'video' : 'image'}, so reels cannot be created. Go back to the design and add one in the Media tab.</Notice>}
                 {!hasBinding && <Notice tone="info">The design has no verse field, so every reel will show the same background and text. Go back to add one.</Notice>}
 
                 <div className="flex justify-between pt-2">
@@ -687,7 +703,7 @@ function Recipe({ books, creators, templates, start }: { books: Book[]; creators
                   </Button>
                   <Button onClick={() => void create()} disabled={busy !== null || !canWrite || willCreate === 0 || !backgroundReady}>
                     {busy === 'create' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    Create {willCreate} {willCreate === 1 ? 'reel' : 'reels'}
+                    {busy === 'create' ? `Making reels… ${progress} of ${willCreate}` : `Create ${willCreate} ${willCreate === 1 ? 'reel' : 'reels'}`}
                   </Button>
                 </div>
               </CardContent>

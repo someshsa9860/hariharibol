@@ -242,6 +242,7 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
         <DialogHeader>
           <DialogTitle>{preset?.chapters?.length === 1 ? `Write chapter ${chapters[0]?.label}` : 'New scene run'}</DialogTitle>
           <DialogDescription>
+            {overview.active.length > 0 && <span className="mb-1 block font-medium text-foreground">A run is going, so this one joins the queue and starts by itself when the others are done.</span>}
             For each chapter the model reads the Hindi meaning of every verse and writes the scenes: narrator, dialogue and a visual prompt for each. One request a chapter, kept under the model's free limits.
           </DialogDescription>
         </DialogHeader>
@@ -367,7 +368,7 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
             Cancel
           </Button>
           <Button onClick={submit} disabled={start.isPending || ids.length === 0 || nothing || !!keyMissing}>
-            {start.isPending ? <Loader2 className="animate-spin" /> : <Rocket />} Start
+            {start.isPending ? <Loader2 className="animate-spin" /> : <Rocket />} {overview.active.length > 0 ? 'Add to queue' : 'Start'}
           </Button>
         </DialogFooter>
       </DialogContent>
