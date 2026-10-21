@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Qr } from '@/components/share/qr';
-import { APP_STORE_URL, PLAY_STORE_URL, SITE_URL } from '@/lib/config';
+import { appStoreUrl, PLAY_STORE_URL, SITE_URL } from '@/lib/config';
 
 export const metadata: Metadata = {
   title: 'Get the app',
@@ -21,10 +21,11 @@ export const metadata: Metadata = {
  */
 export default async function GetAppPage({ searchParams }: { searchParams: Promise<{ stay?: string }> }) {
   const { stay } = await searchParams;
+  const appStore = appStoreUrl();
   if (!stay) {
     const ua = (await headers()).get('user-agent') ?? '';
     if (/android/i.test(ua) && PLAY_STORE_URL) redirect(PLAY_STORE_URL);
-    if (/iphone|ipad|ipod/i.test(ua) && APP_STORE_URL) redirect(APP_STORE_URL);
+    if (/iphone|ipad|ipod/i.test(ua) && appStore) redirect(appStore);
   }
 
   return (
@@ -43,13 +44,13 @@ export default async function GetAppPage({ searchParams }: { searchParams: Promi
           <a className="share-badge" href={PLAY_STORE_URL} rel="noopener">
             <span aria-hidden>▶</span><span><small>GET IT ON</small>Google Play</span>
           </a>
-          {APP_STORE_URL && (
-            <a className="share-badge" href={APP_STORE_URL} rel="noopener">
+          {appStore && (
+            <a className="share-badge" href={appStore} rel="noopener">
               <span aria-hidden></span><span><small>Download on the</small>App Store</span>
             </a>
           )}
         </div>
-        {!APP_STORE_URL && <p className="muted small" style={{ margin: 0 }}>The iPhone app is on its way. Everything also works on the website.</p>}
+        {!appStore && <p className="muted small" style={{ margin: 0 }}>The iPhone app is on its way. Everything also works on the website.</p>}
 
         <div className="share-qr">
           <Qr value={`${SITE_URL}/get-app`} label="QR code. Scan it with your phone to get the app." />

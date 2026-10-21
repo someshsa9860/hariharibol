@@ -49,5 +49,12 @@ export const LEGAL_LINKS = [
   { label: 'Delete account', href: `${API_BASE}/api/web/pages/account-deletion` },
 ] as const;
 
-/** The App Store listing, when there is one. Empty until the iOS app is published — the share page then shows no Apple badge. */
-export const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL ?? '';
+/**
+ * The App Store listing, when there is one; empty until the iOS app is published, and the pages then show no Apple badge.
+ * Read when a page is served, from the container's APP_STORE_URL (deploy/server/website.sh hands it over from the
+ * server's .env, the key the backend uses too), so setting it is an edit there and `./deploy.sh website` — no rebuild.
+ * Server components only. NEXT_PUBLIC_APP_STORE_URL still works if it was baked in at build time.
+ */
+export function appStoreUrl(): string {
+  return process.env.APP_STORE_URL || process.env.NEXT_PUBLIC_APP_STORE_URL || '';
+}

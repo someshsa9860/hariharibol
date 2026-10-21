@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { Qr } from './qr';
-import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/config';
+import { appStoreUrl, PLAY_STORE_URL } from '@/lib/config';
 import { OpenInApp } from './open-in-app';
 
 /**
@@ -9,6 +9,7 @@ import { OpenInApp } from './open-in-app';
  * handed to it by the system (Android App Links, iOS Universal Links); the button below is for browsers that don't.
  */
 export function GetTheApp({ url, appPath, heading, note }: { url: string; appPath: string; heading: string; note?: string }) {
+  const appStore = appStoreUrl();
   return (
     <aside className="card share-get" aria-labelledby="get-app-title">
       <div className="share-brand">
@@ -28,8 +29,8 @@ export function GetTheApp({ url, appPath, heading, note }: { url: string; appPat
         <a className="share-badge" href={PLAY_STORE_URL} rel="noopener">
           <span aria-hidden>▶</span><span><small>GET IT ON</small>Google Play</span>
         </a>
-        {APP_STORE_URL && (
-          <a className="share-badge" href={APP_STORE_URL} rel="noopener">
+        {appStore && (
+          <a className="share-badge" href={appStore} rel="noopener">
             <span aria-hidden></span><span><small>Download on the</small>App Store</span>
           </a>
         )}
