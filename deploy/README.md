@@ -173,7 +173,7 @@ rest of the file, and `./deploy.sh website` on the server applies a change with 
 | `AWS_REGION` | `ap-south-1` |
 | `ECR_REGISTRY` | `<account-id>.dkr.ecr.ap-south-1.amazonaws.com`. The backend and admin workflows stop if the AWS keys belong to a different account, so images can't land in the wrong one. |
 | `VITE_API_URL` | Public API URL embedded in the admin bundle: `https://api.hariharibol.com` |
-| `VITE_GOOGLE_CLIENT_ID` | Google web client ID embedded in the admin bundle. `https://admin.hariharibol.com` must be one of its authorised JavaScript origins. |
+| `VITE_GOOGLE_CLIENT_ID` | Google web client ID embedded in the admin bundle. `https://admin.hariharibol.com` must be one of its authorised JavaScript origins. The website uses this same client (as `WEBSITE_GOOGLE_CLIENT_ID` in the server's `.env`), so `https://hariharibol.com` must be an authorised origin too. |
 
 The two `VITE_*` values are variables because Vite writes them into the public
 bundle; the admin workflow refuses to build if either is empty (an empty build
