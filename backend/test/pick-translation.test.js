@@ -54,3 +54,13 @@ test('nothing to choose from is null', () => {
   assert.equal(pickTranslation(undefined, ['mr', 'en']), null);
   assert.equal(pickTranslation([english], ['hi']), null);
 });
+
+test('word meanings follow the reading language, English being the fallback', async () => {
+  const { pickWordMeanings } = await import('../utils/language.js');
+  const en = [{ word: 'dharma', meaning: 'duty' }];
+  const hi = [{ word: 'dharma', meaning: 'कर्तव्य' }];
+  const rows = [{ languageCode: 'hi', wordMeanings: hi }, { languageCode: 'mr', wordMeanings: null }];
+  assert.equal(pickWordMeanings(rows, ['hi', 'en'], en), hi);
+  assert.equal(pickWordMeanings(rows, ['mr', 'en'], en), en);
+  assert.equal(pickWordMeanings(rows, ['en', 'hi'], en), en);
+});

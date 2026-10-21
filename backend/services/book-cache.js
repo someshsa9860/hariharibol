@@ -52,6 +52,7 @@ const shapeTranslation = (t) => ({
   // Only where there is one, so a unit with none (the Bhagavatam's) keeps its hash
   // and phones do not download it again for nothing.
   ...(t.transliteration ? { transliteration: t.transliteration } : {}),
+  ...(Array.isArray(t.wordMeanings) && t.wordMeanings.length ? { wordMeanings: t.wordMeanings } : {}),
   sourceRef: t.sourceRef,
   audioPath: t.audioPath,
   displayOrder: t.displayOrder,

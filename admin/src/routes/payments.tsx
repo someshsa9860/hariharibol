@@ -177,6 +177,7 @@ function SubscriptionsTab() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.user.name || viewing?.user.email}
         description={viewing?.plan.name}
+        audit={viewing ? { entityType: 'Subscription', entityId: viewing.id } : undefined}
         fields={
           viewing
             ? [
@@ -304,6 +305,7 @@ function PaymentsTab() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.user ? viewing.user.name || viewing.user.email : viewing?.isAnonymous ? 'Anonymous donor' : 'Payment'}
         description={viewing ? formatMinorUnits(viewing.amountMinor, viewing.currency) : undefined}
+        audit={viewing ? { entityType: 'Payment', entityId: viewing.id } : undefined}
         fields={
           viewing
             ? [

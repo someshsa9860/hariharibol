@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Month-end costs</title>
+  <%- include('../_style') %>
+</head>
+<body>
+  <div class="wrap">
+    <h1>HariHariBol</h1>
+    <p>Time to close the books for <strong><%= monthLabel %></strong>.</p>
+
+    <div class="card">
+      <p class="meaning">
+        Store revenue and AI cost are already counted. Add what was spent outside them
+        &mdash; advertising, purchases, salaries &mdash; then confirm the month.
+      </p>
+      <p><a href="<%= link %>">Open Finance</a></p>
+    </div>
+
+    <footer class="muted">
+      <p>HariHariBol &middot; <%= year %></p>
+    </footer>
+  </div>
+</body>
+</html>

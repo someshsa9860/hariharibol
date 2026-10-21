@@ -43,11 +43,30 @@ const schedules = [
     description: 'Push an upcoming Ekadashi, Chaturthi or festival to readers, once each, the day before.',
   },
   {
+    name: 'finance.remind',
+    queue: 'notification',
+    // 03:30 UTC = 09:00 IST: asks the super admins for the month's costs on the last two days of a month and the first week of the next.
+    cron: '30 3 * * *',
+    description: 'Ask the super admins to enter and confirm the month’s costs, once a day until they do.',
+  },
+  {
     name: 'preferences.rebuild',
     queue: 'preferences',
     // Monday 20:00 UTC, after the week has closed everywhere.
     cron: '0 20 * * 1',
     description: 'Rebuild UserPreferenceProfile from the last 8 weeks of activity.',
+  },
+  {
+    name: 'subscription.reconcile',
+    queue: 'payment',
+    cron: '10 */6 * * *',
+    description: 'Re-read from Google Play / the App Store every subscription whose paid period has run out, in case a notification was missed.',
+  },
+  {
+    name: 'payment.fx.backfill',
+    queue: 'payment',
+    cron: '45 0 * * *',
+    description: 'Convert payments recorded while no exchange rate was available to INR.',
   },
   {
     name: 'entitlement.sweep',

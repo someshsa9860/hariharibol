@@ -12,6 +12,7 @@
 
 import { prisma } from '../../config/database.js';
 import * as payments from '../../services/payments/index.js';
+import * as lifecycle from '../../services/payments/lifecycle.js';
 import * as entitlement from '../../services/entitlement.js';
 import * as aiWallet from '../../services/ai-wallet.js';
 import { TYPICAL_REPLY_TOKENS } from '../../config/chat.js';
@@ -161,40 +162,33 @@ export const verify = async (req, res) => {
   let verified;
   if (provider === 'GOOGLE_PLAY') {
     if (!purchaseToken) throw badRequest('purchaseToken is required for Google Play');
-    verified = await payments.providers.GOOGLE_PLAY.verifySubscription({ productId, purchaseToken });
+    verified = await payments.providers.GOOGLE_PLAY.verifySubscription({ purchaseToken });
   } else {
     if (!transactionId) throw badRequest('transactionId is required for the App Store');
     verified = await payments.providers.APPLE_APP_STORE.verifySubscription(transactionId);
   }
 
+  // The store must agree that the product bought is the one the app says.
+  if (verified.productId && verified.productId !== productId) throw badRequest('That purchase is for a different product');
   if (!verified.isValid) throw badRequest('That subscription is not active');
+  verified.productId = productId;
 
-  const subscription = await payments.upsertSubscription({
-    userId: user.id,
-    planId: plan.id,
-    priceId: price.id,
-    provider,
-    externalId: verified.externalId,
-    status: 'ACTIVE',
-    currentPeriodEnd: verified.expiresAt,
-    autoRenew: verified.autoRenew,
+  // Another reader's purchase cannot be claimed by sending its token.
+  const owner = await prisma.subscription.findUnique({
+    where: { provider_externalId: { provider, externalId: verified.externalId } },
+    select: { userId: true },
   });
+  if (owner && owner.userId !== user.id) throw badRequest('That purchase belongs to another account');
 
-  await payments.recordPayment({
-    userId: user.id,
-    subscriptionId: subscription.id,
-    provider,
-    purpose: 'SUBSCRIPTION',
-    // The subscription is keyed by the token that survives renewals; a payment
-    // is keyed by the order, which is different every month. Using the same key
-    // for both would collapse a year of renewals into one ledger row.
-    externalId: verified.orderId || verified.externalId,
-    amountMinor: verified.priceMinor ?? price.priceMinor,
-    currency: verified.currency ?? price.currency,
-    status: 'SUCCEEDED',
-    providerPayload: verified.raw,
-  });
+  // Same path the store's own notifications take: subscription, payment (0 for a free
+  // trial), INR figures, and the push to the reader.
+  const applied = await lifecycle.applyStoreState({ provider, verified, userId: user.id, event: 'APP_VERIFY' });
+  if (!applied.subscription) throw badRequest('That subscription could not be applied');
+  if (provider === 'GOOGLE_PLAY') {
+    await payments.providers.GOOGLE_PLAY.acknowledge({ productId, purchaseToken }).catch(() => {});
+  }
 
+  const subscription = applied.subscription;
   return created(res, {
     subscription: {
       id: subscription.id,

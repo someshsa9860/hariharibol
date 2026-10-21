@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Ban, UserPlus, CheckCircle2, Clapperboard, Eye, MoreHorizontal, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
-import { DetailDialog } from '@/components/detail-dialog';
 import { useResource } from '@/lib/use-resource';
 import { useDataTable } from '@/lib/use-table';
 import { api } from '@/lib/api';
@@ -47,7 +47,7 @@ export function UsersPage() {
   const [banTargets, setBanTargets] = useState<User[]>([]);
   const [banReason, setBanReason] = useState('');
   const [roleTargets, setRoleTargets] = useState<User[]>([]);
-  const [viewing, setViewing] = useState<User | null>(null);
+  const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   const [creatorTarget, setCreatorTarget] = useState<User | null>(null);
 
@@ -137,7 +137,7 @@ export function UsersPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenuItem onClick={() => setViewing(u)}>
+            <DropdownMenuItem onClick={() => navigate(`/users/${u.id}`)}>
               <Eye className="mr-2 h-4 w-4" />
               View details
             </DropdownMenuItem>
@@ -204,7 +204,7 @@ export function UsersPage() {
         columns={columns}
         exportName="users"
         searchPlaceholder="Search name or email…"
-        onRowClick={setViewing}
+        onRowClick={(u) => navigate(`/users/${u.id}`)}
         rowClassName={(u) => (u.isBanned ? 'text-muted-foreground' : undefined)}
         filters={
           <>
@@ -327,35 +327,6 @@ export function UsersPage() {
         }}
       />
 
-      <DetailDialog
-        open={!!viewing}
-        onOpenChange={(open) => !open && setViewing(null)}
-        title={viewing?.name || viewing?.email}
-        fields={
-          viewing
-            ? [
-                { label: 'Email', value: viewing.email },
-                { label: 'Name', value: viewing.name || '—' },
-                { label: 'Role', value: <Badge variant="outline">{viewing.role.name}</Badge> },
-                {
-                  label: 'Status',
-                  value: (
-                    <div className="flex gap-1.5">
-                      {viewing.isPremium && <Badge variant="success">Premium</Badge>}
-                      {viewing.isBanned && <Badge variant="destructive">Banned</Badge>}
-                      {!viewing.isPremium && !viewing.isBanned && '—'}
-                    </div>
-                  ),
-                },
-                { label: 'Premium until', value: viewing.premiumUntil ? formatDateOnly(viewing.premiumUntil) : '—' },
-                { label: 'Sign-in', value: viewing.authProvider ?? '—' },
-                { label: 'Joined', value: formatDate(viewing.createdAt) },
-                { label: 'Last active', value: viewing.lastActiveAt ? formatDate(viewing.lastActiveAt) : 'Never' },
-                { label: 'User ID', value: <span className="font-mono text-xs">{viewing.id}</span> },
-              ]
-            : []
-        }
-      />
     </div>
   );
 }

@@ -513,7 +513,7 @@ function History({ onOpen }: { onOpen: (id: string) => void }) {
 function RunDialog({ id, onClose, onOpenChapter }: { id: string | null; onClose: () => void; onOpenChapter: (chapter: number) => void }) {
   return (
     <Dialog open={!!id} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent page className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Scene run</DialogTitle>
           <DialogDescription>What it did, what it used, and its activity.</DialogDescription>

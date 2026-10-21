@@ -14,6 +14,7 @@ import * as notify from '../notify.js';
 import * as google from './google.js';
 import * as apple from './apple.js';
 import * as razorpay from './razorpay.js';
+import * as money from './money.js';
 
 const providers = { GOOGLE_PLAY: google, APPLE_APP_STORE: apple, RAZORPAY: razorpay };
 
@@ -34,7 +35,21 @@ async function recordPayment(input) {
     isAnonymous = false,
     providerPayload = null,
     paidAt = new Date(),
+    isTrial = false,
+    storeCommissionMinor = null,
   } = input;
+
+  const existing = await prisma.payment.findUnique({
+    where: { provider_externalId: { provider, externalId } },
+    select: { id: true, grossInrMinor: true, isTrial: true },
+  });
+
+  // What the payment is worth in rupees (see money.js). A payment that is not money
+  // yet — pending, failed — gets no figures; they are worked out when it succeeds.
+  const worth =
+    status === 'SUCCEEDED' || status === 'REFUNDED'
+      ? await money.revenueFields({ provider, amountMinor, currency, isTrial, paidAt, storeCommissionMinor })
+      : {};
 
   const data = {
     userId,
@@ -42,26 +57,34 @@ async function recordPayment(input) {
     provider,
     purpose,
     externalId,
-    amountMinor,
+    amountMinor: isTrial ? 0 : amountMinor,
     currency,
     status,
     message,
     isAnonymous,
     providerPayload,
     paidAt: status === 'SUCCEEDED' ? paidAt : null,
+    ...worth,
   };
 
   const payment = await prisma.payment.upsert({
     where: { provider_externalId: { provider, externalId } },
     // A retry may carry a newer status — pending settling to succeeded, or a
     // refund. The user and the amount are not re-written: the first write is
-    // authoritative about who paid what.
-    update: { status: data.status, paidAt: data.paidAt, providerPayload, subscriptionId },
+    // authoritative about who paid what. The figures are written once, the first
+    // time the payment is known to be money.
+    update: {
+      status: data.status,
+      paidAt: data.paidAt,
+      providerPayload,
+      subscriptionId,
+      ...(existing && existing.grossInrMinor == null && status === 'SUCCEEDED' ? worth : {}),
+    },
     create: data,
   });
 
   await entitlement.refresh(userId);
-  logger.info({ userId, provider, purpose, amountMinor, currency, status }, 'payment recorded');
+  logger.info({ userId, provider, purpose, amountMinor, currency, status, isTrial }, 'payment recorded');
 
   return payment;
 }

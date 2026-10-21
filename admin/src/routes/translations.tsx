@@ -614,7 +614,7 @@ function RunDialog({ id, books, onClose, onOpenOutput }: { id: string | null; bo
   const run = useRun(id);
   return (
     <Dialog open={!!id} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent page className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Translation run</DialogTitle>
           <DialogDescription>Everything about this run, as the server has it.</DialogDescription>

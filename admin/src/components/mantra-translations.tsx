@@ -125,7 +125,7 @@ export function MantraTranslations({
 
   return (
     <Dialog open={!!mantra} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent page className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />

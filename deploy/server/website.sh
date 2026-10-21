@@ -22,6 +22,10 @@ env_value () {
 # thing and is never passed on).
 api_url="$(env_value WEBSITE_API_URL)"
 env_args=(-e "API_BASE_URL=${api_url:-https://api.hariharibol.com}")
+# The App Store link is the backend's own APP_STORE_URL, read by the website each time it serves a page.
+store_url="$(env_value APP_STORE_URL)"
+[ -n "$store_url" ] || store_url="$(env_value NEXT_PUBLIC_APP_STORE_URL)"
+[ -z "$store_url" ] || env_args+=(-e "APP_STORE_URL=$store_url")
 for key in WEBSITE_GOOGLE_CLIENT_ID WEBSITE_APPLE_CLIENT_ID WEBSITE_RECAPTCHA_SITE_KEY; do
   value="$(env_value "$key")"
   [ -z "$value" ] || env_args+=(-e "$key=$value")

@@ -524,6 +524,19 @@ splitting them would mean maintaining two of everything.
 every provider retries webhooks — without that constraint a retry credits the
 user twice. Store money as integer minor units (paise, cents); floats drift.
 
+### Store subscriptions and revenue
+
+Google Play (Pub/Sub RTDN) and App Store (Server Notifications V2) both end in `services/payments/lifecycle.js`
+(`applyStoreState`, `applyRefund`, `reconcile`): subscription status, one `Payment` per charge (a free trial is a row of 0,
+`isTrial`), and a push to the reader on subscribe / upgrade / renewal / cancel / grace / expiry / refund. `google.js` and
+`apple.js` only normalise the store's answer. Every payment stores, once, its original amount and currency, **`grossInrMinor`,
+`commissionInrMinor`, `netInrMinor`** (paise), the rate used and where it came from (`money.js`, `fx.js`; Frankfurter then
+open.er-api.com, cached per day in `FxRate`). Commission is a configured rate (`PLAY_COMMISSION_RATE`, `APPLE_COMMISSION_RATE`,
+`RAZORPAY_FEE_RATE`) because the stores do not report it. Credentials are file paths (`GOOGLE_PLAY_SERVICE_ACCOUNT_PATH`,
+`APPLE_PRIVATE_KEY_PATH`). Worker jobs `subscription.reconcile` (6-hourly) and `payment.fx.backfill` (daily). Console steps and
+limits: [docs/store-subscriptions.md](docs/store-subscriptions.md). `npm run test:store-subscriptions` (needs only the database
+and Redis). **Not run against the real stores. Production needs `prisma migrate deploy` for `20261101000000_store_revenue`.**
+
 ## Server wording in the user's language
 
 What the server says in its own voice — error messages and the daily sloka's title — is in the person's language;
@@ -1172,6 +1185,29 @@ association files then list nothing and the page hides the store badge instead o
 proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
 `node --test test/share.test.js`.
 
+## Active users, live presence and the per-person admin page
+
+- **`UserActiveDay`** (migration `20261031000000_user_active_days`): one row per person per Indian calendar day on which they made a
+  signed-in request, with the platform (`X-Platform`) of the first one. It is the history behind daily / weekly / monthly active users
+  and retention — `User.lastActiveAt` only knows the last time, so it cannot say how many people were active last Tuesday.
+  Written by `services/presence.js` `touch()` from `middleware/auth.js`, at most once a day per person (a Redis gate, then an
+  upsert); the migration rebuilds earlier days once from `SadhanaDay`, `ChantSession`, `ReelView`, `ReadingProgress`, sign-up and
+  `lastActiveAt` dates, which is **approximate** (only days that left a row). Days are `Asia/Kolkata`, like the dashboard.
+- **Presence** is a Redis sorted set `presence:users` (userId → last seen ms), refreshed at most every 20 s per person; "online" is
+  seen in the last 5 minutes. **The websocket container pushes `presence.update`** to every socket with `system.read` every 5 s
+  when someone arrived or left (and every 20 s regardless) with the counts and the people who joined / dropped; nothing is sent
+  when no admin is connected. `GET /api/admin/system/live` is the first paint and the polling fallback.
+- **`GET /api/admin/system/activity?days=7–180`**: daily active users, new sign-ups, rolling weekly and monthly actives, stickiness
+  (DAU ÷ MAU), day-1 / 7 / 30 retention of people who joined in the last 60 days (a figure appears only once that many days have
+  passed), and today's split by platform. `GET /system/analytics` now takes its DAU / WAU / MAU from the same record.
+- **`/api/admin/users/:id/{overview,chanting,daily,engagement,billing}`** (`user.read`, `controllers/admin/user-detail.js`): one
+  endpoint per tab of the admin's person page. Read only, no secrets, and **what a person says to Sakha is never shown** (titles and
+  counts only). Per-mantra totals, sittings, streaks, day-by-day rounds against target, reading progress, saved items, notes, reels
+  watched, notifications, devices, plan / subscriptions / payments, the Sakha wallet and ledger, and referral grants.
+- Tests: `npm run test:admin-users` (31 checks over HTTP and the websocket; needs the API **and** `node websocket/index.js` running).
+  **Not run at scale:** the presence write is one Redis `SET NX` per signed-in request, one `ZADD` per person per 20 s, and one
+  upsert per person per day.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.
@@ -1232,3 +1268,13 @@ Every push belongs to a `PushCampaign` (`services/push-campaign.js`): one row pe
 ## Maintenance commands
 
 The admin **Maintenance** page (`system.maintenance`, super admin only — `admin` does not carry it) runs scripts from the fixed list in `config/maintenance.js` (`seed`, `seed:panchang`, `recount:books` …) through `services/maintenance.js`: `npm run <script>` spawned in the API container, one at a time, killed after 15 minutes, output kept in memory (256 KB) and polled by the page every second. It is not a shell — the request names an id from the list. Every start and finish is an `AuditLog` row (`maintenance.start` / `maintenance.finish`). Output is per API process, so with several API containers each has its own run. `prisma migrate` is not on the list: the production image installs without dev dependencies. Production needs `npm run seed` once after this ships (adds the permission).
+
+## Finance (super admin only)
+
+`services/finance.js`, `controllers/admin/finance.js`, `routes/admin/finance.js` (`/api/admin/finance/*`), permission **`finance.manage`** — held by `super_admin` alone (the `admin` role is excluded in `config/constants.js`; migration `20261101000100_finance` grants it to `super_admin` itself, so the deploy is enough and the seed need not be run). Everything is INR; money is paise.
+
+- **Revenue** is read from `Payment` by `paidAt`, in IST calendar months: `grossInrMinor`, `commissionInrMinor`, `netInrMinor` (written by the store-payments code). A free trial is a row of zeros (`isTrial`), so it adds nothing and is only counted. A refund comes off the month it was *refunded* in (`refundedAt`), not the month it was paid. Payments whose INR columns are still null (FX lookup pending) are counted and flagged, not summed.
+- **AI cost** is read from `AiUsageLog.costMicros` (US dollars) and converted at `finance.usd_inr_rate` (AppSetting, default 88, set from the Finance page). Grouped by `operation` prefix: `chat*` Ask Sakha, `translation*`, `scenes*`, image/picture/background, the rest "Verses and other AI". **Confirming a month fixes the rate it was converted at** (`FinanceMonth.usdInrRate`); reopening clears it.
+- **Manual lines** are `FinanceEntry` (CREDIT/DEBIT, category advertising / purchase / salary / tools / other, amount in paise, an IST date, a note), added any day. Profit = net revenue + credits − AI − debits.
+- **Month end:** the worker job `finance.remind` (09:00 IST, `config/cron.js`, `jobs/processors/finance-remind.js`) pushes (`SYSTEM` notification) and emails (`views/emails/finance-reminder.ejs`) every super admin once a day on the last two days of a month and the first seven days of the next, until `FinanceMonth.costsConfirmedAt` is set. The admin panel banner (`GET /finance/pending`) stays until it is confirmed.
+- `npm run test:finance` (43 checks, needs the API; fakes the date for the reminder). **Production needs `prisma migrate deploy` for `20261101000100_finance`; nothing else.**

@@ -67,4 +67,32 @@ router.get(
   controller.analytics
 );
 
+router.get(
+  '/activity',
+  {
+    summary: 'Get daily active users, sign-ups, stickiness and retention',
+    description:
+      'A daily series (active users, new sign-ups, weekly and monthly actives, DAU ÷ MAU) for the last `days` (7–180, default 30), ' +
+      'day-1 / 7 / 30 retention of recent sign-ups, and today’s split by platform. From the per-day activity record ' +
+      '(`UserActiveDay`), which is exact from the day it was deployed and rebuilt approximately from older tables before that.',
+    permission: 'system.read',
+    query: z.object({ days: z.coerce.number().int().min(7).max(180).optional() }),
+    limit: 'read',
+    responds: { 200: 'The series and the headline numbers' },
+  },
+  controller.activity
+);
+
+router.get(
+  '/live',
+  {
+    summary: 'Who is online now',
+    description: 'People seen within the last five minutes, 15 minutes and hour, and the most recent few by name. The panel also receives these live over the websocket (`presence.update`).',
+    permission: 'system.read',
+    limit: 'read',
+    responds: { 200: 'Online counts and people' },
+  },
+  controller.live
+);
+
 export default router;

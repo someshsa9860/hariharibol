@@ -30,3 +30,12 @@ when both are set.
 
 **In production**, prefer whatever your host offers for secret material over a
 file on disk, and never bake this JSON into an image.
+
+## Store credentials (subscriptions)
+
+| File | Env variable | From |
+|---|---|---|
+| Play Developer API service account JSON | `GOOGLE_PLAY_SERVICE_ACCOUNT_PATH` | Google Cloud → IAM → Service accounts → Keys |
+| App Store Connect API key `AuthKey_XXXX.p8` | `APPLE_PRIVATE_KEY_PATH` | App Store Connect → Integrations → In-App Purchase |
+
+Step by step in [docs/store-subscriptions.md](../docs/store-subscriptions.md).

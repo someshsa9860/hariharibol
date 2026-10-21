@@ -18,6 +18,7 @@ import { useResource } from '@/lib/use-resource';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/page-header';
+import { LivePresence } from '@/components/live-presence';
 import { formatMinorUnits, formatMicros } from '@/lib/utils';
 
 type Stats = {
@@ -82,6 +83,8 @@ export function Dashboard() {
   return (
     <div>
       <PageHeader title="Dashboard" description="Counts and a 30-day activity series." />
+
+      <div className="mb-4"><LivePresence /></div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <Kpi label="Total users" value={s ? s.users.total.toLocaleString() : ''} icon={Users} isLoading={stats.isLoading} />

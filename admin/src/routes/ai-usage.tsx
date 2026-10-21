@@ -180,6 +180,7 @@ export function AiUsagePage() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.operation}
         description={viewing?.model}
+        audit={{ entityType: ['AiFreeTier', 'AiJob'], title: 'Audit log — AI settings and jobs' }}
         fields={
           viewing
             ? [
