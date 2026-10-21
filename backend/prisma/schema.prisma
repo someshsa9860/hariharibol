@@ -3165,9 +3165,10 @@ model PanchangDay {
   @@index([locationKey, date])
 }
 
-// A festival or observance on a date. `notifyDaysBefore` lists how many days ahead a push
-// goes out (1 = the evening before is reached the day before; 0 = the day itself);
-// `notifiedDays` records which were sent so a restart never repeats one.
+// A festival or observance on a date. It is always announced on its own day (05:00 IST, queued
+// by the 04:45 `festival.plan` job); `notifyDaysBefore` lists the earlier heads-ups, how many
+// days ahead (1 = the day before). `notifiedDays` records which were sent (0 = the day itself)
+// so a restart never repeats one.
 model Festival {
   id String @id @default(cuid())
 
