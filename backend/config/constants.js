@@ -9,6 +9,7 @@ const ROLES = {
   MODERATOR: 'moderator',
   ADMIN: 'admin',
   SUPER_ADMIN: 'super_admin',
+  BOOK_AUDITOR: 'book_auditor',
 };
 
 // ── Permissions ────────────────────────────────────────────────────────────
@@ -23,6 +24,8 @@ const PERMISSIONS = {
   'verse.write': { group: 'content', name: 'Create and edit verses' },
   'verse.publish': { group: 'content', name: 'Publish verse translations' },
   'verse.delete': { group: 'content', name: 'Delete verses' },
+  // Held by the book auditor alone — see ROLE_PERMISSIONS.
+  'book.audit': { group: 'content', name: 'Correct a book’s text in the reader (Sanskrit, translations, purports)' },
   'mantra.read': { group: 'content', name: 'View mantras' },
   'mantra.write': { group: 'content', name: 'Create and edit mantras' },
   'mantra.publish': { group: 'content', name: 'Publish mantras' },
@@ -70,6 +73,7 @@ const PERMISSIONS = {
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSIONS);
+const AUDITOR_ONLY = ['book.audit'];
 
 // Which permissions each standard role carries. `super_admin` is intentionally
 // not listed — it is granted everything, including permissions added later.
@@ -86,9 +90,12 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund'].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', ...AUDITOR_ONLY].includes(slug)
   ),
-  [ROLES.SUPER_ADMIN]: ALL_PERMISSIONS,
+  // Everything, including permissions added later — except the auditor-only ones: a book's
+  // text is corrected by one named role so every correction has one accountable hand.
+  [ROLES.SUPER_ADMIN]: ALL_PERMISSIONS.filter((slug) => !AUDITOR_ONLY.includes(slug)),
+  [ROLES.BOOK_AUDITOR]: ['book.read', 'verse.read', 'book.audit'],
 };
 
 // ── Books ──────────────────────────────────────────────────────────────────

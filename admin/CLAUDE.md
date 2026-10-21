@@ -416,3 +416,7 @@ Raw token numbers appear only on this page; readers in the app see a percentage.
 ## Scenes page
 
 `routes/scenes.tsx`, `components/scenes-run.tsx` (run panel, start dialog), `components/scenes-viewer.tsx` (reading-style view with copy and download), `lib/scenes.ts`. State is in the URL (`tab`, `canto`, `chapter`, `run`). Permissions `scenes.read` / `scenes.run`.
+
+## Book reader and book auditor
+
+Books → row menu → **Read verses** opens `components/book-reader-dialog.tsx`: one chapter at a time, in a chosen language, laid out like the website's reader (Sanskrit, transliteration, word meanings, translation, purport; unpublished translations marked). It is read-only for everyone except the **`book_auditor`** role, which alone holds `book.audit` — **super admin and admin are deliberately excluded** (`AUDITOR_ONLY` in `backend/config/constants.js`). The auditor gets a pencil beside each piece; saves go to `PATCH /api/admin/verses/:verseId/content` and `PATCH /api/admin/verses/:verseId/translations/:translationId` (audited as `verse.audit` / `verse.translation.audit`). Reading uses `GET /api/admin/books/:id/reader`. Not run in a browser or against a database. The older Verses page still lets `verse.write` holders edit word meanings. Production needs `npm run seed` (adds the permission and role), then assign the role in Users / Roles & permissions.
