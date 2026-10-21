@@ -2237,7 +2237,8 @@ class AppLocalizationsMr extends AppLocalizations {
   String get shareFailed => 'हे शेअर करता आले नाही. कृपया पुन्हा प्रयत्न करा.';
 
   @override
-  String get shareImageTooBig => 'ते चित्र खूप मोठे आहे. कृपया लहान चित्र निवडा.';
+  String get shareImageTooBig =>
+      'ते चित्र खूप मोठे आहे. कृपया लहान चित्र निवडा.';
 
   @override
   String get shareLinkShare => 'लिंक शेअर करा';
@@ -2257,7 +2258,8 @@ class AppLocalizationsMr extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'चित्र तयार होऊ शकले नाही. तुमचे क्रेडिट परत केले आहे.';
+  String get sharePictureFailed =>
+      'चित्र तयार होऊ शकले नाही. तुमचे क्रेडिट परत केले आहे.';
 
   @override
   String get sharePictureNoCredit => 'आज तुमचे Sakha क्रेडिट संपले आहे.';
@@ -2329,7 +2331,8 @@ class AppLocalizationsMr extends AppLocalizations {
   String get referUseCode => 'कोड वापरा';
 
   @override
-  String get referAccepted => 'कोड स्वीकारला. जपाची एक फेरी पूर्ण करा, म्हणजे तुमच्या मित्राला त्यांचे बक्षीस मिळेल.';
+  String get referAccepted =>
+      'कोड स्वीकारला. जपाची एक फेरी पूर्ण करा, म्हणजे तुमच्या मित्राला त्यांचे बक्षीस मिळेल.';
 
   @override
   String get referRefused => 'हा कोड वापरता येत नाही.';

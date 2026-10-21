@@ -151,6 +151,7 @@ abstract final class ApiPaths {
   static const String notifications = '$_app/notifications';
   static const String unreadCount = '$_app/notifications/unread-count';
   static String notificationRead(String id) => '$_app/notifications/$id/read';
+  static const String notificationEvents = '$_app/notifications/events';
   static const String notificationsReadAll = '$_app/notifications/read-all';
 
   // Money
@@ -168,6 +169,18 @@ abstract final class ApiPaths {
   static const String deities = '$_app/reference/deities';
   static const String gurus = '$_app/reference/gurus';
   static const String translators = '$_app/reference/translators';
+
+  // Sharing and referrals
+  static const String shareLink = '$_app/share/link';
+  static const String shareBackgroundQuote = '$_app/share/background/quote';
+  static const String shareBackground = '$_app/share/background';
+  static String shareBackgroundImage(String id) => '$_app/share/background/$id/image';
+  static const String referralMe = '$_app/referral/me';
+  static const String referralMine = '$_app/referral/mine';
+  static const String referralAttribute = '$_app/referral/attribute';
+
+  /// What a stranger sees at a shared link. Public, on the website's own API.
+  static String sharedContent(String route, String code) => '/api/web/share/$route/$code';
 }
 
 /// Error codes the app acts on by name; every other code is only worded.
@@ -193,16 +206,4 @@ abstract final class ApiHeaders {
 
   /// What a Server-Sent Events request asks for.
   static const String eventStream = 'text/event-stream';
-
-  // Sharing and referrals
-  static const String shareLink = '$_app/share/link';
-  static const String shareBackgroundQuote = '$_app/share/background/quote';
-  static const String shareBackground = '$_app/share/background';
-  static String shareBackgroundImage(String id) => '$_app/share/background/$id/image';
-  static const String referralMe = '$_app/referral/me';
-  static const String referralMine = '$_app/referral/mine';
-  static const String referralAttribute = '$_app/referral/attribute';
-
-  /// What a stranger sees at a shared link. Public, on the website's own API.
-  static String sharedContent(String route, String code) => '/api/web/share/$route/$code';
 }

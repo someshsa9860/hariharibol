@@ -7,6 +7,7 @@
 import { prisma } from '../../config/database.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { paginate } from '../../utils/pagination.js';
+import * as campaigns from '../../services/push-campaign.js';
 
 /** GET /api/app/notifications */
 export const list = async (req, res) => {
@@ -51,4 +52,28 @@ export const markAllRead = async (req, res) => {
     data: { readAt: new Date() },
   });
   return ok(res, { updated: updated.count });
+};
+
+/**
+ * POST /api/app/notifications/events
+ *
+ * What this phone saw happen to a push: it arrived, it was tapped, how long the
+ * reader stayed. Safe to send twice — the same report is never counted twice.
+ */
+export const events = async (req, res) => {
+  const { deviceId: bodyDeviceId, events: reported } = req.valid.body;
+
+  const device = await prisma.device.findUnique({
+    where: { deviceId: bodyDeviceId || req.deviceId },
+    select: { id: true },
+  });
+  // A phone that never registered has nothing to count against; not an error to retry.
+  if (!device) return ok(res, { kept: 0 });
+
+  const kept = await campaigns.recordEvents({
+    deviceId: device.id,
+    userId: req.auth.user.id,
+    events: reported,
+  });
+  return ok(res, { kept });
 };

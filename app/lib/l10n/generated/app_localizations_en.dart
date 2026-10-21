@@ -2232,7 +2232,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareFailed => 'We couldn’t share this. Please try again.';
 
   @override
-  String get shareImageTooBig => 'That picture is too large. Please choose a smaller one.';
+  String get shareImageTooBig =>
+      'That picture is too large. Please choose a smaller one.';
 
   @override
   String get shareLinkShare => 'Share link';
@@ -2252,7 +2253,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'The picture could not be made. Your credit was returned.';
+  String get sharePictureFailed =>
+      'The picture could not be made. Your credit was returned.';
 
   @override
   String get sharePictureNoCredit => 'Your Sakha credit for today is used up.';
@@ -2324,7 +2326,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get referUseCode => 'Use code';
 
   @override
-  String get referAccepted => 'Code accepted. Finish a round of chanting so your friend receives their reward.';
+  String get referAccepted =>
+      'Code accepted. Finish a round of chanting so your friend receives their reward.';
 
   @override
   String get referRefused => 'This code can’t be used.';

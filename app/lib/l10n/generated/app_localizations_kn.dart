@@ -2237,10 +2237,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get shareCopyLink => 'ಲಿಂಕ್ ನಕಲಿಸಿ';
 
   @override
-  String get shareFailed => 'ಇದನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+  String get shareFailed =>
+      'ಇದನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 
   @override
-  String get shareImageTooBig => 'ಆ ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ. ದಯವಿಟ್ಟು ಚಿಕ್ಕ ಚಿತ್ರವನ್ನು ಆರಿಸಿ.';
+  String get shareImageTooBig =>
+      'ಆ ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ. ದಯವಿಟ್ಟು ಚಿಕ್ಕ ಚಿತ್ರವನ್ನು ಆರಿಸಿ.';
 
   @override
   String get shareLinkShare => 'ಲಿಂಕ್ ಹಂಚಿಕೊಳ್ಳಿ';
@@ -2260,7 +2262,8 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'ಚಿತ್ರ ಮಾಡಲು ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಹಿಂತಿರುಗಿಸಲಾಗಿದೆ.';
+  String get sharePictureFailed =>
+      'ಚಿತ್ರ ಮಾಡಲು ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಹಿಂತಿರುಗಿಸಲಾಗಿದೆ.';
 
   @override
   String get sharePictureNoCredit => 'ಇಂದಿಗೆ ನಿಮ್ಮ Sakha ಕ್ರೆಡಿಟ್ ಮುಗಿದಿದೆ.';
@@ -2332,7 +2335,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get referUseCode => 'ಕೋಡ್ ಬಳಸಿ';
 
   @override
-  String get referAccepted => 'ಕೋಡ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಜಪದ ಒಂದು ಸುತ್ತನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ, ಆಗ ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ ಅವರ ಬಹುಮಾನ ಸಿಗುತ್ತದೆ.';
+  String get referAccepted =>
+      'ಕೋಡ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಜಪದ ಒಂದು ಸುತ್ತನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ, ಆಗ ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ ಅವರ ಬಹುಮಾನ ಸಿಗುತ್ತದೆ.';
 
   @override
   String get referRefused => 'ಈ ಕೋಡ್ ಬಳಸಲು ಸಾಧ್ಯವಿಲ್ಲ.';

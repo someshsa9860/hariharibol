@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input, Label, Select, Textarea } from '@/components/ui/input';
 import { UserPicker, type PickedUser } from '@/components/user-picker';
+import { NotificationStats } from '@/components/notification-stats';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect } from '@/components/table-filters';
@@ -171,7 +172,9 @@ export function NotificationsPage() {
         </CardContent>
       </Card>
 
-      <h3 className="mb-2 text-sm font-medium">History</h3>
+      <NotificationStats />
+
+      <h3 className="mb-2 text-sm font-medium">History, person by person</h3>
       <DataTable
         table={table}
         columns={columns}

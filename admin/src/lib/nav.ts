@@ -23,6 +23,7 @@ import {
   Film,
   MessageCircle,
   CalendarDays,
+  Terminal,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -80,6 +81,7 @@ export const NAV: NavSection[] = [
       { label: 'Ask Sakha', path: '/chat', icon: MessageCircle, permission: 'chat.manage' },
       { label: 'Audit log', path: '/audit', icon: History, permission: 'audit.read' },
       { label: 'Jobs', path: '/jobs', icon: ListTodo, permission: 'job.manage' },
+      { label: 'Maintenance', path: '/maintenance', icon: Terminal, permission: 'system.maintenance' },
       { label: 'Analytics', path: '/analytics', icon: TrendingUp, permission: 'system.read' },
       { label: 'System health', path: '/system', icon: Activity, permission: 'system.read' },
     ],

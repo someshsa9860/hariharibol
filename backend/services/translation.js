@@ -179,7 +179,14 @@ export async function coverage({ book = BOOK, refresh = false } = {}) {
   if (!refresh) {
     const cached = await redis.get(coverageKey(book)).catch(() => null);
     const found = cached ? JSON.parse(cached) : null;
-    if (found && found.version === versionOrNull()) return found;
+    if (found && found.version === versionOrNull()) {
+      // Past its fresh time it is still shown at once and worked out again behind the reply, so the page never waits on S3.
+      if (Date.now() - Date.parse(found.generatedAt) > translation.coverageCacheSeconds * 1000 && !coverageInFlight.has(book)) {
+        coverageInFlight.set(book, computeCoverage(book).finally(() => coverageInFlight.delete(book)));
+        coverageInFlight.get(book).catch(() => {});
+      }
+      return found;
+    }
   }
   if (!coverageInFlight.has(book)) coverageInFlight.set(book, computeCoverage(book).finally(() => coverageInFlight.delete(book)));
   return coverageInFlight.get(book);
@@ -223,7 +230,7 @@ async function computeCoverage(book) {
   }
 
   const result = { book, generatedAt: new Date().toISOString(), version, total, languages: Object.values(byLang) };
-  await redis.set(coverageKey(book), JSON.stringify(result), 'EX', translation.coverageCacheSeconds).catch(() => {});
+  await redis.set(coverageKey(book), JSON.stringify(result), 'EX', translation.coverageKeepSeconds).catch(() => {});
   return result;
 }
 
