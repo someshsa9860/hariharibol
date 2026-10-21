@@ -114,7 +114,10 @@ Bhagavatam canto route, search, jap counter and its sync, routine sync, favourit
 **Not run:** Google / Apple sign-in itself (needs real client ids), App Check, Sakha against a live model, video reels, chant-along
 audio, the production deploy. The 404 status of unknown chapters, verses and mantras was checked on the built server.
 The standalone build was run as the container will run it (a bare copy of `.next/standalone`, the container's env vars)
-and answered every page checked, the static files and `public/`; **the Docker image itself has not been built** (no Docker on
-the machine it was written on) and the ECR push and server pull have not run.
+and answered every page checked, the static files and `public/`. **First deployed 2026-10-21** by `deploy-website.yml` (built in
+CI, pushed to ECR, pulled and started on the server); on the live site the home page, `/read`, `/jap`, `/plans`, `/sources`, the
+sitemap files (about 13,700 verse URLs) and a 404 were checked. Not checked live: sign-in (the `WEBSITE_*` secrets are unset, so
+no web client id is in the bundle) and reels while signed out (the live API answers a signed-out `GET /api/app/reels` with 403
+until the backend on `main` is released).
 
 - **Story mode** (`components/read/story-reader.tsx`): Reading settings → *Reading style*, or the Story button on the reader bar. One part of every verse (Sanskrit, transliteration, meaning, purport) as running text with small verse numbers; clicking a verse opens play / save / copy / open. Kept in `usePrefs().reader` (`mode`, `storyPart`, `storyNumbers`). Same behaviour as the app's story mode; not tried against a live API in a browser.
