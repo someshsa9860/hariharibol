@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { ReadingLanguageSelect, ThemeSwitch } from '@/components/layout/settings-menu';
 import { FONT_SCALE_MAX, FONT_SCALE_MIN, usePrefs, type ReaderSettings } from '@/lib/prefs/prefs-provider';
 
-const TOGGLES: { key: keyof Omit<ReaderSettings, 'fontScale'>; label: string }[] = [
+const TOGGLES: { key: keyof Omit<ReaderSettings, 'fontScale' | 'mode' | 'storyPart' | 'storyNumbers'>; label: string }[] = [
   { key: 'showSanskrit', label: 'Sanskrit' },
   { key: 'showTransliteration', label: 'Transliteration' },
   { key: 'showWordMeanings', label: 'Word meanings, always open' },
@@ -31,7 +31,22 @@ export function ReaderSettingsSheet({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <fieldset className="toggle-list">
+        <div>
+          <span className="field-label">Reading style</span>
+          <div className="seg" role="radiogroup" aria-label="Reading style">
+            <button role="radio" aria-checked={reader.mode === 'verse'} className={reader.mode === 'verse' ? 'on' : ''} onClick={() => setReader({ mode: 'verse' })}>Verse by verse</button>
+            <button role="radio" aria-checked={reader.mode === 'story'} className={reader.mode === 'story' ? 'on' : ''} onClick={() => setReader({ mode: 'story' })}>Story</button>
+          </div>
+          {reader.mode === 'story' && (
+            <label className="toggle">
+              <input type="checkbox" checked={reader.storyNumbers} onChange={(event) => setReader({ storyNumbers: event.target.checked })} />
+              <span className="switch" aria-hidden="true" />
+              Verse numbers
+            </label>
+          )}
+        </div>
+
+        {reader.mode === 'verse' && <fieldset className="toggle-list">
           <legend className="field-label">Show</legend>
           {TOGGLES.map((toggle) => (
             <label key={toggle.key} className="toggle">
@@ -40,7 +55,7 @@ export function ReaderSettingsSheet({ onClose }: { onClose: () => void }) {
               {toggle.label}
             </label>
           ))}
-        </fieldset>
+        </fieldset>}
 
         <div>
           <span className="field-label">Appearance</span>

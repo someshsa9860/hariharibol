@@ -11,7 +11,13 @@ import { currentSession, writeSession } from '@/lib/auth/session-store';
 
 export type Theme = 'system' | 'light' | 'dark';
 
+export type StoryPart = 'sanskrit' | 'transliteration' | 'meaning' | 'purport';
+
 export interface ReaderSettings {
+  /** 'story' reads one part of every verse as running text; 'verse' is the card for each verse. */
+  mode: 'verse' | 'story';
+  storyPart: StoryPart;
+  storyNumbers: boolean;
   fontScale: number;
   showSanskrit: boolean;
   showTransliteration: boolean;
@@ -20,6 +26,9 @@ export interface ReaderSettings {
 }
 
 const DEFAULT_READER: ReaderSettings = {
+  mode: 'verse',
+  storyPart: 'meaning',
+  storyNumbers: true,
   fontScale: 1,
   showSanskrit: true,
   showTransliteration: true,

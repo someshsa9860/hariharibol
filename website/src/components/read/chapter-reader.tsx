@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { VerseCard } from './verse-card';
+import { StoryReader, StoryPartBar } from './story-reader';
+import { usePrefs } from '@/lib/prefs/prefs-provider';
 import { ReaderSettingsSheet } from './reader-settings';
 import { useChapterPlayer } from './use-chapter-player';
 import { api } from '@/lib/api/client';
@@ -21,6 +23,7 @@ interface Props {
 /** A chapter's verses with the toolbar above them, the chapter player, and the reader's place saved as they read. */
 export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapterNumber }: Props) {
   const [settings, setSettings] = useState(false);
+  const { reader, setReader } = usePrefs();
   const player = useChapterPlayer(verses);
   const furthest = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,12 +46,12 @@ export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapte
         if (currentSession()) api('/progress', { method: 'PUT', auth: 'required', body: { verseId: verse.verseId } }).catch(() => undefined);
       }, 2500);
     }, { threshold: 0.6 });
-    document.querySelectorAll('.verse-card').forEach((element) => observer.observe(element));
+    document.querySelectorAll('.verse-card, .story-verse').forEach((element) => observer.observe(element));
     return () => {
       observer.disconnect();
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [verses, bookSlug, bookTitle, cantoNumber, chapterNumber]);
+  }, [verses, bookSlug, bookTitle, cantoNumber, chapterNumber, reader.mode, reader.storyPart]);
 
   return (
     <>
@@ -62,14 +65,22 @@ export function ChapterReader({ verses, bookSlug, bookTitle, cantoNumber, chapte
             <button className="icon-btn" onClick={() => player.skip(1)} aria-label="Next verse" disabled={player.index === null}><Icon name="right" /></button>
           </div>
         )}
+        <button className={reader.mode === 'story' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'} aria-pressed={reader.mode === 'story'} onClick={() => setReader({ mode: reader.mode === 'story' ? 'verse' : 'story' })}><Icon name="book" size={16} /> Story</button>
         <button className="btn btn-ghost btn-sm" onClick={() => setSettings(true)}><Icon name="text" size={16} /> Reading settings</button>
       </div>
 
-      <div className="verse-list">
-        {verses.map((verse, index) => (
-          <VerseCard key={verse.id} verse={verse} active={player.playing && player.index === index} />
-        ))}
-      </div>
+      {reader.mode === 'story' ? (
+        <>
+          <StoryPartBar />
+          <StoryReader verses={verses} activeIndex={player.playing ? player.index : null} onPlay={player.playAt} />
+        </>
+      ) : (
+        <div className="verse-list">
+          {verses.map((verse, index) => (
+            <VerseCard key={verse.id} verse={verse} active={player.playing && player.index === index} />
+          ))}
+        </div>
+      )}
       {settings && <ReaderSettingsSheet onClose={() => setSettings(false)} />}
     </>
   );

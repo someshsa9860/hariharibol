@@ -106,3 +106,5 @@ Run against a local API with seeded test content in a real browser (home, librar
 Bhagavatam canto route, search, jap counter and its sync, routine sync, favourites, reels, Sakha's error path, mobile and desktop).
 **Not run:** Google / Apple sign-in itself (needs real client ids), App Check, Sakha against a live model, video reels, chant-along
 audio, the production deploy. The 404 status of unknown chapters, verses and mantras was checked on the built server.
+
+- **Story mode** (`components/read/story-reader.tsx`): Reading settings → *Reading style*, or the Story button on the reader bar. One part of every verse (Sanskrit, transliteration, meaning, purport) as running text with small verse numbers; clicking a verse opens play / save / copy / open. Kept in `usePrefs().reader` (`mode`, `storyPart`, `storyNumbers`). Same behaviour as the app's story mode; not tried against a live API in a browser.

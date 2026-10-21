@@ -70,5 +70,5 @@ export function useChapterPlayer(verses: Verse[]) {
   }, []);
 
   const available = verses.some((verse) => verse.audioUrl);
-  return { available, playing, index, toggle, skip };
+  return { available, playing, index, toggle, skip, playAt: start };
 }
