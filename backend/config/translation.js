@@ -37,14 +37,17 @@ const translation = {
 
   // Saved-verse counts per language come from reading every chapter file in S3; the answer is
   // kept this long, and dropped when a run stops.
+  // Fresh for coverageCacheSeconds; after that the old answer is still served while a new one is worked
+  // out in the background, and kept for coverageKeepSeconds.
   coverageCacheSeconds: 300,
+  coverageKeepSeconds: 7 * 24 * 3600,
   coverageCacheKey: 'translation:coverage', // + ':<book>'
 
   // The English chapter files never change under a run, so a process keeps them this long instead
   // of fetching them for every estimate, chapter view and attempt.
   sourceCacheSeconds: 600,
   // Chapter files read from S3 at once when counting or estimating.
-  readConcurrency: 6,
+  readConcurrency: 16,
 
   // An import of one language (storage → database) holds a Redis lock so two clicks, or two admins,
   // cannot overlap. It is let go the moment the import ends; this is only how long a crashed one
