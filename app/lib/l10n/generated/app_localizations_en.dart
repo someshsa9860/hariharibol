@@ -2360,4 +2360,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'That music file is too large (up to 25 MB).';
+
+  @override
+  String get calendarTitle => 'Hindu calendar';
+
+  @override
+  String get calendarEmpty => 'The calendar for this month is not filled in yet.';
+
+  @override
+  String get calendarUpcoming => 'Ekadashi, Chaturthi and festival days';
+
+  @override
+  String get calendarVaishnavaNote => 'Vaishnavas may keep this fast the next day.';
 }

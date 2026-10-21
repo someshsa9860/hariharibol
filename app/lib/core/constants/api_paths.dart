@@ -21,6 +21,10 @@ abstract final class ApiPaths {
   static const String topics = '$_app/devices/topics';
   static String topic(String key) => '$_app/devices/topics/$key';
 
+  // Hindu calendar
+  static const String calendar = '$_app/calendar';
+  static const String calendarUpcoming = '$_app/calendar/upcoming';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';

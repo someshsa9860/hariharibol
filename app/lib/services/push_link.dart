@@ -35,6 +35,7 @@ String? pushRoute(Map<String, dynamic> data) {
   return switch (link.host) {
     PushConfig.deeplinkSadhana => AppRoutes.sadhana,
     PushConfig.deeplinkPremium => AppRoutes.plans,
+    PushConfig.deeplinkCalendar => AppRoutes.calendar,
     _ => null,
   };
 }

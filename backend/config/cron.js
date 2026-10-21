@@ -36,6 +36,13 @@ const schedules = [
     description: 'Send chanting reminders due in the next quarter hour.',
   },
   {
+    name: 'festival.notify',
+    queue: 'notification',
+    // 02:30 UTC = 08:00 IST: the push for tomorrow's (or today's) Ekadashi, Chaturthi or festival.
+    cron: '30 2 * * *',
+    description: 'Push an upcoming Ekadashi, Chaturthi or festival to readers, once each, the day before.',
+  },
+  {
     name: 'preferences.rebuild',
     queue: 'preferences',
     // Monday 20:00 UTC, after the week has closed everywhere.

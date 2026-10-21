@@ -2363,4 +2363,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'यह संगीत फ़ाइल बहुत बड़ी है (अधिकतम 25 MB)।';
+
+  @override
+  String get calendarTitle => 'हिंदू पंचांग';
+
+  @override
+  String get calendarEmpty => 'इस महीने का पंचांग अभी भरा नहीं गया है।';
+
+  @override
+  String get calendarUpcoming => 'एकादशी, चतुर्थी और त्योहार के दिन';
+
+  @override
+  String get calendarVaishnavaNote => 'वैष्णव यह व्रत अगले दिन रख सकते हैं।';
 }

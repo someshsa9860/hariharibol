@@ -15,7 +15,7 @@ router.get(
     summary: 'List my notifications',
     limit: 'read',
     query: schemas.page.extend({
-      type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM']).optional(),
+      type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM', 'REEL', 'REFERRAL', 'FESTIVAL']).optional(),
       unreadOnly: z.coerce.boolean().optional(),
     }),
     responds: { 200: 'A page of notifications' },

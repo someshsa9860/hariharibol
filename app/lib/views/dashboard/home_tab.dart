@@ -22,6 +22,7 @@ import '../../widgets/dashboard/book_card.dart';
 import '../../widgets/dashboard/continue_reading_card.dart';
 import '../../widgets/dashboard/growth_label.dart';
 import '../../widgets/dashboard/home_header.dart';
+import '../../widgets/dashboard/calendar_entry_card.dart';
 import '../../widgets/dashboard/home_stats_card.dart';
 import '../../widgets/dashboard/mantra_row.dart';
 import '../../widgets/dashboard/mood_chips.dart';
@@ -142,6 +143,7 @@ class _HomeContent extends ConsumerWidget {
       // Today's tasks sit beside today's practice. The routine is a screen
       // of its own now, so this is its door — and says how the day is going.
       const RoutineEntryCard(),
+      const CalendarEntryCard(),
 
       // Lifetime totals, right after today's practice — a separate request
       // from the rest of the feed, so it is signed out only when there is a

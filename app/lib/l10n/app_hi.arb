@@ -665,5 +665,9 @@
   "shareReelPosting": "आपकी रील पोस्ट हो रही है…",
   "shareReelDone": "आपकी रील लाइव है। उसे रील्स में देखें।",
   "shareReelFailed": "रील पोस्ट नहीं हो सकी। कृपया फिर कोशिश करें।",
-  "shareReelTooBig": "यह संगीत फ़ाइल बहुत बड़ी है (अधिकतम 25 MB)।"
+  "shareReelTooBig": "यह संगीत फ़ाइल बहुत बड़ी है (अधिकतम 25 MB)।",
+  "calendarTitle": "हिंदू पंचांग",
+  "calendarEmpty": "इस महीने का पंचांग अभी भरा नहीं गया है।",
+  "calendarUpcoming": "एकादशी, चतुर्थी और त्योहार के दिन",
+  "calendarVaishnavaNote": "वैष्णव यह व्रत अगले दिन रख सकते हैं।"
 }

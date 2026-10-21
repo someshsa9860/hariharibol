@@ -36,6 +36,7 @@ import searchRoutes from './search.js';
 import chatRoutes from './chat.js';
 import shareRoutes from './share.js';
 import referralRoutes from './referral.js';
+import calendarRoutes from './calendar.js';
 
 const routers = [
   authRoutes,
@@ -66,6 +67,7 @@ const routers = [
   chatRoutes,
   shareRoutes,
   referralRoutes,
+  calendarRoutes,
 ];
 
 export default mount(express.Router(), '/api/app', routers);

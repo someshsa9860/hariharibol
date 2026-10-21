@@ -29,6 +29,7 @@ import { JobsPage } from '@/routes/jobs';
 import { TranslationsPage } from '@/routes/translations';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
+import { CalendarPage } from '@/routes/calendar';
 
 const ALL_ITEMS = NAV.flatMap((section) => section.items);
 
@@ -83,6 +84,14 @@ export function Router() {
         element={
           <Protected permission="user.read">
             <Dashboard />
+          </Protected>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <Protected permission="panchang.manage">
+            <CalendarPage />
           </Protected>
         }
       />

@@ -2368,4 +2368,16 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ଏହି ସଙ୍ଗୀତ ଫାଇଲ୍ ବହୁତ ବଡ଼ (ସର୍ବାଧିକ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'ହିନ୍ଦୁ ପଞ୍ଜିକା';
+
+  @override
+  String get calendarEmpty => 'ଏହି ମାସର ପଞ୍ଜିକା ଏପର୍ଯ୍ୟନ୍ତ ଭରାଯାଇ ନାହିଁ।';
+
+  @override
+  String get calendarUpcoming => 'ଏକାଦଶୀ, ଚତୁର୍ଥୀ ଓ ପର୍ବ ଦିନ';
+
+  @override
+  String get calendarVaishnavaNote => 'ବୈଷ୍ଣବମାନେ ଏହି ବ୍ରତ ପରଦିନ ପାଳନ କରିପାରନ୍ତି।';
 }
