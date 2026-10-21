@@ -129,3 +129,18 @@
 .story-verse.is-active .story-text { background: color-mix(in srgb, var(--accent) 24%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 4px; }
 .story-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 6px 0 10px; padding: 4px 8px; width: fit-content; max-width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow-sm); font-family: var(--sans, inherit); font-size: 1rem; line-height: 1.2; animation: fade-up .25s var(--ease) both; }
 .story-empty { text-align: center; padding: 48px 0; }
+
+/* Scrolling down while reading: the header and toolbar slide away, scrolling up brings them back. */
+.site-header, .reader-bar { transition: transform .25s var(--ease); }
+.reading-focus .site-header { transform: translateY(-100%); }
+.reading-focus .reader-bar { transform: translateY(calc(-100% - var(--header-h))); }
+@media (prefers-reduced-motion: reduce) { .site-header, .reader-bar { transition: none; } }
+
+/* Story mode: every verse, and every paragraph of it, on its own line. */
+.story .story-verse { display: block; margin-bottom: 1em; }
+.story .story-text { display: block; }
+.story .story-text + .story-text { margin-top: .7em; }
+.story-sanskrit .story-text, .story-sanskrit .story-no { display: inline; }
+.story .story-hit { display: block; }
+.story .story-no { float: left; }
+.story-sanskrit .story-no { float: none; }
