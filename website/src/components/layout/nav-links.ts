@@ -16,5 +16,6 @@ export const DESKTOP_LINKS: { href: string; label: string; match: (path: string)
   { href: '/jap', label: 'Jap', match: (p) => p.startsWith('/jap') },
   { href: '/reels', label: 'Reels', match: (p) => p.startsWith('/reels') },
   { href: '/routine', label: 'Routine', match: (p) => p.startsWith('/routine') },
+  { href: '/calendar', label: 'Calendar', match: (p) => p.startsWith('/calendar') },
   { href: '/plans', label: 'Plans', match: (p) => p.startsWith('/plans') },
 ];

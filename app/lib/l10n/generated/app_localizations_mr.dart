@@ -2348,4 +2348,16 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ही संगीत फाइल खूप मोठी आहे (कमाल 25 MB).';
+
+  @override
+  String get calendarTitle => 'हिंदू पंचांग';
+
+  @override
+  String get calendarEmpty => 'या महिन्याचे पंचांग अजून भरलेले नाही.';
+
+  @override
+  String get calendarUpcoming => 'एकादशी, चतुर्थी आणि सणांचे दिवस';
+
+  @override
+  String get calendarVaishnavaNote => 'वैष्णव हे व्रत दुसऱ्या दिवशी करू शकतात.';
 }

@@ -20,6 +20,7 @@ export function SiteFooter() {
           <Link href="/reels">Reels</Link>
           <Link href="/sakha">Ask Sakha</Link>
           <Link href="/routine">Routine</Link>
+          <Link href="/calendar">Calendar</Link>
         </nav>
         <nav aria-label="About">
           <h4>About</h4>

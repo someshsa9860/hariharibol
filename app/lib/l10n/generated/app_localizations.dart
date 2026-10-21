@@ -4149,4 +4149,28 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
     'that was used.',
   );
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar for this month is not filled in yet.'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi, Chaturthi and festival days'**
+  String get calendarUpcoming;
+
+  /// No description provided for @calendarVaishnavaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaishnavas may keep this fast the next day.'**
+  String get calendarVaishnavaNote;
 }

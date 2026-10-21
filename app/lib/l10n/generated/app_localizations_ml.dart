@@ -2364,4 +2364,16 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ഈ സംഗീത ഫയൽ വളരെ വലുതാണ് (പരമാവധി 25 MB).';
+
+  @override
+  String get calendarTitle => 'ഹിന്ദു പഞ്ചാംഗം';
+
+  @override
+  String get calendarEmpty => 'ഈ മാസത്തെ പഞ്ചാംഗം ഇതുവരെ ചേർത്തിട്ടില്ല.';
+
+  @override
+  String get calendarUpcoming => 'ഏകാദശി, ചതുർഥി, ഉത്സവ ദിനങ്ങൾ';
+
+  @override
+  String get calendarVaishnavaNote => 'വൈഷ്ണവർ ഈ വ്രതം അടുത്ത ദിവസം ആചരിച്ചേക്കാം.';
 }

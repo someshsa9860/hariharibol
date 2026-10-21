@@ -2351,4 +2351,16 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ಈ ಸಂಗೀತ ಫೈಲ್ ತುಂಬಾ ದೊಡ್ಡದು (ಗರಿಷ್ಠ 25 MB).';
+
+  @override
+  String get calendarTitle => 'ಹಿಂದೂ ಪಂಚಾಂಗ';
+
+  @override
+  String get calendarEmpty => 'ಈ ತಿಂಗಳ ಪಂಚಾಂಗವನ್ನು ಇನ್ನೂ ತುಂಬಿಲ್ಲ.';
+
+  @override
+  String get calendarUpcoming => 'ಏಕಾದಶಿ, ಚತುರ್ಥಿ ಮತ್ತು ಹಬ್ಬದ ದಿನಗಳು';
+
+  @override
+  String get calendarVaishnavaNote => 'ವೈಷ್ಣವರು ಈ ವ್ರತವನ್ನು ಮರುದಿನ ಆಚರಿಸಬಹುದು.';
 }

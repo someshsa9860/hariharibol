@@ -2349,4 +2349,16 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ਇਹ ਸੰਗੀਤ ਫ਼ਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ (ਵੱਧ ਤੋਂ ਵੱਧ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'ਹਿੰਦੂ ਪੰਚਾਂਗ';
+
+  @override
+  String get calendarEmpty => 'ਇਸ ਮਹੀਨੇ ਦਾ ਪੰਚਾਂਗ ਅਜੇ ਭਰਿਆ ਨਹੀਂ ਗਿਆ।';
+
+  @override
+  String get calendarUpcoming => 'ਇਕਾਦਸ਼ੀ, ਚਤੁਰਥੀ ਅਤੇ ਤਿਉਹਾਰਾਂ ਦੇ ਦਿਨ';
+
+  @override
+  String get calendarVaishnavaNote => 'ਵੈਸ਼ਣਵ ਇਹ ਵਰਤ ਅਗਲੇ ਦਿਨ ਰੱਖ ਸਕਦੇ ਹਨ।';
 }

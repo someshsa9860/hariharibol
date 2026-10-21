@@ -1715,5 +1715,9 @@
   "shareReelPosting": "Posting your reel…",
   "shareReelDone": "Your reel is live. Find it in Reels.",
   "shareReelFailed": "The reel could not be posted. Please try again.",
-  "shareReelTooBig": "That music file is too large (up to 25 MB)."
+  "shareReelTooBig": "That music file is too large (up to 25 MB).",
+  "calendarTitle": "Hindu calendar",
+  "calendarEmpty": "The calendar for this month is not filled in yet.",
+  "calendarUpcoming": "Ekadashi, Chaturthi and festival days",
+  "calendarVaishnavaNote": "Vaishnavas may keep this fast the next day."
 }

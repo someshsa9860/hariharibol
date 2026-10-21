@@ -34,6 +34,7 @@ const JOBS = {
   SLOKA_BUILD: 'sloka.build',
   SLOKA_DELIVER: 'sloka.deliver',
   SADHANA_REMINDER: 'sadhana.reminder',
+  FESTIVAL_NOTIFY: 'festival.notify',
   PREFERENCES_REBUILD: 'preferences.rebuild',
   ENTITLEMENT_SWEEP: 'entitlement.sweep',
   AUDIT_PRUNE: 'audit.prune',

@@ -2364,4 +2364,16 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'இந்த இசைக் கோப்பு மிகப் பெரியது (அதிகபட்சம் 25 MB).';
+
+  @override
+  String get calendarTitle => 'இந்து பஞ்சாங்கம்';
+
+  @override
+  String get calendarEmpty => 'இந்த மாதத்தின் பஞ்சாங்கம் இன்னும் நிரப்பப்படவில்லை.';
+
+  @override
+  String get calendarUpcoming => 'ஏகாதசி, சதுர்த்தி மற்றும் பண்டிகை நாட்கள்';
+
+  @override
+  String get calendarVaishnavaNote => 'வைஷ்ணவர்கள் இந்த விரதத்தை மறுநாள் அனுசரிக்கலாம்.';
 }

@@ -2342,4 +2342,16 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'આ સંગીત ફાઇલ ખૂબ મોટી છે (વધુમાં વધુ 25 MB).';
+
+  @override
+  String get calendarTitle => 'હિન્દુ પંચાંગ';
+
+  @override
+  String get calendarEmpty => 'આ મહિનાનું પંચાંગ હજી ભરાયું નથી.';
+
+  @override
+  String get calendarUpcoming => 'એકાદશી, ચતુર્થી અને તહેવારના દિવસો';
+
+  @override
+  String get calendarVaishnavaNote => 'વૈષ્ણવો આ વ્રત બીજા દિવસે રાખી શકે છે.';
 }

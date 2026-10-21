@@ -27,7 +27,7 @@ export default async function sitemap(props: { id: Promise<string> | string }): 
 
   // File 0: the pages, the books, their chapters and the mantras. Files 1…n: the verses.
   if (id === 0) {
-    const pages = ['', '/read', '/jap', '/reels', '/sakha', '/routine', '/plans', '/feel', '/sources'].map((path) => ({
+    const pages = ['', '/read', '/jap', '/reels', '/sakha', '/routine', '/calendar', '/plans', '/feel', '/sources'].map((path) => ({
       url: `${SITE_URL}${path}`,
       changeFrequency: 'weekly' as const,
       priority: path === '' ? 1 : 0.8,

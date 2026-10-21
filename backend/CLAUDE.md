@@ -1211,3 +1211,12 @@ columns alike, so no controller has to call anything. The monthly `s3.temp.prune
 (`config/cron.js`, 1st of the month 04:00 UTC) deletes temp days older than 30 days —
 uploads nobody saved. Keys saved before this layout have no `hariharibol/` root and
 still work; nothing rewrites them.
+
+
+## Hindu calendar
+
+- **Computing** is pure and database-free: `services/panchang.js` (one day at one place; its header lists the method) and `services/festivals.js` (a year of days and festival rules). Add a festival by adding a row to `FESTIVAL_RULES` (amanta month, paksha, tithi, and the time of day the tithi must be running: sunrise, midday, aparahna, sunset, pradosh, nishita, moonrise). Ekadashi names are by *amanta* month (`EKADASHI_NAMES`), not the purnimanta month north-Indian almanacs print.
+- **Storing** is `services/panchang-store.js` (`saveYear`), used by `npm run seed:panchang [year] [place]` and the admin Generate button. `isEdited` rows are never overwritten; a festival's `notify` choice is made once, at creation.
+- **Place**: `AppSetting` `panchang.location`; places are `LOCATIONS` in `services/panchang.js`. Generate a year for a place before selecting it.
+- **Push**: `jobs/processors/festival-notify.js`, run by the `notification` queue's `festival.notify` schedule (02:30 UTC). It uses `Festival.notifyDaysBefore` (default `[1]`) and records `notifiedDays`, so a rerun never repeats a push. It goes to every user with a push-capable device, dated by the calendar place's today.
+- **API**: public `GET /api/app/calendar?from&to` (max 62 days) and `/calendar/upcoming`; admin `/api/admin/panchang` (permission `panchang.manage`).

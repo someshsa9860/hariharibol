@@ -23,6 +23,10 @@ abstract final class AppRoutes {
   /// place, and is a screen of its own with a back button now.
   static const String routine = '/routine';
 
+  /// The Hindu calendar: tithi, nakshatra, Ekadashi, Chaturthi and the festivals.
+  /// Pushed from Home, and where the festival push opens.
+  static const String calendar = '/calendar';
+
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
@@ -124,6 +128,7 @@ abstract final class RouteNames {
   static const String sadhana = 'sadhana';
   static const String library = 'library';
   static const String routine = 'routine';
+  static const String calendar = 'calendar';
   static const String settings = 'settings';
   static const String plans = 'plans';
   static const String refer = 'refer';

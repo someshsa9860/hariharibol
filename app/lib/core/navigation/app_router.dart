@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
+import '../../views/calendar/calendar_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
@@ -264,6 +265,12 @@ GoRouter createRouter() {
             );
           },
         ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.calendar,
+        name: RouteNames.calendar,
+        builder: (context, state) => const CalendarView(),
       ),
 
       GoRoute(
