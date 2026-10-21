@@ -10,6 +10,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/language.dart';
 import '../../models/reading_mode.dart';
 import '../../models/verse_part.dart';
+import '../../providers/book_provider.dart';
 import '../../providers/languages_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
 import '../../providers/language_settings_provider.dart';
@@ -21,18 +22,21 @@ import 'story_part_bar.dart';
 /// Picking a language also closes the sheet: the reading screen is already
 /// following the language setting, so the chapter reloads in it as the sheet
 /// goes.
-Future<void> showReadingSettingsSheet(BuildContext context) {
+Future<void> showReadingSettingsSheet(BuildContext context, {String? bookSlug}) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,
-    builder: (context) => const _ReadingSettingsSheet(),
+    builder: (context) => _ReadingSettingsSheet(bookSlug: bookSlug),
   );
 }
 
 class _ReadingSettingsSheet extends ConsumerWidget {
-  const _ReadingSettingsSheet();
+  const _ReadingSettingsSheet({this.bookSlug});
+
+  /// The book being read; its languages narrow the language list.
+  final String? bookSlug;
 
   void _pickLanguage(BuildContext context, WidgetRef ref, String code) {
     // The setting changes at once and is saved behind it; the sheet need not
@@ -66,10 +70,19 @@ class _ReadingSettingsSheet extends ConsumerWidget {
     final mode = ref.watch(readingModeProvider);
     final storyPart = ref.watch(storyPartProvider);
     final storyNumbers = ref.watch(storyNumbersProvider);
-    final languages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
+    final allLanguages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
+    final bookCodes = bookSlug == null
+        ? const <String>{}
+        : ref.watch(bookLanguagesProvider(bookSlug!)).value ?? const <String>{};
     final currentLanguage = ref.watch(
       languageSettingsProvider.select((s) => s.reading),
     );
+    // Only languages the book has text in; the one in use stays so it can be seen.
+    final languages = bookCodes.isEmpty
+        ? allLanguages
+        : allLanguages
+            .where((l) => bookCodes.contains(l.code) || l.code == currentLanguage)
+            .toList();
 
     return SafeArea(
       top: false,

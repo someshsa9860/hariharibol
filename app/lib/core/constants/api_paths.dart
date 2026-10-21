@@ -52,6 +52,7 @@ abstract final class ApiPaths {
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
+  static String bookLanguages(String slug) => '$_app/books/$slug/languages';
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';

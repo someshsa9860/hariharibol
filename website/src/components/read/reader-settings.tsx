@@ -12,14 +12,14 @@ const TOGGLES: { key: keyof Omit<ReaderSettings, 'fontScale' | 'mode' | 'storyPa
   { key: 'showPurport', label: 'Purport' },
 ];
 
-export function ReaderSettingsSheet({ onClose }: { onClose: () => void }) {
+export function ReaderSettingsSheet({ onClose, bookSlug }: { onClose: () => void; bookSlug?: string }) {
   const { reader, setReader } = usePrefs();
   return (
     <Sheet title="Reading settings" onClose={onClose}>
       <div className="settings-stack">
         <div>
           <label className="field-label" htmlFor="read-language">Read in</label>
-          <ReadingLanguageSelect id="read-language" />
+          <ReadingLanguageSelect id="read-language" bookSlug={bookSlug} />
         </div>
 
         <div>
