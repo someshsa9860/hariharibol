@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, Clapperboard, Gauge, Loader2, Plus, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clapperboard, Gauge, Loader2, Plus, RefreshCw, Wifi, WifiOff, XCircle } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { ProgressBar, StatusBadge, formatCount, timeAgo } from '@/components/tra
 import { useAuth } from '@/lib/auth';
 import { useSocketStatus } from '@/lib/socket';
 import { useNow } from '@/lib/translation';
-import { useChapters, useSceneRun, useScenesLive, useScenesOverview, useSceneRuns, type ChapterRow, type ScenesOverview, type SceneRun } from '@/lib/scenes';
+import { useCancelScenes, useChapters, useSceneRun, useScenesLive, useScenesOverview, useSceneRuns, type ChapterRow, type ScenesOverview, type SceneRun } from '@/lib/scenes';
 import { cn } from '@/lib/utils';
 
 // The page keeps no state of its own that matters: the tab, the canto, the open chapter and the open run live in the
@@ -28,6 +28,9 @@ export function ScenesPage() {
   const overview = useScenesOverview();
   const data = overview.data;
   const busy = (data?.active.length ?? 0) > 0;
+  // Runs go one at a time in the order made: the oldest is on screen, the waiting ones after it are the queue.
+  const queued = (data?.active ?? []).filter((run, i) => i > 0 && run.status === 'QUEUED');
+  const current = (data?.active ?? []).filter((run) => !queued.includes(run));
   const coverage = useChapters(busy);
   useScenesLive();
 
@@ -50,6 +53,10 @@ export function ScenesPage() {
 
   const book = data?.books[0];
   const chapterList = book?.chapters ?? [];
+  const cantosOf = (ids: number[]) => {
+    const cantos = [...new Set(ids.map((id) => Math.floor(id / 100)))].sort((a, b) => a - b);
+    return cantos.length === 12 && ids.length >= chapterList.length ? 'All 12 cantos' : cantos.length <= 4 ? `Canto${cantos.length > 1 ? 's' : ''} ${cantos.join(', ')}` : `${cantos.length} cantos`;
+  };
   const at = chapter ? chapterList.findIndex((c) => c.id === chapter) : -1;
 
   return (
@@ -114,7 +121,7 @@ export function ScenesPage() {
                 {busy && (
                   <section className="space-y-3">
                     <h3 className="text-sm font-medium">In progress</h3>
-                    {data.active.map((run) => (
+                    {current.map((run) => (
                       <Card key={run.id}>
                         <CardContent className="pt-6">
                           <SceneRunPanel run={run} feedHeight="max-h-52" onOpenChapter={(id) => update({ chapter: String(id) })} />
@@ -123,6 +130,7 @@ export function ScenesPage() {
                     ))}
                   </section>
                 )}
+                <Queue runs={queued} canRun={canRun} cantosOf={cantosOf} />
                 <ChapterGrid
                   chapters={coverage.data?.chapters}
                   loading={coverage.isLoading}
@@ -141,7 +149,7 @@ export function ScenesPage() {
                 {busy && (
                   <section className="space-y-3">
                     <h3 className="text-sm font-medium">In progress</h3>
-                    {data.active.map((run) => (
+                    {current.map((run) => (
                       <Card key={run.id}>
                         <CardContent className="pt-6">
                           <SceneRunPanel run={run} onOpenChapter={(id) => update({ chapter: String(id) })} />
@@ -150,6 +158,7 @@ export function ScenesPage() {
                     ))}
                   </section>
                 )}
+                <Queue runs={queued} canRun={canRun} cantosOf={cantosOf} />
                 <History onOpen={(id) => update({ run: id })} />
               </TabsContent>
             </Tabs>
@@ -387,6 +396,47 @@ function ChapterGrid({
           </Card>
         </>
       )}
+    </section>
+  );
+}
+
+function Queue({ runs, canRun, cantosOf }: { runs: SceneRun[]; canRun: boolean; cantosOf: (ids: number[]) => string }) {
+  const cancel = useCancelScenes();
+  if (runs.length === 0) return null;
+  return (
+    <section className="space-y-3">
+      <h3 className="text-sm font-medium">
+        Queue <span className="font-normal text-muted-foreground">· starts by itself, one after another, in this order</span>
+      </h3>
+      <Card className="divide-y">
+        {runs.map((run, index) => (
+          <div key={run.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold tabular-nums">{index + 1}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">
+                {cantosOf(run.chapters)} <span className="font-normal text-muted-foreground">· {run.chapters.length} chapter{run.chapters.length === 1 ? '' : 's'}</span>
+                {index === 0 && <Badge className="ml-2" variant="secondary">Next</Badge>}
+                {run.force && <Badge className="ml-2" variant="outline">Writing again</Badge>}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {run.requestedBy?.name ? `Added by ${run.requestedBy.name} · ` : ''}
+                {run.provider} <span className="font-mono">{run.model}</span>
+              </p>
+            </div>
+            {canRun && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-destructive"
+                disabled={cancel.isPending}
+                onClick={() => confirm('Remove this run from the queue?') && cancel.mutate(run.id)}
+              >
+                <XCircle /> Remove
+              </Button>
+            )}
+          </div>
+        ))}
+      </Card>
     </section>
   );
 }
