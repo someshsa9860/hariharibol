@@ -41,8 +41,6 @@ type BookStructure = {
   chapters: { id: string; number: number; cantoNumber: number | null; title: string }[];
 };
 
-type Target = { path: string; field: string };
-
 const wordsToText = (list: Entry[] | null) => (list ?? []).map((w) => (w.word ? `${w.word} = ${w.meaning}` : w.meaning)).join('\n');
 
 function textToWords(text: string): Entry[] {
