@@ -75,6 +75,8 @@ const DEFAULT_LIMITS = {
   imageInput: 1,
   // A picture is kept and sent to the model no larger than this on its longest side (pixels, 256–4096).
   imageMaxEdge: 1280,
+  // Whether Sakha may offer to open a page, mantra or verse in the app: 1 yes, 0 no. The reader always confirms.
+  appActions: 1,
 };
 
 // ── Pictures ────────────────────────────────────────────────────────────────
@@ -117,6 +119,14 @@ const NAME_GUIDANCE = `THE PERSON'S NAME
 - Never guess, spell out or comment on the name, and never explain ${NAME_TOKEN}. If they ask whether you know their name, just say it, using ${NAME_TOKEN}.
 - If they ask you to call them something else, do that from then on instead of using ${NAME_TOKEN}.`;
 
+// ── Taking the reader somewhere in the app ──────────────────────────────────
+// Sakha may end a reply with one marker that the server turns into an "Open …?" card (utils/chat-actions.js). The
+// reader confirms; nothing opens by itself. Added to the persona only while `appActions` is on.
+const ACTION_GUIDANCE = `OPENING THINGS IN THE APP
+- Only if the person clearly asks to be taken somewhere ("open…", "take me to…", "show me…"), end your reply with ONE marker on its own last line. The app asks them to confirm first, so never say it is already open.
+- Markers: [[open:page:ID]] with ID one of home, jap (the chant counter), reels, read (the books), routine, settings, plans, search; [[open:mantra:NAME]] with the usual English name, e.g. maha mantra; [[open:verse:BOOK:REF]] with BOOK bhagavad-gita (REF chapter.verse, e.g. 2.47) or srimad-bhagavatam (REF canto.chapter.verse, e.g. 1.2.6) — only when you are sure of the reference, otherwise ask.
+- No marker in any other reply. Never explain it.`;
+
 // The token budget never lets a reply start with less than this left.
 const MIN_REPLY_TOKENS = 64;
 
@@ -144,4 +154,5 @@ export {
   IMAGE_GUIDANCE,
   NAME_TOKEN,
   NAME_GUIDANCE,
+  ACTION_GUIDANCE,
 };

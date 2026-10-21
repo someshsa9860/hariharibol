@@ -75,6 +75,48 @@ export const get = async (req, res) => {
   return ok(res, await s3.presignFields(book, ['coverImagePath', 'audioPath']));
 };
 
+/** GET /api/admin/books/:id/reader */
+export const reader = async (req, res) => {
+  const { canto, chapter } = req.valid.query;
+  const book = await prisma.book.findUnique({ where: { id: req.valid.params.id }, select: { id: true } });
+  if (!book) throw notFound('Book');
+
+  const verses = await prisma.verse.findMany({
+    where: {
+      bookId: book.id,
+      ...(canto ? { cantoNumber: canto } : {}),
+      ...(chapter ? { chapterNumber: chapter } : {}),
+    },
+    orderBy: [{ cantoNumber: 'asc' }, { chapterNumber: 'asc' }, { verseNumber: 'asc' }],
+    take: 300,
+    select: {
+      id: true,
+      verseId: true,
+      verseNumber: true,
+      verseNumberEnd: true,
+      sanskrit: true,
+      transliteration: true,
+      wordMeanings: true,
+      translations: {
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+        select: {
+          id: true,
+          languageCode: true,
+          type: true,
+          meaning: true,
+          purport: true,
+          transliteration: true,
+          wordMeanings: true,
+          isPublished: true,
+          translator: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  return ok(res, verses);
+};
+
 /** POST /api/admin/books */
 export const create = async (req, res) => {
   const body = req.valid.body;

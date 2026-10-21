@@ -8,11 +8,27 @@ abstract final class SecureKeys {
   static const String refreshExpiresAt = 'auth.refresh_expires_at';
 }
 
+/// What the previous app left on the phone. It was a different app with the same
+/// bundle id, so an update finds its files; these are read, never written, and
+/// the one that matters is removed once it has been traded for a session here.
+/// None of the keys above is reused for it: the two apps' tokens never share a
+/// name.
+abstract final class LegacyKeys {
+  /// Where the previous app kept its access token, in `shared_preferences` (the
+  /// plugin adds its own `flutter.` prefix, so this is the key as the Dart code
+  /// of both apps writes it).
+  static const String token = 'token';
+}
+
 abstract final class BoxNames {
   static const String app = 'app';
 }
 
 abstract final class BoxKeys {
+  /// An invitation code from a link, kept until there is an account to present
+  /// it with (DeepLinkService). Only the first is kept.
+  static const String pendingInvite = 'referral.pending_invite';
+
   /// The signed-in user, as returned by the API. Kept so the app can draw the
   /// first frame without waiting on the network.
   static const String user = 'user';
@@ -48,6 +64,13 @@ abstract final class BoxKeys {
   /// part, so choosing one never rewrites the others.
   static String readingHiddenPart(String part) => 'settings.reading_hidden.$part';
 
+  /// How a chapter is laid out (`ReadingMode` name), which part story mode shows
+  /// (`StoryPart` name) and whether it numbers the verses. One answer for every
+  /// chapter in every book, like the font size.
+  static const String readingMode = 'settings.reading_mode';
+  static const String storyPart = 'settings.story_part';
+  static const String storyNumbers = 'settings.story_numbers';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 
@@ -59,8 +82,19 @@ abstract final class BoxKeys {
   /// the point is that the reader never has to think about it.
   static const String syncWifiOnly = 'settings.sync_wifi_only';
   static const String onboardingSeen = 'onboarding.seen';
+
+  /// The welcome pages have been shown (or skipped) on this phone. About the
+  /// device, not the account, so `AppSession.clear` leaves it: signing out
+  /// does not bring the pages back. Written when they end, and whenever a
+  /// session starts or is restored, so an account that was signed in before the
+  /// pages existed does not meet them the first time it signs out.
+  static const String introSeen = 'intro.seen';
   static const String lastHomePayload = 'cache.home';
   static const String lastHomeFetchedAt = 'cache.home_at';
+
+  /// The languages the saved Home payload was asked for in (`hi,en`), so a copy
+  /// in a language the reader has since left is not shown in place of their own.
+  static const String lastHomeLanguages = 'cache.home_languages';
 
   /// Everything the Jap tab keeps so it can draw with no connection: today's
   /// practice screen and the mantras, as the API last sent them. Personal (a

@@ -35,6 +35,7 @@ String? pushRoute(Map<String, dynamic> data) {
   return switch (link.host) {
     PushConfig.deeplinkSadhana => AppRoutes.sadhana,
     PushConfig.deeplinkPremium => AppRoutes.plans,
+    PushConfig.deeplinkCalendar => AppRoutes.calendar,
     _ => null,
   };
 }
@@ -65,6 +66,13 @@ class PushLinks {
     if (route == null) return;
     // Only the latest tap matters: a person who taps two before the app is up
     // wants the one they tapped last.
+    _pending = route;
+    _flush();
+  }
+
+  /// A screen to open as soon as the app can show it — what a shared link or a
+  /// deep link resolved to. Same hold as a tapped notification.
+  void openRoute(String route) {
     _pending = route;
     _flush();
   }

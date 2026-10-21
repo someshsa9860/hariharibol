@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/book.dart';
+import '../../models/reading_mode.dart';
 import '../../models/reading_place.dart';
 import '../../models/verse.dart';
 import '../../providers/book_provider.dart';
@@ -29,6 +30,9 @@ import '../../widgets/library/chapter_nav.dart';
 import '../../widgets/library/reading_audio_controls.dart';
 import '../../widgets/library/reading_settings_sheet.dart';
 import '../../widgets/library/related_verses_sheet.dart';
+import '../../widgets/library/story_part_bar.dart';
+import '../../widgets/library/story_verse.dart';
+import '../../widgets/library/story_verse_actions_sheet.dart';
 import '../../widgets/library/reveal_list_item.dart';
 import '../../widgets/library/translation_picker_sheet.dart';
 import '../../widgets/library/verse_block.dart';
@@ -326,7 +330,43 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     );
   }
 
+  /// Opens Ask Sakha with this verse in the first message — the verse as the reader sees it (the rendering picked under
+  /// "Compare translations" if there is one) and where it comes from, so Sakha explains that verse and not another.
+  void _askSakha(Verse verse, String? bookTitle) {
+    final text = AppLocalizations.of(context);
+    final number = verse.verseNumberEnd != null ? '${verse.verseNumber}-${verse.verseNumberEnd}' : '${verse.verseNumber ?? ''}';
+    final place = [if (widget.canto != null) '${widget.canto}', '${widget.number}', number].join('.');
+    final reference = [if (bookTitle != null && bookTitle.isNotEmpty) bookTitle, place].join(' ');
+    final meaning = (_translationOverrides[verse.id] ?? verse.translation)?.meaning?.trim();
+    final body = [verse.sanskrit?.trim(), meaning].where((part) => part != null && part.isNotEmpty).join('\n\n');
+    // The chat takes a few thousand characters; a very long verse is cut rather than refused.
+    final clipped = body.length > 1500 ? '${body.substring(0, 1500)}…' : body;
+    AppNavigator.instance.push(AppRoutes.chat, extra: text.chatExplainVerse(reference, clipped));
+  }
+
   void _openRelated(Verse verse) => showRelatedVersesSheet(context, verseId: verse.verseId);
+
+  void _openStoryActions(ChapterReading data, int at) {
+    final verse = data.verses[at];
+    showStoryVerseActions(
+      context,
+      verse: verse,
+      isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+      isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+      noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
+      onPlay: _canPlay(verse) ? () => _playVerse(data, at) : null,
+      onToggleFavorite: () => _toggleFavorite(verse),
+      onToggleHighlight: () => _toggleHighlight(verse),
+      onOpenNotes: () => _openNotes(verse),
+      onOpenRelated: () => _openRelated(verse),
+      onCompareTranslations: verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
+    );
+  }
+
+  void _keepPlace() => WidgetsBinding.instance.addPostFrameCallback((_) {
+        final shown = _verseKeys[_currentVerse?.id]?.currentContext;
+        if (mounted && shown != null) Scrollable.ensureVisible(shown, alignment: _readingLine);
+      });
 
   Future<void> _compareTranslations(Verse verse) async {
     final picked = await showTranslationPickerSheet(context, verseId: verse.verseId);
@@ -350,6 +390,10 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
         setState(_translationOverrides.clear);
       }
     });
+    ref.listen(readingModeProvider, (_, _) => _keepPlace());
+    ref.listen(storyPartProvider, (_, _) => _keepPlace());
+    final story = ref.watch(readingModeProvider) == ReadingMode.story;
+    final (storyPart, storyNumbers) = (ref.watch(storyPartProvider), ref.watch(storyNumbersProvider));
     final fontScale = ref.watch(readingFontSizeProvider).scale;
     final hiddenParts = ref.watch(hiddenVersePartsProvider);
     final siblingChapters = ref.watch(bookChaptersProvider(_siblingArgs)).value ?? const <BookSection>[];
@@ -376,7 +420,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
           IconButton(
             icon: const Icon(Icons.tune_rounded),
             tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(context),
+            onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
           ),
         ],
       ),
@@ -408,11 +452,15 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                 bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
               ),
               itemCount: data.verses.length + 2,
-              separatorBuilder: (context, index) =>
-                  index == 0 ? const SizedBox(height: AppSpacing.lg) : const Divider(height: AppSpacing.xl),
+              separatorBuilder: (context, index) => story
+                  ? SizedBox(height: storyGapAfter(index, data.verses.length))
+                  : index == 0
+                      ? const SizedBox(height: AppSpacing.lg)
+                      : const Divider(height: AppSpacing.xl),
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  return ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
+                  final header = ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
+                  return story ? StoryPartBar(header: header, verses: data.verses, translations: _translationOverrides) : header;
                 }
                 if (index == data.verses.length + 1) {
                   return ChapterNav(
@@ -426,7 +474,19 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                 final verse = data.verses[index - 1];
                 return KeyedSubtree(
                   key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
-                  child: VerseBlock(
+                  child: story
+                      ? StoryVerse(
+                          verse: verse,
+                          part: storyPart,
+                          fontScale: fontScale,
+                          showNumber: storyNumbers,
+                          isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                          isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                          playing: playback.isActive && playback.verseId == verse.id,
+                          translation: _translationOverrides[verse.id],
+                          onLongPress: () => _openStoryActions(data, index - 1),
+                        )
+                      : VerseBlock(
                     verse: verse,
                     fontScale: fontScale,
                     hidden: hiddenParts,
@@ -438,6 +498,10 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                     onToggleHighlight: () => _toggleHighlight(verse),
                     onOpenNotes: () => _openNotes(verse),
                     onOpenRelated: () => _openRelated(verse),
+                    onAskSakha: () => _askSakha(verse, bookTitle),
+                    onStartReels: verse.bookNumber <= 2
+                        ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
+                        : null,
                     onCompareTranslations:
                         verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
                     onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,

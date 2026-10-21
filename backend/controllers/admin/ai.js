@@ -103,10 +103,12 @@ async function freeTierState() {
   };
 }
 
+const pickBonus = ({ poolTokens, maxPerUser }) => ({ poolTokens, maxPerUser });
+
 /** GET /api/admin/ai/free-tier */
 export const getFreeTier = async (req, res) => ok(res, await freeTierState());
 
-/** PUT /api/admin/ai/free-tier — the switch and the two models; a field left out is left alone. */
+/** PUT /api/admin/ai/free-tier — the switch, the two models and the daily bonus; a field left out is left alone. */
 export const saveFreeTier = async (req, res) => {
   const before = await freeTier.status();
   await freeTier.save(req.valid.body, req.auth.user.id);
@@ -116,8 +118,8 @@ export const saveFreeTier = async (req, res) => {
     action: 'ai.free-tier.update',
     entityType: 'AiFreeTier',
     entityId: 'openai',
-    before: { enabled: before.enabled, models: JSON.stringify(before.models) },
-    after: { enabled: after.enabled, models: JSON.stringify(after.models) },
+    before: { enabled: before.enabled, models: JSON.stringify(before.models), bonus: JSON.stringify(pickBonus(before.bonus)) },
+    after: { enabled: after.enabled, models: JSON.stringify(after.models), bonus: JSON.stringify(pickBonus(after.bonus)) },
   });
 
   return ok(res, after);

@@ -124,6 +124,21 @@ origin (CORS), `GOOGLE_CLIENT_IDS` must include the web client id and `APPLE_BUN
 The sitemap files are made at build time from the API (`app/sitemap.ts`), so a build made while the API is down ships an
 empty sitemap until the next deploy. The build itself still succeeds.
 
+## Share studio, landing pages and refer
+
+`/shloka/[code]`, `/naam/[code]`, `/darshan/[code]` and `/satsang/[code]` are server-rendered public pages
+(`components/share/shared-page.tsx`): Open Graph tags, a QR code, store badges (hidden until `PLAY_STORE_URL` /
+`APP_STORE_URL` are set on the API), an "Open in the app" button (`hariharibol://open?path=…`, phones only) and
+"Continue on website". An unknown code is a 404, never a guess. `/refer` is the signed-in invite page.
+
+The **share studio** (`components/share/share-studio.tsx`, `lib/share-card.ts`) draws one canvas for the preview and
+the export, so they cannot differ: themes and gradients, an uploaded or AI-made background (the AI one is paid from
+the reader's Ask Sakha credit, with a quote first), text size/colour, the transparent logo top left
+(`public/img/logo-transparent.png`), 1:1 / 4:5 / 9:16 / 16:9, native share, copy and download. Opened from the
+verse card, sloka card, reel, Jap counter, search and Me. `referral-attributor.tsx` keeps an invitation code from the
+link until sign-in and presents it once. Verified in a real browser against a local API; the real store listings,
+a live AI picture and the association files on the live domain have not been tried.
+
 ## Not yet verified
 
 Run against a local API with seeded test content in a real browser (home, library, book, chapter, verse, short work,

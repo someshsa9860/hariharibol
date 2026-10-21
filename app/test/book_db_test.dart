@@ -6,6 +6,15 @@ import 'package:hariharibol/db/tables.dart';
 
 import 'support/book_fixtures.dart';
 
+/// The `books` table as versions 2–4 made it (no `content_version`), for the tests that
+/// build an old database by hand.
+const _booksBeforeContentVersion = '''
+  CREATE TABLE books (
+    id TEXT NOT NULL PRIMARY KEY, slug TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
+    title_i18n TEXT, book_number INTEGER NOT NULL, unit_type TEXT,
+    total_units INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)
+''';
+
 void main() {
   late AppDatabase db;
 
@@ -284,6 +293,7 @@ void main() {
 
     test('upgrading a version 2 database keeps its rows and counts them as version 1', () async {
       final raw = NativeDatabase.memory(setup: (sqlite) {
+        sqlite.execute(_booksBeforeContentVersion);
         sqlite.execute('''
           CREATE TABLE download_state (
             book_id TEXT NOT NULL, unit_id TEXT NOT NULL, unit_type TEXT NOT NULL,
@@ -315,6 +325,7 @@ void main() {
 
   test('upgrading a version 3 database adds the transliteration column and keeps its rows', () async {
     final raw = NativeDatabase.memory(setup: (sqlite) {
+      sqlite.execute(_booksBeforeContentVersion);
       sqlite.execute('''
         CREATE TABLE verse_translations (
           id TEXT NOT NULL PRIMARY KEY, verse_row_id TEXT NOT NULL, language_code TEXT NOT NULL,
@@ -339,6 +350,127 @@ void main() {
     final rows = await upgraded.customSelect('SELECT meaning, transliteration FROM verse_translations').get();
     expect(rows.single.read<String>('meaning'), 'अर्थ');
     expect(rows.single.read<String?>('transliteration'), isNull, reason: 'filled by the next download of the unit');
+  });
+
+  test('upgrading a version 4 database adds the content version column and keeps its rows', () async {
+    final raw = NativeDatabase.memory(setup: (sqlite) {
+      sqlite.execute(_booksBeforeContentVersion);
+      sqlite.execute('''
+        CREATE TABLE download_state (
+          book_id TEXT NOT NULL, unit_id TEXT NOT NULL, unit_type TEXT NOT NULL,
+          unit_number INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending',
+          version INTEGER NOT NULL DEFAULT 0, hash TEXT, cache_version INTEGER NOT NULL DEFAULT 1,
+          downloaded_at INTEGER, retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
+          PRIMARY KEY (book_id, unit_id))
+      ''');
+      sqlite.execute("INSERT INTO books VALUES ('b', 'srimad-bhagavatam', 'Srimad Bhagavatam', NULL, 2, 'canto', 12, 0)");
+      sqlite.execute('PRAGMA user_version = 4');
+    });
+    final upgraded = AppDatabase(raw);
+    addTearDown(upgraded.close);
+
+    final book = await upgraded.bookDao.bookBySlug('srimad-bhagavatam');
+    expect((book!.totalUnits, book.contentVersion), (12, 0), reason: '0 = not known; the next sync fills it in');
+    await upgraded.bookDao.setContentVersion('b', 3);
+    expect(await upgraded.bookDao.contentVersionOf('b'), 3);
+  });
+
+  group('content version', () {
+    test('a book saved by a download starts with none known', () async {
+      await save(unitJson());
+      expect(await db.bookDao.contentVersionOf('book1'), 0);
+    });
+
+    test('is kept when a unit is saved again, and when another is', () async {
+      await save(unitJson());
+      await db.bookDao.setContentVersion('book1', 7);
+
+      await save(unitJson(), version: 2, hash: 'h2');
+      await save(unitJson(unitId: 'canto2', unitNumber: 2), hash: 'h3');
+
+      expect(await db.bookDao.contentVersionOf('book1'), 7);
+    });
+
+    test('is recorded against a book only once it is on the device', () async {
+      await db.bookDao.setContentVersion('nobody', 5);
+      expect(await db.bookDao.contentVersionOf('nobody'), 0);
+      expect(await db.bookDao.bookById('nobody'), isNull, reason: 'recording a version does not invent a book');
+    });
+
+    test("is forgotten when the book's units are deleted for a new cache version", () async {
+      await db.bookDao.replaceUnit(payloadOf(unitJson()), version: 1, hash: 'h', cacheVersion: 1);
+      await db.bookDao.setContentVersion('book1', 7);
+
+      expect(await db.bookDao.dropOutdatedUnits('book1', 2), 1);
+      expect(await db.bookDao.contentVersionOf('book1'), 0);
+    });
+
+    test('is kept when nothing is deleted', () async {
+      await save(unitJson());
+      await db.bookDao.setContentVersion('book1', 7);
+
+      expect(await db.bookDao.dropOutdatedUnits('book1', 1), 0);
+      expect(await db.bookDao.contentVersionOf('book1'), 7);
+    });
+  });
+
+  group('held books and chapter revisions', () {
+    test('only books with a unit on the way or on the device are held', () async {
+      expect(await db.downloadStateDao.heldBookIds(), isEmpty);
+
+      await save(unitJson());
+      await save(unitJson(bookId: 'book2', bookSlug: 'bhagavad-gita', unitType: 'chapter', unitId: 'gita1'));
+      await db.downloadStateDao.markPending(bookId: 'book3', unitId: 'u', unitType: 'canto', unitNumber: 1);
+
+      expect((await db.downloadStateDao.heldBookIds()).toSet(), {'book1', 'book2', 'book3'});
+    });
+
+    test('a chapter has a revision once its unit is done, and a new one when the unit is replaced', () async {
+      final seen = <String?>[];
+      final sub = db.bookDao.watchChapterRevision('srimad-bhagavatam', 1, cantoNumber: 1).listen(seen.add);
+      await pumpEventQueue();
+      expect(seen, [null], reason: 'nothing on the device yet');
+
+      await save(unitJson(), version: 1, hash: 'aaa');
+      await pumpEventQueue();
+      await save(unitJson(), version: 2, hash: 'bbb');
+      await pumpEventQueue();
+      await sub.cancel();
+
+      expect(seen, [null, '1:aaa', '2:bbb']);
+    });
+
+    test("saving a different unit does not change this chapter's revision", () async {
+      await save(unitJson(), hash: 'aaa');
+      final seen = <String?>[];
+      final sub = db.bookDao.watchChapterRevision('srimad-bhagavatam', 1, cantoNumber: 1).listen(seen.add);
+      await pumpEventQueue();
+
+      await save(unitJson(unitId: 'canto2', unitNumber: 2), hash: 'zzz');
+      await pumpEventQueue();
+      await sub.cancel();
+
+      expect(seen, ['1:aaa'], reason: 'one value, however many other units arrive');
+    });
+
+    test('the same chapter number in another canto is a different chapter', () async {
+      await save(unitJson(), hash: 'one');
+      await save(unitJson(unitId: 'canto2', unitNumber: 2), hash: 'two');
+
+      expect(await db.bookDao.watchChapterRevision('srimad-bhagavatam', 1, cantoNumber: 1).first, '1:one');
+      expect(await db.bookDao.watchChapterRevision('srimad-bhagavatam', 1, cantoNumber: 2).first, '1:two');
+    });
+
+    test('a book cut by chapter needs no canto', () async {
+      await save(unitJson(bookId: 'book2', bookSlug: 'bhagavad-gita', unitType: 'chapter', unitId: 'gita1', chapters: [1]), hash: 'g');
+      expect(await db.bookDao.watchChapterRevision('bhagavad-gita', 1).first, '1:g');
+    });
+
+    test('a unit that is not done has no revision', () async {
+      await save(unitJson(), hash: 'aaa');
+      await db.downloadStateDao.markFailed('book1', 'canto1', 'boom');
+      expect(await db.bookDao.watchChapterRevision('srimad-bhagavatam', 1, cantoNumber: 1).first, isNull);
+    });
   });
 
   test('indexes exist for unit and language lookups', () async {

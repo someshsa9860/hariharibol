@@ -1,6 +1,7 @@
 import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/ai.js';
 import { USABLE_MODELS } from '../../utils/ai-free-tier.js';
+import { BONUS_LIMITS } from '../../utils/ai-bonus.js';
 
 const router = createRouter({
   tag: 'Admin · AI',
@@ -78,13 +79,17 @@ router.put(
     description:
       'While on, chat and the admin translation runs use OpenAI’s free daily tokens first — which sends what ' +
       'readers write to OpenAI under its data-sharing programme — and fall back to the paid model when the ' +
-      'day’s tokens are spent. Turn it off before turning data sharing off at OpenAI. Send only what changed.',
+      'day’s tokens are spent. While it is on, every reader also gets a daily bonus of chat tokens: `bonusPoolTokens` ' +
+      'shared among the readers who used the chat this week, at most `bonusMaxPerUser` each. Turn it off before turning ' +
+      'data sharing off at OpenAI. Send only what changed.',
     permission: 'setting.write',
     limit: 'write',
     body: z.object({
       enabled: z.boolean().optional(),
       textModel: z.enum(USABLE_MODELS).optional(),
       translationModel: z.enum(USABLE_MODELS).optional(),
+      bonusPoolTokens: z.number().int().min(0).max(BONUS_LIMITS.poolTokens.max).optional(),
+      bonusMaxPerUser: z.number().int().min(0).max(BONUS_LIMITS.maxPerUser.max).optional(),
     }),
     responds: { 200: 'The new state, as GET returns it' },
   },

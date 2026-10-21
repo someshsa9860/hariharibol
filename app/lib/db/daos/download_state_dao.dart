@@ -43,6 +43,17 @@ class DownloadStateDao extends DatabaseAccessor<AppDatabase> with _$DownloadStat
   Future<List<DownloadStateRecord>> statesFor(String bookId) =>
       (select(downloadStates)..where((s) => s.bookId.equals(bookId))).get();
 
+  /// The books that have at least one downloadable unit on the way or on the device —
+  /// the ones worth asking the server about again. A short work, saved whole from the
+  /// API, has no row here.
+  Future<List<String>> heldBookIds() async {
+    final rows = await customSelect(
+      'SELECT DISTINCT book_id FROM download_state',
+      readsFrom: {downloadStates},
+    ).get();
+    return [for (final row in rows) row.read<String>('book_id')];
+  }
+
   Stream<List<DownloadStateRecord>> watchStates(String bookId) =>
       (select(downloadStates)
             ..where((s) => s.bookId.equals(bookId))

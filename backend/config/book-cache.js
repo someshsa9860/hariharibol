@@ -37,6 +37,11 @@ const bookCache = {
   manifestKey: `${PREFIX}/manifest.json`,
   schemaVersion: SCHEMA_VERSION,
   downloadTtlSeconds: env.BOOK_CACHE_DOWNLOAD_TTL_SECONDS,
+  // Looking for a book whose contentVersion is ahead of exportedVersion: how often, how long its
+  // writes must have stopped first, and how long to leave a failing export alone before trying again.
+  syncCron: '* * * * *',
+  quietSeconds: env.BOOK_CACHE_QUIET_SECONDS,
+  syncBackoffMs: 5 * 60 * 1000,
   // Units exported at once. Each holds a whole canto in memory, so keep it small.
   concurrency: 2,
   // In-process retries per unit, before the queue's own attempts take over.

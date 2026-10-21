@@ -1,5 +1,9 @@
+import express from 'express';
+
 import { createRouter, z, schemas } from '../../utils/router.js';
+import { AppError } from '../../utils/errors.js';
 import * as controller from '../../controllers/app/reel.js';
+import * as make from '../../controllers/app/reel-make.js';
 
 const router = createRouter({
   tag: 'Reels',
@@ -31,6 +35,57 @@ const reportReason = z.enum([
   'OTHER',
 ]);
 
+// The file arrives as the request body itself; what it really is is judged from its bytes.
+const rawFile = express.raw({ type: () => true, limit: make.AUDIO_MAX_BYTES });
+const readFile = (req, res, next) =>
+  rawFile(req, res, (error) =>
+    next(error?.type === 'entity.too.large' ? new AppError(413, 'MEDIA_TOO_LARGE', 'That file is too large') : error)
+  );
+
+router.post(
+  '/media',
+  {
+    summary: 'Upload a picture or music for my reel',
+    description:
+      'The request body is the file. `kind=image` takes the share studio card (JPEG, PNG or WebP, up to ' +
+      '8 MB); `kind=audio` takes music from the phone (MP3, M4A/MP4, AAC or WAV, up to 25 MB). What the ' +
+      'file really is is judged from its bytes. Returns `{ key, url }`: name `key` in `POST /reels/make`.',
+    limit: 'write',
+    query: z.object({ kind: z.enum(['image', 'audio']) }),
+    middleware: readFile,
+    responds: { 200: 'The key and a link', 400: 'Empty body', 413: 'MEDIA_TOO_LARGE', 422: 'MEDIA_NOT_USABLE' },
+  },
+  (req, res) => {
+    if (req.valid.query.kind === 'image' && req.body?.length > make.IMAGE_MAX_BYTES) {
+      throw new AppError(413, 'MEDIA_TOO_LARGE', 'That picture is too large');
+    }
+    return make.uploadMedia(req, res);
+  }
+);
+
+router.post(
+  '/make',
+  {
+    summary: 'Make a reel from the share studio',
+    description:
+      'Publishes a reel straight away from an uploaded picture (and optional background music) — the ' +
+      'reader becomes an approved creator on the spot, with no moderation queue. The reel then shows in ' +
+      'the feed (app and website) and on their profile. A creator an admin rejected gets 403. At most ' +
+      `${make.DAILY_LIMIT} a day (429 REEL_LIMIT).`,
+    limit: 'write',
+    body: z.object({
+      imageKey: z.string().min(1).max(500),
+      audioKey: z.string().min(1).max(500).optional(),
+      caption: z.string().trim().max(2200).optional(),
+      tags: z.array(z.string().trim().min(1).max(50)).max(30).optional(),
+      languageCode: z.string().max(10).optional(),
+      mantraSlug: z.string().max(100).optional(),
+    }),
+    responds: { 201: 'The reel id', 400: 'A bad key or a missing file', 403: 'Creator rejected', 429: 'REEL_LIMIT' },
+  },
+  make.make
+);
+
 router.get(
   '/',
   {
@@ -43,7 +98,8 @@ router.get(
       'library does not empty itself in an evening. The reader’s own reels are left out. ' +
       'Paginate by swiping — fetch the next page once the reader is a few reels from the end ' +
       'of what they already have, rather than waiting until the last one. `pageSize` ' +
-      'defaults to 11.',
+      'defaults to 11. Public: signed out (the website) nothing is seen, liked or saved.',
+    public: true,
     limit: 'read',
     query: z.object({
       page: z.coerce.number().int().min(1).optional(),
@@ -71,6 +127,36 @@ router.get(
 );
 
 router.get(
+  '/book-style',
+  {
+    summary: 'How book reels look',
+    description:
+      'The background, text colours and sizes, page timing and which buttons (like, comments, save, ' +
+      'share, more) a book reel shows — edited in the admin panel. Public.',
+    public: true,
+    limit: 'read',
+    responds: { 200: 'The style' },
+  },
+  controller.bookStyle
+);
+
+router.get(
+  '/book/:verseId',
+  {
+    summary: 'Book reels from a verse on',
+    description:
+      'The book reels of the verse’s book in reading order, starting at that verse. `verseId` is the ' +
+      'dotted id (`1.2.47`). Public: signed out nothing is liked or saved.',
+    public: true,
+    limit: 'read',
+    params: z.object({ verseId: z.string().min(1).max(40) }),
+    query: schemas.page,
+    responds: { 200: 'A page of reels', 404: 'No such verse' },
+  },
+  controller.fromVerse
+);
+
+router.get(
   '/:id/similar',
   {
     summary: 'More reels like this one',
@@ -94,7 +180,8 @@ router.get(
     description:
       'The share and deeplink target. Unlike the feed this does not hide the reader’s own ' +
       'reels — following a link to something you posted should show it, including one still ' +
-      'awaiting review.',
+      'awaiting review. Public: a signed-out visitor sees it with nothing liked or saved.',
+    public: true,
     limit: 'read',
     params: schemas.id,
     responds: { 200: 'The reel', 404: 'No such reel, or not published' },

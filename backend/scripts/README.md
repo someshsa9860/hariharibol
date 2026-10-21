@@ -154,6 +154,17 @@ app's own `.env` has no AWS credentials configured (see "Local media" below)
 — so without real `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` in `.env`, a
 real run lands files on local disk instead of the actual new bucket.
 
+## Legacy sign-in: old mantras against ours
+
+`legacy-match-mantras.js <old-mantras.json>` shows how each mantra of the old
+app would be matched to one of ours when someone signs in from it (see "Legacy
+users" in `backend/CLAUDE.md`) — which match, which do not and why, and how much
+of the old chanting that covers. It reads the published mantras of the database
+`.env` points at and writes nothing. The JSON is the old server's `mantras`
+table as `[{ id, title, subtitle, mantra }]`, plus `count`, `chanters` and
+`deleted` if you have them. Run it after adding mantras in the admin panel, and
+before putting an entry in `MANTRA_SLUGS` (`config/legacy.js`).
+
 ## Verse–mood links
 
 `seed-verse-issues.js` — hand-curated `VerseIssue` rows for the six mood

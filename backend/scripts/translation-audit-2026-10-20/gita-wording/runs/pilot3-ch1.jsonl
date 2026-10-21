@@ -1,0 +1,94 @@
+{"lang":"hi","ids":["1.1.6"],"issues":[],"rejected":[],"costUsd":0.0071905}
+{"lang":"hi","ids":["1.1.7"],"issues":[],"rejected":[],"costUsd":0.0067905}
+{"lang":"hi","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.0066825}
+{"lang":"hi","ids":["1.1.5"],"issues":[],"rejected":[],"costUsd":0.0071005}
+{"lang":"hi","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.0071185}
+{"lang":"hi","ids":["1.1.8"],"issues":[{"part":"translation","verseId":"1.1.8","index":-1,"reason":"Tense: 'are always victorious in battle' (sadaiva vijayī) is a standing characteristic, but 'रहे हैं' (have been) shifts it to present perfect; 'हैं' is the English sense.","genuine":true,"kind":"grammar","confidence":"likely","find":"विजयी रहे हैं","replace":"विजयी रहते हैं"}],"rejected":[],"costUsd":0.0083625}
+{"lang":"hi","ids":["1.1.2"],"issues":[],"rejected":[],"costUsd":0.0020241}
+{"lang":"hi","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.0020721}
+{"lang":"hi","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.0022781}
+{"lang":"hi","ids":["1.1.12"],"issues":[],"rejected":[],"costUsd":0.0021501}
+{"lang":"hi","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"dharma-kṣetre means 'in the field/land of dharma', not a pilgrimage place; the Hindi 'tīrthasthal' names a different thing than the Sanskrit word.","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल में","replace":"धर्मक्षेत्र में"},{"part":"translation","verseId":"1.1.1","index":-1,"reason":"dharma-kṣetre is rendered as 'tīrthasthal' (pilgrimage place), which names a different thing than the Sanskrit dharma-kṣetra.","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल कुरुक्षेत्र में","replace":"धर्मक्षेत्र कुरुक्षेत्र में"}],"rejected":[],"costUsd":0.0100785}
+{"lang":"hi","ids":["1.1.13"],"issues":[],"rejected":[],"costUsd":0.0019921}
+{"lang":"hi","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.0021820999999999998}
+{"lang":"hi","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.0024881}
+{"lang":"hi","ids":["1.1.11"],"issues":[{"part":"translation","verseId":"1.1.11","index":-1,"reason":"Grammar: the object 'Bhīṣma' should take the genitive 'की' with 'सहायता देनी चाहिए' ('give support to Bhīṣma'), not 'को'; 'पितामह भीष्म को ... सहायता देनी' is ungrammatical.","genuine":true,"kind":"grammar","confidence":"likely","find":"पितामह भीष्म को पूरी-पूरी सहायता","replace":"पितामह भीष्म की पूरी-पूरी सहायता"}],"rejected":[],"costUsd":0.0038761}
+{"lang":"hi","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.0020541}
+{"lang":"hi","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.0024441}
+{"lang":"hi","ids":["1.1.17"],"issues":[],"rejected":[],"costUsd":0.0031021}
+{"lang":"hi","ids":["1.1.20"],"issues":[],"rejected":[],"costUsd":0.0027041}
+{"lang":"hi","ids":["1.1.18"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.18","index":11,"reason":"Word-list entry 'saḥ | that' does not correspond to any word in this verse's Sanskrit; it is a spurious extra line.","genuine":false,"kind":"wrong","confidence":"likely","find":"वह","replace":"सब","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0039361}
+{"lang":"hi","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.0021421}
+{"lang":"hi","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.0022461}
+{"lang":"hi","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.0023801}
+{"lang":"hi","ids":["1.1.23"],"issues":[],"rejected":[],"costUsd":0.0019901}
+{"lang":"hi","ids":["1.1.22"],"issues":[],"rejected":[{"part":"translation","verseId":"1.1.22","index":-1,"reason":"English says \"O infallible one\" (achyuta) and the sense is addressing Krishna; Hindi \"अच्युत\" is fine, but this is flagged only if wrong — here it is acceptable.","genuine":false,"kind":"wrong","confidence":"likely","find":"हे अच्युत!","replace":"हे अच्युत!","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0037001}
+{"lang":"hi","ids":["1.1.28"],"issues":[],"rejected":[],"costUsd":0.0025581}
+{"lang":"hi","ids":["1.1.26"],"issues":[{"part":"translation","verseId":"1.1.26","index":-1,"reason":"The standard Hindi spelling is श्वसुरों (or ससुरों); श्वशुरों is a misspelling.","genuine":true,"kind":"grammar","confidence":"likely","find":"श्वशुरों","replace":"श्वसुरों"}],"rejected":[],"costUsd":0.0033721}
+{"lang":"hi","ids":["1.1.27"],"issues":[{"part":"wordMeanings","verseId":"1.1.27","index":0,"reason":"śvaśurān means fathers-in-law (English gloss), but Hindi 'ससुरों' is colloquial/improper for the sacred text; standard form is 'श्वसुरों'.","genuine":true,"kind":"grammar","confidence":"likely","find":"ससुरों को","replace":"श्वसुरों को"}],"rejected":[],"costUsd":0.0034421}
+{"lang":"hi","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.0030441}
+{"lang":"hi","ids":["1.1.31"],"issues":[],"rejected":[],"costUsd":0.0019860999999999998}
+{"lang":"hi","ids":["1.1.34"],"issues":[],"rejected":[],"costUsd":0.0031021}
+{"lang":"hi","ids":["1.1.33"],"issues":[],"rejected":[],"costUsd":0.0029200999999999997}
+{"lang":"hi","ids":["1.1.29"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.29","index":0,"reason":"sīdanti 'are quivering' glossed 'काँप रहे हैं' is fine, but vepathuḥ (index 6) is the trembling; no error here — checking index 2 instead: gātrāṇi is plural 'limbs' but Hindi 'शरीर के अंग' is acceptable.","genuine":false,"kind":"wrong","confidence":"likely","find":"काँप रहे हैं","replace":"काँप रहे हैं।","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0041581000000000005}
+{"lang":"hi","ids":["1.1.35"],"issues":[],"rejected":[],"costUsd":0.0032001}
+{"lang":"hi","ids":["1.1.30"],"issues":[{"part":"wordMeanings","verseId":"1.1.30","index":11,"reason":"bhramati means 'is reeling' (mind reeling), but the Hindi says 'भूल रहा है' (forgetting), which does not render the word; the translation line already says 'मेरा मन चकरा रहा है'.","genuine":true,"kind":"wrong","confidence":"likely","find":"भूल रहा है","replace":"चकरा रहा है"}],"rejected":[],"costUsd":0.0039220999999999995}
+{"lang":"hi","ids":["1.1.37"],"issues":[],"rejected":[],"costUsd":0.0023580999999999997}
+{"lang":"hi","ids":["1.1.36"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.36","index":2,"reason":"naḥ means 'our' (genitive plural); the Hindi 'हमारी' is feminine singular and does not suit 'हमारी प्रसन्नता' agreeing poorly; should be the plural/neutral form 'हमारे'.","genuine":false,"kind":"grammar","confidence":"likely","find":"हमारी","replace":"हमारे","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0037721}
+{"lang":"hi","ids":["1.1.42"],"issues":[],"rejected":[],"costUsd":0.0021841}
+{"lang":"hi","ids":["1.1.39"],"issues":[],"rejected":[],"costUsd":0.0022900999999999998}
+{"lang":"hi","ids":["1.1.38"],"issues":[],"rejected":[],"costUsd":0.0022381}
+{"lang":"hi","ids":["1.1.41"],"issues":[],"rejected":[],"costUsd":0.0022481}
+{"lang":"hi","ids":["1.1.43"],"issues":[],"rejected":[],"costUsd":0.0019341}
+{"lang":"hi","ids":["1.1.40"],"issues":[{"part":"wordMeanings","verseId":"1.1.40","index":9,"reason":"abhibhavati means 'overpowers/overwhelms'; 'बदल देता है' (transforms) is a wrong sense of the word, though the English gloss says 'transforms'.","genuine":true,"kind":"wrong","confidence":"likely","find":"बदल देता है","replace":"दबा लेता है"}],"rejected":[],"costUsd":0.0032721}
+{"lang":"hi","ids":["1.1.45"],"issues":[],"rejected":[],"costUsd":0.0020061}
+{"lang":"hi","ids":["1.1.46"],"issues":[],"rejected":[],"costUsd":0.0021121}
+{"lang":"hi","ids":["1.1.44"],"issues":[],"rejected":[],"costUsd":0.0018781}
+{"lang":"mr","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.0062205}
+{"lang":"mr","ids":["1.1.2"],"issues":[],"rejected":[],"costUsd":0.0063605}
+{"lang":"mr","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.0061265}
+{"lang":"mr","ids":["1.1.6"],"issues":[],"rejected":[],"costUsd":0.0015281}
+{"lang":"mr","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"dharma-kṣetre means 'in the field/land of dharma', but the Marathi (following the English gloss) says 'tīrthasthānī' (pilgrimage place), a different thing.","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थानी","replace":"धर्मक्षेत्री"}],"rejected":[],"costUsd":0.0079625}
+{"lang":"hi","ids":["1.1.47"],"issues":[{"part":"translation","verseId":"1.1.47","index":-1,"reason":"Subject-verb agreement: the main verb after ergative 'अर्जुन ने' (रख दिए) conflicts with 'बैठ गया'; the sentence mixes constructions and 'बैठ गया' should agree with the subject Arjuna while the preceding clause needs a participle chain, so 'रख दिए' should become 'रखकर'.","genuine":true,"kind":"grammar","confidence":"likely","find":"अर्जुन ने अपने धनुष-बाण एक ओर रख दिए और शोक से व्याकुल मन से रथ पर बैठ गया","replace":"अर्जुन अपने धनुष-बाण एक ओर रखकर शोक से व्याकुल मन से रथ पर बैठ गया"}],"rejected":[],"costUsd":0.0048881}
+{"lang":"mr","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.0015240999999999998}
+{"lang":"mr","ids":["1.1.5"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.5","index":3,"reason":"The word ca meaning 'also' is rendered with the misspelled/colloquial 'सुद्धा'; standard Marathi spelling is 'सुद्धा' at best colloquial, but acceptable usage is 'सुध्दा/सुद्धा' so this is not a clear error.","genuine":false,"kind":"grammar","confidence":"likely","find":"सुद्धा","replace":"देखील","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0032041}
+{"lang":"mr","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.0015900999999999999}
+{"lang":"mr","ids":["1.1.8"],"issues":[],"rejected":[],"costUsd":0.0016880999999999999}
+{"lang":"mr","ids":["1.1.11"],"issues":[],"rejected":[],"costUsd":0.0015321}
+{"lang":"mr","ids":["1.1.7"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.7","index":0,"reason":"asmākam 'our' is misspelled as आमच्या; the correct Marathi form is आमच्या (with long-ā 'आ' matching 'amacya' — here the word-list lacks proper spelling 'आमच्या').","genuine":false,"kind":"grammar","confidence":"likely","find":"आमच्या","replace":"आमच्या","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0030721}
+{"lang":"mr","ids":["1.1.12"],"issues":[],"rejected":[],"costUsd":0.0016561}
+{"lang":"mr","ids":["1.1.13"],"issues":[],"rejected":[],"costUsd":0.0015681}
+{"lang":"mr","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.0019821}
+{"lang":"mr","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.0020101}
+{"lang":"mr","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.0016760999999999998}
+{"lang":"mr","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.0015620999999999999}
+{"lang":"mr","ids":["1.1.18"],"issues":[{"part":"wordMeanings","verseId":"1.1.18","index":11,"reason":"Word list line 11 'saḥ' does not belong to this verse (no such word in the Sanskrit), an invented extra entry.","genuine":true,"kind":"wrong","confidence":"likely","find":"तो","replace":"वाजवले"}],"rejected":[],"costUsd":0.0033001}
+{"lang":"mr","ids":["1.1.17"],"issues":[{"part":"wordMeanings","verseId":"1.1.17","index":9,"reason":"Sātyaki (Yuyudhāna) is described as Kṛṣṇa's charioteer; the Marathi 'यांचाच' is an awkward/incorrect genitive that does not parse (should be 'म्हणजेच युयुधान' - the same as Yuyudhāna), garbling the sense.","genuine":true,"kind":"grammar","confidence":"likely","find":"युयुधान यांचाच","replace":"युयुधान यांच्याशी एकरूप"}],"rejected":[],"costUsd":0.004440100000000001}
+{"lang":"mr","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.0016240999999999998}
+{"lang":"mr","ids":["1.1.22"],"issues":[],"rejected":[],"costUsd":0.0017480999999999998}
+{"lang":"mr","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.0015720999999999999}
+{"lang":"mr","ids":["1.1.23"],"issues":[],"rejected":[],"costUsd":0.0014900999999999998}
+{"lang":"mr","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.0015420999999999998}
+{"lang":"mr","ids":["1.1.20"],"issues":[],"rejected":[{"part":"translation","verseId":"1.1.20","index":-1,"reason":"Past participle of 'पाहणे' is 'पाहिल्यानंतर' (not 'पाहिल्यानंतर' spelled differently); the text has the correct form, but 'अर्जुन भगवान श्रीकृष्णांना' lacks case clarity — actually acceptable, so no issue.","genuine":false,"kind":"grammar","confidence":"likely","find":"पाहिल्यानंतर","replace":"पाहिल्यानंतर","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0039220999999999995}
+{"lang":"mr","ids":["1.1.26"],"issues":[],"rejected":[],"costUsd":0.0015440999999999999}
+{"lang":"mr","ids":["1.1.31"],"issues":[],"rejected":[],"costUsd":0.0015921}
+{"lang":"mr","ids":["1.1.30"],"issues":[],"rejected":[],"costUsd":0.0016101}
+{"lang":"mr","ids":["1.1.29"],"issues":[],"rejected":[],"costUsd":0.0014341}
+{"lang":"mr","ids":["1.1.33"],"issues":[],"rejected":[],"costUsd":0.0025601}
+{"lang":"mr","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.0025900999999999997}
+{"lang":"mr","ids":["1.1.27"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.27","index":0,"reason":"śvaśurān means fathers-in-law (English gloss), but सासरे means the in-laws' home/in-law relatives collectively and is not a clear rendering of 'fathers-in-law'; the plural सासरे is acceptable as plural of सासरा, so only likely.","genuine":false,"kind":"grammar","confidence":"likely","find":"सासरे","replace":"सासरे","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0032121}
+{"lang":"mr","ids":["1.1.28"],"issues":[{"part":"translation","verseId":"1.1.28","index":-1,"reason":"Kṛṣṇa is addressed with the vocative 'हे माझ्या प्रिय कृष्ण', which is ungrammatical Marathi; the vocative should be 'हे माझ्या प्रिय कृष्णा' (or 'माझ्या प्रिय कृष्णा').","genuine":true,"kind":"grammar","confidence":"likely","find":"हे माझ्या प्रिय कृष्ण,","replace":"हे माझ्या प्रिय कृष्णा,"}],"rejected":[],"costUsd":0.0037461}
+{"lang":"mr","ids":["1.1.36"],"issues":[],"rejected":[],"costUsd":0.0018100999999999998}
+{"lang":"mr","ids":["1.1.37"],"issues":[],"rejected":[],"costUsd":0.0018621}
+{"lang":"mr","ids":["1.1.35"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.35","index":4,"reason":"ghnataḥ means 'of those who are killing' (even if they kill me), not 'being killed' as a passive; the Marathi must follow the English gloss 'being killed'—so this is acceptable and not an error.","genuine":false,"kind":"wrong","confidence":"likely","find":"मारला जात असताना","replace":"मारला जात असताना","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0041321000000000005}
+{"lang":"mr","ids":["1.1.39"],"issues":[],"rejected":[],"costUsd":0.0016201}
+{"lang":"mr","ids":["1.1.38"],"issues":[{"part":"wordMeanings","verseId":"1.1.38","index":4,"reason":"paśyanti 'see' with na 'do not' is a plural finite verb; 'पाहत' is an incomplete form, and 'नाहीत' is already given for na, so the combination should be correct 'पाहतात'.","genuine":true,"kind":"grammar","confidence":"likely","find":"पाहत","replace":"पाहतात"}],"rejected":[],"costUsd":0.0031061}
+{"lang":"mr","ids":["1.1.43"],"issues":[],"rejected":[],"costUsd":0.0016261}
+{"lang":"mr","ids":["1.1.42"],"issues":[],"rejected":[],"costUsd":0.0016981}
+{"lang":"mr","ids":["1.1.41"],"issues":[],"rejected":[],"costUsd":0.0016981}
+{"lang":"mr","ids":["1.1.40"],"issues":[{"part":"wordMeanings","verseId":"1.1.40","index":4,"reason":"dharme is locative ('in religion' / when religion is destroyed); the Marathi gives a bare nominative 'धर्म' which does not render the locative.","genuine":true,"kind":"grammar","confidence":"likely","find":"धर्म","replace":"धर्मात"}],"rejected":[],"costUsd":0.0026720999999999997}
+{"lang":"mr","ids":["1.1.44"],"issues":[],"rejected":[],"costUsd":0.0014921}
+{"lang":"mr","ids":["1.1.45"],"issues":[],"rejected":[],"costUsd":0.0015761}
+{"lang":"mr","ids":["1.1.34"],"issues":[],"rejected":[{"part":"wordMeanings","verseId":"1.1.34","index":4,"reason":"eva 'certainly' is rendered 'निश्चितच', a spelling error; correct Marathi is 'निश्चितच' vs standard 'निश्चितच' — but more notably 'ca' -> 'सुद्धा' is acceptable; no real error here.","genuine":false,"kind":"grammar","confidence":"likely","find":"निश्चितच","replace":"निश्चितच","rejectedBecause":"the model itself withdrew it"},{"part":"translation","verseId":"1.1.34","index":-1,"reason":"The English says 'for whom we may desire them' (kingdom etc. desired for their sake), but the Marathi 'हवे आहे' is a present-tense agreement slip; 'हवे आहेत' is not needed, yet 'इच्छा केली' sense is fine — however 'तयार होऊन' and 'उभे' are fine; the real error is 'सर्वजण जर आता उभे ठाकले' correct.","genuine":false,"kind":"grammar","confidence":"likely","find":"हवे आहे","replace":"हवे आहे","rejectedBecause":"the model itself withdrew it"}],"costUsd":0.0063061}
+{"lang":"mr","ids":["1.1.46"],"issues":[],"rejected":[],"costUsd":0.0015780999999999998}
+{"lang":"mr","ids":["1.1.47"],"issues":[],"rejected":[],"costUsd":0.0016081}

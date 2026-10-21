@@ -101,6 +101,55 @@ class AppLocalizationsMl extends AppLocalizations {
       'തുടരുന്നതിലൂടെ നിങ്ങൾ ഞങ്ങളുടെ നിബന്ധനകളും സ്വകാര്യതാ നയവും അംഗീകരിക്കുന്നു.';
 
   @override
+  String get introWelcomeTitle => 'HariHariBol-ലേക്ക് സ്വാഗതം';
+
+  @override
+  String get introWelcomeBody =>
+      'വായിക്കാനും ജപിക്കാനും നിങ്ങളുടെ ദൈനംദിന സാധന സൂക്ഷിക്കാനും ശാന്തമായ ഒരിടം — എല്ലാം ഒരൊറ്റ ആപ്പിൽ.';
+
+  @override
+  String get introReadTitle => 'ഗ്രന്ഥങ്ങൾ വായിക്കൂ';
+
+  @override
+  String get introReadBody =>
+      'ഭഗവദ്ഗീതയും ശ്രീമദ് ഭാഗവതവും, ശ്ലോകം ശ്ലോകമായി, നിങ്ങൾക്കിഷ്ടമുള്ള ഭാഷയിൽ. പാരായണം കേൾക്കൂ, ഓഫ്‌ലൈനിലും.';
+
+  @override
+  String get introChantTitle => 'ഓരോ ശ്വാസത്തോടൊപ്പവും ജപിക്കൂ';
+
+  @override
+  String get introChantBody =>
+      'ശബ്ദം കൊണ്ടോ ടാപ്പ് കൊണ്ടോ നിങ്ങളുടെ ജപം എണ്ണൂ, റെക്കോർഡ് ചെയ്ത മാലയോടൊപ്പം ജപിക്കൂ, നിങ്ങളുടെ സാധന ദിനംപ്രതി വളരുന്നത് കാണൂ.';
+
+  @override
+  String get introSakhaTitle => 'Sakha-യോട് ചോദിക്കൂ, വഴിയിലെ ഒരു സുഹൃത്ത്';
+
+  @override
+  String get introSakhaBody =>
+      'ഒരു ചോദ്യമോ ഭാരമുള്ള മനസ്സോ ആയി വരൂ. Sakha ഒരു ഡിജിറ്റൽ കൂട്ടാളിയാണ്; അത് നിങ്ങളുടെ ഭാഷയിൽ, സൗമ്യമായി, ഓരോ ചെറിയ ചുവടായി മറുപടി നൽകുന്നു.';
+
+  @override
+  String get introReelsTitle => 'നിങ്ങളുടെ ദിവസത്തിന് വെളിച്ചം പകരുന്ന റീലുകൾ';
+
+  @override
+  String get introReelsBody =>
+      'ശ്ലോകങ്ങളിൽ നിന്നും ക്രിയേറ്റർമാരിൽ നിന്നുമുള്ള ചെറിയ ഭക്തി റീലുകൾ. ഒന്നു നിൽക്കുമ്പോഴെല്ലാം അല്പം പ്രചോദനം കാണൂ, സേവ് ചെയ്യൂ, പങ്കിടൂ.';
+
+  @override
+  String get introNext => 'അടുത്തത്';
+
+  @override
+  String get introSkip => 'ഒഴിവാക്കുക';
+
+  @override
+  String get introStart => 'തുടങ്ങാം';
+
+  @override
+  String introPageOf(int current, int total) {
+    return 'പേജ് $current / $total';
+  }
+
+  @override
   String languageStepOf(int current, int total) {
     return 'ഘട്ടം $current / $total';
   }
@@ -164,11 +213,16 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
-  String get homeMoodPrompt => 'ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെയുണ്ട്?';
+  String get homeMoodPrompt =>
+      'ഇന്ന് ഏത് ഗുണത്തിൽ വളരാനാണ് നിങ്ങൾ ആഗ്രഹിക്കുന്നത്?';
 
   @override
   String get homeMoodAnsweredToday =>
-      'ഇന്ന് നിങ്ങൾക്ക് എങ്ങനെ തോന്നുന്നു എന്ന് നിങ്ങൾ പങ്കുവച്ചു കഴിഞ്ഞു. പുതിയത് പങ്കുവയ്ക്കാൻ നാളെ വീണ്ടും വരൂ.';
+      'ഇന്നത്തെ നിങ്ങളുടെ ലക്ഷ്യം നിങ്ങൾ തിരഞ്ഞെടുത്തു കഴിഞ്ഞു. പുതിയതൊന്ന് വളർത്തിയെടുക്കാൻ നാളെ വീണ്ടും വരൂ.';
+
+  @override
+  String get homeMoodHint =>
+      'ശക്തിപ്പെടുത്താൻ ആഗ്രഹിക്കുന്നത് തിരഞ്ഞെടുക്കൂ, ഒരു ശ്ലോകം നിങ്ങൾക്കൊപ്പം ഉണ്ടാകും.';
 
   @override
   String homeMoodViewToday(int count) {
@@ -190,6 +244,35 @@ class AppLocalizationsMl extends AppLocalizations {
       one: 'എനിക്ക് ഒരു ശ്ലോകം കാണിക്കൂ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get growthKama => 'ആത്മസംയമനം';
+
+  @override
+  String get growthKrodha => 'ശാന്തത';
+
+  @override
+  String get growthLobha => 'സംതൃപ്തി';
+
+  @override
+  String get growthMoha => 'വിവേകം';
+
+  @override
+  String get growthMada => 'വിനയം';
+
+  @override
+  String get growthMatsarya => 'സദ്ഭാവന';
+
+  @override
+  String get growthMissedChantingTime => 'സമയത്തിന് ജപം';
+
+  @override
+  String get growthUnmetRoundTarget => 'എന്റെ മാലകൾ പൂർത്തിയാക്കൽ';
+
+  @override
+  String homeGrowReason(String quality) {
+    return 'നിങ്ങളുടെ വളർച്ചയ്ക്കായി: $quality';
   }
 
   @override
@@ -276,6 +359,11 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String labelVerse(int number) {
     return 'ശ്ലോകം $number';
+  }
+
+  @override
+  String labelVerseShort(int number) {
+    return 'ശ്ലോ. $number';
   }
 
   @override
@@ -844,6 +932,32 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get readingHideTransliteration => 'ലിപ്യന്തരണം';
+
+  @override
+  String get readingModeLabel => 'വായനാ രീതി';
+
+  @override
+  String get readingModeVerses => 'ശ്ലോകം ശ്ലോകമായി';
+
+  @override
+  String get readingModeStory => 'കഥ';
+
+  @override
+  String get readingStoryShowLabel => 'കഥയിൽ കാണിക്കുന്നത്';
+
+  @override
+  String get readingStoryNumbers => 'ശ്ലോക നമ്പറുകൾ';
+
+  @override
+  String get readingStoryHint =>
+      'ഒരു ശ്ലോകം അമർത്തിപ്പിടിക്കുക — അത് പ്ലേ ചെയ്യാനോ ബുക്ക്‌മാർക്ക് ചെയ്യാനോ ഹൈലൈറ്റ് ചെയ്യാനോ കുറിപ്പ് ചേർക്കാനോ.';
+
+  @override
+  String get readingStoryNothing =>
+      'നിങ്ങൾ തിരഞ്ഞെടുത്ത ഭാഗത്തിന് ഈ അധ്യായത്തിൽ ഒന്നുമില്ല. മുകളിൽ നിന്ന് മറ്റൊന്ന് തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get readingPartMeaning => 'അർത്ഥം';
 
   @override
   String get routineSubtitle => 'ഭക്തി, ജോലി, അതിനിടയിലെ സാധാരണ കാര്യങ്ങൾ.';
@@ -1993,4 +2107,290 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get chatJumpToLatest => 'ഏറ്റവും പുതിയത്';
+
+  @override
+  String get verseStartReels => 'ഈ ശ്ലോകം മുതൽ റീലുകൾ കാണുക';
+
+  @override
+  String get reelChantTapHint => 'ജപിക്കാൻ ടാപ്പ് ചെയ്യുക';
+
+  @override
+  String get reelChantDone => 'മാല പൂർത്തിയായി';
+
+  @override
+  String get reelChantSkipHint => 'ഒഴിവാക്കാൻ മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
+  String get verseAskSakha => 'ഈ ശ്ലോകത്തെക്കുറിച്ച് Sakha യോട് ചോദിക്കൂ';
+
+  @override
+  String chatExplainVerse(String reference, String verse) {
+    return 'ദയവായി ഈ ശ്ലോകം ലളിതമായി വിശദീകരിക്കൂ — $reference:\n\n$verse';
+  }
+
+  @override
+  String chatActionQuestion(String place) {
+    return '$place തുറക്കണോ?';
+  }
+
+  @override
+  String get chatActionOpen => 'തുറക്കൂ';
+
+  @override
+  String get chatActionNotNow => 'ഇപ്പോൾ വേണ്ട';
+
+  @override
+  String get searchTabAll => 'എല്ലാം';
+
+  @override
+  String get searchAllBooks => 'എല്ലാ ഗ്രന്ഥങ്ങളും';
+
+  @override
+  String searchShowingFor(String query) {
+    return '“$query” എന്നതിനുള്ള ഫലങ്ങൾ കാണിക്കുന്നു';
+  }
+
+  @override
+  String searchNoResultsInBook(String book) {
+    return '$book-ൽ ഒന്നും കണ്ടെത്തിയില്ല. എല്ലാ ഗ്രന്ഥങ്ങളിലും തിരയുക, അല്ലെങ്കിൽ മറ്റൊരു അക്ഷരവിന്യാസം പരീക്ഷിക്കുക.';
+  }
+
+  @override
+  String get searchTipsTitle => 'തിരയാനുള്ള നുറുങ്ങുകൾ';
+
+  @override
+  String get searchTipSpelling =>
+      'കേൾക്കുന്നതുപോലെ എഴുതുക. “krishna”, “krsna”, “kṛṣṇa” എന്നിവ ഒരേ ശ്ലോകങ്ങൾ കണ്ടെത്തും.';
+
+  @override
+  String get searchTipBook =>
+      'ഒരു ഗ്രന്ഥത്തിന്റെ പേരിൽ തുടങ്ങുക — “gita karma” അല്ലെങ്കിൽ “bhagavatam surrender” — എങ്കിൽ അതിൽ മാത്രം തിരയും.';
+
+  @override
+  String get searchTipPartial =>
+      'ശ്ലോകം, അതിന്റെ അർത്ഥം അല്ലെങ്കിൽ ഭാവാർത്ഥത്തിലെ ചില വാക്കുകൾ ടൈപ്പ് ചെയ്യുക. ചെറിയ തെറ്റുകൾ സാരമില്ല.';
+
+  @override
+  String get settingsSectionAbout => 'ആപ്പിനെക്കുറിച്ച്';
+
+  @override
+  String get sourcesTitle => 'ഉറവിടങ്ങളും നിരാകരണവും';
+
+  @override
+  String get sourcesIntro =>
+      'HariHariBol ദിവസേനയുള്ള വായനയ്ക്കും ജപത്തിനുമായി പവിത്ര ഗ്രന്ഥങ്ങൾ നൽകുന്നു. ഇത് സാധ്യമാക്കിയ ആചാര്യന്മാരോടും വിവർത്തകരോടും പണ്ഡിതന്മാരോടും ഞങ്ങൾ നന്ദിയുള്ളവരാണ്. ഈ ഗ്രന്ഥങ്ങൾ എവിടെ നിന്ന് എടുത്തതാണെന്നും എങ്ങനെ അവതരിപ്പിക്കുന്നുവെന്നും ഈ പേജ് വിശദീകരിക്കുന്നു.';
+
+  @override
+  String get sourcesTextsHeading => 'വിവർത്തനങ്ങളും വ്യാഖ്യാനങ്ങളും';
+
+  @override
+  String get sourcesAuthorCredit =>
+      'ഭഗവദ്ഗീത യഥാരൂപം, ശ്രീമദ് ഭാഗവതം എന്നിവയുടെ ഇംഗ്ലീഷ് വിവർത്തനങ്ങളും ഭാവാർത്ഥങ്ങളും അന്താരാഷ്ട്ര കൃഷ്ണാവബോധ സംഘത്തിന്റെ സ്ഥാപകാചാര്യനായ കൃഷ്ണകൃപാമൂർത്തി ശ്രീ ശ്രീമദ് എ. സി. ഭക്തിവേദാന്ത സ്വാമി പ്രഭുപാദരുടെ കൃതികളാണ്. © The Bhaktivedanta Book Trust International, Inc.';
+
+  @override
+  String get sourcesTextsBody =>
+      'ഓരോ വിവർത്തനവും ഭാവാർത്ഥവും വ്യാഖ്യാനവും അതിന്റെ രചയിതാവിന്റെ കൃതിയാണ്; അതിന്മേലുള്ള എല്ലാ അവകാശങ്ങളും അതിന്റെ രചയിതാക്കൾക്കും പ്രസാധകർക്കും തന്നെയാണ്. വ്യക്തിപരമായ ഭക്തിപഠനത്തിനായാണ് ഇവ ഇവിടെ നൽകിയിരിക്കുന്നത്, പുനർവിതരണത്തിനല്ല.';
+
+  @override
+  String get sourcesFromHeading => 'ഗ്രന്ഥങ്ങൾ എവിടെ നിന്ന്';
+
+  @override
+  String get sourcesGita =>
+      'ഭഗവദ്ഗീത: സംസ്കൃത മൂലപാഠം, ഇംഗ്ലീഷ് വിവർത്തനവും ഭാവാർത്ഥവും, ശ്രീ രാമാനുജാചാര്യർ, ശ്രീ മധ്വാചാര്യർ, ശ്രീധര സ്വാമി എന്നിവരുടെ വ്യാഖ്യാനങ്ങളും';
+
+  @override
+  String sourcesBhagavatam(int from, int to) {
+    return 'ശ്രീമദ് ഭാഗവതം, സ്കന്ധം $from–$to: സംസ്കൃത മൂലപാഠം, ഇംഗ്ലീഷ് വിവർത്തനവും ഭാവാർത്ഥവും';
+  }
+
+  @override
+  String get sourcesDnyaneshwari =>
+      'ജ്ഞാനേശ്വരി: ഭഗവദ്ഗീതയെക്കുറിച്ചുള്ള സന്ത് ജ്ഞാനേശ്വരന്റെ മറാത്തി ഓവികൾ';
+
+  @override
+  String get sourcesAiHeading => 'മറ്റു ഭാഷകളിലെ വിവർത്തനം';
+
+  @override
+  String get sourcesAiBody =>
+      'ഹിന്ദി, മറാത്തി, മറ്റ് ഇന്ത്യൻ ഭാഷകൾ എന്നിവയിലെ ഉള്ളടക്കം — വിവർത്തനങ്ങൾ, ഭാവാർത്ഥങ്ങൾ, ആപ്പിന്റെ സ്വന്തം വാക്കുകൾ — ഇംഗ്ലീഷിൽ നിന്ന് AI-യുടെ സഹായത്തോടെ തയ്യാറാക്കിയതാണ്. ഇത് ഔദ്യോഗികമോ അംഗീകൃതമോ ആയ വിവർത്തനമല്ല, ഇതിൽ പിശകുകൾ ഉണ്ടാകാം; ശ്രദ്ധയിൽപ്പെടുന്ന മുറയ്ക്ക് ഞങ്ങൾ അവ തിരുത്തുന്നു. പഠനത്തിന് സംസ്കൃതവും മൂല ഇംഗ്ലീഷുമാണ് പ്രമാണം.';
+
+  @override
+  String get sourcesSakhaBody =>
+      'Sakha ഒരു ഡിജിറ്റൽ കൂട്ടാളിയാണ്, ഗുരുവല്ല. അതിന്റെ മറുപടികൾ ഒരു ആചാര്യന്റെയും വാക്കുകളല്ല, അവയിൽ തെറ്റുണ്ടാകാം; പ്രധാനപ്പെട്ട എന്തും ഗ്രന്ഥങ്ങളുമായി ഒത്തുനോക്കുക.';
+
+  @override
+  String get sourcesIndependentHeading => 'ഒരു സ്വതന്ത്ര സംരംഭം';
+
+  @override
+  String get sourcesIndependentBody =>
+      'HariHariBol ഒരു സ്വതന്ത്ര ഭക്തി സംരംഭമാണ്. ഇത് ഒരു ക്ഷേത്രവുമായോ സ്ഥാപനവുമായോ പ്രസാധകരുമായോ ബന്ധപ്പെട്ടതല്ല, അവരുടെ അംഗീകാരമുള്ളതല്ല, അവർക്കുവേണ്ടി സംസാരിക്കുന്നതുമല്ല.';
+
+  @override
+  String get sourcesContactHeading => 'അവകാശങ്ങളും തിരുത്തലുകളും';
+
+  @override
+  String get sourcesContactBody =>
+      'ഇവിടെ കാണിക്കുന്ന ഏതെങ്കിലും ഉള്ളടക്കത്തിൽ നിങ്ങൾക്ക് അവകാശമുണ്ടെങ്കിൽ, അല്ലെങ്കിൽ അതിൽ ഒരു പിശക് കണ്ടാൽ, ദയവായി ഞങ്ങൾക്ക് എഴുതുക. ഞങ്ങൾ വേഗത്തിൽ മറുപടി നൽകും; ആവശ്യപ്പെട്ടാൽ അത് തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.';
+
+  @override
+  String get shareTitle => 'പങ്കിടുക';
+
+  @override
+  String get shareAsText => 'വാചകമായി പങ്കിടുക';
+
+  @override
+  String get shareCopied => 'പകർത്തി';
+
+  @override
+  String get shareCopyLink => 'ലിങ്ക് പകർത്തുക';
+
+  @override
+  String get shareFailed => 'ഇത് പങ്കിടാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get shareImageTooBig => 'ആ ചിത്രം വളരെ വലുതാണ്. ദയവായി ചെറിയ ചിത്രം തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get shareLinkShare => 'ലിങ്ക് പങ്കിടുക';
+
+  @override
+  String get shareMakeIt => 'സൃഷ്ടിക്കുക';
+
+  @override
+  String get shareMakePicture => 'ചിത്രം ഉണ്ടാക്കുക';
+
+  @override
+  String get sharePickPicture => 'ചിത്രം തിരഞ്ഞെടുക്കുക';
+
+  @override
+  String sharePictureCost(int percent) {
+    return 'നിങ്ങളുടെ Sakha ക്രെഡിറ്റിന്റെ ഏകദേശം $percent% ഉപയോഗിക്കും';
+  }
+
+  @override
+  String get sharePictureFailed => 'ചിത്രം ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. നിങ്ങളുടെ ക്രെഡിറ്റ് തിരികെ നൽകി.';
+
+  @override
+  String get sharePictureNoCredit => 'ഇന്നത്തേക്കുള്ള നിങ്ങളുടെ Sakha ക്രെഡിറ്റ് തീർന്നു.';
+
+  @override
+  String get sharePicturePrompt => 'ചിത്രം വിവരിക്കുക';
+
+  @override
+  String get sharePictureShare => 'ചിത്രം പങ്കിടുക';
+
+  @override
+  String get shareRemovePicture => 'ചിത്രം നീക്കുക';
+
+  @override
+  String get shareShowMeaning => 'അർത്ഥം';
+
+  @override
+  String get shareShowTransliteration => 'ലിപ്യന്തരീകരണം';
+
+  @override
+  String get shareTextSize => 'അക്ഷരവലുപ്പം';
+
+  @override
+  String get shareLinkGone => 'ഈ ലിങ്ക് ഇപ്പോൾ ലഭ്യമല്ല.';
+
+  @override
+  String get settingsRefer => 'സുഹൃത്തുക്കളെ ക്ഷണിക്കൂ, സമ്മാനം നേടൂ';
+
+  @override
+  String get referTitle => 'സുഹൃത്തുക്കളെ ക്ഷണിക്കൂ, സമ്മാനം നേടൂ';
+
+  @override
+  String referIntro(int days) {
+    return 'ഒരു സുഹൃത്തിനെ ക്ഷണിക്കൂ. അവർ ജപത്തിന്റെ ആദ്യ റൗണ്ട് പൂർത്തിയാക്കുമ്പോൾ നിങ്ങൾക്ക് $days ദിവസത്തെ Ārta സൗജന്യമായി ലഭിക്കും.';
+  }
+
+  @override
+  String get referYourCode => 'നിങ്ങളുടെ ക്ഷണ കോഡ്';
+
+  @override
+  String get referInvite => 'സുഹൃത്തിനെ ക്ഷണിക്കുക';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'എന്നോടൊപ്പം ഹരിഹരിബോലിൽ ചേരൂ: ശ്ലോകങ്ങളും മന്ത്രങ്ങളും ജപവും ഒരിടത്ത്. $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta $date വരെ നിങ്ങൾക്കുണ്ട്';
+  }
+
+  @override
+  String get referStatInvited => 'ക്ഷണിച്ചവർ';
+
+  @override
+  String get referStatWaiting => 'കാത്തിരിക്കുന്നു';
+
+  @override
+  String get referStatRewarded => 'സമ്മാനം ലഭിച്ചു';
+
+  @override
+  String get referNone => 'ഇതുവരെ ക്ഷണങ്ങളൊന്നുമില്ല.';
+
+  @override
+  String get referEnterCode => 'ഒരു സുഹൃത്തിന്റെ കോഡ് ഉണ്ടോ?';
+
+  @override
+  String get referUseCode => 'കോഡ് ഉപയോഗിക്കുക';
+
+  @override
+  String get referAccepted => 'കോഡ് സ്വീകരിച്ചു. ജപത്തിന്റെ ഒരു റൗണ്ട് പൂർത്തിയാക്കൂ, അപ്പോൾ നിങ്ങളുടെ സുഹൃത്തിന് അവരുടെ സമ്മാനം ലഭിക്കും.';
+
+  @override
+  String get referRefused => 'ഈ കോഡ് ഉപയോഗിക്കാൻ കഴിയില്ല.';
+
+  @override
+  String get shareMakeReel => 'റീൽ ഉണ്ടാക്കുക';
+
+  @override
+  String get shareReelIntro => 'നിങ്ങളുടെ കാർഡ് ഒരു റീൽ ആകും, റീൽസിൽ എല്ലാവർക്കും അത് കാണാം.';
+
+  @override
+  String get shareReelAddMusic => 'ഫോണിൽ നിന്ന് സംഗീതം ചേർക്കുക';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'സംഗീതം: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'സംഗീതം നീക്കുക';
+
+  @override
+  String get shareReelPost => 'റീൽ പോസ്റ്റ് ചെയ്യുക';
+
+  @override
+  String get shareReelPosting => 'നിങ്ങളുടെ റീൽ പോസ്റ്റ് ചെയ്യുന്നു…';
+
+  @override
+  String get shareReelDone => 'നിങ്ങളുടെ റീൽ ലൈവ് ആണ്. റീൽസിൽ കാണുക.';
+
+  @override
+  String get shareReelFailed => 'റീൽ പോസ്റ്റ് ചെയ്യാനായില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get shareReelTooBig => 'ഈ സംഗീത ഫയൽ വളരെ വലുതാണ് (പരമാവധി 25 MB).';
+
+  @override
+  String get calendarTitle => 'ഹിന്ദു പഞ്ചാംഗം';
+
+  @override
+  String get calendarEmpty => 'ഈ മാസത്തെ പഞ്ചാംഗം ഇതുവരെ ചേർത്തിട്ടില്ല.';
+
+  @override
+  String get calendarUpcoming => 'ഏകാദശി, ചതുർഥി, ഉത്സവ ദിനങ്ങൾ';
+
+  @override
+  String get calendarVaishnavaNote => 'വൈഷ്ണവർ ഈ വ്രതം അടുത്ത ദിവസം ആചരിച്ചേക്കാം.';
 }

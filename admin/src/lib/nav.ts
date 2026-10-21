@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   ShieldCheck,
+  ShieldPlus,
   BookOpen,
   ScrollText,
   Music,
@@ -19,7 +20,9 @@ import {
   Activity,
   TrendingUp,
   Languages,
+  Film,
   MessageCircle,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -51,14 +54,17 @@ export const NAV: NavSection[] = [
       { label: 'Mantras', path: '/mantras', icon: Music, permission: 'mantra.read' },
       { label: 'Reels', path: '/reels', icon: Clapperboard, permission: 'reel.read' },
       { label: 'Translations', path: '/translations', icon: Languages, permission: 'translation.read' },
+      { label: 'Scenes', path: '/scenes', icon: Film, permission: 'scenes.read' },
       { label: 'Reference data', path: '/reference', icon: Library, permission: 'reference.manage' },
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
+      { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
     ],
   },
   {
     label: 'Users',
     items: [
       { label: 'Users', path: '/users', icon: Users, permission: 'user.read' },
+      { label: 'Admins', path: '/admins', icon: ShieldPlus, permission: 'role.manage' },
       { label: 'Creators', path: '/creators', icon: UserCheck, permission: 'creator.manage' },
       { label: 'Roles & permissions', path: '/roles', icon: ShieldCheck, permission: 'role.manage' },
     ],

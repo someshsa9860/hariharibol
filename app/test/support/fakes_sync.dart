@@ -17,6 +17,10 @@ class FakeCacheApi implements BookCacheApi {
 
   /// The server's book cache version, as the admin would set it.
   int cacheVersion = 1;
+
+  /// The version of the book's text the server's files were built from; the test
+  /// raises it, and the units' versions, to play an import that was exported.
+  int contentVersion = 1;
   int manifestCalls = 0;
   Object? manifestError;
   final List<String> linkRequests = [];
@@ -34,6 +38,7 @@ class FakeCacheApi implements BookCacheApi {
       units: units,
       fetchedAt: DateTime.now(),
       cacheVersion: cacheVersion,
+      contentVersion: contentVersion,
     );
   }
 

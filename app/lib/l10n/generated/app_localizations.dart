@@ -286,6 +286,90 @@ abstract class AppLocalizations {
   /// **'By continuing you agree to our Terms and Privacy Policy.'**
   String get signInLegal;
 
+  /// No description provided for @introWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to HariHariBol'**
+  String get introWelcomeTitle;
+
+  /// No description provided for @introWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A quiet place to read, chant and keep your daily practice, all in one app.'**
+  String get introWelcomeBody;
+
+  /// No description provided for @introReadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the scriptures'**
+  String get introReadTitle;
+
+  /// No description provided for @introReadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Bhagavad Gita and Srimad Bhagavatam, verse by verse, in the language you love. Listen to the recitation, even offline.'**
+  String get introReadBody;
+
+  /// No description provided for @introChantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant with every breath'**
+  String get introChantTitle;
+
+  /// No description provided for @introChantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Count your japa by sound or by tap, chant along with a recorded mala, and watch your practice grow day by day.'**
+  String get introChantBody;
+
+  /// No description provided for @introSakhaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Sakha, a friend on the path'**
+  String get introSakhaTitle;
+
+  /// The line under the Ask Sakha welcome page's title. It says plainly that Sakha is a digital companion, so do not make it sound like a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring a question or a heavy heart. Sakha is a digital companion that answers gently, in your language, one small step at a time.'**
+  String get introSakhaBody;
+
+  /// No description provided for @introReelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reels to lift your day'**
+  String get introReelsTitle;
+
+  /// No description provided for @introReelsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Short devotional reels from verses and creators. Watch, save and share a little inspiration whenever you pause.'**
+  String get introReelsBody;
+
+  /// No description provided for @introNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get introNext;
+
+  /// No description provided for @introSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get introSkip;
+
+  /// No description provided for @introStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get introStart;
+
+  /// Read aloud by a screen reader for the page dots on the welcome pages: which page of how many. Nothing is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String introPageOf(int current, int total);
+
   /// No description provided for @languageStepOf.
   ///
   /// In en, this message translates to:
@@ -385,14 +469,20 @@ abstract class AppLocalizations {
   /// No description provided for @homeMoodPrompt.
   ///
   /// In en, this message translates to:
-  /// **'How are you today?'**
+  /// **'Where would you like to grow today?'**
   String get homeMoodPrompt;
 
   /// No description provided for @homeMoodAnsweredToday.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve shared how you\'re feeling today. Come back tomorrow to share something new.'**
+  /// **'You\'ve chosen your focus for today. Come back tomorrow to grow in something new.'**
   String get homeMoodAnsweredToday;
+
+  /// No description provided for @homeMoodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to strengthen, and a verse will walk with you.'**
+  String get homeMoodHint;
 
   /// No description provided for @homeMoodViewToday.
   ///
@@ -405,6 +495,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Show me a verse} other{Show me {count} verses}}'**
   String homeMoodSubmit(int count);
+
+  /// No description provided for @growthKama.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-mastery'**
+  String get growthKama;
+
+  /// No description provided for @growthKrodha.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get growthKrodha;
+
+  /// No description provided for @growthLobha.
+  ///
+  /// In en, this message translates to:
+  /// **'Contentment'**
+  String get growthLobha;
+
+  /// No description provided for @growthMoha.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity'**
+  String get growthMoha;
+
+  /// No description provided for @growthMada.
+  ///
+  /// In en, this message translates to:
+  /// **'Humility'**
+  String get growthMada;
+
+  /// No description provided for @growthMatsarya.
+  ///
+  /// In en, this message translates to:
+  /// **'Goodwill'**
+  String get growthMatsarya;
+
+  /// No description provided for @growthMissedChantingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting on time'**
+  String get growthMissedChantingTime;
+
+  /// No description provided for @growthUnmetRoundTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing my rounds'**
+  String get growthUnmetRoundTarget;
+
+  /// Why the verse on the home screen was chosen: the quality the reader said they want to grow in, which is already worded in their language (growth*).
+  ///
+  /// In en, this message translates to:
+  /// **'For your growth: {quality}'**
+  String homeGrowReason(String quality);
 
   /// No description provided for @homeVerseOfTheDay.
   ///
@@ -519,6 +663,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verse {number}'**
   String labelVerse(int number);
+
+  /// Short verse label above a verse; must stay on one line.
+  ///
+  /// In en, this message translates to:
+  /// **'Śl. {number}'**
+  String labelVerseShort(int number);
 
   /// No description provided for @labelCantoChapter.
   ///
@@ -1479,6 +1629,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transliteration'**
   String get readingHideTransliteration;
+
+  /// No description provided for @readingModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading style'**
+  String get readingModeLabel;
+
+  /// No description provided for @readingModeVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse by verse'**
+  String get readingModeVerses;
+
+  /// No description provided for @readingModeStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Story'**
+  String get readingModeStory;
+
+  /// No description provided for @readingStoryShowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Story shows'**
+  String get readingStoryShowLabel;
+
+  /// No description provided for @readingStoryNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse numbers'**
+  String get readingStoryNumbers;
+
+  /// No description provided for @readingStoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold a verse to play it, bookmark it, highlight it or add a note.'**
+  String get readingStoryHint;
+
+  /// No description provided for @readingStoryNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This chapter has nothing for the part you chose. Try another one above.'**
+  String get readingStoryNothing;
+
+  /// No description provided for @readingPartMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get readingPartMeaning;
 
   /// No description provided for @routineSubtitle.
   ///
@@ -3435,6 +3633,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Latest'**
   String get chatJumpToLatest;
+
+  /// Tooltip of the peacock-feather button on a verse that starts book reels from that verse.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch reels from this verse'**
+  String get verseStartReels;
+
+  /// Hint on a chanting reel in the feed: each tap counts one chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to chant'**
+  String get reelChantTapHint;
+
+  /// Shown on a chanting reel when the 108th chant is counted, just before the feed moves on.
+  ///
+  /// In en, this message translates to:
+  /// **'Round complete'**
+  String get reelChantDone;
+
+  /// Hint on a chanting reel: swiping goes on to the next reel without finishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up to skip'**
+  String get reelChantSkipHint;
+
+  /// Chants counted of the round on a chanting reel, like 12 / 108.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {total}'**
+  String reelChantCount(int count, int total);
+
+  /// Tooltip of the button on a verse that asks Sakha to explain it.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Sakha about this verse'**
+  String get verseAskSakha;
+
+  /// The message sent to Sakha from a verse. {reference} is like "Bhagavad Gita 2.47"; {verse} is the verse text.
+  ///
+  /// In en, this message translates to:
+  /// **'Please explain this verse to me in simple words — {reference}:\n\n{verse}'**
+  String chatExplainVerse(String reference, String verse);
+
+  /// Asks the reader to confirm before the app opens a place Sakha suggested. {place} is its name, like "Reels".
+  ///
+  /// In en, this message translates to:
+  /// **'Open {place}?'**
+  String chatActionQuestion(String place);
+
+  /// Button that confirms opening what Sakha suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get chatActionOpen;
+
+  /// Button that declines what Sakha suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get chatActionNotNow;
+
+  /// No description provided for @searchTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get searchTabAll;
+
+  /// No description provided for @searchAllBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'All books'**
+  String get searchAllBooks;
+
+  /// Shown above search results when the typed words were read as a different spelling; query is the spelling used.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing results for “{query}”'**
+  String searchShowingFor(String query);
+
+  /// Empty search result while the search is limited to one book; book is its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found in {book}. Try all books, or another spelling.'**
+  String searchNoResultsInBook(String book);
+
+  /// No description provided for @searchTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tips'**
+  String get searchTipsTitle;
+
+  /// No description provided for @searchTipSpelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.'**
+  String get searchTipSpelling;
+
+  /// No description provided for @searchTipBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.'**
+  String get searchTipBook;
+
+  /// No description provided for @searchTipPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a few words of the verse, its meaning or the purport. Small slips are forgiven.'**
+  String get searchTipPartial;
+
+  /// Settings: title of the group that holds the Sources & disclaimer row.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsSectionAbout;
+
+  /// Settings row, and the title of the screen it opens: where the texts come from, who wrote them, and the notice that other languages are AI-assisted translations.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources & disclaimer'**
+  String get sourcesTitle;
+
+  /// Sources & disclaimer: the opening paragraph.
+  ///
+  /// In en, this message translates to:
+  /// **'HariHariBol offers the sacred texts for daily reading and chanting. We are grateful to the ācāryas, translators and scholars whose work makes this possible. This page sets out where the texts come from and how they are presented.'**
+  String get sourcesIntro;
+
+  /// Sources & disclaimer: heading over who the translations and commentaries belong to.
+  ///
+  /// In en, this message translates to:
+  /// **'Translations and commentaries'**
+  String get sourcesTextsHeading;
+
+  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin.
+  ///
+  /// In en, this message translates to:
+  /// **'The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.'**
+  String get sourcesAuthorCredit;
+
+  /// Sources & disclaimer: rights in every translation stay with its authors and publishers.
+  ///
+  /// In en, this message translates to:
+  /// **'Every translation, purport and commentary is the work of its author, and all rights in it remain with its authors and publishers. They are reproduced here for personal devotional study, not for redistribution.'**
+  String get sourcesTextsBody;
+
+  /// Sources & disclaimer: heading over the list of sources. Each entry has its web address under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the texts come from'**
+  String get sourcesFromHeading;
+
+  /// Sources & disclaimer: what was taken for the Bhagavad-gītā. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Bhagavad-gītā: the Sanskrit text, the English translation and purports, and the commentaries of Śrī Rāmānujācārya, Śrī Madhvācārya and Śrīdhara Svāmī'**
+  String get sourcesGita;
+
+  /// Sources & disclaimer: what was taken for a range of Śrīmad-Bhāgavatam cantos. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Śrīmad-Bhāgavatam, Cantos {from}–{to}: the Sanskrit text, the English translation and purports'**
+  String sourcesBhagavatam(int from, int to);
+
+  /// Sources & disclaimer: the Dnyāneshwarī. Its address is shown under it.
+  ///
+  /// In en, this message translates to:
+  /// **'Dnyāneshwarī: Sant Dnyāneshwar’s Marathi ovīs on the Bhagavad-gītā'**
+  String get sourcesDnyaneshwari;
+
+  /// Sources & disclaimer: heading over the notice about AI-assisted translations.
+  ///
+  /// In en, this message translates to:
+  /// **'Translations into other languages'**
+  String get sourcesAiHeading;
+
+  /// Sources & disclaimer: the other languages are prepared from English with AI and may contain errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Text in Hindi, Marathi and the other Indian languages — translations, purports and the app’s own wording — has been prepared from the English with the help of AI. It is not an official or authorised translation and may contain errors, which we correct as they are found. For study, the Sanskrit and the original English remain the authority.'**
+  String get sourcesAiBody;
+
+  /// Sources & disclaimer, under the "Ask Sakha" heading: Sakha is a digital companion. Do not call Sakha an AI, an assistant or a bot.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha is a digital companion, not a teacher. Its replies are not the words of any ācārya and can be mistaken; please check anything important against the texts.'**
+  String get sourcesSakhaBody;
+
+  /// Sources & disclaimer: heading over the no-affiliation statement.
+  ///
+  /// In en, this message translates to:
+  /// **'An independent project'**
+  String get sourcesIndependentHeading;
+
+  /// Sources & disclaimer: the app is not affiliated with any temple, organisation or publisher.
+  ///
+  /// In en, this message translates to:
+  /// **'HariHariBol is an independent devotional project. It is not affiliated with, endorsed by or speaking for any temple, organisation or publisher.'**
+  String get sourcesIndependentBody;
+
+  /// Sources & disclaimer: heading over how to write about rights or mistakes. The email address follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rights and corrections'**
+  String get sourcesContactHeading;
+
+  /// Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows.
+  ///
+  /// In en, this message translates to:
+  /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
+  String get sourcesContactBody;
+
+  /// Title of the share sheet, and the tooltip of the share buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareTitle;
+
+  /// No description provided for @shareAsText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as text'**
+  String get shareAsText;
+
+  /// No description provided for @shareCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get shareCopied;
+
+  /// No description provided for @shareCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get shareCopyLink;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t share this. Please try again.'**
+  String get shareFailed;
+
+  /// No description provided for @shareImageTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too large. Please choose a smaller one.'**
+  String get shareImageTooBig;
+
+  /// No description provided for @shareLinkShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share link'**
+  String get shareLinkShare;
+
+  /// No description provided for @shareMakeIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get shareMakeIt;
+
+  /// Makes a background picture for the share card with the reader's Ask Sakha credit.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a picture'**
+  String get shareMakePicture;
+
+  /// No description provided for @sharePickPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a picture'**
+  String get sharePickPicture;
+
+  /// How much of the day's Ask Sakha credit a picture uses. Keep the product name Sakha as it is.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses about {percent}% of your Sakha credit'**
+  String sharePictureCost(int percent);
+
+  /// No description provided for @sharePictureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture could not be made. Your credit was returned.'**
+  String get sharePictureFailed;
+
+  /// No description provided for @sharePictureNoCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Sakha credit for today is used up.'**
+  String get sharePictureNoCredit;
+
+  /// No description provided for @sharePicturePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the picture'**
+  String get sharePicturePrompt;
+
+  /// No description provided for @sharePictureShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share picture'**
+  String get sharePictureShare;
+
+  /// No description provided for @shareRemovePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove picture'**
+  String get shareRemovePicture;
+
+  /// No description provided for @shareShowMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get shareShowMeaning;
+
+  /// No description provided for @shareShowTransliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'Transliteration'**
+  String get shareShowTransliteration;
+
+  /// No description provided for @shareTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get shareTextSize;
+
+  /// Shown when a shared link has been withdrawn or never existed.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is no longer available.'**
+  String get shareLinkGone;
+
+  /// No description provided for @settingsRefer.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer and earn'**
+  String get settingsRefer;
+
+  /// No description provided for @referTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer and earn'**
+  String get referTitle;
+
+  /// Under the Refer and earn title. {days} is the length of the reward in days; Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend. When they finish their first round of chanting, you receive {days} days of Ārta, free.'**
+  String referIntro(int days);
+
+  /// No description provided for @referYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get referYourCode;
+
+  /// No description provided for @referInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend'**
+  String get referInvite;
+
+  /// The text sent with an invitation. {url} is the invitation link, placed where the sentence ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on HariHariBol: verses, mantras and chanting in one place. {url}'**
+  String referInviteMessage(String url);
+
+  /// {date} is a formatted date. Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Ārta is yours until {date}'**
+  String referActiveUntil(String date);
+
+  /// No description provided for @referStatInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited'**
+  String get referStatInvited;
+
+  /// No description provided for @referStatWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get referStatWaiting;
+
+  /// No description provided for @referStatRewarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewarded'**
+  String get referStatRewarded;
+
+  /// No description provided for @referNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations yet.'**
+  String get referNone;
+
+  /// No description provided for @referEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a friend’s code?'**
+  String get referEnterCode;
+
+  /// No description provided for @referUseCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code'**
+  String get referUseCode;
+
+  /// Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting.
+  ///
+  /// In en, this message translates to:
+  /// **'Code accepted. Finish a round of chanting so your friend receives their reward.'**
+  String get referAccepted;
+
+  /// No description provided for @referRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'This code can’t be used.'**
+  String get referRefused;
+
+  /// Button in the share studio that turns the card into a reel everyone can watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Make reel'**
+  String get shareMakeReel;
+
+  /// No description provided for @shareReelIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card becomes a reel that everyone in Reels can watch.'**
+  String get shareReelIntro;
+
+  /// No description provided for @shareReelAddMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Add music from your phone'**
+  String get shareReelAddMusic;
+
+  /// The music file chosen for the reel.
+  ///
+  /// In en, this message translates to:
+  /// **'Music: {name}'**
+  String shareReelMusic(String name);
+
+  /// No description provided for @shareReelRemoveMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove music'**
+  String get shareReelRemoveMusic;
+
+  /// No description provided for @shareReelPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post reel'**
+  String get shareReelPost;
+
+  /// No description provided for @shareReelPosting.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting your reel…'**
+  String get shareReelPosting;
+
+  /// No description provided for @shareReelDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reel is live. Find it in Reels.'**
+  String get shareReelDone;
+
+  /// No description provided for @shareReelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The reel could not be posted. Please try again.'**
+  String get shareReelFailed;
+
+  /// No description provided for @shareReelTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That music file is too large (up to 25 MB).'**
+  String get shareReelTooBig;
 }
 
 class _AppLocalizationsDelegate
@@ -3501,4 +4179,28 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
     'that was used.',
   );
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar for this month is not filled in yet.'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi, Chaturthi and festival days'**
+  String get calendarUpcoming;
+
+  /// No description provided for @calendarVaishnavaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaishnavas may keep this fast the next day.'**
+  String get calendarVaishnavaNote;
 }

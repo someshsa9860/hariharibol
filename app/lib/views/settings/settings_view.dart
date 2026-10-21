@@ -207,6 +207,11 @@ class SettingsView extends ConsumerWidget {
                 onTap: () => AppNavigator.instance.push(AppRoutes.plans),
               ),
               SettingsRow(
+                icon: Icons.card_giftcard_rounded,
+                label: text.settingsRefer,
+                onTap: () => AppNavigator.instance.push(AppRoutes.refer),
+              ),
+              SettingsRow(
                 icon: Icons.logout_rounded,
                 label: text.actionSignOut,
                 isDestructive: true,
@@ -217,6 +222,18 @@ class SettingsView extends ConsumerWidget {
                 label: text.actionDeleteAccount,
                 isDestructive: true,
                 onTap: () => _deleteAccount(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          SettingsGroup(
+            title: text.settingsSectionAbout,
+            children: [
+              SettingsRow(
+                icon: Icons.info_outline_rounded,
+                label: text.sourcesTitle,
+                onTap: () => AppNavigator.instance.push(AppRoutes.sources),
               ),
             ],
           ),

@@ -9,10 +9,12 @@ import 'core/navigation/app_navigator.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'providers/language_settings_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/routine_sync_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/api_client.dart';
+import 'services/book_sync_manager.dart';
 import 'widgets/push/push_foreground.dart';
 
 /// The root widget.
@@ -20,9 +22,13 @@ import 'widgets/push/push_foreground.dart';
 /// It builds the router once — rebuilding it would reset the whole navigation
 /// stack — and hands the theme, the localisations and the messenger key to
 /// `MaterialApp`. Nothing else lives here (`PushForeground` draws a push that
-/// arrives while the app is open, so it wraps every screen), apart from one
-/// errand: when the app opens or comes back to the front, an access token that
-/// is a day old is swapped for a new one (see `ApiClient.renewAccessTokenIfDue`).
+/// arrives while the app is open, so it wraps every screen), apart from two
+/// errands. When the app opens or comes back to the front, an access token that
+/// is a day old is swapped for a new one (see `ApiClient.renewAccessTokenIfDue`),
+/// and the books on the phone are checked against the server for new text
+/// (`BookSyncManager.checkForUpdates`, at most every quarter of an hour — and at
+/// once when the reading language changes, because the language a reader has just
+/// chosen is the one most likely to have been added to the files since).
 class HariHariBolApp extends ConsumerStatefulWidget {
   const HariHariBolApp({super.key});
 
@@ -56,11 +62,15 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBin
     // is renew, so the first screen never meets an expired token.
     if (state == AppLifecycleState.resumed) {
       unawaited(ApiClient.instance.renewAccessTokenIfDue());
+      unawaited(BookSyncManager.instance.checkForUpdates());
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(languageSettingsProvider.select((s) => s.reading), (previous, next) {
+      if (previous != next) unawaited(BookSyncManager.instance.checkForUpdates(force: true));
+    });
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       debugShowCheckedModeBanner: false,

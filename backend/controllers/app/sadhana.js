@@ -13,6 +13,7 @@
 // a year of history can be charted without aggregating sessions and tasks every
 // time, and `recountDay` is the only thing allowed to write them.
 
+import * as referral from '../../services/referral.js';
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import { ok, created, paginated } from '../../utils/respond.js';
@@ -133,7 +134,13 @@ async function favouriteMantra(user, mantraStub) {
     const mantra = await prisma.mantra.findFirst({ where: { id, isPublished: true }, ...mantraStub });
     if (mantra) return mantra;
   }
-  return null;
+
+  // Nothing chanted here lately. Someone carried over from the old app opens on the mantra they chanted most
+  // there (POST /auth/legacy) until they have chanted one here, which then takes over.
+  return prisma.mantra.findFirst({
+    where: { isPublished: true, legacyFavoriteOf: { some: { userId: user.id } } },
+    ...mantraStub,
+  });
 }
 
 /**
@@ -347,6 +354,10 @@ export const saveChantDetail = async (req, res) => {
       })
     )
   );
+
+  // A finished round may be the first thing a referred person does. Never lets
+  // the referral's outcome change the answer to the phone.
+  if (saved.some((m) => m.complete)) referral.evaluate(user.id).catch(() => {});
 
   return ok(res, { malas: saved });
 };

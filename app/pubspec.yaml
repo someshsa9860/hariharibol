@@ -2,7 +2,7 @@ name: hariharibol
 description: "HariHariBol — Vedic verses, mantras and daily sadhana."
 publish_to: "none"
 
-version: 2.0.0+30
+version: 2.0.0+31
 
 environment:
   sdk: ^3.12.2
@@ -61,6 +61,8 @@ dependencies:
   video_player: ^2.10.0
   visibility_detector: ^0.4.0+2
   share_plus: ^13.3.0
+  # Hands the app the https link (App Links / Universal Links) or hariharibol:// link it was opened with, cold or warm.
+  app_links: ^6.4.0
 
   # Subscriptions. The first-party plugin: StoreKit on iOS, Play Billing on
   # Android. Purchases are verified server to server by the backend, never here.
@@ -100,7 +102,15 @@ dependencies:
   # (Apple's on iOS, Google's on Android). Both sit behind a service in
   # lib/services/ so the screens can be tested without a phone.
   image_picker: ^1.2.4
+  # Music from the phone's own files for a reel made in the share studio
+  # (services/reel_music_picker.dart).
+  file_picker: ^10.0.0
   speech_to_text: ^7.5.0
+
+  # Read only, once: the previous app kept its sign-in token in the plugin's
+  # store, and this app has the same bundle id, so an update finds it there
+  # (core/session/legacy_token_store.dart). Nothing else uses it.
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_test:
@@ -119,6 +129,8 @@ flutter:
     - assets/hariharibol_trprt.png
     - assets/peacock_feather.svg
     - assets/sakha_icon.svg
+    - assets/calendar/
+    - assets/verse_backdrop.jpg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/
     - assets/tts/

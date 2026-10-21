@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/api_failure.dart';
+import '../models/book_reel.dart';
 import '../models/creator.dart';
 import '../models/reel.dart';
 import '../services/reel_service.dart';
@@ -222,6 +223,43 @@ final similarReelsProvider = FutureProvider.family.autoDispose<List<Reel>, Strin
   final page = await ReelService.instance.similar(id, pageSize: similarReelsPageSize);
   return page.items;
 });
+
+/// How book reels look and which buttons they show. A failed request is the
+/// built-in look, not an error: the reel must draw either way.
+final bookReelStyleProvider = FutureProvider<BookReelStyle>((ref) async {
+  try {
+    return await ReelService.instance.bookStyle();
+  } on ApiFailure {
+    return BookReelStyle.fallback;
+  }
+});
+
+/// The book reels of a book from one verse on, in reading order, a page at a
+/// time. Holds its own copies, like [similarReelsProvider]'s screen does.
+class BookReelsLoader {
+  BookReelsLoader(this.verseId);
+
+  final String verseId;
+  int _page = 0;
+  bool _hasMore = true;
+  bool _loading = false;
+
+  bool get hasMore => _hasMore;
+
+  /// The next page, or nothing when there is none or one is already on its way.
+  Future<List<Reel>> next() async {
+    if (_loading || !_hasMore) return const [];
+    _loading = true;
+    try {
+      final page = await ReelService.instance.fromVerse(verseId, page: _page + 1);
+      _page = page.page;
+      _hasMore = page.hasMore;
+      return page.items;
+    } finally {
+      _loading = false;
+    }
+  }
+}
 
 /// Reels the reader saved.
 final savedReelsProvider = FutureProvider.autoDispose<List<Reel>>((ref) async {

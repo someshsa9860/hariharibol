@@ -81,6 +81,18 @@ class $BooksTable extends Books with TableInfo<$BooksTable, BookRecord> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _contentVersionMeta = const VerificationMeta(
+    'contentVersion',
+  );
+  @override
+  late final GeneratedColumn<int> contentVersion = GeneratedColumn<int>(
+    'content_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -101,6 +113,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, BookRecord> {
     bookNumber,
     unitType,
     totalUnits,
+    contentVersion,
     updatedAt,
   ];
   @override
@@ -162,6 +175,15 @@ class $BooksTable extends Books with TableInfo<$BooksTable, BookRecord> {
         totalUnits.isAcceptableOrUnknown(data['total_units']!, _totalUnitsMeta),
       );
     }
+    if (data.containsKey('content_version')) {
+      context.handle(
+        _contentVersionMeta,
+        contentVersion.isAcceptableOrUnknown(
+          data['content_version']!,
+          _contentVersionMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -207,6 +229,10 @@ class $BooksTable extends Books with TableInfo<$BooksTable, BookRecord> {
         DriftSqlType.int,
         data['${effectivePrefix}total_units'],
       )!,
+      contentVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}content_version'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -236,6 +262,13 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
   /// How many units the server's manifest lists — what "n of m downloaded" is
   /// measured against.
   final int totalUnits;
+
+  /// The server's `contentVersion` of this book that every unit on the device was
+  /// last made current at — written only once the whole book matches a manifest
+  /// (`BookDao.setContentVersion`), never while units are still arriving. A
+  /// manifest naming a different number means the server has new text. 0 = not
+  /// known yet.
+  final int contentVersion;
   final DateTime updatedAt;
   const BookRecord({
     required this.id,
@@ -245,6 +278,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
     required this.bookNumber,
     this.unitType,
     required this.totalUnits,
+    required this.contentVersion,
     required this.updatedAt,
   });
   @override
@@ -261,6 +295,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
       map['unit_type'] = Variable<String>(unitType);
     }
     map['total_units'] = Variable<int>(totalUnits);
+    map['content_version'] = Variable<int>(contentVersion);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -278,6 +313,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
           ? const Value.absent()
           : Value(unitType),
       totalUnits: Value(totalUnits),
+      contentVersion: Value(contentVersion),
       updatedAt: Value(updatedAt),
     );
   }
@@ -295,6 +331,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
       bookNumber: serializer.fromJson<int>(json['bookNumber']),
       unitType: serializer.fromJson<String?>(json['unitType']),
       totalUnits: serializer.fromJson<int>(json['totalUnits']),
+      contentVersion: serializer.fromJson<int>(json['contentVersion']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -309,6 +346,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
       'bookNumber': serializer.toJson<int>(bookNumber),
       'unitType': serializer.toJson<String?>(unitType),
       'totalUnits': serializer.toJson<int>(totalUnits),
+      'contentVersion': serializer.toJson<int>(contentVersion),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -321,6 +359,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
     int? bookNumber,
     Value<String?> unitType = const Value.absent(),
     int? totalUnits,
+    int? contentVersion,
     DateTime? updatedAt,
   }) => BookRecord(
     id: id ?? this.id,
@@ -330,6 +369,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
     bookNumber: bookNumber ?? this.bookNumber,
     unitType: unitType.present ? unitType.value : this.unitType,
     totalUnits: totalUnits ?? this.totalUnits,
+    contentVersion: contentVersion ?? this.contentVersion,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   BookRecord copyWithCompanion(BooksCompanion data) {
@@ -345,6 +385,9 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
       totalUnits: data.totalUnits.present
           ? data.totalUnits.value
           : this.totalUnits,
+      contentVersion: data.contentVersion.present
+          ? data.contentVersion.value
+          : this.contentVersion,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -359,6 +402,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
           ..write('bookNumber: $bookNumber, ')
           ..write('unitType: $unitType, ')
           ..write('totalUnits: $totalUnits, ')
+          ..write('contentVersion: $contentVersion, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -373,6 +417,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
     bookNumber,
     unitType,
     totalUnits,
+    contentVersion,
     updatedAt,
   );
   @override
@@ -386,6 +431,7 @@ class BookRecord extends DataClass implements Insertable<BookRecord> {
           other.bookNumber == this.bookNumber &&
           other.unitType == this.unitType &&
           other.totalUnits == this.totalUnits &&
+          other.contentVersion == this.contentVersion &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -397,6 +443,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
   final Value<int> bookNumber;
   final Value<String?> unitType;
   final Value<int> totalUnits;
+  final Value<int> contentVersion;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const BooksCompanion({
@@ -407,6 +454,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
     this.bookNumber = const Value.absent(),
     this.unitType = const Value.absent(),
     this.totalUnits = const Value.absent(),
+    this.contentVersion = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -418,6 +466,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
     required int bookNumber,
     this.unitType = const Value.absent(),
     this.totalUnits = const Value.absent(),
+    this.contentVersion = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -433,6 +482,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
     Expression<int>? bookNumber,
     Expression<String>? unitType,
     Expression<int>? totalUnits,
+    Expression<int>? contentVersion,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -444,6 +494,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
       if (bookNumber != null) 'book_number': bookNumber,
       if (unitType != null) 'unit_type': unitType,
       if (totalUnits != null) 'total_units': totalUnits,
+      if (contentVersion != null) 'content_version': contentVersion,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -457,6 +508,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
     Value<int>? bookNumber,
     Value<String?>? unitType,
     Value<int>? totalUnits,
+    Value<int>? contentVersion,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -468,6 +520,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
       bookNumber: bookNumber ?? this.bookNumber,
       unitType: unitType ?? this.unitType,
       totalUnits: totalUnits ?? this.totalUnits,
+      contentVersion: contentVersion ?? this.contentVersion,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -497,6 +550,9 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
     if (totalUnits.present) {
       map['total_units'] = Variable<int>(totalUnits.value);
     }
+    if (contentVersion.present) {
+      map['content_version'] = Variable<int>(contentVersion.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -516,6 +572,7 @@ class BooksCompanion extends UpdateCompanion<BookRecord> {
           ..write('bookNumber: $bookNumber, ')
           ..write('unitType: $unitType, ')
           ..write('totalUnits: $totalUnits, ')
+          ..write('contentVersion: $contentVersion, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3663,6 +3720,7 @@ typedef $$BooksTableCreateCompanionBuilder =
       required int bookNumber,
       Value<String?> unitType,
       Value<int> totalUnits,
+      Value<int> contentVersion,
       required DateTime updatedAt,
       Value<int> rowid,
     });
@@ -3675,6 +3733,7 @@ typedef $$BooksTableUpdateCompanionBuilder =
       Value<int> bookNumber,
       Value<String?> unitType,
       Value<int> totalUnits,
+      Value<int> contentVersion,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -3719,6 +3778,11 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<int> get totalUnits => $composableBuilder(
     column: $table.totalUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get contentVersion => $composableBuilder(
+    column: $table.contentVersion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3772,6 +3836,11 @@ class $$BooksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get contentVersion => $composableBuilder(
+    column: $table.contentVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -3809,6 +3878,11 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<int> get totalUnits => $composableBuilder(
     column: $table.totalUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get contentVersion => $composableBuilder(
+    column: $table.contentVersion,
     builder: (column) => column,
   );
 
@@ -3851,6 +3925,7 @@ class $$BooksTableTableManager
                 Value<int> bookNumber = const Value.absent(),
                 Value<String?> unitType = const Value.absent(),
                 Value<int> totalUnits = const Value.absent(),
+                Value<int> contentVersion = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BooksCompanion(
@@ -3861,6 +3936,7 @@ class $$BooksTableTableManager
                 bookNumber: bookNumber,
                 unitType: unitType,
                 totalUnits: totalUnits,
+                contentVersion: contentVersion,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -3873,6 +3949,7 @@ class $$BooksTableTableManager
                 required int bookNumber,
                 Value<String?> unitType = const Value.absent(),
                 Value<int> totalUnits = const Value.absent(),
+                Value<int> contentVersion = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => BooksCompanion.insert(
@@ -3883,6 +3960,7 @@ class $$BooksTableTableManager
                 bookNumber: bookNumber,
                 unitType: unitType,
                 totalUnits: totalUnits,
+                contentVersion: contentVersion,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),

@@ -379,6 +379,10 @@ shows them and changes three settings, over `GET` / `PUT /api/admin/ai/free-tier
   dark theme, which is unreadable on the amber tint; the badge is shared by many pages ("Missing", "Paused", "Unpublished"…),
   all of which gained readable dark-mode text.
 
+The free-tier card also has **Daily bonus for every reader**: the pool of tokens shared out each day (up to the large free pool)
+and the most one reader gets; it shows today's share and the readers counted. Both save with *Save bonus* over `PUT
+/api/admin/ai/free-tier`. The Ask Sakha limits gained **Open things in the app** (`appActions`, 1/0).
+
 ## Ask Sakha
 
 `routes/chat.tsx` (`/chat`, System section beside AI usage, permission `chat.manage`; the sidebar and the page say
@@ -408,3 +412,15 @@ a first row naming a model that has been retired still reads as first while the 
 
 Raw token numbers appear only on this page; readers in the app see a percentage. Every query key starts with
 `chat`, so one invalidation refreshes the page after a write.
+
+## Scenes page
+
+`routes/scenes.tsx`, `components/scenes-run.tsx` (run panel, start dialog), `components/scenes-viewer.tsx` (reading-style view with copy and download), `lib/scenes.ts`. State is in the URL (`tab`, `canto`, `chapter`, `run`). Permissions `scenes.read` / `scenes.run`.
+
+## Book reader and book auditor
+
+Books → row menu → **Read verses** opens `components/book-reader-dialog.tsx`: one chapter at a time, in a chosen language, laid out like the website's reader (Sanskrit, transliteration, word meanings, translation, purport; unpublished translations marked). It is read-only for everyone except the **`book_auditor`** role, which alone holds `book.audit` — **super admin and admin are deliberately excluded** (`AUDITOR_ONLY` in `backend/config/constants.js`). The auditor gets a pencil beside each piece; saves go to `PATCH /api/admin/verses/:verseId/content` and `PATCH /api/admin/verses/:verseId/translations/:translationId` (audited as `verse.audit` / `verse.translation.audit`). Reading uses `GET /api/admin/books/:id/reader`. Not run in a browser or against a database. The older Verses page still lets `verse.write` holders edit word meanings. Production needs `npm run seed` (adds the permission and role), then assign the role in Users / Roles & permissions.
+
+## Admins, Add user, Add admin
+
+The **Admins** page (`routes/admins.tsx`, permission `role.manage`, so super admin only) lists users whose role carries any permission (`GET /api/admin/users?staff=true`). **Add admin** and **Add user** (Users page, `user.write`) both post to `POST /api/admin/users` with an email: the API makes a placeholder account (`authProvider = LEGACY`, the same one the old-app carry-over uses) with the chosen role, and the first Google or Apple sign-in with that address adopts it and keeps the role (`claimLegacy`). Any role other than `user` needs `role.manage`. No migration and no seed change. Add creator picks an existing account, so add the person first.

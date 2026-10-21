@@ -37,8 +37,8 @@ class BookHeader extends ConsumerWidget {
     final isLight = context.theme.brightness == Brightness.light;
     final motif = Motif.values[book.bookNumber.abs() % Motif.values.length];
     final translatorNames = book.translators
-        .map((t) => t.name)
-        .where((n) => n.isNotEmpty)
+        .map((t) => t.creditName)
+        .whereType<String>()
         .join(', ');
 
     return Column(

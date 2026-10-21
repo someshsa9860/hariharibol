@@ -18,7 +18,7 @@ import { verseAudioPath } from '../../utils/verse-audio.js';
 async function findBook(ref) {
   const book = await prisma.book.findFirst({
     where: { isPublished: true, OR: [{ slug: ref }, { id: ref }] },
-    select: { id: true, slug: true, recitationParent: true },
+    select: { id: true, slug: true, recitationParent: true, exportedVersion: true },
   });
   if (!book) throw notFound('Book');
   return book;
@@ -39,6 +39,10 @@ export const manifest = async (req, res) => {
     // Not the file shape (schemaVersion) but "throw away what you hold": a phone
     // whose copy was made under a different number deletes it and downloads again.
     cacheVersion: parseCacheVersion(await settings.get(SETTING_KEYS.BOOK_CACHE_VERSION)),
+    // The version of the book's text these files were built from (Book.exportedVersion, not contentVersion:
+    // the files can be behind the database for a minute or two). A phone that last synced a lower number
+    // knows there is new text; the per-unit versions below say which units. 0 = never exported.
+    contentVersion: book.exportedVersion,
     unitType: rows[0]?.unitType ?? null,
     totalUnits: rows.length,
     updatedAt: rows.reduce((max, r) => (r.updatedAt > max ? r.updatedAt : max), new Date(0)).toISOString(),

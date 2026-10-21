@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Ban, CheckCircle2, Clapperboard, Eye, MoreHorizontal, ShieldCheck, Trash2 } from 'lucide-react';
+import { Ban, UserPlus, CheckCircle2, Clapperboard, Eye, MoreHorizontal, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table';
 import { FilterSelect, FlagFilter } from '@/components/table-filters';
@@ -21,6 +21,7 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDate, formatDateOnly } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { AddUserDialog } from '@/components/add-user-dialog';
 import { AddCreatorDialog } from '@/components/add-creator-dialog';
 
 type User = {
@@ -47,6 +48,7 @@ export function UsersPage() {
   const [banReason, setBanReason] = useState('');
   const [roleTargets, setRoleTargets] = useState<User[]>([]);
   const [viewing, setViewing] = useState<User | null>(null);
+  const [adding, setAdding] = useState(false);
   const [creatorTarget, setCreatorTarget] = useState<User | null>(null);
 
   const roles = useResource<Role[]>(['roles'], '/api/admin/roles');
@@ -184,7 +186,18 @@ export function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Search, inspect, promote and ban." />
+      <PageHeader
+        title="Users"
+        description="Search, inspect, promote and ban."
+        actions={
+          hasPermission('user.write') ? (
+            <Button onClick={() => setAdding(true)}>
+              <UserPlus className="h-4 w-4" />
+              Add user
+            </Button>
+          ) : undefined
+        }
+      />
 
       <DataTable
         table={table}
@@ -294,6 +307,15 @@ export function UsersPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AddUserDialog
+        open={adding}
+        onClose={() => setAdding(false)}
+        onDone={(text) => {
+          table.setNotice({ tone: 'success', text });
+          void queryClient.invalidateQueries({ queryKey: [table.id] });
+        }}
+      />
 
       <AddCreatorDialog
         open={!!creatorTarget}

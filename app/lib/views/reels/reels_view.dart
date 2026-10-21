@@ -18,10 +18,15 @@ import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/peacock_feather_icon.dart';
+import '../../providers/sadhana_provider.dart';
+import '../../widgets/reels/chant_reel_page.dart';
 import '../../widgets/reels/reel_comments_sheet.dart';
 import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
+import 'reel_actions.dart';
+import '../../core/share_links.dart';
+import '../../services/share_service.dart';
 
 /// The reels feed — the third tab.
 ///
@@ -114,19 +119,41 @@ class _ReelsViewState extends ConsumerState<ReelsView>
     super.dispose();
   }
 
-  String get _currentReelId => _index < _reels.length ? _reels[_index].id : '';
+  /// A chanting reel for the reader's own mantra comes up after every
+  /// [_chantEvery] reels, when they have one. Page `n` is a chant slot when
+  /// `n` is the last of each such run.
+  static const int _chantEvery = 6;
+
+  String? _chantSlug;
+
+  bool _isChantSlot(int page) => _chantSlug != null && (page + 1) % (_chantEvery + 1) == 0;
+
+  /// The reel a page shows, as an index into the feed; null for a chant slot.
+  int? _reelIndexOf(int page) {
+    if (_isChantSlot(page)) return null;
+    return _chantSlug == null ? page : page - (page + 1) ~/ (_chantEvery + 1);
+  }
+
+  int _pageCount(int reels) => _chantSlug == null ? reels : reels + reels ~/ _chantEvery;
+
+  String get _currentReelId {
+    final at = _reelIndexOf(_index);
+    return at != null && at < _reels.length ? _reels[at].id : '';
+  }
 
   GlobalKey<ReelVideoPlayerState> _keyFor(String reelId) =>
       _playerKeys.putIfAbsent(reelId, () => GlobalKey<ReelVideoPlayerState>());
 
   void _onPageChanged(int index) {
     setState(() => _index = index);
-    ref.read(reelFeedProvider.notifier).loadMoreIfNeeded(index);
+    final at = _reelIndexOf(index);
+    if (at == null) return;
+    ref.read(reelFeedProvider.notifier).loadMoreIfNeeded(at);
 
-    if (index < _reels.length) {
+    if (at < _reels.length) {
       TrackingService.instance.log(
         'reel_view',
-        parameters: {'reel_id': _reels[index].id},
+        parameters: {'reel_id': _reels[at].id},
       );
     }
   }
@@ -141,9 +168,27 @@ class _ReelsViewState extends ConsumerState<ReelsView>
         .catchError((_) {});
   }
 
+  /// A reel that has played to its end hands over to the next one, as on
+  /// Instagram. Ignored from a reel that is no longer the one on screen.
+  void _advance(int index) {
+    if (!mounted || index != _index || !_pages.hasClients) return;
+    if (index + 1 >= _pageCount(_reels.length)) return;
+    _pages.nextPage(duration: AppDurations.slow, curve: Curves.easeOutCubic);
+  }
+
   Future<void> _share(Reel reel) async {
+    // A book reel is a verse: the same Share Studio the reading page uses.
+    if (reel.isVersePages) {
+      openVerseShareStudio(context, reel);
+      return;
+    }
     final text = AppLocalizations.of(context);
-    final link = '${AppConfig.appScheme}://reels/${reel.id}';
+    // The public /darshan link when the server can make one; the app's own address otherwise.
+    final link = await ShareService.instance.linkOrFallback(
+      ShareType.reel,
+      reel.id,
+      '${AppConfig.appScheme}://reels/${reel.id}',
+    );
 
     try {
       final result = await SharePlus.instance.share(
@@ -169,9 +214,12 @@ class _ReelsViewState extends ConsumerState<ReelsView>
 
   Future<void> _copyLink(Reel reel) async {
     final text = AppLocalizations.of(context);
-    await Clipboard.setData(
-      ClipboardData(text: '${AppConfig.appScheme}://reels/${reel.id}'),
+    final link = await ShareService.instance.linkOrFallback(
+      ShareType.reel,
+      reel.id,
+      '${AppConfig.appScheme}://reels/${reel.id}',
     );
+    await Clipboard.setData(ClipboardData(text: link));
     AppNavigator.instance.showMessage(text.reelLinkCopied);
 
     try {
@@ -233,6 +281,7 @@ class _ReelsViewState extends ConsumerState<ReelsView>
     final text = AppLocalizations.of(context);
     final feed = ref.watch(reelFeedProvider);
     final notifier = ref.read(reelFeedProvider.notifier);
+    _chantSlug = ref.watch(sadhanaTodayProvider).value?.chantMantraSlug;
 
     return Scaffold(
       backgroundColor: AppColors.reelGround,
@@ -267,9 +316,18 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                         controller: _pages,
                         scrollDirection: Axis.vertical,
                         onPageChanged: _onPageChanged,
-                        itemCount: reels.length,
+                        itemCount: _pageCount(reels.length),
                         itemBuilder: (context, index) {
-                          final reel = reels[index];
+                          final at = _reelIndexOf(index);
+                          if (at == null) {
+                            return ChantReelPage(
+                              key: ValueKey('chant-$index'),
+                              slug: _chantSlug!,
+                              isActive: index == _index && !_suspended && _shown,
+                              onEnded: () => _advance(index),
+                            );
+                          }
+                          final reel = reels[at];
                           return ReelPage(
                             key: ValueKey(reel.id),
                             reel: reel,
@@ -278,6 +336,7 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                             isMuted: _muted,
                             onProgress: (watched, duration) =>
                                 _reportWatch(reel, watched, duration),
+                            onEnded: () => _advance(index),
                             onLike: () => notifier.toggleLike(reel.id),
                             onSave: () => notifier.toggleSave(reel.id),
                             onFollow: () =>

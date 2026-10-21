@@ -295,15 +295,19 @@ async function runExport({ books, dryRun = false, force = false } = {}) {
   };
 
   const locked = await withLock(bookCache.lockKey, bookCache.lockTtlMs, async () => {
+    // contentVersion is read here, before anything is built: a write that lands while the files are being
+    // made leaves the book ahead of what is stamped below, so the next look exports it again.
     const bookRows = await prisma.book.findMany({
       where: { isPublished: true, ...(books?.length ? { slug: { in: books } } : {}) },
       select: {
         id: true, slug: true, bookNumber: true, title: true, titleI18n: true, sourceLanguage: true, recitationParent: true,
+        contentVersion: true,
         _count: { select: { cantos: true, chapters: true } },
       },
       orderBy: { bookNumber: 'asc' },
     });
 
+    const failedBooks = new Set();
     const tasks = [];
     for (const book of bookRows) {
       for (const unit of await listUnits(book)) {
@@ -323,6 +327,7 @@ async function runExport({ books, dryRun = false, force = false } = {}) {
             else if (result.action === 'empty') report.empty += 1;
             else report.skipped += 1;
           } catch (err) {
+            failedBooks.add(book.id);
             report.failed += 1;
             report.failures.push({ unit: label, error: err.message });
             logger.error({ unit: label, err: err.message }, 'book cache unit failed');
@@ -337,6 +342,18 @@ async function runExport({ books, dryRun = false, force = false } = {}) {
       report.bytesUploaded += await writeManifest();
       report.manifestUpdated = true;
     }
+
+    // Only now — files and manifest are in place — is a book's version "exported". A book with a unit
+    // that failed keeps its old number, so it stays due. `lt` keeps a slower run from moving it back.
+    if (!dryRun) {
+      for (const book of bookRows) {
+        if (failedBooks.has(book.id)) continue;
+        await prisma.book.updateMany({
+          where: { id: book.id, exportedVersion: { lt: book.contentVersion } },
+          data: { exportedVersion: book.contentVersion },
+        });
+      }
+    }
   });
 
   if (!locked) {
@@ -349,4 +366,44 @@ async function runExport({ books, dryRun = false, force = false } = {}) {
   return report;
 }
 
-export { runExport, syncUnit, buildUnit, unitTypeFor, manifestBody, writeManifest, shapeManifestUnit };
+/**
+ * Slugs of published books whose text has changed since their files were built (contentVersion ahead of
+ * exportedVersion) and whose writes have stopped for `quietSeconds` — an import is many statements, and
+ * exporting in the middle of one would build files from half of it. The clock is the database's, the same
+ * one the triggers stamp contentChangedAt with.
+ */
+async function staleBooks({ quietSeconds = bookCache.quietSeconds, only } = {}) {
+  const rows = await prisma.$queryRaw`
+    SELECT "slug" FROM "Book"
+     WHERE "isPublished" = true
+       AND "contentVersion" > "exportedVersion"
+       AND ("contentChangedAt" IS NULL
+            OR "contentChangedAt" <= timezone('UTC', clock_timestamp()) - make_interval(secs => ${quietSeconds}::int))
+     ORDER BY "bookNumber"`;
+  const slugs = rows.map((r) => r.slug);
+  return only ? slugs.filter((s) => only.includes(s)) : slugs;
+}
+
+let retryNotBefore = 0;
+
+/**
+ * What the every-minute job calls. Exports the books `staleBooks` finds, which is nothing almost always.
+ * A failed export is left alone for `syncBackoffMs` instead of being retried every minute against a
+ * broken bucket; the weekly run and a manual run are unaffected. `quietSeconds` and `only` (a list of
+ * slugs) narrow it for tests.
+ */
+async function exportStaleBooks({ now = Date.now(), quietSeconds, only } = {}) {
+  if (now < retryNotBefore) return { skipped: 'backing off', stale: [] };
+  const stale = await staleBooks({ quietSeconds, only });
+  if (stale.length === 0) return { stale };
+
+  logger.info({ books: stale }, 'book cache: text changed since the last export, exporting');
+  const report = await runExport({ books: stale });
+  if (report.failed > 0) {
+    retryNotBefore = Date.now() + bookCache.syncBackoffMs;
+    logger.warn({ failures: report.failures }, 'book cache: export of changed books failed, backing off');
+  }
+  return { stale, report };
+}
+
+export { runExport, exportStaleBooks, staleBooks, syncUnit, buildUnit, unitTypeFor, manifestBody, writeManifest, shapeManifestUnit };

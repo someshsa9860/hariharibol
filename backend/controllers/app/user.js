@@ -8,6 +8,10 @@ import * as language from '../../utils/language.js';
 import { ok } from '../../utils/respond.js';
 import { badRequest, notFound } from '../../utils/errors.js';
 import { isValidTimezone } from '../../utils/date.js';
+import { emailForApp } from '../../utils/legacy.js';
+
+// A stand-in address (a person carried over from the old server who had none) is not theirs to be shown.
+const visible = (user) => ({ ...user, email: emailForApp(user.email) });
 
 const PROFILE_SELECT = {
   id: true,
@@ -38,7 +42,7 @@ export const me = async (req, res) => {
   });
 
   return ok(res, {
-    ...user,
+    ...visible(user),
     // The app hides the admin entry point unless this is true, and the API
     // enforces it again on every admin route regardless.
     canAccessAdmin: req.auth.permissions.size > 0,
@@ -62,7 +66,7 @@ export const update = async (req, res) => {
   // The cached auth payload carries the timezone and the language choices; a
   // stale cache would send the next sloka to the wrong hour.
   await authService.invalidateUser(user.id);
-  return ok(res, user);
+  return ok(res, visible(user));
 };
 
 /**
@@ -103,7 +107,7 @@ export const updateLanguages = async (req, res) => {
   });
 
   await authService.invalidateUser(user.id);
-  return ok(res, user);
+  return ok(res, visible(user));
 };
 
 /**

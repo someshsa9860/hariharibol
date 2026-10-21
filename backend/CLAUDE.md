@@ -25,6 +25,7 @@ backend/
 │   ├── payments/          # google.js, apple.js, razorpay.js, index.js (the ledger)
 │   ├── s3.js              # uploads, temp→saved moves, presigned URLs (bucket is private)
 │   ├── auth.js            # tokens, google/apple verification, permission cache
+│   ├── legacy.js          # asks the previous app's (Laravel) server who an old token belongs to
 │   ├── entitlement.js     # who is Premium, and why
 │   ├── book-counts.js     # verse / chapter / canto counts, rebuilt from the rows
 │   ├── fcm.js  notify.js  otp.js  mailer.js  websocket.js
@@ -34,7 +35,7 @@ backend/
 │   ├── router.js          # documented routes + auth guard + validation
 │   ├── present.js         # language resolution + media signing for responses
 │   ├── crud.js            # the reference-data CRUD builder
-│   └── date.js  language.js  errors.js  respond.js  pagination.js
+│   └── date.js  language.js  errors.js  respond.js  pagination.js  legacy.js
 ├── views/                 # email templates + server-rendered pages
 ├── docs/                  # OpenAPI built from the route registry; served by Scalar
 ├── jobs/                  # BullMQ queues and processors (Redis-backed)
@@ -134,6 +135,21 @@ The apps (mobile and admin) keep a person signed in for as long as the server sa
 - **A spent refresh token is not always theft.** Presenting one that was already used revokes every session on the account — except when it was spent within `REFRESH_REUSE_GRACE_SECONDS` (default 300): the usual cause is a phone that sent the refresh, lost the reply, and asks again when its signal returns, and signing the person out of every device for that is the wrong answer. Inside the window the old token gets a fresh pair and nothing is revoked. **The cost**: someone who has copied a refresh token and replays it inside the window also gets a session of their own (and rotating it then spends the real owner's next token, who gets one more grace). Set it to 0 for the strict behaviour.
 - **A bad bearer is refused even on a public route** (`middleware/auth.js` establishes who is asking, and an expired or garbage token is not "nobody"), so a client must send none on sign-in or logout. `POST /auth/logout` is public for the same reason: the refresh token in its body is the credential, and signing out has to work when the access token has already lapsed.
 - `npm run test:auth` walks it over real HTTP: the 403/`UNAUTHENTICATED` shape, garbage and expired bearers, rotation, reuse inside and outside the grace window, theft revoking every session, a malformed refresh token (400, not 403), logout, and forged Google/Apple tokens.
+
+### Legacy users (people who used the previous app)
+
+The previous app ("Sadhana": Laravel + MySQL at `https://ramkrishnahari.callvcal.com`, same bundle id) left an access token (a Sanctum token, `id|secret`, no expiry) on each phone. `POST /api/app/auth/legacy` trades it for a session here, so someone who updates is not asked to sign in. Both servers are on the same host. The Laravel half lives in `app/api/HariHariBolApi` (`MigrationController`, `MigrationKeyMiddleware`, route `POST /api/migration/hariharibol`, alias `migration.key`); the app's half is "Signing in from the previous app" in [app/CLAUDE.md](../app/CLAUDE.md).
+
+- **The flow.** The app sends `{ legacyToken, the usual languages / timezone / device fields }` — public, attested and rate-limited like `/auth/social` (tag `signup`), no bearer. `services/legacy.js` `lookup()` posts the token to the old server's migration route with the shared key in `X-Migration-Key`; that server answers who it belongs to and their five most-chanted mantras. This server finds the person by `User.legacyUserId` (unique) or makes the account, then `issueSession`, and answers exactly as `/auth/social` does: **201** for a new account, **200** for one carried over before. Repeating it, or doing it from another phone, gives the same account. **This server never reads the token** — the old server is the authority on it — and a request the old server rejects writes nothing.
+- **Two kinds of "no", and the app acts on the difference.** `403 UNAUTHENTICATED` means the old server does not accept the token (never issued, expired, account deleted) and `409 CONFLICT` that the account cannot be had this way (an account here has that email — it is linked first, see below — or it signs in with Google or Apple now, or it is banned): the app deletes its old token on either. **Everything else is `503 LEGACY_UNAVAILABLE`** — not configured, a wrong shared key, the old server down / slow / busy / answering oddly, sign-ups closed — and the app keeps the token for the next launch. Keep it that way: a wrong or rotated key is a 401 `invalid_key` from Laravel and must never become `UNAUTHENTICATED` here, or one misconfiguration would delete every update-day user's way in. The reason for a 503 goes to the log (`old server could not be asked`); neither the token nor the key is ever logged.
+- **A legacy token is not proof of who owns an email.** The old `signInCustom` (guarded only by a hard-coded shared header) hands a token to anyone who names an existing email, no password. So a legacy token never opens an existing Google or Apple account (409; it is only linked to it, next point), and a later verified Google / Apple sign-in whose address matches **claims** the account (`claimLegacy` in `controllers/app/auth.js`): every session is revoked first, `authProvider` / `providerUserId` become the provider's, and from then on an old token gets 409. Set **`HHB_MIGRATION_TOKENS_BEFORE`** on the Laravel side to the release date of the app that sends it, so a token minted afterwards by that unguarded endpoint cannot be traded. Old tokens are never revoked by Laravel (there is no logout route), but the old app wipes its own storage on logout, so only people still signed in at update time can migrate.
+- **An account here that already has the email is linked, not opened.** The old email is looked up **without regard to case** (`accountsWithEmail` in `controllers/app/auth.js`): Google and Apple store the address as they sent it, the old server's is lower-cased, and the unique index counts `Anna@x.com` and `anna@x.com` as two people — an exact lookup used to miss the first and make a duplicate account. When the holder was proved by Google or Apple, `linkOldIdentity` records which old user it is (`legacyUserId`) and seeds `SadhanaProfile.legacyFavoriteMantraId` where the profile has none (it makes the profile if there is none; a favourite or round target already there is kept), then the route **still answers 409 and issues no session**. The app drops the token and shows its usual sign-in, and the Google / Apple tap lands in that same account, which already knows the person (their old favourite mantra opens "Chant now"). The favourite is written first and the link last, because the link is what stops this running again: a failure in between is simply retried on the next launch. An account already tied to a different old user is left as it is; a LEGACY holder keeps the placeholder-address rule; and as it is an existing account, closed sign-ups do not turn it into a 503. **Why the old token does not just sign them in:** that would let anyone who can ask the old server for a token for an address (its hard-coded header, in a public app, is all `signInCustom` wants) into every Google / Apple account whose address is in the old database. Closing that means changing the old server's sign-in, which today asks for nothing but an email and a shared header; until then the one tap is the price. **Not covered:** someone who signs in here with a different address from the one they used there, and old accounts with no real address (a placeholder, so nothing for Google / Apple to match) — they come across as separate accounts.
+- **Accounts.** `AuthProvider.LEGACY`, `providerUserId = legacy:<id>`. The email is the old one (lower case) when it is a real address nobody here has, else a placeholder `legacy-<id>@legacy.invalid` (the old Google / Apple sign-in wrote made-up ones like `name@2024-05-01-12:30:00`); **a placeholder is never sent to the app** (`emailForApp`, applied wherever a user is presented), so an account can have no email on the phone. The name, picture and email are tidied by `utils/legacy.js` (`cleanName`, `httpsUrl`, `usableEmail`).
+- **The favourite mantra.** The old server sends the person's top mantras by lifetime count (`sss_namsmaran_record`, else summed from `sss_namsmaran_data`). `utils/legacy.js` `pickFavourite` maps the most-chanted one it can to one of ours — the by-hand `MANTRA_SLUGS` in `config/legacy.js` first, then a match on the consonant skeleton of the name and text (`MATCH` thresholds, deliberately leaning to "no match": a wrong mantra costs more than none) — and stores it as `SadhanaProfile.legacyFavoriteMantraId`. `GET /sadhana/today` falls back to it for `favoriteMantra` (`favouriteMantra` in `controllers/app/sadhana.js`) until the person has chanted here in the last 60 days, so "Chant now" opens on Om Namah Shivaya (or whatever it was) from the first minute, and chanting here takes over by itself. **`MANTRA_SLUGS` is empty on purpose.** The old `mantras` table (48 rows, 44 not deleted) was compared with our 11 published mantras on 2026-10-20 with `node scripts/legacy-match-mantras.js <the old table as JSON>` (reads the database it is pointed at, writes nothing): 7 old rows match, all correctly (Shiva Panchakshari twice → `om-namah-shivaya`, Hare Krishna, "Lord Krishna Mantra" → `om-namo-bhagavate-vasudevaya`, Shiva Gayatri, Narasimha, Maha Mrityunjaya) and none wrongly. The other 37 are not in the catalog at all — Jay Jay Ram Krishna Hari (about half of all old chanting), Swami Samarth, Datta, Ganesh, Hanuman, Narayana, "Om Shri Ramaya Namah", Sai — so an override could only point them at the wrong mantra. Run through `pickFavourite` for every person with chanting, 28 of 68 would get a favourite (Om Namah Shivaya 11, Vasudeva 7, Hare Krishna 6, Narasimha 2, Shiva Gayatri 1, Maha Mrityunjaya 1) and 40 none; **adding those mantras in the admin Mantras page is what raises that number**, and the matcher then finds them by itself. Adding up the old table's duplicate rows of one mantra (ids 1 and 47 are both the Panchakshari) would change nobody's pick, so `pickFavourite` does not. The log line `old favourite mantra` says what matched, how, and which titles matched nothing; use `MANTRA_SLUGS` only for a mantra it gets wrong or cannot tell.
+- **Config** (`config/env.js`): `LEGACY_MIGRATION_URL` (`https://ramkrishnahari.callvcal.com/api/migration/hariharibol`), `LEGACY_MIGRATION_KEY` (at least 32 characters, **the same value as Laravel's `HHB_MIGRATION_KEY`**; a random 64-hex string, never committed) and `LEGACY_MIGRATION_TIMEOUT_MS` (8000). Either one missing switches the whole thing off (503), and on the Laravel side an unset or short key makes the route a 404 `not_configured`. Redirects are refused (`redirect: 'error'`: the key is a header). The old server's key lives in its `.env` (`/var/www/html/g-hariharibol-api/.env` on the host; that checkout's config is not cached, so a change is read at once), this one's in `/var/www/hariharibol/server/.env`. The container reads its env file only when it is created: after changing it, re-create the container with `IMAGE_TAG=<running sha> ./api.sh` (a backend deploy does the same). The old server's route, header and key are described in the docblocks of `MigrationController` and `MigrationKeyMiddleware` in that repository, which has no `.env.example`.
+- **Schema.** `User.legacyUserId Int? @unique`, `AuthProvider.LEGACY`, `SadhanaProfile.legacyFavoriteMantraId`; migration `20261026000000_legacy_users`, which only adds (an enum value, two nullable columns, their indexes and one foreign key), so the running containers are unaffected while it applies. The deploy applies it itself: `deploy/server/migrate.sh` runs `prisma migrate deploy` in a throwaway container before anything is restarted.
+- **Tests.** `npm run test:legacy-migration` (`scripts/legacy-migration-e2e.js`, real HTTP and database against a fake old server: new / returning / concurrent, every refusal, the 503 cases, an account that already has the email in any case — linked, no session, favourite kept, not retied, sign-ups closed, four at once — the claim rule, the favourite mantra; 118 checks) and `node --test test/legacy.test.js` (the matching and tidying helpers). The Laravel route has no automated test of its own; it was checked by hand against the live server (below).
+- **Checked on the live old server (2026-10-20, read-only):** the deployed `MigrationController`, `MigrationKeyMiddleware`, `Kernel.php` and `routes/api.php` are byte-identical to the old repository's. With the key set, a wrong key is 401 `invalid_key` and a junk token 401 `invalid_token`. Every column the controller reads exists. All 301 stored tokens belong to `App\Models\User`, none has an `expires_at` (and `sanctum.expiration` is null) and none points at a missing user, so a good token cannot be turned away by the model or expiry tests. `topMantras` gave at most five, most first, every field set, for the heaviest chanter, and `[]` for someone who never chanted; nobody needs the per-mala fallback (195 users, none flagged deleted, 69 with chanting). The running API container reaches the old server's public URL from inside the host (`docker exec hariharibol-api node -e 'fetch(...)'` got the route's own answer back), so the hairpin through the host's own address works. **Not done:** no real token has been traded through the live route (none was minted or taken, and nothing was written to the old database), so the first real sign-in is the first time the whole path runs — watch the API log for `old server could not be asked` and `old favourite mantra` — and nothing has run from a phone.
 
 ## AI
 
@@ -380,6 +396,41 @@ Rules worth knowing before changing it:
   the model *follows* it has to be read in real conversations — the prompt is only an instruction.
   **The summary memory still records "the tradition or sampradaya they lean towards"** (`summarizerRequest`) — that is
   private to the prompt and lets Sakha speak in a person's own terms; the persona forbids saying it back.
+
+### Opening things in the app (chat actions)
+
+Sakha can offer to open a page, a mantra or a verse when the reader plainly asks ("open the Gita 2.47", "take me to reels").
+The model never calls a tool: it ends its reply with one marker (`[[open:page:reels]]`, `[[open:mantra:maha mantra]]`,
+`[[open:verse:bhagavad-gita:2.47]]`) that `ACTION_GUIDANCE` (config/chat.js, added to the prompt only while `appActions` is
+on) teaches it.
+
+- `utils/chat-actions.js` (pure, `test/chat-actions.test.js`): `parse` knows the eight pages in `PAGES`, a mantra name and a
+  book + reference; `createFilter` takes markers out of the stream chunk-safely, like the `{name}` filler. A marker is removed
+  whether or not it is understood; only the first of a reply counts.
+- `services/chat-actions.js` checks it against the database — a published mantra (slug or name, in the reading chain), a verse
+  that exists in a published book (a compound verse is found by either number) — and an offer that resolves to nothing is **not
+  sent**. The result is the `action` SSE event, sent just before `done` and only for a reply that completed. The stored reply
+  has no marker; **the offer is not stored**, so it is gone when the chat is reopened.
+- **It is an offer only.** The app asks "Open X?" and opens nothing until the reader taps Open — a model can guess wrong.
+- Admin limit `appActions` (1/0, Ask Sakha → Persona & limits) switches it off; the guidance (~220 tokens a reply) then leaves the
+  prompt. Asking Sakha about a verse needs nothing here: the app sends the verse as an ordinary message.
+
+### The free-tier bonus (a larger daily credit while the free tier is on)
+
+While the OpenAI free-tier switch is on and the day's free pool has room, every reader on a plan that uses the ordinary model
+gets extra tokens a day. `ai.free_tier.bonus_pool` (default 1,500,000, at most the large free pool) is divided by the readers who
+used the chat in the last 7 days (counted from `AiDailyUsage`, cached 10 minutes), up to `ai.free_tier.bonus_max_per_user`
+(default 20,000): `utils/ai-bonus.js perUser`, `services/ai/free-tier.js bonus()`.
+
+- **Spent first, outside the wallet and the daily cap.** `AiDailyUsage.bonusTokens` (migration `20261025000000_ai_daily_bonus`)
+  counts it; `tokens` stays what the wallet paid, which is what the plan's cap counts. `ai-wallet.debit({ bonus })` splits a
+  debit (`ai-bonus.split`) and writes a ledger row only for the wallet's part. `open()` returns `bonus` and `bonusUsed`;
+  `room`, `creditMeter` and `whyBlocked` take them, so the meter and the 402 account for it. The bonus is per local day, like
+  the cap, and unspent bonus is simply gone.
+- **None for a plan on the stronger model** (it never uses the free models, so a bonus would cost money). A call that fails over
+  from the free model to a paid one is still charged against the bonus — bounded by the per-reader ceiling.
+- Admin: AI usage → *Use OpenAI free tier* → *Daily bonus* (`bonusPoolTokens`, `bonusMaxPerUser` on `PUT /ai/free-tier`;
+  `GET` returns `bonus.{tokens,users,active}`). Sections 18–19 of `npm run test:chat` walk both features.
 
 ## Subscriptions, donations and entitlement
 
@@ -671,6 +722,39 @@ AI-drafted and **not yet read by a native speaker**.
   title-cased, untranslated — to name a new one, add a `mantraCategory*` key to all twelve ARBs and a line to
   `mantraCategoryLabel` (an app release).
 
+## Search (verses, mantras, books)
+
+`GET /api/app/search` forgives what a person types. Files: `controllers/app/search.js` (the queries),
+`utils/search-query.js` (**pure**, `test/search-query.test.js`), `services/search-vocabulary.js` (the words the library holds).
+
+- **A book named at the start of the query narrows it.** "gita karma", "bhagvat gita surrender", "sb 1.3.28": the leading one to
+  three words are matched, by sound and a letter or two out, to a book's slug words, initials, title and the extra names in
+  `EXTRA_ALIASES` (matched on the slug, so a renamed title cannot break it) and taken off the query. A bare book name ("gita") is
+  **not** a tag — it is a search for the book. The first number ends the name, so "gita 2.47" is the verse. The optional
+  `book` slug param (the app's chips) does the same and wins. `scope` in the response says which book and whether the query
+  named it (`fromQuery`, with the `text` left over).
+- **Words are matched by sound.** Each Roman word becomes a *sound key* (`soundKey`: ṛ→ri, ś/ṣ→s, aspirates and long vowels
+  flattened, w→v, doubled letters single), so "krishna", "krsna" and "kṛṣṇa" are one word and "bhagwad" is "bhagavad". A key a
+  letter or two away (`tolerance`: ≥3 letters 1, ≥6 letters 2) is the same word typed wrong. The stored spellings behind those
+  keys, diacritics and all, are what is matched against the text. The last word also matches longer words (it is still being
+  typed). Spacing: two words the library holds only joined are joined, a long unknown word is split in two when both halves
+  are words. `meta.corrected` / `corrected` is the query as read once typos are fixed, only when a word had **no** word that
+  sounds like it — a different Roman spelling of a known word is not a correction. Words in Devanagari or any other script are
+  matched as typed, no fuzziness.
+- **The vocabulary** is built from verse transliteration, English translations, book titles and mantra names with one query on the
+  first search after a boot and again hourly (`TTL_MS`); a failed build keeps the old one. It does **not** include purports.
+- **Verses match in four texts** — Sanskrit, transliteration, the translation and the purport (translations in the reader's
+  chain only) — with one regular expression per word, every word required. They are ranked in SQL: a word in the verse itself
+  3, in the meaning 2, in the purport 1, +6 when the words appear together as typed, then book order. `searchMatch`
+  (`{ field, snippet }`, matched words in `[brackets]`) says where the first hit was. Pages and a `total` come from
+  `count(*) OVER()`.
+- **Without `type`** the response is a preview (6 of each) with `verseTotal` / `mantraTotal` / `bookTotal`; with `type` it is one
+  kind, paginated, best first. A search narrowed to a book returns no mantras or books.
+- **Cost.** Every query scans verses (and purports) with `~*`, fine at ~18,700 verses; the next step is a `pg_trgm` GIN index
+  on the text columns, which would need a migration. No index exists for it today.
+- **Checked** by `npm test` (the pure parts) and by running the controller against a throwaway Postgres with a handful of
+  verses. There is no e2e script, and it has **not** been run against the full library, so ranking on real data is unseen.
+
 ## Translated titles of books, cantos and chapters
 
 `Book`, `Canto` and `Chapter` carry `titleI18n` (JSON `{ code: text }`); `Canto` and `Chapter` also `summaryI18n`, `Book`
@@ -703,6 +787,14 @@ AI-drafted and **not yet read by a native speaker**.
 - `npm run test:book-titles` walks the languages endpoint, saving on all three levels, whole-map replacement and the shape a
   phone is sent, against a running API with a throwaway book (deleted again). It uploads nothing, so the dev `.env` is fine.
 
+## Reels for a signed-out visitor (the website)
+
+`GET /reels`, `GET /reels/:id` and `GET /reel-comments` are `public: true`. Signed out, `req.auth.user` is null: the feed
+skips the "seen" penalty (the feed shows a reader's own reels like anyone's, signed in or not), and `present.includes.reel` / `reelComment` swap the missing viewer id
+for a value that matches no one (`NO_ONE` in `utils/present.js` — a Prisma filter on `undefined` is no filter, which would
+show everyone's likes as the visitor's). Everything that writes, `/similar` and `/saved` still need an account.
+`npm run test:reels` checks the signed-out feed, one reel, and that liking is still refused.
+
 ## Book cache (offline books)
 
 Weekly export of book text to `s3://<bucket>/books/caches/` and the manifest / download-url
@@ -717,6 +809,21 @@ Rules worth knowing before changing it:
 - **Bump `SCHEMA_VERSION`** (config/book-cache.js) when the file shape changes; it is hashed, so
   the next run rewrites every unit.
 - Work goes through the `content` queue; the export holds a Redis lock.
+- **A book's text has a version, and the database keeps it.** `Book.contentVersion` is bumped by triggers (migration
+  `20261025000000_book_content_version`), not by code in the writers — imports, the admin panel, the translation import and
+  psql all write these tables, and a writer that forgot to call something would leave phones on old text. A new table
+  the export reads must get the same trigger. A bump with nothing really changed is harmless (the hashes match and nothing is
+  uploaded); a missed bump is the harmful direction.
+- **`book.cache.sync` (every minute) exports what is due** — `contentVersion > exportedVersion` and `contentChangedAt`
+  older than `BOOK_CACHE_QUIET_SECONDS` (`staleBooks`, `exportStaleBooks` in `services/book-cache.js`). `runExport` stamps
+  `exportedVersion` only after every unit and the manifest succeeded, to the version it read **before** building; a failed
+  unit leaves the book due, and a failing export is left alone for 5 minutes. Do not stamp it anywhere else.
+- **The manifest sends `exportedVersion` as `contentVersion`**, never the live `contentVersion`: the files can be behind
+  the database, and a phone told the newer number would record a version the files do not hold. The admin status shows
+  both and `exportDue`.
+- After this migration `exportedVersion` is 0 for every book, so the first minute exports all of them (unchanged units are
+  skipped by hash). **Deploying needs `prisma migrate deploy` and a restart of the API and the worker** (so the new
+  repeatable job is registered).
 
 ## Verse word meanings and the default translation
 
@@ -745,6 +852,13 @@ request (`PATCH /me/languages`), so a book call made in between was shaped by th
 phone already holds from the export is picked on the phone and was never affected; this endpoint serves what it does not hold
 (a book not yet downloaded — on a laptop, the Gita, whose export has not been built there). The other book endpoints
 (`/chapters/bulk`, the lists) are not changed — the offline copy picks on the phone. `test/reading-languages.test.js`.
+
+**`GET /home` takes the same `?languages=`** (`routes/app/home.js`, `controllers/app/home.js`), for the same reason: the
+verse of the day, the books, the mantras and the personal cards (`mySloka`, `continueReading`) are all shaped by
+`withReadingLanguages(user, fromQuery(...))` — the mantras by its `mantraTextChain`, the rest by `readingChain` — so the
+dashboard follows the reading language the moment the phone changes it, not after `PATCH /me/languages` lands. Without it
+the account's own languages are used, so older builds are unaffected. A verse with no translation in the chain still falls
+back down it (to English), so a language with no published text shows English, not nothing.
 
 ## Verse recitations
 
@@ -1027,6 +1141,37 @@ Things to know before changing it:
   `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
   Gita's real S3 files either; do a `dryRun` from the page first.
 
+## Sharing, deep links and refer and earn
+
+One feature on three parts (backend, website, app); the three must agree on the link grammar.
+
+**Links.** A piece of content gets an opaque random code (base58, 10 chars, `ShareLink` row) and is shared as
+`https://hariharibol.com/shloka/<code>` (verse), `/naam/<code>` (mantra), `/darshan/<code>` (reel). The route words are
+the app's own terms; the code reveals nothing about the content and is not guessable. An invitation is
+`/satsang/<REFERRALCODE>` and is a separate family: opening content never attributes a referral. The grammar lives in
+`utils/share.js` (`parseLink`, `contentUrl`, `referralUrl`), `website/src/lib/share-link.ts` and
+`app/lib/core/share_links.dart`; change one, change all three (each has a test).
+
+**Routes** (`routes/app/share.js`, `routes/app/referral.js`, `routes/web/share.js`, all documented in the route table):
+`POST /api/app/share/link`, `GET /share/background/quote`, `POST /share/background` (AI card picture, debits the
+reader's AI wallet, refunds once on failure, idempotent per request key), `GET /share/background/:id[/image]`;
+`GET /referral/me`, `/referral/mine`, `POST /referral/attribute`; public `GET /api/web/share/:route/:code`,
+`/referral/:code`, `/app-links`. Image generation uses `services/share-image.js`.
+
+**Referral rules** are in `config/referral.js`, each with an env override: attributed once, only within 7 days of
+signing up; the new person qualifies by finishing one full round within 30 days; the referrer then gets 30 days of
+Ārta (`REFERRAL_REWARD_PLAN_SLUG`), at most 12 rewards a rolling year. The reward is an **`EntitlementGrant`** row,
+not a fake subscription: `services/entitlement.js` reads grants beside subscriptions and payments, a grant starts
+after the paid period or the previous grant so it never shortens anything, and a unique `(userId, requestKey)` makes
+a retry grant nothing twice. Qualification runs from `controllers/app/sadhana.js` when a round is saved.
+
+**Deploy.** `prisma migrate deploy` for `20261027000000_share_referral` (the seed is not involved). Env:
+`APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` (comma separated), `PLAY_STORE_URL`, `APP_STORE_URL`. Empty is deliberate: the
+association files then list nothing and the page hides the store badge instead of linking somewhere invented.
+`deeplink/index.js` serves `/.well-known/apple-app-site-association` and `assetlinks.json`; `deploy/server/nginx.conf`
+proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
+`node --test test/share.test.js`.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.
@@ -1066,3 +1211,16 @@ columns alike, so no controller has to call anything. The monthly `s3.temp.prune
 (`config/cron.js`, 1st of the month 04:00 UTC) deletes temp days older than 30 days —
 uploads nobody saved. Keys saved before this layout have no `hariharibol/` root and
 still work; nothing rewrites them.
+
+## Scene prompts (admin → Scenes)
+
+`SceneRun` + `jobs/processors/scenes.js` + `services/scenes.js` + `utils/scenes.js` (pure: file names, prompt, schema, checks, limiter) + `controllers/admin/scene.js`. Built like translation runs; read those first. One request per chapter with the Hindi meaning of each verse (from `hi/` in the bucket, else `VerseTranslation`), answer checked so every verse is in a scene (asked again once with the problems), saved to `json/<book>/scenes/sk-<canto>-ch-<n>.json` (old file backed up) and listed in `_index.json`. A 429 is always a wait, never "credit". One run at a time. Settings: `SCENES_PROVIDER`, `SCENES_GEMINI_MODEL`, `SCENES_RPM`, `SCENES_TPM`, `SCENES_RPD`. Tests: `npm run test:scenes`, `test/scenes.test.js`.
+
+
+## Hindu calendar
+
+- **Computing** is pure and database-free: `services/panchang.js` (one day at one place; its header lists the method) and `services/festivals.js` (a year of days and festival rules). Add a festival by adding a row to `FESTIVAL_RULES` (amanta month, paksha, tithi, and the time of day the tithi must be running: sunrise, midday, aparahna, sunset, pradosh, nishita, moonrise). Ekadashi names are by *amanta* month (`EKADASHI_NAMES`), not the purnimanta month north-Indian almanacs print.
+- **Storing** is `services/panchang-store.js` (`saveYear`), used by `npm run seed:panchang [year] [place]` and the admin Generate button. `isEdited` rows are never overwritten; a festival's `notify` choice is made once, at creation.
+- **Place**: `AppSetting` `panchang.location`; places are `LOCATIONS` in `services/panchang.js`. Generate a year for a place before selecting it.
+- **Push**: `jobs/processors/festival-notify.js`, run by the `notification` queue's `festival.notify` schedule (02:30 UTC). It uses `Festival.notifyDaysBefore` (default `[1]`) and records `notifiedDays`, so a rerun never repeats a push. It goes to every user with a push-capable device, dated by the calendar place's today.
+- **API**: public `GET /api/app/calendar?from&to` (max 62 days) and `/calendar/upcoming`; admin `/api/admin/panchang` (permission `panchang.manage`).

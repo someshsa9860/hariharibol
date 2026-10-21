@@ -71,7 +71,7 @@ export const list = async (req, res) => {
         : [{ isPinned: 'desc' }, { createdAt: 'desc' }],
       skip,
       take,
-      include: present.includes.reelComment(user.id),
+      include: present.includes.reelComment(user?.id),
     }),
   ]);
 

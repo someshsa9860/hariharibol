@@ -129,8 +129,9 @@ class ApiClient {
     Object? body,
     Map<String, dynamic>? query,
     bool attested = false,
+    ApiCancelToken? cancel,
   }) =>
-      _send('POST', path, body: body, query: query, attested: attested);
+      _send('POST', path, body: body, query: query, attested: attested, cancel: cancel);
 
   /// POSTs a file as the body itself, with [contentType] saying what it is —
   /// no multipart to build. The bytes stay in the request, so the silent
@@ -238,6 +239,19 @@ class ApiClient {
     }
   }
 
+  /// GETs a file (a picture). The bearer token and the silent refresh work as for any other call.
+  Future<Uint8List> getBytes(String path) async {
+    try {
+      final response = await _dio.request<List<int>>(
+        path,
+        options: Options(method: 'GET', responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(response.data ?? const []);
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    }
+  }
+
   Future<ApiResponse> put(String path, {Object? body}) => _send('PUT', path, body: body);
 
   Future<ApiResponse> patch(String path, {Object? body}) => _send('PATCH', path, body: body);
@@ -250,12 +264,14 @@ class ApiClient {
     Object? body,
     Map<String, dynamic>? query,
     bool attested = false,
+    ApiCancelToken? cancel,
   }) async {
     try {
       final response = await _dio.request<dynamic>(
         path,
         data: body,
         queryParameters: query,
+        cancelToken: cancel?._token,
         options: Options(
           method: method,
           // Read back in _onRequest — the App Check call is async and only
@@ -274,12 +290,16 @@ class ApiClient {
 
   /// The code the API puts on "I do not know who you are" (a 403), as opposed
   /// to `FORBIDDEN`, which is a signed-in person who may not do this.
-  static const String _unauthenticated = 'UNAUTHENTICATED';
+  static const String _unauthenticated = ApiCodes.unauthenticated;
 
   /// Calls that prove who is asking some other way, so they carry no bearer
-  /// token and never start a refresh: sign-in presents the provider's token,
-  /// and sign-out the refresh token itself.
-  static const Set<String> _noBearerPaths = {ApiPaths.signInSocial, ApiPaths.logout};
+  /// token and never start a refresh: sign-in presents the provider's token (or
+  /// the previous app's), and sign-out the refresh token itself.
+  static const Set<String> _noBearerPaths = {
+    ApiPaths.signInSocial,
+    ApiPaths.signInLegacy,
+    ApiPaths.logout,
+  };
 
   /// Everything here is wrapped, and `handler.next` is reached on every path.
   ///

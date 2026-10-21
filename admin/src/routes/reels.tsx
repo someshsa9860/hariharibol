@@ -212,6 +212,10 @@ export function ReelsPage() {
                   <Sparkles className="mr-2 h-4 w-4" />
                   From a book’s verses…
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/reels/book-style')}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Book reel look and buttons…
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )

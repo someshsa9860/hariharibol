@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -26,35 +27,48 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: scheme.surface,
       extensions: [isLight ? AppSemanticColors.light : AppSemanticColors.dark],
 
+      // The system's own push: the page slides in from the side with the swipe
+      // back gesture, on Android as well as iOS.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+
+      switchTheme: SwitchThemeData(
+        thumbColor: const WidgetStatePropertyAll(AppColors.white),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.outline.withValues(alpha: 0.5),
+        ),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0.5,
-        centerTitle: false,
+        centerTitle: true,
         titleTextStyle: textTheme.titleLarge,
       ),
 
-      // A lighter plane than the page, lifted by a soft warm shadow and held
-      // by a hairline. The shadow is tinted with the deepest orange rather
-      // than left grey — a neutral drop shadow on warm paper looks like dirt,
-      // and there is no grey in this palette to spend anyway.
-      //
-      // Dark mode gets no shadow at all: it is invisible against black, and
-      // the hairline is what separates a card from the page there.
+      // A lighter plane than the page with no border: the difference in tone
+      // is what separates it, as in a system grouped list. Light gets a very
+      // soft warm shadow; dark gets none (it is invisible there) and relies on
+      // the card being a step lighter than the page.
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         shadowColor: isLight
-            ? AppColors.orangeDeep.withValues(alpha: 0.13)
+            ? AppColors.orangeDeep.withValues(alpha: 0.08)
             : Colors.transparent,
-        elevation: isLight ? 6 : 0,
+        elevation: isLight ? 2 : 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.lgAll,
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
       ),
 
       filledButtonTheme: FilledButtonThemeData(
@@ -167,10 +181,7 @@ abstract final class AppTheme {
         showDragHandle: true,
         dragHandleColor: scheme.outline,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.lgTop,
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgTop),
       ),
 
       progressIndicatorTheme: ProgressIndicatorThemeData(

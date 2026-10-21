@@ -93,7 +93,8 @@
 .result mark { background: var(--accent-soft); color: var(--ink); padding: 0 2px; border-radius: 3px; }
 .result .deva { font-size: 1.15rem; }
 
-/* ── Two-column verse (wide screens): the verse and its meaning stay in view while the longer text scrolls ── */
+/* ── Two-column verse (wide screens): Sanskrit and word meanings on the left, meaning and purport on the right ── */
+.v-words { border-top: 1px dashed var(--line); padding-top: 12px; }
 .v-main, .v-side { display: grid; gap: calc(16px * var(--scale)); align-content: start; min-width: 0; }
 .v-side:empty { display: none; }
 .chapter-head, .chapter-nav { max-width: 1100px; }
@@ -101,10 +102,11 @@
   .verse-card:not(.is-expanded) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: clamp(32px, 4vw, 64px); row-gap: 20px; align-items: start; }
   .verse-card:not(.is-expanded) > .verse-head, .verse-card:not(.is-expanded) > .verse-foot { grid-column: 1 / -1; }
   .verse-card:not(.is-expanded) > .verse-head { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-  .verse-card:not(.is-expanded) .v-main { position: sticky; top: calc(var(--header-h) + 84px); padding: 24px; border-radius: var(--radius); background: linear-gradient(160deg, var(--accent-soft), var(--surface) 75%); border: 1px solid var(--line); }
+  .verse-card:not(.is-expanded) .v-main { padding: 24px; border-radius: var(--radius); background: linear-gradient(160deg, var(--accent-soft), var(--surface) 75%); border: 1px solid var(--line); }
   .verse-card:not(.is-expanded) .v-sanskrit { font-size: calc(clamp(1.45rem, 1.9vw, 1.9rem) * var(--scale)); }
   .verse-card:not(.is-expanded) .v-side { padding-top: 4px; }
-  .verse-card:not(.is-expanded) .v-side .word-list { margin-top: 0; font-size: calc(1rem * var(--scale)); }
+  .verse-card:not(.is-expanded) .v-words .word-list { font-size: calc(1rem * var(--scale)); }
+  .verse-card:not(.is-expanded) .v-side .v-translation { border-top: 0; padding-top: 0; }
   .verse-card:not(.is-expanded) .purport-text { font-size: calc(1.06rem * var(--scale)); max-width: 72ch; }
   .verse-card:not(.is-expanded) .v-side > .v-words:empty { display: none; }
 }
@@ -129,3 +131,18 @@
 .story-verse.is-active .story-text { background: color-mix(in srgb, var(--accent) 24%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 4px; }
 .story-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 6px 0 10px; padding: 4px 8px; width: fit-content; max-width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow-sm); font-family: var(--sans, inherit); font-size: 1rem; line-height: 1.2; animation: fade-up .25s var(--ease) both; }
 .story-empty { text-align: center; padding: 48px 0; }
+
+/* Scrolling down while reading: the header and toolbar slide away, scrolling up brings them back. */
+.site-header, .reader-bar { transition: transform .25s var(--ease); }
+.reading-focus .site-header { transform: translateY(-100%); }
+.reading-focus .reader-bar { transform: translateY(calc(-100% - var(--header-h))); }
+@media (prefers-reduced-motion: reduce) { .site-header, .reader-bar { transition: none; } }
+
+/* Story mode: every verse, and every paragraph of it, on its own line. */
+.story .story-verse { display: block; margin-bottom: 1em; }
+.story .story-text { display: block; }
+.story .story-text + .story-text { margin-top: .7em; }
+.story-sanskrit .story-text, .story-sanskrit .story-no { display: inline; }
+.story .story-hit { display: block; }
+.story .story-no { float: left; }
+.story-sanskrit .story-no { float: none; }

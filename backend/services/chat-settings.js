@@ -34,6 +34,7 @@ export async function limits() {
   result.maxOutputTokens = Math.max(result.maxOutputTokens, 64);
   result.maxInputChars = Math.max(result.maxInputChars, 1);
   result.imageInput = result.imageInput > 0 ? 1 : 0;
+  result.appActions = result.appActions > 0 ? 1 : 0;
   result.imageMaxEdge = Math.min(Math.max(result.imageMaxEdge, IMAGE_EDGE_RANGE.min), IMAGE_EDGE_RANGE.max);
   return result;
 }

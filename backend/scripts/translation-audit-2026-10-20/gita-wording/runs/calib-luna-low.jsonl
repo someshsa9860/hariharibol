@@ -1,0 +1,141 @@
+{"lang":"hi","ids":["1.1.6"],"issues":[],"rejected":[],"costUsd":0.0001778}
+{"lang":"hi","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.00010518}
+{"lang":"hi","ids":["1.1.7"],"issues":[],"rejected":[],"costUsd":0.00014658000000000002}
+{"lang":"hi","ids":["1.1.5"],"issues":[],"rejected":[],"costUsd":0.00023590000000000001}
+{"lang":"hi","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.00029810000000000004}
+{"lang":"hi","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"Dharma-kṣetre means “in the field of dharma,” not a place of pilgrimage.","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल में","replace":"धर्मक्षेत्र में"},{"part":"translation","verseId":"1.1.1","index":-1,"reason":"Dharma-kṣetre means “in the field of dharma,” not a place of pilgrimage.","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थल कुरुक्षेत्र में","replace":"धर्मक्षेत्र कुरुक्षेत्र में"}],"rejected":[],"costUsd":0.00021678}
+{"lang":"hi","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.00011668}
+{"lang":"hi","ids":["1.1.2"],"issues":[],"rejected":[],"costUsd":0.00021458000000000002}
+{"lang":"hi","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.00014518000000000002}
+{"lang":"hi","ids":["1.1.8"],"issues":[],"rejected":[],"costUsd":0.00026938}
+{"lang":"hi","ids":["1.1.12"],"issues":[],"rejected":[],"costUsd":0.00014907999999999998}
+{"lang":"hi","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.00015228}
+{"lang":"hi","ids":["1.1.13"],"issues":[],"rejected":[],"costUsd":0.00012248}
+{"lang":"hi","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.00015948}
+{"lang":"hi","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.00011718000000000001}
+{"lang":"hi","ids":["1.1.11"],"issues":[{"part":"translation","verseId":"1.1.11","index":-1,"reason":"The English says “now,” not “therefore”; अतः adds a causal meaning and omits the temporal sense.","genuine":true,"kind":"wrong","confidence":"likely","find":"अतः","replace":"अब"}],"rejected":[],"costUsd":0.00024508}
+{"lang":"hi","ids":["1.1.17"],"issues":[],"rejected":[],"costUsd":0.00018628}
+{"lang":"hi","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.00022828}
+{"lang":"hi","ids":["1.1.20"],"issues":[],"rejected":[],"costUsd":0.00016018}
+{"lang":"hi","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.00015978}
+{"lang":"hi","ids":["1.1.22"],"issues":[],"rejected":[],"costUsd":0.00015658}
+{"lang":"hi","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.00012008}
+{"lang":"hi","ids":["1.1.26"],"issues":[],"rejected":[],"costUsd":0.00011748000000000001}
+{"lang":"hi","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.00017108}
+{"lang":"hi","ids":["1.1.18"],"issues":[{"part":"wordMeanings","verseId":"1.1.18","index":9,"reason":"dadhmuḥ is plural, so the Hindi verb should also be plural.","genuine":true,"kind":"grammar","confidence":"certain","find":"बजाया","replace":"बजाए"}],"rejected":[],"costUsd":0.00034498}
+{"lang":"hi","ids":["1.1.29"],"issues":[],"rejected":[],"costUsd":0.00011928}
+{"lang":"hi","ids":["1.1.27"],"issues":[],"rejected":[],"costUsd":0.00014198000000000002}
+{"lang":"hi","ids":["1.1.30"],"issues":[],"rejected":[],"costUsd":0.00014428}
+{"lang":"hi","ids":["1.1.33"],"issues":[],"rejected":[],"costUsd":0.00020728}
+{"lang":"hi","ids":["1.1.31"],"issues":[],"rejected":[],"costUsd":0.00020758000000000001}
+{"lang":"hi","ids":["1.1.28"],"issues":[{"part":"translation","verseId":"1.1.28","index":-1,"reason":"The Hindi progressive form is unnatural here; ‘सूख रहा है’ correctly expresses that the mouth is drying up.","genuine":true,"kind":"grammar","confidence":"likely","find":"मेरा मुँह सूखा जा रहा है","replace":"मेरा मुँह सूख रहा है"}],"rejected":[],"costUsd":0.00026777999999999996}
+{"lang":"hi","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.00021338}
+{"lang":"hi","ids":["1.1.36"],"issues":[{"part":"wordMeanings","verseId":"1.1.36","index":9,"reason":"The singular subject pāpam requires the singular verb form आ घेरेगा.","genuine":true,"kind":"grammar","confidence":"certain","find":"आ घेरेंगे","replace":"आ घेरेगा"}],"rejected":[],"costUsd":0.00015998000000000002}
+{"lang":"hi","ids":["1.1.23"],"issues":[{"part":"wordMeanings","verseId":"1.1.23","index":7,"reason":"Dhārtarāṣṭrasya is a genitive, so “के लिए” incorrectly gives it a benefactive sense.","genuine":true,"kind":"wrong","confidence":"certain","find":"धृतराष्ट्र के पुत्र के लिए","replace":"धृतराष्ट्र के पुत्र का"}],"rejected":[],"costUsd":0.00045788}
+{"lang":"hi","ids":["1.1.37"],"issues":[],"rejected":[],"costUsd":0.00016607999999999998}
+{"lang":"hi","ids":["1.1.35"],"issues":[],"rejected":[],"costUsd":0.00031588}
+{"lang":"hi","ids":["1.1.39"],"issues":[],"rejected":[],"costUsd":0.00018038}
+{"lang":"hi","ids":["1.1.38"],"issues":[{"part":"wordMeanings","verseId":"1.1.38","index":9,"reason":"The singular masculine noun दोष requires the singular form किया गया.","genuine":true,"kind":"grammar","confidence":"certain","find":"किए गए","replace":"किया गया"}],"rejected":[],"costUsd":0.00020528}
+{"lang":"hi","ids":["1.1.34"],"issues":[],"rejected":[],"costUsd":0.00041648}
+{"lang":"hi","ids":["1.1.42"],"issues":[],"rejected":[],"costUsd":0.00020668000000000002}
+{"lang":"hi","ids":["1.1.41"],"issues":[{"part":"wordMeanings","verseId":"1.1.41","index":8,"reason":"The masculine subject varṇa-saṅkaraḥ requires the masculine form होता है.","genuine":true,"kind":"grammar","confidence":"certain","find":"उत्पन्न होती है","replace":"उत्पन्न होता है"}],"rejected":[],"costUsd":0.00021968}
+{"lang":"hi","ids":["1.1.45"],"issues":[],"rejected":[],"costUsd":0.00012778}
+{"lang":"hi","ids":["1.1.40"],"issues":[],"rejected":[],"costUsd":0.00031388}
+{"lang":"hi","ids":["1.1.44"],"issues":[],"rejected":[],"costUsd":0.00021168}
+{"lang":"hi","ids":["1.1.47"],"issues":[],"rejected":[],"costUsd":0.00016468}
+{"lang":"mr","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.00011498}
+{"lang":"mr","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"Sanskrit dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थानी","replace":"धर्मक्षेत्री"},{"part":"translation","verseId":"1.1.1","index":-1,"reason":"Sanskrit dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"तीर्थस्थानी","replace":"धर्मक्षेत्री"}],"rejected":[],"costUsd":0.00034520000000000004}
+{"lang":"mr","ids":["1.1.2"],"issues":[{"part":"translation","verseId":"1.1.2","index":-1,"reason":"The neuter singular सैन्य requires the agreeing form उभे, not उभ्या.","genuine":true,"kind":"grammar","confidence":"certain","find":"व्यूहरचनेत उभ्या केलेल्या सैन्याचे","replace":"व्यूहरचनेत उभे केलेल्या सैन्याचे"}],"rejected":[],"costUsd":0.00020798000000000002}
+{"lang":"mr","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.00011938}
+{"lang":"hi","ids":["1.1.43"],"issues":[{"part":"wordMeanings","verseId":"1.1.43","index":6,"reason":"Jāti-dharmāḥ means community duties or customs, not community projects.","genuine":true,"kind":"term","confidence":"certain","find":"सामुदायिक योजनाएँ","replace":"जाति-धर्म"},{"part":"translation","verseId":"1.1.43","index":-1,"reason":"Jāti-dharmāḥ means community duties or customs, not community projects.","genuine":true,"kind":"term","confidence":"certain","find":"सामुदायिक योजनाएँ","replace":"सामुदायिक धर्म"}],"rejected":[],"costUsd":0.00034058}
+{"lang":"mr","ids":["1.1.5"],"issues":[],"rejected":[],"costUsd":0.00010608000000000001}
+{"lang":"hi","ids":["1.1.46"],"issues":[{"part":"wordMeanings","verseId":"1.1.46","index":3,"reason":"Aśastram means unarmed, not merely not fully equipped with weapons.","genuine":true,"kind":"term","confidence":"certain","find":"पूर्णतया शस्त्रों से सुसज्जित न होने वाले","replace":"शस्त्ररहित"}],"rejected":[],"costUsd":0.00027988}
+{"lang":"mr","ids":["1.1.7"],"issues":[],"rejected":[],"costUsd":0.00009898}
+{"lang":"mr","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.00009828}
+{"lang":"mr","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.00015318}
+{"lang":"mr","ids":["1.1.6"],"issues":[{"part":"wordMeanings","verseId":"1.1.6","index":0,"reason":"Yudhāmanyu ends in -u, so the Marathi spelling should be युधामन्यु.","genuine":true,"kind":"grammar","confidence":"certain","find":"युधामन्यू","replace":"युधामन्यु"},{"part":"translation","verseId":"1.1.6","index":-1,"reason":"Yudhāmanyu ends in -u, so the Marathi spelling should be युधामन्यु.","genuine":true,"kind":"grammar","confidence":"certain","find":"युधामन्यू,","replace":"युधामन्यु,"}],"rejected":[],"costUsd":0.00025478}
+{"lang":"mr","ids":["1.1.11"],"issues":[],"rejected":[],"costUsd":0.00013418000000000002}
+{"lang":"mr","ids":["1.1.8"],"issues":[{"part":"translation","verseId":"1.1.8","index":-1,"reason":"The plural English “personalities” requires the Marathi plural व्यक्तिमत्त्वे.","genuine":true,"kind":"grammar","confidence":"certain","find":"व्यक्तिमत्त्व,","replace":"व्यक्तिमत्त्वे,"}],"rejected":[],"costUsd":0.00018308000000000002}
+{"lang":"mr","ids":["1.1.12"],"issues":[],"rejected":[],"costUsd":0.00017688}
+{"lang":"mr","ids":["1.1.13"],"issues":[],"rejected":[],"costUsd":0.00014398000000000001}
+{"lang":"mr","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.00016488}
+{"lang":"mr","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.00024378}
+{"lang":"mr","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.00017328}
+{"lang":"mr","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.00021028}
+{"lang":"mr","ids":["1.1.17"],"issues":[],"rejected":[],"costUsd":0.00027558}
+{"lang":"mr","ids":["1.1.20"],"issues":[{"part":"translation","verseId":"1.1.20","index":-1,"reason":"“Drawn in military array” means positioned in a battle formation, not having formed one.","genuine":true,"kind":"wrong","confidence":"certain","find":"व्यूहरचना करून उभे असलेले","replace":"व्यूहरचनेत उभे असलेले"}],"rejected":[],"costUsd":0.00028428000000000004}
+{"lang":"mr","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.00009287999999999999}
+{"lang":"mr","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.00010428}
+{"lang":"mr","ids":["1.1.18"],"issues":[],"rejected":[],"costUsd":0.00038377999999999996}
+{"lang":"mr","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.00018108000000000002}
+{"lang":"mr","ids":["1.1.26"],"issues":[],"rejected":[],"costUsd":0.00010438}
+{"lang":"mr","ids":["1.1.23"],"issues":[],"rejected":[],"costUsd":0.00020228}
+{"lang":"mr","ids":["1.1.22"],"issues":[{"part":"wordMeanings","verseId":"1.1.22","index":5,"reason":"The masculine plural referent requires the form “उभे,” not the feminine plural “उभ्या.”","genuine":true,"kind":"grammar","confidence":"certain","find":"उभ्या असलेल्यांना","replace":"उभे असलेल्यांना"}],"rejected":[],"costUsd":0.00027188}
+{"lang":"mr","ids":["1.1.31"],"issues":[],"rejected":[],"costUsd":0.00012878}
+{"lang":"mr","ids":["1.1.27"],"issues":[],"rejected":[],"costUsd":0.00015518000000000002}
+{"lang":"mr","ids":["1.1.29"],"issues":[],"rejected":[],"costUsd":0.00011848}
+{"lang":"mr","ids":["1.1.33"],"issues":[],"rejected":[],"costUsd":0.00025518000000000003}
+{"lang":"mr","ids":["1.1.28"],"issues":[],"rejected":[{"part":"translation","verseId":"1.28","index":-1,"reason":"The participle उभ्या should agree in gender and number with the masculine plural मित्रांना व आप्तांना.","genuine":true,"kind":"grammar","confidence":"certain","find":"उभ्या असलेल्या माझ्या मित्रांना","replace":"उभे असलेल्या माझ्या मित्रांना","rejectedBecause":"verseId is not in this unit"}],"costUsd":0.00027538}
+{"lang":"mr","ids":["1.1.36"],"issues":[],"rejected":[],"costUsd":0.00020298}
+{"lang":"mr","ids":["1.1.34"],"issues":[{"part":"translation","verseId":"1.1.34","index":-1,"reason":"The English says they might otherwise kill me; the perfect form मारले असले suggests they may already have killed me.","genuine":true,"kind":"wrong","confidence":"certain","find":"त्यांनी मला अन्यथा मारले असले तरीही","replace":"ते अन्यथा मला मारू शकत असले तरीही"}],"rejected":[],"costUsd":0.00044538}
+{"lang":"mr","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.00037507999999999997}
+{"lang":"mr","ids":["1.1.37"],"issues":[],"rejected":[],"costUsd":0.00016938}
+{"lang":"mr","ids":["1.1.40"],"issues":[],"rejected":[],"costUsd":0.00009578}
+{"lang":"mr","ids":["1.1.39"],"issues":[],"rejected":[],"costUsd":0.00015248000000000003}
+{"lang":"mr","ids":["1.1.30"],"issues":[{"part":"wordMeanings","verseId":"1.1.30","index":11,"reason":"Sanskrit bhramati means wandering or reeling, not forgetting.","genuine":true,"kind":"term","confidence":"certain","find":"विसरत आहे","replace":"भिरभिरत आहे"}],"rejected":[],"costUsd":0.00056508}
+{"lang":"mr","ids":["1.1.35"],"issues":[{"part":"wordMeanings","verseId":"1.1.35","index":4,"reason":"The Sanskrit ghnataḥ is active (‘killing’), not passive (‘being killed’).","genuine":true,"kind":"wrong","confidence":"certain","find":"मारला जात असताना","replace":"मला मारत असताना"}],"rejected":[],"costUsd":0.00043368}
+{"lang":"mr","ids":["1.1.38"],"issues":[{"part":"wordMeanings","verseId":"1.1.38","index":11,"reason":"Sanskrit mitra-droha means betrayal of friends, not quarreling with friends.","genuine":true,"kind":"term","confidence":"certain","find":"मित्रांशी कलह करण्यात","replace":"मित्रद्रोह करण्यात"},{"part":"translation","verseId":"1.1.38","index":-1,"reason":"Sanskrit mitra-droha means betrayal of friends, not quarreling with friends.","genuine":true,"kind":"term","confidence":"certain","find":"मित्रांशी कलह करण्यात","replace":"मित्रद्रोह करण्यात"}],"rejected":[],"costUsd":0.00027518000000000003}
+{"lang":"mr","ids":["1.1.41"],"issues":[],"rejected":[],"costUsd":0.00014837999999999999}
+{"lang":"mr","ids":["1.1.46"],"issues":[{"part":"wordMeanings","verseId":"1.1.46","index":3,"reason":"The Sanskrit aśastram means “unarmed,” not merely “not fully equipped.”","genuine":true,"kind":"wrong","confidence":"certain","find":"पूर्ण सज्ज नसलेला","replace":"निःशस्त्र"}],"rejected":[],"costUsd":0.00018508}
+{"lang":"mr","ids":["1.1.43"],"issues":[],"rejected":[],"costUsd":0.00011608000000000001}
+{"lang":"mr","ids":["1.1.47"],"issues":[{"part":"wordMeanings","verseId":"1.1.47","index":7,"reason":"Upāviśat means “sat down”; the English does not say “again.”","genuine":true,"kind":"wrong","confidence":"certain","find":"पुन्हा बसला","replace":"बसला"}],"rejected":[],"costUsd":0.00023498000000000003}
+{"lang":"mr","ids":["1.1.45"],"issues":[],"rejected":[],"costUsd":0.00020028}
+{"lang":"mr","ids":["1.1.44"],"issues":[{"part":"wordMeanings","verseId":"1.1.44","index":1,"reason":"Sanskrit kula-dharmāṇām means “of family traditions,” not “of those who have family traditions.”","genuine":true,"kind":"term","confidence":"certain","find":"कौटुंबिक परंपरा असलेल्यांचा","replace":"कौटुंबिक परंपरांचा"}],"rejected":[],"costUsd":0.00033918}
+{"lang":"bn","ids":["1.1.7"],"issues":[],"rejected":[],"costUsd":0.0001923}
+{"lang":"bn","ids":["1.1.5"],"issues":[],"rejected":[],"costUsd":0.00012268}
+{"lang":"bn","ids":["1.1.4"],"issues":[],"rejected":[],"costUsd":0.0002464}
+{"lang":"bn","ids":["1.1.3"],"issues":[],"rejected":[],"costUsd":0.00011278}
+{"lang":"bn","ids":["1.1.6"],"issues":[],"rejected":[],"costUsd":0.00009818000000000001}
+{"lang":"bn","ids":["1.1.9"],"issues":[],"rejected":[],"costUsd":0.00007937999999999999}
+{"lang":"bn","ids":["1.1.10"],"issues":[],"rejected":[],"costUsd":0.00012848000000000002}
+{"lang":"bn","ids":["1.1.11"],"issues":[],"rejected":[],"costUsd":0.00012338}
+{"lang":"bn","ids":["1.1.8"],"issues":[],"rejected":[],"costUsd":0.00022808000000000003}
+{"lang":"mr","ids":["1.1.42"],"issues":[],"rejected":[],"costUsd":0.00018798000000000003}
+{"lang":"bn","ids":["1.1.14"],"issues":[],"rejected":[],"costUsd":0.00011198000000000001}
+{"lang":"bn","ids":["1.1.15"],"issues":[],"rejected":[],"costUsd":0.00010848}
+{"lang":"bn","ids":["1.1.16"],"issues":[],"rejected":[],"costUsd":0.00012718}
+{"lang":"bn","ids":["1.1.12"],"issues":[{"part":"wordMeanings","verseId":"1.1.12","index":7,"reason":"Uccaiḥ means “very loudly”; উচ্চৈঃস্বরে is an incorrect Bengali formation here.","genuine":true,"kind":"grammar","confidence":"certain","find":"অতি উচ্চৈঃস্বরে","replace":"অতি উচ্চস্বরে"},{"part":"translation","verseId":"1.1.12","index":-1,"reason":"Uccaiḥ means “very loudly”; উচ্চৈঃস্বরে is an incorrect Bengali formation here.","genuine":true,"kind":"grammar","confidence":"certain","find":"অতি উচ্চৈঃস্বরে","replace":"অতি উচ্চস্বরে"}],"rejected":[],"costUsd":0.00026668}
+{"lang":"bn","ids":["1.1.13"],"issues":[],"rejected":[{"part":"translation","verseId":"1.13","index":-1,"reason":"The English lists the instruments without an etcetera; “প্রভৃতি” adds other instruments to the list.","genuine":true,"kind":"wrong","confidence":"certain","find":"ও গোমুখ প্রভৃতি বাদ্যযন্ত্র","replace":"ও গোমুখ বাদ্যযন্ত্র","rejectedBecause":"verseId is not in this unit"},{"part":"translation","verseId":"1.13","index":-1,"reason":"The English says “tumultuous,” without the added intensifier “অতি.”","genuine":true,"kind":"wrong","confidence":"certain","find":"অতি তুমুল","replace":"তুমুল","rejectedBecause":"verseId is not in this unit"}],"costUsd":0.00032498}
+{"lang":"bn","ids":["1.1.20"],"issues":[],"rejected":[],"costUsd":0.00012078}
+{"lang":"bn","ids":["1.1.17"],"issues":[],"rejected":[],"costUsd":0.00021348000000000002}
+{"lang":"bn","ids":["1.1.19"],"issues":[],"rejected":[],"costUsd":0.00010158000000000001}
+{"lang":"bn","ids":["1.1.1"],"issues":[{"part":"wordMeanings","verseId":"1.1.1","index":1,"reason":"dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"তীর্থক্ষেত্রে","replace":"ধর্মক্ষেত্রে"},{"part":"translation","verseId":"1.1.1","index":-1,"reason":"dharma-kṣetre means “in the field of dharma,” not “in a place of pilgrimage.”","genuine":true,"kind":"term","confidence":"certain","find":"কুরুক্ষেত্রের তীর্থক্ষেত্রে","replace":"ধর্মক্ষেত্র কুরুক্ষেত্রে"}],"rejected":[],"costUsd":0.00025868}
+{"lang":"bn","ids":["1.1.21"],"issues":[],"rejected":[],"costUsd":0.00018788}
+{"lang":"bn","ids":["1.1.18"],"issues":[],"rejected":[],"costUsd":0.00031798000000000004}
+{"lang":"bn","ids":["1.1.24"],"issues":[],"rejected":[],"costUsd":0.00012828}
+{"lang":"bn","ids":["1.1.25"],"issues":[],"rejected":[],"costUsd":0.00011518}
+{"lang":"bn","ids":["1.1.22"],"issues":[],"rejected":[],"costUsd":0.00016518000000000001}
+{"lang":"bn","ids":["1.1.26"],"issues":[{"part":"wordMeanings","verseId":"1.1.26","index":4,"reason":"pitṝn means fathers, whereas পিতৃব্যগণ means paternal uncles.","genuine":true,"kind":"term","confidence":"certain","find":"পিতৃব্যগণ","replace":"পিতৃগণ"},{"part":"translation","verseId":"1.1.26","index":-1,"reason":"pitṝn means fathers, whereas পিতৃব্যগণ means paternal uncles.","genuine":true,"kind":"term","confidence":"certain","find":"পিতৃব্যগণ","replace":"পিতৃগণ"}],"rejected":[],"costUsd":0.00019178}
+{"lang":"bn","ids":["1.1.27"],"issues":[],"rejected":[],"costUsd":0.00013168}
+{"lang":"bn","ids":["1.1.23"],"issues":[{"part":"wordMeanings","verseId":"1.1.23","index":7,"reason":"Dhārtarāṣṭrasya means “son of Dhṛtarāṣṭra”; the added জন্য (“for”) is not part of this word.","genuine":true,"kind":"wrong","confidence":"certain","find":"ধৃতরাষ্ট্রের পুত্রের জন্য","replace":"ধৃতরাষ্ট্রের পুত্রের"}],"rejected":[],"costUsd":0.00024108000000000002}
+{"lang":"bn","ids":["1.1.29"],"issues":[],"rejected":[],"costUsd":0.00009718}
+{"lang":"bn","ids":["1.1.30"],"issues":[],"rejected":[],"costUsd":0.00009908000000000001}
+{"lang":"bn","ids":["1.1.28"],"issues":[],"rejected":[],"costUsd":0.00015338}
+{"lang":"bn","ids":["1.1.31"],"issues":[],"rejected":[],"costUsd":0.00010398}
+{"lang":"bn","ids":["1.1.2"],"issues":[{"part":"wordMeanings","verseId":"1.1.2","index":7,"reason":"Ācāryam is the teacher as the object of approaching, so the Bengali needs the object form, not the genitive.","genuine":true,"kind":"grammar","confidence":"certain","find":"আচার্যের","replace":"আচার্যকে"}],"rejected":[],"costUsd":0.00017868000000000002}
+{"lang":"bn","ids":["1.1.37"],"issues":[],"rejected":[],"costUsd":0.00012538}
+{"lang":"bn","ids":["1.1.34"],"issues":[],"rejected":[],"costUsd":0.00017998000000000002}
+{"lang":"bn","ids":["1.1.35"],"issues":[],"rejected":[],"costUsd":0.00027918}
+{"lang":"bn","ids":["1.1.39"],"issues":[],"rejected":[],"costUsd":0.00016678}
+{"lang":"bn","ids":["1.1.36"],"issues":[{"part":"wordMeanings","verseId":"1.1.36","index":9,"reason":"Āśrayet is glossed as “must come upon,” but আশ্রয় করবে means “will shelter.”","genuine":true,"kind":"wrong","confidence":"certain","find":"আশ্রয় করবে","replace":"আক্রমণ করবে"},{"part":"translation","verseId":"1.1.36","index":-1,"reason":"Āśrayet is glossed as “overcome,” but পাপ আমাদের আশ্রয় করবে says that sin will shelter us.","genuine":true,"kind":"wrong","confidence":"certain","find":"পাপ আমাদের আশ্রয় করবে","replace":"পাপ আমাদের গ্রাস করবে"}],"rejected":[],"costUsd":0.00031218}
+{"lang":"bn","ids":["1.1.32"],"issues":[],"rejected":[],"costUsd":0.00033848}
+{"lang":"bn","ids":["1.1.38"],"issues":[{"part":"translation","verseId":"1.1.38","index":-1,"reason":"The relative pronoun যারা takes the third-person verb পায়, not the first-person পাই.","genuine":true,"kind":"grammar","confidence":"certain","find":"যারা দেখতে পাই","replace":"যারা দেখতে পায়"}],"rejected":[],"costUsd":0.00032528}
+{"lang":"bn","ids":["1.1.33"],"issues":[{"part":"translation","verseId":"1.1.33","index":-1,"reason":"The locative জীবনে does not fit the list of things whose avail is being questioned; জীবন আমাদের কী কাজে লাগবে is grammatical Bengali and conveys the English.","genuine":true,"kind":"grammar","confidence":"certain","find":"তখন আমাদের কাছে রাজ্য, সুখ বা জীবনে কী প্রয়োজন","replace":"তখন রাজ্য, সুখ বা জীবন আমাদের কী কাজে লাগবে"}],"rejected":[],"costUsd":0.00047168}
+{"lang":"bn","ids":["1.1.42"],"issues":[],"rejected":[],"costUsd":0.00011648000000000001}
+{"lang":"bn","ids":["1.1.45"],"issues":[],"rejected":[],"costUsd":0.00010737999999999999}
+{"lang":"bn","ids":["1.1.47"],"issues":[],"rejected":[],"costUsd":0.00013937999999999998}
+{"lang":"bn","ids":["1.1.46"],"issues":[{"part":"wordMeanings","verseId":"1.1.46","index":3,"reason":"Aśastram means “unarmed,” not merely “not fully equipped.”","genuine":true,"kind":"wrong","confidence":"certain","find":"সম্পূর্ণ সজ্জিত না হয়ে","replace":"নিরস্ত্র"}],"rejected":[],"costUsd":0.00018118}
+{"lang":"bn","ids":["1.1.40"],"issues":[],"rejected":[],"costUsd":0.00018338}
+{"lang":"bn","ids":["1.1.44"],"issues":[{"part":"wordMeanings","verseId":"1.1.44","index":1,"reason":"Sanskrit utsanna-kula-dharmāṇām means those whose family traditions are destroyed, but the Bengali omits that destruction.","genuine":true,"kind":"wrong","confidence":"certain","find":"যাদের কুলধর্ম আছে তাদের","replace":"যাদের কুলধর্ম বিনষ্ট হয়েছে তাদের"}],"rejected":[],"costUsd":0.00020658000000000002}
+{"lang":"bn","ids":["1.1.41"],"issues":[{"part":"translation","verseId":"1.1.41","index":-1,"reason":"The plural human subject বংশের নারীগণ requires plural agreement in Bengali.","genuine":true,"kind":"grammar","confidence":"certain","find":"বংশের নারীগণ কলুষিত হয়","replace":"বংশের নারীগণ কলুষিত হন"}],"rejected":[],"costUsd":0.00020208000000000002}
+{"lang":"bn","ids":["1.1.43"],"issues":[{"part":"wordMeanings","verseId":"1.1.43","index":6,"reason":"Jāti-dharmāḥ means the duties or customs of a community, not community-welfare projects.","genuine":true,"kind":"term","confidence":"certain","find":"সমাজকল্যাণমূলক প্রকল্প","replace":"জাতিধর্ম"},{"part":"translation","verseId":"1.1.43","index":-1,"reason":"Jāti-dharmāḥ means community duties or customs, not community-welfare projects.","genuine":true,"kind":"term","confidence":"certain","find":"সমস্ত রকমের সমাজকল্যাণমূলক প্রকল্প","replace":"সমস্ত রকমের জাতিধর্ম"}],"rejected":[],"costUsd":0.00033408}

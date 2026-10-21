@@ -27,6 +27,60 @@ void main() {
     });
   });
 
+  group('AppUser with no address', () {
+    // Someone who came over from the previous app may have no address the
+    // reader can use; the API then sends null, not a made-up one.
+    const base = {'id': 'u1', 'timezone': 'Asia/Kolkata'};
+
+    test('reads as an empty address, not a failure', () {
+      expect(AppUser.fromJson({...base, 'email': null}).email, isEmpty);
+      expect(AppUser.fromJson(base).email, isEmpty);
+    });
+
+    test('is shown by name', () {
+      final user = AppUser.fromJson({...base, 'email': null, 'name': 'Asha Devi'});
+
+      expect(user.displayName, 'Asha Devi');
+      expect(user.initials, 'AD');
+    });
+
+    test('has a mark even with neither a name nor an address', () {
+      final user = AppUser.fromJson({...base, 'email': null, 'name': '  '});
+
+      expect(user.displayName, isEmpty);
+      expect(user.initials, '?');
+    });
+  });
+
+  group('AppUser.firstName', () {
+    const base = {'id': 'u1', 'timezone': 'Asia/Kolkata'};
+
+    String firstOf(String? name, {String? email}) =>
+        AppUser.fromJson({...base, 'name': name, 'email': email}).firstName;
+
+    test('keeps only the part before the first space', () {
+      expect(firstOf('Asha Devi'), 'Asha');
+      expect(firstOf('Asha Devi Sharma'), 'Asha');
+    });
+
+    test('ignores extra or unusual whitespace', () {
+      expect(firstOf('  Asha   Devi '), 'Asha');
+      expect(firstOf('Asha Devi'), 'Asha');
+    });
+
+    test('is the whole name when there is one word', () {
+      expect(firstOf('Asha'), 'Asha');
+    });
+
+    test('falls back to the address when there is no name', () {
+      expect(firstOf(null, email: 'asha@example.com'), 'asha');
+    });
+
+    test('is empty with neither a name nor an address', () {
+      expect(firstOf('  '), isEmpty);
+    });
+  });
+
   group('Mantra mala recording', () {
     const base = {'id': 'm1', 'slug': 'mahamantra', 'name': 'Mahamantra', 'text': 'हरे कृष्ण'};
 

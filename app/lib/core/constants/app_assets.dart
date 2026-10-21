@@ -15,4 +15,11 @@ abstract final class AppAssets {
   /// welcome (`SakhaIcon`). One file: replacing `assets/sakha_icon.svg` changes
   /// all three, in its own colours in both themes.
   static const String sakhaIcon = 'assets/sakha_icon.svg';
+
+  /// The lotus photograph, already blurred — the faint ground of the Verse of the
+  /// Day card, the same picture the daily notification is drawn over. 720×540,
+  /// made from `backend/public/g01-lotus-feet-820x547.jpg` with the notification's
+  /// own blur scaled to this size. The card draws it at low opacity, so how strong
+  /// it is can be retuned there without redoing the picture.
+  static const String verseBackdrop = 'assets/verse_backdrop.jpg';
 }

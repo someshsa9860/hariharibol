@@ -100,6 +100,47 @@ router.patch(
   controller.update
 );
 
+router.patch(
+  '/:verseId/content',
+  {
+    summary: 'Correct a verse’s own text (book auditor)',
+    description:
+      'Sanskrit, transliteration and word meanings, as edited from the admin reader. Needs ' +
+      '`book.audit`, which only the book auditor role carries — super admin does not.',
+    permission: 'book.audit',
+    limit: 'write',
+    params: verseIdParam,
+    body: z.object({
+      sanskrit: z.string().optional(),
+      transliteration: z.string().optional(),
+      wordMeanings: wordMeaningsSchema.optional(),
+    }),
+    responds: { 200: 'The verse', 404: 'No such verse' },
+  },
+  controller.updateContent
+);
+
+router.patch(
+  '/:verseId/translations/:translationId',
+  {
+    summary: 'Correct an existing translation’s text (book auditor)',
+    description:
+      'Meaning, purport, and the transliteration and word meanings in that language. Edits a ' +
+      'row that exists; it does not create or delete one. Needs `book.audit`.',
+    permission: 'book.audit',
+    limit: 'write',
+    params: z.object({ verseId: z.string(), translationId: z.string() }),
+    body: z.object({
+      meaning: z.string().min(1).optional(),
+      purport: z.string().nullable().optional(),
+      transliteration: z.string().nullable().optional(),
+      wordMeanings: wordMeaningsSchema.nullable().optional(),
+    }),
+    responds: { 200: 'The translation', 404: 'No such translation' },
+  },
+  controller.updateTranslationContent
+);
+
 router.delete(
   '/:verseId',
   {

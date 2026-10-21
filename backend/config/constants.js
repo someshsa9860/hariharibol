@@ -9,6 +9,7 @@ const ROLES = {
   MODERATOR: 'moderator',
   ADMIN: 'admin',
   SUPER_ADMIN: 'super_admin',
+  BOOK_AUDITOR: 'book_auditor',
 };
 
 // ── Permissions ────────────────────────────────────────────────────────────
@@ -23,6 +24,8 @@ const PERMISSIONS = {
   'verse.write': { group: 'content', name: 'Create and edit verses' },
   'verse.publish': { group: 'content', name: 'Publish verse translations' },
   'verse.delete': { group: 'content', name: 'Delete verses' },
+  // Held by the book auditor alone — see ROLE_PERMISSIONS.
+  'book.audit': { group: 'content', name: 'Correct a book’s text in the reader (Sanskrit, translations, purports)' },
   'mantra.read': { group: 'content', name: 'View mantras' },
   'mantra.write': { group: 'content', name: 'Create and edit mantras' },
   'mantra.publish': { group: 'content', name: 'Publish mantras' },
@@ -30,6 +33,7 @@ const PERMISSIONS = {
   'translator.manage': { group: 'content', name: 'Manage translators' },
   'reference.manage': { group: 'content', name: 'Manage deities, gurus, languages, issues' },
   'sloka.manage': { group: 'content', name: 'Curate the daily sloka' },
+  'panchang.manage': { group: 'content', name: 'Edit the Hindu calendar and festivals' },
   'media.upload': { group: 'content', name: 'Upload media to S3' },
   'reelTemplate.read': { group: 'content', name: 'View reel templates' },
   'reelTemplate.write': { group: 'content', name: 'Create and edit reel templates' },
@@ -41,6 +45,8 @@ const PERMISSIONS = {
   'reel.delete': { group: 'content', name: 'Delete reels' },
   'translation.read': { group: 'content', name: 'View Claude translation runs and their output' },
   'translation.run': { group: 'content', name: 'Start, resume and cancel Claude translation runs' },
+  'scenes.read': { group: 'content', name: 'View AI reel scene prompts and their runs' },
+  'scenes.run': { group: 'content', name: 'Start, resume and cancel AI reel scene prompt runs' },
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
 
   // users
@@ -67,6 +73,7 @@ const PERMISSIONS = {
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSIONS);
+const AUDITOR_ONLY = ['book.audit'];
 
 // Which permissions each standard role carries. `super_admin` is intentionally
 // not listed — it is granted everything, including permissions added later.
@@ -78,13 +85,17 @@ const ROLE_PERMISSIONS = {
     'verse.write',
     'mantra.read',
     'sloka.manage',
+    'panchang.manage',
     'user.read',
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund'].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', ...AUDITOR_ONLY].includes(slug)
   ),
-  [ROLES.SUPER_ADMIN]: ALL_PERMISSIONS,
+  // Everything, including permissions added later — except the auditor-only ones: a book's
+  // text is corrected by one named role so every correction has one accountable hand.
+  [ROLES.SUPER_ADMIN]: ALL_PERMISSIONS.filter((slug) => !AUDITOR_ONLY.includes(slug)),
+  [ROLES.BOOK_AUDITOR]: ['book.read', 'verse.read', 'book.audit'],
 };
 
 // ── Books ──────────────────────────────────────────────────────────────────
@@ -169,6 +180,9 @@ const SETTING_KEYS = {
   AI_FREE_TIER_ENABLED: 'ai.free_tier.enabled',
   AI_FREE_TIER_TEXT_MODEL: 'ai.free_tier.text_model',
   AI_FREE_TIER_TRANSLATION_MODEL: 'ai.free_tier.translation_model',
+  // The daily bonus every reader gets while the free tier is on — its pool, and the most one reader can be given.
+  AI_FREE_TIER_BONUS_POOL: 'ai.free_tier.bonus_pool',
+  AI_FREE_TIER_BONUS_MAX_USER: 'ai.free_tier.bonus_max_per_user',
   SLOKA_DELIVERY_TIME: 'sloka.delivery.time',
   SIGNUP_ENABLED: 'auth.signup.enabled',
   BOOK_CACHE_VERSION: 'book.cache_version',
@@ -176,6 +190,8 @@ const SETTING_KEYS = {
   CHAT_SYSTEM_PROMPT: 'chat.system_prompt',
   CHAT_DESCRIPTION: 'chat.description',
   CHAT_LIMITS: 'chat.limits',
+  // How book reels (verses drawn as pages) look and which buttons they show — see config/book-reel.js.
+  BOOK_REEL_STYLE: 'reels.book_style',
 };
 
 // When the daily sloka is pushed, in each reader's own timezone, if the

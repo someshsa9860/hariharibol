@@ -11,6 +11,7 @@ import 'package:hariharibol/core/theme/app_typography.dart';
 import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/language.dart';
 import 'package:hariharibol/models/language_settings.dart';
+import 'package:hariharibol/models/reading_mode.dart';
 import 'package:hariharibol/models/verse.dart';
 import 'package:hariharibol/models/verse_part.dart';
 import 'package:hariharibol/providers/language_settings_provider.dart';
@@ -75,6 +76,30 @@ class _FontSizeInMemory extends ReadingFontSizeNotifier {
   Future<void> set(ReadingFontSize size) async => state = size;
 }
 
+class _ModeInMemory extends ReadingModeNotifier {
+  @override
+  ReadingMode build() => ReadingMode.verses;
+
+  @override
+  Future<void> set(ReadingMode mode) async => state = mode;
+}
+
+class _StoryPartInMemory extends StoryPartNotifier {
+  @override
+  StoryPart build() => StoryPart.translation;
+
+  @override
+  Future<void> set(StoryPart part) async => state = part;
+}
+
+class _StoryNumbersInMemory extends StoryNumbersNotifier {
+  @override
+  bool build() => true;
+
+  @override
+  Future<void> set(bool shown) async => state = shown;
+}
+
 class _LanguagesInMemory extends LanguageSettingsNotifier {
   @override
   LanguageSettings build() => const LanguageSettings(app: 'en', reading: 'en', speaking: 'en');
@@ -119,6 +144,9 @@ Widget _sheetApp() => ProviderScope(
       overrides: [
         hiddenVersePartsProvider.overrideWith(_HiddenInMemory.new),
         readingFontSizeProvider.overrideWith(_FontSizeInMemory.new),
+        readingModeProvider.overrideWith(_ModeInMemory.new),
+        storyPartProvider.overrideWith(_StoryPartInMemory.new),
+        storyNumbersProvider.overrideWith(_StoryNumbersInMemory.new),
         languageSettingsProvider.overrideWith(_LanguagesInMemory.new),
         languagesProvider.overrideWith((ref) async => const [
               Language(code: 'en', nativeName: 'English', englishName: 'English'),
@@ -285,6 +313,37 @@ void main() {
       await tester.pump();
 
       expect(find.text('Reading settings'), findsOneWidget);
+    });
+  });
+
+  group('the Reading settings sheet — story mode', () {
+    testWidgets('verse by verse offers Hide; story swaps it for the part to tell it in and numbers', (tester) async {
+      await _openSheet(tester);
+      expect(find.text('Hide in verses'), findsOneWidget);
+      expect(find.text('Story shows'), findsNothing);
+
+      await tester.tap(find.text('Story'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hide in verses'), findsNothing);
+      expect(find.text('Story shows'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'Meaning'), findsOneWidget);
+      expect(find.text('Verse numbers'), findsOneWidget);
+      expect(_container(tester).read(readingModeProvider), ReadingMode.story);
+    });
+
+    testWidgets('picking a part and turning numbers off are applied at once', (tester) async {
+      await _openSheet(tester);
+      await tester.tap(find.text('Story'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Purport'));
+      await tester.pump();
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pump();
+
+      expect(_container(tester).read(storyPartProvider), StoryPart.purport);
+      expect(_container(tester).read(storyNumbersProvider), isFalse);
     });
   });
 

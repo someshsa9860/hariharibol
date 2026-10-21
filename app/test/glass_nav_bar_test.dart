@@ -17,8 +17,8 @@ import 'package:hariharibol/widgets/common/nav_hero_button.dart';
 const _items = [
   NavItem(icon: Icons.home_outlined, selectedIcon: Icons.home_rounded, label: 'Home'),
   NavItem(icon: Icons.self_improvement_outlined, selectedIcon: Icons.self_improvement_rounded, label: 'Jap'),
-  NavItem(icon: Icons.play_circle_outline_rounded, selectedIcon: Icons.play_circle_rounded, label: 'Reels'),
   NavItem(icon: Icons.menu_book_outlined, selectedIcon: Icons.menu_book_rounded, label: 'Read'),
+  NavItem(icon: Icons.play_circle_outline_rounded, selectedIcon: Icons.play_circle_rounded, label: 'Reels'),
 ];
 
 Widget _bar({

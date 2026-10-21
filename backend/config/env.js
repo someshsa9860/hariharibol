@@ -51,7 +51,35 @@ const schema = z.object({
   GOOGLE_CLIENT_IDS: z.string().default(''),
   APPLE_BUNDLE_IDS: z.string().default(''),
 
+  // Universal links / app links (deeplink/index.js). The Apple team prefixes each bundle id in the
+  // association file; the Android SHA-256 fingerprints come from the app signing certificate
+  // (Play Console → App integrity → App signing, comma separated). Both are empty until set, on
+  // purpose: a wrong value silently disables the links, an empty one is easy to notice.
+  APPLE_TEAM_ID: z.string().default(''),
+  ANDROID_CERT_SHA256: z.string().default(''),
+  // The public store listings the share page offers. Empty means "not published yet": the page
+  // then hides the badge instead of linking somewhere invented.
+  PLAY_STORE_URL: z.string().default(''),
+  APP_STORE_URL: z.string().default(''),
+
   APP_CHECK_ENABLED: flag(false),
+
+  // Carrying people over from the old app's server (POST /auth/legacy, services/legacy.js). The URL is
+  // the old server's migration route in full; the key is the secret both servers hold (HHB_MIGRATION_KEY
+  // over there), sent as X-Migration-Key. Leave either blank and the feature is off: the endpoint answers
+  // 503 and the app keeps the old token for later.
+  LEGACY_MIGRATION_URL: z
+    .string()
+    .trim()
+    .refine((value) => !value || /^https?:\/\/\S+$/i.test(value), 'must be a full http(s) URL')
+    .default(''),
+  LEGACY_MIGRATION_KEY: z
+    .string()
+    .trim()
+    .refine((value) => !value || value.length >= 32, 'must be at least 32 characters')
+    .default(''),
+  LEGACY_MIGRATION_TIMEOUT_MS: z.coerce.number().int().min(1000).max(30000).default(8000),
+
   // Path to the Firebase service account JSON — see secrets/README.md. Either
   // absolute, or relative to the backend directory. Takes precedence over the
   // three FIREBASE_* fields below, which remain for hosts where mounting a
@@ -74,6 +102,8 @@ const schema = z.object({
   BOOK_CACHE_TZ: z.string().default('Asia/Kolkata'),
   BOOK_CACHE_PREFIX: z.string().default('books/caches'),
   BOOK_CACHE_DOWNLOAD_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
+  // A changed book is exported once its writes have been quiet this long (an import is many statements).
+  BOOK_CACHE_QUIET_SECONDS: z.coerce.number().int().min(0).max(3600).default(90),
 
   // "gemini" or "openai", in any case.
   AI_PROVIDER: z
@@ -133,6 +163,14 @@ const schema = z.object({
   TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
+  // Video scene prompts for the chapters of a book (admin → Scenes). Gemini unless a run says otherwise; the model and
+  // the free tier's limits (requests and tokens a minute, requests a day) are settings so a plan change is not a deploy.
+  SCENES_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
+  SCENES_GEMINI_MODEL: z.string().optional(),
+  SCENES_RPM: z.coerce.number().int().min(1).optional(),
+  SCENES_TPM: z.coerce.number().int().min(1000).optional(),
+  SCENES_RPD: z.coerce.number().int().min(0).optional(), // 0 = no daily cap of our own
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 
@@ -154,6 +192,8 @@ const env = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
+  androidCertSha256: csv(parsed.data.ANDROID_CERT_SHA256),
+  legacyMigrationEnabled: Boolean(parsed.data.LEGACY_MIGRATION_URL && parsed.data.LEGACY_MIGRATION_KEY),
   // Resolved against the backend directory so the .env can hold the short,
   // obvious `secrets/…json` rather than a path that only works from one cwd.
   googleServiceAccountPath: parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH

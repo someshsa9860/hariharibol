@@ -1,3 +1,4 @@
+import 'book_reel.dart';
 import 'json.dart';
 import 'reel_overlay.dart';
 
@@ -191,6 +192,8 @@ class Reel {
     this.mantra,
     this.deity,
     this.overlays = const [],
+    this.layout = 'MEDIA',
+    this.verseContent,
   });
 
   final String id;
@@ -237,6 +240,14 @@ class Reel {
   /// Text an admin laid over the media. Drawn by the app, so it stays on top of
   /// whatever the media is and can be re-worded without touching the file.
   final List<ReelOverlay> overlays;
+
+  /// 'VERSE_PAGES' for a book reel: the app draws [verseContent] as pages
+  /// instead of playing the media. Anything else is an ordinary media reel.
+  final String layout;
+  final VerseReelContent? verseContent;
+
+  /// A book reel with something to draw. One whose verse has gone is shown as the media reel it also is.
+  bool get isVersePages => layout == 'VERSE_PAGES' && verseContent != null;
 
   /// The keys the API puts on every reel it makes from a verse (see the
   /// backend's `utils/reel-tags.js`): where in which book the verse sits. A
@@ -303,6 +314,8 @@ class Reel {
         mantra: ReelSubject.maybe(asJson(json['mantra'])),
         deity: ReelSubject.maybe(asJson(json['deity'])),
         overlays: ReelOverlay.listFrom(json['overlays']),
+        layout: asString(json['layout'], 'MEDIA'),
+        verseContent: VerseReelContent.maybe(asJson(json['verseContent'])),
       );
 
   static List<ReelImage> _ordered(List<ReelImage> images) {
@@ -349,6 +362,8 @@ class Reel {
       mantra: mantra,
       deity: deity,
       overlays: overlays,
+      layout: layout,
+      verseContent: verseContent,
     );
   }
 }

@@ -419,26 +419,34 @@ void main() {
       final client = ApiClient.forTesting(adapter: server);
 
       await client.post(ApiPaths.signInSocial, body: const {'provider': 'GOOGLE'});
+      await client.post(ApiPaths.signInLegacy, body: const {'legacyToken': 'x'});
       await client.post(ApiPaths.logout, body: const {'refreshToken': 'x'});
       await client.get(_data);
 
       expect(server.to(ApiPaths.signInSocial).single.bearer, isNull);
+      expect(server.to(ApiPaths.signInLegacy).single.bearer, isNull);
       expect(server.to(ApiPaths.logout).single.bearer, isNull);
       expect(server.to(_data).single.bearer, isNotNull);
     });
 
-    test('a refused sign-in is not answered with a refresh', () async {
-      await signedInWith();
-      final server = ScriptedServer((r) => Reply(403, errorBody('UNAUTHENTICATED')));
+    // The previous app's token is answered 403 UNAUTHENTICATED when the old
+    // server does not know it. That is a verdict on that token, not "your session
+    // lapsed": there is nothing to refresh, and a refresh would only spend the
+    // session of whoever is signed in.
+    for (final path in [ApiPaths.signInSocial, ApiPaths.signInLegacy]) {
+      test('a refused sign-in is not answered with a refresh ($path)', () async {
+        await signedInWith();
+        final server = ScriptedServer((r) => Reply(403, errorBody('UNAUTHENTICATED')));
 
-      await expectLater(
-        ApiClient.forTesting(adapter: server).post(ApiPaths.signInSocial, body: const {}),
-        throwsA(isA<ApiFailure>()),
-      );
+        await expectLater(
+          ApiClient.forTesting(adapter: server).post(path, body: const {}),
+          throwsA(isA<ApiFailure>()),
+        );
 
-      expect(server.to(ApiPaths.refresh), isEmpty);
-      expect(AppSession.instance.isSignedIn, isTrue);
-    });
+        expect(server.to(ApiPaths.refresh), isEmpty);
+        expect(AppSession.instance.isSignedIn, isTrue);
+      });
+    }
   });
 
   group('renewing before the token lapses', () {

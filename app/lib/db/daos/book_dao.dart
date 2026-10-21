@@ -192,6 +192,8 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
         await _removeUnitRows(state.unitId);
         await (delete(downloadStates)..where((s) => s.bookId.equals(bookId) & s.unitId.equals(state.unitId))).go();
       }
+      // Nothing of the old copy is left to be "current" at any version.
+      if (stale.isNotEmpty) await setContentVersion(bookId, 0);
       return stale.length;
     });
   }
@@ -247,12 +249,40 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
     await (update(books)..where((b) => b.id.equals(bookId))).write(BooksCompanion(totalUnits: Value(total)));
   }
 
+  /// Records that every unit of [bookId] on the device is current as of the
+  /// server's [version] of its text. A book with no row yet has nothing on the
+  /// device, so there is nothing to record and this does nothing.
+  Future<void> setContentVersion(String bookId, int version) async {
+    await (update(books)..where((b) => b.id.equals(bookId))).write(BooksCompanion(contentVersion: Value(version)));
+  }
+
+  /// The version [setContentVersion] last recorded; 0 when unknown or no copy.
+  Future<int> contentVersionOf(String bookId) async =>
+      (await bookById(bookId))?.contentVersion ?? 0;
+
   // ── Reading ──────────────────────────────────────────────────────────
 
   Future<BookRecord?> bookBySlug(String slug) =>
       (select(books)..where((b) => b.slug.equals(slug))).getSingleOrNull();
 
   Future<BookRecord?> bookById(String id) => (select(books)..where((b) => b.id.equals(id))).getSingleOrNull();
+
+  /// Which copy of a chapter's unit is on the device — `version:hash` of its finished
+  /// download — and a new value each time the unit is replaced, so a screen reading the
+  /// chapter knows when to read it again. Null while the chapter's unit is not (fully)
+  /// on the device. One query across the three tables; the unit is a canto for a book cut
+  /// by canto, so [cantoNumber] must be given for one.
+  Stream<String?> watchChapterRevision(String slug, int number, {int? cantoNumber}) {
+    return customSelect(
+      "SELECT d.version AS version, d.hash AS hash FROM units u "
+      "JOIN books b ON b.id = u.book_id "
+      "JOIN download_state d ON d.book_id = u.book_id AND d.unit_id = u.download_unit_id "
+      "WHERE b.slug = ?1 AND u.kind = 'chapter' AND u.number = ?2 "
+      "AND (?3 IS NULL OR u.canto_number = ?3) AND d.status = 'done' LIMIT 1",
+      variables: [Variable<String>(slug), Variable<int>(number), Variable<int>(cantoNumber)],
+      readsFrom: {books, units, downloadStates},
+    ).watchSingleOrNull().map((row) => row == null ? null : '${row.read<int>('version')}:${row.read<String?>('hash')}').distinct();
+  }
 
   /// Cantos, or chapters ([cantoNumber] narrows chapters to one canto).
   Future<List<UnitRecord>> sections(String bookId, String kind, {int? cantoNumber}) {

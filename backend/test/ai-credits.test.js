@@ -129,3 +129,31 @@ test('renewal tops the wallet up to the allocation, never beyond', () => {
   assert.equal(granted.credit, null, 'an admin grant above the allocation is not topped up or taken back');
   assert.ok(granted.update.periodEnd, 'but the period still rolls over');
 });
+
+test('a free-tier bonus is spent beside the wallet and outside the daily cap', () => {
+  // Wallet 500, cap 100 with 100 used: nothing left from the wallet's side, but 40 of bonus is.
+  assert.equal(spendable({ balance: 500, dailyUsed: 100, dailyLimit: 100, bonusLeft: 40 }), 40);
+  assert.equal(spendable({ balance: 500, dailyUsed: 60, dailyLimit: 100, bonusLeft: 40 }), 80);
+  assert.equal(spendable({ balance: 0, dailyUsed: 0, dailyLimit: 100, bonusLeft: 40 }), 40, 'an empty wallet still has the bonus');
+  assert.equal(spendable({ balance: 500, dailyLimit: 100, conversationUsed: 90, conversationLimit: 100, bonusLeft: 40 }), 10, 'a chat share still bounds it');
+  assert.equal(spendable({ balance: 500, dailyLimit: 100, bonusLeft: 0 }), 100, 'no bonus changes nothing');
+});
+
+test('whyBlocked counts the bonus before it blames the daily cap or the wallet', () => {
+  assert.equal(whyBlocked({ balance: 500, dailyUsed: 100, dailyLimit: 100, needed: 30, bonusLeft: 40 }), null);
+  assert.equal(whyBlocked({ balance: 500, dailyUsed: 100, dailyLimit: 100, needed: 50, bonusLeft: 40 }), 'DAILY');
+  assert.equal(whyBlocked({ balance: 0, dailyLimit: 0, needed: 50, bonusLeft: 40 }), 'WALLET');
+});
+
+test('the meter treats the bonus as more of both limits', () => {
+  const none = creditMeter({ balance: 0, allocation: 1000, dailyUsed: 100, dailyLimit: 100 });
+  assert.equal(none.exhausted, true);
+  const withBonus = creditMeter({ balance: 0, allocation: 1000, dailyUsed: 100, dailyLimit: 100, bonusTotal: 100, bonusUsed: 0 });
+  assert.equal(withBonus.exhausted, false);
+  assert.ok(withBonus.percent > 0);
+  const spentBonus = creditMeter({ balance: 0, allocation: 1000, dailyUsed: 100, dailyLimit: 100, bonusTotal: 100, bonusUsed: 100 });
+  assert.equal(spentBonus.exhausted, true);
+  assert.equal(spentBonus.percent, 0);
+  // Untouched: a full wallet and a full bonus still read 100.
+  assert.equal(creditMeter({ balance: 1000, allocation: 1000, dailyLimit: 100, bonusTotal: 50 }).percent, 100);
+});

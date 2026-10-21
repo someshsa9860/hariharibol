@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { AudioButton } from '@/components/read/audio-button';
+import { ShareButton, mantraTarget } from '@/components/share/share-button';
 import { useChantSync } from './use-chant-sync';
 import { useFavorite } from '@/lib/favorites';
 import { BEADS_PER_ROUND, loadProgress, saveProgress } from '@/lib/jap-store';
@@ -160,6 +161,7 @@ export function Counter({ mantra }: { mantra: Mantra }) {
         <button className="btn btn-ghost btn-sm" onClick={undo} disabled={beads === 0}><Icon name="minus" size={16} /> Undo one</button>
         <button className="btn btn-ghost btn-sm" onClick={reset} disabled={beads === 0}><Icon name="refresh" size={16} /> Clear round</button>
         <button className="btn btn-ghost btn-sm" onClick={toggleFavorite} aria-pressed={isFavorite}><Icon name="heart" size={16} solid={isFavorite} /> {isFavorite ? 'Saved' : 'Save'}</button>
+        <ShareButton target={mantraTarget(mantra)} className="btn btn-ghost btn-sm" label=" Share" />
         <button className="btn btn-primary btn-sm" onClick={async () => { await sync.finish(); toast(sitting > 0 ? `${sitting} ${sitting === 1 ? 'round' : 'rounds'} recorded. Hari Bol!` : 'Sitting ended'); setSitting(0); }}>End sitting</button>
       </div>
 

@@ -6,6 +6,10 @@ abstract final class AppRoutes {
   static const String splash = '/splash';
   static const String signIn = '/sign-in';
 
+  /// The welcome pages: what is inside the app, shown once on a new phone,
+  /// before sign-in.
+  static const String intro = '/intro';
+
   /// Asked once, on the first run of a new account.
   static const String languageSetup = '/language';
 
@@ -19,8 +23,15 @@ abstract final class AppRoutes {
   /// place, and is a screen of its own with a back button now.
   static const String routine = '/routine';
 
+  /// The Hindu calendar: tithi, nakshatra, Ekadashi, Chaturthi and the festivals.
+  /// Pushed from Home, and where the festival push opens.
+  static const String calendar = '/calendar';
+
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
+
+  /// Invite a friend and see what it has earned. Pushed from settings.
+  static const String refer = '/refer';
 
   /// Plans and what each unlocks. Pushed from settings.
   static const String plans = '/plans';
@@ -28,16 +39,13 @@ abstract final class AppRoutes {
   /// Downloadable voices for reading aloud. Pushed from settings.
   static const String voices = '/settings/voices';
 
+  /// Where the texts come from, the AI-assisted translation notice and the
+  /// disclaimer. Pushed from settings.
+  static const String sources = '/settings/sources';
+
   /// The search screen. Pushed from Library's app bar; searches the server's
   /// index, never a local one.
   static const String search = '/search';
-
-  /// One kind's full, lazy-loaded results — what a search's "see all" opens.
-  /// `query` rides in the query string, the same way [chapterPath] carries
-  /// its position, so the screen can always rebuild itself from the URL.
-  static const String searchResultsPattern = '/search/:scope';
-  static String searchResultsPath(String scope, String query) =>
-      '/search/$scope?q=${Uri.encodeQueryComponent(query)}';
 
   /// A single mantra. The `:slug` route is registered under [mantraPattern];
   /// this builds the concrete path for `push`/`go`.
@@ -82,7 +90,7 @@ abstract final class AppRoutes {
   static const String chantSessionPattern = '/chant/sessions/:id';
   static String chantSessionPath(String id) => '/chant/sessions/$id';
 
-  /// The reels feed — a tab, the third of the bar. It runs under the bar, which
+  /// The reels feed — a tab, the last of the bar. It runs under the bar, which
   /// turns dark over it. A single reel ([reelPattern]) is pushed over the tabs.
   static const String reels = '/reels';
 
@@ -94,6 +102,11 @@ abstract final class AppRoutes {
   /// Reels like one the reader is watching: same chapter, canto or book.
   static const String similarPattern = '/reels/:id/similar';
   static String similarPath(String id) => '/reels/$id/similar';
+
+  /// The book's reels in reading order from one verse on — opened by the
+  /// peacock feather on a verse. `verseId` is the dotted id (`1.2.47`).
+  static const String bookReelsPattern = '/reels/book/:verseId';
+  static String bookReelsPath(String verseId) => '/reels/book/$verseId';
 
   /// A creator's profile and everything they have posted.
   static const String creatorPattern = '/creators/:id';
@@ -107,23 +120,26 @@ abstract final class AppRoutes {
 
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
-  static const List<String> tabs = [home, sadhana, reels, library];
+  static const List<String> tabs = [home, sadhana, library, reels];
 }
 
 /// Route names, for `goNamed` calls where a path would need building.
 abstract final class RouteNames {
   static const String splash = 'splash';
   static const String signIn = 'signIn';
+  static const String intro = 'intro';
   static const String languageSetup = 'languageSetup';
   static const String home = 'home';
   static const String sadhana = 'sadhana';
   static const String library = 'library';
   static const String routine = 'routine';
+  static const String calendar = 'calendar';
   static const String settings = 'settings';
   static const String plans = 'plans';
+  static const String refer = 'refer';
   static const String voices = 'voices';
+  static const String sources = 'sources';
   static const String search = 'search';
-  static const String searchResults = 'searchResults';
   static const String mantraDetail = 'mantraDetail';
   static const String bookDetail = 'bookDetail';
   static const String bookCanto = 'bookCanto';
@@ -134,6 +150,7 @@ abstract final class RouteNames {
   static const String reels = 'reels';
   static const String reelDetail = 'reelDetail';
   static const String reelSimilar = 'reelSimilar';
+  static const String bookReels = 'bookReels';
   static const String creatorProfile = 'creatorProfile';
   static const String chat = 'chat';
 }

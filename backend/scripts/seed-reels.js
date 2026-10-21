@@ -441,8 +441,7 @@ async function main() {
 
   console.log('\nDone.');
   console.log(
-    '\nThese are demo accounts on example.invalid. The feed hides your own reels, so sign in\n' +
-      'as yourself — not as one of these — to see all six.\n'
+    '\nThese are demo accounts on example.invalid. Sign in as yourself to see all six in the feed.\n'
   );
 }
 

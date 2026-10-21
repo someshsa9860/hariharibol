@@ -4,6 +4,7 @@ import { readingLanguage } from '@/lib/prefs/server';
 import { configScript } from '@/lib/runtime-config';
 import { PrefsProvider } from '@/lib/prefs/prefs-provider';
 import { AuthProvider } from '@/lib/auth/auth-provider';
+import { ReferralAttributor } from '@/components/share/referral-attributor';
 import { ToastProvider } from '@/components/ui/toast';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <PrefsProvider initialLanguage={language}>
           <AuthProvider>
             <ToastProvider>
+              <ReferralAttributor />
               <a className="skip-link" href="#content">Skip to content</a>
               <SiteHeader />
               <main id="content" className="main">{children}</main>

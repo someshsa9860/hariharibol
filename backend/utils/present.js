@@ -21,6 +21,10 @@ import { DEFAULT_LANGUAGE } from '../config/constants.js';
 // Prisma `include` blocks for the joins a shaped verse needs. Kept next to the
 // shaping code so the two cannot drift — a shape that reads `verse.translations`
 // only works if the query asked for them.
+// A signed-out reader (the website shows reels without an account) has no id, and a Prisma filter on
+// `undefined` is no filter at all — it would match everyone's likes. Ids are cuids, so this matches no one.
+const NO_ONE = 'no-one';
+
 const includes = {
   /**
    * `userId` is optional — a signed-out reader gets the content joins only,
@@ -48,11 +52,10 @@ const includes = {
   }),
 
   /**
-   * Everything a shaped reel reads. `userId` is required rather than optional
-   * — unlike a verse, a reel is never served to a signed-out reader, and the
-   * like/save/follow flags are what the action rail renders from.
+   * Everything a shaped reel reads. `viewerId` may be missing — the website shows reels to a
+   * signed-out reader, who simply sees nothing liked, saved or followed.
    */
-  reel: (userId, readingChain = [DEFAULT_LANGUAGE]) => ({
+  reel: (viewerId, readingChain = [DEFAULT_LANGUAGE]) => ({
     creator: {
       select: {
         id: true,
@@ -61,7 +64,7 @@ const includes = {
         avatarPath: true,
         isVerified: true,
         followerCount: true,
-        followers: { where: { followerId: userId }, select: { followerId: true } },
+        followers: { where: { followerId: viewerId || NO_ONE }, select: { followerId: true } },
       },
     },
     media: { orderBy: { displayOrder: 'asc' } },
@@ -82,23 +85,23 @@ const includes = {
         translations: {
           where: { isPublished: true, languageCode: { in: readingChain } },
           orderBy: { displayOrder: 'asc' },
-          select: { languageCode: true, type: true, meaning: true, transliteration: true },
+          select: { languageCode: true, type: true, meaning: true, purport: true, transliteration: true },
         },
       },
     },
     mantra: includes.mantraStub(readingChain),
     deity: { select: { id: true, slug: true, name: true, imagePath: true } },
-    likes: { where: { userId }, select: { userId: true } },
-    favorites: { where: { userId }, select: { id: true } },
+    likes: { where: { userId: viewerId || NO_ONE }, select: { userId: true } },
+    favorites: { where: { userId: viewerId || NO_ONE }, select: { id: true } },
   }),
 
   /**
    * A comment and the two things every row needs beside its text: who wrote it,
    * and whether this reader has already liked it.
    */
-  reelComment: (userId) => ({
+  reelComment: (viewerId) => ({
     user: { select: { id: true, name: true, avatarUrl: true } },
-    likes: { where: { userId }, select: { userId: true } },
+    likes: { where: { userId: viewerId || NO_ONE }, select: { userId: true } },
   }),
 
   mantra: (textChain, readingChain) => {
@@ -435,6 +438,27 @@ function bindOverlays(overlays, verse, user) {
   });
 }
 
+/** What a book reel draws: the verse in the reader's reading language, page by page. */
+function reelVerseContent(verse, user) {
+  if (!verse) return null;
+  const chain = language.readingChain(user);
+  const translation = language.pickTranslation(verse.translations, chain);
+  // The purport may be in another row of the same language than the meaning; take the first that has one.
+  const purportRow =
+    translation?.purport?.trim()
+      ? translation
+      : language.pick((verse.translations || []).filter((row) => row.purport?.trim()), chain);
+  return {
+    label: reelVerseLabel(verse, chain),
+    bookTitle: language.localised(verse.book, 'title', 'titleI18n', chain),
+    sanskrit: verse.sanskrit?.trim() || null,
+    transliteration:
+      language.pickTransliteration(verse.translations, chain, verse.transliteration, verse.sanskrit)?.trim() || null,
+    meaning: translation?.meaning?.trim() || null,
+    purport: purportRow?.purport?.trim() || null,
+  };
+}
+
 /**
  * One reel, shaped for the feed.
  *
@@ -498,6 +522,10 @@ async function reel(row, user) {
     // Text placed on the frame in the admin editor, drawn by the app at watch
     // time — percentages of the frame, see routes/admin/reel.js.
     overlays: bindOverlays(row.overlays, row.verse, user),
+
+    // 'VERSE_PAGES': the app draws the verse itself, in the reader's language, instead of the media.
+    layout: row.layout,
+    verseContent: row.layout === 'VERSE_PAGES' ? reelVerseContent(row.verse, user) : null,
 
     viewCount: row.viewCount,
     likeCount: row.likeCount,

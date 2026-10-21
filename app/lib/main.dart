@@ -7,9 +7,11 @@ import 'app.dart';
 import 'core/session/app_session.dart';
 import 'services/book_sync_background.dart';
 import 'services/book_sync_manager.dart';
+import 'services/deep_link_service.dart';
 import 'services/device_service.dart';
 import 'services/fcm_service.dart';
 import 'services/firebase_service.dart';
+import 'services/legacy_sign_in.dart';
 import 'services/local_store.dart';
 import 'services/purchase_service.dart';
 import 'services/tracking_service.dart';
@@ -25,6 +27,9 @@ import 'services/tracking_service.dart';
 /// and the blank native launch screen is on show until the last one returns.
 /// Firebase needs nothing from the store, and the device facts and the session
 /// need only the store.
+///
+/// One network call is awaited, and only on a phone that still holds the
+/// previous app's token: trading it for a session (`LegacySignIn`).
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -33,6 +38,17 @@ Future<void> main() async {
     _openStore(),
   ]);
 
+  // Someone who updated from the previous app is signed in here, before the
+  // first frame, so the router starts on their dashboard and not on the welcome
+  // pages. It needs Firebase (the sign-in carries an App Check token) and the
+  // session, which is why it follows them. On every other launch it reads
+  // nothing and returns at once; on the one that matters it is capped at
+  // `AppConfig.legacySignInTimeout` and never throws.
+  await LegacySignIn.instance.run();
+
+  // Links the app is opened with (shared verses, mantras, reels, invitations), cold or warm.
+  unawaited(DeepLinkService.instance.start());
+
   unawaited(TrackingService.instance.init());
   unawaited(FcmService.instance.init());
 
@@ -40,10 +56,11 @@ Future<void> main() async {
   // the app was closed — so the store's stream is listened to from boot.
   PurchaseService.instance.start();
 
-  // Pick up any book downloads a previous run left unfinished, and let the OS
-  // finish them if the app goes to the background. Neither shows anything.
+  // Pick up any book downloads a previous run left unfinished, ask the server
+  // whether the books on the phone have new text, and let the OS finish the
+  // downloads if the app goes to the background. None of it shows anything.
   unawaited(BookSyncBackground.instance.start());
-  unawaited(BookSyncManager.instance.resumePending());
+  unawaited(BookSyncManager.instance.onAppStart());
 
   runApp(const ProviderScope(child: HariHariBolApp()));
 }

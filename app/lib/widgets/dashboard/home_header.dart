@@ -21,7 +21,7 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final name = user?.displayName;
+    final name = user?.firstName;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +33,9 @@ class HomeHeader extends StatelessWidget {
               Text(_formatted(text, date), style: context.texts.bodySmall),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                name == null ? text.homeGreeting : text.homeGreetingNamed(name),
+                name == null || name.isEmpty
+                    ? text.homeGreeting
+                    : text.homeGreetingNamed(name),
                 style: context.texts.headlineMedium,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../models/sloka.dart';
 import '../../models/verse.dart';
 import '../common/motif.dart';
+import 'growth_label.dart';
 import 'verse_hero_card.dart';
 
 /// One verse per mood picked, in the order they were picked.
 typedef MoodSlokaResult = ({String label, PersonalSloka sloka});
 
-/// The verse(s) that came back after someone named what they are struggling
-/// with.
+/// The verse(s) that came back after someone chose what they want to grow in.
 ///
 /// A sheet rather than a page: this is an answer to something asked from the
 /// dashboard, and it should close back onto it rather than push a screen the
@@ -45,6 +46,7 @@ class _MoodSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
     return SafeArea(
       top: false,
       child: ConstrainedBox(
@@ -68,7 +70,7 @@ class _MoodSheet extends StatelessWidget {
                 VerseHeroCard(
                   label: results[i].label,
                   verse: results[i].sloka.verse,
-                  reason: results[i].sloka.reason,
+                  reason: growthReason(text, results[i].sloka),
                   motif: Motif.crescent,
                   onTap: _openVerse(context, results[i].sloka.verse),
                 ),

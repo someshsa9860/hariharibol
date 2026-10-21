@@ -51,6 +51,41 @@ router.post(
 );
 
 router.post(
+  '/legacy',
+  {
+    summary: 'Sign in with the sign-in the old app kept',
+    description:
+      'For people who used the app before this system existed. Trades the access token the old app saved for a session ' +
+      'here: the old server is asked who the token belongs to, the account is made the first time and found by its old ' +
+      'user id after that, and the answer is the one /auth/social gives (201 for a new account, 200 for one already ' +
+      'carried over). The token is never stored. The client acts on how it fails: 403 UNAUTHENTICATED (the old server ' +
+      'does not accept the token) and 409 (this account cannot be had this way) mean the token is of no further use and ' +
+      'is deleted; 403 FORBIDDEN (client attestation), 429 and every 5xx — including 503 LEGACY_UNAVAILABLE, when the ' +
+      'old server cannot be asked right now or new accounts are closed — keep it for the next launch. Requires a client ' +
+      'attestation token: accounts cannot be created by calling the API directly.',
+    public: true,
+    limit: 'signup',
+    middleware: attestation,
+    body: z.object({
+      legacyToken: z.string().min(10).max(300),
+      appLanguage: z.string().max(10).optional(),
+      mantraLanguage: z.string().max(10).optional(),
+      readingLanguage: z.string().max(10).optional(),
+      timezone: z.string().max(64).optional(),
+      ...deviceFields,
+    }),
+    responds: {
+      200: 'Already carried over; signed in',
+      201: 'New account made from the old one',
+      403: 'The old server does not accept the token (UNAUTHENTICATED), or the client could not be attested (FORBIDDEN)',
+      409: 'An account here has this email, it now signs in with Google or Apple, or it is banned',
+      503: 'The old server cannot be asked right now, or new accounts are closed — try again later',
+    },
+  },
+  controller.legacy
+);
+
+router.post(
   '/refresh',
   {
     summary: 'Exchange a refresh token for a new pair',

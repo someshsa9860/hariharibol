@@ -30,7 +30,7 @@ class SlokaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final sanskrit = verse.sanskrit;
     final meaning = verse.translation?.meaning;
-    final translator = verse.translation?.translator?.name;
+    final translator = verse.translation?.translator?.creditName;
 
     return Card(
       child: InkWell(

@@ -26,6 +26,9 @@ part 'app_database.g.dart';
 ///   4  `verse_translations.transliteration`: a verse in each language's own script.
 ///      Existing rows have none until their unit is downloaded again, which the
 ///      server's new file hash asks for.
+///   5  `books.content_version`: the server's version of the book's text that the
+///      device's copy was last made current at, so a new import is noticed. Existing
+///      books get 0 ("not known"), which the next sync replaces.
 @DriftDatabase(
   tables: [Books, Units, Verses, VerseTranslations, DownloadStates],
   daos: [BookDao, DownloadStateDao, SearchDao],
@@ -37,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase(driftDatabase(name: 'hariharibol'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +66,7 @@ class AppDatabase extends _$AppDatabase {
           } else {
             if (from < 3) await m.addColumn(downloadStates, downloadStates.cacheVersion);
             if (from < 4) await m.addColumn(verseTranslations, verseTranslations.transliteration);
+            if (from < 5) await m.addColumn(books, books.contentVersion);
           }
         },
         beforeOpen: (details) async {

@@ -57,6 +57,7 @@ class CacheManifest {
     required this.units,
     required this.fetchedAt,
     this.cacheVersion = 1,
+    this.contentVersion = 0,
   });
 
   final String bookId;
@@ -69,6 +70,14 @@ class CacheManifest {
   /// again; the same number leaves the device alone. A server that does not send
   /// one is on 1, the baseline.
   final int cacheVersion;
+
+  /// The version of the book's text the server's files were built from; it goes up
+  /// by itself whenever a verse, translation, chapter or canto of the book changes
+  /// (`Book.contentVersion` on the server). A phone whose copy was last made current
+  /// at a lower number knows there is new text. 0 = the server has not exported the
+  /// book yet, or is an older server that sends none — the per-unit versions below
+  /// still decide what is downloaded.
+  final int contentVersion;
 
   int get totalUnits => units.length;
 
@@ -86,6 +95,7 @@ class CacheManifest {
         units: asList(json['units'], ManifestUnit.fromJson),
         fetchedAt: now ?? DateTime.now(),
         cacheVersion: asInt(json['cacheVersion'], 1),
+        contentVersion: asInt(json['contentVersion'], 0),
       );
 }
 

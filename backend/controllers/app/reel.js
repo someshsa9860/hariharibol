@@ -16,8 +16,9 @@
 // builder cannot express, so it runs as a single raw, parameterised query
 // that returns ids in rank order; the rows are then hydrated and shaped
 // through Prisma as usual. Everything that decides *which* reels are eligible
-// (published, creator in good standing, not the reader's own) lives in both
-// this query and the `where` used for the count, so the two never disagree.
+// (published, creator in good standing) lives in both this query and the
+// `where` used for the count, so the two never disagree. A reader's own reels
+// are in the feed like anyone's — a creator can see their reel where readers do.
 //
 // Every counter on Reel is denormalised, so each write here changes two rows —
 // the engagement row and the count that summarises it. They go in one
@@ -32,6 +33,7 @@ import logger from '../../config/logger.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { notFound } from '../../utils/errors.js';
+import * as bookReel from '../../services/book-reel-settings.js';
 import { keyTagsOf, TAG_BOOK, TAG_CANTO, TAG_CHAPTER } from '../../utils/reel-tags.js';
 import {
   REEL_PAGE_SIZE_DEFAULT,
@@ -52,27 +54,25 @@ const UNSPECIFIED_LANG_BOOST = 10;
 const SEEN_PENALTY = 25;
 const COMPLETED_PENALTY = 60;
 
-const eligibleWhere = (userId) => ({
-  status: 'PUBLISHED',
-  creator: { status: 'APPROVED', userId: { not: userId } },
-});
+const ELIGIBLE_WHERE = { status: 'PUBLISHED', creator: { status: 'APPROVED' } };
 
 /** GET /api/app/reels */
 export const feed = async (req, res) => {
+  // Signed out is allowed (the website): nothing is "seen" there.
   const user = req.auth.user;
+  const userId = user?.id ?? null;
   const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
   const [lang0 = null, lang1 = null, lang2 = null] = language.readingChain(user);
 
   const [total, ranked] = await Promise.all([
-    prisma.reel.count({ where: eligibleWhere(user.id) }),
+    prisma.reel.count({ where: ELIGIBLE_WHERE }),
     prisma.$queryRaw`
       SELECT r.id
       FROM "Reel" r
       JOIN "CreatorProfile" cp ON cp.id = r."creatorId"
-      LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${user.id}
+      LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${userId}
       WHERE r.status = 'PUBLISHED'::"ReelStatus"
         AND cp.status = 'APPROVED'::"CreatorStatus"
-        AND cp."userId" != ${user.id}
       ORDER BY
         (
           CASE
@@ -110,7 +110,7 @@ export const feed = async (req, res) => {
   const ids = ranked.map((row) => row.id);
   const rows = await prisma.reel.findMany({
     where: { id: { in: ids } },
-    include: present.includes.reel(user.id, language.readingChain(user)),
+    include: present.includes.reel(userId, language.readingChain(user)),
   });
 
   // The raw query already returned ids in rank order; `findMany` with `in`
@@ -124,9 +124,9 @@ export const feed = async (req, res) => {
 /**
  * GET /api/app/reels/:id
  *
- * The share target and the deeplink landing point. Unlike the feed this does
- * not exclude the reader's own reels — following a link to something you
- * posted yourself should show it, not 404.
+ * The share target and the deeplink landing point. Unlike the feed this also
+ * shows the reader's own reels in any state (a draft, one awaiting review) —
+ * following a link to something you posted yourself should show it, not 404.
  */
 export const get = async (req, res) => {
   const user = req.auth.user;
@@ -138,10 +138,10 @@ export const get = async (req, res) => {
         { status: 'PUBLISHED', creator: { status: 'APPROVED' } },
         // Your own, whatever state it is in — including one still awaiting
         // review, which is the only way a creator can check what they posted.
-        { creator: { userId: user.id } },
+        ...(user ? [{ creator: { userId: user.id } }] : []),
       ],
     },
-    include: present.includes.reel(user.id, language.readingChain(user)),
+    include: present.includes.reel(user?.id, language.readingChain(user)),
   });
   if (!row) throw notFound('Reel');
 
@@ -226,6 +226,64 @@ export const similar = async (req, res) => {
   const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
 
   return paginated(res, await present.reels(ordered, user), { page, pageSize, total: ranked.length });
+};
+
+/** GET /api/app/reels/book-style — how book reels look and which buttons they show. */
+export const bookStyle = async (req, res) => ok(res, await bookReel.forApp());
+
+// Reading order inside a book: canto, chapter, verse. A book without cantos has a null canto on every
+// verse, which compares equal to itself, so each level is "smaller, or equal and the next is smaller".
+function before(verse) {
+  const levels = [verse.cantoNumber, verse.chapterNumber, verse.verseNumber];
+  const names = ['cantoNumber', 'chapterNumber', 'verseNumber'];
+  const clauses = [];
+  levels.forEach((value, i) => {
+    if (value == null) return;
+    const equal = {};
+    for (let j = 0; j < i; j++) equal[names[j]] = levels[j];
+    clauses.push({ ...equal, [names[i]]: { lt: value } });
+  });
+  return clauses;
+}
+
+/**
+ * GET /api/app/reels/book/:verseId
+ *
+ * The book reels of a verse's book in reading order, beginning at that verse — what the peacock
+ * feather on the reading page opens. `:verseId` is the dotted id ("1.2.47"). Paginated like the feed;
+ * the page after the last verse is empty.
+ */
+export const fromVerse = async (req, res) => {
+  const user = req.auth.user;
+  const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
+
+  const start = await prisma.verse.findUnique({
+    where: { verseId: req.valid.params.verseId },
+    select: { bookId: true, cantoNumber: true, chapterNumber: true, verseNumber: true },
+  });
+  if (!start) throw notFound('Verse');
+
+  const inBook = { layout: 'VERSE_PAGES', ...ELIGIBLE_WHERE, verse: { bookId: start.bookId } };
+  const preceding = before(start);
+  // Reels of the verses before this one are skipped by count, so the page offset stays a plain number.
+  const skipped = preceding.length
+    ? await prisma.reel.count({
+        where: { layout: 'VERSE_PAGES', ...ELIGIBLE_WHERE, verse: { bookId: start.bookId, OR: preceding } },
+      })
+    : 0;
+
+  const [total, rows] = await Promise.all([
+    prisma.reel.count({ where: inBook }),
+    prisma.reel.findMany({
+      where: inBook,
+      include: present.includes.reel(user?.id ?? null, language.readingChain(user)),
+      orderBy: [{ verse: { cantoNumber: 'asc' } }, { verse: { chapterNumber: 'asc' } }, { verse: { verseNumber: 'asc' } }, { id: 'asc' }],
+      skip: skipped + skip,
+      take: pageSize,
+    }),
+  ]);
+
+  return paginated(res, await present.reels(rows, user), { page, pageSize, total: Math.max(total - skipped, 0) });
 };
 
 // Loads a reel for a write, and refuses one the reader should not be acting

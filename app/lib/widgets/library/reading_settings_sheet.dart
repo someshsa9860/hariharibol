@@ -8,28 +8,35 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/language.dart';
+import '../../models/reading_mode.dart';
 import '../../models/verse_part.dart';
+import '../../providers/book_provider.dart';
 import '../../providers/languages_provider.dart';
 import '../../providers/reading_prefs_provider.dart';
 import '../../providers/language_settings_provider.dart';
+import 'story_part_bar.dart';
 
-/// Font size, which parts of a verse to hide, and reading language — applied
+/// Reading style (verse by verse or story), font size, which parts of a verse to
+/// hide or which one the story shows, and reading language — applied
 /// live as they're picked, so there is nothing to submit and no confirm button.
 /// Picking a language also closes the sheet: the reading screen is already
 /// following the language setting, so the chapter reloads in it as the sheet
 /// goes.
-Future<void> showReadingSettingsSheet(BuildContext context) {
+Future<void> showReadingSettingsSheet(BuildContext context, {String? bookSlug}) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,
-    builder: (context) => const _ReadingSettingsSheet(),
+    builder: (context) => _ReadingSettingsSheet(bookSlug: bookSlug),
   );
 }
 
 class _ReadingSettingsSheet extends ConsumerWidget {
-  const _ReadingSettingsSheet();
+  const _ReadingSettingsSheet({this.bookSlug});
+
+  /// The book being read; its languages narrow the language list.
+  final String? bookSlug;
 
   void _pickLanguage(BuildContext context, WidgetRef ref, String code) {
     // The setting changes at once and is saved behind it; the sheet need not
@@ -60,10 +67,22 @@ class _ReadingSettingsSheet extends ConsumerWidget {
     final text = AppLocalizations.of(context);
     final fontSize = ref.watch(readingFontSizeProvider);
     final hidden = ref.watch(hiddenVersePartsProvider);
-    final languages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
+    final mode = ref.watch(readingModeProvider);
+    final storyPart = ref.watch(storyPartProvider);
+    final storyNumbers = ref.watch(storyNumbersProvider);
+    final allLanguages = ref.watch(languagesForSlotProvider(LanguageSlot.reading));
+    final bookCodes = bookSlug == null
+        ? const <String>{}
+        : ref.watch(bookLanguagesProvider(bookSlug!)).value ?? const <String>{};
     final currentLanguage = ref.watch(
       languageSettingsProvider.select((s) => s.reading),
     );
+    // Only languages the book has text in; the one in use stays so it can be seen.
+    final languages = bookCodes.isEmpty
+        ? allLanguages
+        : allLanguages
+            .where((l) => bookCodes.contains(l.code) || l.code == currentLanguage)
+            .toList();
 
     return SafeArea(
       top: false,
@@ -85,6 +104,33 @@ class _ReadingSettingsSheet extends ConsumerWidget {
               Text(text.readingSettingsTitle, style: context.texts.titleLarge),
               const SizedBox(height: AppSpacing.xl),
               Text(
+                text.readingModeLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<ReadingMode>(
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(
+                      value: ReadingMode.verses,
+                      icon: const Icon(Icons.view_agenda_outlined),
+                      label: Text(text.readingModeVerses),
+                    ),
+                    ButtonSegment(
+                      value: ReadingMode.story,
+                      icon: const Icon(Icons.auto_stories_outlined),
+                      label: Text(text.readingModeStory),
+                    ),
+                  ],
+                  selected: {mode},
+                  onSelectionChanged: (picked) =>
+                      ref.read(readingModeProvider.notifier).set(picked.first),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
                 text.readingFontSizeLabel,
                 style: AppTypography.section(context).copyWith(fontSize: 16),
               ),
@@ -102,22 +148,53 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                text.readingHideLabel,
-                style: AppTypography.section(context).copyWith(fontSize: 16),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              for (final part in VersePart.values)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(_partLabel(text, part)),
-                  value: hidden.contains(part),
-                  onChanged: (value) => ref
-                      .read(hiddenVersePartsProvider.notifier)
-                      .set(part, hidden: value ?? false),
+              if (mode == ReadingMode.story) ...[
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  text.readingStoryShowLabel,
+                  style: AppTypography.section(context).copyWith(fontSize: 16),
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    for (final part in StoryPart.values)
+                      ChoiceChip(
+                        label: Text(storyPartLabel(text, part)),
+                        selected: storyPart == part,
+                        showCheckmark: false,
+                        onSelected: (_) =>
+                            ref.read(storyPartProvider.notifier).set(part),
+                      ),
+                  ],
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(text.readingStoryNumbers),
+                  value: storyNumbers,
+                  onChanged: (value) =>
+                      ref.read(storyNumbersProvider.notifier).set(value),
+                ),
+                Text(text.readingStoryHint, style: context.texts.bodySmall),
+              ] else ...[
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  text.readingHideLabel,
+                  style: AppTypography.section(context).copyWith(fontSize: 16),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                for (final part in VersePart.values)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text(_partLabel(text, part)),
+                    value: hidden.contains(part),
+                    onChanged: (value) => ref
+                        .read(hiddenVersePartsProvider.notifier)
+                        .set(part, hidden: value ?? false),
+                  ),
+              ],
               if (languages.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xl),
                 Text(

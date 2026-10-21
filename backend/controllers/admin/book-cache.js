@@ -31,7 +31,7 @@ export const status = async (req, res) => {
   });
   const books = await prisma.book.findMany({
     where: { id: { in: rows.map((r) => r.bookId) } },
-    select: { id: true, slug: true, title: true },
+    select: { id: true, slug: true, title: true, contentVersion: true, exportedVersion: true, contentChangedAt: true },
   });
   const byId = new Map(books.map((b) => [b.id, b]));
 
@@ -39,6 +39,11 @@ export const status = async (req, res) => {
     res,
     rows.map((r) => ({
       book: byId.get(r.bookId),
+      // contentVersion ahead of exportedVersion = the text has changed and the files have not caught up yet
+      // (the worker exports it within a couple of minutes of the last write).
+      contentVersion: byId.get(r.bookId)?.contentVersion,
+      exportedVersion: byId.get(r.bookId)?.exportedVersion,
+      exportDue: (byId.get(r.bookId)?.contentVersion ?? 0) > (byId.get(r.bookId)?.exportedVersion ?? 0),
       unitType: r.unitType,
       units: r._count._all,
       verses: r._sum.verseCount,

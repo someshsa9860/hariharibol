@@ -98,6 +98,7 @@ const BY_CODE = {
   AI_FAILED: 'serviceUnavailable',
   AI_BAD_OUTPUT: 'serviceUnavailable',
   AI_BUDGET_EXHAUSTED: 'serviceUnavailable',
+  LEGACY_UNAVAILABLE: 'serviceUnavailable',
 };
 
 function idFor(message, code) {

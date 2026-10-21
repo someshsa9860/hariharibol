@@ -60,13 +60,18 @@ class IdentityHeader extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(
-                user.email,
-                style: context.texts.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              // An account made from the previous app's token may have no
+              // address the reader can use (the server sends none then): no
+              // line at all, not an empty one with a gap above it.
+              if (user.email.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  user.email,
+                  style: context.texts.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
           ),
         ),

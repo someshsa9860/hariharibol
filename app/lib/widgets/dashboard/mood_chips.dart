@@ -14,17 +14,19 @@ import '../../providers/home_provider.dart';
 import '../../providers/issues_provider.dart';
 import '../../services/sloka_service.dart';
 import '../common/icon_badge.dart';
+import 'growth_label.dart';
 import 'mood_sheet.dart';
 
-/// Name what is weighing on you — one struggle or several — and get a verse
+/// Choose what to grow in today — one quality or several — and get a verse
 /// chosen for each.
 ///
-/// The list is the seeded one, not free text — these are the categories verses
-/// are actually mapped to, so anything outside them could not be answered. Its
-/// name already comes back from the API in whichever language the person reads
-/// in (`GET /api/app/issues` resolves `Issue.name` against the account's own
-/// reading language before it ever reaches the app), so nothing here has to
-/// know or care whether that is Devanagari, a transliteration, or English.
+/// This is a devotee's progress card, so every chip is worded as the strength
+/// being built, not the fault behind it (`growthLabel`: anger is "Calm", greed is
+/// "Contentment"). The list underneath is still the seeded one, not free text —
+/// these are the categories verses are actually mapped to, so anything outside
+/// them could not be answered — and a chip's slug is what is sent. An issue the
+/// app has no growth name for keeps the name the API sent, which already comes
+/// back in the reader's reading language (`GET /api/app/issues`).
 ///
 /// Picking is a wrap, not a scroll — every mood is visible without a swipe —
 /// and picking is multi-select: nothing is asked until "Show me a verse" is
@@ -81,7 +83,13 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
         results: [
           // Oldest first, so the order matches how they were originally
           // tapped and answered — `/sloka/mood/today` comes back newest first.
-          for (final sloka in today.reversed) (label: sloka.issue?.name ?? '', sloka: sloka),
+          for (final sloka in today.reversed)
+            (
+              label: sloka.issue == null
+                  ? ''
+                  : growthLabelOr(text, sloka.issue!.slug, sloka.issue!.name),
+              sloka: sloka,
+            ),
         ],
       );
     } on ApiFailure {
@@ -104,10 +112,9 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
     final text = AppLocalizations.of(context);
 
     // Looked up here rather than trusted from the response: `/sloka/mood`
-    // echoes back the plain `Issue.name` column, not the one resolved against
-    // a reading language the way the chip's own label already is — carrying
-    // the chip's label forward is what keeps the sheet in the same language
-    // as the row that opened it.
+    // echoes back the plain `Issue.name` column, and the chip's label is the
+    // growth wording in the reader's language — carrying that forward is what
+    // keeps the sheet saying the same thing as the row that opened it.
     final bySlug = {for (final issue in issues) issue.slug: issue};
     final picked = [
       for (final slug in _selected) bySlug[slug],
@@ -118,7 +125,7 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
     for (final issue in picked) {
       try {
         final sloka = await SlokaService.instance.forMood(issue.slug);
-        results.add((label: issue.name, sloka: sloka));
+        results.add((label: growthLabelOr(text, issue.slug, issue.name), sloka: sloka));
       } on ApiFailure catch (failure) {
         // One struggle nothing has been mapped to yet should not stop the
         // rest from being answered.
@@ -172,13 +179,18 @@ class _MoodChipsState extends ConsumerState<MoodChips> {
           children: [
             Row(
               children: [
-                const IconBadge(icon: Icons.sentiment_satisfied_alt_rounded),
+                const IconBadge(icon: Icons.spa_rounded),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(text.homeMoodPrompt, style: context.texts.titleMedium),
                 ),
               ],
             ),
+            // What the chips are for, said before the choice, not after it.
+            if (!hasAnsweredToday) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(text.homeMoodHint, style: context.texts.bodySmall),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Wrap(
               spacing: AppSpacing.sm,
@@ -303,7 +315,7 @@ class _MoodChip extends StatelessWidget {
       // a ~32 dp chip and left the rows of this wrap far apart. Shrink-wrapped,
       // the gap between rows is the `runSpacing` and nothing else.
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      label: Text(issue.name),
+      label: Text(growthLabelOr(AppLocalizations.of(context), issue.slug, issue.name)),
       labelStyle: context.texts.labelLarge?.copyWith(color: labelColor),
       avatar: selected
           ? Icon(

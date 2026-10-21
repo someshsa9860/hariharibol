@@ -134,6 +134,56 @@ export const update = async (req, res) => {
   return ok(res, verse);
 };
 
+/**
+ * PATCH /api/admin/verses/:verseId/content
+ *
+ * The reader's correction of the verse's own text. Separate from `update` because it is
+ * gated by `book.audit`, which no one but the book auditor holds.
+ */
+export const updateContent = async (req, res) => {
+  const before = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });
+  if (!before) throw notFound('Verse');
+
+  const verse = await prisma.verse.update({ where: { id: before.id }, data: req.valid.body });
+  await audit.record(req, {
+    action: 'verse.audit',
+    entityType: 'Verse',
+    entityId: verse.id,
+    before: { sanskrit: before.sanskrit, transliteration: before.transliteration, wordMeanings: before.wordMeanings },
+    after: { sanskrit: verse.sanskrit, transliteration: verse.transliteration, wordMeanings: verse.wordMeanings },
+  });
+
+  return ok(res, verse);
+};
+
+/** PATCH /api/admin/verses/:verseId/translations/:translationId — an existing row only. */
+export const updateTranslationContent = async (req, res) => {
+  const { verseId, translationId } = req.valid.params;
+  const before = await prisma.verseTranslation.findFirst({ where: { id: translationId, verse: { verseId } } });
+  if (!before) throw notFound('Translation');
+
+  const translation = await prisma.verseTranslation.update({ where: { id: before.id }, data: req.valid.body });
+  await audit.record(req, {
+    action: 'verse.translation.audit',
+    entityType: 'VerseTranslation',
+    entityId: translation.id,
+    before: {
+      meaning: before.meaning,
+      purport: before.purport,
+      transliteration: before.transliteration,
+      wordMeanings: before.wordMeanings,
+    },
+    after: {
+      meaning: translation.meaning,
+      purport: translation.purport,
+      transliteration: translation.transliteration,
+      wordMeanings: translation.wordMeanings,
+    },
+  });
+
+  return ok(res, translation);
+};
+
 /** DELETE /api/admin/verses/:verseId */
 export const remove = async (req, res) => {
   const verse = await prisma.verse.findUnique({ where: { verseId: req.valid.params.verseId } });

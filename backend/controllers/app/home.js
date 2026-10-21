@@ -21,7 +21,11 @@ export const home = async (req, res) => {
   const user = req.auth.user;
   const timezone = user?.timezone || 'Asia/Kolkata';
   const date = localDateString(timezone);
-  const readingChain = language.readingChain(user);
+  // The languages the call names win over the account's saved ones: the phone
+  // changes its own reading language at once and tells the account a moment later,
+  // so without this the first screen ran one change behind.
+  const reader = language.withReadingLanguages(user, language.fromQuery(req.valid.query.languages));
+  const readingChain = language.readingChain(reader);
 
   const [dailySloka, books, mantras, personal] = await Promise.all([
     prisma.dailySloka.findFirst({
@@ -39,10 +43,10 @@ export const home = async (req, res) => {
       where: { isPublished: true },
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
       take: 6,
-      include: present.includes.mantra(language.mantraTextChain(user), readingChain),
+      include: present.includes.mantra(language.mantraTextChain(reader), readingChain),
     }),
 
-    user ? loadPersonal(user, date, readingChain) : Promise.resolve(null),
+    user ? loadPersonal(user, reader, date, readingChain) : Promise.resolve(null),
   ]);
 
   return ok(res, {
@@ -50,17 +54,19 @@ export const home = async (req, res) => {
     slokaOfTheDay: dailySloka
       ? {
           imageUrl: dailySloka.imagePath ? await s3.presignGet(dailySloka.imagePath) : null,
-          verse: await present.verse(dailySloka.verse, user),
+          verse: await present.verse(dailySloka.verse, reader),
         }
       : null,
-    books: await present.books(books, user),
-    mantras: await present.mantras(mantras, user),
+    books: await present.books(books, reader),
+    mantras: await present.mantras(mantras, reader),
     ...(personal || {}),
   });
 };
 
 // The signed-in half. Kept separate so the public path does none of this work.
-async function loadPersonal(user, date, readingChain) {
+// `user` is the account (its rows, its timezone); `reader` is the same account
+// reading in the languages the call named.
+async function loadPersonal(user, reader, date, readingChain) {
   const [day, mySloka, issuesToday, continueReading, unread, streak] = await Promise.all([
     prisma.sadhanaDay.findUnique({
       where: { userId_date: { userId: user.id, date: toDateColumn(date) } },
@@ -106,13 +112,13 @@ async function loadPersonal(user, date, readingChain) {
           reason: slokaController.reasonFor(mySloka, readingChain),
           issue: slokaController.presentIssue(mySloka.issue, readingChain),
           seenAt: mySloka.seenAt,
-          verse: await present.verse(mySloka.verse, user),
+          verse: await present.verse(mySloka.verse, reader),
         }
       : null,
     issuesReportedToday: [...new Set(issuesToday.map((row) => row.issue.slug))],
     continueReading: continueReading
       ? {
-          book: await present.book(continueReading.book, user),
+          book: await present.book(continueReading.book, reader),
           verseId: continueReading.verse?.verseId || null,
           cantoNumber: continueReading.cantoNumber,
           chapterNumber: continueReading.chapterNumber,

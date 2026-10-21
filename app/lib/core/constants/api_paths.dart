@@ -7,6 +7,9 @@ abstract final class ApiPaths {
 
   // Auth
   static const String signInSocial = '$_app/auth/social';
+
+  /// Trades the previous app's access token for a session here.
+  static const String signInLegacy = '$_app/auth/legacy';
   static const String refresh = '$_app/auth/refresh';
   static const String logout = '$_app/auth/logout';
   static const String logoutAll = '$_app/auth/logout-all';
@@ -17,6 +20,10 @@ abstract final class ApiPaths {
   static const String fcmToken = '$_app/devices/fcm-token';
   static const String topics = '$_app/devices/topics';
   static String topic(String key) => '$_app/devices/topics/$key';
+
+  // Hindu calendar
+  static const String calendar = '$_app/calendar';
+  static const String calendarUpcoming = '$_app/calendar/upcoming';
 
   // Account
   static const String me = '$_app/me';
@@ -49,6 +56,7 @@ abstract final class ApiPaths {
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
+  static String bookLanguages(String slug) => '$_app/books/$slug/languages';
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';
@@ -76,7 +84,11 @@ abstract final class ApiPaths {
   // Reels
   static const String reels = '$_app/reels';
   static const String savedReels = '$_app/reels/saved';
+  static const String reelMedia = '$_app/reels/media';
+  static const String reelMake = '$_app/reels/make';
   static String reel(String id) => '$_app/reels/$id';
+  static const String reelBookStyle = '$_app/reels/book-style';
+  static String reelsFromVerse(String verseId) => '$_app/reels/book/$verseId';
   static String reelSimilar(String id) => '$_app/reels/$id/similar';
   static String reelLike(String id) => '$_app/reels/$id/like';
   static String reelView(String id) => '$_app/reels/$id/view';
@@ -158,6 +170,17 @@ abstract final class ApiPaths {
   static const String translators = '$_app/reference/translators';
 }
 
+/// Error codes the app acts on by name; every other code is only worded.
+/// `backend/utils/errors.js` is the other half.
+abstract final class ApiCodes {
+  /// 403: the server does not know who is asking (a missing, expired or
+  /// invalid token).
+  static const String unauthenticated = 'UNAUTHENTICATED';
+
+  /// 409: the request is well formed but the account cannot take it.
+  static const String conflict = 'CONFLICT';
+}
+
 /// Header names the API reads. `middleware/context.js` is the other half.
 abstract final class ApiHeaders {
   static const String authorization = 'Authorization';
@@ -170,4 +193,16 @@ abstract final class ApiHeaders {
 
   /// What a Server-Sent Events request asks for.
   static const String eventStream = 'text/event-stream';
+
+  // Sharing and referrals
+  static const String shareLink = '$_app/share/link';
+  static const String shareBackgroundQuote = '$_app/share/background/quote';
+  static const String shareBackground = '$_app/share/background';
+  static String shareBackgroundImage(String id) => '$_app/share/background/$id/image';
+  static const String referralMe = '$_app/referral/me';
+  static const String referralMine = '$_app/referral/mine';
+  static const String referralAttribute = '$_app/referral/attribute';
+
+  /// What a stranger sees at a shared link. Public, on the website's own API.
+  static String sharedContent(String route, String code) => '/api/web/share/$route/$code';
 }

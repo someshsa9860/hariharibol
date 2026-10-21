@@ -48,7 +48,7 @@ async function donorPlan() {
 async function compute(userId) {
   const now = new Date();
 
-  const [donation, subscription] = await Promise.all([
+  const [donation, subscription, grant] = await Promise.all([
     prisma.payment.findFirst({
       where: { userId, purpose: 'DONATION', status: 'SUCCEEDED' },
       orderBy: { paidAt: 'asc' },
@@ -59,6 +59,13 @@ async function compute(userId) {
       where: { userId, status: { in: ENTITLING_STATUSES }, currentPeriodEnd: { gt: now } },
       orderBy: [{ plan: { tier: 'desc' } }, { currentPeriodEnd: 'desc' }],
       select: { startedAt: true, currentPeriodEnd: true, plan: { select: PLAN_SELECT } },
+    }),
+    // Access given rather than bought (a referral reward, an admin gift). Never a
+    // store subscription, so it is reported as its own reason.
+    prisma.entitlementGrant.findFirst({
+      where: { userId, revokedAt: null, startsAt: { lte: now }, endsAt: { gt: now } },
+      orderBy: [{ plan: { tier: 'desc' } }, { endsAt: 'desc' }],
+      select: { startsAt: true, endsAt: true, plan: { select: PLAN_SELECT } },
     }),
   ]);
 
@@ -73,6 +80,20 @@ async function compute(userId) {
       premiumUntil: null, // permanent
       reason: 'DONATION',
       plan: donated,
+    };
+  }
+
+  // A grant only wins where it is the higher tier. At equal tier the subscription
+  // keeps the user, and the reward waits behind it (see services/referral.js, which
+  // starts a grant when the subscription's period ends) — so it is never lost and
+  // never replaces what was paid for.
+  if (grant && (!subscription || grant.plan.tier > subscription.plan.tier)) {
+    return {
+      isPremium: !grant.plan.isFree,
+      premiumSince: grant.startsAt,
+      premiumUntil: grant.endsAt,
+      reason: 'GRANT',
+      plan: grant.plan,
     };
   }
 
