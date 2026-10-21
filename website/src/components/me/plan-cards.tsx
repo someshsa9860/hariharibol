@@ -1,9 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import clsx from 'clsx';
 import { Icon } from '@/components/ui/icon';
 import { Reveal } from '@/components/ui/reveal';
-import { PLAY_STORE_URL } from '@/lib/config';
 import { formatMoney } from '@/lib/format';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { useApi } from '@/lib/use-api';
@@ -45,7 +45,7 @@ export function PlanCards({ plans }: { plans: Plan[] }) {
               </ul>
               {here ? <span className="btn btn-ghost btn-block" aria-current="true">Your plan</span>
                 : plan.isFree ? null
-                : <a className="btn btn-primary btn-block" href={PLAY_STORE_URL} rel="noopener">Subscribe in the app</a>}
+                : <Link className="btn btn-primary btn-block" href="/get-app">Subscribe in the app</Link>}
             </Reveal>
           );
         })}
