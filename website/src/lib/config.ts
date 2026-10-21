@@ -9,13 +9,8 @@ export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.ha
 /** The API as the Next server reaches it — may be an internal address. */
 export const SERVER_API_BASE = (process.env.API_BASE_URL ?? API_BASE).replace(/\/$/, '');
 
-export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
-export const APPLE_CLIENT_ID = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID ?? '';
+/** Where Apple sends the popup back to. The client ids, and App Check's keys, are read at run time: lib/runtime-config.ts. */
 export const APPLE_REDIRECT_URI = process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI ?? `${SITE_URL}/`;
-
-/** Firebase web config as JSON, and the reCAPTCHA Enterprise key, for App Check (the API asks for it on sign-in). */
-export const FIREBASE_CONFIG = process.env.NEXT_PUBLIC_FIREBASE_CONFIG ?? '';
-export const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '';
 
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sss.ramkrishnahari';
 export const CONTACT_EMAIL = 'hello@hariharibol.com';

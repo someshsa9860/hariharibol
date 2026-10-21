@@ -14,9 +14,11 @@ export function AuthDialog({ reason, onClose }: { reason?: string; onClose: () =
   const googleSlot = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasGoogle = googleEnabled();
+  const hasApple = appleEnabled();
 
   useEffect(() => {
-    if (!googleEnabled || !googleSlot.current) return;
+    if (!hasGoogle || !googleSlot.current) return;
     renderGoogleButton(googleSlot.current, async (idToken) => {
       setBusy(true);
       setError(null);
@@ -27,7 +29,7 @@ export function AuthDialog({ reason, onClose }: { reason?: string; onClose: () =
         setBusy(false);
       }
     }).catch(() => setError('Google sign-in could not load. Check your connection and try again.'));
-  }, [signInWithToken]);
+  }, [hasGoogle, signInWithToken]);
 
   const apple = async () => {
     setBusy(true);
@@ -53,14 +55,14 @@ export function AuthDialog({ reason, onClose }: { reason?: string; onClose: () =
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
         <div className="auth-buttons" aria-busy={busy}>
-          {googleEnabled && <div ref={googleSlot} className="google-slot" />}
-          {appleEnabled && (
+          {hasGoogle && <div ref={googleSlot} className="google-slot" />}
+          {hasApple && (
             <button className="btn btn-block apple-btn" onClick={apple} disabled={busy}>
               <Icon name="apple" size={18} /> Continue with Apple
             </button>
           )}
-          {!googleEnabled && !appleEnabled && (
-            <div className="notice">Sign-in is not set up on this site yet (NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing).</div>
+          {!hasGoogle && !hasApple && (
+            <div className="notice">Sign-in is not set up on this site yet (WEBSITE_GOOGLE_CLIENT_ID is missing).</div>
           )}
           {busy && <div className="auth-busy"><Spinner label="Signing in" /></div>}
         </div>
