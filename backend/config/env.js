@@ -51,6 +51,17 @@ const schema = z.object({
   GOOGLE_CLIENT_IDS: z.string().default(''),
   APPLE_BUNDLE_IDS: z.string().default(''),
 
+  // Universal links / app links (deeplink/index.js). The Apple team prefixes each bundle id in the
+  // association file; the Android SHA-256 fingerprints come from the app signing certificate
+  // (Play Console → App integrity → App signing, comma separated). Both are empty until set, on
+  // purpose: a wrong value silently disables the links, an empty one is easy to notice.
+  APPLE_TEAM_ID: z.string().default(''),
+  ANDROID_CERT_SHA256: z.string().default(''),
+  // The public store listings the share page offers. Empty means "not published yet": the page
+  // then hides the badge instead of linking somewhere invented.
+  PLAY_STORE_URL: z.string().default(''),
+  APP_STORE_URL: z.string().default(''),
+
   APP_CHECK_ENABLED: flag(false),
 
   // Carrying people over from the old app's server (POST /auth/legacy, services/legacy.js). The URL is
@@ -173,6 +184,7 @@ const env = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
+  androidCertSha256: csv(parsed.data.ANDROID_CERT_SHA256),
   legacyMigrationEnabled: Boolean(parsed.data.LEGACY_MIGRATION_URL && parsed.data.LEGACY_MIGRATION_KEY),
   // Resolved against the backend directory so the .env can hold the short,
   // obvious `secrets/…json` rather than a path that only works from one cwd.

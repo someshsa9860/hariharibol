@@ -37,8 +37,9 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
     applinks: {
       apps: [],
       details: env.appleBundleIds.map((bundleId) => ({
-        appID: bundleId,
-        paths: ['/verse/*', '/sloka/*', '/mantra/*', '/book/*'],
+        appID: env.APPLE_TEAM_ID ? `${env.APPLE_TEAM_ID}.${bundleId}` : bundleId,
+        // The legacy paths, then the share and invitation families (utils/share.js).
+        paths: ['/verse/*', '/sloka/*', '/mantra/*', '/book/*', '/shloka/*', '/naam/*', '/darshan/*', '/satsang/*'],
       })),
     },
   });
@@ -51,10 +52,10 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
       target: {
         namespace: 'android_app',
         package_name: env.GOOGLE_PLAY_PACKAGE_NAME,
-        // Filled from the signing certificate. Left empty rather than wrong:
+        // From ANDROID_CERT_SHA256 (the signing certificate). Left empty rather than wrong:
         // a mismatched fingerprint silently disables Android app links, and a
         // placeholder that looks real is harder to notice than an empty list.
-        sha256_cert_fingerprints: [],
+        sha256_cert_fingerprints: env.androidCertSha256,
       },
     },
   ]);
