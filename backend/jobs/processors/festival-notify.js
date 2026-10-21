@@ -68,6 +68,7 @@ export default async function festivalNotify() {
       for await (const ids of audience()) {
         await notify.toUsers(ids, {
           type: 'FESTIVAL',
+          campaign: `festival:${festival.id}:${days}`,
           title,
           body,
           data: { deeplink: 'hariharibol://calendar', date, kind: festival.kind, festivalId: festival.id },

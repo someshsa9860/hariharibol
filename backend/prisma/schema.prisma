@@ -388,6 +388,7 @@ model Device {
 
   topicSubscriptions FcmSubscription[]
   bans               Ban[]
+  pushEvents         PushEvent[]
 
   @@index([userId])
   @@index([isBanned])
@@ -1238,12 +1239,76 @@ model Notification {
   sentAt DateTime?
   readAt DateTime?
 
+  // The send this belongs to — see PushCampaign.
+  campaignId String?
+
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign PushCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+  @@index([campaignId])
+}
+
+// One push message as the admin panel sees it: "the sloka of 21 October", "Ekadashi
+// tomorrow", a broadcast someone typed. A campaign is shared by everyone it went to —
+// a million people receiving one festival push is one row here, not a million.
+//
+// `key` is how a sender names its campaign so repeated sends land on the same row
+// (services/notify.js falls back to type + day). The counters are what the server
+// knows — FCM accepted the message for this many devices. What the phones then say
+// happened (delivered, opened, read) is PushEvent.
+model PushCampaign {
+  id String @id @default(cuid())
+
+  key    String           @unique @db.VarChar(200)
+  type   NotificationType
+  source String           @default("system") @db.VarChar(40) // system | topic | audience | user
+
+  title String
+  body  String @db.Text
+
+  targetedUsers Int @default(0) // people the send was addressed to
+  sentDevices   Int @default(0) // devices FCM accepted it for (topic sends: subscribers)
+  failedDevices Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  events        PushEvent[]
+  notifications Notification[]
+
+  @@index([createdAt])
+}
+
+enum PushEventType {
+  DELIVERED // reached the app (open at the time, or its background handler ran)
+  OPENED // the notification was tapped
+  ENGAGED // the app reports how long the reader stayed after opening it
+}
+
+// What a phone reports about a push. One row per device per kind, so a retried
+// report or a second tap never counts twice; ENGAGED keeps the longest stay.
+model PushEvent {
+  id String @id @default(cuid())
+
+  campaignId String
+  deviceId   String
+  userId     String?
+
+  event      PushEventType
+  durationMs Int? // ENGAGED only
+  screen     String? @db.VarChar(200) // where the tap took them, ENGAGED only
+
+  occurredAt DateTime // the phone's clock, clamped to the server's
+  createdAt  DateTime @default(now())
+
+  campaign PushCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  device   Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, deviceId, event])
+  @@index([campaignId, event])
 }
 
 // FCM broadcast topics. Sending to a topic is one call regardless of audience

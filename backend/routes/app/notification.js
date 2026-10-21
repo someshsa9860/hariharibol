@@ -35,6 +35,34 @@ router.get(
 );
 
 router.post(
+  '/events',
+  {
+    summary: 'Report what happened to a push',
+    description:
+      'The app says a push arrived, was tapped, and how long the reader stayed afterwards. ' +
+      'Feeds the delivery statistics in the admin panel. Repeating a report changes nothing.',
+    limit: 'write',
+    body: z.object({
+      deviceId: z.string().max(200).optional(),
+      events: z
+        .array(
+          z.object({
+            pushId: z.string().min(1).max(60),
+            event: z.enum(['DELIVERED', 'OPENED', 'ENGAGED']),
+            at: z.string().datetime().optional(),
+            durationMs: z.number().int().min(0).max(86400000).optional(),
+            screen: z.string().max(200).optional(),
+          })
+        )
+        .min(1)
+        .max(50),
+    }),
+    responds: { 200: 'How many were kept' },
+  },
+  controller.events
+);
+
+router.post(
   '/:id/read',
   {
     summary: 'Mark one as read',

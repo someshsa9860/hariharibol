@@ -151,6 +151,7 @@ abstract final class ApiPaths {
   static const String notifications = '$_app/notifications';
   static const String unreadCount = '$_app/notifications/unread-count';
   static String notificationRead(String id) => '$_app/notifications/$id/read';
+  static const String notificationEvents = '$_app/notifications/events';
   static const String notificationsReadAll = '$_app/notifications/read-all';
 
   // Money
