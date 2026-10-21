@@ -36,11 +36,14 @@ const schedules = [
     description: 'Send chanting reminders due in the next quarter hour.',
   },
   {
-    name: 'festival.notify',
+    name: 'festival.plan',
     queue: 'notification',
-    // 02:30 UTC = 08:00 IST: the push for tomorrow's (or today's) Ekadashi, Chaturthi or festival.
-    cron: '30 2 * * *',
-    description: 'Push an upcoming Ekadashi, Chaturthi or festival to readers, once each, the day before.',
+    // 04:45 IST, the calendar's own time. It looks for a festival push due today and, if there is
+    // one, queues the `festival.notify` job (jobs/processors/festival-plan.js) for 05:00 IST; that
+    // job has no schedule of its own.
+    cron: '45 4 * * *',
+    tz: 'Asia/Kolkata',
+    description: 'Check the calendar for today and queue the 05:00 push of an Ekadashi, Chaturthi or festival, if there is one.',
   },
   {
     name: 'finance.remind',

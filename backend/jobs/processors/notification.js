@@ -12,6 +12,7 @@ import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as notify from '../../services/notify.js';
 import festivalNotify from './festival-notify.js';
+import festivalPlan from './festival-plan.js';
 import financeRemind from './finance-remind.js';
 import { localDateString, toDateColumn } from '../../utils/date.js';
 
@@ -41,6 +42,7 @@ function parseReminder(value) {
 }
 
 export default async function notificationProcessor(job) {
+  if (job.name === 'festival.plan') return festivalPlan(job);
   if (job.name === 'festival.notify') return festivalNotify(job);
   if (job.name === 'finance.remind') return financeRemind(job);
   const now = new Date();

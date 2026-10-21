@@ -4,13 +4,16 @@
 //   npm run test:panchang
 //
 // Checks the public calendar, who may use the admin pages, a correction that survives
-// generating the year again, a festival added for tomorrow, and the push going out once.
-// Makes a throw-away admin and reader (deleted at the end) and a festival (deleted too).
+// generating the year again, a festival added for tomorrow, the push going out once, and a
+// festival today: pushed on its own day, and queued for 05:00 by the 04:45 planning job.
+// Makes a throw-away admin and reader (deleted at the end) and two festivals (deleted too).
 
 import { prisma } from '../config/database.js';
 import { redis } from '../config/redis.js';
 import * as authService from '../services/auth.js';
 import festivalNotify from '../jobs/processors/festival-notify.js';
+import festivalPlan, { pushTime } from '../jobs/processors/festival-plan.js';
+import { queues } from '../jobs/index.js';
 import { LOCATIONS } from '../services/panchang.js';
 import { currentLocationKey, asDate } from '../services/panchang-store.js';
 import { localDateString, shiftDays } from '../utils/date.js';
@@ -60,6 +63,8 @@ async function main() {
   const today = localDateString(LOCATIONS[key].timezone);
   const tomorrow = shiftDays(today, 1);
   let festivalId = null;
+  let todayId = null;
+  const planJobId = `festival-notify-${today}`;
 
   try {
     await redis.del(`rl:write:${admin.id}`, `rl:read:${admin.id}`);
@@ -113,13 +118,39 @@ async function main() {
     check('it can be switched off', off.status === 200 && off.json.data.isActive === false);
     void device;
 
-    console.log('\n5. The place');
+    console.log('\n5. A festival today is pushed on its day, and queued for 05:00');
+    const madeToday = await call('POST', '/api/admin/panchang/festivals', { token, body: { date: today, slug: 'e2e-today', kind: 'FESTIVAL', name: 'E2E Today', notifyDaysBefore: [] } });
+    todayId = madeToday.json?.data?.id;
+    check('created, with no earlier heads-up asked for', madeToday.status === 201, `HTTP ${madeToday.status}`);
+    check('05:00 IST on 22 Oct is 23:30 UTC the evening before',
+      pushTime('2026-10-22', 'Asia/Kolkata').toISOString() === '2026-10-21T23:30:00.000Z', pushTime('2026-10-22', 'Asia/Kolkata').toISOString());
+    await queues.notification.remove(planJobId);
+    const plan = await festivalPlan();
+    check('the 04:45 job finds it and queues the push', plan.planned && plan.due >= 1, JSON.stringify(plan));
+    const queued = await queues.notification.getJob(planJobId);
+    const at = pushTime(today, LOCATIONS[key].timezone).getTime();
+    const wanted = Math.max(at, queued?.timestamp ?? 0); // already past 05:00 → goes at once
+    check('as a festival.notify job for 05:00', queued?.name === 'festival.notify' && Math.abs(queued.timestamp + queued.opts.delay - wanted) < 5000,
+      queued ? `delay ${queued.opts.delay} ms` : 'not on the queue');
+    await festivalPlan();
+    check('planning again does not queue a second', (await queues.notification.getJobs(['waiting', 'delayed'])).filter((j) => j.id === planJobId).length === 1);
+    // The first push went to a made-up token, which the push service drops as invalid; give the phone one again.
+    await prisma.device.update({ where: { deviceId: DEVICE }, data: { fcmToken: 'e2e-token' } });
+    const todayRun = await festivalNotify();
+    check('the push goes out', todayRun.sent >= 1, JSON.stringify(todayRun));
+    const todayRows = await prisma.notification.findMany({ where: { userId: reader.id, type: 'FESTIVAL' } });
+    check('the reader has "E2E Today today"', todayRows.some((r) => r.title === 'E2E Today today'), todayRows.map((r) => r.title).join(', '));
+    const after = await festivalPlan();
+    check('with nothing left to send, planning finds less', after.due < plan.due, JSON.stringify(after));
+
+    console.log('\n6. The place');
     const bad = await call('PUT', '/api/admin/panchang/location', { token, body: { key: 'atlantis' } });
     check('an unknown place is refused', bad.status === 400, `HTTP ${bad.status}`);
   } finally {
-    if (festivalId) await prisma.festival.deleteMany({ where: { id: festivalId } });
-    // The run above announced whatever real festival is tomorrow; let the real job do it again.
-    await prisma.festival.updateMany({ where: { locationKey: key, date: asDate(tomorrow) }, data: { notifiedDays: [] } });
+    if (festivalId || todayId) await prisma.festival.deleteMany({ where: { id: { in: [festivalId, todayId].filter(Boolean) } } });
+    await queues.notification.remove(planJobId).catch(() => {});
+    // The runs above announced whatever real festival is today or tomorrow; let the real job do it again.
+    await prisma.festival.updateMany({ where: { locationKey: key, date: { in: [asDate(today), asDate(tomorrow)] } }, data: { notifiedDays: [] } });
     await prisma.panchangDay.updateMany({ where: { date: asDate('2026-01-20'), locationKey: key }, data: { isEdited: false, notes: null } });
     await prisma.notification.deleteMany({ where: { userId: { in: [admin.id, reader.id] } } });
     await prisma.device.deleteMany({ where: { deviceId: DEVICE } });
