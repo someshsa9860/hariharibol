@@ -2358,7 +2358,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get shareMakeReel => 'ரீல் உருவாக்கு';
 
   @override
-  String get shareReelIntro => 'உங்கள் அட்டை ஒரு ரீலாக மாறும்; ரீல்ஸில் அனைவரும் பார்க்கலாம்.';
+  String get shareReelIntro =>
+      'உங்கள் அட்டை ஒரு ரீலாக மாறும்; ரீல்ஸில் அனைவரும் பார்க்கலாம்.';
 
   @override
   String get shareReelAddMusic => 'போனிலிருந்து இசை சேர்க்கவும்';
@@ -2378,23 +2379,28 @@ class AppLocalizationsTa extends AppLocalizations {
   String get shareReelPosting => 'உங்கள் ரீல் பதிவிடப்படுகிறது…';
 
   @override
-  String get shareReelDone => 'உங்கள் ரீல் நேரலையில் உள்ளது. ரீல்ஸில் பாருங்கள்.';
+  String get shareReelDone =>
+      'உங்கள் ரீல் நேரலையில் உள்ளது. ரீல்ஸில் பாருங்கள்.';
 
   @override
-  String get shareReelFailed => 'ரீலை பதிவிட முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+  String get shareReelFailed =>
+      'ரீலை பதிவிட முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
 
   @override
-  String get shareReelTooBig => 'இந்த இசைக் கோப்பு மிகப் பெரியது (அதிகபட்சம் 25 MB).';
+  String get shareReelTooBig =>
+      'இந்த இசைக் கோப்பு மிகப் பெரியது (அதிகபட்சம் 25 MB).';
 
   @override
   String get calendarTitle => 'இந்து பஞ்சாங்கம்';
 
   @override
-  String get calendarEmpty => 'இந்த மாதத்தின் பஞ்சாங்கம் இன்னும் நிரப்பப்படவில்லை.';
+  String get calendarEmpty =>
+      'இந்த மாதத்தின் பஞ்சாங்கம் இன்னும் நிரப்பப்படவில்லை.';
 
   @override
   String get calendarUpcoming => 'ஏகாதசி, சதுர்த்தி மற்றும் பண்டிகை நாட்கள்';
 
   @override
-  String get calendarVaishnavaNote => 'வைஷ்ணவர்கள் இந்த விரதத்தை மறுநாள் அனுசரிக்கலாம்.';
+  String get calendarVaishnavaNote =>
+      'வைஷ்ணவர்கள் இந்த விரதத்தை மறுநாள் அனுசரிக்கலாம்.';
 }

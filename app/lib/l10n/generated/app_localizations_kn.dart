@@ -2345,7 +2345,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get shareMakeReel => 'ರೀಲ್ ಮಾಡಿ';
 
   @override
-  String get shareReelIntro => 'ನಿಮ್ಮ ಕಾರ್ಡ್ ಒಂದು ರೀಲ್ ಆಗುತ್ತದೆ; ರೀಲ್ಸ್‌ನಲ್ಲಿ ಎಲ್ಲರೂ ನೋಡಬಹುದು.';
+  String get shareReelIntro =>
+      'ನಿಮ್ಮ ಕಾರ್ಡ್ ಒಂದು ರೀಲ್ ಆಗುತ್ತದೆ; ರೀಲ್ಸ್‌ನಲ್ಲಿ ಎಲ್ಲರೂ ನೋಡಬಹುದು.';
 
   @override
   String get shareReelAddMusic => 'ಫೋನ್‌ನಿಂದ ಸಂಗೀತ ಸೇರಿಸಿ';
@@ -2368,7 +2369,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get shareReelDone => 'ನಿಮ್ಮ ರೀಲ್ ಲೈವ್ ಆಗಿದೆ. ರೀಲ್ಸ್‌ನಲ್ಲಿ ನೋಡಿ.';
 
   @override
-  String get shareReelFailed => 'ರೀಲ್ ಪೋಸ್ಟ್ ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+  String get shareReelFailed =>
+      'ರೀಲ್ ಪೋಸ್ಟ್ ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 
   @override
   String get shareReelTooBig => 'ಈ ಸಂಗೀತ ಫೈಲ್ ತುಂಬಾ ದೊಡ್ಡದು (ಗರಿಷ್ಠ 25 MB).';

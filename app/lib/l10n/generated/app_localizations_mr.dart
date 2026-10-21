@@ -2341,7 +2341,8 @@ class AppLocalizationsMr extends AppLocalizations {
   String get shareMakeReel => 'रील बनवा';
 
   @override
-  String get shareReelIntro => 'तुमचे कार्ड एक रील बनेल, जी रील्समध्ये सर्वांना पाहता येईल.';
+  String get shareReelIntro =>
+      'तुमचे कार्ड एक रील बनेल, जी रील्समध्ये सर्वांना पाहता येईल.';
 
   @override
   String get shareReelAddMusic => 'फोनमधून संगीत जोडा';
@@ -2364,7 +2365,8 @@ class AppLocalizationsMr extends AppLocalizations {
   String get shareReelDone => 'तुमची रील लाइव्ह आहे. ती रील्समध्ये पाहा.';
 
   @override
-  String get shareReelFailed => 'रील पोस्ट होऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.';
+  String get shareReelFailed =>
+      'रील पोस्ट होऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.';
 
   @override
   String get shareReelTooBig => 'ही संगीत फाइल खूप मोठी आहे (कमाल 25 MB).';

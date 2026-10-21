@@ -2336,7 +2336,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareMakeReel => 'Make reel';
 
   @override
-  String get shareReelIntro => 'Your card becomes a reel that everyone in Reels can watch.';
+  String get shareReelIntro =>
+      'Your card becomes a reel that everyone in Reels can watch.';
 
   @override
   String get shareReelAddMusic => 'Add music from your phone';
@@ -2359,7 +2360,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareReelDone => 'Your reel is live. Find it in Reels.';
 
   @override
-  String get shareReelFailed => 'The reel could not be posted. Please try again.';
+  String get shareReelFailed =>
+      'The reel could not be posted. Please try again.';
 
   @override
   String get shareReelTooBig => 'That music file is too large (up to 25 MB).';
@@ -2368,11 +2370,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarTitle => 'Hindu calendar';
 
   @override
-  String get calendarEmpty => 'The calendar for this month is not filled in yet.';
+  String get calendarEmpty =>
+      'The calendar for this month is not filled in yet.';
 
   @override
   String get calendarUpcoming => 'Ekadashi, Chaturthi and festival days';
 
   @override
-  String get calendarVaishnavaNote => 'Vaishnavas may keep this fast the next day.';
+  String get calendarVaishnavaNote =>
+      'Vaishnavas may keep this fast the next day.';
 }

@@ -2340,7 +2340,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shareMakeReel => 'रील बनाएँ';
 
   @override
-  String get shareReelIntro => 'आपका कार्ड एक रील बन जाएगा, जिसे रील्स में सब देख सकेंगे।';
+  String get shareReelIntro =>
+      'आपका कार्ड एक रील बन जाएगा, जिसे रील्स में सब देख सकेंगे।';
 
   @override
   String get shareReelAddMusic => 'फ़ोन से संगीत जोड़ें';
