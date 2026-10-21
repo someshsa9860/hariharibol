@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-/// "Latest": scrolls the chat back down to the newest message once the reader
+/// A small round down arrow: scrolls the chat back down to the newest message once the reader
 /// has gone up to read an earlier one. It slides in from below and out again.
 class ChatJumpButton extends StatelessWidget {
   const ChatJumpButton({super.key, required this.visible, required this.onPressed});
@@ -25,10 +25,10 @@ class ChatJumpButton extends StatelessWidget {
         child: AnimatedOpacity(
           duration: duration,
           opacity: visible ? 1 : 0,
-          child: FilledButton.tonalIcon(
+          child: IconButton.filledTonal(
             onPressed: onPressed,
+            tooltip: AppLocalizations.of(context).chatJumpToLatest,
             icon: const Icon(Icons.keyboard_arrow_down_rounded),
-            label: Text(AppLocalizations.of(context).chatJumpToLatest),
           ),
         ),
       ),
