@@ -513,3 +513,16 @@ An Xcode Cloud workflow archives the app and sends it to TestFlight when `main` 
 
 - The previous Flutter app is archived on the `unorganized` branch at `mobile_app/` — reference only, not a base to copy.
 - The Android signing keystore (`key.jks`, `key.properties`) and Firebase configs are backed up outside the repo at `../hariharibol-local-secrets/`. The keystore is irreplaceable — losing it blocks Play Store updates for the existing listing.
+
+
+## Large screens, foldables and TV
+
+The app adapts to the window, not the device: `core/layout/adaptive.dart` holds `WindowSize` (compact < 600, medium < 840, expanded < 1200, large; Material's width classes), `AdaptiveLayout.of(context)` (class, hinge rectangle, half-open posture, TV flag), `ContentWidth` (centres a screen in a maximum width and paints the page colour in the margins; a no-op on a phone and when a hinge is present), `TwoPane` (splits at the hinge when there is one, else by ratio) and `ContentWidths` (`reading` 720, `regular` 880, `wide` 1180, `reel` 480).
+
+- **Navigation.** Compact keeps the floating `GlassNavBar`. From medium up the dashboard shows `widgets/common/side_nav.dart` instead — a narrow rail (labels under icons) on medium, a 264px column with labels beside icons from expanded — with Sakha's button at the top. Both are fed the same `NavItem` / `NavHero` list, so they cannot drift. The tab beside the rail gets its own `MediaQuery` (the room left over, hinge shifted by the rail's width), so anything reading the hinge finds it where it is. Reels stays a phone-shaped 480px column on black.
+- **Screens.** Every pushed screen is wrapped in `ContentWidth` in `app_router.dart`; Home is two columns from expanded (or when a vertical hinge splits the window, one column per screen).
+- **Foldables.** Hinge and posture come from `MediaQuery.displayFeatures`; `android:resizeableActivity="true"`; `configChanges` already includes screenSize, so unfolding does not restart the activity.
+- **TV.** `MainActivity.kt` answers `hariharibol/device` `isTv` from `UiModeManager`; the manifest has the `LEANBACK_LAUNCHER` category and `touchscreen` / `leanback` / `microphone` `required=false`. On TV the focus ring is always drawn, text is never below 1.15x, and the side column is a focus group — arrows move, Select opens. The TV banner is currently the launcher icon; a 320x180 `banner` image is still wanted.
+- **Desktop.** `AppScrollBehavior` lets a mouse and trackpad drag lists and shows scroll bars on desktop. `macos/` is a generated Flutter runner (bundle id `com.sss.ramkrishnahari`, network client, microphone and file-read entitlements, window opens 1280x820 and no smaller than 420x640). **Not built: no macOS toolchain here, and several plugins (the voice detector, audio_service, App Attest) have not been checked for macOS.**
+- **Tests.** `test/adaptive_layout_test.dart`. The default test window (800x600) is *medium*, so a test of the phone's bar must set `tester.view.physicalSize` to a phone first (see `auth_flow_test.dart`).
+- **Not done.** Library and chapter reading do not have a list/detail two-pane yet (the reader is only held to a reading width); the intro pages, chant counter and share studio are held to a width but not redesigned for landscape; dialogs and bottom sheets are not width-limited.

@@ -29,6 +29,7 @@ import 'package:hariharibol/views/dashboard/dashboard_view.dart';
 import 'package:hariharibol/views/dashboard/routine_tab.dart';
 import 'package:hariharibol/core/constants/intro_config.dart';
 import 'package:hariharibol/widgets/common/glass_nav_bar.dart';
+import 'package:hariharibol/widgets/common/side_nav.dart';
 import 'package:hariharibol/views/onboarding/intro_view.dart';
 import 'package:hariharibol/views/onboarding/language_view.dart';
 import 'package:hariharibol/views/splash/splash_view.dart';
@@ -248,7 +249,15 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     }
 
+    // The test window is 800 wide, which the app treats as a small tablet; the bar is a phone's.
+    void phone(WidgetTester tester) {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+    }
+
     testWidgets('a signed-in person goes straight to the dashboard', (tester) async {
+      phone(tester);
       await signIn(tester);
 
       await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
@@ -261,7 +270,23 @@ void main() {
       expect(find.byType(SplashView), findsNothing);
     });
 
+    testWidgets('on a wide window the destinations are a column, not a bar', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await signIn(tester);
+
+      await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(DashboardView), findsOneWidget);
+      expect(find.byType(SideNav), findsOneWidget);
+      expect(find.byType(GlassNavBar), findsNothing);
+    });
+
     testWidgets('all four tabs are reachable from the bar', (tester) async {
+      phone(tester);
       await signIn(tester);
 
       await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));

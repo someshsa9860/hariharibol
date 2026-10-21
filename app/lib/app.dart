@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/layout/adaptive.dart';
+import 'core/layout/app_scroll_behavior.dart';
 import 'core/navigation/app_navigator.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -75,7 +77,10 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBin
       onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
-      builder: (context, child) => PushForeground(child: child ?? const SizedBox.shrink()),
+      scrollBehavior: const AppScrollBehavior(),
+      builder: (context, child) => _SeatedForTheRoom(
+        child: PushForeground(child: child ?? const SizedBox.shrink()),
+      ),
       scaffoldMessengerKey: AppNavigator.instance.messengerKey,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
@@ -89,5 +94,24 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBin
       ],
       supportedLocales: AppLocalizations.supportedLocales,
     );
+  }
+}
+
+/// Text for the distance it is read from: a television is watched from a sofa, so
+/// type is never smaller than [AdaptiveLayout.textScaleFloor] times its size,
+/// whatever the system's text size says. Everywhere else this changes nothing.
+class _SeatedForTheRoom extends StatelessWidget {
+  const _SeatedForTheRoom({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final floor = AdaptiveLayout.of(context).textScaleFloor;
+    if (floor <= 1) return child;
+    final media = MediaQuery.of(context);
+    final scale = media.textScaler.scale(1);
+    if (scale >= floor) return child;
+    return MediaQuery(data: media.copyWith(textScaler: TextScaler.linear(floor)), child: child);
   }
 }
