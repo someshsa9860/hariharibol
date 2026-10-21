@@ -44,6 +44,21 @@ router.get(
 );
 
 router.get(
+  '/:slug/languages',
+  {
+    summary: 'Languages a book is available in',
+    description:
+      'Codes of the reading languages the book has published translations in (English always). ' +
+      'The reading filter offers only these.',
+    public: true,
+    limit: 'read',
+    params: schemas.slug,
+    responds: { 200: 'Language codes', 404: 'No such published book' },
+  },
+  controller.languages
+);
+
+router.get(
   '/:slug/cantos',
   {
     summary: 'List a book’s cantos',

@@ -7,8 +7,11 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/verse.dart';
 import '../../models/verse_part.dart';
+import '../common/peacock_feather_icon.dart';
 import 'collapsible_section.dart';
 import 'word_meanings_section.dart';
+import '../../views/share/share_studio_view.dart';
+import '../share/share_target.dart';
 
 /// One verse in the reading screen: script, transliteration, word meanings,
 /// translation, commentary, and the action row (favourite, highlight, notes,
@@ -33,7 +36,7 @@ class VerseBlock extends StatelessWidget {
     required this.onOpenNotes,
     required this.onOpenRelated,
     this.onAskSakha,
-    this.onShare,
+    this.onStartReels,
     this.translation,
     this.onCompareTranslations,
     this.onPlay,
@@ -60,8 +63,8 @@ class VerseBlock extends StatelessWidget {
   /// Opens Ask Sakha with this verse. Null hides the button.
   final VoidCallback? onAskSakha;
 
-  /// Opens the share studio with this verse. Null hides the button.
-  final VoidCallback? onShare;
+  /// Starts the book's reels from this verse (the peacock feather). Null hides it.
+  final VoidCallback? onStartReels;
 
   /// Null when the verse has only one rendering — nothing to compare.
   final VoidCallback? onCompareTranslations;
@@ -135,7 +138,10 @@ class VerseBlock extends StatelessWidget {
                 ),
               Expanded(
                 child: Text(
-                  text.labelVerse(verse.verseNumber ?? 0),
+                  text.labelVerseShort(verse.verseNumber ?? 0),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.eyebrow(
                     context,
                     color: context.colors.primary,
@@ -166,17 +172,22 @@ class VerseBlock extends StatelessWidget {
                 badgeCount: noteCount,
                 onPressed: onOpenNotes,
               ),
+              _ActionIcon(
+                icon: Icons.ios_share_rounded,
+                tooltip: text.shareTitle,
+                onPressed: () => ShareStudio.open(context, ShareTarget.verse(verse, translation: translation)),
+              ),
+              if (onStartReels != null)
+                _ActionIcon(
+                  iconWidget: const PeacockFeatherIcon(size: AppSizes.iconSm),
+                  tooltip: text.verseStartReels,
+                  onPressed: onStartReels!,
+                ),
               if (onAskSakha != null)
                 _ActionIcon(
                   icon: Icons.chat_bubble_outline_rounded,
                   tooltip: text.verseAskSakha,
                   onPressed: onAskSakha!,
-                ),
-              if (onShare != null)
-                _ActionIcon(
-                  icon: Icons.ios_share_rounded,
-                  tooltip: text.shareStudioTitle,
-                  onPressed: onShare!,
                 ),
               if (onCompareTranslations != null)
                 _ActionIcon(
@@ -266,13 +277,17 @@ String? _transliterationToShow(String? transliteration, String? sanskrit) {
 
 class _ActionIcon extends StatelessWidget {
   const _ActionIcon({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.tooltip,
     required this.onPressed,
     this.badgeCount = 0,
   });
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// Used instead of [icon] for a drawn glyph such as the peacock feather.
+  final Widget? iconWidget;
   final String tooltip;
   final VoidCallback onPressed;
   final int badgeCount;
@@ -283,7 +298,7 @@ class _ActionIcon extends StatelessWidget {
       isLabelVisible: badgeCount > 0,
       label: Text('$badgeCount'),
       child: IconButton(
-        icon: Icon(icon, size: AppSizes.iconSm),
+        icon: iconWidget ?? Icon(icon, size: AppSizes.iconSm),
         tooltip: tooltip,
         onPressed: onPressed,
         color: context.colors.onSurfaceVariant,

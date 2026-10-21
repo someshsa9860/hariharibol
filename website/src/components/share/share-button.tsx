@@ -1,22 +1,52 @@
 'use client';
 
+import { useState, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 import { Icon } from '@/components/ui/icon';
-import type { StudioContent } from '@/lib/studio/design';
+import type { ShareTarget } from '@/lib/share-link';
+import { verseHref } from '@/lib/links';
+import { verseCitation } from '@/lib/format';
+import type { Mantra, Verse } from '@/lib/types';
 
-// The studio is heavy and only wanted on demand, so it is not part of the page's first load.
+// The studio is large and only needed once someone taps Share, so it loads then.
 const ShareStudio = dynamic(() => import('./share-studio').then((m) => m.ShareStudio), { ssr: false });
 
-/** One share button for every verse, mantra and reel: opens the same studio with the right content. */
-export function ShareButton({ content, label = 'Share', className = 'btn btn-ghost btn-sm', iconOnly = false, onShared }: { content: StudioContent; label?: string; className?: string; iconOnly?: boolean; onShared?: (how: 'IMAGE' | 'LINK' | 'TEXT') => void }) {
+/** Every share entry point on the site goes through this: one button, one studio, one link scheme. */
+export function ShareButton({ target, label, className = 'icon-btn', ariaLabel = 'Share' }: { target: ShareTarget; label?: ReactNode; className?: string; ariaLabel?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className={className} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={iconOnly ? `${label} — open the share studio` : undefined}>
-        <Icon name="share" size={iconOnly ? 20 : 16} />{!iconOnly && ` ${label}`}
+      <button className={className} onClick={() => setOpen(true)} aria-label={label ? undefined : ariaLabel} aria-haspopup="dialog">
+        <Icon name="share" size={className.includes('btn-') ? 16 : undefined} />{label}
       </button>
-      {open && <ShareStudio content={content} onClose={() => setOpen(false)} onShared={onShared} />}
+      {open && <ShareStudio target={target} onClose={() => setOpen(false)} />}
     </>
   );
+}
+
+export function verseTarget(verse: Verse): ShareTarget {
+  const citation = verseCitation(verse);
+  return {
+    type: 'VERSE',
+    id: verse.verseId,
+    title: citation,
+    sanskrit: verse.sanskrit,
+    transliteration: verse.transliteration,
+    translation: verse.translation?.meaning ?? null,
+    reference: citation,
+    path: verseHref(verse.verseId),
+  };
+}
+
+export function mantraTarget(mantra: Mantra): ShareTarget {
+  return {
+    type: 'MANTRA',
+    id: mantra.slug,
+    title: mantra.name,
+    sanskrit: mantra.text,
+    transliteration: mantra.transliteration,
+    translation: mantra.meaning ?? mantra.description,
+    reference: mantra.name,
+    path: `/jap/${mantra.slug}`,
+  };
 }

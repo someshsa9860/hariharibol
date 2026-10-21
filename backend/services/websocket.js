@@ -45,6 +45,10 @@ const EVENTS = {
   // Admin panel, to `translation.read`: a run's whole state, and one line of its activity feed.
   TRANSLATION_RUN: 'translation.run',
   TRANSLATION_ACTIVITY: 'translation.activity',
+  // Admin panel, to `scenes.read`: the same two for the scene prompt runs.
+  SCENES_RUN: 'scenes.run',
+  SCENES_ACTIVITY: 'scenes.activity',
+  SCENES_USAGE: 'scenes.usage',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

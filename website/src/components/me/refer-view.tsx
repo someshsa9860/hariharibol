@@ -1,121 +1,148 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { Icon } from '@/components/ui/icon';
+import { SignInGate } from '@/components/auth/sign-in-gate';
 import { Spinner } from '@/components/ui/states';
 import { useToast } from '@/components/ui/toast';
-import { useAuth } from '@/lib/auth/auth-provider';
+import { Icon } from '@/components/ui/icon';
 import { api, describeError } from '@/lib/api/client';
 import { useApi } from '@/lib/use-api';
 import { copyText, share } from '@/lib/share';
 
-interface Referral {
-  code: string; url: string;
-  rules: { rewardDays: number; plan: string; maxPerYear: number };
-  totals: { pending: number; rewarded: number; rejected: number };
-  rewards: { id: string; startsAt: string; endsAt: string; grantedAt: string }[];
-  history: { id: string; name: string | null; status: 'PENDING' | 'REWARDED' | 'REJECTED'; claimedAt: string; qualifiedAt: string | null }[];
-  historyTotal: number;
-  referredBy: { status: string; claimedAt: string } | null;
+interface Summary {
+  code: string;
+  url: string;
+  totals: { invited: number; pending: number; successful: number; rewardsEarned: number };
+  rewardActiveUntil: string | null;
+  rules: { rewardDays: number; qualifyRounds: number; qualifyWithinDays: number; attributionWindowDays: number; limitPerYear: number; remainingThisYear: number };
+  history: { id: string; name: string; status: 'PENDING' | 'QUALIFIED' | 'REJECTED' | 'REVERSED'; invitedAt: string; qualifiedAt: string | null; reason: string | null; reward: { startsAt: string; endsAt: string; revoked: boolean } | null }[];
+  page: { page: number; hasMore: boolean };
 }
 
+const STATUS: Record<Summary['history'][number]['status'], string> = {
+  PENDING: 'Waiting for their first round', QUALIFIED: 'Rewarded', REJECTED: 'Not eligible', REVERSED: 'Reward withdrawn',
+};
+const REFUSED: Record<string, string> = {
+  invalid_code: 'That code was not found. Check it and try again.',
+  own_code: 'That is your own code.',
+  already_referred: 'You have already used an invitation.',
+  not_new: 'Invitations are for people who are new to HariHariBol.',
+  window_passed: 'That code can only be used in your first week.',
+  same_person: 'That invitation cannot be used on this account.',
+  referrer_unavailable: 'That invitation is not available.',
+  referrer_busy: 'That invitation is not available right now.',
+};
 const date = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-const STATUS = { PENDING: 'Joined — settling in', REWARDED: 'Reward earned', REJECTED: 'Not eligible' } as const;
 
 export function ReferView() {
-  const { status, openSignIn } = useAuth();
+  return (
+    <div className="page-narrow">
+      <header className="chapter-head">
+        <p className="eyebrow">Satsang</p>
+        <h1>Refer and earn</h1>
+      </header>
+      <SignInGate reason="Sign in to get your invitation link.">
+        <ReferBody />
+      </SignInGate>
+    </div>
+  );
+}
+
+function ReferBody() {
   const toast = useToast();
-  const data = useApi<Referral>(status === 'in' ? '/referral/me' : null, { auth: 'required' });
-  const [entering, setEntering] = useState('');
+  const summary = useApi<Summary>('/referral/me', { auth: 'required' });
+  const mine = useApi<{ status: string; referrerName: string | null } | null>('/referral/mine', { auth: 'required' });
+  const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (status === 'loading') return <div className="center-state"><Spinner /></div>;
-  if (status === 'out') {
-    return (
-      <div className="page-narrow center-state">
-        <h1>Refer &amp; Earn</h1>
-        <p className="muted">Sign in to get your invitation link.</p>
-        <button className="btn btn-primary" onClick={() => openSignIn('Sign in to get your invitation link')}>Sign in</button>
-      </div>
-    );
-  }
-  if (data.loading && !data.data) return <div className="center-state"><Spinner /></div>;
-  if (!data.data) return <div className="center-state"><p>{describeError(data.error)}</p><button className="btn btn-ghost" onClick={data.reload}>Try again</button></div>;
+  if (summary.loading) return <div className="center-state"><Spinner /></div>;
+  const s = summary.data;
+  if (!s) return <div className="center-state"><p>{describeError(summary.error, 'Your invitation could not be loaded.')}</p><button className="btn btn-ghost" onClick={summary.reload}>Try again</button></div>;
 
-  const d = data.data;
-  const message = `Join me on HariHariBol — verses, mantras and Sakha, free. ${d.url}`;
-
-  const claim = async () => {
+  const text = `Join me on HariHariBol — verses, mantras and daily devotion. ${s.url}`;
+  const onShare = async () => {
+    const result = await share({ title: 'Join me on HariHariBol', text: 'Join me on HariHariBol — verses, mantras and daily devotion.', url: s.url });
+    if (result === 'copied') toast('Link copied');
+    if (result === 'failed') toast('Could not share. Copy the link instead.');
+  };
+  const submit = async () => {
     setBusy(true);
     try {
-      await api('/referral/claim', { method: 'POST', body: { code: entering.trim() }, auth: 'required' });
-      toast('Thank you — your invitation is noted');
-      setEntering('');
-      data.reload();
-    } catch (error) {
-      toast(describeError(error, 'That code could not be used'));
-    } finally {
-      setBusy(false);
-    }
+      const result = await api<{ attributed: boolean; reason?: string }>('/referral/attribute', { method: 'POST', auth: 'required', body: { code: typed, source: 'CODE' } });
+      toast(result.attributed ? 'Invitation accepted — thank you' : REFUSED[result.reason ?? ''] ?? 'That invitation could not be used');
+      if (result.attributed) { setTyped(''); mine.reload(); }
+    } catch (error) { toast(describeError(error)); } finally { setBusy(false); }
   };
 
   return (
-    <div className="page-narrow refer">
-      <nav className="crumbs" aria-label="Breadcrumb"><Link href="/me">Me</Link><Icon name="right" size={14} /><span>Refer &amp; Earn</span></nav>
-      <h1>Refer &amp; Earn</h1>
-      <p className="muted">Invite a friend. When they join and settle in, you receive {d.rules.rewardDays} days of the Ārta plan — Sakha’s extra replies — with our thanks.</p>
-
-      <section className="card refer-box" aria-label="Your invitation link">
-        <code className="refer-link">{d.url}</code>
-        <p className="muted small">Your code: <strong>{d.code}</strong></p>
-        <div className="share-actions">
-          <button className="btn btn-primary" onClick={async () => { const r = await share({ title: 'Join me on HariHariBol', text: message, url: d.url }); if (r === 'copied') toast('Link copied'); if (r === 'failed') toast('Could not share'); }}><Icon name="share" size={18} /> Share</button>
-          <button className="btn btn-ghost" onClick={async () => toast((await copyText(d.url)) ? 'Link copied' : 'Could not copy')}>Copy link</button>
+    <div className="refer-grid">
+      <section className="card" style={{ padding: 22, display: 'grid', gap: 14 }}>
+        <h2 style={{ margin: 0 }}>Invite a friend</h2>
+        <p className="muted" style={{ margin: 0 }}>
+          When someone you invite finishes {s.rules.qualifyRounds === 1 ? 'a round' : `${s.rules.qualifyRounds} rounds`} of chanting, you receive {s.rules.rewardDays} days of Ārta.
+        </p>
+        <div><span className="refer-code" aria-label={`Your code ${s.code.split('').join(' ')}`}>{s.code}</span></div>
+        <p className="muted small" style={{ wordBreak: 'break-all', margin: 0 }}>{s.url}</p>
+        <div className="studio-actions">
+          <button className="btn btn-primary" onClick={onShare}><Icon name="share" size={16} /> Share link</button>
+          <button className="btn btn-ghost" onClick={() => copyText(s.url).then((ok) => toast(ok ? 'Link copied' : 'Could not copy'))}><Icon name="copy" size={16} /> Copy link</button>
+          <button className="btn btn-ghost" onClick={() => copyText(s.code).then((ok) => toast(ok ? 'Code copied' : 'Could not copy'))}>Copy code</button>
+          <a className="btn btn-quiet" href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener">WhatsApp</a>
         </div>
+        {s.rewardActiveUntil && <p style={{ margin: 0 }}><strong>Ārta from your invitations is active until {date(s.rewardActiveUntil)}.</strong></p>}
       </section>
 
-      <section className="refer-stats" aria-label="Your referrals">
-        <div className="card"><strong>{d.totals.pending}</strong><span>Settling in</span></div>
-        <div className="card"><strong>{d.totals.rewarded}</strong><span>Rewards earned</span></div>
+      <section className="card" style={{ padding: 22, display: 'grid', gap: 14 }}>
+        <h2 style={{ margin: 0 }}>Your invitations</h2>
+        <div className="refer-stats">
+          <div><strong>{s.totals.invited}</strong><small>invited</small></div>
+          <div><strong>{s.totals.pending}</strong><small>waiting</small></div>
+          <div><strong>{s.totals.successful}</strong><small>rewarded</small></div>
+        </div>
+        {s.history.length === 0
+          ? <p className="muted" style={{ margin: 0 }}>No one has used your link yet.</p>
+          : (
+            <ul className="refer-history">
+              {s.history.map((h) => (
+                <li key={h.id}>
+                  <span><strong>{h.name}</strong><br /><small className="muted">Invited {date(h.invitedAt)}</small></span>
+                  <span style={{ textAlign: 'right' }}>{STATUS[h.status]}{h.reward && !h.reward.revoked && <><br /><small className="muted">{date(h.reward.startsAt)} – {date(h.reward.endsAt)}</small></>}</span>
+                </li>
+              ))}
+            </ul>
+          )}
       </section>
 
-      <section>
-        <h2>How it works</h2>
-        <ol className="refer-steps">
-          <li>Share your link. Opening a shared verse or reel never counts — only your invitation does.</li>
-          <li>Your friend signs in as a <em>new</em> member within a week of opening the link, using your link or your code.</li>
-          <li>After a day, once they have chanted, read or kept a sadhana day, you receive {d.rules.rewardDays} days of Ārta. If you already hold Ārta or better, it begins when that ends.</li>
-          <li>Up to {d.rules.maxPerYear} months a year. You cannot refer yourself.</li>
-        </ol>
-      </section>
-
-      {d.rewards.length > 0 && (
-        <section>
-          <h2>Your rewards</h2>
-          <ul className="refer-list">{d.rewards.map((r) => <li key={r.id} className="card"><strong>{d.rules.rewardDays} days of Ārta</strong><span className="muted">{date(r.startsAt)} → {date(r.endsAt)}</span></li>)}</ul>
-        </section>
-      )}
-
-      {d.history.length > 0 && (
-        <section>
-          <h2>History</h2>
-          <ul className="refer-list">{d.history.map((h) => <li key={h.id} className="card"><strong>{h.name ?? 'A friend'}</strong><span className="muted">{STATUS[h.status]} · {date(h.claimedAt)}</span></li>)}</ul>
-        </section>
-      )}
-
-      {!d.referredBy && (
-        <section className="card refer-box">
-          <h2>Were you invited?</h2>
-          <p className="muted small">Enter your friend’s code (new members only, within a week of joining).</p>
-          <div className="share-actions">
-            <input className="input" value={entering} onChange={(e) => setEntering(e.target.value.toUpperCase())} placeholder="Code" aria-label="Invitation code" maxLength={20} />
-            <button className="btn btn-ghost" disabled={busy || entering.trim().length < 4} onClick={claim}>Use code</button>
+      {mine.data === null && !mine.loading && (
+        <section className="card" style={{ padding: 22, display: 'grid', gap: 10 }}>
+          <h2 style={{ margin: 0 }}>Were you invited?</h2>
+          <p className="muted" style={{ margin: 0 }}>If a friend gave you a code, enter it here. This works in your first {s.rules.attributionWindowDays} days.</p>
+          <div className="studio-row">
+            <input className="input" style={{ flex: 1, minWidth: 160, textTransform: 'uppercase' }} value={typed} maxLength={14} onChange={(e) => setTyped(e.target.value)} aria-label="Invitation code" placeholder="ABCD2345" />
+            <button className="btn btn-primary" disabled={busy || typed.trim().length < 6} onClick={submit}>Use code</button>
           </div>
         </section>
       )}
+      {mine.data && <section className="card" style={{ padding: 22 }}><p style={{ margin: 0 }}>{mine.data.referrerName ?? 'A friend'} invited you.</p></section>}
 
-      <p className="muted small">Terms: one reward per invited person, granted by us as extra plan time and not a store purchase; we may withhold rewards for misuse. Rewards end on the date shown and do not renew by themselves.</p>
+      <section className="card" style={{ padding: 22, display: 'grid', gap: 8 }}>
+        <h2 style={{ margin: 0 }}>How it works</h2>
+        <ol className="muted" style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 6 }}>
+          <li>Share your link or code. Opening the link alone earns nothing.</li>
+          <li>Your friend signs in as a new member and uses it within their first {s.rules.attributionWindowDays} days.</li>
+          <li>When they finish {s.rules.qualifyRounds === 1 ? 'a round' : `${s.rules.qualifyRounds} rounds`} of chanting within {s.rules.qualifyWithinDays} days, you receive {s.rules.rewardDays} days of Ārta.</li>
+        </ol>
+        <details>
+          <summary>Terms</summary>
+          <ul className="muted small" style={{ display: 'grid', gap: 4 }}>
+            <li>A person can be invited once, by the first valid code they use. You cannot use your own code or invite another account of yours.</li>
+            <li>Only new members qualify. People who have already subscribed or paid are not new.</li>
+            <li>Up to {s.rules.limitPerYear} rewards a year ({s.rules.remainingThisYear} left for you now). Rewards add to your time; they never replace or shorten a paid subscription.</li>
+            <li>The reward is access given by us, not a store subscription. It can be withdrawn if the invitation turns out to be misuse.</li>
+            <li>We keep only what is needed to run this: who invited whom, and when.</li>
+          </ul>
+        </details>
+      </section>
     </div>
   );
 }

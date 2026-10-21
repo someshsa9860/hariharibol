@@ -14,6 +14,7 @@ abstract final class PushConfig {
   static const String deeplinkScheme = 'hariharibol';
   static const String deeplinkSadhana = 'sadhana';
   static const String deeplinkPremium = 'premium';
+  static const String deeplinkCalendar = 'calendar';
 
   // ── Drawing a push while the app is open (Android) ──────────────────────
   /// The channel the backend names on every push (`backend/services/fcm.js`).

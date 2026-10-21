@@ -214,6 +214,15 @@
       }
     }
   },
+  "labelVerseShort": "Śl. {number}",
+  "@labelVerseShort": {
+    "description": "Short verse label above a verse; must stay on one line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "labelCantoChapter": "Canto {canto} · Chapter {chapter}",
   "@labelCantoChapter": {
     "placeholders": {
@@ -1472,6 +1481,30 @@
   "@chatJumpToLatest": {
     "description": "Label of the button that scrolls the chat back down to the newest message."
   },
+  "verseStartReels": "Watch reels from this verse",
+  "@verseStartReels": {
+    "description": "Tooltip of the peacock-feather button on a verse that starts book reels from that verse."
+  },
+  "reelChantTapHint": "Tap to chant",
+  "@reelChantTapHint": {
+    "description": "Hint on a chanting reel in the feed: each tap counts one chant."
+  },
+  "reelChantDone": "Round complete",
+  "@reelChantDone": {
+    "description": "Shown on a chanting reel when the 108th chant is counted, just before the feed moves on."
+  },
+  "reelChantSkipHint": "Swipe up to skip",
+  "@reelChantSkipHint": {
+    "description": "Hint on a chanting reel: swiping goes on to the next reel without finishing."
+  },
+  "reelChantCount": "{count} / {total}",
+  "@reelChantCount": {
+    "description": "Chants counted of the round on a chanting reel, like 12 / 108.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "verseAskSakha": "Ask Sakha about this verse",
   "@verseAskSakha": {
     "description": "Tooltip of the button on a verse that asks Sakha to explain it."
@@ -1607,208 +1640,108 @@
   "@sourcesContactBody": {
     "description": "Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows."
   },
-  "referTitle": "Refer & Earn",
-  "@referTitle": {
-    "description": "Settings row and screen title for inviting friends and earning a month of the Ārta plan."
+  "shareTitle": "Share",
+  "@shareTitle": {
+    "description": "Title of the share sheet, and the tooltip of the share buttons."
   },
-  "referIntro": "Invite a friend. When they join and settle in, you receive a month of the Ārta plan.",
-  "@referIntro": {
-    "description": "Refer & Earn: one line saying what an invitation earns the person who sends it."
-  },
-  "referYourLink": "Your invitation link",
-  "@referYourLink": {
-    "description": "Refer & Earn: heading over the reader's own invitation link."
-  },
-  "referShare": "Share invitation",
-  "@referShare": {
-    "description": "Refer & Earn: button that opens the system share sheet with the invitation."
-  },
-  "referShareLine": "Join me on HariHariBol — verses, mantras and Sakha, free.",
-  "@referShareLine": {
-    "description": "The line sent with the invitation link when it is shared. The link follows on its own line."
-  },
-  "referPending": "Settling in",
-  "@referPending": {
-    "description": "Refer & Earn: label under a count of invited people who have joined and are settling in."
-  },
-  "referRewarded": "Rewards earned",
-  "@referRewarded": {
-    "description": "Refer & Earn: label under a count of rewards the reader has earned."
-  },
-  "referHaveCode": "Were you invited? Enter a code",
-  "@referHaveCode": {
-    "description": "Refer & Earn: heading over the box where a person who was invited enters the code they were given."
-  },
-  "referUseCode": "Use code",
-  "@referUseCode": {
-    "description": "Refer & Earn: button that submits an invitation code."
-  },
-  "referCodeHint": "Invitation code",
-  "@referCodeHint": {
-    "description": "Refer & Earn: label of the invitation code field."
-  },
-  "referCodeThanks": "Thank you — your invitation is noted",
-  "@referCodeThanks": {
-    "description": "Refer & Earn: confirmation after an invitation code was accepted."
-  },
-  "referCodeRefused": "That code could not be used",
-  "@referCodeRefused": {
-    "description": "Refer & Earn: shown when an invitation code cannot be used (it is not theirs to use, or too late)."
-  },
-  "referRewardsHeading": "Your rewards",
-  "@referRewardsHeading": {
-    "description": "Refer & Earn: heading over the list of months of Ārta the reader earned, each with its dates."
-  },
-  "referHistoryHeading": "Invitations",
-  "@referHistoryHeading": {
-    "description": "Refer & Earn: heading over the list of people the reader invited."
-  },
-  "referStatusPending": "Joined — settling in",
-  "@referStatusPending": {
-    "description": "Refer & Earn: status of an invited person who has joined but has not yet earned the reward."
-  },
-  "referStatusRewarded": "Reward earned",
-  "@referStatusRewarded": {
-    "description": "Refer & Earn: status of an invited person whose invitation earned the reward."
-  },
-  "referStatusRejected": "Not eligible",
-  "@referStatusRejected": {
-    "description": "Refer & Earn: status of an invitation that cannot earn a reward."
-  },
-  "referTerms": "One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.",
-  "@referTerms": {
-    "description": "Refer & Earn: the plain terms of the reward, shown at the foot of the screen."
-  },
-  "shareStudioTitle": "Share studio",
-  "@shareStudioTitle": {
-    "description": "Title of the screen where a verse, mantra or reel is made into a picture to share. Also the tooltip of the share button on a verse."
-  },
-  "shareSizeSquare": "Square",
-  "@shareSizeSquare": {
-    "description": "Share studio: picture shape, a square."
-  },
-  "shareSizePortrait": "Portrait",
-  "@shareSizePortrait": {
-    "description": "Share studio: picture shape, taller than wide (4:5)."
-  },
-  "shareSizeStory": "Story",
-  "@shareSizeStory": {
-    "description": "Share studio: picture shape for stories, full phone screen (9:16)."
-  },
-  "shareBackground": "Background",
-  "@shareBackground": {
-    "description": "Share studio: heading over the background choices."
-  },
-  "shareGradients": "Gradients",
-  "@shareGradients": {
-    "description": "Share studio: choice of colour gradients as the background."
-  },
-  "shareColours": "Colours",
-  "@shareColours": {
-    "description": "Share studio: choice of plain colours as the background."
-  },
-  "sharePicture": "Picture",
-  "@sharePicture": {
-    "description": "Share studio: choice of the reader's own picture as the background."
-  },
-  "shareMakeWithAi": "Create new",
-  "@shareMakeWithAi": {
-    "description": "Share studio: choice to create a new background picture from a description."
-  },
-  "shareText": "Text",
-  "@shareText": {
-    "description": "Share studio: heading over the text controls."
-  },
-  "shareTextSize": "Size",
-  "@shareTextSize": {
-    "description": "Share studio: label of the text size slider."
-  },
-  "shareLightText": "Light text",
-  "@shareLightText": {
-    "description": "Share studio: switch between light and dark lettering on the picture."
-  },
-  "shareShowMeaning": "Show meaning",
-  "@shareShowMeaning": {
-    "description": "Share studio: switch that includes the meaning on the picture."
-  },
-  "shareShowReference": "Show reference",
-  "@shareShowReference": {
-    "description": "Share studio: switch that includes the verse reference on the picture."
-  },
-  "shareDarken": "Darken for readability",
-  "@shareDarken": {
-    "description": "Share studio: slider that darkens the background so the lettering is easier to read."
-  },
-  "shareImage": "Share picture",
-  "@shareImage": {
-    "description": "Share studio: main button that shares the finished picture."
-  },
-  "shareLinkOnly": "Share link",
-  "@shareLinkOnly": {
-    "description": "Share studio: button that shares only the link."
-  },
-  "shareCopyText": "Copy text",
-  "@shareCopyText": {
-    "description": "Share studio: button that copies the verse text."
-  },
+  "shareAsText": "Share as text",
+  "shareCopied": "Copied",
   "shareCopyLink": "Copy link",
-  "@shareCopyLink": {
-    "description": "Button that copies a link to the clipboard."
+  "shareFailed": "We couldn’t share this. Please try again.",
+  "shareImageTooBig": "That picture is too large. Please choose a smaller one.",
+  "shareLinkShare": "Share link",
+  "shareMakeIt": "Create",
+  "shareMakePicture": "Make a picture",
+  "@shareMakePicture": {
+    "description": "Makes a background picture for the share card with the reader's Ask Sakha credit."
   },
-  "shareLinkCopied": "Link copied",
-  "@shareLinkCopied": {
-    "description": "Confirmation after a link was copied."
+  "sharePickPicture": "Choose a picture",
+  "sharePictureCost": "Uses about {percent}% of your Sakha credit",
+  "@sharePictureCost": {
+    "description": "How much of the day's Ask Sakha credit a picture uses. Keep the product name Sakha as it is.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   },
-  "shareTextCopied": "Text copied",
-  "@shareTextCopied": {
-    "description": "Confirmation after text was copied."
+  "sharePictureFailed": "The picture could not be made. Your credit was returned.",
+  "sharePictureNoCredit": "Your Sakha credit for today is used up.",
+  "sharePicturePrompt": "Describe the picture",
+  "sharePictureShare": "Share picture",
+  "shareRemovePicture": "Remove picture",
+  "shareShowMeaning": "Meaning",
+  "shareShowTransliteration": "Transliteration",
+  "shareTextSize": "Text size",
+  "shareLinkGone": "This link is no longer available.",
+  "@shareLinkGone": {
+    "description": "Shown when a shared link has been withdrawn or never existed."
   },
-  "shareChoosePicture": "Choose a picture",
-  "@shareChoosePicture": {
-    "description": "Share studio: button that opens the photo library to choose a background picture."
+  "settingsRefer": "Refer and earn",
+  "referTitle": "Refer and earn",
+  "referIntro": "Invite a friend. When they finish their first round of chanting, you receive {days} days of Ārta, free.",
+  "@referIntro": {
+    "description": "Under the Refer and earn title. {days} is the length of the reward in days; Ārta is the name of a plan and stays in Latin letters.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
-  "sharePictureInvalid": "Please choose a JPEG, PNG or WebP picture under 8 MB.",
-  "@sharePictureInvalid": {
-    "description": "Share studio: shown when the chosen file is not a usable picture."
+  "referYourCode": "Your invite code",
+  "referInvite": "Invite a friend",
+  "referInviteMessage": "Join me on HariHariBol: verses, mantras and chanting in one place. {url}",
+  "@referInviteMessage": {
+    "description": "The text sent with an invitation. {url} is the invitation link, placed where the sentence ends.",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
   },
-  "shareAiPrompt": "Describe the background",
-  "@shareAiPrompt": {
-    "description": "Share studio: label of the box where the reader describes the background they want."
+  "referActiveUntil": "Ārta is yours until {date}",
+  "@referActiveUntil": {
+    "description": "{date} is a formatted date. Ārta is the name of a plan and stays in Latin letters.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
-  "shareAiMake": "Make background",
-  "@shareAiMake": {
-    "description": "Share studio: button that makes the described background."
+  "referStatInvited": "Invited",
+  "referStatWaiting": "Waiting",
+  "referStatRewarded": "Rewarded",
+  "referNone": "No invitations yet.",
+  "referEnterCode": "Have a friend’s code?",
+  "referUseCode": "Use code",
+  "referAccepted": "Code accepted. Finish a round of chanting so your friend receives their reward.",
+  "@referAccepted": {
+    "description": "Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting."
   },
-  "shareAiMaking": "Making your background…",
-  "@shareAiMaking": {
-    "description": "Share studio: shown on the button while the background is being made."
+  "referRefused": "This code can’t be used.",
+  "shareMakeReel": "Make reel",
+  "@shareMakeReel": {
+    "description": "Button in the share studio that turns the card into a reel everyone can watch."
   },
-  "shareAiNote": "Uses part of your Ask Sakha credits.",
-  "@shareAiNote": {
-    "description": "Share studio: says a background uses part of the reader's Ask Sakha credits."
+  "shareReelIntro": "Your card becomes a reel that everyone in Reels can watch.",
+  "shareReelAddMusic": "Add music from your phone",
+  "shareReelMusic": "Music: {name}",
+  "@shareReelMusic": {
+    "description": "The music file chosen for the reel.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
-  "shareAiNoCredit": "You do not have enough credits for a background.",
-  "@shareAiNoCredit": {
-    "description": "Share studio: shown when the reader lacks the credits to make a background."
-  },
-  "shareAiSeePlans": "See plans",
-  "@shareAiSeePlans": {
-    "description": "Share studio: button that opens the plans screen to get more credits."
-  },
-  "shareAiFailed": "The background could not be made. You have not been charged — please try again.",
-  "@shareAiFailed": {
-    "description": "Share studio: shown when a background could not be made. Says nothing was charged."
-  },
-  "shareAiUnavailable": "Backgrounds are not available right now.",
-  "@shareAiUnavailable": {
-    "description": "Share studio: shown when making backgrounds is not available."
-  },
-  "shareLinkFailed": "Could not make a link for this.",
-  "@shareLinkFailed": {
-    "description": "Share studio: shown when a link for this verse, mantra or reel could not be made."
-  },
-  "shareExportFailed": "Could not prepare the picture. Please try again.",
-  "@shareExportFailed": {
-    "description": "Share studio: shown when the picture could not be prepared for sharing."
-  }
+  "shareReelRemoveMusic": "Remove music",
+  "shareReelPost": "Post reel",
+  "shareReelPosting": "Posting your reel…",
+  "shareReelDone": "Your reel is live. Find it in Reels.",
+  "shareReelFailed": "The reel could not be posted. Please try again.",
+  "shareReelTooBig": "That music file is too large (up to 25 MB).",
+  "calendarTitle": "Hindu calendar",
+  "calendarEmpty": "The calendar for this month is not filled in yet.",
+  "calendarUpcoming": "Ekadashi, Chaturthi and festival days",
+  "calendarVaishnavaNote": "Vaishnavas may keep this fast the next day."
 }

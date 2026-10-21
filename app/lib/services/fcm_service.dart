@@ -7,6 +7,7 @@ import '../core/session/app_session.dart';
 import 'api_client.dart';
 import 'device_service.dart';
 import 'firebase_service.dart';
+import 'push_analytics.dart';
 import 'push_link.dart';
 
 /// Push.
@@ -47,6 +48,10 @@ class FcmService {
       // Android never does, which is what `PushForeground` is for.
       await messaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
       FirebaseMessaging.onMessageOpenedApp.listen(_tapped);
+      // The backend counts these: arrived while open, tapped, and time spent reading.
+      FirebaseMessaging.onMessage.listen((message) => PushAnalytics.instance.delivered(message.data));
+      PushLinks.instance.onTapped =
+          (data, route) => PushAnalytics.instance.opened(data, screen: route);
       if (kDebugMode) await _logDelivery(messaging);
 
       final launchedBy = await messaging.getInitialMessage();

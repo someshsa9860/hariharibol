@@ -7,6 +7,7 @@ import { Loader2, ShieldOff } from 'lucide-react';
 import { Login } from '@/routes/login';
 import { Dashboard } from '@/routes/dashboard';
 import { UsersPage } from '@/routes/users';
+import { AdminsPage } from '@/routes/admins';
 import { CreatorsPage } from '@/routes/creators';
 import { RolesPage } from '@/routes/roles';
 import { BooksPage } from '@/routes/books';
@@ -15,6 +16,7 @@ import { MantrasPage } from '@/routes/mantras';
 import { ReelsPage } from '@/routes/reels';
 import { ReelEditorPage } from '@/routes/reel-editor';
 import { ReelRecipePage } from '@/routes/reel-recipe';
+import { BookReelStylePage } from '@/routes/book-reel-style';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
@@ -25,9 +27,12 @@ import { AiUsagePage } from '@/routes/ai-usage';
 import { ChatPage } from '@/routes/chat';
 import { AuditPage } from '@/routes/audit';
 import { JobsPage } from '@/routes/jobs';
+import { MaintenancePage } from '@/routes/maintenance';
 import { TranslationsPage } from '@/routes/translations';
+import { ScenesPage } from '@/routes/scenes';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
+import { CalendarPage } from '@/routes/calendar';
 
 const ALL_ITEMS = NAV.flatMap((section) => section.items);
 
@@ -86,6 +91,22 @@ export function Router() {
         }
       />
       <Route
+        path="/calendar"
+        element={
+          <Protected permission="panchang.manage">
+            <CalendarPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/admins"
+        element={
+          <Protected permission="role.manage">
+            <AdminsPage />
+          </Protected>
+        }
+      />
+      <Route
         path="/creators"
         element={
           <Protected permission="creator.manage">
@@ -138,6 +159,14 @@ export function Router() {
         element={
           <Protected permission="reel.read">
             <ReelsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reels/book-style"
+        element={
+          <Protected permission="reel.read">
+            <BookReelStylePage />
           </Protected>
         }
       />
@@ -242,6 +271,22 @@ export function Router() {
         element={
           <Protected permission="translation.read">
             <TranslationsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/scenes"
+        element={
+          <Protected permission="scenes.read">
+            <ScenesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/maintenance"
+        element={
+          <Protected permission="system.maintenance">
+            <MaintenancePage />
           </Protected>
         }
       />

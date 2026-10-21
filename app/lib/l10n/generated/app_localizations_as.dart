@@ -358,6 +358,11 @@ class AppLocalizationsAs extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'শ্লো. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'স্কন্ধ $canto · অধ্যায় $chapter';
   }
@@ -2091,6 +2096,23 @@ class AppLocalizationsAs extends AppLocalizations {
   String get chatJumpToLatest => 'শেহতীয়া';
 
   @override
+  String get verseStartReels => 'এই শ্লোকৰ পৰা ৰীল চাওক';
+
+  @override
+  String get reelChantTapHint => 'জপ কৰিবলৈ টেপ কৰক';
+
+  @override
+  String get reelChantDone => 'মালা সম্পূৰ্ণ';
+
+  @override
+  String get reelChantSkipHint => 'এৰিবলৈ ওপৰলৈ স্বাইপ কৰক';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'এই শ্লোকৰ বিষয়ে Sakha ক সোধক';
 
   @override
@@ -2203,163 +2225,163 @@ class AppLocalizationsAs extends AppLocalizations {
       'ইয়াত দেখুওৱা কোনো লেখাৰ ওপৰত যদি আপোনাৰ স্বত্ব আছে, বা তাত কোনো ভুল পায়, তেন্তে অনুগ্ৰহ কৰি আমাক লিখক। আমি সোনকালে উত্তৰ দিম আৰু অনুৰোধ কৰিলে সেয়া শুধৰাই দিম বা আঁতৰাই দিম।';
 
   @override
-  String get referTitle => 'ৰেফাৰ কৰক আৰু উপাৰ্জন কৰক';
+  String get shareTitle => 'শ্বেয়াৰ কৰক';
 
   @override
-  String get referIntro =>
-      'এজন বন্ধুক আমন্ত্ৰণ জনাওক। তেওঁ যোগদান কৰি ব্যৱহাৰ আৰম্ভ কৰিলে আপুনি আৰ্ত প্লানৰ এমাহ পাব।';
+  String get shareAsText => 'লিখনী হিচাপে শ্বেয়াৰ কৰক';
 
   @override
-  String get referYourLink => 'আপোনাৰ আমন্ত্ৰণ লিংক';
-
-  @override
-  String get referShare => 'আমন্ত্ৰণ পঠিয়াওক';
-
-  @override
-  String get referShareLine =>
-      'HariHariBol ত মোৰ লগত যোগ দিয়ক — শ্লোক, মন্ত্ৰ আৰু Sakha, বিনামূলীয়াকৈ।';
-
-  @override
-  String get referPending => 'যোগদান কৰি আছে';
-
-  @override
-  String get referRewarded => 'অৰ্জিত পুৰস্কাৰ';
-
-  @override
-  String get referHaveCode => 'আপোনাক আমন্ত্ৰণ জনোৱা হৈছিল নেকি? কোড দিয়ক';
-
-  @override
-  String get referUseCode => 'কোড ব্যৱহাৰ কৰক';
-
-  @override
-  String get referCodeHint => 'আমন্ত্ৰণ কোড';
-
-  @override
-  String get referCodeThanks => 'ধন্যবাদ — আপোনাৰ আমন্ত্ৰণ লিপিবদ্ধ কৰা হ\'ল';
-
-  @override
-  String get referCodeRefused => 'এই কোডটো ব্যৱহাৰ কৰিব পৰা নগ\'ল';
-
-  @override
-  String get referRewardsHeading => 'আপোনাৰ পুৰস্কাৰ';
-
-  @override
-  String get referHistoryHeading => 'আমন্ত্ৰণ';
-
-  @override
-  String get referStatusPending => 'যোগদান কৰিছে — আৰম্ভ কৰি আছে';
-
-  @override
-  String get referStatusRewarded => 'পুৰস্কাৰ লাভ হ\'ল';
-
-  @override
-  String get referStatusRejected => 'যোগ্য নহয়';
-
-  @override
-  String get referTerms =>
-      'প্ৰতিজন আমন্ত্ৰিত ব্যক্তিৰ বাবে এটা পুৰস্কাৰ, যিটো আমি ষ্ট\'ৰৰ কিনা-কটাৰ সলনি অতিৰিক্ত প্লান সময় হিচাপে দিওঁ। ই দেখুওৱা তাৰিখত শেষ হয় আৰু নিজে নিজে নবীকৰণ নহয়। বছৰত সৰ্বাধিক 12 মাহ; অপব্যৱহাৰ হ\'লে আমি পুৰস্কাৰ ৰখাব পাৰোঁ।';
-
-  @override
-  String get shareStudioTitle => 'শ্বেয়াৰ ষ্টুডিঅ\'';
-
-  @override
-  String get shareSizeSquare => 'বৰ্গাকাৰ';
-
-  @override
-  String get shareSizePortrait => 'পৰ্ট্ৰেইট';
-
-  @override
-  String get shareSizeStory => 'ষ্ট\'ৰী';
-
-  @override
-  String get shareBackground => 'পটভূমি';
-
-  @override
-  String get shareGradients => 'গ্ৰেডিয়েণ্ট';
-
-  @override
-  String get shareColours => 'ৰং';
-
-  @override
-  String get sharePicture => 'ছবি';
-
-  @override
-  String get shareMakeWithAi => 'নতুন বনাওক';
-
-  @override
-  String get shareText => 'লিখনি';
-
-  @override
-  String get shareTextSize => 'আকাৰ';
-
-  @override
-  String get shareLightText => 'পাতল লিখনি';
-
-  @override
-  String get shareShowMeaning => 'অৰ্থ দেখুৱাওক';
-
-  @override
-  String get shareShowReference => 'উল্লেখ দেখুৱাওক';
-
-  @override
-  String get shareDarken => 'পঢ়িবলৈ গাঢ় কৰক';
-
-  @override
-  String get shareImage => 'ছবি শ্বেয়াৰ কৰক';
-
-  @override
-  String get shareLinkOnly => 'লিংক শ্বেয়াৰ কৰক';
-
-  @override
-  String get shareCopyText => 'লিখনি কপি কৰক';
+  String get shareCopied => 'কপি হ’ল';
 
   @override
   String get shareCopyLink => 'লিংক কপি কৰক';
 
   @override
-  String get shareLinkCopied => 'লিংক কপি কৰা হ\'ল';
+  String get shareFailed =>
+      'এইটো শ্বেয়াৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
 
   @override
-  String get shareTextCopied => 'লিখনি কপি কৰা হ\'ল';
+  String get shareImageTooBig =>
+      'সেই ছবিখন বেছি ডাঙৰ। অনুগ্ৰহ কৰি সৰু ছবি বাছনি কৰক।';
 
   @override
-  String get shareChoosePicture => 'এখন ছবি বাছনি কৰক';
+  String get shareLinkShare => 'লিংক শ্বেয়াৰ কৰক';
 
   @override
-  String get sharePictureInvalid =>
-      'অনুগ্ৰহ কৰি 8 MB তকৈ সৰু JPEG, PNG বা WebP ছবি বাছনি কৰক।';
+  String get shareMakeIt => 'বনাওক';
 
   @override
-  String get shareAiPrompt => 'পটভূমিৰ বৰ্ণনা কৰক';
+  String get shareMakePicture => 'ছবি বনাওক';
 
   @override
-  String get shareAiMake => 'পটভূমি বনাওক';
+  String get sharePickPicture => 'ছবি বাছনি কৰক';
 
   @override
-  String get shareAiMaking => 'আপোনাৰ পটভূমি বনাই আছে…';
+  String sharePictureCost(int percent) {
+    return 'আপোনাৰ Sakha ক্ৰেডিটৰ প্ৰায় $percent% খৰচ হ’ব';
+  }
 
   @override
-  String get shareAiNote =>
-      'ইয়াত আপোনাৰ Ask Sakha ক্ৰেডিটৰ কিছু অংশ ব্যৱহাৰ হয়।';
+  String get sharePictureFailed =>
+      'ছবিখন বনাব পৰা নগ’ল। আপোনাৰ ক্ৰেডিট ঘূৰাই দিয়া হ’ল।';
 
   @override
-  String get shareAiNoCredit =>
-      'পটভূমিৰ বাবে আপোনাৰ ওচৰত পৰ্যাপ্ত ক্ৰেডিট নাই।';
+  String get sharePictureNoCredit => 'আজিৰ বাবে আপোনাৰ Sakha ক্ৰেডিট শেষ হৈছে।';
 
   @override
-  String get shareAiSeePlans => 'প্লান চাওক';
+  String get sharePicturePrompt => 'ছবিখনৰ বৰ্ণনা কৰক';
 
   @override
-  String get shareAiFailed =>
-      'পটভূমি বনাব পৰা নগ\'ল। আপোনাৰ পৰা কোনো মাচুল লোৱা হোৱা নাই — অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+  String get sharePictureShare => 'ছবি শ্বেয়াৰ কৰক';
 
   @override
-  String get shareAiUnavailable => 'পটভূমি এতিয়া উপলব্ধ নহয়।';
+  String get shareRemovePicture => 'ছবি আঁতৰাওক';
 
   @override
-  String get shareLinkFailed => 'ইয়াৰ বাবে লিংক বনাব পৰা নগ\'ল।';
+  String get shareShowMeaning => 'অৰ্থ';
 
   @override
-  String get shareExportFailed =>
-      'ছবি সাজু কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+  String get shareShowTransliteration => 'লিপ্যন্তৰ';
+
+  @override
+  String get shareTextSize => 'আখৰৰ আকাৰ';
+
+  @override
+  String get shareLinkGone => 'এই লিংক আৰু উপলব্ধ নহয়।';
+
+  @override
+  String get settingsRefer => 'বন্ধুক মাতক, পুৰস্কাৰ পাওক';
+
+  @override
+  String get referTitle => 'বন্ধুক মাতক, পুৰস্কাৰ পাওক';
+
+  @override
+  String referIntro(int days) {
+    return 'এজন বন্ধুক নিমন্ত্ৰণ কৰক। তেওঁ জপৰ প্ৰথম পাক সম্পূৰ্ণ কৰিলে, আপুনি $days দিনৰ Ārta বিনামূলীয়াকৈ পাব।';
+  }
+
+  @override
+  String get referYourCode => 'আপোনাৰ নিমন্ত্ৰণ ক’ড';
+
+  @override
+  String get referInvite => 'বন্ধুক নিমন্ত্ৰণ কৰক';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'মোৰ লগত হৰিহৰিবোলত যোগ দিয়ক: শ্লোক, মন্ত্ৰ আৰু জপ এটাই ঠাইত। $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta $date লৈকে আপোনাৰ ওচৰত আছে';
+  }
+
+  @override
+  String get referStatInvited => 'নিমন্ত্ৰিত';
+
+  @override
+  String get referStatWaiting => 'অপেক্ষাত';
+
+  @override
+  String get referStatRewarded => 'পুৰস্কৃত';
+
+  @override
+  String get referNone => 'এতিয়ালৈকে কোনো নিমন্ত্ৰণ নাই।';
+
+  @override
+  String get referEnterCode => 'বন্ধুৰ ক’ড আছে নেকি?';
+
+  @override
+  String get referUseCode => 'ক’ড ব্যৱহাৰ কৰক';
+
+  @override
+  String get referAccepted =>
+      'ক’ড গ্ৰহণ কৰা হ’ল। জপৰ এটা পাক সম্পূৰ্ণ কৰক, তেতিয়া আপোনাৰ বন্ধুৱে তেওঁৰ পুৰস্কাৰ পাব।';
+
+  @override
+  String get referRefused => 'এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।';
+
+  @override
+  String get shareMakeReel => 'ৰিল বনাওক';
+
+  @override
+  String get shareReelIntro => 'আপোনাৰ কাৰ্ডখন এটা ৰিল হৈ যাব, যিটো ৰিলছত সকলোৱে চাব পাৰিব।';
+
+  @override
+  String get shareReelAddMusic => 'ফোনৰ পৰা সংগীত যোগ কৰক';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'সংগীত: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'সংগীত আঁতৰাওক';
+
+  @override
+  String get shareReelPost => 'ৰিল পোষ্ট কৰক';
+
+  @override
+  String get shareReelPosting => 'আপোনাৰ ৰিল পোষ্ট হৈ আছে…';
+
+  @override
+  String get shareReelDone => 'আপোনাৰ ৰিল লাইভ হৈছে। ৰিলছত চাওক।';
+
+  @override
+  String get shareReelFailed => 'ৰিল পোষ্ট কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get shareReelTooBig => 'এই সংগীত ফাইলটো বহুত ডাঙৰ (সৰ্বোচ্চ 25 MB)।';
+
+  @override
+  String get calendarTitle => 'হিন্দু পঞ্জিকা';
+
+  @override
+  String get calendarEmpty => 'এই মাহৰ পঞ্জিকা এতিয়াও পূৰণ কৰা হোৱা নাই।';
+
+  @override
+  String get calendarUpcoming => 'একাদশী, চতুৰ্থী আৰু উৎসৱৰ দিন';
+
+  @override
+  String get calendarVaishnavaNote => 'বৈষ্ণৱসকলে এই ব্ৰত পিছৰ দিনা পালন কৰিব পাৰে।';
 }

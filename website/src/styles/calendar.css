@@ -1,0 +1,60 @@
+/* The Hindu calendar page. Each kind of day has one colour, used for its drawing on the grid and in lists. */
+.cal-glyph { flex: none; }
+.cal-ekadashi { color: #2f7d4a; }
+.cal-chaturthi { color: #c4621b; }
+.cal-purnima { color: #b07a00; }
+.cal-amavasya { color: var(--muted); }
+.cal-pradosh { color: #5a55b8; }
+.cal-sankranti { color: #a37400; }
+.cal-festival { color: #b3382c; }
+[data-theme='dark'] .cal-ekadashi { color: #6fcf8d; }
+[data-theme='dark'] .cal-chaturthi { color: #ff9d57; }
+[data-theme='dark'] .cal-purnima { color: #f2c75c; }
+[data-theme='dark'] .cal-pradosh { color: #9a96ff; }
+[data-theme='dark'] .cal-festival { color: #ff8a7d; }
+
+.cal-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-block: 18px 14px; }
+.cal-nav h2 { min-width: 11ch; text-align: center; font-family: var(--serif); font-size: 1.35rem; }
+.cal-empty, .cal-foot { color: var(--muted); text-align: center; margin-block: 24px; }
+.cal-foot { font-size: .82rem; }
+
+.cal-layout { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .cal-layout { grid-template-columns: minmax(0, 1fr) 320px; } }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.cal-head { background: var(--surface-2); padding: 6px 2px; text-align: center; font-size: .74rem; font-weight: 600; color: var(--muted); }
+.cal-blank { background: var(--bg-soft); }
+.cal-cell { background: var(--surface); display: flex; flex-direction: column; gap: 2px; min-height: 62px; padding: 5px 4px; color: inherit; text-decoration: none; }
+.cal-cell:hover { background: var(--accent-soft); }
+.cal-cell:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: -2px; }
+.cal-cell.is-today .cal-date { background: var(--accent); color: var(--on-accent); border-radius: 999px; padding-inline: 6px; width: fit-content; }
+.cal-cell.is-selected { box-shadow: inset 0 0 0 2px var(--accent-strong); }
+.cal-date { font-weight: 600; font-size: .9rem; }
+.cal-tithi { font-size: .66rem; color: var(--muted); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none; }
+.cal-marks { display: flex; gap: 2px; flex-wrap: wrap; margin-top: auto; }
+@media (min-width: 560px) { .cal-cell { min-height: 84px; padding: 6px; } .cal-tithi { display: block; } }
+
+.cal-detail { padding: 18px; display: grid; gap: 12px; }
+.cal-detail h3 { font-family: var(--serif); font-size: 1.1rem; }
+.cal-detail dl { display: grid; gap: 8px; margin: 0; }
+.cal-detail dl div { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; }
+.cal-detail dt { color: var(--muted); }
+.cal-detail dd { margin: 0; text-align: right; font-weight: 500; }
+.cal-note { font-size: .86rem; color: var(--muted); }
+.cal-festivals { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cal-festivals li { display: flex; gap: 10px; align-items: center; }
+.cal-festivals span { display: grid; }
+.cal-festivals small { color: var(--muted); }
+
+.cal-list { margin-top: 28px; }
+.cal-list h2 { font-family: var(--serif); font-size: 1.2rem; margin-bottom: 10px; }
+.cal-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cal-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm, 10px); }
+.cal-list-date { min-width: 8.5ch; color: var(--muted); font-size: .86rem; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .cal-ekadashi { color: #6fcf8d; }
+  :root:not([data-theme='light']) .cal-chaturthi { color: #ff9d57; }
+  :root:not([data-theme='light']) .cal-purnima { color: #f2c75c; }
+  :root:not([data-theme='light']) .cal-pradosh { color: #9a96ff; }
+  :root:not([data-theme='light']) .cal-festival { color: #ff8a7d; }
+}

@@ -45,6 +45,13 @@ const roles = [
     isSystem: true,
     permissions: ROLE_PERMISSIONS[ROLES.SUPER_ADMIN],
   },
+  {
+    slug: ROLES.BOOK_AUDITOR,
+    name: 'Book auditor',
+    description: 'Reads books and corrects their text in the reader. The only role that can; everyone else, super admin included, only reads.',
+    isSystem: true,
+    permissions: ROLE_PERMISSIONS[ROLES.BOOK_AUDITOR],
+  },
 ];
 
 const permissions = Object.entries(PERMISSIONS).map(([slug, meta]) => ({

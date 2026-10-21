@@ -1,272 +1,256 @@
-// Walks share links, referral rewards and AI backgrounds through the real services, database and Redis (no HTTP,
-// no real image provider — `fetch` to OpenAI is faked, so no money is spent).
+// Walks share links, refer-and-earn and share backgrounds against a running API
+// and the real database. Run it after `npm run dev`:
 //
 //   npm run test:share-referral
 //
-// Checks the parts that fail quietly: one reward per referral however many times and however concurrently it is
-// settled; a reward that starts after paid access instead of shortening it; self / repeat / late claims refused;
-// a draft or unpublished mantra gets no link; a background charged once per key, refunded on failure, never
-// started without credit. Everything it creates is deleted again.
+// (The npm script sets a dummy OPENAI_API_KEY.) The image provider is faked (no real picture is bought and no key is needed);
+// everything else — links, attribution, qualification, the Ārta grant, the
+// entitlement, the wallet — is real. Everything it creates is deleted again.
+
 
 import { prisma } from '../config/database.js';
 import { redis } from '../config/redis.js';
-import env from '../config/env.js';
-import * as share from '../services/share.js';
+import * as authService from '../services/auth.js';
 import * as referral from '../services/referral.js';
-import * as background from '../services/share-background.js';
+import * as shareImage from '../services/share-image.js';
 import * as aiWallet from '../services/ai-wallet.js';
 import * as entitlement from '../services/entitlement.js';
-import * as authService from '../services/auth.js';
 
+const BASE = process.env.API_BASE_URL || 'http://localhost:4000';
+const DEVICE = 'share-referral-e2e-device';
 const TAG = `e2e${Date.now()}`;
+const DAY = 86400000;
+
 let passed = 0;
 let failed = 0;
 const check = (name, ok, detail = '') => {
-  console.log(`  ${ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m'}  ${name}${detail ? ` — ${detail}` : ''}`);
-  if (ok) passed += 1; else failed += 1;
+  console.log(`  ${ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m'}  ${name}${ok || !detail ? '' : ` — ${detail}`}`);
+  if (ok) passed += 1;
+  else failed += 1;
 };
-const rejects = async (fn) => { try { await fn(); return null; } catch (e) { return e; } };
 
-const made = { users: [], mantras: [] };
-let roleId;
-const newUser = async (label, createdAt) => {
-  const user = await prisma.user.create({
-    data: { email: `${TAG}-${label}@example.test`, name: `Test ${label}`, authProvider: 'GOOGLE', providerUserId: `${TAG}-${label}`, roleId, ...(createdAt ? { createdAt } : {}) },
+async function call(method, path, { token, body } = {}) {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: { 'content-type': 'application/json', 'x-device-id': DEVICE, 'x-platform': 'android', ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
   });
-  made.users.push(user.id);
-  return user;
-};
-const hoursAgo = (h) => new Date(Date.now() - h * 3_600_000);
+  return { status: res.status, json: await res.json().catch(() => null) };
+}
+
+const made = [];
+async function makeUser(label, { email, ageDays = 0, name } = {}) {
+  const role = await prisma.role.findUnique({ where: { slug: 'user' } });
+  const user = await prisma.user.create({
+    data: {
+      email: email || `${TAG}-${label}@example.test`, name: name || `${label} Tester`, roleId: role.id,
+      authProvider: 'GOOGLE', providerUserId: `${TAG}-${label}`, createdAt: new Date(Date.now() - ageDays * DAY),
+    },
+  });
+  made.push(user.id);
+  await redis.del(`rl:write:${user.id}`, `rl:read:${user.id}`);
+  const { accessToken } = await authService.issueSession(user, DEVICE);
+  return { user, token: accessToken };
+}
+
+async function chantRound(userId) {
+  const day = await prisma.sadhanaDay.create({ data: { userId, date: new Date(new Date().toISOString().slice(0, 10)) } });
+  const session = await prisma.chantSession.create({ data: { userId, sadhanaDayId: day.id } });
+  await prisma.chantMala.create({ data: { sessionId: session.id, userId, index: 1, beads: 108, startedAt: new Date(), complete: true } });
+}
+
+const grants = (userId) => prisma.entitlementGrant.findMany({ where: { userId }, orderBy: { startsAt: 'asc' } });
 
 async function main() {
-  await prisma.$connect();
-  roleId = (await prisma.role.findFirst({ where: { slug: 'user' } }))?.id ?? (await prisma.role.findFirst()).id;
-  const arta = await prisma.subscriptionPlan.findUnique({ where: { slug: 'arta' } });
-  if (!arta) throw new Error('run `npm run seed` first');
+  const health = await fetch(`${BASE}/health`).catch(() => null);
+  if (!health?.ok) { console.error(`\nThe API is not answering on ${BASE}. Start it with \`npm run dev\` first.\n`); process.exit(1); }
 
-  // ── Share links ──
-  console.log('\nShare links');
-  const mantra = await prisma.mantra.create({ data: { slug: `${TAG}-m`, name: 'Test Mantra', sanskrit: 'ॐ', category: 'name', isPublished: true } });
-  const draft = await prisma.mantra.create({ data: { slug: `${TAG}-d`, name: 'Draft', sanskrit: 'ॐ', category: 'name', isPublished: false } });
-  made.mantras.push(mantra.id, draft.id);
+  // Its own book, so this runs on an empty database and never touches real content.
+  const bookNumber = 9000 + Math.floor(Math.random() * 900);
+  const book = await prisma.book.create({
+    data: { bookNumber, slug: `${TAG}-book`, type: 'SCRIPTURE', title: 'Test Book', isPublished: true },
+  });
+  const verse = await prisma.verse.create({
+    data: { verseId: `${bookNumber}.1.1`, bookId: book.id, bookNumber, verseNumber: 1, sanskrit: 'ॐ नमो भगवते वासुदेवाय' },
+    select: { verseId: true },
+  });
+  const mantra = await prisma.mantra.findFirst({ where: { isPublished: true }, select: { slug: true } });
+  const hidden = await prisma.mantra.findFirst({ where: { isPublished: false }, select: { slug: true } });
 
-  const a = await share.linkFor('MANTRA', mantra.slug);
-  const b = await share.linkFor('MANTRA', mantra.slug);
-  check('the same target always gets the same code', a.code === b.code);
-  check('the code names nothing', !a.code.toLowerCase().includes(mantra.slug.slice(-6).toLowerCase()) && a.code.length === 10);
-  const e1 = await rejects(() => share.linkFor('MANTRA', draft.slug));
-  check('a draft gets no link', e1?.status === 404);
-  const e2 = await rejects(() => share.linkFor('NONSENSE', 'x'));
-  check('an unknown kind is refused', e2?.status === 400);
+  const A = await makeUser('a', { name: 'Anna Referrer' });
+  const B = await makeUser('b', { name: 'Bhanu Newcomer' });
+  const C = await makeUser('c');
+  const D = await makeUser('d');
 
-  const opened = await share.resolve(a.code.toLowerCase(), 'MANTRA');
-  check('a code opens its mantra (any case)', opened.state === 'ok' && opened.content.title === 'Test Mantra');
-  check('the wrong kind is "missing", not a leak', (await share.resolve(a.code, 'SHLOKA')).state === 'missing');
-  check('rubbish is "missing"', (await share.resolve('../x')).state === 'missing');
-  await prisma.mantra.update({ where: { id: mantra.id }, data: { isPublished: false } });
-  check('an unpublished mantra becomes "gone"', (await share.resolve(a.code)).state === 'gone');
-  await prisma.mantra.update({ where: { id: mantra.id }, data: { isPublished: true } });
-  await prisma.shareLink.update({ where: { code: a.code }, data: { revokedAt: new Date() } });
-  check('a revoked link is "gone"', (await share.resolve(a.code)).state === 'gone');
-  const racers = await Promise.all(Array.from({ length: 8 }, () => share.linkFor('MANTRA', mantra.slug)));
-  check('eight at once still make one code', new Set(racers.map((r) => r.code)).size === 1);
-
-  // ── Referrals ──
-  console.log('\nReferrals');
-  const referrer = await newUser('referrer');
-  const code = await referral.codeFor(referrer.id);
-  check('a code is made once', (await referral.codeFor(referrer.id)).code === code.code && code.code.length === 8);
-  check('the inviter shows a first name only', (await referral.inviter(code.code)).firstName === 'Test');
-
-  const fresh = await newUser('fresh', hoursAgo(30));
-  check('self-claim is refused', (await rejects(() => referral.claim(referrer, code.code)))?.details?.reason === 'SELF_REFERRAL');
-  check('an unknown code is refused', (await rejects(() => referral.claim(fresh, 'ZZZZZZZZ')))?.details?.reason === 'CODE_UNKNOWN');
-  const old = await newUser('old', hoursAgo(24 * 40));
-  check('an old account cannot claim', (await rejects(() => referral.claim(old, code.code)))?.details?.reason === 'NOT_NEW');
-
-  const claimed = await referral.claim(fresh, code.code);
-  check('a new reader can claim', claimed.status === 'PENDING');
-  check('claiming the same code again is harmless', (await referral.claim(fresh, code.code)).id === claimed.id);
-  const other = await referral.codeFor((await newUser('other')).id);
-  check('a second, different code is refused', (await rejects(() => referral.claim(fresh, other.code)))?.details?.reason === 'ALREADY_REFERRED');
-
-  const before = await referral.qualifyIfDue(claimed.id);
-  check('no reward before the reader has done anything', before.rewarded === false && before.reason === 'NOT_ACTIVE_YET');
-  check('opening a share link never creates a referral', (await prisma.referral.count({ where: { referrerId: referrer.id } })) === 1);
-
-  await prisma.sadhanaDay.create({ data: { userId: fresh.id, date: new Date() } });
-  const results = await Promise.all(Array.from({ length: 6 }, () => referral.qualifyIfDue(claimed.id)));
-  check('six concurrent settles reward exactly once', results.filter((r) => r.rewarded).length === 1);
-  check('one reward row, one subscription row', (await prisma.referralReward.count({ where: { referralId: claimed.id } })) === 1
-    && (await prisma.subscription.count({ where: { userId: referrer.id, provider: 'REFERRAL' } })) === 1);
-  const again = await referral.qualifyIfDue(claimed.id);
-  check('settling again does nothing', again.rewarded === false && again.reason === 'NOT_PENDING');
-
-  const ent = await entitlement.compute(referrer.id);
-  const sub = await prisma.subscription.findFirst({ where: { userId: referrer.id } });
-  check('the referrer is on Ārta', ent.isPremium && ent.plan.slug === 'arta');
-  check('for about 30 days', Math.abs((sub.currentPeriodEnd - Date.now()) / 86_400_000 - 30) < 0.1);
-  const cached = await prisma.user.findUnique({ where: { id: referrer.id } });
-  check('the cached premium flag follows', cached.isPremium === true);
-
-  // A second referral extends, never overwrites or shortens.
-  const second = await newUser('second', hoursAgo(30));
-  const r2 = await referral.claim(second, code.code);
-  await prisma.sadhanaDay.create({ data: { userId: second.id, date: new Date() } });
-  await referral.qualifyIfDue(r2.id);
-  const subs = await prisma.subscription.findMany({ where: { userId: referrer.id, provider: 'REFERRAL' } });
-  check('a second reward extends the same month, not a second row', subs.length === 1 && Math.abs((subs[0].currentPeriodEnd - Date.now()) / 86_400_000 - 60) < 0.1);
-
-  // Paid access first: the month starts after it.
-  const payer = await newUser('payer');
-  const paidEnd = new Date(Date.now() + 10 * 86_400_000);
-  await prisma.subscription.create({ data: { userId: payer.id, planId: arta.id, provider: 'GOOGLE_PLAY', externalId: `${TAG}-paid`, status: 'ACTIVE', currentPeriodEnd: paidEnd } });
-  const payerCode = await referral.codeFor(payer.id);
-  const third = await newUser('third', hoursAgo(30));
-  const r3 = await referral.claim(third, payerCode.code);
-  await prisma.sadhanaDay.create({ data: { userId: third.id, date: new Date() } });
-  await referral.qualifyIfDue(r3.id);
-  const reward = await prisma.referralReward.findUnique({ where: { referralId: r3.id } });
-  check('the month starts when paid access ends', Math.abs(reward.startsAt - paidEnd) < 1000);
-  const paid = await prisma.subscription.findFirst({ where: { userId: payer.id, provider: 'GOOGLE_PLAY' } });
-  check('the paid subscription is untouched', paid.currentPeriodEnd.getTime() === paidEnd.getTime());
-
-  // Too soon.
-  const quick = await newUser('quick', hoursAgo(2));
-  const rq = await referral.claim(quick, code.code);
-  await prisma.sadhanaDay.create({ data: { userId: quick.id, date: new Date() } });
-  check('a brand-new account does not qualify in the same breath', (await referral.qualifyIfDue(rq.id)).reason === 'TOO_SOON');
-
-  const summary = await referral.summary(referrer, {});
-  check('the dashboard counts and lists rewards', summary.totals.rewarded === 2 && summary.rewards.length === 2 && summary.totals.pending === 1 && summary.history.length === 3);
-  check('history shows first names only', summary.history.length > 0 && summary.history.every((h) => h.name === 'Test'));
-
-  // ── AI backgrounds (provider faked) ──
-  console.log('\nAI backgrounds');
-  const painter = await newUser('painter');
-  env.OPENAI_API_KEY = 'test-key';
-  const realFetch = globalThis.fetch;
-  let calls = 0;
-  let mode = 'ok';
-  globalThis.fetch = async (url, init) => {
-    if (!String(url).includes('images/generations')) return realFetch(url, init);
-    calls += 1;
-    if (mode === 'fail') return new Response('{"error":"boom secret"}', { status: 500 });
-    return new Response(JSON.stringify({ data: [{ b64_json: Buffer.from('png-bytes').toString('base64') }] }), { status: 200 });
-  };
-  const balance = async () => (await prisma.aiWallet.findUnique({ where: { userId: painter.id } })).balance;
   try {
-    await aiWallet.open(painter);
-    const poor = await background.quote(painter);
-    check('a free wallet cannot afford one, and is told so', poor.canAfford === false && poor.backgroundsLeft === 0);
-    await aiWallet.credit({ userId: painter.id, tokens: 400_000, source: 'ADMIN_GRANT', note: 'e2e' });
+    console.log('\n1. Share links');
+    const l1 = await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'VERSE', targetId: verse.verseId } });
+    check('a verse link is made', l1.status === 200 && /^[1-9A-HJ-NP-Za-km-z]{10}$/.test(l1.json?.data?.code), JSON.stringify(l1.json));
+    check('it is on the spiritual path', /\/shloka\/[A-Za-z0-9]{10}$/.test(l1.json?.data?.url || ''));
+    check('the code does not contain the verse id', !l1.json.data.code.includes(verse.verseId));
+    const l2 = await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'VERSE', targetId: verse.verseId } });
+    check('the same share gives the same link', l2.json?.data?.code === l1.json.data.code);
+    const l3 = await call('POST', '/api/app/share/link', { token: B.token, body: { type: 'VERSE', targetId: verse.verseId } });
+    check('another person gets their own code', l3.json?.data?.code && l3.json.data.code !== l1.json.data.code);
+    if (mantra) {
+      const m = await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'MANTRA', targetId: mantra.slug } });
+      check('a mantra link is on /naam', /\/naam\//.test(m.json?.data?.url || ''));
+    }
+    check('an unknown verse is 404', (await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'VERSE', targetId: '9.9.9' } })).status === 404);
+    check('a malformed target is 400', (await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'VERSE', targetId: '../etc' } })).status === 400);
+    if (hidden) check('an unpublished mantra cannot be shared', (await call('POST', '/api/app/share/link', { token: A.token, body: { type: 'MANTRA', targetId: hidden.slug } })).status === 404);
+    check('signing in is required', (await call('POST', '/api/app/share/link', { body: { type: 'VERSE', targetId: verse.verseId } })).status === 403);
+
+    console.log('\n2. The public page');
+    const code = l1.json.data.code;
+    const pub = await call('GET', `/api/web/share/shloka/${code}`);
+    check('a verse link resolves without signing in', pub.status === 200 && pub.json?.data?.verseId === verse.verseId);
+    const text = JSON.stringify(pub.json);
+    check('no database id or sharer leaks', !text.includes(A.user.id) && !text.includes(A.user.email) && !/"id":/.test(text));
+    check('the wrong route is 404', (await call('GET', `/api/web/share/naam/${code}`)).status === 404);
+    check('an unknown code is 404', (await call('GET', '/api/web/share/shloka/zzzzzzzzzz')).status === 404);
+    check('a malformed code is rejected', (await call('GET', '/api/web/share/shloka/..%2Fx')).status >= 400);
+    await prisma.shareLink.update({ where: { code }, data: { revokedAt: new Date() } });
+    check('a revoked link is 410', (await call('GET', `/api/web/share/shloka/${code}`)).status === 410);
+    const clicks = (await prisma.shareLink.findUnique({ where: { code: l3.json.data.code } })).clicks;
+    await call('GET', `/api/web/share/shloka/${l3.json.data.code}`);
+    await new Promise((r) => setTimeout(r, 300));
+    check('visits are counted', (await prisma.shareLink.findUnique({ where: { code: l3.json.data.code } })).clicks === clicks + 1);
+
+    console.log('\n3. Referral codes');
+    const me1 = await call('GET', '/api/app/referral/me', { token: A.token });
+    const aCode = me1.json?.data?.code;
+    check('everyone has a code and a /satsang link', /^[A-Z2-9]{8}$/.test(aCode || '') && me1.json.data.url.endsWith(`/satsang/${aCode}`));
+    check('the code is stable', (await call('GET', '/api/app/referral/me', { token: A.token })).json.data.code === aCode);
+    const ins = await call('GET', `/api/web/referral/${aCode.toLowerCase()}`);
+    check('an invitation can be checked, naming only a first name', ins.status === 200 && ins.json.data.referrerName === 'Anna' && !JSON.stringify(ins.json).includes('Referrer'));
+    check('an unknown invitation is 404', (await call('GET', '/api/web/referral/AAAAAAAA')).status === 404);
+
+    console.log('\n4. Attribution');
+    check('your own code is refused', (await call('POST', '/api/app/referral/attribute', { token: A.token, body: { code: aCode } })).json.data.reason === 'own_code');
+    check('a made-up code is refused', (await call('POST', '/api/app/referral/attribute', { token: B.token, body: { code: 'AAAAAAAA' } })).json.data.reason === 'invalid_code');
+    const dotted = await makeUser('dot', { email: `Anna.Ref+x@gmail.com` });
+    const plain = await makeUser('plain', { email: `annaref@gmail.com` });
+    const plainCode = (await call('GET', '/api/app/referral/me', { token: plain.token })).json.data.code;
+    check('the same inbox under another spelling is refused', (await call('POST', '/api/app/referral/attribute', { token: dotted.token, body: { code: plainCode } })).json.data.reason === 'same_person');
+    const old = await makeUser('old', { ageDays: 30 });
+    check('an old account is not a new user', (await call('POST', '/api/app/referral/attribute', { token: old.token, body: { code: aCode } })).json.data.reason === 'window_passed');
+    const payer = await makeUser('payer');
+    const arta = await prisma.subscriptionPlan.findUnique({ where: { slug: 'arta' } });
+    await prisma.subscription.create({ data: { userId: payer.user.id, planId: arta.id, provider: 'GOOGLE_PLAY', externalId: `${TAG}-p`, currentPeriodEnd: new Date(Date.now() - DAY), status: 'EXPIRED' } });
+    check('someone who has paid is not new', (await call('POST', '/api/app/referral/attribute', { token: payer.token, body: { code: aCode } })).json.data.reason === 'not_new');
+
+    const ok1 = await call('POST', '/api/app/referral/attribute', { token: B.token, body: { code: aCode.toLowerCase(), source: 'CODE' } });
+    check('a new person is attributed (code typed in lower case)', ok1.json?.data?.attributed === true);
+    check('only the first code counts', (await call('POST', '/api/app/referral/attribute', { token: B.token, body: { code: plainCode } })).json.data.reason === 'already_referred');
+    check('they can see who invited them', (await call('GET', '/api/app/referral/mine', { token: B.token })).json.data.referrerName === 'Anna');
+    check('opening the public page rewarded nothing', (await grants(A.user.id)).length === 0);
+    const me2 = await call('GET', '/api/app/referral/me', { token: A.token });
+    check('the inviter sees one pending referral and no reward', me2.json.data.totals.pending === 1 && me2.json.data.totals.successful === 0 && me2.json.data.history[0].name === 'Bhanu N.');
+
+    console.log('\n5. Qualifying and the reward');
+    check('nothing is given before the first round', (await referral.evaluate(B.user.id)).changed === false && (await grants(A.user.id)).length === 0);
+    await chantRound(B.user.id);
+    const results = await Promise.all(Array.from({ length: 6 }, () => referral.evaluate(B.user.id)));
+    check('six parallel checks make one reward', results.filter((r) => r.status === 'QUALIFIED').length === 1 && (await grants(A.user.id)).length === 1);
+    await referral.evaluate(B.user.id);
+    check('checking again later changes nothing', (await grants(A.user.id)).length === 1);
+    const g1 = (await grants(A.user.id))[0];
+    check('the grant is 30 days of Ārta', g1.planId === arta.id && Math.abs((g1.endsAt - g1.startsAt) / DAY - 30) < 0.01);
+    const sub = await call('GET', '/api/app/subscription/me', { token: A.token });
+    check('the inviter is now on Ārta, because of a grant', sub.json?.data?.plan?.slug === 'arta' && sub.json.data.reason === 'GRANT', JSON.stringify(sub.json?.data));
+    check('it is not shown as a store subscription', await prisma.subscription.count({ where: { userId: A.user.id } }) === 0);
+    const me3 = await call('GET', '/api/app/referral/me', { token: A.token });
+    check('the dashboard shows the reward and its dates', me3.json.data.totals.successful === 1 && me3.json.data.history[0].reward.endsAt && me3.json.data.rewardActiveUntil);
+    check('the inviter was told', await prisma.notification.count({ where: { userId: A.user.id, type: 'REFERRAL' } }) === 1);
+
+    await call('POST', '/api/app/referral/attribute', { token: C.token, body: { code: aCode } });
+    await chantRound(C.user.id);
+    await referral.evaluate(C.user.id);
+    const gs = await grants(A.user.id);
+    check('a second reward starts when the first ends', gs.length === 2 && Math.abs(gs[1].startsAt - gs[0].endsAt) < 1000);
+
+    console.log('\n6. A paid subscription is never replaced or shortened');
+    const paid = await makeUser('paid');
+    const paidEnd = new Date(Date.now() + 10 * DAY);
+    await prisma.subscription.create({ data: { userId: paid.user.id, planId: arta.id, provider: 'GOOGLE_PLAY', externalId: `${TAG}-s`, currentPeriodEnd: paidEnd, status: 'ACTIVE' } });
+    const paidCode = (await call('GET', '/api/app/referral/me', { token: paid.token })).json.data.code;
+    await call('POST', '/api/app/referral/attribute', { token: D.token, body: { code: paidCode } });
+    await chantRound(D.user.id);
+    await referral.evaluate(D.user.id);
+    const [pg] = await grants(paid.user.id);
+    check('the reward waits until the paid period ends', pg && Math.abs(pg.startsAt - paidEnd) < 1000);
+    const now = await entitlement.compute(paid.user.id);
+    check('meanwhile they stay on their subscription', now.reason === 'SUBSCRIPTION' && now.premiumUntil.getTime() === paidEnd.getTime());
+
+    console.log('\n7. Expiry, limits and reversal');
+    const late = await makeUser('late');
+    await call('POST', '/api/app/referral/attribute', { token: late.token, body: { code: aCode } });
+    await prisma.referral.update({ where: { refereeId: late.user.id }, data: { attributedAt: new Date(Date.now() - 40 * DAY) } });
+    await chantRound(late.user.id);
+    check('a referral that took too long expires without a reward', (await referral.evaluate(late.user.id)).status === 'REJECTED' && (await grants(A.user.id)).length === 2);
+    check('a reversal takes the reward back', (await referral.reverse((await prisma.referral.findUnique({ where: { refereeId: C.user.id } })).id, 'refund')) === true);
+    check('…and the inviter keeps the first reward only', (await entitlement.compute(A.user.id)).premiumUntil.getTime() === (await grants(A.user.id))[0].endsAt.getTime());
+    check('reversing twice does nothing', (await referral.reverse((await prisma.referral.findUnique({ where: { refereeId: C.user.id } })).id)) === false);
+
+    console.log('\n8. Backgrounds');
+    const user = { id: A.user.id, timezone: 'Asia/Kolkata' };
+    const calls = [];
+    const realFetch = globalThis.fetch;
+    let mode = 'ok';
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(2000, 1)]);
+    globalThis.fetch = async (url, init) => {
+      if (!String(url).includes('api.openai.com/v1/images')) return realFetch(url, init);
+      calls.push(JSON.parse(init.body));
+      if (mode === 'fail') return new Response('{}', { status: 500 });
+      return new Response(JSON.stringify({ data: [{ b64_json: png.toString('base64') }] }), { status: 200 });
+    };
+    const balance = async () => (await prisma.aiWallet.findUnique({ where: { userId: A.user.id } }))?.balance;
+    await aiWallet.open(user);
     const start = await balance();
-    const cost = env.SHARE_BACKGROUND_TOKENS;
-    const q = await background.quote(painter);
-    check('the quote says a background is affordable', q.available && q.canAfford);
+    const quote = await shareImage.quote(user);
+    check('the quote is a percentage, not tokens', quote.enabled && Number.isInteger(quote.costPercent) && !JSON.stringify(quote).includes('tokens'));
 
-    const first = await background.generate(painter, { requestId: `${TAG}-req-1`, prompt: 'golden sunrise over a temple' });
-    check('a background is made', first.status === 'DONE' && !!first.imageKey);
-    check('and charged once', (await balance()) === start - cost);
-    const replay = await background.generate(painter, { requestId: `${TAG}-req-1`, prompt: 'golden sunrise over a temple' });
-    check('the same key again costs nothing and calls nothing', replay.id === first.id && (await balance()) === start - cost && calls === 1);
-
-    const concurrent = await Promise.allSettled([1, 2, 3].map(() => background.generate(painter, { requestId: `${TAG}-req-2`, prompt: 'blue lake at dawn' })));
-    check('three at once with one key charge once', (await balance()) === start - 2 * cost && calls === 2, `calls=${calls}`);
-    check('…and the others are told it is in progress or replayed', concurrent.every((r) => r.status === 'fulfilled' || r.reason?.code === 'CONFLICT'));
+    const key = `${TAG}-k1`;
+    const first = await shareImage.generate({ user, requestKey: key, prompt: 'A golden sunrise behind a temple' });
+    check('a background is made and charged once', first.status === 'DONE' && first.imageUrl && (await balance()) === start - shareImage.COST_TOKENS);
+    check('the guard against letters and watermarks is always sent', /no letters/i.test(calls[0].prompt));
+    const again = await shareImage.generate({ user, requestKey: key, prompt: 'A golden sunrise behind a temple' });
+    check('the same request again is not charged or sent twice', again.id === first.id && (await balance()) === start - shareImage.COST_TOKENS && calls.length === 1);
+    const burst = await Promise.all(Array.from({ length: 5 }, () => shareImage.generate({ user, requestKey: `${TAG}-k2`, prompt: 'Soft lotus pond at dawn' })));
+    check('five parallel identical requests charge once', new Set(burst.map((j) => j.id)).size === 1 && (await balance()) === start - 2 * shareImage.COST_TOKENS && calls.length === 2);
+    const used = async () => (await prisma.aiDailyUsage.findMany({ where: { userId: A.user.id } })).reduce((n, r) => n + r.tokens, 0);
+    check('the day’s cap counts both', (await used()) === 2 * shareImage.COST_TOKENS);
+    await prisma.aiDailyUsage.deleteMany({ where: { userId: A.user.id } });
 
     mode = 'fail';
-    const failure = await rejects(() => background.generate(painter, { requestId: `${TAG}-req-3`, prompt: 'peaceful forest' }));
-    check('a failed generation is refunded', failure?.code === 'IMAGE_FAILED' && (await balance()) === start - 2 * cost);
-    check('and the error does not leak the provider', !JSON.stringify(failure).includes('secret'));
+    const bad = await shareImage.generate({ user, requestKey: `${TAG}-k3`, prompt: 'A river with floating lamps' });
+    check('a provider failure is refunded', bad.status === 'FAILED' && (await balance()) === start - 2 * shareImage.COST_TOKENS);
+    check('…with one credit entry back', await prisma.aiWalletTransaction.count({ where: { userId: A.user.id, source: 'SHARE_IMAGE', type: 'CREDIT', referenceId: bad.id } }) === 1);
+    check('…and the day’s cap is given back too', (await used()) === 0);
     mode = 'ok';
-    const retry = await background.generate(painter, { requestId: `${TAG}-req-3`, prompt: 'peaceful forest' });
-    check('retrying the failed key succeeds and charges once', retry.status === 'DONE' && (await balance()) === start - 3 * cost);
+    const retry = await shareImage.generate({ user, requestKey: `${TAG}-k3`, prompt: 'A river with floating lamps' });
+    check('a failed request can be retried with the same key', retry.status === 'DONE' && retry.id === bad.id && (await balance()) === start - 3 * shareImage.COST_TOKENS);
 
-    await prisma.aiWallet.update({ where: { userId: painter.id }, data: { balance: cost - 1 } });
-    const callsBefore = calls;
-    const broke = await rejects(() => background.generate(painter, { requestId: `${TAG}-req-4`, prompt: 'no credit here' }));
-    check('without credit nothing starts', broke?.status === 402 && broke.code === 'CREDITS_EXHAUSTED' && calls === callsBefore);
-    check('and nothing is charged or recorded', (await balance()) === cost - 1 && (await prisma.shareBackground.count({ where: { userId: painter.id, requestId: `${TAG}-req-4` } })) === 0);
-
-    check('an empty prompt is refused', (await rejects(() => background.generate(painter, { requestId: `${TAG}-req-5`, prompt: '  ' })))?.status === 400);
-  } finally {
+    await prisma.aiWallet.update({ where: { userId: A.user.id }, data: { balance: 10 } });
+    const before = calls.length;
+    let blocked = null;
+    try { await shareImage.generate({ user, requestKey: `${TAG}-k4`, prompt: 'A quiet forest clearing' }); } catch (e) { blocked = e; }
+    check('without credit it is refused first (402), nothing sent or charged', blocked?.status === 402 && blocked.code === 'CREDIT_REQUIRED' && calls.length === before && (await balance()) === 10);
+    check('a short prompt is refused', await shareImage.generate({ user, requestKey: `${TAG}-k5`, prompt: 'x' }).then(() => false, (e) => e.status === 400));
     globalThis.fetch = realFetch;
+  } finally {
+    await prisma.shareImageJob.deleteMany({ where: { userId: { in: made } } });
+    await prisma.notification.deleteMany({ where: { userId: { in: made } } });
+    await prisma.shareLink.deleteMany({ where: { createdById: { in: made } } });
+    await prisma.user.deleteMany({ where: { id: { in: made } } });
+    await prisma.book.deleteMany({ where: { slug: `${TAG}-book` } });
+    await prisma.$disconnect();
+    redis.disconnect();
   }
 
-  await httpSection(painter);
-}
-
-// ── Over HTTP: only when an API is listening (npm run dev), so `npm run test:share-referral` also works without one.
-async function httpSection(painter) {
-  const BASE = process.env.API_BASE_URL || 'http://localhost:4000';
-  const up = await fetch(`${BASE}/health`).then((r) => r.ok).catch(() => false);
-  if (!up) { console.log('\nHTTP: skipped (no API at ' + BASE + ')'); return; }
-  console.log('\nHTTP');
-
-  const call = async (method, path, { token, body } = {}) => {
-    const res = await fetch(BASE + path, {
-      method,
-      headers: { 'content-type': 'application/json', 'x-device-id': `${TAG}-dev`, ...(token ? { authorization: `Bearer ${token}` } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const raw = await res.arrayBuffer();
-    let json = null;
-    try { json = JSON.parse(Buffer.from(raw).toString()); } catch { /* binary */ }
-    return { status: res.status, json, bytes: raw.byteLength };
-  };
-
-  const mantra = await prisma.mantra.create({ data: { slug: `${TAG}-http`, name: 'Http Mantra', sanskrit: 'ॐ', category: 'name', isPublished: true } });
-  made.mantras.push(mantra.id);
-  const reader = await newUser('reader');
-  const { accessToken: token } = await authService.issueSession(reader, `${TAG}-dev`);
-
-  check('creating a link needs sign-in', (await call('POST', '/api/app/share/links', { body: { kind: 'MANTRA', targetId: mantra.slug } })).status === 403);
-  const made1 = await call('POST', '/api/app/share/links', { token, body: { kind: 'MANTRA', targetId: mantra.slug } });
-  check('a signed-in reader gets a link', made1.status === 201 && /\/mantra\/[A-Z0-9]{10}$/.test(made1.json.data.url) && made1.json.data.appUri.startsWith('hariharibol://mantra/'));
-  check('a draft cannot be linked', (await call('POST', '/api/app/share/links', { token, body: { kind: 'MANTRA', targetId: `${TAG}-nope` } })).status === 404);
-  check('a bad kind is a 400', (await call('POST', '/api/app/share/links', { token, body: { kind: 'ADMIN', targetId: 'x' } })).status === 400);
-
-  const code = made1.json.data.code;
-  const open = await call('GET', `/api/app/share/links/${code}?kind=MANTRA&utm_source=wa&redirect=http://evil.test`);
-  check('anyone can open it, signed out', open.status === 200 && open.json.data.content.title === 'Http Mantra');
-  check('only attribution survives, never a destination', open.json.data.query === 'utm_source=wa' && !JSON.stringify(open.json).includes('evil'));
-  check('the public view leaks no ids or people', !/userId|email|createdById/.test(JSON.stringify(open.json)));
-  check('another kind\'s path does not open it', (await call('GET', `/api/app/share/links/${code}?kind=REEL`)).status === 404);
-  await prisma.shareLink.updateMany({ where: { code }, data: { revokedAt: new Date() } });
-  check('a revoked link is 410', (await call('GET', `/api/app/share/links/${code}`)).status === 410);
-
-  const me = await call('GET', '/api/app/referral/me', { token });
-  check('referral/me gives a code and a satsang link', me.status === 200 && /\/satsang\/[A-Z0-9]{8}$/.test(me.json.data.url));
-  check('referral/me needs sign-in', (await call('GET', '/api/app/referral/me')).status === 403);
-  const inviterRes = await call('GET', `/api/app/referral/inviter/${me.json.data.code}`);
-  check('the inviter endpoint is public and shows a first name only', inviterRes.status === 200 && inviterRes.json.data.firstName === 'Test' && !/email/.test(JSON.stringify(inviterRes.json)));
-  check('claiming your own code is refused over HTTP', (await call('POST', '/api/app/referral/claim', { token, body: { code: me.json.data.code } })).status === 409);
-  check('an invitation page for a content code is a 404', (await call('GET', `/api/app/referral/inviter/${code}`)).status === 404);
-
-  const quote = await call('GET', '/api/app/share/background/quote', { token });
-  check('the quote never shows tokens', quote.status === 200 && !/token/i.test(JSON.stringify(quote.json)));
-  const row = await prisma.shareBackground.findFirst({ where: { userId: painter.id, status: 'DONE' } });
-  const { accessToken: painterToken } = await authService.issueSession(painter, `${TAG}-dev`);
-  const mine = await call('GET', `/api/app/share/background/${row.id}/image`, { token: painterToken });
-  check('a maker can download their picture', mine.status === 200 && mine.bytes > 0);
-  const theirs = await call('GET', `/api/app/share/background/${row.id}/image`, { token });
-  check('nobody else can', theirs.status === 404);
-}
-
-try {
-  await main();
-} catch (error) {
-  console.error(error);
-  failed += 1;
-} finally {
-  await prisma.shareBackground.deleteMany({ where: { userId: { in: made.users } } }).catch(() => {});
-  await prisma.aiWalletTransaction.deleteMany({ where: { userId: { in: made.users } } }).catch(() => {});
-  await prisma.user.deleteMany({ where: { id: { in: made.users } } }).catch((e) => console.error('cleanup', e.message));
-  await prisma.shareLink.deleteMany({ where: { kind: 'MANTRA', targetId: { startsWith: TAG } } }).catch(() => {});
-  await prisma.mantra.deleteMany({ where: { id: { in: made.mantras } } }).catch(() => {});
-  await prisma.$disconnect();
-  await redis.quit().catch(() => {});
-  console.log(`\n${passed} passed, ${failed} failed`);
+  console.log(`\n${passed} passed, ${failed} failed\n`);
   process.exit(failed ? 1 : 0);
 }
+
+main().catch((err) => { console.error(err); process.exit(1); });

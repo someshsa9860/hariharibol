@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Counter } from '@/components/jap/counter';
 import { Icon } from '@/components/ui/icon';
-import { ShareButton } from '@/components/share/share-button';
 import { serverGetOrNull } from '@/lib/api/server';
 import { excerpt } from '@/lib/format';
 import type { Mantra } from '@/lib/types';
@@ -34,7 +33,6 @@ export default async function MantraPage({ params }: Props) {
         <p className="eyebrow">{mantra.category ?? 'Mantra'}{mantra.deity ? ` · ${mantra.deity.name}` : ''}</p>
         <h1>{mantra.name}</h1>
         {mantra.description && <p className="muted">{mantra.description}</p>}
-        <ShareButton content={{ kind: 'MANTRA', targetId: mantra.slug, title: mantra.name, sanskrit: mantra.text, transliteration: null, meaning: mantra.meaning ?? mantra.description ?? null }} />
       </header>
       <Counter mantra={mantra} />
       {mantra.purport && (

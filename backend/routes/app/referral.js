@@ -1,55 +1,49 @@
-import { createRouter, z } from '../../utils/router.js';
+import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/app/referral.js';
 
 const router = createRouter({
   tag: 'Referral',
   prefix: '/referral',
   description:
-    'Refer and earn: a reader shares a /satsang/<code> link; when someone new claims it and settles in, the ' +
-    'referrer is given a month of the Ārta plan. Opening a link never rewards anyone — only a signed-in claim does.',
+    'Refer and earn. Everyone has a code and a link (/satsang/<code>). A person invited with it ' +
+    'qualifies by finishing a round of chanting, and the person who invited them is given a month ' +
+    'of Ārta as an entitlement grant — never a store subscription. Opening a link alone rewards nothing.',
 });
 
 router.get(
   '/me',
   {
-    summary: 'My referral code, progress and rewards',
-    description:
-      'The reader’s own code and link (made on first use), the rules, counts of pending / rewarded referrals, the ' +
-      'granted months with their start and end, and a paged history (first names only). Also settles any referral of ' +
-      'theirs that has become due.',
-    query: z.object({ page: z.coerce.number().int().min(1).optional(), pageSize: z.coerce.number().int().min(1).max(50).optional() }),
+    summary: 'My referral code, totals, rewards and history',
     limit: 'read',
-    responds: { 200: 'Code, totals, rewards, history' },
+    query: schemas.page,
+    responds: { 200: 'Code, link, totals, rules and a page of history' },
   },
   controller.me
 );
 
-router.post(
-  '/claim',
+router.get(
+  '/mine',
   {
-    summary: 'Claim a referral code',
-    description:
-      'The signed-in new reader says which code brought them. First claim wins; claiming the same code again is ' +
-      'harmless. 409 with `details.reason`: CODE_UNKNOWN, SELF_REFERRAL, ALREADY_REFERRED, NOT_NEW (the account is ' +
-      'older than the claim window).',
-    body: z.object({ code: z.string().trim().min(4).max(20) }),
-    limit: 'referral',
-    responds: { 200: 'The claim', 400: 'Not a code', 409: 'Refused, with a reason' },
+    summary: 'Who invited me',
+    limit: 'read',
+    responds: { 200: 'My referral, or null' },
   },
-  controller.claim
+  controller.mine
 );
 
-router.get(
-  '/inviter/:code',
+router.post(
+  '/attribute',
   {
-    summary: 'Whose invitation is this?',
-    description: 'Public. The inviter’s first name and the store listings, for the /satsang landing page. Nothing else about them.',
-    public: true,
-    params: z.object({ code: z.string().min(1).max(32) }),
-    limit: 'read',
-    responds: { 200: 'First name and links', 404: 'Unknown code' },
+    summary: 'Present a referral code',
+    description:
+      'Called after sign-in with the code from a link (or typed in). The first valid code wins. ' +
+      'Always 200: `attributed: false` carries a `reason` (invalid_code, own_code, already_referred, ' +
+      'not_new, window_passed, same_person, referrer_unavailable, referrer_busy).',
+    limit: 'write',
+    body: z.object({ code: z.string().min(4).max(24), source: z.enum(['LINK', 'CODE']).default('LINK') }),
+    responds: { 200: '{ attributed, reason? }' },
   },
-  controller.inviter
+  controller.attribute
 );
 
 export default router;

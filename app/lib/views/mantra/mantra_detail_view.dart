@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format/script.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
-import '../../core/navigation/share_entry.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
@@ -16,6 +15,8 @@ import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/eyebrow.dart';
 import '../../widgets/dashboard/mantra_category_label.dart';
+import '../../widgets/share/share_target.dart';
+import '../share/share_studio_view.dart';
 
 /// One mantra: the script to chant, its meaning, and the way into the counter
 /// already carrying it — so "chant this" never means re-finding it there.
@@ -32,11 +33,11 @@ class MantraDetailView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          if (mantra.asData?.value case final loaded?)
+          if (mantra.value != null)
             IconButton(
               icon: const Icon(Icons.ios_share_rounded),
-              tooltip: text.shareStudioTitle,
-              onPressed: () => openMantraShare(slug: loaded.slug, name: loaded.name, text: loaded.text, meaning: loaded.meaning),
+              tooltip: text.shareTitle,
+              onPressed: () => ShareStudio.open(context, ShareTarget.mantra(mantra.value!)),
             ),
         ],
       ),

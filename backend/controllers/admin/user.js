@@ -9,9 +9,11 @@ import { prisma } from '../../config/database.js';
 import * as authService from '../../services/auth.js';
 import * as audit from '../../services/audit.js';
 import * as chatImages from '../../services/chat-images.js';
-import { ok, paginated } from '../../utils/respond.js';
+import { ok, created, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
-import { notFound, badRequest } from '../../utils/errors.js';
+import { notFound, badRequest, conflict, forbidden } from '../../utils/errors.js';
+import { randomUUID } from 'node:crypto';
+import { ROLES, DEFAULT_ROUND_TARGET } from '../../config/constants.js';
 
 const LIST_SELECT = {
   id: true,
@@ -40,7 +42,7 @@ export const SORT_COLUMNS = {
 
 /** GET /api/admin/users */
 export const list = async (req, res) => {
-  const { q, role, isPremium, isBanned } = req.valid.query;
+  const { q, role, isPremium, isBanned, staff } = req.valid.query;
 
   const where = {
     ...(q
@@ -52,6 +54,8 @@ export const list = async (req, res) => {
         }
       : {}),
     ...(role ? { role: { slug: role } } : {}),
+    // Admin-type accounts: any role that carries permissions (moderator, admin, auditor…).
+    ...(staff ? { role: { permissions: { some: {} } } } : {}),
     ...(isPremium !== undefined ? { isPremium } : {}),
     ...(isBanned !== undefined ? { isBanned } : {}),
   };
@@ -64,6 +68,53 @@ export const list = async (req, res) => {
   });
 
   return paginated(res, items, page);
+};
+
+/**
+ * POST /api/admin/users
+ * Adds a person by email before they have ever signed in. Nobody's password or
+ * Google/Apple id is known yet, so the row is made as a LEGACY account — the
+ * same placeholder the old-app carry-over uses. The first verified Google or
+ * Apple sign-in with that address adopts it (claimLegacy in controllers/app/auth.js),
+ * keeping the role chosen here. Until then it cannot sign in, and sign-ups being
+ * closed does not stop it. Any role other than `user` needs role.manage.
+ */
+export const create = async (req, res) => {
+  const { name, roleSlug } = req.valid.body;
+  const email = req.valid.body.email.toLowerCase();
+
+  const slug = roleSlug || ROLES.USER;
+  if (slug !== ROLES.USER && !req.auth.permissions.has('role.manage')) {
+    throw forbidden('Only a super admin can give someone an admin role');
+  }
+
+  const [role, taken] = await Promise.all([
+    prisma.role.findUnique({ where: { slug } }),
+    prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } }, select: { id: true } }),
+  ]);
+  if (!role) throw notFound('Role');
+  if (taken) throw conflict('Someone with that email already has an account — change their role instead');
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name: name || null,
+      authProvider: 'LEGACY',
+      providerUserId: `invite:${randomUUID()}`,
+      roleId: role.id,
+      sadhanaProfile: { create: { dailyRoundTarget: DEFAULT_ROUND_TARGET } },
+    },
+    select: LIST_SELECT,
+  });
+
+  await audit.record(req, {
+    action: 'user.create',
+    entityType: 'User',
+    entityId: user.id,
+    after: { email, roleSlug: slug },
+  });
+
+  return created(res, user);
 };
 
 /** GET /api/admin/users/:id — the full picture for one person. */

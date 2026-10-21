@@ -19,6 +19,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed/index.js",
+    "seed:panchang": "node scripts/seed-panchang.js",
     "seed:reels": "node scripts/seed-reels.js",
     "seed:verse-issues": "node scripts/seed-verse-issues.js",
     "promote-admin": "node scripts/promote-admin.js",
@@ -26,6 +27,7 @@
     "recount:books": "node scripts/recount-books.js",
     "cache:books": "node scripts/export-book-cache.js",
     "fill:prabhupada": "node scripts/fill-prabhupada-source.js",
+    "backfill:translation-progress": "node scripts/backfill-translation-progress.js",
     "fill:status": "node scripts/fill-status.js",
     "translate:claude": "node scripts/translate-claude.js",
     "translate:claude:status": "node scripts/translate-claude.js --status",
@@ -35,6 +37,7 @@
     "graph": "node scripts/code-graph.js",
     "test": "node --test \"test/*.test.js\"",
     "test:book-cache": "node scripts/book-cache-e2e.js",
+    "test:panchang": "node scripts/panchang-e2e.js",
     "test:chat": "node scripts/chat-e2e.js",
     "test:auth": "node scripts/auth-e2e.js",
     "test:legacy-migration": "node scripts/legacy-migration-e2e.js",
@@ -52,8 +55,9 @@
     "test:book-counts": "node scripts/book-counts-e2e.js",
     "test:book-titles": "node scripts/book-titles-e2e.js",
     "test:translation": "node scripts/translation-e2e.js",
-    "test:translation-import": "node scripts/translation-import-e2e.js",
-    "test:share-referral": "node scripts/share-referral-e2e.js"
+    "test:scenes": "node scripts/scenes-e2e.js",
+    "test:share-referral": "OPENAI_API_KEY=test-key-not-real node scripts/share-referral-e2e.js",
+    "test:translation-import": "node scripts/translation-import-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"
@@ -66,6 +70,7 @@
     "@prisma/client": "^6.0.0",
     "@scalar/express-api-reference": "^0.4.0",
     "@smithy/node-http-handler": "^4.12.1",
+    "astronomy-engine": "^2.1.19",
     "bullmq": "^5.21.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",

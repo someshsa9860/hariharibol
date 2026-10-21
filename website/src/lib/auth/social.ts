@@ -3,10 +3,11 @@
 // Google and Apple, in the browser. Each gives back an identity token that the API verifies itself
 // (POST /auth/social) — the site never trusts it.
 
-import { APPLE_CLIENT_ID, APPLE_REDIRECT_URI, GOOGLE_CLIENT_ID } from '@/lib/config';
+import { APPLE_REDIRECT_URI } from '@/lib/config';
+import { runtimeConfig } from '@/lib/runtime-config';
 
-export const googleEnabled = Boolean(GOOGLE_CLIENT_ID);
-export const appleEnabled = Boolean(APPLE_CLIENT_ID);
+export const googleEnabled = () => Boolean(runtimeConfig().googleClientId);
+export const appleEnabled = () => Boolean(runtimeConfig().appleClientId);
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -41,7 +42,7 @@ export async function renderGoogleButton(element: HTMLElement, onToken: (idToken
   const id = window.google?.accounts.id;
   if (!id) throw new Error('Google sign-in is not available');
   id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
+    client_id: runtimeConfig().googleClientId,
     callback: (response: { credential?: string }) => response.credential && onToken(response.credential),
     ux_mode: 'popup',
     auto_select: false,
@@ -63,7 +64,7 @@ export async function signInWithApple(): Promise<{ idToken: string; name?: strin
   await loadScript('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js');
   const auth = window.AppleID?.auth;
   if (!auth) throw new Error('Apple sign-in is not available');
-  auth.init({ clientId: APPLE_CLIENT_ID, scope: 'name email', redirectURI: APPLE_REDIRECT_URI, usePopup: true });
+  auth.init({ clientId: runtimeConfig().appleClientId, scope: 'name email', redirectURI: APPLE_REDIRECT_URI, usePopup: true });
   const result = await auth.signIn();
   const name = [result.user?.name?.firstName, result.user?.name?.lastName].filter(Boolean).join(' ');
   return { idToken: result.authorization.id_token, name: name || undefined };

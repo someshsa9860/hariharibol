@@ -70,24 +70,6 @@ abstract final class AppColors {
   /// True black: only the reel surface and text on a light accent use it.
   static const Color black = Color(0xFF000000);
 
-  // The share studio's cards. These are exported artwork, not interface: the same gradients and plain colours
-  // whichever theme the phone is in, so a card looks the same to the person who made it and the one who gets it.
-  static const List<List<Color>> shareGradients = [
-    [Color(0xFFF6A04D), Color(0xFFE0782D), Color(0xFF8F3A12)],
-    [Color(0xFFF3D27A), Color(0xFFC98F2B), Color(0xFF5E3A0C)],
-    [Color(0xFFF7C6D9), Color(0xFFD86A95), Color(0xFF5A1F45)],
-    [Color(0xFF1B2142), Color(0xFF2D2A63), Color(0xFF0B0D1F)],
-    [Color(0xFF7FD1D9), Color(0xFF2A7F9E), Color(0xFF0E2F4D)],
-    [Color(0xFFCFE8B0), Color(0xFF5F9A4D), Color(0xFF1D3D22)],
-  ];
-  static const List<Color> shareSolids = [
-    Color(0xFFFBF6EE),
-    Color(0xFFE0782D),
-    Color(0xFF2D2A63),
-    Color(0xFF1D3D22),
-    Color(0xFF171411),
-  ];
-
   static const Color paperDark = Color(0xFF161616);
   static const Color cardDark = Color(0xFF242424);
   static const Color paperTintDark = Color(0xFF2E2E2E);

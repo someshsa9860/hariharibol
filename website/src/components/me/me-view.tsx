@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ShareButton, verseTarget } from '@/components/share/share-button';
 import clsx from 'clsx';
 import { Avatar } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
@@ -73,7 +74,7 @@ export function MeView() {
           <div><strong>{user.name ?? 'Devotee'}</strong><p className="muted">{user.email}</p><span className="badge">{user.isPremium ? 'Plan active' : 'Free plan'}</span></div>
           <Link href="/notifications" className="btn btn-ghost btn-sm">Notifications</Link>
           <Link href="/plans" className="btn btn-ghost btn-sm">Plans</Link>
-          <Link href="/me/refer" className="btn btn-ghost btn-sm">Refer &amp; Earn</Link>
+          <Link href="/refer" className="btn btn-ghost btn-sm">Refer and earn</Link>
         </section>
       ) : (
         <section className="profile card">
@@ -132,7 +133,7 @@ export function MeView() {
           <ul className={clsx('fav-list', tab === 'mantra' && 'mantras')}>
             {shown.map((f) => (
               <li key={f.id}>
-                {f.verse && <Link href={verseHref(f.verse.verseId)} className="card card-hover fav"><strong>{verseCitation(f.verse)}</strong>{f.verse.sanskrit && <span className="deva">{f.verse.sanskrit.split('\n')[0]}</span>}<span className="muted">{f.verse.translation?.meaning}</span></Link>}
+                {f.verse && <div className="has-share"><Link href={verseHref(f.verse.verseId)} className="card card-hover fav"><strong>{verseCitation(f.verse)}</strong>{f.verse.sanskrit && <span className="deva">{f.verse.sanskrit.split('\n')[0]}</span>}<span className="muted">{f.verse.translation?.meaning}</span></Link><span className="share-corner"><ShareButton target={verseTarget(f.verse)} ariaLabel={`Share ${verseCitation(f.verse)}`} /></span></div>}
                 {f.mantra && <MantraCard mantra={f.mantra} />}
                 {f.book && <Link href={`/read/${f.book.slug}`} className="card card-hover fav"><strong>{f.book.title}</strong></Link>}
                 {f.reel && <Link href={`/reels/${f.reel.id}`} className="card card-hover fav"><Icon name="reels" /><strong>{f.reel.caption?.slice(0, 80) || 'A saved reel'}</strong></Link>}

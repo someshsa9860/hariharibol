@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../core/constants/push_config.dart';
 import '../core/navigation/app_navigator.dart';
 import '../core/navigation/app_routes.dart';
+import 'push_analytics.dart';
 
 /// Where a tapped notification should take the reader, or null if it names
 /// nowhere (a plain announcement just opens the app).
@@ -35,6 +36,7 @@ String? pushRoute(Map<String, dynamic> data) {
   return switch (link.host) {
     PushConfig.deeplinkSadhana => AppRoutes.sadhana,
     PushConfig.deeplinkPremium => AppRoutes.plans,
+    PushConfig.deeplinkCalendar => AppRoutes.calendar,
     _ => null,
   };
 }
@@ -47,7 +49,10 @@ String? pushRoute(Map<String, dynamic> data) {
 /// it says when it is up ([setReady]); a tap before that waits, and one after
 /// opens at once. The screen opens *over* the dashboard, so back lands on Home.
 class PushLinks {
-  PushLinks._() : _open = ((route) => AppNavigator.instance.push(route));
+  PushLinks._()
+      : _open = ((route) =>
+            // Leaving the screen a push opened ends the reading time it measures.
+            AppNavigator.instance.push(route).whenComplete(PushAnalytics.instance.endReading));
 
   @visibleForTesting
   PushLinks.withOpener(this._open);
@@ -56,12 +61,17 @@ class PushLinks {
 
   final void Function(String route) _open;
 
+  /// Told of every tap, with where it leads — what the push statistics hang on.
+  /// Set by [FcmService]; tests leave it empty.
+  void Function(Map<String, dynamic> data, String? route)? onTapped;
+
   String? _pending;
   bool _ready = false;
 
   /// A notification was tapped. `data` is its payload.
   void tapped(Map<String, dynamic> data) {
     final route = pushRoute(data);
+    onTapped?.call(data, route);
     if (route == null) return;
     // Only the latest tap matters: a person who taps two before the app is up
     // wants the one they tapped last.
@@ -69,9 +79,8 @@ class PushLinks {
     _flush();
   }
 
-  /// A link from outside the app (a shared verse, mantra or reel) names a screen. It waits for the same moment a
-  /// tapped notification does — the dashboard on screen, so signed-out and still-loading starts are held — and the
-  /// latest one wins.
+  /// A screen to open as soon as the app can show it — what a shared link or a
+  /// deep link resolved to. Same hold as a tapped notification.
   void openRoute(String route) {
     _pending = route;
     _flush();

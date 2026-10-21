@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
+import '../../views/calendar/calendar_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
@@ -21,13 +24,13 @@ import '../../views/onboarding/intro_view.dart';
 import '../../views/onboarding/language_view.dart';
 import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
+import '../../views/reels/book_reels_view.dart';
 import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_view.dart';
 import '../../views/premium/plans_view.dart';
-import '../../views/settings/refer_view.dart';
-import '../../views/share/share_studio_view.dart';
-import '../../models/share.dart';
+import '../../views/premium/refer_view.dart';
+import '../share_links.dart';
 import '../../views/settings/sources_view.dart';
 import '../../views/settings/voices_view.dart';
 import '../../views/settings/settings_view.dart';
@@ -35,6 +38,7 @@ import '../../views/splash/splash_view.dart';
 import '../constants/storage_keys.dart';
 import '../session/app_session.dart';
 import '../theme/app_spacing.dart';
+import '../../services/deep_link_service.dart';
 import '../../services/local_store.dart';
 import 'app_navigator.dart';
 import 'app_routes.dart';
@@ -68,6 +72,14 @@ GoRouter createRouter() {
     refreshListenable: Listenable.merge([status, gate]),
     debugLogDiagnostics: false,
     redirect: (context, state) {
+      // A shared link that reached the router as a path is not a screen. DeepLinkService opens
+      // what it points at (once, however many times the system announces it); the router goes on
+      // to wherever the session says.
+      if (ShareLinks.claims(state.uri)) {
+        unawaited(DeepLinkService.instance.handle(state.uri));
+        return AppRoutes.splash;
+      }
+
       final location = state.matchedLocation;
 
       if (location == AppRoutes.splash && !gate.isOpen) return null;
@@ -144,21 +156,14 @@ GoRouter createRouter() {
         builder: (context, state) => const SettingsView(),
       ),
       GoRoute(
-        path: AppRoutes.plans,
-        name: RouteNames.plans,
-        builder: (context, state) => const PlansView(),
-      ),
-      GoRoute(
         path: AppRoutes.refer,
         name: RouteNames.refer,
         builder: (context, state) => const ReferView(),
       ),
       GoRoute(
-        path: AppRoutes.shareStudio,
-        name: RouteNames.shareStudio,
-        // A studio with nothing to draw (opened with no `extra`, as a deep link could) has no screen to show.
-        redirect: (context, state) => state.extra is ShareStudioArgs ? null : AppRoutes.home,
-        builder: (context, state) => ShareStudioView(args: state.extra! as ShareStudioArgs),
+        path: AppRoutes.plans,
+        name: RouteNames.plans,
+        builder: (context, state) => const PlansView(),
       ),
       GoRoute(
         path: AppRoutes.voices,
@@ -225,6 +230,11 @@ GoRouter createRouter() {
         builder: (context, state) => ReelDetailView(reelId: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: AppRoutes.bookReelsPattern,
+        name: RouteNames.bookReels,
+        builder: (context, state) => BookReelsView(verseId: state.pathParameters['verseId']!),
+      ),
+      GoRoute(
         path: AppRoutes.similarPattern,
         name: RouteNames.reelSimilar,
         builder: (context, state) => SimilarReelsView(reelId: state.pathParameters['id']!),
@@ -261,6 +271,12 @@ GoRouter createRouter() {
             );
           },
         ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.calendar,
+        name: RouteNames.calendar,
+        builder: (context, state) => const CalendarView(),
       ),
 
       GoRoute(

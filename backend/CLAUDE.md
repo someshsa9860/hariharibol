@@ -1028,7 +1028,7 @@ inside the API, worker and websocket containers.
 | File | Job |
 |---|---|
 | `routes/admin/translation.js`, `controllers/admin/translation.js` | Twelve routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, and `imports` (`GET` what the database holds per language, `POST` import or preview). `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for the import |
-| `services/translation.js` | Opens the S3 workspace, per-language coverage (cached 300 s), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
+| `services/translation.js` | Opens the S3 workspace, per-language coverage read from the `TranslationProgress` table (one row per book × chapter × language; `syncProgress` counts S3 into it — the worker for a run's chapters when it stops, `startRecount` in the background for the whole book when the table is empty, was counted under another version, or Recount is pressed; Redis lock `translation:coverage:recount:<book>` carries its progress; `npm run backfill:translation-progress`, also on the Maintenance page, is the resumable one-off; migration `20261030000000_translation_progress`), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
 | `services/translation-import.js` | `importLanguage`: reads a language's chapter files from storage and writes them to `VerseTranslation`, or with `dryRun` only says what it would do |
 | `utils/translation-import.js` | Pure functions, no I/O: how a file's verse becomes a row's columns (`rowFromEntry`), whether it is the verse the database holds (`placeProblem`), what differs (`changedColumns`), `reasonOf`. `test/translation-import.test.js` holds them |
 | `jobs/processors/translation.js` | The BullMQ processor: runs the pipeline verse by verse, heartbeats, and decides what a stop means |
@@ -1141,60 +1141,36 @@ Things to know before changing it:
   `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
   Gita's real S3 files either; do a `dryRun` from the page first.
 
-## Sharing, deep links and Refer & Earn
+## Sharing, deep links and refer and earn
 
-Three independent pieces behind `routes/app/share.js` and `routes/app/referral.js`. **Opening a shared link and claiming an
-invitation never touch each other**: content codes (`ShareLink`) and referral codes (`ReferralCode`) are separate tables and
-separate paths, so opening a verse can never issue a reward.
+One feature on three parts (backend, website, app); the three must agree on the link grammar.
 
-| File | Job |
-|---|---|
-| `utils/share.js` | **Pure.** Code alphabet, `newCode`, `normaliseCode`, the path of each kind (`shloka`, `mantra`, `divya` for a reel, `satsang` for an invitation), `keptQuery` (only `utm_*` and `ref` survive — the page can never be turned into an open redirect) — `test/share.test.js` |
-| `utils/referral.js` | **Pure.** `canClaim`, `qualifies`, `rewardWindow`, the default rules (`DEFAULT_RULES`) — `test/share.test.js` |
-| `services/share.js` | `linkFor(kind, targetId)` (one link per target; refuses what is not public) and `resolve(code, kind)` → `ok` / `missing` / `gone`. A draft, an unpublished mantra and a code of the wrong kind are all just `missing` — the endpoint cannot be used to probe for drafts |
-| `services/referral.js` | `codeFor`, `claim`, `qualifyIfDue`, `summary`, `sweep` |
-| `services/share-background.js`, `services/ai/image.js`, `utils/share-background.js` | AI backgrounds for the Share Studio |
-| `deeplink/index.js` | Serves `/.well-known/apple-app-site-association` and `assetlinks.json` (paths `/shloka/* /mantra/* /divya/* /satsang/*` + the older ones; fingerprints from `ANDROID_CERT_SHA256`) |
+**Links.** A piece of content gets an opaque random code (base58, 10 chars, `ShareLink` row) and is shared as
+`https://hariharibol.com/shloka/<code>` (verse), `/naam/<code>` (mantra), `/darshan/<code>` (reel). The route words are
+the app's own terms; the code reveals nothing about the content and is not guessable. An invitation is
+`/satsang/<REFERRALCODE>` and is a separate family: opening content never attributes a referral. The grammar lives in
+`utils/share.js` (`parseLink`, `contentUrl`, `referralUrl`), `website/src/lib/share-link.ts` and
+`app/lib/core/share_links.dart`; change one, change all three (each has a test).
 
-- **Link codes** are 10 random characters from a 30-letter alphabet with no `0 O 1 I L U`; nothing in one is derived from the
-  content or a person, and **the target is looked up, never decoded**. One link per `(kind, targetId)` (`@@unique`), so sharing a
-  verse twice gives the same link and a link names no sender. `kind`: `SHLOKA` (`targetId` = `Verse.verseId`), `MANTRA` (slug),
-  `REEL` (id). `GET /share/links/:code` is public and returns only the public view (text, title, a reel's thumbnail, the verse's
-  place, store listings); 404 unknown, **410** revoked or no longer public.
-- **Referral rules** (`DEFAULT_RULES`, in code, not yet editable in the admin panel): a code can be claimed only by an account at
-  most 7 days old; never your own; first claim wins and a second different code is refused (`ALREADY_REFERRED`); the same code
-  again is harmless. The reward is earned once the referred reader has been around 24 h **and** has a chant sitting, a reading
-  place or a sadhana day; at most 12 months in a rolling year per referrer. `claim` is rate-limited (`referral`, 20/hour).
-- **The reward is a `Subscription` row with provider `REFERRAL`** (`PaymentProvider.REFERRAL`) on the `arta` plan, so the same
-  `entitlement.js` that serves the app serves the website, and `User.isPremium` is still only written by `entitlement.refresh`.
-  It starts when the person's current Ārta-or-better access ends (so a paying subscriber loses nothing and gains a month after
-  it), and extends the one referral row instead of adding another. `ReferralReward` is the audit ledger (who, which referral,
-  plan, start, end). **Exactly once**: the referral moves `PENDING → REWARDED` in one `updateMany` (only one caller wins), and
-  `ReferralReward.referralId` and `Subscription(provider, externalId = referral:<id>)` are unique. It is not a store
-  subscription and says so (`autoRenew: false`); nothing here talks to Google, Apple or Razorpay.
-- **When a reward is granted**: when the referrer opens `GET /referral/me`, and by `sweep()` inside the hourly
-  `ai.credits.maintain` job. Opening a link grants nothing. Revoking a reward (a refund-style reversal) is **not built**.
-- **AI backgrounds** (`POST /share/background`, `GET /share/background/quote`, `GET /share/background/:id/image`). Priced at
-  `SHARE_BACKGROUND_TOKENS` (default 100,000 ≈ 25 chat replies) from the same wallet as Ask Sakha, ledgered as
-  `OTHER_AI_FEATURE`. **It is paid from the wallet balance only, outside the daily cap** (`aiWallet.debit({ countsToday: false })`):
-  one picture is larger than a day's chat cap (6,000 on Free), and spending it must not lock someone out of chat until tomorrow.
-  So the Free wallet (60,000) cannot afford one and is told so with an upgrade prompt; Ārta (400,000) holds four a month.
-  - **Charged once per `requestId`** (unique per user): a repeat of a finished key replays it free; a key in flight is a 409
-    `IN_PROGRESS`; a per-user Redis lock stops two different keys racing the balance check. **A failure refunds before it
-    reports** (502 `IMAGE_FAILED`, the provider's body never leaves the server), and a retry of the failed key charges again —
-    net one charge per picture delivered. The refund does not give back the daily-usage count (backgrounds do not count to it).
-  - No credit → 402 `CREDITS_EXHAUSTED` before anything is written. Pictures are stored as `shareBackground` temp uploads (swept
-    by the monthly temp prune) and served back only to their maker (`/image`), so a browser can draw them on a canvas.
-  - **Not run against OpenAI.** `npm run test:share-referral` fakes `fetch`. The model name (`gpt-image-1`), the `b64_json`
-    response and the price are untested against the real API; check the first real call and its cost.
-- **Not built**: an admin page for share links / referrals / rules, reward reversal, and device-fingerprint abuse detection
-  (deliberately — no personal data is collected for it; the controls are the account-age window, one-claim-per-person, the
-  activity requirement, the yearly cap and the rate limit).
-- **Tests.** `node --test test/share.test.js` (pure) and `npm run test:share-referral` (62 checks against the real database and
-  Redis, and over HTTP when an API is listening: links, kinds, revoked / unpublished, concurrent link creation, every claim
-  refusal, six concurrent reward settles → one reward, a month stacked after paid access, the dashboard, a background charged
-  once / replayed / refunded / refused without credit, picture ownership, nothing public leaks).
-- **Migration** `20261027000000_share_and_referrals` (adds an enum value and five tables); production needs `prisma migrate deploy`.
+**Routes** (`routes/app/share.js`, `routes/app/referral.js`, `routes/web/share.js`, all documented in the route table):
+`POST /api/app/share/link`, `GET /share/background/quote`, `POST /share/background` (AI card picture, debits the
+reader's AI wallet, refunds once on failure, idempotent per request key), `GET /share/background/:id[/image]`;
+`GET /referral/me`, `/referral/mine`, `POST /referral/attribute`; public `GET /api/web/share/:route/:code`,
+`/referral/:code`, `/app-links`. Image generation uses `services/share-image.js`.
+
+**Referral rules** are in `config/referral.js`, each with an env override: attributed once, only within 7 days of
+signing up; the new person qualifies by finishing one full round within 30 days; the referrer then gets 30 days of
+Ārta (`REFERRAL_REWARD_PLAN_SLUG`), at most 12 rewards a rolling year. The reward is an **`EntitlementGrant`** row,
+not a fake subscription: `services/entitlement.js` reads grants beside subscriptions and payments, a grant starts
+after the paid period or the previous grant so it never shortens anything, and a unique `(userId, requestKey)` makes
+a retry grant nothing twice. Qualification runs from `controllers/app/sadhana.js` when a round is saved.
+
+**Deploy.** `prisma migrate deploy` for `20261027000000_share_referral` (the seed is not involved). Env:
+`APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` (comma separated), `PLAY_STORE_URL`, `APP_STORE_URL`. Empty is deliberate: the
+association files then list nothing and the page hides the store badge instead of linking somewhere invented.
+`deeplink/index.js` serves `/.well-known/apple-app-site-association` and `assetlinks.json`; `deploy/server/nginx.conf`
+proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
+`node --test test/share.test.js`.
 
 ## Client attestation on signup
 
@@ -1235,3 +1211,24 @@ columns alike, so no controller has to call anything. The monthly `s3.temp.prune
 (`config/cron.js`, 1st of the month 04:00 UTC) deletes temp days older than 30 days —
 uploads nobody saved. Keys saved before this layout have no `hariharibol/` root and
 still work; nothing rewrites them.
+
+## Scene prompts (admin → Scenes)
+
+`SceneRun` + `jobs/processors/scenes.js` + `services/scenes.js` + `utils/scenes.js` (pure: file names, prompt, schema, checks, limiter) + `controllers/admin/scene.js`. Built like translation runs; read those first. One request per chapter with the Hindi meaning of each verse (from `hi/` in the bucket, else `VerseTranslation`), answer checked so every verse is in a scene (asked again once with the problems), saved to `json/<book>/scenes/sk-<canto>-ch-<n>.json` (old file backed up) and listed in `_index.json`. A 429 is always a wait, never "credit". One run at a time. Settings: `SCENES_PROVIDER`, `SCENES_GEMINI_MODEL`, `SCENES_RPM`, `SCENES_TPM`, `SCENES_RPD`. Tests: `npm run test:scenes`, `test/scenes.test.js`.
+
+
+## Hindu calendar
+
+- **Computing** is pure and database-free: `services/panchang.js` (one day at one place; its header lists the method) and `services/festivals.js` (a year of days and festival rules). Add a festival by adding a row to `FESTIVAL_RULES` (amanta month, paksha, tithi, and the time of day the tithi must be running: sunrise, midday, aparahna, sunset, pradosh, nishita, moonrise). Ekadashi names are by *amanta* month (`EKADASHI_NAMES`), not the purnimanta month north-Indian almanacs print.
+- **Storing** is `services/panchang-store.js` (`saveYear`), used by `npm run seed:panchang [year] [place]` and the admin Generate button. `isEdited` rows are never overwritten; a festival's `notify` choice is made once, at creation.
+- **Place**: `AppSetting` `panchang.location`; places are `LOCATIONS` in `services/panchang.js`. Generate a year for a place before selecting it.
+- **Push**: `jobs/processors/festival-notify.js`, run by the `notification` queue's `festival.notify` schedule (02:30 UTC). It uses `Festival.notifyDaysBefore` (default `[1]`) and records `notifiedDays`, so a rerun never repeats a push. It goes to every user with a push-capable device, dated by the calendar place's today.
+- **API**: public `GET /api/app/calendar?from&to` (max 62 days) and `/calendar/upcoming`; admin `/api/admin/panchang` (permission `panchang.manage`).
+
+## Push analytics (sent → delivered → opened → read)
+
+Every push belongs to a `PushCampaign` (`services/push-campaign.js`): one row per message however many people got it. `notify.toUser/toUsers/toTopic` make or find it (`campaign` option; senders that name none share one per type per day) and put its id in the push data as `pushId`. The server counts `sentDevices` / `failedDevices` from FCM's answer (topic sends: the mirrored subscriber count). The app reports `DELIVERED`, `OPENED` and `ENGAGED` (with `durationMs` and the screen) to `POST /api/app/notifications/events`; one `PushEvent` per device per kind, a longer stay replaces a shorter one. Admin: `GET /api/admin/notifications/campaigns` and `/campaigns/:id` (funnel, stay buckets, platforms; `minSeconds`, default 10, is what counts as "read"). **Delivered is a floor:** a notification the OS draws while the app is closed runs no app code, so only its tap shows; a tap counts as delivered. Reporting phones only — older app builds report nothing. Production needs `prisma migrate deploy` for `20261029000000_push_analytics`. `node --test test/push-campaign.test.js`; the SQL and endpoints have not been run against a database.
+
+## Maintenance commands
+
+The admin **Maintenance** page (`system.maintenance`, super admin only — `admin` does not carry it) runs scripts from the fixed list in `config/maintenance.js` (`seed`, `seed:panchang`, `recount:books` …) through `services/maintenance.js`: `npm run <script>` spawned in the API container, one at a time, killed after 15 minutes, output kept in memory (256 KB) and polled by the page every second. It is not a shell — the request names an id from the list. Every start and finish is an `AuditLog` row (`maintenance.start` / `maintenance.finish`). Output is per API process, so with several API containers each has its own run. `prisma migrate` is not on the list: the production image installs without dev dependencies. Production needs `npm run seed` once after this ships (adds the permission).

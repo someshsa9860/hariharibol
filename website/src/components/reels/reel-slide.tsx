@@ -12,10 +12,9 @@ import { CommentsSheet } from './comments-sheet';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { api } from '@/lib/api/client';
 import { compactCount } from '@/lib/format';
-import dynamic from 'next/dynamic';
+import { share } from '@/lib/share';
+import { linkFor } from '@/lib/share-link';
 import type { Reel } from '@/lib/types';
-
-const ShareStudio = dynamic(() => import('@/components/share/share-studio').then((m) => m.ShareStudio), { ssr: false });
 
 interface Props {
   reel: Reel;
@@ -66,12 +65,16 @@ export function ReelSlide({ reel, active, muted, onToggleMute, onChange }: Props
     catch { onChange(reel); }
   };
 
-  // Sharing a reel opens the same studio as a verse; the count goes up only when something was really handed to a
-  // share sheet (the studio says so through onShared).
-  const [studio, setStudio] = useState(false);
-  const onShared = () => {
-    onChange({ ...reel, shareCount: reel.shareCount + 1 });
-    api(`/reels/${reel.id}/share`, { method: 'POST', auth: 'optional', body: { platform: 'OTHER' } }).catch(() => undefined);
+  const onShare = async () => {
+    const title = reel.caption?.slice(0, 80) || 'A reel on HariHariBol';
+    // A personal /darshan link when signed in, so the share can be told apart from the reel's own page.
+    const made = await linkFor({ type: 'REEL', id: reel.id, title, path: `/reels/${reel.id}` });
+    const result = await share({ title, url: made.url });
+    if (result === 'copied') toast('Link copied');
+    if (result !== 'failed') {
+      onChange({ ...reel, shareCount: reel.shareCount + 1 });
+      api(`/reels/${reel.id}/share`, { method: 'POST', auth: 'optional', body: { platform: result === 'copied' ? 'COPY_LINK' : 'OTHER' } }).catch(() => undefined);
+    } else toast('Could not share this reel');
   };
 
   // One tap pauses; two quick taps like.
@@ -120,17 +123,10 @@ export function ReelSlide({ reel, active, muted, onToggleMute, onChange }: Props
           <button onClick={() => like()} aria-pressed={reel.isLiked} aria-label={reel.isLiked ? 'Unlike' : 'Like'} className={clsx(reel.isLiked && 'is-on')}><Icon name="heart" size={28} solid={reel.isLiked} /><span>{compactCount(reel.likeCount)}</span></button>
           <button onClick={() => setComments(true)} aria-label="Comments"><Icon name="comment" size={28} /><span>{compactCount(reel.commentCount)}</span></button>
           <button onClick={save} aria-pressed={reel.isSaved} aria-label={reel.isSaved ? 'Remove from saved' : 'Save'} className={clsx(reel.isSaved && 'is-on')}><Icon name="bookmark" size={28} solid={reel.isSaved} /><span>Save</span></button>
-          <button onClick={() => setStudio(true)} aria-label="Share" aria-haspopup="dialog"><Icon name="share" size={28} /><span>{compactCount(reel.shareCount)}</span></button>
+          <button onClick={onShare} aria-label="Share"><Icon name="share" size={28} /><span>{compactCount(reel.shareCount)}</span></button>
           <button onClick={onToggleMute} aria-label={muted ? 'Turn sound on' : 'Mute'}><Icon name={muted ? 'mute' : 'volume'} size={28} /><span>{muted ? 'Muted' : 'Sound'}</span></button>
         </div>
       </div>
-      {studio && (
-        <ShareStudio
-          content={{ kind: 'REEL', targetId: reel.id, title: reel.caption?.slice(0, 80) || 'A reel on HariHariBol', sanskrit: null, transliteration: null, meaning: null }}
-          onClose={() => setStudio(false)}
-          onShared={onShared}
-        />
-      )}
       {comments && <CommentsSheet reelId={reel.id} onClose={() => setComments(false)} onCount={(d) => onChange({ ...reel, commentCount: Math.max(0, reel.commentCount + d) })} />}
     </section>
   );

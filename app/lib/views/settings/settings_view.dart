@@ -208,7 +208,7 @@ class SettingsView extends ConsumerWidget {
               ),
               SettingsRow(
                 icon: Icons.card_giftcard_rounded,
-                label: text.referTitle,
+                label: text.settingsRefer,
                 onTap: () => AppNavigator.instance.push(AppRoutes.refer),
               ),
               SettingsRow(

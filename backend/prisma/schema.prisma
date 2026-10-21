@@ -102,6 +102,8 @@ enum NotificationType {
   ANNOUNCEMENT // broadcast from admin
   SYSTEM // account, payment, security
   REEL // someone engaged with your reel, or with you as a creator
+  REFERRAL // a referral qualified and earned a month
+  FESTIVAL // an upcoming Ekadashi, Chaturthi or festival
 }
 
 enum VerseLinkRelation {
@@ -124,7 +126,6 @@ enum PaymentProvider {
   GOOGLE_PLAY
   APPLE_APP_STORE
   RAZORPAY
-  REFERRAL // a month of access earned by a referral — no money moved, see services/referral.js
 }
 
 enum PaymentPurpose {
@@ -213,11 +214,6 @@ model User {
   // lands on the same row here, however many times a phone asks.
   legacyUserId Int? @unique
 
-  referralCode      ReferralCode?
-  referralsMade     Referral[]       @relation("ReferralsMade")
-  referralReceived  Referral?        @relation("ReferralReceived")
-  referralRewards   ReferralReward[]
-
   // Three independent language choices. They may all differ, or all match —
   // nothing is derived from another.
   //   appLanguage     — UI chrome. Most users pick English.
@@ -290,6 +286,13 @@ model User {
   aiWalletTxns      AiWalletTransaction[]
   aiDailyUsage      AiDailyUsage[]
   chatConversations ChatConversation[]
+
+  shareLinks        ShareLink[]
+  referralCode      ReferralCode?
+  referralsMade     Referral[]         @relation("Referrer")
+  referredBy        Referral?          @relation("Referee")
+  entitlementGrants EntitlementGrant[]
+  shareImageJobs    ShareImageJob[]
 
   favorites       Favorite[]
   readingProgress ReadingProgress[]
@@ -385,6 +388,7 @@ model Device {
 
   topicSubscriptions FcmSubscription[]
   bans               Ban[]
+  pushEvents         PushEvent[]
 
   @@index([userId])
   @@index([isBanned])
@@ -1235,12 +1239,76 @@ model Notification {
   sentAt DateTime?
   readAt DateTime?
 
+  // The send this belongs to — see PushCampaign.
+  campaignId String?
+
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign PushCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+  @@index([campaignId])
+}
+
+// One push message as the admin panel sees it: "the sloka of 21 October", "Ekadashi
+// tomorrow", a broadcast someone typed. A campaign is shared by everyone it went to —
+// a million people receiving one festival push is one row here, not a million.
+//
+// `key` is how a sender names its campaign so repeated sends land on the same row
+// (services/notify.js falls back to type + day). The counters are what the server
+// knows — FCM accepted the message for this many devices. What the phones then say
+// happened (delivered, opened, read) is PushEvent.
+model PushCampaign {
+  id String @id @default(cuid())
+
+  key    String           @unique @db.VarChar(200)
+  type   NotificationType
+  source String           @default("system") @db.VarChar(40) // system | topic | audience | user
+
+  title String
+  body  String @db.Text
+
+  targetedUsers Int @default(0) // people the send was addressed to
+  sentDevices   Int @default(0) // devices FCM accepted it for (topic sends: subscribers)
+  failedDevices Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  events        PushEvent[]
+  notifications Notification[]
+
+  @@index([createdAt])
+}
+
+enum PushEventType {
+  DELIVERED // reached the app (open at the time, or its background handler ran)
+  OPENED // the notification was tapped
+  ENGAGED // the app reports how long the reader stayed after opening it
+}
+
+// What a phone reports about a push. One row per device per kind, so a retried
+// report or a second tap never counts twice; ENGAGED keeps the longest stay.
+model PushEvent {
+  id String @id @default(cuid())
+
+  campaignId String
+  deviceId   String
+  userId     String?
+
+  event      PushEventType
+  durationMs Int? // ENGAGED only
+  screen     String? @db.VarChar(200) // where the tap took them, ENGAGED only
+
+  occurredAt DateTime // the phone's clock, clamped to the server's
+  createdAt  DateTime @default(now())
+
+  campaign PushCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  device   Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, deviceId, event])
+  @@index([campaignId, event])
 }
 
 // FCM broadcast topics. Sending to a topic is one call regardless of audience
@@ -1313,6 +1381,7 @@ model SubscriptionPlan {
   features      PlanFeature[]
   subscriptions Subscription[]
   aiConfig      AiPlanConfig?
+  grants        EntitlementGrant[]
 
   @@index([isActive, tier])
 }
@@ -1769,8 +1838,8 @@ model Mantra {
   chantSessions    ChantSession[]
   favorites        Favorite[]
   reels            Reel[]
-  preferredByUsers SadhanaProfile[] @relation("PreferredMantra")
-  legacyFavoriteOf SadhanaProfile[] @relation("LegacyFavoriteMantra")
+  preferredByUsers SadhanaProfile[]    @relation("PreferredMantra")
+  legacyFavoriteOf SadhanaProfile[]    @relation("LegacyFavoriteMantra")
 
   @@index([category])
   @@index([sampradaya])
@@ -2276,6 +2345,11 @@ model Reel {
   // silently change a published reel.
   overlays Json @default("[]")
 
+  // How the app draws it: 'MEDIA' plays the video/audio/images above; 'VERSE_PAGES' draws the
+  // reel's verse itself as pages (Sanskrit, meaning, purport) in the reader's reading language —
+  // the book reels made from templates. See config/book-reel.js.
+  layout String @default("MEDIA") @db.VarChar(20)
+
   sampradaya String @default("vaishnav") @db.VarChar(50)
 
   status          ReelStatus @default(PENDING_REVIEW)
@@ -2316,6 +2390,7 @@ model Reel {
   @@index([creatorId])
   @@index([status, publishedAt])
   @@index([verseId])
+  @@index([layout, verseId])
   @@index([mantraId])
   @@index([deityId])
   @@index([sampradaya])
@@ -2573,6 +2648,7 @@ enum AiWalletSource {
   ADMIN_ADJUST
   PLAN_RENEWAL
   OTHER_AI_FEATURE
+  SHARE_IMAGE // a background picture made for a share card
 }
 
 enum AiModelTier {
@@ -2674,11 +2750,11 @@ model AiDailyUsage {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date   String @db.VarChar(10) // user-local "YYYY-MM-DD"
-  tokens Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
+  date        String @db.VarChar(10) // user-local "YYYY-MM-DD"
+  tokens      Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
   // Paid from that day's free-tier bonus instead (services/ai/free-tier.js, utils/ai-bonus.js). Not part of `tokens`,
   // so the bonus never uses up the cap and never touches the wallet.
-  bonusTokens Int @default(0)
+  bonusTokens Int    @default(0)
 
   @@id([userId, date])
   @@index([date])
@@ -2741,106 +2817,303 @@ model ChatMessage {
   @@unique([conversationId, seq])
 }
 
+// ── Sharing and referrals ─────────────────────────────────────────────────
 
-// ── Sharing and referrals ───────────────────────────────────────────────────
-
-enum ShareKind {
-  SHLOKA // a verse — targetId is Verse.verseId
-  MANTRA // targetId is Mantra.slug
-  REEL // targetId is Reel.id
+enum ShareContentType {
+  VERSE // a verse or shloka, target = Verse.verseId
+  MANTRA // target = Mantra.slug
+  REEL // target = Reel.id
 }
 
-// The opaque code on the end of a shared link (hariharbol.com/shloka/<code>). One per target: sharing the
-// same verse twice gives the same link, and nothing in it names a person, so a link cannot leak who sent it.
-// The code is random; the target is looked up here, never decoded from the code.
+// A public, opaque code for one piece of content: hariharibol.com/shloka/<code>.
+// The code is random, never derived from the target or the sharer, so it exposes
+// neither. It is deliberately a separate thing from ReferralCode: opening shared
+// content never attributes a referral or earns a reward.
 model ShareLink {
   id String @id @default(cuid())
 
-  code     String    @unique @db.VarChar(16)
-  kind     ShareKind
-  targetId String
+  code        String           @unique @db.VarChar(16)
+  type        ShareContentType
+  targetId    String           @db.VarChar(120)
+  createdById String?
+  createdBy   User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
-  opens     Int       @default(0)
+  // Set by an admin to switch a code off without deleting its record.
   revokedAt DateTime?
-  createdAt DateTime  @default(now())
+  clicks    Int       @default(0)
 
-  @@unique([kind, targetId])
+  createdAt DateTime @default(now())
+
+  @@index([type, targetId])
+  @@index([createdById, type, targetId])
 }
 
-// A person's referral code (hariharbol.com/satsang/<code>). Kept apart from ShareLink on purpose: opening
-// shared content can never touch referral attribution, and the reverse.
+// Each user's own referral code, made on first use. Random and short enough to
+// type (it is the fallback when a link does not survive an app install).
 model ReferralCode {
   id String @id @default(cuid())
 
-  userId String   @unique
-  code   String   @unique @db.VarChar(16)
-  createdAt DateTime @default(now())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique @db.VarChar(16)
+  createdAt DateTime @default(now())
 }
 
 enum ReferralStatus {
-  PENDING // claimed; the new reader has not yet done enough to qualify
-  REWARDED // qualified and the month was granted
-  REJECTED // refused — see rejectReason
+  PENDING // attributed, not yet qualified
+  QUALIFIED // met the rules and was rewarded
+  REJECTED // failed a rule for good (see rejectReason)
+  REVERSED // the reward was taken back (refund, abuse)
 }
 
-// One row per referred person: a person can be referred once, ever (refereeId is unique), by whoever's
-// code they claimed first.
+enum ReferralSource {
+  LINK
+  CODE
+}
+
+// One row per referred person (`refereeId` is unique: a person is referred once,
+// by the first valid code they present — later codes are ignored).
 model Referral {
   id String @id @default(cuid())
 
   referrerId String
+  referrer   User   @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
   refereeId  String @unique
-  code       String @db.VarChar(16)
+  referee    User   @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  code   String         @db.VarChar(16)
+  source ReferralSource @default(LINK)
 
   status       ReferralStatus @default(PENDING)
-  rejectReason String?        @db.VarChar(100)
+  rejectReason String?        @db.VarChar(120)
 
-  claimedAt   DateTime  @default(now())
-  qualifiedAt DateTime?
+  attributedAt DateTime  @default(now())
+  qualifiedAt  DateTime?
 
-  referrer User            @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
-  referee  User            @relation("ReferralReceived", fields: [refereeId], references: [id], onDelete: Cascade)
-  reward   ReferralReward?
+  reward EntitlementGrant?
 
   @@index([referrerId, status])
+  @@index([status, attributedAt])
 }
 
-// The audit trail of rewards: what was granted, to whom, for which referral, and the period it covers.
-// `referralId` is unique, so a retry or a race can never grant the same referral twice.
-model ReferralReward {
+enum EntitlementGrantSource {
+  REFERRAL
+  ADMIN
+}
+
+// Premium access given rather than bought. It is not a store subscription and is
+// never shown as one: services/entitlement.js reads it beside Subscription and
+// Payment, takes the highest tier, and a grant never shortens or replaces a
+// subscription. `referralId` is unique, so a referral can pay out once however
+// many times it is evaluated.
+model EntitlementGrant {
   id String @id @default(cuid())
 
-  referralId String @unique
-  userId     String
-  planId     String
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId String
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  source     EntitlementGrantSource
+  referralId String?                @unique
+  referral   Referral?              @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  note       String?                @db.VarChar(200)
 
   startsAt  DateTime
   endsAt    DateTime
+  revokedAt DateTime?
+
   createdAt DateTime @default(now())
 
-  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
+  @@index([userId, endsAt])
 }
 
-// An AI background in progress or finished. `requestId` is the client's idempotency key: the same key never
-// charges twice, and a retry after a network failure returns the same row.
-model ShareBackground {
+enum ShareImageStatus {
+  PENDING
+  DONE
+  FAILED
+}
+
+// One AI-made background for a share card. `(userId, requestKey)` is unique, so a
+// retry of the same request finds the same job and cannot be charged twice.
+model ShareImageJob {
   id String @id @default(cuid())
 
-  userId    String
-  requestId String @db.VarChar(64)
-  prompt    String @db.VarChar(600)
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestKey String @db.VarChar(80)
 
-  status     String  @default("PENDING") @db.VarChar(12) // PENDING | DONE | FAILED
-  tokens     Int
-  imagePath  String?
-  failReason String? @db.VarChar(200)
+  prompt    String           @db.VarChar(600)
+  status    ShareImageStatus @default(PENDING)
+  tokens    Int
+  // Where the picture is kept (S3 key). Removed with the job after a day.
+  imagePath String?
+  error     String?          @db.VarChar(200)
+  refunded  Boolean          @default(false)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, requestId])
+  @@unique([userId, requestKey])
+  @@index([createdAt])
+}
+
+// One admin-started run that writes video scene prompts for the chapters of a book (admin → Scenes). Same shape as
+// TranslationRun, smaller: one AI provider and model, one request per chapter, the output a JSON file per chapter in S3
+// (json/<book>/scenes/sk-<canto>-ch-<n>.json). The row is the truth; the BullMQ job only works it.
+model SceneRun {
+  id String @id @default(cuid())
+
+  book     String @default("srimad-bhagavatam") @db.VarChar(40)
+  provider String @default("gemini") @db.VarChar(20)
+  model    String @db.VarChar(100)
+
+  chapters Int[] // chapter ids of the book (canto × 100 + chapter for the Bhagavatam); the chapters this run was asked for
+  force    Boolean @default(false) // write again chapters that already have a scene file
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30) // credit | auth | config | storage | rate_limit | unavailable | source | error
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | limit
+  errorChapter    Int? // the chapter a FAILED run stopped on
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalChapters  Int  @default(0)
+  doneChapters   Int  @default(0)
+  skippedChapters Int @default(0) // chapters with no Hindi meanings to work from
+  currentChapter Int?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+// ============================================================================
+// Hindu calendar (panchang)
+// ============================================================================
+
+enum FestivalKind {
+  EKADASHI
+  CHATURTHI // Vinayaka, Sankashti and Ganesh Chaturthi
+  PRADOSH
+  PURNIMA
+  AMAVASYA
+  SANKRANTI
+  FESTIVAL
+}
+
+// One civil day of the panchang for one place. Worked out by services/panchang.js
+// (astronomy-engine) and saved by `npm run seed:panchang`; an admin can correct a
+// field, which sets `isEdited` so the next seed leaves the row alone.
+model PanchangDay {
+  id String @id @default(cuid())
+
+  date        DateTime @db.Date
+  locationKey String   @db.VarChar(40) // "new-delhi", "ujjain"
+
+  weekday  Int // 0 = Sunday
+  sunrise  DateTime?
+  sunset   DateTime?
+  moonrise DateTime?
+
+  tithiNumber     Int // 1–30 at sunrise
+  tithiName       String    @db.VarChar(40)
+  paksha          String    @db.VarChar(10) // SHUKLA | KRISHNA
+  tithiEndsAt     DateTime?
+  nakshatra       String    @db.VarChar(40)
+  nakshatraNumber Int
+  nakshatraEndsAt DateTime?
+  yoga            String    @db.VarChar(40)
+  yogaEndsAt      DateTime?
+  karana          String    @db.VarChar(40)
+  monthAmanta     String    @db.VarChar(40)
+  monthPurnimanta String    @db.VarChar(40)
+  isAdhika        Boolean   @default(false)
+  sunSign         String    @db.VarChar(40)
+  moonSign        String    @db.VarChar(40)
+  vikramSamvat    Int
+  shakaSamvat     Int
+
+  notes    String? @db.Text // an admin's remark shown with the day
+  isEdited Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, locationKey])
+  @@index([locationKey, date])
+}
+
+// A festival or observance on a date. `notifyDaysBefore` lists how many days ahead a push
+// goes out (1 = the evening before is reached the day before; 0 = the day itself);
+// `notifiedDays` records which were sent so a restart never repeats one.
+model Festival {
+  id String @id @default(cuid())
+
+  date        DateTime     @db.Date
+  locationKey String       @db.VarChar(40)
+  slug        String       @db.VarChar(80)
+  kind        FestivalKind
+  name        String       @db.VarChar(120)
+  description String?      @db.Text
+  paksha      String?      @db.VarChar(10)
+  tithiNumber Int?
+  month       String?      @db.VarChar(40)
+  details     Json? // { vaishnavaDate, anchor, ... }
+
+  isActive         Boolean @default(true)
+  notify           Boolean @default(true)
+  notifyDaysBefore Int[]   @default([1])
+  notifiedDays     Int[]   @default([])
+  isEdited         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, locationKey, slug])
+  @@index([locationKey, date])
+  @@index([date, notify])
+}
+
+// What each translated chapter file in S3 holds, counted once and kept here so the admin Translations page reads a
+// table instead of ~3,700 objects. One row per book × chapter × language. The worker rewrites a run's rows when it
+// stops, and Recount (or the first visit, or a new TRANSLATION_VERSION) refills them from S3. See services/translation.js.
+model TranslationProgress {
+  book     String @db.VarChar(40)
+  chapter  Int // the book's chapter id (canto × 100 + chapter for the Bhagavatam)
+  language String @db.VarChar(10)
+
+  total    Int // verses in the chapter
+  saved    Int @default(0) // verses with a translation
+  upToDate Int @default(0) // saved under `version`, or by a person
+  byClaude Int @default(0)
+  scores   Json @default("{}") // { 1, 2, 3, unscored }
+  versions Json @default("{}") // translation version -> verses
+  parts    Json @default("{}") // part -> verses current for it
+  status   String @default("EMPTY") @db.VarChar(10) // EMPTY | PARTIAL | COMPLETE
+  version  String? @db.VarChar(40) // the TRANSLATION_VERSION `upToDate` was worked out under
+  s3Key    String @db.VarChar(200)
+
+  syncedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([book, chapter, language])
+  @@index([book, language])
 }

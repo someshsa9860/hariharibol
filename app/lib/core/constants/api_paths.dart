@@ -21,19 +21,15 @@ abstract final class ApiPaths {
   static const String topics = '$_app/devices/topics';
   static String topic(String key) => '$_app/devices/topics/$key';
 
+  // Hindu calendar
+  static const String calendar = '$_app/calendar';
+  static const String calendarUpcoming = '$_app/calendar/upcoming';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';
   static const String meSadhanaProfile = '$_app/me/sadhana-profile';
   static const String meSummary = '$_app/me/summary';
-
-  // Sharing and referrals
-  static const String shareLinks = '$_app/share/links';
-  static String shareLink(String code) => '$_app/share/links/$code';
-  static const String shareBackgroundQuote = '$_app/share/background/quote';
-  static const String shareBackground = '$_app/share/background';
-  static const String referralMe = '$_app/referral/me';
-  static const String referralClaim = '$_app/referral/claim';
 
   // Dashboard
   static const String home = '$_app/home';
@@ -60,6 +56,7 @@ abstract final class ApiPaths {
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
+  static String bookLanguages(String slug) => '$_app/books/$slug/languages';
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';
@@ -87,7 +84,11 @@ abstract final class ApiPaths {
   // Reels
   static const String reels = '$_app/reels';
   static const String savedReels = '$_app/reels/saved';
+  static const String reelMedia = '$_app/reels/media';
+  static const String reelMake = '$_app/reels/make';
   static String reel(String id) => '$_app/reels/$id';
+  static const String reelBookStyle = '$_app/reels/book-style';
+  static String reelsFromVerse(String verseId) => '$_app/reels/book/$verseId';
   static String reelSimilar(String id) => '$_app/reels/$id/similar';
   static String reelLike(String id) => '$_app/reels/$id/like';
   static String reelView(String id) => '$_app/reels/$id/view';
@@ -150,6 +151,7 @@ abstract final class ApiPaths {
   static const String notifications = '$_app/notifications';
   static const String unreadCount = '$_app/notifications/unread-count';
   static String notificationRead(String id) => '$_app/notifications/$id/read';
+  static const String notificationEvents = '$_app/notifications/events';
   static const String notificationsReadAll = '$_app/notifications/read-all';
 
   // Money
@@ -167,6 +169,18 @@ abstract final class ApiPaths {
   static const String deities = '$_app/reference/deities';
   static const String gurus = '$_app/reference/gurus';
   static const String translators = '$_app/reference/translators';
+
+  // Sharing and referrals
+  static const String shareLink = '$_app/share/link';
+  static const String shareBackgroundQuote = '$_app/share/background/quote';
+  static const String shareBackground = '$_app/share/background';
+  static String shareBackgroundImage(String id) => '$_app/share/background/$id/image';
+  static const String referralMe = '$_app/referral/me';
+  static const String referralMine = '$_app/referral/mine';
+  static const String referralAttribute = '$_app/referral/attribute';
+
+  /// What a stranger sees at a shared link. Public, on the website's own API.
+  static String sharedContent(String route, String code) => '/api/web/share/$route/$code';
 }
 
 /// Error codes the app acts on by name; every other code is only worded.

@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { ShareButton } from '@/components/share/share-button';
 import { Icon } from '@/components/ui/icon';
 import { AudioButton } from '@/components/read/audio-button';
 import { verseCitation } from '@/lib/format';
 import { verseReadHref } from '@/lib/links';
+import { ShareButton, verseTarget } from '@/components/share/share-button';
 import type { Verse } from '@/lib/types';
 
 /** The verse of the day: the big card on Home. */
@@ -23,7 +23,7 @@ export function SlokaCard({ verse, label = 'Verse of the day' }: { verse: Verse;
       <div className="sloka-actions">
         <Link href={verseReadHref(verse)} className="btn btn-primary btn-sm">Read in context <Icon name="arrow" size={16} /></Link>
         {verse.audioUrl && <AudioButton src={verse.audioUrl} label="Listen" />}
-        <ShareButton content={{ kind: 'SHLOKA', targetId: verse.verseId, title: citation, sanskrit: verse.sanskrit, transliteration: verse.transliteration, meaning: verse.translation?.meaning ?? null }} />
+        <ShareButton target={verseTarget(verse)} className="btn btn-ghost btn-sm" label=" Share" />
       </div>
     </article>
   );

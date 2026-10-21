@@ -38,7 +38,9 @@ const selection = z.object({
   // Free keywords — a verse matches if any appears in its Sanskrit, transliteration,
   // a published translation, or its tags.
   hints: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
-  limit: z.number().int().min(1).max(controller.GENERATE_MAX).default(20),
+  // Blank means every matching verse: preview counts them all, and generate makes
+  // up to GENERATE_MAX a call, which the panel repeats until none are left.
+  limit: z.number().int().min(1).nullable().optional(),
   // The language the translation box is written in on the reel itself; readers
   // still see their own language when it is fetched.
   languageCode: z.string().min(1).max(10).default('en'),

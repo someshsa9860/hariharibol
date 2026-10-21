@@ -25,6 +25,10 @@ abstract final class BoxNames {
 }
 
 abstract final class BoxKeys {
+  /// An invitation code from a link, kept until there is an account to present
+  /// it with (DeepLinkService). Only the first is kept.
+  static const String pendingInvite = 'referral.pending_invite';
+
   /// The signed-in user, as returned by the API. Kept so the app can draw the
   /// first frame without waiting on the network.
   static const String user = 'user';
@@ -40,10 +44,6 @@ abstract final class BoxKeys {
   /// sitting with none), so the counter opens on the count it was left at.
   /// Deleted when the round completes.
   static String chantProgress(String? mantraId) => 'chant.progress.${mantraId ?? 'any'}';
-
-  /// The invitation code a new reader arrived with, kept until they are signed in and it can be claimed. The server
-  /// decides whether it counts; this only carries it across the install and the sign-in.
-  static const String pendingReferral = 'referral.pending';
 
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';

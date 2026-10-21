@@ -220,56 +220,6 @@ Shown to readers as **Ask Sakha**. Sakha is a devotional friend for people of ev
 - **Dio's body is a `Stream<Uint8List>`, and `parseSse` must not `transform` it.** `Stream.transform` checks its argument against the stream's *runtime* element type, so `bytes.transform(const Utf8Decoder())` threw a `TypeError` on the first real response — which the guard then called a dropped connection ("Connection lost", the question put back in the box) while the server had answered 200. It uses `Utf8Decoder.bind(bytes)` now, and a fault like that would read as "Something went wrong", not as the network. `test/sse_real_dio_test.dart` reads a real Dio response from a local `HttpServer`, and a socket destroyed mid-reply, which the scripted-chunk tests cannot do.
 - **Not verified:** nothing was run on a phone or against a live provider. **Voice, the camera, the photo library, the animations and the picture round trip have only been driven by fakes** (the real `speech_to_text` and `image_picker` plugins, the iOS and Android permission prompts, and a real vision call are untried). The stream has been read from scripted events, byte chunks and a local server through real Dio, but the cancel behaviour of `ResponseType.stream` on a real connection is untested (the replay of a refused stream is covered, through a scripted adapter). The eleven translations are AI-drafted like the rest. The copy-a-link behaviour and the other-language wording of "Tidying our conversation…" want a native read; so do the Sakha strings (the title, the starter cards, the microphone and picture lines, and the error lines are new in every language), including the honorifics and the case endings attached to the Latin name "Sakha" in the languages that inflect. The starter prompts name the Gita in each language's own script but give "2.47" in Latin digits.
 
-## Share studio, links that open the app, and Refer & Earn
-
-**Written without a Flutter SDK to hand: none of this Dart was compiled, analysed or run, and nothing was seen on a phone.** Run
-`tool/flutter.sh pub get` (adds `app_links`; `pubspec.lock` is not updated), `tool/flutter.sh analyze`, then
-`tool/flutter.sh test test/deep_links_test.dart test/l10n_parity_test.dart` before anything else. Rules and the API are in
-"Sharing, deep links and Refer & Earn" in [backend/CLAUDE.md](../backend/CLAUDE.md).
-
-- **One studio for every entry point** (`views/share/share_studio_view.dart`, route `AppRoutes.shareStudio`, `extra` =
-  `ShareStudioArgs`). Callers use `core/navigation/share_entry.dart` (`openVerseShare`, `openMantraShare`, `openReelShare`): the
-  verse block's action row (chapter reader and short works), the mantra page's app bar, and a reel's Share (which keeps its share
-  count: `onShared` runs only when the system sheet reports success). **Not wired**: the Home verse card, search results and the
-  favourites list (they open the chapter, where the button is).
-- **The card is `ShareCard`** (`widgets/share/share_card.dart`), drawn once at 360 logical px wide; the preview scales it down and
-  the export captures the same `RepaintBoundary` at `pixelRatio: 3` (1080 px wide) as a PNG, so they cannot differ. Square,
-  portrait and story. Long text is scaled down by a `FittedBox`, never cut; the **transparent logo** (`assets/hariharibol_trprt.png`)
-  is top-left with the text area below it. Gradients and plain colours, the reader's own picture (image_picker; real bytes sniffed
-  for JPEG / PNG / WebP, ≤ 8 MB), and an AI background (a link to the picture, `precacheImage`d so an export taken at once has
-  it). Controls: text size, alignment, light / dark lettering, darken, meaning and reference switches. **The card's colours are
-  `AppColors.shareGradients` / `shareSolids`** — exported artwork, the same in both themes, the one place the colour rule does not
-  follow the theme. **Not built here** (the web studio has them): drag to move text, font choice, undo, scenes / patterns, edit
-  the verse text, a landscape format, saving to the gallery (the share sheet is the way out).
-- **AI backgrounds**: `GET /share/background/quote` says whether one can be afforded (never tokens); 402 shows "not enough
-  credits" and a button to `/plans`; a failure says nothing was charged, and the **same `requestId` is reused for a retry** so it
-  is never charged twice (a new one only after a success).
-- **Links that open the app** (`services/deep_links.dart`, started from `main.dart`). `DeepLinks.parse` reads
-  `https://hariharibol.com/{shloka|mantra|divya|satsang}/<code>` and `hariharibol://…`; a content link is resolved on the server
-  (`GET /share/links/:code`, public) into a route the app already has (`DeepLinks.routeFor`: a verse → its chapter at the verse,
-  a mantra → its page, a reel → **that reel**, not the feed) and handed to `PushLinks.openRoute`, which holds it until the
-  dashboard is on screen — so a cold start, a signed-out start and a start held at the language picker all end on the right
-  screen, and the latest link wins. The same link arriving twice within 3 s (launch link and stream) opens once. An unknown,
-  taken-down or unreachable link just leaves the app on Home. An **invitation** (`satsang`) is only remembered
-  (`ReferralService.remember`, `BoxKeys.pendingReferral`, the first one wins) and claimed when a session exists; opening a link
-  never rewards anyone. **Flutter's own deep-link hand-off is switched off** (`flutter_deeplinking_enabled` = false on Android,
-  `FlutterDeepLinkingEnabled` = NO on iOS) or go_router would try to open `/mantra/<code>` as a route and fail.
-- **Native config.** Android: `autoVerify` intent filter for `https://hariharibol.com` with `/shloka/ /mantra/ /divya/ /satsang/`,
-  and one for the `hariharibol` scheme. iOS: `applinks:hariharibol.com` in both entitlements files and the `hariharibol` URL
-  scheme in `Info.plist`. **Enable Associated Domains on the App ID**, and set `ANDROID_CERT_SHA256` / `APPLE_TEAM_ID` on the
-  server (see "App links" in [deploy/README.md](../deploy/README.md)) — until the association files are right, https links open
-  in the browser (the landing page's "Open in the app" button, which uses the scheme, still works).
-- **Deferred deep links are not built.** A person who installs from the store after tapping an invitation link is not carried
-  through the install by Android App Links or Universal Links; there is no install-referrer or attribution SDK here. The fallback
-  is the explicit code: the landing page shows it, and Settings → **Refer & Earn** has an "enter a code" box.
-- **Refer & Earn** (`views/settings/refer_view.dart`, `services/referral_service.dart`, `models/referral.dart`, a Settings row
-  under Account): link, share, copy, counts, rewards with their dates, history, enter-a-code, and the terms.
-- **Text**: 51 new strings (`refer*`, `share*`) in every ARB, with the generated files **patched by script, not by `gen-l10n`** —
-  run `tool/flutter.sh gen-l10n` and expect it to rewrite them. The 11 translations are AI-drafted and have not been read by a
-  native speaker. No string says "AI"; the tab for making a background is "Create new".
-- `test/deep_links_test.dart` covers `parse` and `routeFor` (pure). **Nothing else here has a test**: the studio screen, the
-  export, the picker, `DeepLinks.handle`, the referral screen and the native filters are all untried.
-
 ## The launch animation
 
 `views/splash/splash_view.dart` plays a 2.6 s sequence over `widgets/splash/`. **Every number — beat timings, curves, sizes, alphas — is in `core/constants/splash_config.dart`**; retime it there, not in the widgets.
@@ -489,6 +439,27 @@ The previous app (**Sadhana**, same bundle id, a Laravel server behind it) left 
 ## Decisions needed
 
 - **Access token lifetime — decided: 7 days, renewed daily.** The owner chose a long access token that the app swaps every day (see "Session and tokens"), so a signed-in person is never asked to sign in because of a lapse. The cost is accepted: a stolen access token stays valid for up to a week and the API has no revocation list for access tokens. Signing out everywhere revokes the refresh tokens, so the longest a thief outlives it is the rest of that week.
+
+## Sharing, links and Refer and earn
+
+`lib/core/share_links.dart` is the only parser of a shared link (same grammar as the backend and the website, tested
+in `test/share_links_test.dart`): `https://hariharibol.com/{shloka|naam|darshan|satsang}/<code>`, `hariharibol://…`
+and the website's `hariharibol://open?path=/…`. Any other host is refused. `services/deep_link_service.dart` listens
+with `app_links` (cold start and while running), dedupes, asks the API what a code is (`ShareService.resolve`) and
+pushes the route through `PushLinks`; a path that reaches the router instead is claimed in `app_router.dart`'s
+redirect and handed to the same service. A gone link says `shareLinkGone`. An invitation is held in
+`BoxKeys.pendingInvite` until signed in, then presented once; **a typed code on the Refer screen is the fallback**
+because the stores do not pass a link through an install (no deferred deep link is promised).
+
+The studio is `views/share/share_studio_view.dart` (card painted by `widgets/share/share_card.dart`, exported to PNG,
+shared with `share_plus`); entry points are on the verse block, the home verse card, the mantra screen and reels. The
+Refer screen is `views/premium/refer_view.dart`, opened from Settings. Android intent filters (App Links with
+`autoVerify`, plus the `hariharibol` scheme) and iOS `applinks:hariharibol.com` plus the URL scheme are declared;
+**they only verify once the API serves the association files** (`APPLE_TEAM_ID`, `ANDROID_CERT_SHA256`).
+35 strings (`share*`, `refer*`, `settingsRefer`) are in all 12 ARBs; the 11 translations are AI-drafted.
+**This part was written without a Flutter SDK: it has not been compiled, analysed or run, `flutter gen-l10n` was not
+run (the generated files were edited by hand in the generator's style), and nothing has been tried on a phone.** Run
+`tool/flutter.sh pub get`, `gen-l10n`, `analyze` and `test` first.
 
 ## Firebase and signing
 

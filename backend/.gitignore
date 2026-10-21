@@ -21,3 +21,4 @@ docs/openapi.json
 
 # Working folder of scripts/translate-claude.js: its run log.
 /.translate-work/
+dump.rdb

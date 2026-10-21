@@ -5,64 +5,37 @@ const router = createRouter({
   tag: 'Share',
   prefix: '/share',
   description:
-    'Shareable links for verses, mantras and reels, and AI backgrounds for the Share Studio. A link’s code is ' +
-    'random and names no person; opening one never touches referrals (those live under /referral).',
+    'Public links for verses, mantras and reels, and AI backgrounds for share cards. A link is a ' +
+    'random code on a spiritual path (/shloka, /naam, /darshan) that reveals neither the content ' +
+    'id nor the sharer. Backgrounds are paid for from the Ask Sakha credit and are never charged twice.',
 });
 
 router.post(
-  '/links',
+  '/link',
   {
-    summary: 'Get the share link for a verse, mantra or reel',
+    summary: 'Get the public link for a piece of content',
     description:
-      'Finds or makes the one link for a target. `kind` is SHLOKA (targetId = the verse’s `verseId`), MANTRA ' +
-      '(targetId = the mantra slug) or REEL (targetId = the reel id). Refuses (404) a target that is not public, ' +
-      'so no code exists for a draft. The same target always gets the same link.',
-    body: z.object({ kind: z.enum(['SHLOKA', 'MANTRA', 'REEL']), targetId: z.string().trim().min(1).max(100) }),
+      'Returns the same link for the same person sharing the same thing. 404 for content that ' +
+      'is not public (an unpublished book, a reel awaiting review).',
     limit: 'write',
-    responds: { 201: 'The link: code, url, appUri', 404: 'The content is not public' },
+    body: z.object({
+      type: z.enum(['VERSE', 'MANTRA', 'REEL']),
+      targetId: z.string().min(1).max(120),
+    }),
+    responds: { 200: '{ code, type, url }', 404: 'Content is not public' },
   },
-  controller.createLink
-);
-
-router.get(
-  '/links/:code',
-  {
-    summary: 'Open a share link',
-    description:
-      'Public. Resolves a code to the public view of its content, for the landing page, its Open Graph tags and the ' +
-      'app’s link handler. 404 for a code that does not exist (or names another kind than `kind`), 410 when the ' +
-      'content has been revoked or unpublished. Carries the store listings (null where not configured) and only ' +
-      'attribution query parameters.',
-    public: true,
-    params: z.object({ code: z.string().min(1).max(32) }),
-    query: z.object({ kind: z.enum(['SHLOKA', 'MANTRA', 'REEL']).optional() }).passthrough(),
-    limit: 'read',
-    responds: { 200: 'The content and its links', 404: 'Unknown link', 410: 'No longer available' },
-  },
-  controller.openLink
+  controller.link
 );
 
 router.get(
   '/background/quote',
   {
-    summary: 'Can I make an AI background?',
-    description: 'Whether backgrounds are available, whether the wallet can pay for one now, and roughly how many it holds. Never tokens.',
+    summary: 'Can I make a background, and what does it cost?',
+    description: 'The cost as a percentage of the meter (never tokens), whether it is affordable now, and suggested prompts.',
     limit: 'read',
-    responds: { 200: 'Availability and affordability' },
+    responds: { 200: 'Quote' },
   },
   controller.quote
-);
-
-router.get(
-  '/background/:id/image',
-  {
-    summary: 'Download an AI background',
-    description: 'The PNG bytes of a finished background, for its maker only (404 for anyone else), so a browser can draw it on a canvas without cross-origin trouble.',
-    params: z.object({ id: z.string().min(1).max(40) }),
-    limit: 'read',
-    responds: { 200: 'image/png', 404: 'Not yours, or not finished' },
-  },
-  controller.backgroundImage
 );
 
 router.post(
@@ -70,18 +43,41 @@ router.post(
   {
     summary: 'Make an AI background',
     description:
-      'Charges the Ask Sakha wallet once per `requestId` (send the same id when retrying). 402 `CREDITS_EXHAUSTED` ' +
-      'when the wallet or the day’s allowance cannot pay — nothing is started. A failed generation is refunded ' +
-      'before the error is returned. 409 `IN_PROGRESS` while the same or another background is still being made. ' +
-      'Returns the picture’s temporary link and `imageKey`.',
-    body: z.object({
-      requestId: z.string().trim().min(8).max(64).regex(/^[\w-]+$/),
-      prompt: z.string().trim().min(3).max(600),
-    }),
+      '`requestKey` is chosen by the app for one attempt; repeating a request with the same key ' +
+      'returns the same job and never charges again. The charge is taken first and returned if the ' +
+      'picture cannot be made (a FAILED job with `refunded`). A failed job can be tried again with ' +
+      'the same key. 402 `CREDIT_REQUIRED` before anything is charged when there is no credit.',
     limit: 'ai',
-    responds: { 200: 'The picture', 402: 'Not enough credits', 409: 'Already being made', 502: 'Generation failed, refunded', 503: 'Not available' },
+    body: z.object({
+      requestKey: z.string().regex(/^[A-Za-z0-9_-]{8,80}$/),
+      prompt: z.string().min(1).max(600),
+    }),
+    responds: { 200: 'The job (DONE or FAILED)', 201: 'The job was started', 402: 'Not enough credit', 503: 'Not available' },
   },
-  controller.makeBackground
+  controller.generate
+);
+
+router.get(
+  '/background/:id',
+  {
+    summary: 'Get a background',
+    limit: 'read',
+    params: z.object({ id: z.string().min(1).max(40) }),
+    responds: { 200: 'The job', 404: 'Not yours or unknown' },
+  },
+  controller.background
+);
+
+router.get(
+  '/background/:id/image',
+  {
+    summary: 'Download a background',
+    description: 'The finished picture as image/png, served through the API so a browser can draw it on a canvas.',
+    limit: 'read',
+    params: z.object({ id: z.string().min(1).max(40) }),
+    responds: { 200: 'image/png', 404: 'Not yours, unknown or not finished' },
+  },
+  controller.backgroundImage
 );
 
 export default router;

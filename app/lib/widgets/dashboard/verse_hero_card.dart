@@ -11,6 +11,8 @@ import '../../models/verse.dart';
 import '../common/animations.dart';
 import '../common/eyebrow.dart';
 import '../common/motif.dart';
+import '../../views/share/share_studio_view.dart';
+import '../share/share_target.dart';
 
 /// The verse at the top of the dashboard — the one thing on the screen that is
 /// meant to be read rather than scanned.
@@ -182,6 +184,12 @@ class VerseHeroCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.ios_share_rounded, size: AppSizes.iconSm),
+                        tooltip: text.shareTitle,
+                        onPressed: () => ShareStudio.open(context, ShareTarget.verse(verse)),
+                      ),
                       // Only when there is somewhere to go. An arrow on a card
                       // that does nothing is a promise the screen cannot keep.
                       if (onTap != null) ...[
@@ -299,6 +307,12 @@ class _PhotoCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.ios_share_rounded, size: AppSizes.iconSm),
+                      tooltip: text.shareTitle,
+                      onPressed: () => ShareStudio.open(context, ShareTarget.verse(verse)),
                     ),
                     // Only when there is somewhere to go, as on the plain card.
                     if (arrow) ...[

@@ -354,6 +354,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String labelVerseShort(int number) {
+    return 'Śl. $number';
+  }
+
+  @override
   String labelCantoChapter(int canto, int chapter) {
     return 'Canto $canto · Chapter $chapter';
   }
@@ -2083,6 +2088,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatJumpToLatest => 'Latest';
 
   @override
+  String get verseStartReels => 'Watch reels from this verse';
+
+  @override
+  String get reelChantTapHint => 'Tap to chant';
+
+  @override
+  String get reelChantDone => 'Round complete';
+
+  @override
+  String get reelChantSkipHint => 'Swipe up to skip';
+
+  @override
+  String reelChantCount(int count, int total) {
+    return '$count / $total';
+  }
+
+  @override
   String get verseAskSakha => 'Ask Sakha about this verse';
 
   @override
@@ -2195,162 +2217,162 @@ class AppLocalizationsEn extends AppLocalizations {
       'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.';
 
   @override
-  String get referTitle => 'Refer & Earn';
+  String get shareTitle => 'Share';
 
   @override
-  String get referIntro =>
-      'Invite a friend. When they join and settle in, you receive a month of the Ārta plan.';
+  String get shareAsText => 'Share as text';
 
   @override
-  String get referYourLink => 'Your invitation link';
-
-  @override
-  String get referShare => 'Share invitation';
-
-  @override
-  String get referShareLine =>
-      'Join me on HariHariBol — verses, mantras and Sakha, free.';
-
-  @override
-  String get referPending => 'Settling in';
-
-  @override
-  String get referRewarded => 'Rewards earned';
-
-  @override
-  String get referHaveCode => 'Were you invited? Enter a code';
-
-  @override
-  String get referUseCode => 'Use code';
-
-  @override
-  String get referCodeHint => 'Invitation code';
-
-  @override
-  String get referCodeThanks => 'Thank you — your invitation is noted';
-
-  @override
-  String get referCodeRefused => 'That code could not be used';
-
-  @override
-  String get referRewardsHeading => 'Your rewards';
-
-  @override
-  String get referHistoryHeading => 'Invitations';
-
-  @override
-  String get referStatusPending => 'Joined — settling in';
-
-  @override
-  String get referStatusRewarded => 'Reward earned';
-
-  @override
-  String get referStatusRejected => 'Not eligible';
-
-  @override
-  String get referTerms =>
-      'One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.';
-
-  @override
-  String get shareStudioTitle => 'Share studio';
-
-  @override
-  String get shareSizeSquare => 'Square';
-
-  @override
-  String get shareSizePortrait => 'Portrait';
-
-  @override
-  String get shareSizeStory => 'Story';
-
-  @override
-  String get shareBackground => 'Background';
-
-  @override
-  String get shareGradients => 'Gradients';
-
-  @override
-  String get shareColours => 'Colours';
-
-  @override
-  String get sharePicture => 'Picture';
-
-  @override
-  String get shareMakeWithAi => 'Create new';
-
-  @override
-  String get shareText => 'Text';
-
-  @override
-  String get shareTextSize => 'Size';
-
-  @override
-  String get shareLightText => 'Light text';
-
-  @override
-  String get shareShowMeaning => 'Show meaning';
-
-  @override
-  String get shareShowReference => 'Show reference';
-
-  @override
-  String get shareDarken => 'Darken for readability';
-
-  @override
-  String get shareImage => 'Share picture';
-
-  @override
-  String get shareLinkOnly => 'Share link';
-
-  @override
-  String get shareCopyText => 'Copy text';
+  String get shareCopied => 'Copied';
 
   @override
   String get shareCopyLink => 'Copy link';
 
   @override
-  String get shareLinkCopied => 'Link copied';
+  String get shareFailed => 'We couldn’t share this. Please try again.';
 
   @override
-  String get shareTextCopied => 'Text copied';
+  String get shareImageTooBig =>
+      'That picture is too large. Please choose a smaller one.';
 
   @override
-  String get shareChoosePicture => 'Choose a picture';
+  String get shareLinkShare => 'Share link';
 
   @override
-  String get sharePictureInvalid =>
-      'Please choose a JPEG, PNG or WebP picture under 8 MB.';
+  String get shareMakeIt => 'Create';
 
   @override
-  String get shareAiPrompt => 'Describe the background';
+  String get shareMakePicture => 'Make a picture';
 
   @override
-  String get shareAiMake => 'Make background';
+  String get sharePickPicture => 'Choose a picture';
 
   @override
-  String get shareAiMaking => 'Making your background…';
+  String sharePictureCost(int percent) {
+    return 'Uses about $percent% of your Sakha credit';
+  }
 
   @override
-  String get shareAiNote => 'Uses part of your Ask Sakha credits.';
+  String get sharePictureFailed =>
+      'The picture could not be made. Your credit was returned.';
 
   @override
-  String get shareAiNoCredit =>
-      'You do not have enough credits for a background.';
+  String get sharePictureNoCredit => 'Your Sakha credit for today is used up.';
 
   @override
-  String get shareAiSeePlans => 'See plans';
+  String get sharePicturePrompt => 'Describe the picture';
 
   @override
-  String get shareAiFailed =>
-      'The background could not be made. You have not been charged — please try again.';
+  String get sharePictureShare => 'Share picture';
 
   @override
-  String get shareAiUnavailable => 'Backgrounds are not available right now.';
+  String get shareRemovePicture => 'Remove picture';
 
   @override
-  String get shareLinkFailed => 'Could not make a link for this.';
+  String get shareShowMeaning => 'Meaning';
 
   @override
-  String get shareExportFailed =>
-      'Could not prepare the picture. Please try again.';
+  String get shareShowTransliteration => 'Transliteration';
+
+  @override
+  String get shareTextSize => 'Text size';
+
+  @override
+  String get shareLinkGone => 'This link is no longer available.';
+
+  @override
+  String get settingsRefer => 'Refer and earn';
+
+  @override
+  String get referTitle => 'Refer and earn';
+
+  @override
+  String referIntro(int days) {
+    return 'Invite a friend. When they finish their first round of chanting, you receive $days days of Ārta, free.';
+  }
+
+  @override
+  String get referYourCode => 'Your invite code';
+
+  @override
+  String get referInvite => 'Invite a friend';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'Join me on HariHariBol: verses, mantras and chanting in one place. $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta is yours until $date';
+  }
+
+  @override
+  String get referStatInvited => 'Invited';
+
+  @override
+  String get referStatWaiting => 'Waiting';
+
+  @override
+  String get referStatRewarded => 'Rewarded';
+
+  @override
+  String get referNone => 'No invitations yet.';
+
+  @override
+  String get referEnterCode => 'Have a friend’s code?';
+
+  @override
+  String get referUseCode => 'Use code';
+
+  @override
+  String get referAccepted =>
+      'Code accepted. Finish a round of chanting so your friend receives their reward.';
+
+  @override
+  String get referRefused => 'This code can’t be used.';
+
+  @override
+  String get shareMakeReel => 'Make reel';
+
+  @override
+  String get shareReelIntro => 'Your card becomes a reel that everyone in Reels can watch.';
+
+  @override
+  String get shareReelAddMusic => 'Add music from your phone';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'Music: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'Remove music';
+
+  @override
+  String get shareReelPost => 'Post reel';
+
+  @override
+  String get shareReelPosting => 'Posting your reel…';
+
+  @override
+  String get shareReelDone => 'Your reel is live. Find it in Reels.';
+
+  @override
+  String get shareReelFailed => 'The reel could not be posted. Please try again.';
+
+  @override
+  String get shareReelTooBig => 'That music file is too large (up to 25 MB).';
+
+  @override
+  String get calendarTitle => 'Hindu calendar';
+
+  @override
+  String get calendarEmpty => 'The calendar for this month is not filled in yet.';
+
+  @override
+  String get calendarUpcoming => 'Ekadashi, Chaturthi and festival days';
+
+  @override
+  String get calendarVaishnavaNote => 'Vaishnavas may keep this fast the next day.';
 }

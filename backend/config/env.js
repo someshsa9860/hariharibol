@@ -35,18 +35,6 @@ const schema = z.object({
   WEB_BASE_URL: z.string().default('http://localhost:3000'),
   ADMIN_BASE_URL: z.string().default('http://localhost:5183'),
   APP_SCHEME: z.string().default('hariharibol'),
-  // Store listings for the share landing page and the referral link. Blank = the page shows no badge for that store
-  // (never an invented listing). The Play link is derived from GOOGLE_PLAY_PACKAGE_NAME when this is blank.
-  PLAY_STORE_URL: z.string().optional(),
-  APP_STORE_URL: z.string().optional(),
-  // SHA-256 fingerprints of the Android signing certificate(s), comma separated, for /.well-known/assetlinks.json.
-  ANDROID_CERT_SHA256: z.string().optional(),
-  // The Apple developer team the app is signed by: Universal Links need appIDs written `<TEAMID>.<bundle id>`.
-  // This is the team in app/ios/Runner.xcodeproj (the previous app's); change it if the app moves team.
-  APPLE_TEAM_ID: z.string().default('V2LNA795Y9'),
-  // Share Studio: AI background pictures. Tokens are the wallet's unit; readers see a percentage and a plain cost line.
-  SHARE_BACKGROUND_TOKENS: z.coerce.number().int().min(1).default(100000),
-  OPENAI_IMAGE_MODEL: z.string().default('gpt-image-1'),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
@@ -62,6 +50,17 @@ const schema = z.object({
 
   GOOGLE_CLIENT_IDS: z.string().default(''),
   APPLE_BUNDLE_IDS: z.string().default(''),
+
+  // Universal links / app links (deeplink/index.js). The Apple team prefixes each bundle id in the
+  // association file; the Android SHA-256 fingerprints come from the app signing certificate
+  // (Play Console → App integrity → App signing, comma separated). Both are empty until set, on
+  // purpose: a wrong value silently disables the links, an empty one is easy to notice.
+  APPLE_TEAM_ID: z.string().default(''),
+  ANDROID_CERT_SHA256: z.string().default(''),
+  // The public store listings the share page offers. Empty means "not published yet": the page
+  // then hides the badge instead of linking somewhere invented.
+  PLAY_STORE_URL: z.string().default(''),
+  APP_STORE_URL: z.string().default(''),
 
   APP_CHECK_ENABLED: flag(false),
 
@@ -164,6 +163,14 @@ const schema = z.object({
   TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
+  // Video scene prompts for the chapters of a book (admin → Scenes). Gemini unless a run says otherwise; the model and
+  // the free tier's limits (requests and tokens a minute, requests a day) are settings so a plan change is not a deploy.
+  SCENES_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
+  SCENES_GEMINI_MODEL: z.string().optional(),
+  SCENES_RPM: z.coerce.number().int().min(1).optional(),
+  SCENES_TPM: z.coerce.number().int().min(1000).optional(),
+  SCENES_RPD: z.coerce.number().int().min(0).optional(), // 0 = no daily cap of our own
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 
@@ -185,13 +192,7 @@ const env = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
-  androidCertFingerprints: csv(parsed.data.ANDROID_CERT_SHA256),
-  playStoreUrl:
-    parsed.data.PLAY_STORE_URL ||
-    (parsed.data.GOOGLE_PLAY_PACKAGE_NAME
-      ? `https://play.google.com/store/apps/details?id=${parsed.data.GOOGLE_PLAY_PACKAGE_NAME}`
-      : null),
-  appStoreUrl: parsed.data.APP_STORE_URL || null,
+  androidCertSha256: csv(parsed.data.ANDROID_CERT_SHA256),
   legacyMigrationEnabled: Boolean(parsed.data.LEGACY_MIGRATION_URL && parsed.data.LEGACY_MIGRATION_KEY),
   // Resolved against the backend directory so the .env can hold the short,
   // obvious `secrets/…json` rather than a path that only works from one cwd.

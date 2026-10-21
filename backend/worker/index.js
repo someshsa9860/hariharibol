@@ -27,6 +27,8 @@ import aiProcessor from '../jobs/processors/ai.js';
 import maintenanceProcessor from '../jobs/processors/maintenance.js';
 import contentProcessor from '../jobs/processors/content.js';
 import translationProcessor, { abortActiveRuns, onJobFailed } from '../jobs/processors/translation.js';
+import scenesProcessor, { abortActiveRuns as abortSceneRuns, onJobFailed as onSceneJobFailed } from '../jobs/processors/scenes.js';
+import { reconcileRuns as reconcileSceneRuns } from '../services/scenes.js';
 
 // One processor per queue. The queue name is the key, so worker/ and jobs/
 // cannot disagree about which processor runs what.
@@ -39,6 +41,7 @@ const processors = {
   maintenance: maintenanceProcessor,
   content: contentProcessor,
   translation: translationProcessor,
+  scenes: scenesProcessor,
 };
 
 // How many jobs of each kind may run at once.
@@ -59,10 +62,13 @@ const CONCURRENCY = {
   // One run at a time, however many workers there are (set again below as a queue-wide limit): they
   // are hours long, bill by the call, and two languages at once only meet the same rate limit sooner.
   translation: 1,
+  // One run at a time: the free tier's limits are per project, so two runs would only meet them sooner.
+  scenes: 1,
 };
 
 const workers = [];
 let reconcileTimer = null;
+let reconcileScenesTimer = null;
 
 async function start() {
   await connectDatabase();
@@ -72,7 +78,7 @@ async function start() {
       connection: bullConnection,
       concurrency: CONCURRENCY[name] || 1,
       // A translation run whose worker died is handed to another many times over; the others, once.
-      ...(name === 'translation' && { maxStalledCount: translation.maxStalledCount }),
+      ...((name === 'translation' || name === 'scenes') && { maxStalledCount: translation.maxStalledCount }),
     });
 
     worker.on('completed', (job, result) => {
@@ -86,6 +92,9 @@ async function start() {
       );
       if (name === 'translation') {
         onJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed translation job'));
+      }
+      if (name === 'scenes') {
+        onSceneJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed scenes job'));
       }
     });
 
@@ -105,6 +114,9 @@ async function start() {
   const reconcile = () => reconcileRuns().catch((err) => logger.error({ err: err.message }, 'translation reconcile failed'));
   await reconcile();
   reconcileTimer = setInterval(reconcile, translation.reconcileEveryMs);
+  const reconcileScenes = () => reconcileSceneRuns().catch((err) => logger.error({ err: err.message }, 'scenes reconcile failed'));
+  await reconcileScenes();
+  reconcileScenesTimer = setInterval(reconcileScenes, translation.reconcileEveryMs);
 
   await registerSchedules();
   logger.info('worker ready');
@@ -115,10 +127,12 @@ async function start() {
 async function shutdown(signal) {
   logger.info({ signal }, 'worker shutting down');
   clearInterval(reconcileTimer);
+  clearInterval(reconcileScenesTimer);
   // A translation run is hours long, so it is not waited out: it stops after its current call, puts
   // itself back in the queue, and the next worker carries on from the verse after the last one saved.
   const stopped = abortActiveRuns('shutdown');
-  if (stopped) logger.info({ stopped }, 'translation runs handed back to the queue');
+  const stoppedScenes = abortSceneRuns('shutdown');
+  if (stopped || stoppedScenes) logger.info({ stopped, stoppedScenes }, 'translation and scene runs handed back to the queue');
   await Promise.all(workers.map((worker) => worker.close()));
   await disconnectDatabase();
   process.exit(0);

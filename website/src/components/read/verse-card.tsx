@@ -3,18 +3,19 @@
 import { memo, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { ShareButton } from '@/components/share/share-button';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { AudioButton } from './audio-button';
 import { CompareSheet } from './compare-sheet';
 import { NotesSheet } from './notes-sheet';
 import { useAuth } from '@/lib/auth/auth-provider';
+import { SITE_URL } from '@/lib/config';
 import { useFavorite } from '@/lib/favorites';
 import { creditName, verseCitation, verseRef } from '@/lib/format';
 import { verseHref } from '@/lib/links';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
 import { copyText } from '@/lib/share';
+import { ShareButton, verseTarget } from '@/components/share/share-button';
 import type { Verse } from '@/lib/types';
 
 interface Props {
@@ -33,8 +34,8 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const { requireSignIn } = useAuth();
   const [comparing, setComparing] = useState(false);
   const [noting, setNoting] = useState(false);
-  const [showWords, setShowWords] = useState(false);
-  const [showPurport, setShowPurport] = useState(Boolean(expanded));
+  const [showWords, setShowWords] = useState(true);
+  const [showPurport, setShowPurport] = useState(true);
 
   const translation = verse.translation;
   const credit = creditName(translation?.translator);
@@ -55,7 +56,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
             <Icon name="heart" solid={isFavorite} />
           </button>
           <button className="icon-btn" onClick={() => requireSignIn('Sign in to keep notes on verses.') && setNoting(true)} aria-label="My notes on this verse"><Icon name="text" /></button>
-          <ShareButton iconOnly label="Share this verse" className="icon-btn" content={{ kind: 'SHLOKA', targetId: verse.verseId, title: citation, sanskrit: verse.sanskrit, transliteration: verse.transliteration, meaning: translation?.meaning ?? null }} />
+          <ShareButton target={verseTarget(verse)} ariaLabel="Share this verse" />
           <button className="icon-btn" onClick={onCopy} aria-label="Copy this verse"><Icon name="copy" /></button>
         </div>
       </header>
@@ -64,15 +65,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
       {reader.showSanskrit && verse.sanskrit && <p className="v-sanskrit deva" lang="sa">{verse.sanskrit}</p>}
       {reader.showTransliteration && verse.transliteration && <p className="v-translit">{verse.transliteration}</p>}
 
-      {translation?.meaning && (
-        <div className="v-translation">
-          <p>{translation.meaning}</p>
-          {credit && <small>— {credit}</small>}
-        </div>
-      )}
 
-      </div>
-      <div className="v-side">
       {words.length > 0 && (
         <div className="v-words">
           {!expanded && !reader.showWordMeanings && (
@@ -90,6 +83,15 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
               ))}
             </dl>
           )}
+        </div>
+      )}
+
+      </div>
+      <div className="v-side">
+      {translation?.meaning && (
+        <div className="v-translation">
+          <p>{translation.meaning}</p>
+          {credit && <small>— {credit}</small>}
         </div>
       )}
 

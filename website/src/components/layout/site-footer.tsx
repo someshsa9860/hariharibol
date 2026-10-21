@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CONTACT_EMAIL, LEGAL_LINKS } from '@/lib/config';
+import { CONTACT_EMAIL, LEGAL_LINKS, PLAY_STORE_URL } from '@/lib/config';
 
 export function SiteFooter() {
   return (
@@ -20,12 +20,13 @@ export function SiteFooter() {
           <Link href="/reels">Reels</Link>
           <Link href="/sakha">Ask Sakha</Link>
           <Link href="/routine">Routine</Link>
+          <Link href="/calendar">Calendar</Link>
         </nav>
         <nav aria-label="About">
           <h4>About</h4>
           <Link href="/plans">Plans</Link>
           <Link href="/sources">Sources &amp; disclaimer</Link>
-          <Link href="/get-app">Get the app</Link>
+          <a href={PLAY_STORE_URL} rel="noopener">Get the app</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
           {LEGAL_LINKS.map((link) => <a key={link.label} href={link.href} rel="noopener">{link.label}</a>)}
         </nav>

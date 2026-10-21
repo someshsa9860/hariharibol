@@ -67,6 +67,39 @@ router.post(
   controller.toUser
 );
 
+const minSeconds = z.coerce.number().int().min(1).max(600).default(10);
+
+router.get(
+  '/campaigns',
+  {
+    summary: 'Delivery statistics, one row per notification',
+    description:
+      'Sent (devices FCM accepted), delivered (devices that reported it arrived or tapped it), ' +
+      'opened, and read — opened and then stayed at least `minSeconds`.',
+    permission: 'notification.send',
+    limit: 'read',
+    query: schemas.sorted(controller.CAMPAIGN_SORT_COLUMNS).extend({
+      type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM', 'REEL', 'REFERRAL', 'FESTIVAL']).optional(),
+      minSeconds,
+    }),
+    responds: { 200: 'A page of notifications with their funnel' },
+  },
+  controller.listCampaigns
+);
+
+router.get(
+  '/campaigns/:id',
+  {
+    summary: 'One notification in detail',
+    permission: 'notification.send',
+    limit: 'read',
+    params: schemas.id,
+    query: z.object({ minSeconds }),
+    responds: { 200: 'The funnel, reading time, platforms and latest opens', 404: 'No such notification' },
+  },
+  controller.getCampaign
+);
+
 router.get(
   '/',
   {

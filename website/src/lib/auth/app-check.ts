@@ -1,17 +1,18 @@
 // Firebase App Check, which the API requires on sign-in when it runs with APP_CHECK_ENABLED (production).
 // Loaded only when the site is configured for it and only at sign-in, so nobody else downloads Firebase.
 
-import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from '@/lib/config';
+import { runtimeConfig } from '@/lib/runtime-config';
 
 type Getter = () => Promise<string | undefined>;
 let getter: Getter | null | undefined;
 
 async function setup(): Promise<Getter | null> {
-  if (!FIREBASE_CONFIG || !RECAPTCHA_SITE_KEY) return null;
+  const { firebaseConfig, recaptchaSiteKey } = runtimeConfig();
+  if (!firebaseConfig || !recaptchaSiteKey) return null;
   const [{ initializeApp, getApps }, appCheck] = await Promise.all([import('firebase/app'), import('firebase/app-check')]);
-  const app = getApps()[0] ?? initializeApp(JSON.parse(FIREBASE_CONFIG));
+  const app = getApps()[0] ?? initializeApp(JSON.parse(firebaseConfig));
   const instance = appCheck.initializeAppCheck(app, {
-    provider: new appCheck.ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
+    provider: new appCheck.ReCaptchaEnterpriseProvider(recaptchaSiteKey),
     isTokenAutoRefreshEnabled: true,
   });
   return async () => (await appCheck.getToken(instance)).token;

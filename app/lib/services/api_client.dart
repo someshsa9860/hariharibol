@@ -239,6 +239,19 @@ class ApiClient {
     }
   }
 
+  /// GETs a file (a picture). The bearer token and the silent refresh work as for any other call.
+  Future<Uint8List> getBytes(String path) async {
+    try {
+      final response = await _dio.request<List<int>>(
+        path,
+        options: Options(method: 'GET', responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(response.data ?? const []);
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    }
+  }
+
   Future<ApiResponse> put(String path, {Object? body}) => _send('PUT', path, body: body);
 
   Future<ApiResponse> patch(String path, {Object? body}) => _send('PATCH', path, body: body);

@@ -85,6 +85,12 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
     }
   }
 
+  /// Hands over to the next reel when this one has played to its end.
+  void _advance(int index, int count) {
+    if (!mounted || index != _index || index + 1 >= count || !_pages.hasClients) return;
+    _pages.nextPage(duration: AppDurations.slow, curve: Curves.easeOutCubic);
+  }
+
   @override
   Reel? reelById(String id) {
     final found = _reels?.where((reel) => reel.id == id);
@@ -156,6 +162,7 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
                       isActive: index == _index && !_suspended,
                       isMuted: _muted,
                       onProgress: (watched, duration) => reportWatch(reel, watched, duration),
+                      onEnded: () => _advance(index, reels.length),
                       onLike: () => toggleLike(reel),
                       onSave: () => toggleSave(reel),
                       onFollow: () => toggleFollow(reel),

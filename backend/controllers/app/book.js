@@ -62,6 +62,28 @@ export const get = async (req, res) => {
   });
 };
 
+/**
+ * GET /api/app/books/:slug/languages
+ * The reading languages this book actually has published text in, so the reading
+ * filter offers only those. English is always listed: the verses themselves are
+ * the fallback every other language stops at.
+ */
+export const languages = async (req, res) => {
+  const book = await prisma.book.findFirst({
+    where: { slug: req.valid.params.slug, isPublished: true },
+    select: { id: true },
+  });
+  if (!book) throw notFound('Book');
+
+  const rows = await prisma.verseTranslation.findMany({
+    where: { isPublished: true, verse: { bookId: book.id } },
+    distinct: ['languageCode'],
+    select: { languageCode: true },
+  });
+
+  return ok(res, [...new Set(['en', ...rows.map((row) => row.languageCode)])]);
+};
+
 /** GET /api/app/books/:slug/cantos — Srimad Bhagavatam only. */
 export const cantos = async (req, res) => {
   const book = await prisma.book.findFirst({

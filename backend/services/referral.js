@@ -1,195 +1,312 @@
-// Refer and earn. A referral is a *claim*: a signed-in new reader says "I came from this code". It is never made
-// by opening a link (that is utils/share.js's job, and it cannot touch this file). The referrer is rewarded
-// one month of the Ārta plan once the new reader has been around a day and has done something devotional.
+// Refer and earn.
 //
-// The month is a Subscription row with provider REFERRAL — the same table entitlement.js reads — so access is
-// the same in the app and on the website, and nothing here edits `User.isPremium`: entitlement.refresh owns
-// that. A reward never overwrites or shortens anything: it starts when the access the person already holds ends
-// (utils/referral.rewardWindow). Retries and races are harmless: the reward is claimed by flipping the
-// referral PENDING → REWARDED in one atomic statement, and ReferralReward.referralId and
-// Subscription (provider, externalId) are both unique.
+// The shape of it, so the rules below read as one story:
+//
+//   1. Everyone has a code (`codeFor`). A link with it is /satsang/<code>.
+//   2. A new person presents a code once they have an account (`attribute`). The
+//      first valid code wins; later ones are ignored. Opening a link on its own
+//      attributes nothing and rewards nothing.
+//   3. When the new person has done the first real thing — finished a round of
+//      chanting (`evaluate`) — the referral qualifies and the referrer is given
+//      REWARD_DAYS days of the reward plan, as an EntitlementGrant.
+//
+// Every number is in config/referral.js. Nothing here trusts the client: the
+// referrer, the dates and the progress are all read from the database.
 
 import { prisma } from '../config/database.js';
+import env from '../config/env.js';
 import logger from '../config/logger.js';
+import config from '../config/referral.js';
 import * as entitlement from './entitlement.js';
 import * as notify from './notify.js';
-import { newCode, normaliseCode, REFERRAL_CODE_LENGTH } from '../utils/share.js';
-import { canClaim, qualifies, rewardWindow, DEFAULT_RULES } from '../utils/referral.js';
-import { badRequest, conflict } from '../utils/errors.js';
+import { ENTITLING_STATUSES } from './entitlement.js';
+import { inbox, newReferralCode, normaliseReferralCode, referralUrl } from '../utils/share.js';
 
-const YEAR_MS = 365 * 86_400_000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** A person's own code, made the first time it is asked for. */
+// Why an attribution was not made. The app words each in the reader's language;
+// none of them is an error to show in red.
+export const REFUSED = {
+  INVALID_CODE: 'invalid_code',
+  OWN_CODE: 'own_code',
+  ALREADY_REFERRED: 'already_referred',
+  NOT_NEW: 'not_new',
+  WINDOW_PASSED: 'window_passed',
+  SAME_PERSON: 'same_person',
+  REFERRER_UNAVAILABLE: 'referrer_unavailable',
+  REFERRER_BUSY: 'referrer_busy',
+};
+
+/** The user's own code, made on first use. */
 export async function codeFor(userId) {
-  const existing = await prisma.referralCode.findUnique({ where: { userId } });
-  if (existing) return existing;
-  for (let i = 0; i < 5; i += 1) {
+  const found = await prisma.referralCode.findUnique({ where: { userId }, select: { code: true } });
+  if (found) return found.code;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
     try {
-      return await prisma.referralCode.create({ data: { userId, code: newCode(REFERRAL_CODE_LENGTH) } });
-    } catch (error) {
-      if (error.code !== 'P2002') throw error;
-      const raced = await prisma.referralCode.findUnique({ where: { userId } });
-      if (raced) return raced;
+      return (await prisma.referralCode.create({ data: { userId, code: newReferralCode() }, select: { code: true } })).code;
+    } catch (err) {
+      if (err.code !== 'P2002') throw err;
+      // Either the code collided (draw again) or a parallel request made this
+      // user's row first (take theirs).
+      const again = await prisma.referralCode.findUnique({ where: { userId }, select: { code: true } });
+      if (again) return again.code;
     }
   }
-  throw new Error('could not make a referral code');
+  throw new Error('could not find a free referral code');
 }
 
-/** Public: whose invitation is this? Only a first name, nothing else about the person. */
-export async function inviter(rawCode) {
-  const code = normaliseCode(rawCode);
-  if (!code) return null;
-  const row = await prisma.referralCode.findUnique({ where: { code }, include: { user: { select: { name: true } } } });
-  if (!row) return null;
-  return { code, firstName: (row.user.name || '').trim().split(/\s+/)[0] || null };
+const firstName = (name) => (String(name || '').trim().split(/\s+/)[0] || null);
+
+/** Public: is this code real, and whose is it (first name only). */
+export async function inspect(raw) {
+  const code = normaliseReferralCode(raw);
+  if (!code) return { valid: false };
+  const row = await prisma.referralCode.findUnique({
+    where: { code },
+    select: { code: true, user: { select: { name: true, isBanned: true } } },
+  });
+  if (!row || row.user.isBanned) return { valid: false };
+  return { valid: true, code: row.code, referrerName: firstName(row.user.name) };
 }
 
-/** The signed-in reader says which code brought them. First claim wins; a second code is refused, not replaced. */
-export async function claim(user, rawCode) {
-  const code = normaliseCode(rawCode);
-  if (!code) throw badRequest('That code is not valid', { reason: 'CODE_UNKNOWN' });
+/** Presents a code for a signed-in user. Returns `{ attributed }` or `{ attributed: false, reason }`. */
+export async function attribute({ userId, code: raw, source = 'LINK' }) {
+  const code = normaliseReferralCode(raw);
+  if (!code) return refuse(REFUSED.INVALID_CODE);
 
-  const [owner, existing] = await Promise.all([
-    prisma.referralCode.findUnique({ where: { code } }),
-    prisma.referral.findUnique({ where: { refereeId: user.id } }),
+  const [owner, user, existing] = await Promise.all([
+    prisma.referralCode.findUnique({
+      where: { code },
+      select: { userId: true, user: { select: { email: true, isBanned: true } } },
+    }),
+    prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true, email: true, isBanned: true } }),
+    prisma.referral.findUnique({ where: { refereeId: userId }, select: { id: true } }),
   ]);
-  const verdict = canClaim({ referrerId: owner?.userId, referee: user, alreadyReferred: Boolean(existing) });
-  if (!verdict.ok) {
-    logger.info({ reason: verdict.reason, userId: user.id }, 'referral claim refused');
-    // The same code claimed again is not an error worth shouting about — the answer is the same either way.
-    if (verdict.reason === 'ALREADY_REFERRED' && existing.code === code) return existing;
-    throw conflict('This code cannot be used', { reason: verdict.reason });
+  if (!owner || !user) return refuse(REFUSED.INVALID_CODE);
+  if (owner.userId === userId) return suspect(userId, REFUSED.OWN_CODE, code);
+  if (existing) return refuse(REFUSED.ALREADY_REFERRED);
+  if (owner.user.isBanned || user.isBanned) return refuse(REFUSED.REFERRER_UNAVAILABLE);
+  if (inbox(owner.user.email) === inbox(user.email)) return suspect(userId, REFUSED.SAME_PERSON, code);
+
+  // Someone who already pays, or has paid, is not a new user.
+  const [paid, subscribed] = await Promise.all([
+    prisma.payment.count({ where: { userId, status: 'SUCCEEDED' } }),
+    prisma.subscription.count({ where: { userId } }),
+  ]);
+  if (paid || subscribed) return refuse(REFUSED.NOT_NEW);
+  if (Date.now() - user.createdAt.getTime() > config.ATTRIBUTION_WINDOW_DAYS * DAY_MS) {
+    return refuse(REFUSED.WINDOW_PASSED);
   }
+
+  const pending = await prisma.referral.count({ where: { referrerId: owner.userId, status: 'PENDING' } });
+  if (pending >= config.MAX_PENDING_PER_REFERRER) return suspect(userId, REFUSED.REFERRER_BUSY, code);
 
   try {
-    return await prisma.referral.create({ data: { referrerId: owner.userId, refereeId: user.id, code } });
-  } catch (error) {
-    // Two claims at once: the unique refereeId lets exactly one through.
-    if (error.code === 'P2002') throw conflict('This code cannot be used', { reason: 'ALREADY_REFERRED' });
-    throw error;
+    await prisma.referral.create({
+      data: { referrerId: owner.userId, refereeId: userId, code, source: source === 'CODE' ? 'CODE' : 'LINK' },
+    });
+  } catch (err) {
+    if (err.code === 'P2002') return refuse(REFUSED.ALREADY_REFERRED); // a parallel request got there first
+    throw err;
   }
+  logger.info({ referrerId: owner.userId, refereeId: userId, source }, 'referral attributed');
+  // They may already have chanted before presenting the code.
+  await evaluate(userId);
+  return { attributed: true };
 }
 
-async function activityOf(userId) {
-  const [chants, reading, days] = await Promise.all([
-    prisma.chantSession.count({ where: { userId } }),
-    prisma.readingProgress.count({ where: { userId } }),
-    prisma.sadhanaDay.count({ where: { userId } }),
-  ]);
-  return chants + reading + days;
-}
-
-async function planFor(rules) {
-  const plan = await prisma.subscriptionPlan.findUnique({ where: { slug: rules.rewardPlanSlug } });
-  if (!plan || !plan.isActive) throw new Error(`reward plan "${rules.rewardPlanSlug}" is missing or inactive`);
-  return plan;
+const refuse = (reason) => ({ attributed: false, reason });
+function suspect(userId, reason, code) {
+  logger.warn({ userId, reason, code }, 'referral refused');
+  return refuse(reason);
 }
 
 /**
- * Grant the month if the referral has earned it. Safe to call as often as you like, from anywhere: it returns
- * `{ rewarded: false, reason }` until the rules are met and `{ rewarded: true }` exactly once.
+ * Has this referee done enough? Safe to call as often as you like, from anywhere,
+ * at the same time: the PENDING → QUALIFIED claim is one conditional update, so
+ * exactly one caller goes on to give the reward.
  */
-export async function qualifyIfDue(referralId, rules = DEFAULT_RULES) {
-  const referral = await prisma.referral.findUnique({ where: { id: referralId }, include: { referee: { select: { createdAt: true } } } });
-  if (!referral) return { rewarded: false, reason: 'NOT_FOUND' };
+export async function evaluate(refereeId) {
+  const referral = await prisma.referral.findUnique({ where: { refereeId } });
+  if (!referral || referral.status !== 'PENDING') return { changed: false };
 
-  const now = new Date();
-  const [actions, rewardsThisYear] = await Promise.all([
-    activityOf(referral.refereeId),
-    prisma.referralReward.count({ where: { userId: referral.referrerId, createdAt: { gt: new Date(now - YEAR_MS) } } }),
-  ]);
-  const verdict = qualifies({ referral: { ...referral, refereeCreatedAt: referral.referee.createdAt }, actions, rewardsThisYear, now, rules });
-  if (!verdict.ok) return { rewarded: false, reason: verdict.reason };
+  if (Date.now() - referral.attributedAt.getTime() > config.QUALIFY_WITHIN_DAYS * DAY_MS) {
+    await prisma.referral.updateMany({ where: { id: referral.id, status: 'PENDING' }, data: { status: 'REJECTED', rejectReason: 'expired' } });
+    return { changed: true, status: 'REJECTED' };
+  }
 
-  const plan = await planFor(rules);
+  const rounds = await prisma.chantMala.count({
+    where: { userId: refereeId, complete: true, startedAt: { gte: referral.attributedAt } },
+  });
+  if (rounds < config.QUALIFY_ROUNDS) return { changed: false };
+
+  const plan = await prisma.subscriptionPlan.findFirst({ where: { slug: config.REWARD_PLAN_SLUG, isActive: true } });
+  if (!plan) {
+    logger.error({ slug: config.REWARD_PLAN_SLUG }, 'referral reward plan is missing; nothing was given');
+    return { changed: false };
+  }
 
   const result = await prisma.$transaction(async (tx) => {
-    // The one atomic step: only one caller can move PENDING → REWARDED.
-    const won = await tx.referral.updateMany({ where: { id: referralId, status: 'PENDING' }, data: { status: 'REWARDED', qualifiedAt: now } });
-    if (won.count !== 1) return null;
-
-    // Where the month starts: after any Ārta-or-better access they already hold, so nothing is shortened.
-    const held = await tx.subscription.findMany({
-      where: {
-        userId: referral.referrerId, status: { in: ['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED'] },
-        currentPeriodEnd: { gt: now }, plan: { tier: { gte: plan.tier } },
-      },
-      select: { currentPeriodEnd: true, provider: true, id: true },
-      orderBy: { currentPeriodEnd: 'desc' },
+    const claimed = await tx.referral.updateMany({
+      where: { id: referral.id, status: 'PENDING' },
+      data: { status: 'QUALIFIED', qualifiedAt: new Date() },
     });
-    const { startsAt, endsAt } = rewardWindow({ coveredUntil: held[0]?.currentPeriodEnd ?? null, now, rules });
+    if (claimed.count !== 1) return null; // someone else qualified it
 
-    const mine = held.find((s) => s.provider === 'REFERRAL');
-    if (mine) {
-      await tx.subscription.update({ where: { id: mine.id }, data: { currentPeriodEnd: endsAt } });
-    } else {
-      await tx.subscription.create({
-        data: {
-          userId: referral.referrerId, planId: plan.id, provider: 'REFERRAL', externalId: `referral:${referralId}`,
-          status: 'ACTIVE', startedAt: now, currentPeriodEnd: endsAt, autoRenew: false,
-        },
-      });
+    const yearAgo = new Date(Date.now() - 365 * DAY_MS);
+    const earned = await tx.entitlementGrant.count({
+      where: { userId: referral.referrerId, source: 'REFERRAL', createdAt: { gte: yearAgo } },
+    });
+    if (earned >= config.REWARD_LIMIT_PER_YEAR) {
+      await tx.referral.update({ where: { id: referral.id }, data: { status: 'REJECTED', rejectReason: 'referrer_limit_reached' } });
+      return { limited: true };
     }
-    return tx.referralReward.create({ data: { referralId, userId: referral.referrerId, planId: plan.id, startsAt, endsAt } });
+
+    const now = new Date();
+    const startsAt = await grantStart(tx, referral.referrerId, plan, now);
+    const grant = await tx.entitlementGrant.create({
+      data: {
+        userId: referral.referrerId,
+        planId: plan.id,
+        source: 'REFERRAL',
+        referralId: referral.id,
+        startsAt,
+        endsAt: new Date(startsAt.getTime() + config.REWARD_DAYS * DAY_MS),
+        note: 'Referral reward',
+      },
+    });
+    return { grant };
   });
 
-  if (!result) return { rewarded: false, reason: 'ALREADY_HANDLED' };
+  if (!result) return { changed: false };
+  if (result.limited) {
+    logger.warn({ referrerId: referral.referrerId }, 'referral reward limit reached');
+    return { changed: true, status: 'REJECTED' };
+  }
 
-  await entitlement.refresh(referral.referrerId);
+  // Outside the transaction: the reward is already safe, and a failed refresh or
+  // push must not undo it. The nightly sweep catches up a refresh that failed.
+  await entitlement.refresh(referral.referrerId).catch((err) => logger.error({ err }, 'entitlement refresh after referral failed'));
   notify.toUser(referral.referrerId, {
-    type: 'SYSTEM', title: 'A month of Ārta, with thanks',
-    body: 'Someone you invited has joined. A month of the Ārta plan is now yours.', data: { link: 'hariharibol://premium' },
-  }).catch((error) => logger.warn({ err: error }, 'referral reward notification failed'));
-
-  return { rewarded: true, reward: result };
+    type: 'REFERRAL',
+    title: 'A month of Ārta is yours',
+    body: `Someone you invited has begun chanting. ${plan.name} is active until ${result.grant.endsAt.toISOString().slice(0, 10)}.`,
+    data: { route: 'refer' },
+  }).catch((err) => logger.warn({ err }, 'referral notification failed'));
+  logger.info({ referralId: referral.id, referrerId: referral.referrerId, endsAt: result.grant.endsAt }, 'referral rewarded');
+  return { changed: true, status: 'QUALIFIED' };
 }
 
-/** Everything the Refer and Earn screen shows. Also tries to settle any referral of theirs that is due. */
-export async function summary(user, { page = 1, pageSize = 20 } = {}) {
-  const code = await codeFor(user.id);
-
-  // Opening the screen is a natural moment to settle what is due; the sweep catches the rest.
-  const pending = await prisma.referral.findMany({ where: { referrerId: user.id, status: 'PENDING' }, select: { id: true } });
-  for (const { id } of pending) await qualifyIfDue(id).catch((error) => logger.warn({ err: error }, 'referral settle failed'));
-
-  const [counts, rewards, history, total, mine] = await Promise.all([
-    prisma.referral.groupBy({ by: ['status'], where: { referrerId: user.id }, _count: { _all: true } }),
-    prisma.referralReward.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 50 }),
-    prisma.referral.findMany({
-      where: { referrerId: user.id }, orderBy: { claimedAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize,
-      include: { referee: { select: { name: true } }, reward: true },
+/**
+ * When a new grant should begin so that it never overlaps, replaces or shortens
+ * anything: after the last grant that is running, and after a subscription of the
+ * same or a higher tier that is paid up (that already gives the same access).
+ */
+async function grantStart(tx, userId, plan, now) {
+  const [lastGrant, subscription] = await Promise.all([
+    tx.entitlementGrant.findFirst({
+      where: { userId, revokedAt: null, endsAt: { gt: now } },
+      orderBy: { endsAt: 'desc' },
+      select: { endsAt: true },
     }),
-    prisma.referral.count({ where: { referrerId: user.id } }),
-    prisma.referral.findUnique({ where: { refereeId: user.id }, select: { status: true, claimedAt: true } }),
+    tx.subscription.findFirst({
+      where: {
+        userId,
+        status: { in: ENTITLING_STATUSES },
+        currentPeriodEnd: { gt: now },
+        plan: { tier: { gte: plan.tier } },
+      },
+      orderBy: { currentPeriodEnd: 'desc' },
+      select: { currentPeriodEnd: true },
+    }),
   ]);
-  const by = Object.fromEntries(counts.map((c) => [c.status, c._count._all]));
+  return new Date(Math.max(now.getTime(), lastGrant?.endsAt.getTime() || 0, subscription?.currentPeriodEnd.getTime() || 0));
+}
+
+/** Takes a reward back (a refund, abuse). The referral is kept, marked REVERSED. */
+export async function reverse(referralId, reason = 'reversed') {
+  const referral = await prisma.referral.findUnique({ where: { id: referralId }, include: { reward: true } });
+  if (!referral || referral.status !== 'QUALIFIED') return false;
+  await prisma.$transaction([
+    prisma.entitlementGrant.updateMany({ where: { referralId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    prisma.referral.update({ where: { id: referralId }, data: { status: 'REVERSED', rejectReason: reason.slice(0, 120) } }),
+  ]);
+  await entitlement.refresh(referral.referrerId);
+  logger.warn({ referralId, referrerId: referral.referrerId, reason }, 'referral reversed');
+  return true;
+}
+
+const mask = (name) => {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'A new devotee';
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
+};
+
+/** Everything the Refer and earn screen shows. */
+export async function summary(userId, { page = 1, pageSize = 20 } = {}) {
+  const code = await codeFor(userId);
+  const [counts, total, rows, active] = await Promise.all([
+    prisma.referral.groupBy({ by: ['status'], where: { referrerId: userId }, _count: true }),
+    prisma.referral.count({ where: { referrerId: userId } }),
+    prisma.referral.findMany({
+      where: { referrerId: userId },
+      orderBy: { attributedAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true, status: true, source: true, attributedAt: true, qualifiedAt: true, rejectReason: true,
+        referee: { select: { name: true } },
+        reward: { select: { startsAt: true, endsAt: true, revokedAt: true } },
+      },
+    }),
+    prisma.entitlementGrant.findFirst({
+      where: { userId, source: 'REFERRAL', revokedAt: null, endsAt: { gt: new Date() } },
+      orderBy: { endsAt: 'desc' },
+      select: { endsAt: true },
+    }),
+  ]);
+  const by = Object.fromEntries(counts.map((c) => [c.status, c._count]));
+  const year = new Date(Date.now() - 365 * DAY_MS);
+  const earnedThisYear = await prisma.entitlementGrant.count({ where: { userId, source: 'REFERRAL', createdAt: { gte: year } } });
 
   return {
-    code: code.code,
-    rules: { rewardDays: DEFAULT_RULES.rewardDays, plan: DEFAULT_RULES.rewardPlanSlug, maxPerYear: DEFAULT_RULES.maxRewardsPerYear },
-    totals: { pending: by.PENDING || 0, rewarded: by.REWARDED || 0, rejected: by.REJECTED || 0 },
-    rewards: rewards.map((r) => ({ id: r.id, startsAt: r.startsAt, endsAt: r.endsAt, grantedAt: r.createdAt })),
-    // First name only: a referrer sees who joined, not their account.
-    history: history.map((h) => ({
-      id: h.id, name: (h.referee.name || '').trim().split(/\s+/)[0] || null, status: h.status, claimedAt: h.claimedAt, qualifiedAt: h.qualifiedAt,
+    code,
+    url: referralUrl(env.WEB_BASE_URL, code),
+    totals: {
+      invited: total,
+      pending: by.PENDING || 0,
+      successful: by.QUALIFIED || 0,
+      rewardsEarned: by.QUALIFIED || 0,
+    },
+    rewardActiveUntil: active?.endsAt || null,
+    rules: {
+      rewardDays: config.REWARD_DAYS,
+      rewardPlan: config.REWARD_PLAN_SLUG,
+      qualifyRounds: config.QUALIFY_ROUNDS,
+      qualifyWithinDays: config.QUALIFY_WITHIN_DAYS,
+      attributionWindowDays: config.ATTRIBUTION_WINDOW_DAYS,
+      limitPerYear: config.REWARD_LIMIT_PER_YEAR,
+      remainingThisYear: Math.max(0, config.REWARD_LIMIT_PER_YEAR - earnedThisYear),
+    },
+    history: rows.map((r) => ({
+      id: r.id,
+      name: mask(r.referee.name),
+      status: r.status,
+      source: r.source,
+      invitedAt: r.attributedAt,
+      qualifiedAt: r.qualifiedAt,
+      reason: r.status === 'REJECTED' || r.status === 'REVERSED' ? r.rejectReason : null,
+      reward: r.reward ? { startsAt: r.reward.startsAt, endsAt: r.reward.endsAt, revoked: Boolean(r.reward.revokedAt) } : null,
     })),
-    historyTotal: total,
-    // Did this reader themselves come through someone's code?
-    referredBy: mine,
+    page: { page, pageSize, total, hasMore: page * pageSize < total },
   };
 }
 
-/** The nightly sweep: settle every pending referral old enough to qualify. Returns how many were rewarded. */
-export async function sweep(limit = 200) {
-  const due = await prisma.referral.findMany({
-    where: { status: 'PENDING', referee: { createdAt: { lt: new Date(Date.now() - DEFAULT_RULES.qualifyAfterHours * 3_600_000) } } },
-    select: { id: true }, take: limit, orderBy: { claimedAt: 'asc' },
+/** What the person who was invited sees: their own referral, if any. */
+export async function mine(userId) {
+  const row = await prisma.referral.findUnique({
+    where: { refereeId: userId },
+    select: { status: true, attributedAt: true, referrer: { select: { name: true } } },
   });
-  let rewarded = 0;
-  for (const { id } of due) {
-    const r = await qualifyIfDue(id).catch((error) => { logger.warn({ err: error }, 'referral sweep failed'); return null; });
-    if (r?.rewarded) rewarded += 1;
-  }
-  return rewarded;
+  return row ? { status: row.status, referrerName: firstName(row.referrer.name), attributedAt: row.attributedAt } : null;
 }
-

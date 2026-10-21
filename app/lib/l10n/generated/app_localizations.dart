@@ -664,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Verse {number}'**
   String labelVerse(int number);
 
+  /// Short verse label above a verse; must stay on one line.
+  ///
+  /// In en, this message translates to:
+  /// **'Śl. {number}'**
+  String labelVerseShort(int number);
+
   /// No description provided for @labelCantoChapter.
   ///
   /// In en, this message translates to:
@@ -3628,6 +3634,36 @@ abstract class AppLocalizations {
   /// **'Latest'**
   String get chatJumpToLatest;
 
+  /// Tooltip of the peacock-feather button on a verse that starts book reels from that verse.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch reels from this verse'**
+  String get verseStartReels;
+
+  /// Hint on a chanting reel in the feed: each tap counts one chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to chant'**
+  String get reelChantTapHint;
+
+  /// Shown on a chanting reel when the 108th chant is counted, just before the feed moves on.
+  ///
+  /// In en, this message translates to:
+  /// **'Round complete'**
+  String get reelChantDone;
+
+  /// Hint on a chanting reel: swiping goes on to the next reel without finishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up to skip'**
+  String get reelChantSkipHint;
+
+  /// Chants counted of the round on a chanting reel, like 12 / 108.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {total}'**
+  String reelChantCount(int count, int total);
+
   /// Tooltip of the button on a verse that asks Sakha to explain it.
   ///
   /// In en, this message translates to:
@@ -3808,311 +3844,275 @@ abstract class AppLocalizations {
   /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
   String get sourcesContactBody;
 
-  /// Settings row and screen title for inviting friends and earning a month of the Ārta plan.
+  /// Title of the share sheet, and the tooltip of the share buttons.
   ///
   /// In en, this message translates to:
-  /// **'Refer & Earn'**
-  String get referTitle;
+  /// **'Share'**
+  String get shareTitle;
 
-  /// Refer & Earn: one line saying what an invitation earns the person who sends it.
+  /// No description provided for @shareAsText.
   ///
   /// In en, this message translates to:
-  /// **'Invite a friend. When they join and settle in, you receive a month of the Ārta plan.'**
-  String get referIntro;
+  /// **'Share as text'**
+  String get shareAsText;
 
-  /// Refer & Earn: heading over the reader's own invitation link.
+  /// No description provided for @shareCopied.
   ///
   /// In en, this message translates to:
-  /// **'Your invitation link'**
-  String get referYourLink;
+  /// **'Copied'**
+  String get shareCopied;
 
-  /// Refer & Earn: button that opens the system share sheet with the invitation.
-  ///
-  /// In en, this message translates to:
-  /// **'Share invitation'**
-  String get referShare;
-
-  /// The line sent with the invitation link when it is shared. The link follows on its own line.
-  ///
-  /// In en, this message translates to:
-  /// **'Join me on HariHariBol — verses, mantras and Sakha, free.'**
-  String get referShareLine;
-
-  /// Refer & Earn: label under a count of invited people who have joined and are settling in.
-  ///
-  /// In en, this message translates to:
-  /// **'Settling in'**
-  String get referPending;
-
-  /// Refer & Earn: label under a count of rewards the reader has earned.
-  ///
-  /// In en, this message translates to:
-  /// **'Rewards earned'**
-  String get referRewarded;
-
-  /// Refer & Earn: heading over the box where a person who was invited enters the code they were given.
-  ///
-  /// In en, this message translates to:
-  /// **'Were you invited? Enter a code'**
-  String get referHaveCode;
-
-  /// Refer & Earn: button that submits an invitation code.
-  ///
-  /// In en, this message translates to:
-  /// **'Use code'**
-  String get referUseCode;
-
-  /// Refer & Earn: label of the invitation code field.
-  ///
-  /// In en, this message translates to:
-  /// **'Invitation code'**
-  String get referCodeHint;
-
-  /// Refer & Earn: confirmation after an invitation code was accepted.
-  ///
-  /// In en, this message translates to:
-  /// **'Thank you — your invitation is noted'**
-  String get referCodeThanks;
-
-  /// Refer & Earn: shown when an invitation code cannot be used (it is not theirs to use, or too late).
-  ///
-  /// In en, this message translates to:
-  /// **'That code could not be used'**
-  String get referCodeRefused;
-
-  /// Refer & Earn: heading over the list of months of Ārta the reader earned, each with its dates.
-  ///
-  /// In en, this message translates to:
-  /// **'Your rewards'**
-  String get referRewardsHeading;
-
-  /// Refer & Earn: heading over the list of people the reader invited.
-  ///
-  /// In en, this message translates to:
-  /// **'Invitations'**
-  String get referHistoryHeading;
-
-  /// Refer & Earn: status of an invited person who has joined but has not yet earned the reward.
-  ///
-  /// In en, this message translates to:
-  /// **'Joined — settling in'**
-  String get referStatusPending;
-
-  /// Refer & Earn: status of an invited person whose invitation earned the reward.
-  ///
-  /// In en, this message translates to:
-  /// **'Reward earned'**
-  String get referStatusRewarded;
-
-  /// Refer & Earn: status of an invitation that cannot earn a reward.
-  ///
-  /// In en, this message translates to:
-  /// **'Not eligible'**
-  String get referStatusRejected;
-
-  /// Refer & Earn: the plain terms of the reward, shown at the foot of the screen.
-  ///
-  /// In en, this message translates to:
-  /// **'One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.'**
-  String get referTerms;
-
-  /// Title of the screen where a verse, mantra or reel is made into a picture to share. Also the tooltip of the share button on a verse.
-  ///
-  /// In en, this message translates to:
-  /// **'Share studio'**
-  String get shareStudioTitle;
-
-  /// Share studio: picture shape, a square.
-  ///
-  /// In en, this message translates to:
-  /// **'Square'**
-  String get shareSizeSquare;
-
-  /// Share studio: picture shape, taller than wide (4:5).
-  ///
-  /// In en, this message translates to:
-  /// **'Portrait'**
-  String get shareSizePortrait;
-
-  /// Share studio: picture shape for stories, full phone screen (9:16).
-  ///
-  /// In en, this message translates to:
-  /// **'Story'**
-  String get shareSizeStory;
-
-  /// Share studio: heading over the background choices.
-  ///
-  /// In en, this message translates to:
-  /// **'Background'**
-  String get shareBackground;
-
-  /// Share studio: choice of colour gradients as the background.
-  ///
-  /// In en, this message translates to:
-  /// **'Gradients'**
-  String get shareGradients;
-
-  /// Share studio: choice of plain colours as the background.
-  ///
-  /// In en, this message translates to:
-  /// **'Colours'**
-  String get shareColours;
-
-  /// Share studio: choice of the reader's own picture as the background.
-  ///
-  /// In en, this message translates to:
-  /// **'Picture'**
-  String get sharePicture;
-
-  /// Share studio: choice to create a new background picture from a description.
-  ///
-  /// In en, this message translates to:
-  /// **'Create new'**
-  String get shareMakeWithAi;
-
-  /// Share studio: heading over the text controls.
-  ///
-  /// In en, this message translates to:
-  /// **'Text'**
-  String get shareText;
-
-  /// Share studio: label of the text size slider.
-  ///
-  /// In en, this message translates to:
-  /// **'Size'**
-  String get shareTextSize;
-
-  /// Share studio: switch between light and dark lettering on the picture.
-  ///
-  /// In en, this message translates to:
-  /// **'Light text'**
-  String get shareLightText;
-
-  /// Share studio: switch that includes the meaning on the picture.
-  ///
-  /// In en, this message translates to:
-  /// **'Show meaning'**
-  String get shareShowMeaning;
-
-  /// Share studio: switch that includes the verse reference on the picture.
-  ///
-  /// In en, this message translates to:
-  /// **'Show reference'**
-  String get shareShowReference;
-
-  /// Share studio: slider that darkens the background so the lettering is easier to read.
-  ///
-  /// In en, this message translates to:
-  /// **'Darken for readability'**
-  String get shareDarken;
-
-  /// Share studio: main button that shares the finished picture.
-  ///
-  /// In en, this message translates to:
-  /// **'Share picture'**
-  String get shareImage;
-
-  /// Share studio: button that shares only the link.
-  ///
-  /// In en, this message translates to:
-  /// **'Share link'**
-  String get shareLinkOnly;
-
-  /// Share studio: button that copies the verse text.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy text'**
-  String get shareCopyText;
-
-  /// Button that copies a link to the clipboard.
+  /// No description provided for @shareCopyLink.
   ///
   /// In en, this message translates to:
   /// **'Copy link'**
   String get shareCopyLink;
 
-  /// Confirmation after a link was copied.
+  /// No description provided for @shareFailed.
   ///
   /// In en, this message translates to:
-  /// **'Link copied'**
-  String get shareLinkCopied;
+  /// **'We couldn’t share this. Please try again.'**
+  String get shareFailed;
 
-  /// Confirmation after text was copied.
+  /// No description provided for @shareImageTooBig.
   ///
   /// In en, this message translates to:
-  /// **'Text copied'**
-  String get shareTextCopied;
+  /// **'That picture is too large. Please choose a smaller one.'**
+  String get shareImageTooBig;
 
-  /// Share studio: button that opens the photo library to choose a background picture.
+  /// No description provided for @shareLinkShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share link'**
+  String get shareLinkShare;
+
+  /// No description provided for @shareMakeIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get shareMakeIt;
+
+  /// Makes a background picture for the share card with the reader's Ask Sakha credit.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a picture'**
+  String get shareMakePicture;
+
+  /// No description provided for @sharePickPicture.
   ///
   /// In en, this message translates to:
   /// **'Choose a picture'**
-  String get shareChoosePicture;
+  String get sharePickPicture;
 
-  /// Share studio: shown when the chosen file is not a usable picture.
+  /// How much of the day's Ask Sakha credit a picture uses. Keep the product name Sakha as it is.
   ///
   /// In en, this message translates to:
-  /// **'Please choose a JPEG, PNG or WebP picture under 8 MB.'**
-  String get sharePictureInvalid;
+  /// **'Uses about {percent}% of your Sakha credit'**
+  String sharePictureCost(int percent);
 
-  /// Share studio: label of the box where the reader describes the background they want.
+  /// No description provided for @sharePictureFailed.
   ///
   /// In en, this message translates to:
-  /// **'Describe the background'**
-  String get shareAiPrompt;
+  /// **'The picture could not be made. Your credit was returned.'**
+  String get sharePictureFailed;
 
-  /// Share studio: button that makes the described background.
+  /// No description provided for @sharePictureNoCredit.
   ///
   /// In en, this message translates to:
-  /// **'Make background'**
-  String get shareAiMake;
+  /// **'Your Sakha credit for today is used up.'**
+  String get sharePictureNoCredit;
 
-  /// Share studio: shown on the button while the background is being made.
+  /// No description provided for @sharePicturePrompt.
   ///
   /// In en, this message translates to:
-  /// **'Making your background…'**
-  String get shareAiMaking;
+  /// **'Describe the picture'**
+  String get sharePicturePrompt;
 
-  /// Share studio: says a background uses part of the reader's Ask Sakha credits.
+  /// No description provided for @sharePictureShare.
   ///
   /// In en, this message translates to:
-  /// **'Uses part of your Ask Sakha credits.'**
-  String get shareAiNote;
+  /// **'Share picture'**
+  String get sharePictureShare;
 
-  /// Share studio: shown when the reader lacks the credits to make a background.
+  /// No description provided for @shareRemovePicture.
   ///
   /// In en, this message translates to:
-  /// **'You do not have enough credits for a background.'**
-  String get shareAiNoCredit;
+  /// **'Remove picture'**
+  String get shareRemovePicture;
 
-  /// Share studio: button that opens the plans screen to get more credits.
+  /// No description provided for @shareShowMeaning.
   ///
   /// In en, this message translates to:
-  /// **'See plans'**
-  String get shareAiSeePlans;
+  /// **'Meaning'**
+  String get shareShowMeaning;
 
-  /// Share studio: shown when a background could not be made. Says nothing was charged.
+  /// No description provided for @shareShowTransliteration.
   ///
   /// In en, this message translates to:
-  /// **'The background could not be made. You have not been charged — please try again.'**
-  String get shareAiFailed;
+  /// **'Transliteration'**
+  String get shareShowTransliteration;
 
-  /// Share studio: shown when making backgrounds is not available.
+  /// No description provided for @shareTextSize.
   ///
   /// In en, this message translates to:
-  /// **'Backgrounds are not available right now.'**
-  String get shareAiUnavailable;
+  /// **'Text size'**
+  String get shareTextSize;
 
-  /// Share studio: shown when a link for this verse, mantra or reel could not be made.
+  /// Shown when a shared link has been withdrawn or never existed.
   ///
   /// In en, this message translates to:
-  /// **'Could not make a link for this.'**
-  String get shareLinkFailed;
+  /// **'This link is no longer available.'**
+  String get shareLinkGone;
 
-  /// Share studio: shown when the picture could not be prepared for sharing.
+  /// No description provided for @settingsRefer.
   ///
   /// In en, this message translates to:
-  /// **'Could not prepare the picture. Please try again.'**
-  String get shareExportFailed;
+  /// **'Refer and earn'**
+  String get settingsRefer;
+
+  /// No description provided for @referTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer and earn'**
+  String get referTitle;
+
+  /// Under the Refer and earn title. {days} is the length of the reward in days; Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend. When they finish their first round of chanting, you receive {days} days of Ārta, free.'**
+  String referIntro(int days);
+
+  /// No description provided for @referYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get referYourCode;
+
+  /// No description provided for @referInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend'**
+  String get referInvite;
+
+  /// The text sent with an invitation. {url} is the invitation link, placed where the sentence ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on HariHariBol: verses, mantras and chanting in one place. {url}'**
+  String referInviteMessage(String url);
+
+  /// {date} is a formatted date. Ārta is the name of a plan and stays in Latin letters.
+  ///
+  /// In en, this message translates to:
+  /// **'Ārta is yours until {date}'**
+  String referActiveUntil(String date);
+
+  /// No description provided for @referStatInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited'**
+  String get referStatInvited;
+
+  /// No description provided for @referStatWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get referStatWaiting;
+
+  /// No description provided for @referStatRewarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewarded'**
+  String get referStatRewarded;
+
+  /// No description provided for @referNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations yet.'**
+  String get referNone;
+
+  /// No description provided for @referEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a friend’s code?'**
+  String get referEnterCode;
+
+  /// No description provided for @referUseCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code'**
+  String get referUseCode;
+
+  /// Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting.
+  ///
+  /// In en, this message translates to:
+  /// **'Code accepted. Finish a round of chanting so your friend receives their reward.'**
+  String get referAccepted;
+
+  /// No description provided for @referRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'This code can’t be used.'**
+  String get referRefused;
+
+  /// Button in the share studio that turns the card into a reel everyone can watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Make reel'**
+  String get shareMakeReel;
+
+  /// No description provided for @shareReelIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card becomes a reel that everyone in Reels can watch.'**
+  String get shareReelIntro;
+
+  /// No description provided for @shareReelAddMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Add music from your phone'**
+  String get shareReelAddMusic;
+
+  /// The music file chosen for the reel.
+  ///
+  /// In en, this message translates to:
+  /// **'Music: {name}'**
+  String shareReelMusic(String name);
+
+  /// No description provided for @shareReelRemoveMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove music'**
+  String get shareReelRemoveMusic;
+
+  /// No description provided for @shareReelPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post reel'**
+  String get shareReelPost;
+
+  /// No description provided for @shareReelPosting.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting your reel…'**
+  String get shareReelPosting;
+
+  /// No description provided for @shareReelDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reel is live. Find it in Reels.'**
+  String get shareReelDone;
+
+  /// No description provided for @shareReelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The reel could not be posted. Please try again.'**
+  String get shareReelFailed;
+
+  /// No description provided for @shareReelTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That music file is too large (up to 25 MB).'**
+  String get shareReelTooBig;
 }
 
 class _AppLocalizationsDelegate
@@ -4179,4 +4179,28 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
     'that was used.',
   );
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar for this month is not filled in yet.'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi, Chaturthi and festival days'**
+  String get calendarUpcoming;
+
+  /// No description provided for @calendarVaishnavaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaishnavas may keep this fast the next day.'**
+  String get calendarVaishnavaNote;
 }
