@@ -1606,5 +1606,209 @@
   "sourcesContactBody": "If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.",
   "@sourcesContactBody": {
     "description": "Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows."
+  },
+  "referTitle": "Refer & Earn",
+  "@referTitle": {
+    "description": "Settings row and screen title for inviting friends and earning a month of the Ārta plan."
+  },
+  "referIntro": "Invite a friend. When they join and settle in, you receive a month of the Ārta plan.",
+  "@referIntro": {
+    "description": "Refer & Earn: one line saying what an invitation earns the person who sends it."
+  },
+  "referYourLink": "Your invitation link",
+  "@referYourLink": {
+    "description": "Refer & Earn: heading over the reader's own invitation link."
+  },
+  "referShare": "Share invitation",
+  "@referShare": {
+    "description": "Refer & Earn: button that opens the system share sheet with the invitation."
+  },
+  "referShareLine": "Join me on HariHariBol — verses, mantras and Sakha, free.",
+  "@referShareLine": {
+    "description": "The line sent with the invitation link when it is shared. The link follows on its own line."
+  },
+  "referPending": "Settling in",
+  "@referPending": {
+    "description": "Refer & Earn: label under a count of invited people who have joined and are settling in."
+  },
+  "referRewarded": "Rewards earned",
+  "@referRewarded": {
+    "description": "Refer & Earn: label under a count of rewards the reader has earned."
+  },
+  "referHaveCode": "Were you invited? Enter a code",
+  "@referHaveCode": {
+    "description": "Refer & Earn: heading over the box where a person who was invited enters the code they were given."
+  },
+  "referUseCode": "Use code",
+  "@referUseCode": {
+    "description": "Refer & Earn: button that submits an invitation code."
+  },
+  "referCodeHint": "Invitation code",
+  "@referCodeHint": {
+    "description": "Refer & Earn: label of the invitation code field."
+  },
+  "referCodeThanks": "Thank you — your invitation is noted",
+  "@referCodeThanks": {
+    "description": "Refer & Earn: confirmation after an invitation code was accepted."
+  },
+  "referCodeRefused": "That code could not be used",
+  "@referCodeRefused": {
+    "description": "Refer & Earn: shown when an invitation code cannot be used (it is not theirs to use, or too late)."
+  },
+  "referRewardsHeading": "Your rewards",
+  "@referRewardsHeading": {
+    "description": "Refer & Earn: heading over the list of months of Ārta the reader earned, each with its dates."
+  },
+  "referHistoryHeading": "Invitations",
+  "@referHistoryHeading": {
+    "description": "Refer & Earn: heading over the list of people the reader invited."
+  },
+  "referStatusPending": "Joined — settling in",
+  "@referStatusPending": {
+    "description": "Refer & Earn: status of an invited person who has joined but has not yet earned the reward."
+  },
+  "referStatusRewarded": "Reward earned",
+  "@referStatusRewarded": {
+    "description": "Refer & Earn: status of an invited person whose invitation earned the reward."
+  },
+  "referStatusRejected": "Not eligible",
+  "@referStatusRejected": {
+    "description": "Refer & Earn: status of an invitation that cannot earn a reward."
+  },
+  "referTerms": "One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.",
+  "@referTerms": {
+    "description": "Refer & Earn: the plain terms of the reward, shown at the foot of the screen."
+  },
+  "shareStudioTitle": "Share studio",
+  "@shareStudioTitle": {
+    "description": "Title of the screen where a verse, mantra or reel is made into a picture to share. Also the tooltip of the share button on a verse."
+  },
+  "shareSizeSquare": "Square",
+  "@shareSizeSquare": {
+    "description": "Share studio: picture shape, a square."
+  },
+  "shareSizePortrait": "Portrait",
+  "@shareSizePortrait": {
+    "description": "Share studio: picture shape, taller than wide (4:5)."
+  },
+  "shareSizeStory": "Story",
+  "@shareSizeStory": {
+    "description": "Share studio: picture shape for stories, full phone screen (9:16)."
+  },
+  "shareBackground": "Background",
+  "@shareBackground": {
+    "description": "Share studio: heading over the background choices."
+  },
+  "shareGradients": "Gradients",
+  "@shareGradients": {
+    "description": "Share studio: choice of colour gradients as the background."
+  },
+  "shareColours": "Colours",
+  "@shareColours": {
+    "description": "Share studio: choice of plain colours as the background."
+  },
+  "sharePicture": "Picture",
+  "@sharePicture": {
+    "description": "Share studio: choice of the reader's own picture as the background."
+  },
+  "shareMakeWithAi": "Create new",
+  "@shareMakeWithAi": {
+    "description": "Share studio: choice to create a new background picture from a description."
+  },
+  "shareText": "Text",
+  "@shareText": {
+    "description": "Share studio: heading over the text controls."
+  },
+  "shareTextSize": "Size",
+  "@shareTextSize": {
+    "description": "Share studio: label of the text size slider."
+  },
+  "shareLightText": "Light text",
+  "@shareLightText": {
+    "description": "Share studio: switch between light and dark lettering on the picture."
+  },
+  "shareShowMeaning": "Show meaning",
+  "@shareShowMeaning": {
+    "description": "Share studio: switch that includes the meaning on the picture."
+  },
+  "shareShowReference": "Show reference",
+  "@shareShowReference": {
+    "description": "Share studio: switch that includes the verse reference on the picture."
+  },
+  "shareDarken": "Darken for readability",
+  "@shareDarken": {
+    "description": "Share studio: slider that darkens the background so the lettering is easier to read."
+  },
+  "shareImage": "Share picture",
+  "@shareImage": {
+    "description": "Share studio: main button that shares the finished picture."
+  },
+  "shareLinkOnly": "Share link",
+  "@shareLinkOnly": {
+    "description": "Share studio: button that shares only the link."
+  },
+  "shareCopyText": "Copy text",
+  "@shareCopyText": {
+    "description": "Share studio: button that copies the verse text."
+  },
+  "shareCopyLink": "Copy link",
+  "@shareCopyLink": {
+    "description": "Button that copies a link to the clipboard."
+  },
+  "shareLinkCopied": "Link copied",
+  "@shareLinkCopied": {
+    "description": "Confirmation after a link was copied."
+  },
+  "shareTextCopied": "Text copied",
+  "@shareTextCopied": {
+    "description": "Confirmation after text was copied."
+  },
+  "shareChoosePicture": "Choose a picture",
+  "@shareChoosePicture": {
+    "description": "Share studio: button that opens the photo library to choose a background picture."
+  },
+  "sharePictureInvalid": "Please choose a JPEG, PNG or WebP picture under 8 MB.",
+  "@sharePictureInvalid": {
+    "description": "Share studio: shown when the chosen file is not a usable picture."
+  },
+  "shareAiPrompt": "Describe the background",
+  "@shareAiPrompt": {
+    "description": "Share studio: label of the box where the reader describes the background they want."
+  },
+  "shareAiMake": "Make background",
+  "@shareAiMake": {
+    "description": "Share studio: button that makes the described background."
+  },
+  "shareAiMaking": "Making your background…",
+  "@shareAiMaking": {
+    "description": "Share studio: shown on the button while the background is being made."
+  },
+  "shareAiNote": "Uses part of your Ask Sakha credits.",
+  "@shareAiNote": {
+    "description": "Share studio: says a background uses part of the reader's Ask Sakha credits."
+  },
+  "shareAiNoCredit": "You do not have enough credits for a background.",
+  "@shareAiNoCredit": {
+    "description": "Share studio: shown when the reader lacks the credits to make a background."
+  },
+  "shareAiSeePlans": "See plans",
+  "@shareAiSeePlans": {
+    "description": "Share studio: button that opens the plans screen to get more credits."
+  },
+  "shareAiFailed": "The background could not be made. You have not been charged — please try again.",
+  "@shareAiFailed": {
+    "description": "Share studio: shown when a background could not be made. Says nothing was charged."
+  },
+  "shareAiUnavailable": "Backgrounds are not available right now.",
+  "@shareAiUnavailable": {
+    "description": "Share studio: shown when making backgrounds is not available."
+  },
+  "shareLinkFailed": "Could not make a link for this.",
+  "@shareLinkFailed": {
+    "description": "Share studio: shown when a link for this verse, mantra or reel could not be made."
+  },
+  "shareExportFailed": "Could not prepare the picture. Please try again.",
+  "@shareExportFailed": {
+    "description": "Share studio: shown when the picture could not be prepared for sharing."
   }
 }

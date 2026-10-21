@@ -27,6 +27,14 @@ abstract final class ApiPaths {
   static const String meSadhanaProfile = '$_app/me/sadhana-profile';
   static const String meSummary = '$_app/me/summary';
 
+  // Sharing and referrals
+  static const String shareLinks = '$_app/share/links';
+  static String shareLink(String code) => '$_app/share/links/$code';
+  static const String shareBackgroundQuote = '$_app/share/background/quote';
+  static const String shareBackground = '$_app/share/background';
+  static const String referralMe = '$_app/referral/me';
+  static const String referralClaim = '$_app/referral/claim';
+
   // Dashboard
   static const String home = '$_app/home';
 

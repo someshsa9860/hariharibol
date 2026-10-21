@@ -2196,4 +2196,164 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'यदि यहाँ दिखाए गए किसी पाठ पर आपके अधिकार हैं, या आपको उसमें कोई त्रुटि मिले, तो कृपया हमें लिखें। हम शीघ्र उत्तर देंगे और कहे जाने पर उसे सुधार देंगे या हटा देंगे।';
+
+  @override
+  String get referTitle => 'रेफर करें और कमाएँ';
+
+  @override
+  String get referIntro =>
+      'किसी मित्र को आमंत्रित करें। जब वे जुड़कर ऐप का उपयोग शुरू कर दें, तो आपको आर्त प्लान का एक महीना मिलेगा।';
+
+  @override
+  String get referYourLink => 'आपका आमंत्रण लिंक';
+
+  @override
+  String get referShare => 'आमंत्रण भेजें';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol पर मेरे साथ जुड़ें — श्लोक, मंत्र और Sakha, निःशुल्क।';
+
+  @override
+  String get referPending => 'जुड़ रहे हैं';
+
+  @override
+  String get referRewarded => 'अर्जित पुरस्कार';
+
+  @override
+  String get referHaveCode => 'क्या आपको आमंत्रित किया गया था? कोड दर्ज करें';
+
+  @override
+  String get referUseCode => 'कोड उपयोग करें';
+
+  @override
+  String get referCodeHint => 'आमंत्रण कोड';
+
+  @override
+  String get referCodeThanks => 'धन्यवाद — आपका आमंत्रण दर्ज हो गया';
+
+  @override
+  String get referCodeRefused => 'यह कोड उपयोग नहीं किया जा सका';
+
+  @override
+  String get referRewardsHeading => 'आपके पुरस्कार';
+
+  @override
+  String get referHistoryHeading => 'आमंत्रण';
+
+  @override
+  String get referStatusPending => 'जुड़ गए — अभी शुरुआत में';
+
+  @override
+  String get referStatusRewarded => 'पुरस्कार मिला';
+
+  @override
+  String get referStatusRejected => 'पात्र नहीं';
+
+  @override
+  String get referTerms =>
+      'हर आमंत्रित व्यक्ति पर एक पुरस्कार, जो हम स्टोर की खरीद के बजाय अतिरिक्त प्लान समय के रूप में देते हैं। यह दिखाई गई तिथि पर समाप्त होता है और अपने आप नवीनीकृत नहीं होता। साल में अधिकतम 12 महीने; दुरुपयोग होने पर हम पुरस्कार रोक सकते हैं।';
+
+  @override
+  String get shareStudioTitle => 'साझा स्टूडियो';
+
+  @override
+  String get shareSizeSquare => 'वर्ग';
+
+  @override
+  String get shareSizePortrait => 'पोर्ट्रेट';
+
+  @override
+  String get shareSizeStory => 'स्टोरी';
+
+  @override
+  String get shareBackground => 'पृष्ठभूमि';
+
+  @override
+  String get shareGradients => 'ग्रेडिएंट';
+
+  @override
+  String get shareColours => 'रंग';
+
+  @override
+  String get sharePicture => 'चित्र';
+
+  @override
+  String get shareMakeWithAi => 'नया बनाएँ';
+
+  @override
+  String get shareText => 'पाठ';
+
+  @override
+  String get shareTextSize => 'आकार';
+
+  @override
+  String get shareLightText => 'हल्का पाठ';
+
+  @override
+  String get shareShowMeaning => 'अर्थ दिखाएँ';
+
+  @override
+  String get shareShowReference => 'संदर्भ दिखाएँ';
+
+  @override
+  String get shareDarken => 'पढ़ने के लिए गहरा करें';
+
+  @override
+  String get shareImage => 'चित्र साझा करें';
+
+  @override
+  String get shareLinkOnly => 'लिंक साझा करें';
+
+  @override
+  String get shareCopyText => 'पाठ कॉपी करें';
+
+  @override
+  String get shareCopyLink => 'लिंक कॉपी करें';
+
+  @override
+  String get shareLinkCopied => 'लिंक कॉपी हो गया';
+
+  @override
+  String get shareTextCopied => 'पाठ कॉपी हो गया';
+
+  @override
+  String get shareChoosePicture => 'चित्र चुनें';
+
+  @override
+  String get sharePictureInvalid =>
+      'कृपया 8 MB से छोटा JPEG, PNG या WebP चित्र चुनें।';
+
+  @override
+  String get shareAiPrompt => 'पृष्ठभूमि का वर्णन करें';
+
+  @override
+  String get shareAiMake => 'पृष्ठभूमि बनाएँ';
+
+  @override
+  String get shareAiMaking => 'आपकी पृष्ठभूमि बन रही है…';
+
+  @override
+  String get shareAiNote => 'इसमें आपके Ask Sakha क्रेडिट का कुछ भाग लगता है।';
+
+  @override
+  String get shareAiNoCredit =>
+      'पृष्ठभूमि के लिए आपके पास पर्याप्त क्रेडिट नहीं हैं।';
+
+  @override
+  String get shareAiSeePlans => 'प्लान देखें';
+
+  @override
+  String get shareAiFailed =>
+      'पृष्ठभूमि नहीं बन सकी। आपसे कोई शुल्क नहीं लिया गया — कृपया फिर कोशिश करें।';
+
+  @override
+  String get shareAiUnavailable => 'पृष्ठभूमि अभी उपलब्ध नहीं हैं।';
+
+  @override
+  String get shareLinkFailed => 'इसके लिए लिंक नहीं बन सका।';
+
+  @override
+  String get shareExportFailed =>
+      'चित्र तैयार नहीं हो सका। कृपया फिर कोशिश करें।';
 }

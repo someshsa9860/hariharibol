@@ -2201,4 +2201,165 @@ class AppLocalizationsAs extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ইয়াত দেখুওৱা কোনো লেখাৰ ওপৰত যদি আপোনাৰ স্বত্ব আছে, বা তাত কোনো ভুল পায়, তেন্তে অনুগ্ৰহ কৰি আমাক লিখক। আমি সোনকালে উত্তৰ দিম আৰু অনুৰোধ কৰিলে সেয়া শুধৰাই দিম বা আঁতৰাই দিম।';
+
+  @override
+  String get referTitle => 'ৰেফাৰ কৰক আৰু উপাৰ্জন কৰক';
+
+  @override
+  String get referIntro =>
+      'এজন বন্ধুক আমন্ত্ৰণ জনাওক। তেওঁ যোগদান কৰি ব্যৱহাৰ আৰম্ভ কৰিলে আপুনি আৰ্ত প্লানৰ এমাহ পাব।';
+
+  @override
+  String get referYourLink => 'আপোনাৰ আমন্ত্ৰণ লিংক';
+
+  @override
+  String get referShare => 'আমন্ত্ৰণ পঠিয়াওক';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol ত মোৰ লগত যোগ দিয়ক — শ্লোক, মন্ত্ৰ আৰু Sakha, বিনামূলীয়াকৈ।';
+
+  @override
+  String get referPending => 'যোগদান কৰি আছে';
+
+  @override
+  String get referRewarded => 'অৰ্জিত পুৰস্কাৰ';
+
+  @override
+  String get referHaveCode => 'আপোনাক আমন্ত্ৰণ জনোৱা হৈছিল নেকি? কোড দিয়ক';
+
+  @override
+  String get referUseCode => 'কোড ব্যৱহাৰ কৰক';
+
+  @override
+  String get referCodeHint => 'আমন্ত্ৰণ কোড';
+
+  @override
+  String get referCodeThanks => 'ধন্যবাদ — আপোনাৰ আমন্ত্ৰণ লিপিবদ্ধ কৰা হ\'ল';
+
+  @override
+  String get referCodeRefused => 'এই কোডটো ব্যৱহাৰ কৰিব পৰা নগ\'ল';
+
+  @override
+  String get referRewardsHeading => 'আপোনাৰ পুৰস্কাৰ';
+
+  @override
+  String get referHistoryHeading => 'আমন্ত্ৰণ';
+
+  @override
+  String get referStatusPending => 'যোগদান কৰিছে — আৰম্ভ কৰি আছে';
+
+  @override
+  String get referStatusRewarded => 'পুৰস্কাৰ লাভ হ\'ল';
+
+  @override
+  String get referStatusRejected => 'যোগ্য নহয়';
+
+  @override
+  String get referTerms =>
+      'প্ৰতিজন আমন্ত্ৰিত ব্যক্তিৰ বাবে এটা পুৰস্কাৰ, যিটো আমি ষ্ট\'ৰৰ কিনা-কটাৰ সলনি অতিৰিক্ত প্লান সময় হিচাপে দিওঁ। ই দেখুওৱা তাৰিখত শেষ হয় আৰু নিজে নিজে নবীকৰণ নহয়। বছৰত সৰ্বাধিক 12 মাহ; অপব্যৱহাৰ হ\'লে আমি পুৰস্কাৰ ৰখাব পাৰোঁ।';
+
+  @override
+  String get shareStudioTitle => 'শ্বেয়াৰ ষ্টুডিঅ\'';
+
+  @override
+  String get shareSizeSquare => 'বৰ্গাকাৰ';
+
+  @override
+  String get shareSizePortrait => 'পৰ্ট্ৰেইট';
+
+  @override
+  String get shareSizeStory => 'ষ্ট\'ৰী';
+
+  @override
+  String get shareBackground => 'পটভূমি';
+
+  @override
+  String get shareGradients => 'গ্ৰেডিয়েণ্ট';
+
+  @override
+  String get shareColours => 'ৰং';
+
+  @override
+  String get sharePicture => 'ছবি';
+
+  @override
+  String get shareMakeWithAi => 'নতুন বনাওক';
+
+  @override
+  String get shareText => 'লিখনি';
+
+  @override
+  String get shareTextSize => 'আকাৰ';
+
+  @override
+  String get shareLightText => 'পাতল লিখনি';
+
+  @override
+  String get shareShowMeaning => 'অৰ্থ দেখুৱাওক';
+
+  @override
+  String get shareShowReference => 'উল্লেখ দেখুৱাওক';
+
+  @override
+  String get shareDarken => 'পঢ়িবলৈ গাঢ় কৰক';
+
+  @override
+  String get shareImage => 'ছবি শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareLinkOnly => 'লিংক শ্বেয়াৰ কৰক';
+
+  @override
+  String get shareCopyText => 'লিখনি কপি কৰক';
+
+  @override
+  String get shareCopyLink => 'লিংক কপি কৰক';
+
+  @override
+  String get shareLinkCopied => 'লিংক কপি কৰা হ\'ল';
+
+  @override
+  String get shareTextCopied => 'লিখনি কপি কৰা হ\'ল';
+
+  @override
+  String get shareChoosePicture => 'এখন ছবি বাছনি কৰক';
+
+  @override
+  String get sharePictureInvalid =>
+      'অনুগ্ৰহ কৰি 8 MB তকৈ সৰু JPEG, PNG বা WebP ছবি বাছনি কৰক।';
+
+  @override
+  String get shareAiPrompt => 'পটভূমিৰ বৰ্ণনা কৰক';
+
+  @override
+  String get shareAiMake => 'পটভূমি বনাওক';
+
+  @override
+  String get shareAiMaking => 'আপোনাৰ পটভূমি বনাই আছে…';
+
+  @override
+  String get shareAiNote =>
+      'ইয়াত আপোনাৰ Ask Sakha ক্ৰেডিটৰ কিছু অংশ ব্যৱহাৰ হয়।';
+
+  @override
+  String get shareAiNoCredit =>
+      'পটভূমিৰ বাবে আপোনাৰ ওচৰত পৰ্যাপ্ত ক্ৰেডিট নাই।';
+
+  @override
+  String get shareAiSeePlans => 'প্লান চাওক';
+
+  @override
+  String get shareAiFailed =>
+      'পটভূমি বনাব পৰা নগ\'ল। আপোনাৰ পৰা কোনো মাচুল লোৱা হোৱা নাই — অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get shareAiUnavailable => 'পটভূমি এতিয়া উপলব্ধ নহয়।';
+
+  @override
+  String get shareLinkFailed => 'ইয়াৰ বাবে লিংক বনাব পৰা নগ\'ল।';
+
+  @override
+  String get shareExportFailed =>
+      'ছবি সাজু কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
 }

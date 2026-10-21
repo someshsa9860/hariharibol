@@ -73,6 +73,7 @@ export function MeView() {
           <div><strong>{user.name ?? 'Devotee'}</strong><p className="muted">{user.email}</p><span className="badge">{user.isPremium ? 'Plan active' : 'Free plan'}</span></div>
           <Link href="/notifications" className="btn btn-ghost btn-sm">Notifications</Link>
           <Link href="/plans" className="btn btn-ghost btn-sm">Plans</Link>
+          <Link href="/me/refer" className="btn btn-ghost btn-sm">Refer &amp; Earn</Link>
         </section>
       ) : (
         <section className="profile card">

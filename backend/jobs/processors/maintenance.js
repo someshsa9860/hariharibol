@@ -11,6 +11,7 @@ import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as s3 from '../../services/s3.js';
 import * as aiWallet from '../../services/ai-wallet.js';
+import * as referralService from '../../services/referral.js';
 
 const RETENTION_DAYS = {
   // Who changed what. The longest, because this is the one that answers
@@ -41,8 +42,10 @@ export default async function maintenanceProcessor(job) {
   // never opens the app, and daily-usage rows past the window are dropped.
   if (job.name === 'ai.credits.maintain') {
     const renewal = await aiWallet.renewDue();
+    // Settles referrals that have become due without their referrer opening the app.
+    const referrals = await referralService.sweep();
     const pruned = await aiWallet.pruneDaily();
-    logger.info({ ...renewal, pruned }, 'ai credits maintenance finished');
+    logger.info({ ...renewal, pruned, referrals }, 'ai credits maintenance finished');
     return { ...renewal, dailyRowsPruned: pruned };
   }
 

@@ -106,6 +106,13 @@ abstract final class AppRoutes {
   /// tab: a composer and a keyboard cannot share the bottom with a bar.
   static const String chat = '/chat';
 
+  /// The share studio: a verse, mantra or reel made into a picture and a link. Pushed with a `ShareStudioArgs` as
+  /// its `extra`.
+  static const String shareStudio = '/share';
+
+  /// Refer & Earn. Pushed from settings.
+  static const String refer = '/refer';
+
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
   static const List<String> tabs = [home, sadhana, library, reels];
@@ -123,6 +130,8 @@ abstract final class RouteNames {
   static const String routine = 'routine';
   static const String settings = 'settings';
   static const String plans = 'plans';
+  static const String shareStudio = 'shareStudio';
+  static const String refer = 'refer';
   static const String voices = 'voices';
   static const String sources = 'sources';
   static const String search = 'search';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/constants/app_config.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/navigation/share_entry.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -13,6 +13,7 @@ import '../../models/api_failure.dart';
 import '../../models/reel.dart';
 import '../../providers/reel_provider.dart';
 import '../../services/reel_service.dart';
+import '../../services/share_service.dart';
 import '../../services/tracking_service.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
@@ -141,18 +142,12 @@ class _ReelsViewState extends ConsumerState<ReelsView>
         .catchError((_) {});
   }
 
-  Future<void> _share(Reel reel) async {
-    final text = AppLocalizations.of(context);
-    final link = '${AppConfig.appScheme}://reels/${reel.id}';
+  /// Sharing a reel opens the same studio as a verse. The share is counted only when the system sheet says
+  /// something actually happened — opening it and backing out is not a share.
+  void _share(Reel reel) => openReelShare(id: reel.id, title: reel.shareLabel, onShared: () => _recordShare(reel));
 
+  Future<void> _recordShare(Reel reel) async {
     try {
-      final result = await SharePlus.instance.share(
-        ShareParams(text: text.reelShareMessage(reel.shareLabel, link)),
-      );
-      // Only counted when the sheet says something actually happened —
-      // opening a share sheet and backing out of it is not a share.
-      if (result.status != ShareResultStatus.success) return;
-
       final count = await ReelService.instance.recordShare(
         reel.id,
         SharePlatform.other,
@@ -169,9 +164,14 @@ class _ReelsViewState extends ConsumerState<ReelsView>
 
   Future<void> _copyLink(Reel reel) async {
     final text = AppLocalizations.of(context);
-    await Clipboard.setData(
-      ClipboardData(text: '${AppConfig.appScheme}://reels/${reel.id}'),
-    );
+    // The canonical https link when the server can make one; the app's own scheme as a last resort.
+    String link;
+    try {
+      link = (await ShareService.instance.linkFor('REEL', reel.id)).url;
+    } on ApiFailure {
+      link = '${AppConfig.appScheme}://reels/${reel.id}';
+    }
+    await Clipboard.setData(ClipboardData(text: link));
     AppNavigator.instance.showMessage(text.reelLinkCopied);
 
     try {

@@ -37,8 +37,11 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
     applinks: {
       apps: [],
       details: env.appleBundleIds.map((bundleId) => ({
-        appID: bundleId,
-        paths: ['/verse/*', '/sloka/*', '/mantra/*', '/book/*'],
+        // `<TEAMID>.<bundle id>`; a value that already carries a team id is left as written.
+        appID: /^[A-Z0-9]{10}\./.test(bundleId) ? bundleId : `${env.APPLE_TEAM_ID}.${bundleId}`,
+        // The first four are the site's share and invitation paths (utils/share.js); the rest are the older
+        // links on the API host.
+        paths: ['/shloka/*', '/mantra/*', '/divya/*', '/satsang/*', '/verse/*', '/sloka/*', '/book/*'],
       })),
     },
   });
@@ -51,10 +54,10 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
       target: {
         namespace: 'android_app',
         package_name: env.GOOGLE_PLAY_PACKAGE_NAME,
-        // Filled from the signing certificate. Left empty rather than wrong:
-        // a mismatched fingerprint silently disables Android app links, and a
-        // placeholder that looks real is harder to notice than an empty list.
-        sha256_cert_fingerprints: [],
+        // From ANDROID_CERT_SHA256 (the Play app-signing certificate, plus the upload key for local builds).
+        // Empty rather than wrong when unset: a mismatched fingerprint silently disables Android app links,
+        // and a placeholder that looks real is harder to notice than an empty list.
+        sha256_cert_fingerprints: env.androidCertFingerprints,
       },
     },
   ]);
@@ -67,8 +70,9 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
 function appLinks(target) {
   return {
     appUrl: `${env.APP_SCHEME}://${target}`,
-    androidUrl: `https://play.google.com/store/apps/details?id=${env.GOOGLE_PLAY_PACKAGE_NAME}`,
-    iosUrl: 'https://apps.apple.com/app/hariharibol/id0000000000',
+    androidUrl: env.playStoreUrl,
+    // Null until APP_STORE_URL is set: a made-up listing would send people to someone else's app.
+    iosUrl: env.appStoreUrl,
     webUrl: env.WEB_BASE_URL,
   };
 }

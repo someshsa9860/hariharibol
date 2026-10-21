@@ -52,7 +52,8 @@
     "test:book-counts": "node scripts/book-counts-e2e.js",
     "test:book-titles": "node scripts/book-titles-e2e.js",
     "test:translation": "node scripts/translation-e2e.js",
-    "test:translation-import": "node scripts/translation-import-e2e.js"
+    "test:translation-import": "node scripts/translation-import-e2e.js",
+    "test:share-referral": "node scripts/share-referral-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

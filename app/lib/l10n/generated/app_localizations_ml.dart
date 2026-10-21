@@ -2214,4 +2214,165 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ഇവിടെ കാണിക്കുന്ന ഏതെങ്കിലും ഉള്ളടക്കത്തിൽ നിങ്ങൾക്ക് അവകാശമുണ്ടെങ്കിൽ, അല്ലെങ്കിൽ അതിൽ ഒരു പിശക് കണ്ടാൽ, ദയവായി ഞങ്ങൾക്ക് എഴുതുക. ഞങ്ങൾ വേഗത്തിൽ മറുപടി നൽകും; ആവശ്യപ്പെട്ടാൽ അത് തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.';
+
+  @override
+  String get referTitle => 'റഫർ ചെയ്യൂ, നേടൂ';
+
+  @override
+  String get referIntro =>
+      'ഒരു സുഹൃത്തിനെ ക്ഷണിക്കൂ. അവർ ചേർന്ന് ഉപയോഗിച്ചുതുടങ്ങുമ്പോൾ നിങ്ങൾക്ക് ആർത്ത പ്ലാനിന്റെ ഒരു മാസം ലഭിക്കും.';
+
+  @override
+  String get referYourLink => 'നിങ്ങളുടെ ക്ഷണ ലിങ്ക്';
+
+  @override
+  String get referShare => 'ക്ഷണം അയയ്ക്കൂ';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol-ൽ എന്നോടൊപ്പം ചേരൂ — ശ്ലോകങ്ങൾ, മന്ത്രങ്ങൾ, Sakha, സൗജന്യമായി.';
+
+  @override
+  String get referPending => 'ചേർന്നുകൊണ്ടിരിക്കുന്നു';
+
+  @override
+  String get referRewarded => 'നേടിയ പ്രതിഫലങ്ങൾ';
+
+  @override
+  String get referHaveCode => 'നിങ്ങളെ ക്ഷണിച്ചിരുന്നോ? കോഡ് നൽകൂ';
+
+  @override
+  String get referUseCode => 'കോഡ് ഉപയോഗിക്കൂ';
+
+  @override
+  String get referCodeHint => 'ക്ഷണ കോഡ്';
+
+  @override
+  String get referCodeThanks => 'നന്ദി — നിങ്ങളുടെ ക്ഷണം രേഖപ്പെടുത്തി';
+
+  @override
+  String get referCodeRefused => 'ആ കോഡ് ഉപയോഗിക്കാൻ കഴിഞ്ഞില്ല';
+
+  @override
+  String get referRewardsHeading => 'നിങ്ങളുടെ പ്രതിഫലങ്ങൾ';
+
+  @override
+  String get referHistoryHeading => 'ക്ഷണങ്ങൾ';
+
+  @override
+  String get referStatusPending => 'ചേർന്നു — തുടങ്ങുന്നു';
+
+  @override
+  String get referStatusRewarded => 'പ്രതിഫലം ലഭിച്ചു';
+
+  @override
+  String get referStatusRejected => 'അർഹതയില്ല';
+
+  @override
+  String get referTerms =>
+      'ക്ഷണിക്കപ്പെട്ട ഓരോ വ്യക്തിക്കും ഒരു പ്രതിഫലം; ഇത് സ്റ്റോറിൽ നിന്നുള്ള വാങ്ങലായല്ല, അധിക പ്ലാൻ സമയമായാണ് ഞങ്ങൾ നൽകുന്നത്. കാണിച്ച തീയതിയിൽ ഇത് അവസാനിക്കും, സ്വയം പുതുക്കപ്പെടില്ല. വർഷത്തിൽ പരമാവധി 12 മാസം; ദുരുപയോഗം ഉണ്ടായാൽ പ്രതിഫലം തടഞ്ഞുവയ്ക്കാം.';
+
+  @override
+  String get shareStudioTitle => 'ഷെയർ സ്റ്റുഡിയോ';
+
+  @override
+  String get shareSizeSquare => 'ചതുരം';
+
+  @override
+  String get shareSizePortrait => 'പോർട്രെയിറ്റ്';
+
+  @override
+  String get shareSizeStory => 'സ്റ്റോറി';
+
+  @override
+  String get shareBackground => 'പശ്ചാത്തലം';
+
+  @override
+  String get shareGradients => 'ഗ്രേഡിയന്റുകൾ';
+
+  @override
+  String get shareColours => 'നിറങ്ങൾ';
+
+  @override
+  String get sharePicture => 'ചിത്രം';
+
+  @override
+  String get shareMakeWithAi => 'പുതിയത് ഉണ്ടാക്കൂ';
+
+  @override
+  String get shareText => 'എഴുത്ത്';
+
+  @override
+  String get shareTextSize => 'വലുപ്പം';
+
+  @override
+  String get shareLightText => 'ഇളം എഴുത്ത്';
+
+  @override
+  String get shareShowMeaning => 'അർത്ഥം കാണിക്കൂ';
+
+  @override
+  String get shareShowReference => 'അവലംബം കാണിക്കൂ';
+
+  @override
+  String get shareDarken => 'വായിക്കാൻ ഇരുണ്ടതാക്കൂ';
+
+  @override
+  String get shareImage => 'ചിത്രം ഷെയർ ചെയ്യൂ';
+
+  @override
+  String get shareLinkOnly => 'ലിങ്ക് ഷെയർ ചെയ്യൂ';
+
+  @override
+  String get shareCopyText => 'എഴുത്ത് പകർത്തൂ';
+
+  @override
+  String get shareCopyLink => 'ലിങ്ക് പകർത്തൂ';
+
+  @override
+  String get shareLinkCopied => 'ലിങ്ക് പകർത്തി';
+
+  @override
+  String get shareTextCopied => 'എഴുത്ത് പകർത്തി';
+
+  @override
+  String get shareChoosePicture => 'ഒരു ചിത്രം തിരഞ്ഞെടുക്കൂ';
+
+  @override
+  String get sharePictureInvalid =>
+      '8 MB-യിൽ താഴെയുള്ള JPEG, PNG അല്ലെങ്കിൽ WebP ചിത്രം തിരഞ്ഞെടുക്കൂ.';
+
+  @override
+  String get shareAiPrompt => 'പശ്ചാത്തലം വിവരിക്കൂ';
+
+  @override
+  String get shareAiMake => 'പശ്ചാത്തലം ഉണ്ടാക്കൂ';
+
+  @override
+  String get shareAiMaking => 'നിങ്ങളുടെ പശ്ചാത്തലം തയ്യാറാക്കുന്നു…';
+
+  @override
+  String get shareAiNote =>
+      'ഇതിന് നിങ്ങളുടെ Ask Sakha ക്രെഡിറ്റിന്റെ ഒരു ഭാഗം ഉപയോഗിക്കും.';
+
+  @override
+  String get shareAiNoCredit =>
+      'പശ്ചാത്തലത്തിന് ആവശ്യമായ ക്രെഡിറ്റ് നിങ്ങൾക്കില്ല.';
+
+  @override
+  String get shareAiSeePlans => 'പ്ലാനുകൾ കാണൂ';
+
+  @override
+  String get shareAiFailed =>
+      'പശ്ചാത്തലം ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. നിങ്ങളിൽ നിന്ന് ഒന്നും ഈടാക്കിയിട്ടില്ല — വീണ്ടും ശ്രമിക്കൂ.';
+
+  @override
+  String get shareAiUnavailable => 'പശ്ചാത്തലങ്ങൾ ഇപ്പോൾ ലഭ്യമല്ല.';
+
+  @override
+  String get shareLinkFailed => 'ഇതിനായി ലിങ്ക് ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല.';
+
+  @override
+  String get shareExportFailed =>
+      'ചിത്രം തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കൂ.';
 }

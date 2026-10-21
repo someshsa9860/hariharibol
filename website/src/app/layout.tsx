@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { BottomTabs } from '@/components/layout/bottom-tabs';
+import { ReferralClaimer } from '@/components/share/referral-claimer';
 import '@/styles/index.css';
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <main id="content" className="main">{children}</main>
               <SiteFooter />
               <BottomTabs />
+              <ReferralClaimer />
             </ToastProvider>
           </AuthProvider>
         </PrefsProvider>

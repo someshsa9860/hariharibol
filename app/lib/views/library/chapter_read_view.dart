@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/app_navigator.dart';
+import '../../core/navigation/share_entry.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -499,6 +500,7 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                     onOpenNotes: () => _openNotes(verse),
                     onOpenRelated: () => _openRelated(verse),
                     onAskSakha: () => _askSakha(verse, bookTitle),
+                    onShare: () => openVerseShare(verse, translation: _translationOverrides[verse.id]),
                     onCompareTranslations:
                         verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
                     onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,

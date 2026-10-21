@@ -41,6 +41,10 @@ abstract final class BoxKeys {
   /// Deleted when the round completes.
   static String chantProgress(String? mantraId) => 'chant.progress.${mantraId ?? 'any'}';
 
+  /// The invitation code a new reader arrived with, kept until they are signed in and it can be claimed. The server
+  /// decides whether it counts; this only carries it across the install and the sign-in.
+  static const String pendingReferral = 'referral.pending';
+
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
 

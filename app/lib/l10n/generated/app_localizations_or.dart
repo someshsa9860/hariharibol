@@ -2201,4 +2201,165 @@ class AppLocalizationsOr extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ଏଠାରେ ଦେଖାଯାଇଥିବା କୌଣସି ଲେଖା ଉପରେ ଯଦି ଆପଣଙ୍କର ଅଧିକାର ଅଛି, କିମ୍ବା ସେଥିରେ କୌଣସି ଭୁଲ ପାଆନ୍ତି, ତେବେ ଦୟାକରି ଆମକୁ ଲେଖନ୍ତୁ। ଆମେ ଶୀଘ୍ର ଉତ୍ତର ଦେବୁ ଏବଂ ଅନୁରୋଧ କଲେ ତାହାକୁ ସଂଶୋଧନ କରିବୁ ବା କାଢ଼ିଦେବୁ।';
+
+  @override
+  String get referTitle => 'ରେଫର କରନ୍ତୁ ଓ ଉପାର୍ଜନ କରନ୍ତୁ';
+
+  @override
+  String get referIntro =>
+      'ଜଣେ ବନ୍ଧୁଙ୍କୁ ଆମନ୍ତ୍ରଣ କରନ୍ତୁ। ସେମାନେ ଯୋଗ ଦେଇ ବ୍ୟବହାର ଆରମ୍ଭ କଲେ ଆପଣ ଆର୍ତ ପ୍ଲାନର ଏକ ମାସ ପାଇବେ।';
+
+  @override
+  String get referYourLink => 'ଆପଣଙ୍କ ଆମନ୍ତ୍ରଣ ଲିଙ୍କ';
+
+  @override
+  String get referShare => 'ଆମନ୍ତ୍ରଣ ପଠାନ୍ତୁ';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol ରେ ମୋ ସହ ଯୋଗ ଦିଅନ୍ତୁ — ଶ୍ଲୋକ, ମନ୍ତ୍ର ଓ Sakha, ମାଗଣା।';
+
+  @override
+  String get referPending => 'ଯୋଗ ଦେଉଛନ୍ତି';
+
+  @override
+  String get referRewarded => 'ଅର୍ଜିତ ପୁରସ୍କାର';
+
+  @override
+  String get referHaveCode => 'ଆପଣଙ୍କୁ ଆମନ୍ତ୍ରଣ କରାଯାଇଥିଲା କି? କୋଡ୍ ଦିଅନ୍ତୁ';
+
+  @override
+  String get referUseCode => 'କୋଡ୍ ବ୍ୟବହାର କରନ୍ତୁ';
+
+  @override
+  String get referCodeHint => 'ଆମନ୍ତ୍ରଣ କୋଡ୍';
+
+  @override
+  String get referCodeThanks => 'ଧନ୍ୟବାଦ — ଆପଣଙ୍କ ଆମନ୍ତ୍ରଣ ଲିପିବଦ୍ଧ ହେଲା';
+
+  @override
+  String get referCodeRefused => 'ଏହି କୋଡ୍ ବ୍ୟବହାର କରାଯାଇପାରିଲା ନାହିଁ';
+
+  @override
+  String get referRewardsHeading => 'ଆପଣଙ୍କ ପୁରସ୍କାର';
+
+  @override
+  String get referHistoryHeading => 'ଆମନ୍ତ୍ରଣ';
+
+  @override
+  String get referStatusPending => 'ଯୋଗ ଦେଇଛନ୍ତି — ଆରମ୍ଭ କରୁଛନ୍ତି';
+
+  @override
+  String get referStatusRewarded => 'ପୁରସ୍କାର ମିଳିଲା';
+
+  @override
+  String get referStatusRejected => 'ଯୋଗ୍ୟ ନୁହେଁ';
+
+  @override
+  String get referTerms =>
+      'ପ୍ରତ୍ୟେକ ଆମନ୍ତ୍ରିତ ବ୍ୟକ୍ତି ପାଇଁ ଗୋଟିଏ ପୁରସ୍କାର, ଯାହା ଆମେ ଷ୍ଟୋରରୁ କିଣିବା ବଦଳରେ ଅତିରିକ୍ତ ପ୍ଲାନ ସମୟ ଭାବରେ ଦେଉ। ଏହା ଦେଖାଯାଇଥିବା ତାରିଖରେ ଶେଷ ହୁଏ ଏବଂ ନିଜେ ନବୀକରଣ ହୁଏ ନାହିଁ। ବର୍ଷକୁ ସର୍ବାଧିକ 12 ମାସ; ଦୁରୁପଯୋଗ ହେଲେ ଆମେ ପୁରସ୍କାର ରୋକି ପାରିବୁ।';
+
+  @override
+  String get shareStudioTitle => 'ସେୟାର ଷ୍ଟୁଡିଓ';
+
+  @override
+  String get shareSizeSquare => 'ବର୍ଗାକାର';
+
+  @override
+  String get shareSizePortrait => 'ପୋର୍ଟ୍ରେଟ୍';
+
+  @override
+  String get shareSizeStory => 'ଷ୍ଟୋରୀ';
+
+  @override
+  String get shareBackground => 'ପୃଷ୍ଠଭୂମି';
+
+  @override
+  String get shareGradients => 'ଗ୍ରେଡିଏଣ୍ଟ';
+
+  @override
+  String get shareColours => 'ରଙ୍ଗ';
+
+  @override
+  String get sharePicture => 'ଛବି';
+
+  @override
+  String get shareMakeWithAi => 'ନୂଆ ତିଆରି କରନ୍ତୁ';
+
+  @override
+  String get shareText => 'ଲେଖା';
+
+  @override
+  String get shareTextSize => 'ଆକାର';
+
+  @override
+  String get shareLightText => 'ହାଲୁକା ଲେଖା';
+
+  @override
+  String get shareShowMeaning => 'ଅର୍ଥ ଦେଖାନ୍ତୁ';
+
+  @override
+  String get shareShowReference => 'ସନ୍ଦର୍ଭ ଦେଖାନ୍ତୁ';
+
+  @override
+  String get shareDarken => 'ପଢ଼ିବା ପାଇଁ ଗାଢ଼ କରନ୍ତୁ';
+
+  @override
+  String get shareImage => 'ଛବି ସେୟାର କରନ୍ତୁ';
+
+  @override
+  String get shareLinkOnly => 'ଲିଙ୍କ ସେୟାର କରନ୍ତୁ';
+
+  @override
+  String get shareCopyText => 'ଲେଖା କପି କରନ୍ତୁ';
+
+  @override
+  String get shareCopyLink => 'ଲିଙ୍କ କପି କରନ୍ତୁ';
+
+  @override
+  String get shareLinkCopied => 'ଲିଙ୍କ କପି ହେଲା';
+
+  @override
+  String get shareTextCopied => 'ଲେଖା କପି ହେଲା';
+
+  @override
+  String get shareChoosePicture => 'ଏକ ଛବି ବାଛନ୍ତୁ';
+
+  @override
+  String get sharePictureInvalid =>
+      'ଦୟାକରି 8 MB ରୁ ଛୋଟ JPEG, PNG କିମ୍ବା WebP ଛବି ବାଛନ୍ତୁ।';
+
+  @override
+  String get shareAiPrompt => 'ପୃଷ୍ଠଭୂମିର ବର୍ଣ୍ଣନା କରନ୍ତୁ';
+
+  @override
+  String get shareAiMake => 'ପୃଷ୍ଠଭୂମି ତିଆରି କରନ୍ତୁ';
+
+  @override
+  String get shareAiMaking => 'ଆପଣଙ୍କ ପୃଷ୍ଠଭୂମି ତିଆରି ହେଉଛି…';
+
+  @override
+  String get shareAiNote =>
+      'ଏଥିରେ ଆପଣଙ୍କ Ask Sakha କ୍ରେଡିଟର କିଛି ଅଂଶ ବ୍ୟବହୃତ ହୁଏ।';
+
+  @override
+  String get shareAiNoCredit =>
+      'ପୃଷ୍ଠଭୂମି ପାଇଁ ଆପଣଙ୍କ ପାଖରେ ଯଥେଷ୍ଟ କ୍ରେଡିଟ୍ ନାହିଁ।';
+
+  @override
+  String get shareAiSeePlans => 'ପ୍ଲାନ ଦେଖନ୍ତୁ';
+
+  @override
+  String get shareAiFailed =>
+      'ପୃଷ୍ଠଭୂମି ତିଆରି ହୋଇପାରିଲା ନାହିଁ। ଆପଣଙ୍କଠାରୁ କୌଣସି ଶୁଳ୍କ ନିଆଯାଇ ନାହିଁ — ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get shareAiUnavailable => 'ପୃଷ୍ଠଭୂମି ବର୍ତ୍ତମାନ ଉପଲବ୍ଧ ନାହିଁ।';
+
+  @override
+  String get shareLinkFailed => 'ଏଥିପାଇଁ ଲିଙ୍କ ତିଆରି ହୋଇପାରିଲା ନାହିଁ।';
+
+  @override
+  String get shareExportFailed =>
+      'ଛବି ପ୍ରସ୍ତୁତ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
 }

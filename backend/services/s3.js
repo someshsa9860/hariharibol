@@ -103,6 +103,7 @@ const PREFIXES = {
   reelTemplateBackground: 'reel-templates/backgrounds',
   reelTemplateLogo: 'reel-templates/logos',
   chatImage: 'chat/images',
+  shareBackground: 'share/backgrounds',
 };
 
 // DD-MM-YY, UTC — the same clock the scheduled jobs run on.

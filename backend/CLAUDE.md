@@ -1141,6 +1141,61 @@ Things to know before changing it:
   `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
   Gita's real S3 files either; do a `dryRun` from the page first.
 
+## Sharing, deep links and Refer & Earn
+
+Three independent pieces behind `routes/app/share.js` and `routes/app/referral.js`. **Opening a shared link and claiming an
+invitation never touch each other**: content codes (`ShareLink`) and referral codes (`ReferralCode`) are separate tables and
+separate paths, so opening a verse can never issue a reward.
+
+| File | Job |
+|---|---|
+| `utils/share.js` | **Pure.** Code alphabet, `newCode`, `normaliseCode`, the path of each kind (`shloka`, `mantra`, `divya` for a reel, `satsang` for an invitation), `keptQuery` (only `utm_*` and `ref` survive — the page can never be turned into an open redirect) — `test/share.test.js` |
+| `utils/referral.js` | **Pure.** `canClaim`, `qualifies`, `rewardWindow`, the default rules (`DEFAULT_RULES`) — `test/share.test.js` |
+| `services/share.js` | `linkFor(kind, targetId)` (one link per target; refuses what is not public) and `resolve(code, kind)` → `ok` / `missing` / `gone`. A draft, an unpublished mantra and a code of the wrong kind are all just `missing` — the endpoint cannot be used to probe for drafts |
+| `services/referral.js` | `codeFor`, `claim`, `qualifyIfDue`, `summary`, `sweep` |
+| `services/share-background.js`, `services/ai/image.js`, `utils/share-background.js` | AI backgrounds for the Share Studio |
+| `deeplink/index.js` | Serves `/.well-known/apple-app-site-association` and `assetlinks.json` (paths `/shloka/* /mantra/* /divya/* /satsang/*` + the older ones; fingerprints from `ANDROID_CERT_SHA256`) |
+
+- **Link codes** are 10 random characters from a 30-letter alphabet with no `0 O 1 I L U`; nothing in one is derived from the
+  content or a person, and **the target is looked up, never decoded**. One link per `(kind, targetId)` (`@@unique`), so sharing a
+  verse twice gives the same link and a link names no sender. `kind`: `SHLOKA` (`targetId` = `Verse.verseId`), `MANTRA` (slug),
+  `REEL` (id). `GET /share/links/:code` is public and returns only the public view (text, title, a reel's thumbnail, the verse's
+  place, store listings); 404 unknown, **410** revoked or no longer public.
+- **Referral rules** (`DEFAULT_RULES`, in code, not yet editable in the admin panel): a code can be claimed only by an account at
+  most 7 days old; never your own; first claim wins and a second different code is refused (`ALREADY_REFERRED`); the same code
+  again is harmless. The reward is earned once the referred reader has been around 24 h **and** has a chant sitting, a reading
+  place or a sadhana day; at most 12 months in a rolling year per referrer. `claim` is rate-limited (`referral`, 20/hour).
+- **The reward is a `Subscription` row with provider `REFERRAL`** (`PaymentProvider.REFERRAL`) on the `arta` plan, so the same
+  `entitlement.js` that serves the app serves the website, and `User.isPremium` is still only written by `entitlement.refresh`.
+  It starts when the person's current Ārta-or-better access ends (so a paying subscriber loses nothing and gains a month after
+  it), and extends the one referral row instead of adding another. `ReferralReward` is the audit ledger (who, which referral,
+  plan, start, end). **Exactly once**: the referral moves `PENDING → REWARDED` in one `updateMany` (only one caller wins), and
+  `ReferralReward.referralId` and `Subscription(provider, externalId = referral:<id>)` are unique. It is not a store
+  subscription and says so (`autoRenew: false`); nothing here talks to Google, Apple or Razorpay.
+- **When a reward is granted**: when the referrer opens `GET /referral/me`, and by `sweep()` inside the hourly
+  `ai.credits.maintain` job. Opening a link grants nothing. Revoking a reward (a refund-style reversal) is **not built**.
+- **AI backgrounds** (`POST /share/background`, `GET /share/background/quote`, `GET /share/background/:id/image`). Priced at
+  `SHARE_BACKGROUND_TOKENS` (default 100,000 ≈ 25 chat replies) from the same wallet as Ask Sakha, ledgered as
+  `OTHER_AI_FEATURE`. **It is paid from the wallet balance only, outside the daily cap** (`aiWallet.debit({ countsToday: false })`):
+  one picture is larger than a day's chat cap (6,000 on Free), and spending it must not lock someone out of chat until tomorrow.
+  So the Free wallet (60,000) cannot afford one and is told so with an upgrade prompt; Ārta (400,000) holds four a month.
+  - **Charged once per `requestId`** (unique per user): a repeat of a finished key replays it free; a key in flight is a 409
+    `IN_PROGRESS`; a per-user Redis lock stops two different keys racing the balance check. **A failure refunds before it
+    reports** (502 `IMAGE_FAILED`, the provider's body never leaves the server), and a retry of the failed key charges again —
+    net one charge per picture delivered. The refund does not give back the daily-usage count (backgrounds do not count to it).
+  - No credit → 402 `CREDITS_EXHAUSTED` before anything is written. Pictures are stored as `shareBackground` temp uploads (swept
+    by the monthly temp prune) and served back only to their maker (`/image`), so a browser can draw them on a canvas.
+  - **Not run against OpenAI.** `npm run test:share-referral` fakes `fetch`. The model name (`gpt-image-1`), the `b64_json`
+    response and the price are untested against the real API; check the first real call and its cost.
+- **Not built**: an admin page for share links / referrals / rules, reward reversal, and device-fingerprint abuse detection
+  (deliberately — no personal data is collected for it; the controls are the account-age window, one-claim-per-person, the
+  activity requirement, the yearly cap and the rate limit).
+- **Tests.** `node --test test/share.test.js` (pure) and `npm run test:share-referral` (62 checks against the real database and
+  Redis, and over HTTP when an API is listening: links, kinds, revoked / unpublished, concurrent link creation, every claim
+  refusal, six concurrent reward settles → one reward, a month stacked after paid access, the dashboard, a background charged
+  once / replayed / refunded / refused without credit, picture ownership, nothing public leaks).
+- **Migration** `20261027000000_share_and_referrals` (adds an enum value and five tables); production needs `prisma migrate deploy`.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.

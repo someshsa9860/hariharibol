@@ -34,6 +34,8 @@ import donationRoutes from './donation.js';
 import referenceRoutes from './reference.js';
 import searchRoutes from './search.js';
 import chatRoutes from './chat.js';
+import shareRoutes from './share.js';
+import referralRoutes from './referral.js';
 
 const routers = [
   authRoutes,
@@ -62,6 +64,8 @@ const routers = [
   referenceRoutes,
   searchRoutes,
   chatRoutes,
+  shareRoutes,
+  referralRoutes,
 ];
 
 export default mount(express.Router(), '/api/app', routers);

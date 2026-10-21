@@ -2193,4 +2193,164 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.';
+
+  @override
+  String get referTitle => 'Refer & Earn';
+
+  @override
+  String get referIntro =>
+      'Invite a friend. When they join and settle in, you receive a month of the Ārta plan.';
+
+  @override
+  String get referYourLink => 'Your invitation link';
+
+  @override
+  String get referShare => 'Share invitation';
+
+  @override
+  String get referShareLine =>
+      'Join me on HariHariBol — verses, mantras and Sakha, free.';
+
+  @override
+  String get referPending => 'Settling in';
+
+  @override
+  String get referRewarded => 'Rewards earned';
+
+  @override
+  String get referHaveCode => 'Were you invited? Enter a code';
+
+  @override
+  String get referUseCode => 'Use code';
+
+  @override
+  String get referCodeHint => 'Invitation code';
+
+  @override
+  String get referCodeThanks => 'Thank you — your invitation is noted';
+
+  @override
+  String get referCodeRefused => 'That code could not be used';
+
+  @override
+  String get referRewardsHeading => 'Your rewards';
+
+  @override
+  String get referHistoryHeading => 'Invitations';
+
+  @override
+  String get referStatusPending => 'Joined — settling in';
+
+  @override
+  String get referStatusRewarded => 'Reward earned';
+
+  @override
+  String get referStatusRejected => 'Not eligible';
+
+  @override
+  String get referTerms =>
+      'One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.';
+
+  @override
+  String get shareStudioTitle => 'Share studio';
+
+  @override
+  String get shareSizeSquare => 'Square';
+
+  @override
+  String get shareSizePortrait => 'Portrait';
+
+  @override
+  String get shareSizeStory => 'Story';
+
+  @override
+  String get shareBackground => 'Background';
+
+  @override
+  String get shareGradients => 'Gradients';
+
+  @override
+  String get shareColours => 'Colours';
+
+  @override
+  String get sharePicture => 'Picture';
+
+  @override
+  String get shareMakeWithAi => 'Create new';
+
+  @override
+  String get shareText => 'Text';
+
+  @override
+  String get shareTextSize => 'Size';
+
+  @override
+  String get shareLightText => 'Light text';
+
+  @override
+  String get shareShowMeaning => 'Show meaning';
+
+  @override
+  String get shareShowReference => 'Show reference';
+
+  @override
+  String get shareDarken => 'Darken for readability';
+
+  @override
+  String get shareImage => 'Share picture';
+
+  @override
+  String get shareLinkOnly => 'Share link';
+
+  @override
+  String get shareCopyText => 'Copy text';
+
+  @override
+  String get shareCopyLink => 'Copy link';
+
+  @override
+  String get shareLinkCopied => 'Link copied';
+
+  @override
+  String get shareTextCopied => 'Text copied';
+
+  @override
+  String get shareChoosePicture => 'Choose a picture';
+
+  @override
+  String get sharePictureInvalid =>
+      'Please choose a JPEG, PNG or WebP picture under 8 MB.';
+
+  @override
+  String get shareAiPrompt => 'Describe the background';
+
+  @override
+  String get shareAiMake => 'Make background';
+
+  @override
+  String get shareAiMaking => 'Making your background…';
+
+  @override
+  String get shareAiNote => 'Uses part of your Ask Sakha credits.';
+
+  @override
+  String get shareAiNoCredit =>
+      'You do not have enough credits for a background.';
+
+  @override
+  String get shareAiSeePlans => 'See plans';
+
+  @override
+  String get shareAiFailed =>
+      'The background could not be made. You have not been charged — please try again.';
+
+  @override
+  String get shareAiUnavailable => 'Backgrounds are not available right now.';
+
+  @override
+  String get shareLinkFailed => 'Could not make a link for this.';
+
+  @override
+  String get shareExportFailed =>
+      'Could not prepare the picture. Please try again.';
 }

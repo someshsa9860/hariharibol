@@ -33,6 +33,7 @@ class VerseBlock extends StatelessWidget {
     required this.onOpenNotes,
     required this.onOpenRelated,
     this.onAskSakha,
+    this.onShare,
     this.translation,
     this.onCompareTranslations,
     this.onPlay,
@@ -58,6 +59,9 @@ class VerseBlock extends StatelessWidget {
 
   /// Opens Ask Sakha with this verse. Null hides the button.
   final VoidCallback? onAskSakha;
+
+  /// Opens the share studio with this verse. Null hides the button.
+  final VoidCallback? onShare;
 
   /// Null when the verse has only one rendering — nothing to compare.
   final VoidCallback? onCompareTranslations;
@@ -167,6 +171,12 @@ class VerseBlock extends StatelessWidget {
                   icon: Icons.chat_bubble_outline_rounded,
                   tooltip: text.verseAskSakha,
                   onPressed: onAskSakha!,
+                ),
+              if (onShare != null)
+                _ActionIcon(
+                  icon: Icons.ios_share_rounded,
+                  tooltip: text.shareStudioTitle,
+                  onPressed: onShare!,
                 ),
               if (onCompareTranslations != null)
                 _ActionIcon(

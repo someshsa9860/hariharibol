@@ -2204,4 +2204,164 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ఇక్కడ చూపిన ఏదైనా పాఠ్యంపై మీకు హక్కులు ఉంటే, లేదా అందులో పొరపాటు కనిపిస్తే, దయచేసి మాకు రాయండి. మేము త్వరగా స్పందిస్తాము, కోరితే దానిని సరిదిద్దుతాము లేదా తొలగిస్తాము.';
+
+  @override
+  String get referTitle => 'రిఫర్ చేయండి, సంపాదించండి';
+
+  @override
+  String get referIntro =>
+      'ఒక స్నేహితుడిని ఆహ్వానించండి. వారు చేరి వాడటం మొదలుపెట్టినప్పుడు, మీకు ఆర్త ప్లాన్‌లో ఒక నెల లభిస్తుంది.';
+
+  @override
+  String get referYourLink => 'మీ ఆహ్వాన లింక్';
+
+  @override
+  String get referShare => 'ఆహ్వానం పంపండి';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol‌లో నాతో చేరండి — శ్లోకాలు, మంత్రాలు, Sakha, ఉచితంగా.';
+
+  @override
+  String get referPending => 'చేరుతున్నారు';
+
+  @override
+  String get referRewarded => 'పొందిన బహుమతులు';
+
+  @override
+  String get referHaveCode => 'మీకు ఆహ్వానం వచ్చిందా? కోడ్ నమోదు చేయండి';
+
+  @override
+  String get referUseCode => 'కోడ్ వాడండి';
+
+  @override
+  String get referCodeHint => 'ఆహ్వాన కోడ్';
+
+  @override
+  String get referCodeThanks => 'ధన్యవాదాలు — మీ ఆహ్వానం నమోదైంది';
+
+  @override
+  String get referCodeRefused => 'ఆ కోడ్‌ను వాడలేకపోయాం';
+
+  @override
+  String get referRewardsHeading => 'మీ బహుమతులు';
+
+  @override
+  String get referHistoryHeading => 'ఆహ్వానాలు';
+
+  @override
+  String get referStatusPending => 'చేరారు — మొదలుపెడుతున్నారు';
+
+  @override
+  String get referStatusRewarded => 'బహుమతి లభించింది';
+
+  @override
+  String get referStatusRejected => 'అర్హత లేదు';
+
+  @override
+  String get referTerms =>
+      'ఆహ్వానించిన ప్రతి వ్యక్తికి ఒక బహుమతి; దీన్ని మేము స్టోర్ కొనుగోలుగా కాక అదనపు ప్లాన్ సమయంగా ఇస్తాము. చూపిన తేదీన ఇది ముగుస్తుంది, తనంతట తానే పునరుద్ధరించబడదు. సంవత్సరానికి గరిష్టంగా 12 నెలలు; దుర్వినియోగం జరిగితే బహుమతులను నిలిపివేయవచ్చు.';
+
+  @override
+  String get shareStudioTitle => 'షేర్ స్టూడియో';
+
+  @override
+  String get shareSizeSquare => 'చతురస్రం';
+
+  @override
+  String get shareSizePortrait => 'పోర్ట్రెయిట్';
+
+  @override
+  String get shareSizeStory => 'స్టోరీ';
+
+  @override
+  String get shareBackground => 'నేపథ్యం';
+
+  @override
+  String get shareGradients => 'గ్రేడియంట్లు';
+
+  @override
+  String get shareColours => 'రంగులు';
+
+  @override
+  String get sharePicture => 'చిత్రం';
+
+  @override
+  String get shareMakeWithAi => 'కొత్తది సృష్టించండి';
+
+  @override
+  String get shareText => 'వచనం';
+
+  @override
+  String get shareTextSize => 'పరిమాణం';
+
+  @override
+  String get shareLightText => 'లేత వచనం';
+
+  @override
+  String get shareShowMeaning => 'అర్థం చూపించు';
+
+  @override
+  String get shareShowReference => 'ప్రస్తావన చూపించు';
+
+  @override
+  String get shareDarken => 'చదవడానికి ముదురు చేయి';
+
+  @override
+  String get shareImage => 'చిత్రాన్ని షేర్ చేయండి';
+
+  @override
+  String get shareLinkOnly => 'లింక్ షేర్ చేయండి';
+
+  @override
+  String get shareCopyText => 'వచనాన్ని కాపీ చేయండి';
+
+  @override
+  String get shareCopyLink => 'లింక్ కాపీ చేయండి';
+
+  @override
+  String get shareLinkCopied => 'లింక్ కాపీ అయింది';
+
+  @override
+  String get shareTextCopied => 'వచనం కాపీ అయింది';
+
+  @override
+  String get shareChoosePicture => 'చిత్రాన్ని ఎంచుకోండి';
+
+  @override
+  String get sharePictureInvalid =>
+      'దయచేసి 8 MB కంటే చిన్న JPEG, PNG లేదా WebP చిత్రాన్ని ఎంచుకోండి.';
+
+  @override
+  String get shareAiPrompt => 'నేపథ్యాన్ని వివరించండి';
+
+  @override
+  String get shareAiMake => 'నేపథ్యం సృష్టించండి';
+
+  @override
+  String get shareAiMaking => 'మీ నేపథ్యం తయారవుతోంది…';
+
+  @override
+  String get shareAiNote =>
+      'దీనికి మీ Ask Sakha క్రెడిట్లలో కొంత భాగం ఖర్చవుతుంది.';
+
+  @override
+  String get shareAiNoCredit => 'నేపథ్యానికి మీ వద్ద తగినన్ని క్రెడిట్లు లేవు.';
+
+  @override
+  String get shareAiSeePlans => 'ప్లాన్‌లు చూడండి';
+
+  @override
+  String get shareAiFailed =>
+      'నేపథ్యాన్ని సృష్టించలేకపోయాం. మీ నుండి ఎలాంటి చార్జీ తీసుకోలేదు — దయచేసి మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get shareAiUnavailable => 'నేపథ్యాలు ప్రస్తుతం అందుబాటులో లేవు.';
+
+  @override
+  String get shareLinkFailed => 'దీనికి లింక్ సృష్టించలేకపోయాం.';
+
+  @override
+  String get shareExportFailed =>
+      'చిత్రాన్ని సిద్ధం చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.';
 }

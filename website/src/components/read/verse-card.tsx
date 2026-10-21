@@ -3,18 +3,18 @@
 import { memo, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { ShareButton } from '@/components/share/share-button';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { AudioButton } from './audio-button';
 import { CompareSheet } from './compare-sheet';
 import { NotesSheet } from './notes-sheet';
 import { useAuth } from '@/lib/auth/auth-provider';
-import { SITE_URL } from '@/lib/config';
 import { useFavorite } from '@/lib/favorites';
 import { creditName, verseCitation, verseRef } from '@/lib/format';
 import { verseHref } from '@/lib/links';
 import { usePrefs } from '@/lib/prefs/prefs-provider';
-import { copyText, share } from '@/lib/share';
+import { copyText } from '@/lib/share';
 import type { Verse } from '@/lib/types';
 
 interface Props {
@@ -43,11 +43,6 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
   const hasPurport = Boolean(translation?.purport);
   const wordsOpen = expanded || reader.showWordMeanings || showWords;
 
-  const onShare = async () => {
-    const result = await share({ title: citation, text: `${verse.sanskrit ?? ''}\n\n${translation?.meaning ?? ''}\n— ${citation}`, url: `${SITE_URL}${verseHref(verse.verseId)}` });
-    if (result === 'copied') toast('Link copied');
-    if (result === 'failed') toast('Could not share this verse');
-  };
   const onCopy = async () => toast((await copyText(`${verse.sanskrit ?? ''}\n\n${verse.transliteration ?? ''}\n\n${translation?.meaning ?? ''}\n— ${citation}`)) ? 'Verse copied' : 'Could not copy');
 
   return (
@@ -60,7 +55,7 @@ function VerseCardInner({ verse, expanded, active, onAudioEnded }: Props) {
             <Icon name="heart" solid={isFavorite} />
           </button>
           <button className="icon-btn" onClick={() => requireSignIn('Sign in to keep notes on verses.') && setNoting(true)} aria-label="My notes on this verse"><Icon name="text" /></button>
-          <button className="icon-btn" onClick={onShare} aria-label="Share this verse"><Icon name="share" /></button>
+          <ShareButton iconOnly label="Share this verse" className="icon-btn" content={{ kind: 'SHLOKA', targetId: verse.verseId, title: citation, sanskrit: verse.sanskrit, transliteration: verse.transliteration, meaning: translation?.meaning ?? null }} />
           <button className="icon-btn" onClick={onCopy} aria-label="Copy this verse"><Icon name="copy" /></button>
         </div>
       </header>

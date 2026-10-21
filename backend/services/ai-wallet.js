@@ -194,7 +194,7 @@ export function room(opened, conversation) {
  * short — see services/ai/index.js). Always recorded, even when it takes the
  * balance a little below zero: the call has already been made.
  */
-export async function debit({ userId, tokens, source, referenceId = null, note = null, timezone, bonus = 0 }) {
+export async function debit({ userId, tokens, source, referenceId = null, note = null, timezone, bonus = 0, countsToday = true }) {
   if (!Number.isInteger(tokens) || tokens <= 0) return null;
   const date = localDateKey(new Date(), timezone);
 
@@ -215,11 +215,15 @@ export async function debit({ userId, tokens, source, referenceId = null, note =
         },
       });
     }
-    await tx.aiDailyUsage.upsert({
-      where: { userId_date: { userId, date } },
-      update: { tokens: { increment: fromWallet }, bonusTokens: { increment: fromBonus } },
-      create: { userId, date, tokens: fromWallet, bonusTokens: fromBonus },
-    });
+    // A flat-priced feature (a Share Studio background) sets countsToday: false — one picture is larger than a
+    // day's chat cap, and spending it must not lock the reader out of chat until tomorrow.
+    if (countsToday) {
+      await tx.aiDailyUsage.upsert({
+        where: { userId_date: { userId, date } },
+        update: { tokens: { increment: fromWallet }, bonusTokens: { increment: fromBonus } },
+        create: { userId, date, tokens: fromWallet, bonusTokens: fromBonus },
+      });
+    }
     return wallet.balance;
   });
 }

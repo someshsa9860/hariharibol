@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../../core/constants/app_config.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../core/navigation/share_entry.dart';
 import '../../models/api_failure.dart';
 import '../../models/reel.dart';
 import '../../providers/reel_provider.dart';
@@ -75,16 +73,13 @@ mixin ReelActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// Opens the share studio for the reel; the count goes up only when the system share sheet reports a share.
   Future<void> shareReel(Reel reel) async {
-    final text = AppLocalizations.of(context);
-    final link = '${AppConfig.appScheme}://reels/${reel.id}';
+    openReelShare(id: reel.id, title: reel.shareLabel, onShared: () => _recordShare(reel));
+  }
 
+  Future<void> _recordShare(Reel reel) async {
     try {
-      final result = await SharePlus.instance.share(
-        ShareParams(text: text.reelShareMessage(reel.shareLabel, link)),
-      );
-      if (result.status != ShareResultStatus.success) return;
-
       final count = await ReelService.instance.recordShare(reel.id, SharePlatform.other);
       final current = reelById(reel.id) ?? reel;
       _apply(current.copyWith(shareCount: count));

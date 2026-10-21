@@ -2201,4 +2201,164 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'ಇಲ್ಲಿ ತೋರಿಸಿರುವ ಯಾವುದೇ ಪಠ್ಯದ ಮೇಲೆ ನಿಮಗೆ ಹಕ್ಕುಗಳಿದ್ದರೆ, ಅಥವಾ ಅದರಲ್ಲಿ ತಪ್ಪು ಕಂಡುಬಂದರೆ, ದಯವಿಟ್ಟು ನಮಗೆ ಬರೆಯಿರಿ. ನಾವು ಶೀಘ್ರವಾಗಿ ಉತ್ತರಿಸುತ್ತೇವೆ ಮತ್ತು ಕೇಳಿದರೆ ಅದನ್ನು ಸರಿಪಡಿಸುತ್ತೇವೆ ಅಥವಾ ತೆಗೆದುಹಾಕುತ್ತೇವೆ.';
+
+  @override
+  String get referTitle => 'ರೆಫರ್ ಮಾಡಿ, ಗಳಿಸಿ';
+
+  @override
+  String get referIntro =>
+      'ಸ್ನೇಹಿತರನ್ನು ಆಹ್ವಾನಿಸಿ. ಅವರು ಸೇರಿ ಬಳಸಲು ಆರಂಭಿಸಿದಾಗ, ನಿಮಗೆ ಆರ್ತ ಪ್ಲಾನ್‌ನ ಒಂದು ತಿಂಗಳು ಸಿಗುತ್ತದೆ.';
+
+  @override
+  String get referYourLink => 'ನಿಮ್ಮ ಆಹ್ವಾನ ಲಿಂಕ್';
+
+  @override
+  String get referShare => 'ಆಹ್ವಾನ ಕಳುಹಿಸಿ';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol‌ನಲ್ಲಿ ನನ್ನೊಂದಿಗೆ ಸೇರಿ — ಶ್ಲೋಕಗಳು, ಮಂತ್ರಗಳು ಮತ್ತು Sakha, ಉಚಿತವಾಗಿ.';
+
+  @override
+  String get referPending => 'ಸೇರುತ್ತಿದ್ದಾರೆ';
+
+  @override
+  String get referRewarded => 'ಗಳಿಸಿದ ಬಹುಮಾನಗಳು';
+
+  @override
+  String get referHaveCode => 'ನಿಮಗೆ ಆಹ್ವಾನ ಬಂದಿತ್ತೇ? ಕೋಡ್ ನಮೂದಿಸಿ';
+
+  @override
+  String get referUseCode => 'ಕೋಡ್ ಬಳಸಿ';
+
+  @override
+  String get referCodeHint => 'ಆಹ್ವಾನ ಕೋಡ್';
+
+  @override
+  String get referCodeThanks => 'ಧನ್ಯವಾದಗಳು — ನಿಮ್ಮ ಆಹ್ವಾನ ದಾಖಲಾಗಿದೆ';
+
+  @override
+  String get referCodeRefused => 'ಆ ಕೋಡ್ ಬಳಸಲು ಆಗಲಿಲ್ಲ';
+
+  @override
+  String get referRewardsHeading => 'ನಿಮ್ಮ ಬಹುಮಾನಗಳು';
+
+  @override
+  String get referHistoryHeading => 'ಆಹ್ವಾನಗಳು';
+
+  @override
+  String get referStatusPending => 'ಸೇರಿದ್ದಾರೆ — ಆರಂಭಿಸುತ್ತಿದ್ದಾರೆ';
+
+  @override
+  String get referStatusRewarded => 'ಬಹುಮಾನ ಸಿಕ್ಕಿದೆ';
+
+  @override
+  String get referStatusRejected => 'ಅರ್ಹರಲ್ಲ';
+
+  @override
+  String get referTerms =>
+      'ಆಹ್ವಾನಿತ ಪ್ರತಿಯೊಬ್ಬರಿಗೂ ಒಂದು ಬಹುಮಾನ; ಇದನ್ನು ನಾವು ಸ್ಟೋರ್ ಖರೀದಿಯ ಬದಲು ಹೆಚ್ಚುವರಿ ಪ್ಲಾನ್ ಅವಧಿಯಾಗಿ ನೀಡುತ್ತೇವೆ. ತೋರಿಸಿದ ದಿನಾಂಕದಂದು ಇದು ಮುಗಿಯುತ್ತದೆ ಮತ್ತು ತನ್ನಷ್ಟಕ್ಕೇ ನವೀಕರಣವಾಗುವುದಿಲ್ಲ. ವರ್ಷಕ್ಕೆ ಗರಿಷ್ಠ 12 ತಿಂಗಳು; ದುರುಪಯೋಗವಾದರೆ ಬಹುಮಾನಗಳನ್ನು ತಡೆಹಿಡಿಯಬಹುದು.';
+
+  @override
+  String get shareStudioTitle => 'ಶೇರ್ ಸ್ಟುಡಿಯೋ';
+
+  @override
+  String get shareSizeSquare => 'ಚೌಕ';
+
+  @override
+  String get shareSizePortrait => 'ಪೋರ್ಟ್ರೇಟ್';
+
+  @override
+  String get shareSizeStory => 'ಸ್ಟೋರಿ';
+
+  @override
+  String get shareBackground => 'ಹಿನ್ನೆಲೆ';
+
+  @override
+  String get shareGradients => 'ಗ್ರೇಡಿಯಂಟ್‌ಗಳು';
+
+  @override
+  String get shareColours => 'ಬಣ್ಣಗಳು';
+
+  @override
+  String get sharePicture => 'ಚಿತ್ರ';
+
+  @override
+  String get shareMakeWithAi => 'ಹೊಸದನ್ನು ರಚಿಸಿ';
+
+  @override
+  String get shareText => 'ಪಠ್ಯ';
+
+  @override
+  String get shareTextSize => 'ಗಾತ್ರ';
+
+  @override
+  String get shareLightText => 'ತಿಳಿ ಪಠ್ಯ';
+
+  @override
+  String get shareShowMeaning => 'ಅರ್ಥ ತೋರಿಸಿ';
+
+  @override
+  String get shareShowReference => 'ಉಲ್ಲೇಖ ತೋರಿಸಿ';
+
+  @override
+  String get shareDarken => 'ಓದಲು ಗಾಢಗೊಳಿಸಿ';
+
+  @override
+  String get shareImage => 'ಚಿತ್ರ ಹಂಚಿಕೊಳ್ಳಿ';
+
+  @override
+  String get shareLinkOnly => 'ಲಿಂಕ್ ಹಂಚಿಕೊಳ್ಳಿ';
+
+  @override
+  String get shareCopyText => 'ಪಠ್ಯ ನಕಲಿಸಿ';
+
+  @override
+  String get shareCopyLink => 'ಲಿಂಕ್ ನಕಲಿಸಿ';
+
+  @override
+  String get shareLinkCopied => 'ಲಿಂಕ್ ನಕಲಾಗಿದೆ';
+
+  @override
+  String get shareTextCopied => 'ಪಠ್ಯ ನಕಲಾಗಿದೆ';
+
+  @override
+  String get shareChoosePicture => 'ಚಿತ್ರವನ್ನು ಆರಿಸಿ';
+
+  @override
+  String get sharePictureInvalid =>
+      'ದಯವಿಟ್ಟು 8 MB ಗಿಂತ ಚಿಕ್ಕ JPEG, PNG ಅಥವಾ WebP ಚಿತ್ರವನ್ನು ಆರಿಸಿ.';
+
+  @override
+  String get shareAiPrompt => 'ಹಿನ್ನೆಲೆಯನ್ನು ವಿವರಿಸಿ';
+
+  @override
+  String get shareAiMake => 'ಹಿನ್ನೆಲೆ ರಚಿಸಿ';
+
+  @override
+  String get shareAiMaking => 'ನಿಮ್ಮ ಹಿನ್ನೆಲೆ ತಯಾರಾಗುತ್ತಿದೆ…';
+
+  @override
+  String get shareAiNote =>
+      'ಇದಕ್ಕೆ ನಿಮ್ಮ Ask Sakha ಕ್ರೆಡಿಟ್‌ಗಳ ಒಂದು ಭಾಗ ಬಳಕೆಯಾಗುತ್ತದೆ.';
+
+  @override
+  String get shareAiNoCredit => 'ಹಿನ್ನೆಲೆಗೆ ನಿಮ್ಮಲ್ಲಿ ಸಾಕಷ್ಟು ಕ್ರೆಡಿಟ್‌ಗಳಿಲ್ಲ.';
+
+  @override
+  String get shareAiSeePlans => 'ಪ್ಲಾನ್‌ಗಳನ್ನು ನೋಡಿ';
+
+  @override
+  String get shareAiFailed =>
+      'ಹಿನ್ನೆಲೆ ರಚಿಸಲಾಗಲಿಲ್ಲ. ನಿಮ್ಮಿಂದ ಯಾವುದೇ ಶುಲ್ಕ ಪಡೆದಿಲ್ಲ — ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get shareAiUnavailable => 'ಹಿನ್ನೆಲೆಗಳು ಈಗ ಲಭ್ಯವಿಲ್ಲ.';
+
+  @override
+  String get shareLinkFailed => 'ಇದಕ್ಕೆ ಲಿಂಕ್ ರಚಿಸಲಾಗಲಿಲ್ಲ.';
+
+  @override
+  String get shareExportFailed =>
+      'ಚಿತ್ರವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 }

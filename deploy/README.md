@@ -107,6 +107,23 @@ The **iOS app** is released the same way, by Xcode Cloud rather than a GitHub wo
 branch changes to `production` and ships a build to TestFlight. Its setup, secrets and what must be enabled on
 Apple's side are in "Releasing the iOS app (Xcode Cloud)" in [app/CLAUDE.md](../app/CLAUDE.md#releasing-the-ios-app-xcode-cloud).
 
+## App links (verse, mantra and reel links; invitations)
+
+`https://hariharibol.com/shloka|mantra|divya|satsang/<code>` is served by the website; the two verification files that make the
+apps open it come from the deeplink container, and the host's web server must hand them over **from `hariharibol.com`** (both
+`deploy/server/nginx.conf` and `deploy/server/apache/hariharibol-le-ssl.conf` do now). Needed in the server `.env`:
+
+| Variable | Why |
+|---|---|
+| `ANDROID_CERT_SHA256` | Comma-separated SHA-256 fingerprints: the **Play Console → App signing key certificate** and the upload key. Without it `assetlinks.json` lists none and Android keeps opening links in the browser. |
+| `PLAY_STORE_URL` / `APP_STORE_URL` | The store buttons on the landing pages and the invitation page. Blank hides the button; nothing is invented. `APP_STORE_URL` has no default. |
+| `APPLE_BUNDLE_IDS`, `APPLE_TEAM_ID` | The Apple association file lists `<APPLE_TEAM_ID>.<bundle id>` for each bundle id (team default `V2LNA795Y9`, the team in the Xcode project — **unconfirmed**; set it to the team that really signs the app). |
+| `SHARE_BACKGROUND_TOKENS`, `OPENAI_IMAGE_MODEL` | AI backgrounds in the Share Studio (default 100,000 tokens, `gpt-image-1`). |
+
+Check after a deploy: `curl -i https://hariharibol.com/.well-known/assetlinks.json` and `…/apple-app-site-association` must be
+`200`, `application/json`, **no redirect**. Production also needs `prisma migrate deploy` for `20261027000000_share_and_referrals`
+(the deploy runs it).
+
 ## Deploying
 
 Deploy everything with `IMAGE_TAG=<git-sha> ./deploy.sh`, or one part with

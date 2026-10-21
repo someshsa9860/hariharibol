@@ -25,6 +25,9 @@ import '../../views/reels/similar_reels_view.dart';
 import '../../views/reels/reels_view.dart';
 import '../../views/search/search_view.dart';
 import '../../views/premium/plans_view.dart';
+import '../../views/settings/refer_view.dart';
+import '../../views/share/share_studio_view.dart';
+import '../../models/share.dart';
 import '../../views/settings/sources_view.dart';
 import '../../views/settings/voices_view.dart';
 import '../../views/settings/settings_view.dart';
@@ -144,6 +147,18 @@ GoRouter createRouter() {
         path: AppRoutes.plans,
         name: RouteNames.plans,
         builder: (context, state) => const PlansView(),
+      ),
+      GoRoute(
+        path: AppRoutes.refer,
+        name: RouteNames.refer,
+        builder: (context, state) => const ReferView(),
+      ),
+      GoRoute(
+        path: AppRoutes.shareStudio,
+        name: RouteNames.shareStudio,
+        // A studio with nothing to draw (opened with no `extra`, as a deep link could) has no screen to show.
+        redirect: (context, state) => state.extra is ShareStudioArgs ? null : AppRoutes.home,
+        builder: (context, state) => ShareStudioView(args: state.extra! as ShareStudioArgs),
       ),
       GoRoute(
         path: AppRoutes.voices,

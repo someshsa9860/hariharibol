@@ -2214,4 +2214,166 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'இங்கு காட்டப்படும் ஏதேனும் உள்ளடக்கத்தின் மீது உங்களுக்கு உரிமை இருந்தால், அல்லது அதில் பிழை கண்டால், தயவுசெய்து எங்களுக்கு எழுதுங்கள். நாங்கள் விரைவில் பதிலளிப்போம்; கேட்டுக்கொண்டால் அதைத் திருத்துவோம் அல்லது நீக்குவோம்.';
+
+  @override
+  String get referTitle => 'பகிருங்கள், சம்பாதியுங்கள்';
+
+  @override
+  String get referIntro =>
+      'ஒரு நண்பரை அழையுங்கள். அவர் சேர்ந்து பயன்படுத்தத் தொடங்கும்போது, உங்களுக்கு ஆர்த் திட்டத்தில் ஒரு மாதம் கிடைக்கும்.';
+
+  @override
+  String get referYourLink => 'உங்கள் அழைப்பு இணைப்பு';
+
+  @override
+  String get referShare => 'அழைப்பைப் பகிருங்கள்';
+
+  @override
+  String get referShareLine =>
+      'HariHariBol-ல் என்னுடன் சேருங்கள் — ஸ்லோகங்கள், மந்திரங்கள், Sakha, இலவசமாக.';
+
+  @override
+  String get referPending => 'இணைந்து வருகிறார்கள்';
+
+  @override
+  String get referRewarded => 'பெற்ற வெகுமதிகள்';
+
+  @override
+  String get referHaveCode =>
+      'உங்களுக்கு அழைப்பு வந்ததா? குறியீட்டை உள்ளிடுங்கள்';
+
+  @override
+  String get referUseCode => 'குறியீட்டைப் பயன்படுத்து';
+
+  @override
+  String get referCodeHint => 'அழைப்புக் குறியீடு';
+
+  @override
+  String get referCodeThanks => 'நன்றி — உங்கள் அழைப்பு பதிவாகிவிட்டது';
+
+  @override
+  String get referCodeRefused => 'அந்தக் குறியீட்டைப் பயன்படுத்த முடியவில்லை';
+
+  @override
+  String get referRewardsHeading => 'உங்கள் வெகுமதிகள்';
+
+  @override
+  String get referHistoryHeading => 'அழைப்புகள்';
+
+  @override
+  String get referStatusPending => 'இணைந்துவிட்டார் — தொடங்கி வருகிறார்';
+
+  @override
+  String get referStatusRewarded => 'வெகுமதி கிடைத்தது';
+
+  @override
+  String get referStatusRejected => 'தகுதியில்லை';
+
+  @override
+  String get referTerms =>
+      'அழைக்கப்பட்ட ஒவ்வொருவருக்கும் ஒரு வெகுமதி; இதை நாங்கள் ஸ்டோரில் வாங்குவதாக அல்லாமல் கூடுதல் திட்டக் காலமாக வழங்குகிறோம். காட்டப்பட்ட தேதியில் இது முடிவடையும்; தானாகப் புதுப்பிக்கப்படாது. ஆண்டுக்கு அதிகபட்சம் 12 மாதங்கள்; தவறாகப் பயன்படுத்தினால் வெகுமதிகளை நிறுத்தி வைக்கலாம்.';
+
+  @override
+  String get shareStudioTitle => 'பகிர்வு ஸ்டுடியோ';
+
+  @override
+  String get shareSizeSquare => 'சதுரம்';
+
+  @override
+  String get shareSizePortrait => 'நிமிர்வு';
+
+  @override
+  String get shareSizeStory => 'ஸ்டோரி';
+
+  @override
+  String get shareBackground => 'பின்னணி';
+
+  @override
+  String get shareGradients => 'கிரேடியண்ட்கள்';
+
+  @override
+  String get shareColours => 'நிறங்கள்';
+
+  @override
+  String get sharePicture => 'படம்';
+
+  @override
+  String get shareMakeWithAi => 'புதிதாக உருவாக்கு';
+
+  @override
+  String get shareText => 'உரை';
+
+  @override
+  String get shareTextSize => 'அளவு';
+
+  @override
+  String get shareLightText => 'வெளிர் உரை';
+
+  @override
+  String get shareShowMeaning => 'பொருளைக் காட்டு';
+
+  @override
+  String get shareShowReference => 'குறிப்பைக் காட்டு';
+
+  @override
+  String get shareDarken => 'படிக்க எளிதாக இருட்டாக்கு';
+
+  @override
+  String get shareImage => 'படத்தைப் பகிர்';
+
+  @override
+  String get shareLinkOnly => 'இணைப்பைப் பகிர்';
+
+  @override
+  String get shareCopyText => 'உரையை நகலெடு';
+
+  @override
+  String get shareCopyLink => 'இணைப்பை நகலெடு';
+
+  @override
+  String get shareLinkCopied => 'இணைப்பு நகலெடுக்கப்பட்டது';
+
+  @override
+  String get shareTextCopied => 'உரை நகலெடுக்கப்பட்டது';
+
+  @override
+  String get shareChoosePicture => 'ஒரு படத்தைத் தேர்ந்தெடுங்கள்';
+
+  @override
+  String get sharePictureInvalid =>
+      '8 MB-க்குள் உள்ள JPEG, PNG அல்லது WebP படத்தைத் தேர்ந்தெடுங்கள்.';
+
+  @override
+  String get shareAiPrompt => 'பின்னணியை விவரியுங்கள்';
+
+  @override
+  String get shareAiMake => 'பின்னணியை உருவாக்கு';
+
+  @override
+  String get shareAiMaking => 'உங்கள் பின்னணி உருவாகிறது…';
+
+  @override
+  String get shareAiNote =>
+      'இதற்கு உங்கள் Ask Sakha கிரெடிட்டின் ஒரு பகுதி செலவாகும்.';
+
+  @override
+  String get shareAiNoCredit =>
+      'பின்னணிக்குப் போதுமான கிரெடிட் உங்களிடம் இல்லை.';
+
+  @override
+  String get shareAiSeePlans => 'திட்டங்களைக் காண்க';
+
+  @override
+  String get shareAiFailed =>
+      'பின்னணியை உருவாக்க முடியவில்லை. உங்களிடம் கட்டணம் வசூலிக்கப்படவில்லை — மீண்டும் முயலுங்கள்.';
+
+  @override
+  String get shareAiUnavailable => 'பின்னணிகள் இப்போது கிடைக்கவில்லை.';
+
+  @override
+  String get shareLinkFailed => 'இதற்கான இணைப்பை உருவாக்க முடியவில்லை.';
+
+  @override
+  String get shareExportFailed =>
+      'படத்தைத் தயாரிக்க முடியவில்லை. மீண்டும் முயலுங்கள்.';
 }

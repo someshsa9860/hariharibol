@@ -77,8 +77,51 @@ website/src/
 | Notes, related verses | notes sheet on each verse (account); "Related verses" on `/verse/<id>` |
 | Notifications, practice report | `/notifications`; 30-day report on `/me` |
 | Creator profile | `/creator/<id>` — reels grid, follow |
+| Share (verse, mantra, reel), invitations, Refer & Earn | `/shloka/<code>`, `/mantra/<code>`, `/divya/<code>` (public landing pages), `/satsang/<code>` (invitation), `/me/refer`; the Share Studio opens from the verse card, the home verse, a mantra page and a reel |
 
 **Not on the website:** auto-count by sound, offline books, push reminders, creator publishing, buying a plan, donations.
+
+## Share Studio, landing pages and Refer & Earn
+
+Rules and the API are in "Sharing, deep links and Refer & Earn" in [backend/CLAUDE.md](../backend/CLAUDE.md).
+
+- **Landing pages** (`components/share/share-landing.tsx`, pages `app/shloka|mantra|divya/[code]`, `app/satsang/[code]`) are server
+  rendered from `GET /api/app/share/links/:code` (public, no token, so the page is the same for everyone): Open Graph and Twitter
+  tags from the *public* view only, the canonical `https://hariharibol.com/<path>/<code>` URL, a real **404** for an unknown or
+  wrong-kind code, and a `noindex` "no longer available" page for a revoked one (Next cannot send a 410 from a page). **Open in
+  the app** is an explicit `hariharibol://…` link — installed-app detection from a web page is not reliable, so nothing here
+  guesses it with a timer; opening the https link on a phone with the app is handled by Android App Links / iOS Universal Links
+  (see the app's docs). **Continue on the website** goes to `/verse/<id>`, `/jap/<slug>` or `/reels/<id>`. Store buttons appear
+  only for a store whose URL the API has (`PLAY_STORE_URL` / `APP_STORE_URL`); they are plain buttons, **not the stores' official
+  badge artwork** — drop that in if brand rules need it. The QR code (`qrcode`, SVG, drawn on the server) encodes the page's own
+  URL, so a phone that scans it gets the app-or-store handoff.
+- **Share Studio** (`components/share/share-studio.tsx`, `lib/studio/design.ts`, `lib/studio/render.ts`; opened by `ShareButton`).
+  One `Design` object; **the preview and the exported PNG are drawn by the same `renderCard` function at the same size**, so they
+  cannot differ (formats 1080², 1080×1350, 1080×1920, 1200×630, whatever the screen density). Backgrounds: colours, gradients (up
+  to 4 stops, angle), drawn "scenes" (sunrise, temple, lotus — no licensed photographs are bundled), the reader's own picture
+  (real bytes sniffed for JPEG/PNG/WebP, ≤ 8 MB, 400–6000 px, zoom / position / blur / darken) and an AI-made one. Text: editable,
+  font, weight, size, line height, alignment, colour, opacity, panel, margins, drag-to-position, transliteration / meaning /
+  reference toggles. **A long verse is shrunk to fit, never cut** (the card says so). The **transparent logo**
+  (`public/img/logo-transparent.png`, from the app's `hariharibol_trprt.png`) is drawn top-left at a fixed size with the text area
+  below it, so it cannot be covered. Undo / restore defaults. Fonts are waited for (`document.fonts.load`) before drawing and
+  exporting.
+  - **Sharing**: native share with the picture (Web Share Level 2), else it saves the picture and copies the link and says so;
+    share link, share as text, copy text, copy link, open the page. A link needs sign-in (it is made by `POST /share/links`).
+    Cancelling a share sheet is not an error, and nothing claims a social network received anything.
+  - **AI backgrounds** need sign-in and credits; the quote says whether one is affordable (never tokens), `402` shows "not enough
+    credits" with a link to `/plans`, a failure says nothing was charged, and a retry reuses the request id so it is never
+    charged twice. The picture is fetched through the API (`/share/background/:id/image`) so the canvas is not tainted.
+  - Entry points: the verse card (every verse in the reader), the home verse, a mantra page, a reel's share button. Not on search
+    results, favourites lists or the verse-of-the-day on other pages yet.
+- **Invitations.** `/satsang/<code>` keeps the code in `localStorage` + a 14-day cookie (`lib/referral-store.ts`; the first one
+  followed wins) and `ReferralClaimer` (mounted in the layout) hands it to `POST /referral/claim` after sign-in, dropping it on a
+  final refusal and keeping it on a network failure. `/me/refer` shows the link, code, counts, rewards with dates, history, an
+  "enter a code" box and the terms. Linked from `/me`.
+- **Checked** in a real browser against a local API: the landing page for a mantra (title, Open Graph / Twitter tags, canonical,
+  QR SVG, store link, app link), 404 for unknown and wrong-kind codes, the invitation page, and the studio opening from a mantra
+  page — 1080² export with the logo top-left, a 40× repeated Devanagari verse shrunk to fit on a 1080×1920 story, and the PNG
+  download. **Not run:** the AI-background tab and a share sheet (need sign-in and a real provider), `/me/refer` signed in, a
+  verse page (the dev database has no verses), reels, and the studio on a phone.
 
 ## Commands
 

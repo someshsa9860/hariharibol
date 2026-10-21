@@ -69,6 +69,14 @@ class PushLinks {
     _flush();
   }
 
+  /// A link from outside the app (a shared verse, mantra or reel) names a screen. It waits for the same moment a
+  /// tapped notification does — the dashboard on screen, so signed-out and still-loading starts are held — and the
+  /// latest one wins.
+  void openRoute(String route) {
+    _pending = route;
+    _flush();
+  }
+
   /// The dashboard is on screen ([ready]) or has gone.
   void setReady(bool ready) {
     _ready = ready;

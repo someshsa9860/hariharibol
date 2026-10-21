@@ -59,6 +59,8 @@ const definitions = {
   // Chat messages: each one is a paid model call. Credits are the real limit;
   // this only stops a script from hammering the endpoint.
   chat: { windowMs: 60 * 1000, max: 20 },
+  // Claiming a referral code: a handful of tries is a typo, more is guessing.
+  referral: { windowMs: 60 * 60 * 1000, max: 20 },
   // Payment callbacks: generous, because providers retry hard, but not open.
   webhook: { windowMs: 60 * 1000, max: 300 },
 };

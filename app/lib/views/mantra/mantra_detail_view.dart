@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format/script.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/navigation/share_entry.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
@@ -29,7 +30,16 @@ class MantraDetailView extends ConsumerWidget {
     final text = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          if (mantra.asData?.value case final loaded?)
+            IconButton(
+              icon: const Icon(Icons.ios_share_rounded),
+              tooltip: text.shareStudioTitle,
+              onPressed: () => openMantraShare(slug: loaded.slug, name: loaded.name, text: loaded.text, meaning: loaded.meaning),
+            ),
+        ],
+      ),
       body: mantra.when(
         loading: () => const AppLoader(),
         error: (error, _) => AppErrorView(

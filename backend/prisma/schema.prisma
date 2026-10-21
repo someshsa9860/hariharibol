@@ -124,6 +124,7 @@ enum PaymentProvider {
   GOOGLE_PLAY
   APPLE_APP_STORE
   RAZORPAY
+  REFERRAL // a month of access earned by a referral — no money moved, see services/referral.js
 }
 
 enum PaymentPurpose {
@@ -211,6 +212,11 @@ model User {
   // from it. It is what makes the carry-over safe to repeat: the same old account always
   // lands on the same row here, however many times a phone asks.
   legacyUserId Int? @unique
+
+  referralCode      ReferralCode?
+  referralsMade     Referral[]       @relation("ReferralsMade")
+  referralReceived  Referral?        @relation("ReferralReceived")
+  referralRewards   ReferralReward[]
 
   // Three independent language choices. They may all differ, or all match —
   // nothing is derived from another.
@@ -2733,4 +2739,108 @@ model ChatMessage {
   createdAt DateTime @default(now())
 
   @@unique([conversationId, seq])
+}
+
+
+// ── Sharing and referrals ───────────────────────────────────────────────────
+
+enum ShareKind {
+  SHLOKA // a verse — targetId is Verse.verseId
+  MANTRA // targetId is Mantra.slug
+  REEL // targetId is Reel.id
+}
+
+// The opaque code on the end of a shared link (hariharbol.com/shloka/<code>). One per target: sharing the
+// same verse twice gives the same link, and nothing in it names a person, so a link cannot leak who sent it.
+// The code is random; the target is looked up here, never decoded from the code.
+model ShareLink {
+  id String @id @default(cuid())
+
+  code     String    @unique @db.VarChar(16)
+  kind     ShareKind
+  targetId String
+
+  opens     Int       @default(0)
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([kind, targetId])
+}
+
+// A person's referral code (hariharbol.com/satsang/<code>). Kept apart from ShareLink on purpose: opening
+// shared content can never touch referral attribution, and the reverse.
+model ReferralCode {
+  id String @id @default(cuid())
+
+  userId String   @unique
+  code   String   @unique @db.VarChar(16)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ReferralStatus {
+  PENDING // claimed; the new reader has not yet done enough to qualify
+  REWARDED // qualified and the month was granted
+  REJECTED // refused — see rejectReason
+}
+
+// One row per referred person: a person can be referred once, ever (refereeId is unique), by whoever's
+// code they claimed first.
+model Referral {
+  id String @id @default(cuid())
+
+  referrerId String
+  refereeId  String @unique
+  code       String @db.VarChar(16)
+
+  status       ReferralStatus @default(PENDING)
+  rejectReason String?        @db.VarChar(100)
+
+  claimedAt   DateTime  @default(now())
+  qualifiedAt DateTime?
+
+  referrer User            @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee  User            @relation("ReferralReceived", fields: [refereeId], references: [id], onDelete: Cascade)
+  reward   ReferralReward?
+
+  @@index([referrerId, status])
+}
+
+// The audit trail of rewards: what was granted, to whom, for which referral, and the period it covers.
+// `referralId` is unique, so a retry or a race can never grant the same referral twice.
+model ReferralReward {
+  id String @id @default(cuid())
+
+  referralId String @unique
+  userId     String
+  planId     String
+
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// An AI background in progress or finished. `requestId` is the client's idempotency key: the same key never
+// charges twice, and a retry after a network failure returns the same row.
+model ShareBackground {
+  id String @id @default(cuid())
+
+  userId    String
+  requestId String @db.VarChar(64)
+  prompt    String @db.VarChar(600)
+
+  status     String  @default("PENDING") @db.VarChar(12) // PENDING | DONE | FAILED
+  tokens     Int
+  imagePath  String?
+  failReason String? @db.VarChar(200)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, requestId])
 }

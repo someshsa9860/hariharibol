@@ -17,8 +17,8 @@
 
     <div class="card">
       <a class="btn" href="<%= webUrl %>">Go to hariharibol.com</a>
-      <a class="btn secondary" href="<%= androidUrl %>">Android app</a>
-      <a class="btn secondary" href="<%= iosUrl %>">iOS app</a>
+      <% if (androidUrl) { %><a class="btn secondary" href="<%= androidUrl %>">Android app</a><% } %>
+      <% if (iosUrl) { %><a class="btn secondary" href="<%= iosUrl %>">iOS app</a><% } %>
     </div>
 
     <footer class="muted"><p>HariHariBol</p></footer>

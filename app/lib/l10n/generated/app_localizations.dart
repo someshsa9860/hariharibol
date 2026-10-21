@@ -3807,6 +3807,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.'**
   String get sourcesContactBody;
+
+  /// Settings row and screen title for inviting friends and earning a month of the Ārta plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer & Earn'**
+  String get referTitle;
+
+  /// Refer & Earn: one line saying what an invitation earns the person who sends it.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend. When they join and settle in, you receive a month of the Ārta plan.'**
+  String get referIntro;
+
+  /// Refer & Earn: heading over the reader's own invitation link.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitation link'**
+  String get referYourLink;
+
+  /// Refer & Earn: button that opens the system share sheet with the invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invitation'**
+  String get referShare;
+
+  /// The line sent with the invitation link when it is shared. The link follows on its own line.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on HariHariBol — verses, mantras and Sakha, free.'**
+  String get referShareLine;
+
+  /// Refer & Earn: label under a count of invited people who have joined and are settling in.
+  ///
+  /// In en, this message translates to:
+  /// **'Settling in'**
+  String get referPending;
+
+  /// Refer & Earn: label under a count of rewards the reader has earned.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards earned'**
+  String get referRewarded;
+
+  /// Refer & Earn: heading over the box where a person who was invited enters the code they were given.
+  ///
+  /// In en, this message translates to:
+  /// **'Were you invited? Enter a code'**
+  String get referHaveCode;
+
+  /// Refer & Earn: button that submits an invitation code.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code'**
+  String get referUseCode;
+
+  /// Refer & Earn: label of the invitation code field.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation code'**
+  String get referCodeHint;
+
+  /// Refer & Earn: confirmation after an invitation code was accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you — your invitation is noted'**
+  String get referCodeThanks;
+
+  /// Refer & Earn: shown when an invitation code cannot be used (it is not theirs to use, or too late).
+  ///
+  /// In en, this message translates to:
+  /// **'That code could not be used'**
+  String get referCodeRefused;
+
+  /// Refer & Earn: heading over the list of months of Ārta the reader earned, each with its dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rewards'**
+  String get referRewardsHeading;
+
+  /// Refer & Earn: heading over the list of people the reader invited.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get referHistoryHeading;
+
+  /// Refer & Earn: status of an invited person who has joined but has not yet earned the reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined — settling in'**
+  String get referStatusPending;
+
+  /// Refer & Earn: status of an invited person whose invitation earned the reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward earned'**
+  String get referStatusRewarded;
+
+  /// Refer & Earn: status of an invitation that cannot earn a reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Not eligible'**
+  String get referStatusRejected;
+
+  /// Refer & Earn: the plain terms of the reward, shown at the foot of the screen.
+  ///
+  /// In en, this message translates to:
+  /// **'One reward per invited person, given by us as extra plan time rather than a store purchase. It ends on the date shown and does not renew by itself. Up to 12 months a year; we may withhold rewards for misuse.'**
+  String get referTerms;
+
+  /// Title of the screen where a verse, mantra or reel is made into a picture to share. Also the tooltip of the share button on a verse.
+  ///
+  /// In en, this message translates to:
+  /// **'Share studio'**
+  String get shareStudioTitle;
+
+  /// Share studio: picture shape, a square.
+  ///
+  /// In en, this message translates to:
+  /// **'Square'**
+  String get shareSizeSquare;
+
+  /// Share studio: picture shape, taller than wide (4:5).
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait'**
+  String get shareSizePortrait;
+
+  /// Share studio: picture shape for stories, full phone screen (9:16).
+  ///
+  /// In en, this message translates to:
+  /// **'Story'**
+  String get shareSizeStory;
+
+  /// Share studio: heading over the background choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get shareBackground;
+
+  /// Share studio: choice of colour gradients as the background.
+  ///
+  /// In en, this message translates to:
+  /// **'Gradients'**
+  String get shareGradients;
+
+  /// Share studio: choice of plain colours as the background.
+  ///
+  /// In en, this message translates to:
+  /// **'Colours'**
+  String get shareColours;
+
+  /// Share studio: choice of the reader's own picture as the background.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get sharePicture;
+
+  /// Share studio: choice to create a new background picture from a description.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new'**
+  String get shareMakeWithAi;
+
+  /// Share studio: heading over the text controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get shareText;
+
+  /// Share studio: label of the text size slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get shareTextSize;
+
+  /// Share studio: switch between light and dark lettering on the picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Light text'**
+  String get shareLightText;
+
+  /// Share studio: switch that includes the meaning on the picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Show meaning'**
+  String get shareShowMeaning;
+
+  /// Share studio: switch that includes the verse reference on the picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Show reference'**
+  String get shareShowReference;
+
+  /// Share studio: slider that darkens the background so the lettering is easier to read.
+  ///
+  /// In en, this message translates to:
+  /// **'Darken for readability'**
+  String get shareDarken;
+
+  /// Share studio: main button that shares the finished picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Share picture'**
+  String get shareImage;
+
+  /// Share studio: button that shares only the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share link'**
+  String get shareLinkOnly;
+
+  /// Share studio: button that copies the verse text.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get shareCopyText;
+
+  /// Button that copies a link to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get shareCopyLink;
+
+  /// Confirmation after a link was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get shareLinkCopied;
+
+  /// Confirmation after text was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Text copied'**
+  String get shareTextCopied;
+
+  /// Share studio: button that opens the photo library to choose a background picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a picture'**
+  String get shareChoosePicture;
+
+  /// Share studio: shown when the chosen file is not a usable picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose a JPEG, PNG or WebP picture under 8 MB.'**
+  String get sharePictureInvalid;
+
+  /// Share studio: label of the box where the reader describes the background they want.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the background'**
+  String get shareAiPrompt;
+
+  /// Share studio: button that makes the described background.
+  ///
+  /// In en, this message translates to:
+  /// **'Make background'**
+  String get shareAiMake;
+
+  /// Share studio: shown on the button while the background is being made.
+  ///
+  /// In en, this message translates to:
+  /// **'Making your background…'**
+  String get shareAiMaking;
+
+  /// Share studio: says a background uses part of the reader's Ask Sakha credits.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses part of your Ask Sakha credits.'**
+  String get shareAiNote;
+
+  /// Share studio: shown when the reader lacks the credits to make a background.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have enough credits for a background.'**
+  String get shareAiNoCredit;
+
+  /// Share studio: button that opens the plans screen to get more credits.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get shareAiSeePlans;
+
+  /// Share studio: shown when a background could not be made. Says nothing was charged.
+  ///
+  /// In en, this message translates to:
+  /// **'The background could not be made. You have not been charged — please try again.'**
+  String get shareAiFailed;
+
+  /// Share studio: shown when making backgrounds is not available.
+  ///
+  /// In en, this message translates to:
+  /// **'Backgrounds are not available right now.'**
+  String get shareAiUnavailable;
+
+  /// Share studio: shown when a link for this verse, mantra or reel could not be made.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not make a link for this.'**
+  String get shareLinkFailed;
+
+  /// Share studio: shown when the picture could not be prepared for sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare the picture. Please try again.'**
+  String get shareExportFailed;
 }
 
 class _AppLocalizationsDelegate
