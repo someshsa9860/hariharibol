@@ -2938,6 +2938,7 @@ model SceneRun {
   heartbeatAt DateTime?
 
   @@index([status, createdAt])
+}
 
 // ============================================================================
 // Hindu calendar (panchang)
