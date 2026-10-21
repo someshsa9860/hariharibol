@@ -4,7 +4,6 @@
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$BASE_DIR/server/.env"
 SECRETS_DIR="$BASE_DIR/secrets"
-WEBSITE_DIR="$BASE_DIR/website"
 
 # The containers talk to each other (redis) by name on this network. Only the
 # loopback ports below are published; Apache/Nginx on the host proxies to them.
@@ -15,7 +14,7 @@ ECR_REGISTRY="572638914162.dkr.ecr.ap-south-1.amazonaws.com"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 BACKEND_IMAGE="$ECR_REGISTRY/hariharibol-backend:$IMAGE_TAG"
 ADMIN_IMAGE="$ECR_REGISTRY/hariharibol-admin:$IMAGE_TAG"
-WEBSITE_IMAGE="nginx:1.27-alpine"
+WEBSITE_IMAGE="$ECR_REGISTRY/hariharibol-website:$IMAGE_TAG"
 REDIS_IMAGE="redis:7-alpine"
 
 # Memory limits come from what the containers actually used (cgroup peak after a
@@ -49,8 +48,9 @@ DEEPLINK_CPU="0.5"
 ADMIN_MEMORY="64m"
 ADMIN_CPU="0.5"
 
-WEBSITE_MEMORY="64m"
-WEBSITE_CPU="0.25"
+WEBSITE_MEMORY="256m"
+WEBSITE_HEAP_MB="160"
+WEBSITE_CPU="0.5"
 
 # Redis refuses writes at REDIS_MAXMEMORY instead of growing into its limit.
 # "noeviction" is deliberate: the job queue must never lose a job to make room.
