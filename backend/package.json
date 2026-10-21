@@ -46,6 +46,7 @@
     "test:reel-recipes": "node scripts/reel-recipes-e2e.js",
     "test:chant": "node scripts/chant-e2e.js",
     "test:routine": "node scripts/routine-e2e.js",
+    "test:groups": "node scripts/group-e2e.js",
     "test:mantra-mala": "node scripts/mantra-mala-e2e.js",
     "test:mantra-prayer": "node scripts/mantra-prayer-e2e.js",
     "test:sampradaya": "node scripts/sampradaya-e2e.js",

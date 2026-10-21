@@ -42,6 +42,13 @@ const EVENTS = {
   CHANT_PROGRESS: 'chant.progress',
   ENTITLEMENT_CHANGED: 'entitlement.changed',
   ANNOUNCEMENT: 'announcement',
+  // Group chanting: an invitation, a change to a group, a live session starting or ending,
+  // someone joining or leaving it, and a WebRTC handshake message from one member to another.
+  GROUP_INVITED: 'group.invited',
+  GROUP_CHANGED: 'group.changed',
+  GROUP_LIVE: 'group.live',
+  GROUP_PARTICIPANT: 'group.participant',
+  GROUP_SIGNAL: 'group.signal',
   // Admin panel, to `translation.read`: a run's whole state, and one line of its activity feed.
   TRANSLATION_RUN: 'translation.run',
   TRANSLATION_ACTIVITY: 'translation.activity',

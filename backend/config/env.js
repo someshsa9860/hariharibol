@@ -152,6 +152,15 @@ const schema = z.object({
   TRANSLATION_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
   TRANSLATION_VERSION: z.string().optional(),
 
+  // Group chanting (WebRTC). Audio goes phone to phone; STUN finds the way, TURN relays when no
+  // direct path exists. TURN is optional but, without it, people behind some mobile carriers
+  // and strict networks cannot be heard. TURN_SECRET is coturn's `static-auth-secret`: the API
+  // hands each person a username/password that expires, so no fixed password reaches a client.
+  STUN_URLS: z.string().default('stun:stun.l.google.com:19302'),
+  TURN_URLS: z.string().optional(),
+  TURN_SECRET: z.string().optional(),
+  TURN_TTL_SECONDS: z.coerce.number().default(3600),
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 
@@ -172,6 +181,8 @@ const env = {
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',
   googleClientIds: csv(parsed.data.GOOGLE_CLIENT_IDS),
+  stunUrls: csv(parsed.data.STUN_URLS),
+  turnUrls: csv(parsed.data.TURN_URLS),
   appleBundleIds: csv(parsed.data.APPLE_BUNDLE_IDS),
   legacyMigrationEnabled: Boolean(parsed.data.LEGACY_MIGRATION_URL && parsed.data.LEGACY_MIGRATION_KEY),
   // Resolved against the backend directory so the .env can hold the short,

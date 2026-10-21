@@ -265,20 +265,23 @@ model User {
   devices       Device[]
   refreshTokens RefreshToken[]
 
-  sadhanaProfile   SadhanaProfile?
-  sadhanaDays      SadhanaDay[]
-  chantSessions    ChantSession[]
-  chantMalas       ChantMala[]
-  chantTranscripts ChantTapTranscript[]
-  sadhanaTasks     SadhanaTask[]
-  routineTasks     RoutineTask[]
-  routineDaily     RoutineDailyItem[]
-  routineChecks    RoutineCheck[]
-  dailySlokas      UserDailySloka[]
-  issues           UserIssue[]
-  preferences      UserPreferenceProfile?
-  subscriptions    Subscription[]
-  payments         Payment[]
+  sadhanaProfile        SadhanaProfile?
+  sadhanaDays           SadhanaDay[]
+  chantSessions         ChantSession[]
+  chantMalas            ChantMala[]
+  chantTranscripts      ChantTapTranscript[]
+  sadhanaTasks          SadhanaTask[]
+  routineTasks          RoutineTask[]
+  chantGroupsOwned      ChantGroup[]
+  chantGroupMemberships ChantGroupMember[]
+  chantGroupSessions    ChantGroupParticipant[]
+  routineDaily          RoutineDailyItem[]
+  routineChecks         RoutineCheck[]
+  dailySlokas           UserDailySloka[]
+  issues                UserIssue[]
+  preferences           UserPreferenceProfile?
+  subscriptions         Subscription[]
+  payments              Payment[]
 
   aiWallet          AiWallet?
   aiWalletTxns      AiWalletTransaction[]
@@ -1761,10 +1764,11 @@ model Mantra {
 
   translations     MantraTranslation[]
   chantSessions    ChantSession[]
+  chantGroups      ChantGroup[]
   favorites        Favorite[]
   reels            Reel[]
-  preferredByUsers SadhanaProfile[] @relation("PreferredMantra")
-  legacyFavoriteOf SadhanaProfile[] @relation("LegacyFavoriteMantra")
+  preferredByUsers SadhanaProfile[]    @relation("PreferredMantra")
+  legacyFavoriteOf SadhanaProfile[]    @relation("LegacyFavoriteMantra")
 
   @@index([category])
   @@index([sampradaya])
@@ -2668,11 +2672,11 @@ model AiDailyUsage {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date   String @db.VarChar(10) // user-local "YYYY-MM-DD"
-  tokens Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
+  date        String @db.VarChar(10) // user-local "YYYY-MM-DD"
+  tokens      Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
   // Paid from that day's free-tier bonus instead (services/ai/free-tier.js, utils/ai-bonus.js). Not part of `tokens`,
   // so the bonus never uses up the cap and never touches the wallet.
-  bonusTokens Int @default(0)
+  bonusTokens Int    @default(0)
 
   @@id([userId, date])
   @@index([date])
@@ -2733,4 +2737,93 @@ model ChatMessage {
   createdAt DateTime @default(now())
 
   @@unique([conversationId, seq])
+}
+
+enum ChantGroupRole {
+  OWNER // made the group; the only one who can delete it
+  ADMIN // can invite, remove members and make other admins
+  MEMBER
+}
+
+enum ChantGroupMemberStatus {
+  INVITED // asked, has not answered
+  ACTIVE
+}
+
+// A private group that chants together. Nobody finds it by searching: a person
+// is in it because an admin invited them and they accepted.
+model ChantGroup {
+  id String @id @default(cuid())
+
+  name        String  @db.VarChar(80)
+  description String? @db.VarChar(300)
+
+  // The original admin. Also a ChantGroupMember row with role OWNER, so listing
+  // members needs no special case; kept here so "only the owner deletes" is one comparison.
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // The mantra the group is chanting, if it has chosen one. Shown to everyone on joining.
+  mantraId String?
+  mantra   Mantra? @relation(fields: [mantraId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  ChantGroupMember[]
+  sessions ChantGroupSession[]
+
+  @@index([ownerId])
+}
+
+model ChantGroupMember {
+  groupId String
+  userId  String
+
+  role        ChantGroupRole         @default(MEMBER)
+  status      ChantGroupMemberStatus @default(INVITED)
+  invitedById String?
+
+  createdAt DateTime  @default(now())
+  joinedAt  DateTime?
+
+  group ChantGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId, status])
+}
+
+// One live chanting together. A group has at most one open at a time (endedAt null).
+// The audio never touches the server: members connect to each other with WebRTC and
+// the API only relays the handshake (see "Group chanting" in backend/CLAUDE.md).
+model ChantGroupSession {
+  id String @id @default(cuid())
+
+  groupId   String
+  startedBy String
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  group        ChantGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  participants ChantGroupParticipant[]
+
+  @@index([groupId, endedAt])
+}
+
+// Someone who is, or was, in a live session. `lastSeenAt` is a heartbeat: a phone
+// that dies without saying goodbye stops counting after a minute.
+model ChantGroupParticipant {
+  sessionId String
+  userId    String
+
+  joinedAt   DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  leftAt     DateTime?
+
+  session ChantGroupSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, userId])
+  @@index([userId])
 }

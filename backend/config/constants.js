@@ -196,6 +196,15 @@ const CACHE = {
   dailySlokaTtl: 3600,
 };
 
+// ── Group chanting ─────────────────────────────────────────────────────────
+// Audio is a mesh — every phone sends to every other — so the cost grows with the square of
+// the people. Eight is comfortable on a phone; past it a media server would be needed.
+const GROUP_LIVE_MAX = 8;
+const GROUP_MEMBERS_MAX = 100;
+const GROUPS_PER_USER_MAX = 20; // groups one person may own
+// A phone that has not checked in for this long is no longer in the room.
+const GROUP_LIVE_STALE_MS = 60 * 1000;
+
 export {
   ROLES,
   PERMISSIONS,
@@ -223,4 +232,8 @@ export {
   SETTING_KEYS,
   SLOKA_DEFAULT_DELIVERY_TIME,
   CACHE,
+  GROUP_LIVE_MAX,
+  GROUP_MEMBERS_MAX,
+  GROUPS_PER_USER_MAX,
+  GROUP_LIVE_STALE_MS,
 };

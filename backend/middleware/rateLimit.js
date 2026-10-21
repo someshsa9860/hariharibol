@@ -54,6 +54,9 @@ const definitions = {
   read: { windowMs: 60 * 1000, max: 180 },
   // Anything that writes.
   write: { windowMs: 60 * 1000, max: 60 },
+  // WebRTC handshakes: a connection sends an offer, an answer and a stream of candidates, and a
+  // room of eight is seven of those at once.
+  signal: { windowMs: 60 * 1000, max: 600 },
   // Endpoints that can cost money downstream.
   ai: { windowMs: 60 * 60 * 1000, max: 30 },
   // Chat messages: each one is a paid model call. Credits are the real limit;
