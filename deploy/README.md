@@ -164,7 +164,12 @@ Add these under **Settings → Secrets and variables → Actions**.
 The website's sign-in and App Check values (`WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`,
 `WEBSITE_FIREBASE_CONFIG`, `WEBSITE_RECAPTCHA_SITE_KEY`) are **not** GitHub secrets: they go in the server's `.env`, the
 file the backend reads (`/var/www/hariharibol/server/.env`). `website.sh` hands the container only those keys, never the
-rest of the file, and `./deploy.sh website` on the server applies a change with a restart — no build.
+rest of the file, and `./deploy.sh website` on the server applies a change with a restart — no build. The Firebase
+config can be a file in `secrets/`, the way `GOOGLE_SERVICE_ACCOUNT_PATH` is: put the web config JSON at
+`/var/www/hariharibol/secrets/firebase-web.json` and set `WEBSITE_FIREBASE_CONFIG_PATH=/app/secrets/firebase-web.json`.
+`website.sh` reads the file on the host (the website container does not mount `secrets/`, which holds the service-account
+key) and stops before touching the running container if the file is missing. It is the web app's config, not the
+service-account file.
 
 **Variables** (not secret):
 

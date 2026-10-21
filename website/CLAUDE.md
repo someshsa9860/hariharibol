@@ -112,7 +112,12 @@ bundle — so changing one means a new build.
 `deploy/server/website.sh` reads `WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG`,
 `WEBSITE_RECAPTCHA_SITE_KEY` and optionally `WEBSITE_API_URL` (how the container reaches the API; not the backend's own
 `API_BASE_URL`, which is never passed on) from it and gives the container only those, with `-e`, never the whole file (it
-holds the database URL, the JWT secret and the AWS and AI keys). After editing the file, `cd /var/www/hariharibol/server &&
+holds the database URL, the JWT secret and the AWS and AI keys). The Firebase config may instead be a file in the secrets
+folder, like `GOOGLE_SERVICE_ACCOUNT_PATH`: `WEBSITE_FIREBASE_CONFIG_PATH=/app/secrets/<file>`, read **on the host** by
+`website.sh` (the container never mounts `secrets/`) and passed on as `WEBSITE_FIREBASE_CONFIG`; the file wins over an
+inline value, and a path that cannot be read stops the deploy before the old container is stopped. The server keeps only a
+web config's own keys (`publicFirebaseConfig` in `lib/runtime-config.ts`), so a service-account file named by mistake
+comes out empty, not published. After editing the file, `cd /var/www/hariharibol/server &&
 ./deploy.sh website` restarts the container with the new values — no build. The API's `WEB_BASE_URL` must be the site's
 origin (CORS), `GOOGLE_CLIENT_IDS` must include the web client id and `APPLE_BUNDLE_IDS` the Apple Services ID.
 
