@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/layout/adaptive.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
@@ -202,6 +203,43 @@ class _HomeContent extends ConsumerWidget {
         ),
     ];
 
+    // On a phone: one column, each section rising in a beat after the one above.
+    // Wide enough for two (a tablet held sideways, a desktop window, an unfolded
+    // foldable): the greeting across the top, then the cards in two columns —
+    // split at the hinge when the screen has one.
+    final layout = AdaptiveLayout.of(context);
+    final padding = AppSpacing.page.copyWith(
+      left: layout.gutter,
+      right: layout.gutter,
+      bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
+    );
+
+    if (layout.size.isWide || layout.hasVerticalHinge) {
+      final rest = sections.skip(1).toList();
+      final left = [for (var i = 0; i < rest.length; i += 2) rest[i]];
+      final right = [for (var i = 1; i < rest.length; i += 2) rest[i]];
+      return SingleChildScrollView(
+        // Always scrollable, or pull-to-refresh stops working on a short screen.
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FadeSlideIn(index: 0, child: sections.first),
+            const SizedBox(height: AppSpacing.lg),
+            TwoPane(
+              firstFlex: 1,
+              secondFlex: 1,
+              gap: AppSpacing.lg,
+              divider: false,
+              first: _Lane(sections: left, start: 1),
+              second: _Lane(sections: right, start: 2),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.separated(
       // Always scrollable, or pull-to-refresh stops working on a short screen.
       physics: const AlwaysScrollableScrollPhysics(),
@@ -215,6 +253,30 @@ class _HomeContent extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
       itemBuilder: (context, index) =>
           FadeSlideIn(index: index, child: sections[index]),
+    );
+  }
+}
+
+/// One of the two columns of the wide home screen.
+class _Lane extends StatelessWidget {
+  const _Lane({required this.sections, required this.start});
+
+  final List<Widget> sections;
+
+  /// The first section's position in the entrance, so the two columns stagger
+  /// as one list would.
+  final int start;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < sections.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.lg),
+          FadeSlideIn(index: start + i * 2, child: sections[i]),
+        ],
+      ],
     );
   }
 }

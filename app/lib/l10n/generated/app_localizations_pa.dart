@@ -1727,6 +1727,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get pushChannelName => 'ਰੋਜ਼ਾਨਾ ਸ਼ਲੋਕ ਅਤੇ ਸੂਚਨਾਵਾਂ';
 
   @override
+  String get pushQuietChannelName => 'ਸ਼ਾਂਤ ਸੂਚਨਾਵਾਂ';
+
+  @override
   String get readingSectionVerse => 'ਸ਼ਲੋਕ';
 
   @override
@@ -2343,7 +2346,8 @@ class AppLocalizationsPa extends AppLocalizations {
   String get shareMakeReel => 'ਰੀਲ ਬਣਾਓ';
 
   @override
-  String get shareReelIntro => 'ਤੁਹਾਡਾ ਕਾਰਡ ਇੱਕ ਰੀਲ ਬਣ ਜਾਵੇਗਾ, ਜਿਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਹਰ ਕੋਈ ਦੇਖ ਸਕੇਗਾ।';
+  String get shareReelIntro =>
+      'ਤੁਹਾਡਾ ਕਾਰਡ ਇੱਕ ਰੀਲ ਬਣ ਜਾਵੇਗਾ, ਜਿਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਹਰ ਕੋਈ ਦੇਖ ਸਕੇਗਾ।';
 
   @override
   String get shareReelAddMusic => 'ਫ਼ੋਨ ਤੋਂ ਸੰਗੀਤ ਜੋੜੋ';
@@ -2366,10 +2370,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get shareReelDone => 'ਤੁਹਾਡੀ ਰੀਲ ਲਾਈਵ ਹੈ। ਇਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਦੇਖੋ।';
 
   @override
-  String get shareReelFailed => 'ਰੀਲ ਪੋਸਟ ਨਹੀਂ ਹੋ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
+  String get shareReelFailed =>
+      'ਰੀਲ ਪੋਸਟ ਨਹੀਂ ਹੋ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 
   @override
-  String get shareReelTooBig => 'ਇਹ ਸੰਗੀਤ ਫ਼ਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ (ਵੱਧ ਤੋਂ ਵੱਧ 25 MB)।';
+  String get shareReelTooBig =>
+      'ਇਹ ਸੰਗੀਤ ਫ਼ਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ (ਵੱਧ ਤੋਂ ਵੱਧ 25 MB)।';
 
   @override
   String get calendarTitle => 'ਹਿੰਦੂ ਪੰਚਾਂਗ';

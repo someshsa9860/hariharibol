@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/layout/adaptive.dart';
 import 'core/session/app_session.dart';
 import 'services/book_sync_background.dart';
 import 'services/book_sync_manager.dart';
@@ -62,6 +65,8 @@ Future<void> main() async {
   unawaited(BookSyncBackground.instance.start());
   unawaited(BookSyncManager.instance.onAppStart());
 
+  await _detectTv();
+
   runApp(const ProviderScope(child: HariHariBolApp()));
 }
 
@@ -73,4 +78,21 @@ Future<void> _openStore() async {
     DeviceService.instance.init(),
     AppSession.instance.restore(),
   ]);
+}
+
+/// Whether this is an Android TV, asked of the platform once. Anywhere else, or
+/// if the platform does not answer, it is not.
+Future<void> _detectTv() async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+  try {
+    final tv = await const MethodChannel('hariharibol/device').invokeMethod<bool>('isTv');
+    AdaptiveLayout.markAsTv(tv ?? false);
+    // With a remote there is no pointer to say "the keyboard is in use", so the
+    // focus ring is always drawn.
+    if (tv ?? false) FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+  } on PlatformException {
+    // Not a television as far as anyone can tell.
+  } on MissingPluginException {
+    // A test or an older host without the channel.
+  }
 }

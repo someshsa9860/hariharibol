@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { SITE_URL } from '@/lib/config';
+import { appStoreUrl, SITE_URL } from '@/lib/config';
 import { readingLanguage } from '@/lib/prefs/server';
 import { configScript } from '@/lib/runtime-config';
 import { PrefsProvider } from '@/lib/prefs/prefs-provider';
@@ -9,6 +9,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { BottomTabs } from '@/components/layout/bottom-tabs';
+import { AppBanner } from '@/components/layout/app-banner';
 import '@/styles/index.css';
 
 export const metadata: Metadata = {
@@ -41,9 +42,11 @@ const BOOT = `try{var d=document.documentElement;d.classList.add('js');var p=JSO
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const language = await readingLanguage();
+  const appStoreId = appStoreUrl().match(/id(\d{6,})/)?.[1];
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {appStoreId && <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -63,6 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <main id="content" className="main">{children}</main>
               <SiteFooter />
               <BottomTabs />
+              <AppBanner />
             </ToastProvider>
           </AuthProvider>
         </PrefsProvider>

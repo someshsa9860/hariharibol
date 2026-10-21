@@ -92,4 +92,53 @@ void main() {
       expect(opened, isEmpty);
     });
   });
+
+  group('deeplinks from the admin panel', () {
+    test('Ask Sakha opens the chat, whatever the route is called inside', () {
+      expect(pushRoute({'deeplink': 'hariharibol://sakha'}), '/chat');
+      expect(pushRoute({'deeplink': 'hariharibol://jap'}), '/sadhana');
+      expect(pushRoute({'deeplink': 'hariharibol://read'}), '/library');
+      expect(pushRoute({'deeplink': 'hariharibol://reels'}), '/reels');
+    });
+
+    test('a mantra, a reel and a verse carry what they need in the query', () {
+      expect(deeplinkRoute('hariharibol://mantra?slug=maha-mantra'), '/mantras/maha-mantra');
+      expect(deeplinkRoute('hariharibol://reel?id=r1'), '/reels/r1');
+      expect(deeplinkRoute('hariharibol://verse?book=bhagavad-gita&chapter=2&verse=47'),
+          '/library/bhagavad-gita/chapters/2?verse=47');
+    });
+
+    test('a link missing what it needs, or from another scheme, opens nowhere', () {
+      expect(deeplinkRoute('hariharibol://mantra'), isNull);
+      expect(deeplinkRoute('hariharibol://verse?book=gita'), isNull);
+      expect(deeplinkRoute('https://hariharibol.com/sakha'), isNull);
+      expect(deeplinkRoute(null), isNull);
+    });
+  });
+
+  group('buttons', () {
+    const actions = '[{"id":"a1","label":"Ask Sakha","deeplink":"hariharibol://sakha"},'
+        '{"id":"a2","label":"Read","deeplink":"hariharibol://read"},'
+        '{"id":"a3","label":"Third","deeplink":"hariharibol://reels"}]';
+
+    test('at most two are read, and a broken list gives none', () {
+      expect(pushActions({'actions': actions}).map((a) => a.label), ['Ask Sakha', 'Read']);
+      expect(pushActions({'actions': 'not json'}), isEmpty);
+      expect(pushActions({}), isEmpty);
+    });
+
+    test('a button leads to its own link, not the push\'s', () {
+      final data = {'deeplink': 'hariharibol://calendar', 'actions': actions};
+      expect(pushActionRoute(data, 'a1'), '/chat');
+      expect(pushActionRoute(data, 'a2'), '/library');
+      expect(pushActionRoute(data, 'zzz'), isNull);
+    });
+
+    test('pressing a button opens its screen once the app is ready', () {
+      final opened = <String>[];
+      final links = PushLinks.withOpener(opened.add)..setReady(true);
+      links.tapped({'deeplink': 'hariharibol://calendar', 'actions': actions}, actionId: 'a1');
+      expect(opened, ['/chat']);
+    });
+  });
 }

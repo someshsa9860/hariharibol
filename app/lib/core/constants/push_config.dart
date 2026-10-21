@@ -15,6 +15,38 @@ abstract final class PushConfig {
   static const String deeplinkSadhana = 'sadhana';
   static const String deeplinkPremium = 'premium';
   static const String deeplinkCalendar = 'calendar';
+  // Added with rich pushes (`backend/utils/push-rich.js` TARGETS). `sakha` is Ask
+  // Sakha; the route inside the app is still /chat.
+  static const String deeplinkHome = 'home';
+  static const String deeplinkSakha = 'sakha';
+  static const String deeplinkJap = 'jap';
+  static const String deeplinkChant = 'chant';
+  static const String deeplinkRead = 'read';
+  static const String deeplinkReels = 'reels';
+  static const String deeplinkRoutine = 'routine';
+  static const String deeplinkRefer = 'refer';
+  static const String deeplinkSearch = 'search';
+  static const String deeplinkMantra = 'mantra';
+  static const String deeplinkReel = 'reel';
+  static const String deeplinkVerse = 'verse';
+
+  // ── What a rich push carries (all strings) ──────────────────────────────
+  /// `picture` or `text` — how the expanded notification is drawn.
+  static const String styleKey = 'style';
+  static const String styleText = 'text';
+
+  /// `quiet` or `urgent`; the quiet channel and no pop-up.
+  static const String importanceKey = 'importance';
+  static const String importanceQuiet = 'quiet';
+
+  /// A JSON list of at most two buttons: `[{id, label, deeplink}]`.
+  static const String actionsKey = 'actions';
+
+  /// A push with buttons reaches Android as data only (FCM cannot draw buttons),
+  /// so its words and picture ride in these.
+  static const String titleKey = 'title';
+  static const String bodyKey = 'body';
+  static const String imageKey = 'image';
 
   // ── Drawing a push while the app is open (Android) ──────────────────────
   /// The channel the backend names on every push (`backend/services/fcm.js`).
@@ -22,6 +54,10 @@ abstract final class PushConfig {
   /// importance that makes a push appear on screen; the notification drawn
   /// while the app is open goes to the same channel.
   static const String androidChannelId = 'default';
+
+  /// The quieter channel an admin's "quiet" push names: shown in the tray, no
+  /// pop-up and no sound.
+  static const String androidQuietChannelId = 'updates';
 
   /// The small icon of a notification drawn by the app: the drawable the
   /// manifest names as Firebase's default icon (`ic_stat_feather.xml`).

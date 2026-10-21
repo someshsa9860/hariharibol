@@ -453,3 +453,7 @@ The **Admins** page (`routes/admins.tsx`, permission `role.manage`, so super adm
 ## Finance
 
 `/finance` (`routes/finance.tsx`, nav System → Finance, permission `finance.manage`, super admin only). A month picker; revenue (gross, commission, net, refunds, free trials as ₹0), AI cost by kind with the dollar rate editor, credits and debits (add / edit / delete), a twelve-month table, and **Confirm month** (fixes that month's dollar rate and stops the reminder; Reopen undoes it). `components/finance-banner.tsx` shows an amber bar on every page for the super admin while last month (or this month, in its last two days) is unconfirmed. See "Finance" in [backend/CLAUDE.md](../backend/CLAUDE.md).
+
+## Notifications: picture, style, tap target, buttons
+
+The Notifications page (`routes/notifications.tsx`) sends a title and body and, optionally, a **picture** (uploaded with kind `pushImage`, or a pasted `https://` link), a **style** (automatic / big picture / big text), an **importance** (urgent / quiet), a **tap target** and up to **two buttons**. The tap targets are the app's own words (`lib/push-link.ts` — Ask Sakha, Jap, Read, Reels, a mantra, a reel, a verse …) and must match `backend/utils/push-rich.js` and the app's `push_link.dart`. A live **preview** (`components/push-preview.tsx`) draws Android and iPhone, collapsed and expanded; it is an approximation drawn in the page, not a real device. Send stays disabled while a picture uploads or a target is missing a value. Type-checks (`tsc -b`); not driven in a browser.

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/push_config.dart';
@@ -31,14 +33,83 @@ String? pushRoute(Map<String, dynamic> data) {
     );
   }
 
-  final link = Uri.tryParse(text(PushConfig.deeplinkKey) ?? '');
+  return deeplinkRoute(text(PushConfig.deeplinkKey));
+}
+
+/// The screen a `hariharibol://<word>` link names, or null. Also what a
+/// notification's buttons use, each with a link of its own.
+String? deeplinkRoute(String? deeplink) {
+  final link = Uri.tryParse(deeplink ?? '');
   if (link == null || link.scheme != PushConfig.deeplinkScheme) return null;
+  String? query(String name) {
+    final value = link.queryParameters[name]?.trim();
+    return value == null || value.isEmpty ? null : value;
+  }
+
   return switch (link.host) {
-    PushConfig.deeplinkSadhana => AppRoutes.sadhana,
+    PushConfig.deeplinkSadhana || PushConfig.deeplinkJap => AppRoutes.sadhana,
     PushConfig.deeplinkPremium => AppRoutes.plans,
     PushConfig.deeplinkCalendar => AppRoutes.calendar,
+    PushConfig.deeplinkHome => AppRoutes.home,
+    PushConfig.deeplinkSakha => AppRoutes.chat,
+    PushConfig.deeplinkChant => AppRoutes.chant,
+    PushConfig.deeplinkRead => AppRoutes.library,
+    PushConfig.deeplinkReels => AppRoutes.reels,
+    PushConfig.deeplinkRoutine => AppRoutes.routine,
+    PushConfig.deeplinkRefer => AppRoutes.refer,
+    PushConfig.deeplinkSearch => AppRoutes.search,
+    PushConfig.deeplinkMantra => query('slug') == null ? null : AppRoutes.mantraPath(query('slug')!),
+    PushConfig.deeplinkReel => query('id') == null ? null : AppRoutes.reelPath(query('id')!),
+    PushConfig.deeplinkVerse => _versePath(query),
     _ => null,
   };
+}
+
+String? _versePath(String? Function(String name) query) {
+  final book = query('book');
+  final chapter = int.tryParse(query('chapter') ?? '');
+  if (book == null || chapter == null) return null;
+  return AppRoutes.chapterPath(
+    book,
+    chapter,
+    canto: int.tryParse(query('canto') ?? ''),
+    verse: int.tryParse(query('verse') ?? ''),
+  );
+}
+
+/// One button on a notification, from the push's `actions` data.
+class PushAction {
+  const PushAction({required this.id, required this.label, required this.deeplink});
+
+  final String id;
+  final String label;
+  final String deeplink;
+}
+
+/// The buttons a push carries, at most two; empty when it has none or the list
+/// cannot be read (a push must never fail for want of its buttons).
+List<PushAction> pushActions(Map<String, dynamic> data) {
+  final raw = data[PushConfig.actionsKey]?.toString();
+  if (raw == null || raw.isEmpty) return const [];
+  try {
+    final list = jsonDecode(raw);
+    if (list is! List) return const [];
+    return [
+      for (final item in list.take(2))
+        if (item is Map && item['id'] != null && item['label'] != null && item['deeplink'] != null)
+          PushAction(id: '${item['id']}', label: '${item['label']}', deeplink: '${item['deeplink']}'),
+    ];
+  } catch (_) {
+    return const [];
+  }
+}
+
+/// Where the button [actionId] leads.
+String? pushActionRoute(Map<String, dynamic> data, String actionId) {
+  for (final action in pushActions(data)) {
+    if (action.id == actionId) return deeplinkRoute(action.deeplink);
+  }
+  return null;
 }
 
 /// Holds a tapped notification until the app can show what it pointed at.
@@ -68,9 +139,10 @@ class PushLinks {
   String? _pending;
   bool _ready = false;
 
-  /// A notification was tapped. `data` is its payload.
-  void tapped(Map<String, dynamic> data) {
-    final route = pushRoute(data);
+  /// A notification was tapped. `data` is its payload. [actionId] names the
+  /// button that was pressed, when it was one: that button's own link decides.
+  void tapped(Map<String, dynamic> data, {String? actionId}) {
+    final route = actionId == null ? pushRoute(data) : (pushActionRoute(data, actionId) ?? pushRoute(data));
     onTapped?.call(data, route);
     if (route == null) return;
     // Only the latest tap matters: a person who taps two before the app is up

@@ -1732,6 +1732,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get pushChannelName => 'రోజువారీ శ్లోకం మరియు సూచనలు';
 
   @override
+  String get pushQuietChannelName => 'నిశ్శబ్ద నోటిఫికేషన్లు';
+
+  @override
   String get readingSectionVerse => 'శ్లోకం';
 
   @override
@@ -2348,7 +2351,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get shareMakeReel => 'రీల్ చేయండి';
 
   @override
-  String get shareReelIntro => 'మీ కార్డ్ ఒక రీల్‌గా మారుతుంది, దీన్ని రీల్స్‌లో అందరూ చూడవచ్చు.';
+  String get shareReelIntro =>
+      'మీ కార్డ్ ఒక రీల్‌గా మారుతుంది, దీన్ని రీల్స్‌లో అందరూ చూడవచ్చు.';
 
   @override
   String get shareReelAddMusic => 'ఫోన్ నుండి సంగీతం జోడించండి';
@@ -2371,7 +2375,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get shareReelDone => 'మీ రీల్ లైవ్‌లో ఉంది. దాన్ని రీల్స్‌లో చూడండి.';
 
   @override
-  String get shareReelFailed => 'రీల్ పోస్ట్ కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.';
+  String get shareReelFailed =>
+      'రీల్ పోస్ట్ కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.';
 
   @override
   String get shareReelTooBig => 'ఈ సంగీతం ఫైల్ చాలా పెద్దది (గరిష్టంగా 25 MB).';
@@ -2386,5 +2391,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get calendarUpcoming => 'ఏకాదశి, చతుర్థి మరియు పండుగ రోజులు';
 
   @override
-  String get calendarVaishnavaNote => 'వైష్ణవులు ఈ వ్రతాన్ని మరుసటి రోజు ఆచరించవచ్చు.';
+  String get calendarVaishnavaNote =>
+      'వైష్ణవులు ఈ వ్రతాన్ని మరుసటి రోజు ఆచరించవచ్చు.';
 }

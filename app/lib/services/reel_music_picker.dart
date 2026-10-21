@@ -33,11 +33,10 @@ class ReelMusicPicker {
 
   /// Null when the reader backs out.
   Future<PickedMusic?> pick() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['mp3', 'm4a', 'mp4', 'aac', 'wav'],
     );
-    final file = result?.files.single;
     final path = file?.path;
     if (file == null || path == null) return null;
     return PickedMusic(path: path, name: file.name, bytes: await File(path).length());

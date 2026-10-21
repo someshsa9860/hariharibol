@@ -1,5 +1,6 @@
 import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/notification.js';
+import { TARGETS, STYLES, IMPORTANCE } from '../../utils/push-rich.js';
 
 const router = createRouter({
   tag: 'Admin · Notifications',
@@ -10,7 +11,29 @@ const router = createRouter({
     'ask for.',
 });
 
+// Where a tap goes: one of the app's own words (`sakha`, `verse`, …) and the few
+// values that word takes. What each needs is checked in utils/push-rich.js.
+const link = z.object({
+  target: z.enum(Object.keys(TARGETS)),
+  slug: z.string().trim().max(120).optional(),
+  id: z.string().trim().max(60).optional(),
+  book: z.string().trim().max(120).optional(),
+  canto: z.string().trim().max(10).optional(),
+  chapter: z.string().trim().max(10).optional(),
+  verse: z.string().trim().max(10).optional(),
+});
+
 const messageBody = {
+  // An uploaded picture's key, or a pasted https link.
+  image: z.string().trim().max(1000).optional(),
+  style: z.enum(STYLES).optional(),
+  importance: z.enum(IMPORTANCE).optional(),
+  link: link.optional(),
+  // At most two buttons; each opens a place in the app.
+  actions: z
+    .array(z.object({ label: z.string().trim().min(1).max(24), link }))
+    .max(2)
+    .optional(),
   title: z.string().trim().min(1).max(100),
   body: z.string().trim().min(1).max(500),
   data: z.record(z.string()).optional(),
@@ -65,6 +88,18 @@ router.post(
     responds: { 200: 'The notification' },
   },
   controller.toUser
+);
+
+router.get(
+  '/options',
+  {
+    summary: 'What a push can carry',
+    description: 'The tap targets the app understands, the styles and the importance levels.',
+    permission: 'notification.send',
+    limit: 'read',
+    responds: { 200: 'Targets, styles and importance levels' },
+  },
+  controller.options
 );
 
 const minSeconds = z.coerce.number().int().min(1).max(600).default(10);

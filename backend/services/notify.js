@@ -11,9 +11,12 @@ import * as fcm from './fcm.js';
 import * as campaigns from './push-campaign.js';
 import * as websocket from './websocket.js';
 
+// How a push looks and how loud it is (see utils/push-rich.js `build`).
+const pushLook = (rich) => ({ importance: rich?.importance, hasActions: rich?.hasActions });
+
 // `campaign` names the push for the admin panel's statistics; senders that go to
 // many people one at a time leave it out and share one per kind per day.
-async function toUser(userId, { type, title, body, image, data, push = true, campaign, source }) {
+async function toUser(userId, { type, title, body, image, data, rich, push = true, campaign, source }) {
   const group = await campaigns.ensure({ key: campaign, type, source, title, body });
   const notification = await prisma.notification.create({
     data: { userId, type, title, body, data: data || null, campaignId: group.id },
@@ -35,6 +38,7 @@ async function toUser(userId, { type, title, body, image, data, push = true, cam
       title,
       body,
       image,
+      ...pushLook(rich),
       data: { ...(data || {}), notificationId: notification.id, pushId: group.id, type },
     });
     await campaigns.addSent(group.id, { users: 1, sent: result.sent, failed: result.failed });
@@ -53,7 +57,7 @@ async function toUser(userId, { type, title, body, image, data, push = true, cam
 
 // Many users, one message. Rows are written in bulk and the push goes out in
 // batches, because this is what the daily sloka job calls.
-async function toUsers(userIds, { type, title, body, data, push = true, campaign, source }) {
+async function toUsers(userIds, { type, title, body, image, data, rich, push = true, campaign, source }) {
   if (!userIds.length) return { created: 0 };
 
   const group = await campaigns.ensure({ key: campaign, type, source, title, body });
@@ -77,6 +81,8 @@ async function toUsers(userIds, { type, title, body, data, push = true, campaign
       const result = await fcm.sendToUsers(userIds, {
         title,
         body,
+        image,
+        ...pushLook(rich),
         data: { ...(data || {}), pushId: group.id, type },
       });
       await campaigns.addSent(group.id, { users: userIds.length, sent: result.sent, failed: result.failed });
@@ -95,7 +101,7 @@ async function toUsers(userIds, { type, title, body, data, push = true, campaign
 // Announcements go to an FCM topic rather than to a user list — one call
 // instead of a fan-out — so no Notification rows are written. Anything that
 // must appear in a user's history should use `toUsers` instead.
-async function toTopic(topicKey, { title, body, data, campaign }) {
+async function toTopic(topicKey, { title, body, image, data, rich, campaign }) {
   const group = await campaigns.ensure({
     key: campaign || `topic:${topicKey}:${Date.now()}`,
     type: 'ANNOUNCEMENT',
@@ -103,7 +109,7 @@ async function toTopic(topicKey, { title, body, data, campaign }) {
     title,
     body,
   });
-  const result = await fcm.sendToTopic(topicKey, { title, body, data: { ...(data || {}), pushId: group.id } });
+  const result = await fcm.sendToTopic(topicKey, { title, body, image, ...pushLook(rich), data: { ...(data || {}), pushId: group.id } });
   // Firebase does not say how many devices a topic reached; the subscribers we
   // mirrored are the nearest honest number.
   const subscribers = await prisma.fcmSubscription.count({ where: { topic: { key: topicKey } } });

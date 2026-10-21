@@ -32,6 +32,7 @@
     "translate:claude": "node scripts/translate-claude.js",
     "translate:claude:status": "node scripts/translate-claude.js --status",
     "translate:claude:test": "node scripts/translate-claude.js --test",
+    "translate:chapter-titles": "node scripts/translate-chapter-titles.js",
     "translate:claude:dry": "node scripts/translate-claude.js --dry-run",
     "docs:export": "node docs/export.js",
     "graph": "node scripts/code-graph.js",

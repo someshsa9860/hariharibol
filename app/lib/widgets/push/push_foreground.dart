@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../core/constants/push_config.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_push_service.dart';
@@ -27,6 +28,7 @@ class PushForeground extends StatefulWidget {
 class _PushForegroundState extends State<PushForeground> {
   StreamSubscription<RemoteMessage>? _arrivals;
   String? _channelName;
+  String? _quietChannelName;
 
   @override
   void initState() {
@@ -39,22 +41,32 @@ class _PushForegroundState extends State<PushForeground> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Also when the app language changes, which renames the channel.
-    _channelName = AppLocalizations.of(context).pushChannelName;
-    if (_arrivals != null) unawaited(LocalPushService.instance.ensureChannel(_channelName!));
+    final strings = AppLocalizations.of(context);
+    _channelName = strings.pushChannelName;
+    _quietChannelName = strings.pushQuietChannelName;
+    if (_arrivals != null) unawaited(LocalPushService.instance.ensureChannels(_channelName!, _quietChannelName!));
   }
 
   void _arrived(RemoteMessage message) {
     final notification = message.notification;
     final channelName = _channelName;
-    // A message with no notification part is data for the app, not for the tray.
-    if (notification == null || channelName == null) return;
+    final quietName = _quietChannelName;
+    if (channelName == null || quietName == null) return;
+
+    // A push with buttons has no notification part: its words are in the data.
+    final data = message.data;
+    final title = notification?.title ?? data[PushConfig.titleKey]?.toString();
+    final body = notification?.body ?? data[PushConfig.bodyKey]?.toString();
+    // A message with nothing to say is data for the app, not for the tray.
+    if (title == null && body == null) return;
 
     unawaited(LocalPushService.instance.show(
       channelName: channelName,
-      title: notification.title,
-      body: notification.body,
-      imageUrl: notification.android?.imageUrl,
-      data: message.data,
+      quietChannelName: quietName,
+      title: title,
+      body: body,
+      imageUrl: notification?.android?.imageUrl ?? data[PushConfig.imageKey]?.toString(),
+      data: data,
     ));
   }
 

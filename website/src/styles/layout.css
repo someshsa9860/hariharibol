@@ -35,11 +35,11 @@
 /* ── Phone tab bar ── */
 .bottom-tabs {
   position: fixed; z-index: 100; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-  display: grid; grid-template-columns: repeat(5, 1fr); background: var(--glass); backdrop-filter: saturate(1.6) blur(18px); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); transform: translateZ(0); touch-action: manipulation; background: var(--glass); backdrop-filter: saturate(1.6) blur(18px); border-top: 1px solid var(--line);
 }
 .bottom-tabs-dark { background: rgba(14, 12, 11, .9); border-color: rgba(255,255,255,.1); color: #f4efe8; --muted: #b9b0a5; --ink: #fff; }
 @media (min-width: 900px) { .bottom-tabs { display: none; } }
-.tab-link { display: grid; place-items: center; align-content: center; gap: 2px; color: var(--muted); font-size: .68rem; font-weight: 600; letter-spacing: .02em; position: relative; transition: color .2s; }
+.tab-link { min-width: 0; padding-inline: 2px; display: grid; place-items: center; align-content: center; gap: 2px; color: var(--muted); font-size: .68rem; font-weight: 600; letter-spacing: .02em; position: relative; transition: color .2s; }
 .tab-link .tab-icon { transition: transform .3s var(--ease); }
 .tab-link.is-active { color: var(--ink); }
 .tab-link.is-active .tab-icon { transform: translateY(-2px) scale(1.08); }
@@ -61,3 +61,19 @@
 .site-footer nav a:hover { background-size: 100% 2px; }
 .footer-base { padding-block: 28px calc(28px + var(--tabbar-h)); color: var(--muted); font-size: .86rem; }
 @media (min-width: 900px) { .footer-base { padding-bottom: 28px; } }
+
+.tab-link .tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── "Use the app" banner (phones only; sits just above the tab bar) ── */
+.app-banner {
+  position: fixed; z-index: 90; left: 8px; right: 8px; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);
+  display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 16px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-lg); animation: fade-up .4s var(--ease) both;
+}
+.app-banner img { border-radius: 10px; flex: none; }
+.app-banner-text { min-width: 0; flex: 1; display: grid; line-height: 1.25; }
+.app-banner-text strong { font-size: .92rem; }
+.app-banner-text small { color: var(--muted); font-size: .78rem; }
+.app-banner .btn { padding: 8px 16px; min-height: 0; flex: none; }
+.app-banner-close { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); font-size: 1.2rem; line-height: 1; }
+@media (min-width: 900px) { .app-banner { display: none; } }

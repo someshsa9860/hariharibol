@@ -1727,6 +1727,9 @@ class AppLocalizationsOr extends AppLocalizations {
   String get pushChannelName => 'ଦୈନିକ ଶ୍ଳୋକ ଏବଂ ସୂଚନା';
 
   @override
+  String get pushQuietChannelName => 'ଶାନ୍ତ ସୂଚନା';
+
+  @override
   String get readingSectionVerse => 'ଶ୍ଳୋକ';
 
   @override
@@ -2346,7 +2349,8 @@ class AppLocalizationsOr extends AppLocalizations {
   String get shareMakeReel => 'ରିଲ୍ ତିଆରି କରନ୍ତୁ';
 
   @override
-  String get shareReelIntro => 'ଆପଣଙ୍କ କାର୍ଡ ଏକ ରିଲ୍ ହୋଇଯିବ, ଯାହାକୁ ରିଲ୍ସରେ ସମସ୍ତେ ଦେଖିପାରିବେ।';
+  String get shareReelIntro =>
+      'ଆପଣଙ୍କ କାର୍ଡ ଏକ ରିଲ୍ ହୋଇଯିବ, ଯାହାକୁ ରିଲ୍ସରେ ସମସ୍ତେ ଦେଖିପାରିବେ।';
 
   @override
   String get shareReelAddMusic => 'ଫୋନରୁ ସଙ୍ଗୀତ ଯୋଡନ୍ତୁ';
@@ -2369,7 +2373,8 @@ class AppLocalizationsOr extends AppLocalizations {
   String get shareReelDone => 'ଆପଣଙ୍କ ରିଲ୍ ଲାଇଭ୍ ଅଛି। ଏହାକୁ ରିଲ୍ସରେ ଦେଖନ୍ତୁ।';
 
   @override
-  String get shareReelFailed => 'ରିଲ୍ ପୋଷ୍ଟ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+  String get shareReelFailed =>
+      'ରିଲ୍ ପୋଷ୍ଟ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
 
   @override
   String get shareReelTooBig => 'ଏହି ସଙ୍ଗୀତ ଫାଇଲ୍ ବହୁତ ବଡ଼ (ସର୍ବାଧିକ 25 MB)।';
@@ -2384,5 +2389,6 @@ class AppLocalizationsOr extends AppLocalizations {
   String get calendarUpcoming => 'ଏକାଦଶୀ, ଚତୁର୍ଥୀ ଓ ପର୍ବ ଦିନ';
 
   @override
-  String get calendarVaishnavaNote => 'ବୈଷ୍ଣବମାନେ ଏହି ବ୍ରତ ପରଦିନ ପାଳନ କରିପାରନ୍ତି।';
+  String get calendarVaishnavaNote =>
+      'ବୈଷ୍ଣବମାନେ ଏହି ବ୍ରତ ପରଦିନ ପାଳନ କରିପାରନ୍ତି।';
 }

@@ -36,6 +36,7 @@ import '../../views/settings/voices_view.dart';
 import '../../views/settings/settings_view.dart';
 import '../../views/splash/splash_view.dart';
 import '../constants/storage_keys.dart';
+import '../layout/adaptive.dart';
 import '../session/app_session.dart';
 import '../theme/app_spacing.dart';
 import '../../services/deep_link_service.dart';
@@ -147,86 +148,130 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.signIn,
         name: RouteNames.signIn,
-        builder: (context, state) => const SignInView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: const SignInView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.languageSetup,
         name: RouteNames.languageSetup,
-        builder: (context, state) => const LanguageView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: const LanguageView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.settings,
         name: RouteNames.settings,
-        builder: (context, state) => const SettingsView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const SettingsView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.refer,
         name: RouteNames.refer,
-        builder: (context, state) => const ReferView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const ReferView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.plans,
         name: RouteNames.plans,
-        builder: (context, state) => const PlansView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.wide,
+          child: const PlansView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.voices,
         name: RouteNames.voices,
-        builder: (context, state) => const VoicesView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const VoicesView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.sources,
         name: RouteNames.sources,
-        builder: (context, state) => const SourcesView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const SourcesView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.search,
         name: RouteNames.search,
-        builder: (context, state) => const SearchView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const SearchView(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.mantraPattern,
         name: RouteNames.mantraDetail,
-        builder: (context, state) =>
-            MantraDetailView(slug: state.pathParameters['slug']!),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: MantraDetailView(slug: state.pathParameters['slug']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.bookPattern,
         name: RouteNames.bookDetail,
-        builder: (context, state) => BookDetailView(slug: state.pathParameters['slug']!),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: BookDetailView(slug: state.pathParameters['slug']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.bookCantoPattern,
         name: RouteNames.bookCanto,
-        builder: (context, state) => ChapterListView(
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: ChapterListView(
           slug: state.pathParameters['slug']!,
           canto: int.parse(state.pathParameters['canto']!),
+        ),
         ),
       ),
       GoRoute(
         path: AppRoutes.chapterPattern,
         name: RouteNames.chapterRead,
-        builder: (context, state) => ChapterReadView(
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: ChapterReadView(
           slug: state.pathParameters['slug']!,
           number: int.parse(state.pathParameters['number']!),
           canto: int.tryParse(state.uri.queryParameters['canto'] ?? ''),
           targetVerseNumber: int.tryParse(state.uri.queryParameters['verse'] ?? ''),
         ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.chant,
         name: RouteNames.chant,
-        builder: (context, state) => ChantView(mantra: state.extra as Mantra?),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: ChantView(mantra: state.extra as Mantra?),
+        ),
       ),
       GoRoute(
         path: AppRoutes.chantAnalytics,
         name: RouteNames.chantAnalytics,
-        builder: (context, state) => ChantAnalyticsView(args: state.extra as ChantAnalyticsArgs),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: ChantAnalyticsView(args: state.extra as ChantAnalyticsArgs),
+        ),
       ),
       GoRoute(
         path: AppRoutes.chantSessionPattern,
         name: RouteNames.chantSession,
-        builder: (context, state) => ChantSessionView(sessionId: state.pathParameters['id']!),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: ChantSessionView(sessionId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.reelPattern,
@@ -246,7 +291,10 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.creatorPattern,
         name: RouteNames.creatorProfile,
-        builder: (context, state) => CreatorView(creatorId: state.pathParameters['id']!),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: CreatorView(creatorId: state.pathParameters['id']!),
+        ),
       ),
 
       // Rises out of the bar's centre button, where it was opened from.
@@ -255,7 +303,10 @@ GoRouter createRouter() {
         name: RouteNames.chat,
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
-          child: ChatView(initialPrompt: state.extra is String ? state.extra as String : null),
+          child: ContentWidth(
+            maxWidth: ContentWidths.reading,
+            child: ChatView(initialPrompt: state.extra is String ? state.extra as String : null),
+          ),
           transitionDuration: AppDurations.slow,
           reverseTransitionDuration: AppDurations.normal,
           transitionsBuilder: (context, animation, secondary, child) {
@@ -280,13 +331,19 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.calendar,
         name: RouteNames.calendar,
-        builder: (context, state) => const CalendarView(),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const CalendarView(),
+        ),
       ),
 
       GoRoute(
         path: AppRoutes.routine,
         name: RouteNames.routine,
-        builder: (context, state) => const RoutineTab(showBack: true),
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const RoutineTab(showBack: true),
+        ),
       ),
 
       // The tabs. An indexed stack keeps each tab's scroll position and state

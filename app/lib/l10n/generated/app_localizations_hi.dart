@@ -1724,6 +1724,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pushChannelName => 'दैनिक श्लोक और सूचनाएँ';
 
   @override
+  String get pushQuietChannelName => 'शांत सूचनाएँ';
+
+  @override
   String get readingSectionVerse => 'श्लोक';
 
   @override
@@ -2340,7 +2343,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shareMakeReel => 'रील बनाएँ';
 
   @override
-  String get shareReelIntro => 'आपका कार्ड एक रील बन जाएगा, जिसे रील्स में सब देख सकेंगे।';
+  String get shareReelIntro =>
+      'आपका कार्ड एक रील बन जाएगा, जिसे रील्स में सब देख सकेंगे।';
 
   @override
   String get shareReelAddMusic => 'फ़ोन से संगीत जोड़ें';

@@ -103,9 +103,8 @@ class _ChatMessageListState extends State<ChatMessageList> {
         ),
         Positioned(
           bottom: AppSpacing.md,
-          left: 0,
-          right: 0,
-          child: Center(child: ChatJumpButton(visible: _away, onPressed: _jumpToLatest)),
+          right: AppSpacing.md,
+          child: ChatJumpButton(visible: _away, onPressed: _jumpToLatest),
         ),
       ],
     );

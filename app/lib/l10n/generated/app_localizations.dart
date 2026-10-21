@@ -3004,6 +3004,12 @@ abstract class AppLocalizations {
   /// **'Daily sloka and updates'**
   String get pushChannelName;
 
+  /// Name of the quieter Android notification channel an admin's quiet pushes arrive on (shown in the tray, no pop-up or sound); shown in the phone's notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet updates'**
+  String get pushQuietChannelName;
+
   /// No description provided for @readingSectionVerse.
   ///
   /// In en, this message translates to:
@@ -4113,6 +4119,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That music file is too large (up to 25 MB).'**
   String get shareReelTooBig;
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar for this month is not filled in yet.'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Ekadashi, Chaturthi and festival days'**
+  String get calendarUpcoming;
+
+  /// No description provided for @calendarVaishnavaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaishnavas may keep this fast the next day.'**
+  String get calendarVaishnavaNote;
 }
 
 class _AppLocalizationsDelegate
@@ -4179,28 +4209,4 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
     'that was used.',
   );
-
-  /// No description provided for @calendarTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Hindu calendar'**
-  String get calendarTitle;
-
-  /// No description provided for @calendarEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'The calendar for this month is not filled in yet.'**
-  String get calendarEmpty;
-
-  /// No description provided for @calendarUpcoming.
-  ///
-  /// In en, this message translates to:
-  /// **'Ekadashi, Chaturthi and festival days'**
-  String get calendarUpcoming;
-
-  /// No description provided for @calendarVaishnavaNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Vaishnavas may keep this fast the next day.'**
-  String get calendarVaishnavaNote;
 }

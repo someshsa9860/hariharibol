@@ -1725,6 +1725,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get pushChannelName => 'দৈনিক শ্লোক ও বিজ্ঞপ্তি';
 
   @override
+  String get pushQuietChannelName => 'শান্ত বিজ্ঞপ্তি';
+
+  @override
   String get readingSectionVerse => 'শ্লোক';
 
   @override
@@ -2344,7 +2347,8 @@ class AppLocalizationsBn extends AppLocalizations {
   String get shareMakeReel => 'রিল বানান';
 
   @override
-  String get shareReelIntro => 'আপনার কার্ড একটি রিল হয়ে যাবে, যা রিলসে সবাই দেখতে পারবে।';
+  String get shareReelIntro =>
+      'আপনার কার্ড একটি রিল হয়ে যাবে, যা রিলসে সবাই দেখতে পারবে।';
 
   @override
   String get shareReelAddMusic => 'ফোন থেকে গান যোগ করুন';
@@ -2382,5 +2386,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get calendarUpcoming => 'একাদশী, চতুর্থী ও উৎসবের দিন';
 
   @override
-  String get calendarVaishnavaNote => 'বৈষ্ণবেরা এই ব্রত পরের দিন পালন করতে পারেন।';
+  String get calendarVaishnavaNote =>
+      'বৈষ্ণবেরা এই ব্রত পরের দিন পালন করতে পারেন।';
 }
