@@ -249,7 +249,7 @@ export function SlokasPage() {
       </Table>
 
       <Dialog open={!!editDate} onOpenChange={(o) => !o && setEditDate(null)}>
-        <DialogContent>
+        <DialogContent page>
           <DialogHeader>
             <DialogTitle>Set sloka for {editDate && formatDateOnly(editDate)}</DialogTitle>
           </DialogHeader>

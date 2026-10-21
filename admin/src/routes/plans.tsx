@@ -351,7 +351,7 @@ function PlanFeaturesDialog({ plan, features, onClose }: { plan: Plan | null; fe
 
   return (
     <Dialog open={!!plan} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent page className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Features · {plan?.name}</DialogTitle>
           <DialogDescription>What this plan unlocks. For a limit, leave the number empty for unlimited.</DialogDescription>

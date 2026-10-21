@@ -1172,6 +1172,29 @@ association files then list nothing and the page hides the store badge instead o
 proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
 `node --test test/share.test.js`.
 
+## Active users, live presence and the per-person admin page
+
+- **`UserActiveDay`** (migration `20261031000000_user_active_days`): one row per person per Indian calendar day on which they made a
+  signed-in request, with the platform (`X-Platform`) of the first one. It is the history behind daily / weekly / monthly active users
+  and retention — `User.lastActiveAt` only knows the last time, so it cannot say how many people were active last Tuesday.
+  Written by `services/presence.js` `touch()` from `middleware/auth.js`, at most once a day per person (a Redis gate, then an
+  upsert); the migration rebuilds earlier days once from `SadhanaDay`, `ChantSession`, `ReelView`, `ReadingProgress`, sign-up and
+  `lastActiveAt` dates, which is **approximate** (only days that left a row). Days are `Asia/Kolkata`, like the dashboard.
+- **Presence** is a Redis sorted set `presence:users` (userId → last seen ms), refreshed at most every 20 s per person; "online" is
+  seen in the last 5 minutes. **The websocket container pushes `presence.update`** to every socket with `system.read` every 5 s
+  when someone arrived or left (and every 20 s regardless) with the counts and the people who joined / dropped; nothing is sent
+  when no admin is connected. `GET /api/admin/system/live` is the first paint and the polling fallback.
+- **`GET /api/admin/system/activity?days=7–180`**: daily active users, new sign-ups, rolling weekly and monthly actives, stickiness
+  (DAU ÷ MAU), day-1 / 7 / 30 retention of people who joined in the last 60 days (a figure appears only once that many days have
+  passed), and today's split by platform. `GET /system/analytics` now takes its DAU / WAU / MAU from the same record.
+- **`/api/admin/users/:id/{overview,chanting,daily,engagement,billing}`** (`user.read`, `controllers/admin/user-detail.js`): one
+  endpoint per tab of the admin's person page. Read only, no secrets, and **what a person says to Sakha is never shown** (titles and
+  counts only). Per-mantra totals, sittings, streaks, day-by-day rounds against target, reading progress, saved items, notes, reels
+  watched, notifications, devices, plan / subscriptions / payments, the Sakha wallet and ledger, and referral grants.
+- Tests: `npm run test:admin-users` (31 checks over HTTP and the websocket; needs the API **and** `node websocket/index.js` running).
+  **Not run at scale:** the presence write is one Redis `SET NX` per signed-in request, one `ZADD` per person per 20 s, and one
+  upsert per person per day.
+
 ## Client attestation on signup
 
 An unauthenticated account-creation request must be provably from **our own clients** — the mobile app or our website. Nobody should be able to create accounts by hitting the API directly.

@@ -288,6 +288,7 @@ model User {
   chatConversations ChatConversation[]
 
   shareLinks        ShareLink[]
+  activeDays UserActiveDay[]
   referralCode      ReferralCode?
   referralsMade     Referral[]         @relation("Referrer")
   referredBy        Referral?          @relation("Referee")
@@ -3116,4 +3117,22 @@ model TranslationProgress {
 
   @@id([book, chapter, language])
   @@index([book, language])
+}
+
+
+// One row per person per (Indian) calendar day on which they used the app or the website — the history behind
+// daily / weekly / monthly active users and retention. `User.lastActiveAt` only says when someone was last seen,
+// so it cannot answer "how many people were active last Tuesday". Written by the auth middleware at most once a
+// day per person (see middleware/auth.js), and backfilled once from older activity by the migration.
+model UserActiveDay {
+  userId String
+  date   DateTime @db.Date
+
+  firstSeenAt DateTime @default(now())
+  platform    String?  @db.VarChar(20) // "ios" | "android" | "web", from the first request of the day
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
+  @@index([date])
 }

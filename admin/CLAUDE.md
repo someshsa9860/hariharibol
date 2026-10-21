@@ -116,6 +116,31 @@ A list page is `useDataTable({id, path, filters})` plus a `columns` array plus
 Adding a filter means adding it to the endpoint's zod schema in
 `backend/routes/admin/` first — the panel only offers what the API can serve.
 
+## Detail pages, audit trails and live numbers
+
+- **Nothing opens in a small pop-up any more.** A row in a table opens a **full page**:
+  - the people table goes to its own route, `/users/:id` (`routes/user-detail.tsx`): Overview, Chanting (per mantra and every
+    sitting), Daily record (day by day, with a chart), Reading & activity, Plan & wallet, and Audit log — one backend endpoint per
+    tab, see "Active users, live presence and the per-person admin page" in [backend/CLAUDE.md](../backend/CLAUDE.md);
+  - every other section's view opens through `DetailDialog` (`components/detail-dialog.tsx`), which **keeps its old props but now
+    renders a page over the working area** (a portal into `#detail-root` in `components/layout/shell.tsx`) with a Back button; the
+    browser's Back and Escape close it;
+  - big editors (`<DialogContent page>` in `components/ui/dialog.tsx`: books, mantras, reference data, creators, verses, scenes,
+    translations, roles, sloka, calendar, plan features, the translation / titles / reader dialogs) are full pages too, with the same
+    Back handling. Quick questions (confirm, ban, change role, pick a verse) stay small on purpose.
+- **Every detail page shows the audit trail for its record.** Pass `audit={{ entityType, entityId }}` to `DetailDialog` (or render
+  `<EntityAudit scope=…/>`): it lists the staff changes recorded for that record (`GET /api/admin/audit?entityType=&entityId=`,
+  before / after on demand) and, for a person, what they did as staff. It renders nothing for someone without `audit.read`.
+  `entityType` is whatever the controller wrote (`Book`, `Mantra`, `Payment`, `Notification`, …); a record whose controller writes
+  no audit rows (a store subscription, say) simply shows "Nothing recorded yet".
+- **Live numbers** (`components/live-presence.tsx`, on the Dashboard and Analytics): online now / last 15 minutes / last hour,
+  who is active, and a feed of people arriving and going quiet, updated by the websocket's `presence.update` (polled every 15 s
+  when the socket is down). **Analytics** also has daily active users and sign-ups, weekly / monthly actives, stickiness, retention
+  and today's platform split.
+- Driven in a real browser against a local API and websocket: the live card, the person page and its tabs, analytics, and an audit
+  row opening as a page and closing with the browser's Back. **Not driven:** the other sections' pages one by one, dark mode, and a
+  narrow window.
+
 ## Notes carried over
 
 - Admins are not a separate account type. They are rows in the same users

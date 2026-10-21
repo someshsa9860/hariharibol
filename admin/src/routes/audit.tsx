@@ -111,6 +111,7 @@ export function AuditPage() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.action}
         description={viewing ? `${viewing.entityType}${viewing.entityId ? ` · ${viewing.entityId}` : ''}` : undefined}
+        audit={viewing?.entityId ? { entityType: viewing.entityType, entityId: viewing.entityId, title: 'Everything recorded for this record' } : undefined}
         fields={
           viewing
             ? [

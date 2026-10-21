@@ -238,7 +238,7 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
   const e = estimate.data;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent page className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{preset?.chapters?.length === 1 ? `Write chapter ${chapters[0]?.label}` : 'New scene run'}</DialogTitle>
           <DialogDescription>

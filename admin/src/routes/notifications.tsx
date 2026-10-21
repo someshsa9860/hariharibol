@@ -190,6 +190,7 @@ export function NotificationsPage() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.title}
         description={viewing?.user?.email ?? 'Broadcast'}
+        audit={viewing ? { entityType: 'Notification', entityId: viewing.id } : undefined}
         fields={
           viewing
             ? [

@@ -7,6 +7,7 @@ import { Loader2, ShieldOff } from 'lucide-react';
 import { Login } from '@/routes/login';
 import { Dashboard } from '@/routes/dashboard';
 import { UsersPage } from '@/routes/users';
+import { UserDetailPage } from '@/routes/user-detail';
 import { AdminsPage } from '@/routes/admins';
 import { CreatorsPage } from '@/routes/creators';
 import { RolesPage } from '@/routes/roles';
@@ -119,6 +120,14 @@ export function Router() {
         element={
           <Protected permission="user.read">
             <UsersPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/users/:id"
+        element={
+          <Protected permission="user.read">
+            <UserDetailPage />
           </Protected>
         }
       />

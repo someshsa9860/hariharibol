@@ -15,6 +15,7 @@
 // the silent refresh instead of a puzzling empty response.
 
 import * as authService from '../services/auth.js';
+import * as presence from '../services/presence.js';
 import logger from '../config/logger.js';
 import { prisma } from '../config/database.js';
 import { redis } from '../config/redis.js';
@@ -59,6 +60,7 @@ export default async function auth(req, res, next) {
 
     req.auth = { user: loaded.user, permissions: loaded.permissions, isAuthenticated: true };
     touchLastActive(loaded.user.id);
+    presence.touch(loaded.user.id, String(req.get('X-Platform') || '').toLowerCase());
     return next();
   } catch (err) {
     return next(err);

@@ -191,7 +191,7 @@ export function CreatorsPage() {
       />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
+        <DialogContent page>
           <DialogHeader>
             <DialogTitle>Edit {editing?.user.email}</DialogTitle>
           </DialogHeader>

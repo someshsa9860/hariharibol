@@ -20,6 +20,7 @@ import logger from '../config/logger.js';
 import { createClient, channels } from '../config/redis.js';
 import { connectDatabase, disconnectDatabase } from '../config/database.js';
 import * as authService from '../services/auth.js';
+import * as presence from '../services/presence.js';
 
 // userId → Set of live sockets. One person may have several: a phone, a tablet,
 // the website open in a tab.
@@ -167,6 +168,42 @@ async function start() {
     }
   }, HEARTBEAT_MS);
 
+  // Live numbers for the admin panel: who is online (seen within five minutes). Every few seconds the set is
+  // compared with the last one; a change — or twenty quiet seconds — is pushed to every admin with `system.read` as
+  // `presence.update`, with the people who joined or dropped off in between. Nothing is sent when no admin is
+  // connected, and a failure here only skips a tick.
+  let previous = new Set();
+  let lastSent = 0;
+  const hasAdmin = () => {
+    for (const sockets of connections.values()) for (const s of sockets) if (s.permissions?.has('system.read')) return true;
+    return false;
+  };
+  const presenceTick = setInterval(async () => {
+    try {
+      if (!hasAdmin()) return;
+      const [counts, recent] = await Promise.all([presence.counts(), presence.recent(presence.ONLINE_WINDOW_S, 500)]);
+      const now = new Set(recent.map((r) => r.userId));
+      const joined = [...now].filter((id) => !previous.has(id));
+      const left = [...previous].filter((id) => !now.has(id));
+      if (joined.length === 0 && left.length === 0 && Date.now() - lastSent < 20_000) return;
+      const people = await presence.describe([...joined, ...left].slice(0, 20));
+      const byId = new Map(people.map((u) => [u.id, u]));
+      previous = now;
+      lastSent = Date.now();
+      sendToPermission('system.read', 'presence.update', {
+        online: counts[presence.ONLINE_WINDOW_S],
+        last15m: counts[900],
+        lastHour: counts[3600],
+        sockets: connections.size,
+        joined: joined.map((id) => byId.get(id)).filter(Boolean).slice(0, 10),
+        left: left.map((id) => byId.get(id)).filter(Boolean).slice(0, 10),
+        at: Date.now(),
+      });
+    } catch (err) {
+      logger.debug({ err: err.message }, 'presence tick failed');
+    }
+  }, 5_000);
+
   // Fan-in from the API containers.
   const subscriber = createClient('subscriber');
   await subscriber.subscribe(channels.userEvent, channels.broadcast, channels.permissionEvent);
@@ -192,6 +229,7 @@ async function start() {
 
   const shutdown = async () => {
     clearInterval(heartbeat);
+    clearInterval(presenceTick);
     wss.clients.forEach((client) => client.close(1001, 'Server shutting down'));
     await subscriber.quit();
     server.close();

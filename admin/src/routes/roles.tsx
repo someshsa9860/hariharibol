@@ -208,7 +208,7 @@ export function RolesPage() {
       )}
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-w-xl">
+        <DialogContent page className="max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? 'New role' : `Edit ${(editing as Role)?.name}`}</DialogTitle>
           </DialogHeader>

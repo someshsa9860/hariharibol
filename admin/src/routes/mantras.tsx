@@ -322,7 +322,7 @@ export function MantrasPage() {
       />
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent page>
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? 'New mantra' : `Edit ${(editing as Mantra)?.name}`}</DialogTitle>
           </DialogHeader>
@@ -462,6 +462,7 @@ export function MantrasPage() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.name}
         description={viewing?.slug}
+        audit={viewing ? { entityType: 'Mantra', entityId: viewing.id } : undefined}
         fields={
           viewing
             ? [

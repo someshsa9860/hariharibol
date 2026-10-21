@@ -131,7 +131,7 @@ export function BookTitlesDialog({
 
   return (
     <Dialog open={!!book} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent page className="max-w-5xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />
