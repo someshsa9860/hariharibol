@@ -273,6 +273,17 @@ async function settle() {
 
 /* ---------- HTTP ---------- */
 
+// Recount runs in the background now: start it, then ask until it has finished.
+async function recountCoverage(token) {
+  await call('GET', '/api/admin/translations/coverage?refresh=true', { token });
+  for (let i = 0; i < 120; i++) {
+    const r = await call('GET', '/api/admin/translations/coverage', { token });
+    if (!r.data?.recounting) return r;
+    await new Promise((ok) => setTimeout(ok, 500));
+  }
+  throw new Error('recount did not finish');
+}
+
 async function call(method, path, { token, body } = {}) {
   const res = await fetch(BASE + path, {
     method,
@@ -835,7 +846,7 @@ async function main() {
       check('estimate: a bad chapter list is refused', (await call('GET', '/api/admin/translations/estimate?language=te&chapters=2,99', { token })).status === 400);
       check('estimate: so is an unknown language', (await call('GET', '/api/admin/translations/estimate?language=xx', { token })).status === 400);
 
-      const coverage = await call('GET', '/api/admin/translations/coverage?refresh=true', { token });
+      const coverage = await recountCoverage(token);
       const mr = coverage.data?.languages?.find((l) => l.code === 'mr');
       check('coverage: Marathi has the chapters that were translated', coverage.status === 200 && mr && mr.byClaude >= 4 && mr.scores[3] >= 4, JSON.stringify(mr && { saved: mr.saved, byClaude: mr.byClaude }));
       check('coverage: the total is every verse in the Gita fixture', coverage.data.total === 36, String(coverage.data?.total));
@@ -959,7 +970,7 @@ async function main() {
 
         // Every request below that gets past a guard it should not have gone through names Malayalam, which has no
         // file in storage: the worst that can then happen is an import of nothing, never a write into the real Gita.
-        const malayalam = (await call('GET', '/api/admin/translations/coverage?refresh=true', { token })).data.languages.find((l) => l.code === 'ml');
+        const malayalam = (await recountCoverage(token)).data.languages.find((l) => l.code === 'ml');
         check('(Malayalam has nothing in storage, so these requests cannot write)', malayalam.saved === 0, String(malayalam.saved));
 
         // looking
@@ -1046,7 +1057,7 @@ async function main() {
         // The API copy is still on the old version, and what is in storage now was made under another one.
         const stale = await call('GET', '/api/admin/translations/estimate?language=mr&chapters=2', { token });
         check('the API, still on the old version, calls them outdated', stale.data.saved === 0 && stale.data.outdated === 2 && stale.data.todo === 2 && stale.data.willTranslate === 2, JSON.stringify(stale.data));
-        const recount = await call('GET', '/api/admin/translations/coverage?refresh=true', { token });
+        const recount = await recountCoverage(token);
         const marathi = recount.data.languages.find((l) => l.code === 'mr');
         const chapterTwo = marathi.chapters.find((c) => c.chapter === 2);
         check('coverage counts them as saved but not up to date', chapterTwo.saved === 2 && chapterTwo.upToDate === 0 && marathi.upToDate === marathi.saved - 2 && marathi.versions[NEXT] === 2, JSON.stringify({ chapterTwo, upToDate: marathi.upToDate, saved: marathi.saved, versions: marathi.versions }));

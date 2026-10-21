@@ -315,7 +315,7 @@ export const cancel = async (req, res) => {
     });
     if (done.count === 0) throw conflict('The run changed while it was being cancelled. Look again.');
     await service.dropRunJob(row);
-    await service.forgetCoverage();
+    service.refreshRunProgress(row);
     next = await prisma.translationRun.findUnique({ where: { id: row.id } });
   }
 
