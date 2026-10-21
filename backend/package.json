@@ -27,6 +27,7 @@
     "recount:books": "node scripts/recount-books.js",
     "cache:books": "node scripts/export-book-cache.js",
     "fill:prabhupada": "node scripts/fill-prabhupada-source.js",
+    "backfill:translation-progress": "node scripts/backfill-translation-progress.js",
     "fill:status": "node scripts/fill-status.js",
     "translate:claude": "node scripts/translate-claude.js",
     "translate:claude:status": "node scripts/translate-claude.js --status",

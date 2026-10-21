@@ -70,8 +70,9 @@ router.get(
     description:
       'Verses saved per language and per chapter, how many of them are up to date for the current ' +
       'version (`upToDate`; the rest were made under an older one and are translated again by a new ' +
-      'run), how many Claude made, and their scores. Reads every chapter file, so the answer is ' +
-      'cached for five minutes; `refresh=true` rereads.',
+      'run), how many Claude made, and their scores. Read from the `TranslationProgress` table, never ' +
+      'from storage; `recounting` is true while a background fill from storage runs (it starts by itself when ' +
+      'the table is empty or was counted under another version, and `refresh=true` starts one).',
     permission: 'translation.read',
     limit: 'read',
     query: z.object({ book: book.optional(), refresh: z.enum(['true', 'false']).optional() }),
