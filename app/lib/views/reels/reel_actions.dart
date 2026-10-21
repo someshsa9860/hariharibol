@@ -7,6 +7,8 @@ import '../../models/api_failure.dart';
 import '../../models/reel.dart';
 import '../../providers/reel_provider.dart';
 import '../../services/reel_service.dart';
+import '../../core/share_links.dart';
+import '../../services/share_service.dart';
 
 /// What a reader does to a reel on a screen that holds its own copy of it —
 /// like, save, follow, share, and the watch report.
@@ -77,7 +79,12 @@ mixin ReelActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   Future<void> shareReel(Reel reel) async {
     final text = AppLocalizations.of(context);
-    final link = '${AppConfig.appScheme}://reels/${reel.id}';
+    // The public /darshan link when the server can make one; the app's own address otherwise.
+    final link = await ShareService.instance.linkOrFallback(
+      ShareType.reel,
+      reel.id,
+      '${AppConfig.appScheme}://reels/${reel.id}',
+    );
 
     try {
       final result = await SharePlus.instance.share(

@@ -69,6 +69,13 @@ class PushLinks {
     _flush();
   }
 
+  /// A screen to open as soon as the app can show it — what a shared link or a
+  /// deep link resolved to. Same hold as a tapped notification.
+  void openRoute(String route) {
+    _pending = route;
+    _flush();
+  }
+
   /// The dashboard is on screen ([ready]) or has gone.
   void setReady(bool ready) {
     _ready = ready;

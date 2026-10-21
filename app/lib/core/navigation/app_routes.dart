@@ -26,6 +26,9 @@ abstract final class AppRoutes {
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
+  /// Invite a friend and see what it has earned. Pushed from settings.
+  static const String refer = '/refer';
+
   /// Plans and what each unlocks. Pushed from settings.
   static const String plans = '/plans';
 
@@ -123,6 +126,7 @@ abstract final class RouteNames {
   static const String routine = 'routine';
   static const String settings = 'settings';
   static const String plans = 'plans';
+  static const String refer = 'refer';
   static const String voices = 'voices';
   static const String sources = 'sources';
   static const String search = 'search';

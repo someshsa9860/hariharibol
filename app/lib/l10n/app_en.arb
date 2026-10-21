@@ -1606,5 +1606,84 @@
   "sourcesContactBody": "If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.",
   "@sourcesContactBody": {
     "description": "Sources & disclaimer: whom to write to about rights in a text, or a mistake. The email address follows."
-  }
+  },
+  "shareTitle": "Share",
+  "@shareTitle": {
+    "description": "Title of the share sheet, and the tooltip of the share buttons."
+  },
+  "shareAsText": "Share as text",
+  "shareCopied": "Copied",
+  "shareCopyLink": "Copy link",
+  "shareFailed": "We couldn’t share this. Please try again.",
+  "shareImageTooBig": "That picture is too large. Please choose a smaller one.",
+  "shareLinkShare": "Share link",
+  "shareMakeIt": "Create",
+  "shareMakePicture": "Make a picture",
+  "@shareMakePicture": {
+    "description": "Makes a background picture for the share card with the reader's Ask Sakha credit."
+  },
+  "sharePickPicture": "Choose a picture",
+  "sharePictureCost": "Uses about {percent}% of your Sakha credit",
+  "@sharePictureCost": {
+    "description": "How much of the day's Ask Sakha credit a picture uses. Keep the product name Sakha as it is.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "sharePictureFailed": "The picture could not be made. Your credit was returned.",
+  "sharePictureNoCredit": "Your Sakha credit for today is used up.",
+  "sharePicturePrompt": "Describe the picture",
+  "sharePictureShare": "Share picture",
+  "shareRemovePicture": "Remove picture",
+  "shareShowMeaning": "Meaning",
+  "shareShowTransliteration": "Transliteration",
+  "shareTextSize": "Text size",
+  "shareLinkGone": "This link is no longer available.",
+  "@shareLinkGone": {
+    "description": "Shown when a shared link has been withdrawn or never existed."
+  },
+  "settingsRefer": "Refer and earn",
+  "referTitle": "Refer and earn",
+  "referIntro": "Invite a friend. When they finish their first round of chanting, you receive {days} days of Ārta, free.",
+  "@referIntro": {
+    "description": "Under the Refer and earn title. {days} is the length of the reward in days; Ārta is the name of a plan and stays in Latin letters.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "referYourCode": "Your invite code",
+  "referInvite": "Invite a friend",
+  "referInviteMessage": "Join me on HariHariBol: verses, mantras and chanting in one place. {url}",
+  "@referInviteMessage": {
+    "description": "The text sent with an invitation. {url} is the invitation link, placed where the sentence ends.",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "referActiveUntil": "Ārta is yours until {date}",
+  "@referActiveUntil": {
+    "description": "{date} is a formatted date. Ārta is the name of a plan and stays in Latin letters.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "referStatInvited": "Invited",
+  "referStatWaiting": "Waiting",
+  "referStatRewarded": "Rewarded",
+  "referNone": "No invitations yet.",
+  "referEnterCode": "Have a friend’s code?",
+  "referUseCode": "Use code",
+  "referAccepted": "Code accepted. Finish a round of chanting so your friend receives their reward.",
+  "@referAccepted": {
+    "description": "Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting."
+  },
+  "referRefused": "This code can’t be used."
 }

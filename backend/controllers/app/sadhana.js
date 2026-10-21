@@ -13,6 +13,7 @@
 // a year of history can be charted without aggregating sessions and tasks every
 // time, and `recountDay` is the only thing allowed to write them.
 
+import * as referral from '../../services/referral.js';
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import { ok, created, paginated } from '../../utils/respond.js';
@@ -353,6 +354,10 @@ export const saveChantDetail = async (req, res) => {
       })
     )
   );
+
+  // A finished round may be the first thing a referred person does. Never lets
+  // the referral's outcome change the answer to the phone.
+  if (saved.some((m) => m.complete)) referral.evaluate(user.id).catch(() => {});
 
   return ok(res, { malas: saved });
 };

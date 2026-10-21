@@ -15,6 +15,8 @@ import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/eyebrow.dart';
 import '../../widgets/dashboard/mantra_category_label.dart';
+import '../../widgets/share/share_target.dart';
+import '../share/share_studio_view.dart';
 
 /// One mantra: the script to chant, its meaning, and the way into the counter
 /// already carrying it — so "chant this" never means re-finding it there.
@@ -29,7 +31,16 @@ class MantraDetailView extends ConsumerWidget {
     final text = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          if (mantra.value != null)
+            IconButton(
+              icon: const Icon(Icons.ios_share_rounded),
+              tooltip: text.shareTitle,
+              onPressed: () => ShareStudio.open(context, ShareTarget.mantra(mantra.value!)),
+            ),
+        ],
+      ),
       body: mantra.when(
         loading: () => const AppLoader(),
         error: (error, _) => AppErrorView(

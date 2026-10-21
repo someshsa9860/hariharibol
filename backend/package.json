@@ -52,6 +52,7 @@
     "test:book-counts": "node scripts/book-counts-e2e.js",
     "test:book-titles": "node scripts/book-titles-e2e.js",
     "test:translation": "node scripts/translation-e2e.js",
+    "test:share-referral": "OPENAI_API_KEY=test-key-not-real node scripts/share-referral-e2e.js",
     "test:translation-import": "node scripts/translation-import-e2e.js"
   },
   "prisma": {

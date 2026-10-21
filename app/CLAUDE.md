@@ -440,6 +440,27 @@ The previous app (**Sadhana**, same bundle id, a Laravel server behind it) left 
 
 - **Access token lifetime — decided: 7 days, renewed daily.** The owner chose a long access token that the app swaps every day (see "Session and tokens"), so a signed-in person is never asked to sign in because of a lapse. The cost is accepted: a stolen access token stays valid for up to a week and the API has no revocation list for access tokens. Signing out everywhere revokes the refresh tokens, so the longest a thief outlives it is the rest of that week.
 
+## Sharing, links and Refer and earn
+
+`lib/core/share_links.dart` is the only parser of a shared link (same grammar as the backend and the website, tested
+in `test/share_links_test.dart`): `https://hariharibol.com/{shloka|naam|darshan|satsang}/<code>`, `hariharibol://…`
+and the website's `hariharibol://open?path=/…`. Any other host is refused. `services/deep_link_service.dart` listens
+with `app_links` (cold start and while running), dedupes, asks the API what a code is (`ShareService.resolve`) and
+pushes the route through `PushLinks`; a path that reaches the router instead is claimed in `app_router.dart`'s
+redirect and handed to the same service. A gone link says `shareLinkGone`. An invitation is held in
+`BoxKeys.pendingInvite` until signed in, then presented once; **a typed code on the Refer screen is the fallback**
+because the stores do not pass a link through an install (no deferred deep link is promised).
+
+The studio is `views/share/share_studio_view.dart` (card painted by `widgets/share/share_card.dart`, exported to PNG,
+shared with `share_plus`); entry points are on the verse block, the home verse card, the mantra screen and reels. The
+Refer screen is `views/premium/refer_view.dart`, opened from Settings. Android intent filters (App Links with
+`autoVerify`, plus the `hariharibol` scheme) and iOS `applinks:hariharibol.com` plus the URL scheme are declared;
+**they only verify once the API serves the association files** (`APPLE_TEAM_ID`, `ANDROID_CERT_SHA256`).
+35 strings (`share*`, `refer*`, `settingsRefer`) are in all 12 ARBs; the 11 translations are AI-drafted.
+**This part was written without a Flutter SDK: it has not been compiled, analysed or run, `flutter gen-l10n` was not
+run (the generated files were edited by hand in the generator's style), and nothing has been tried on a phone.** Run
+`tool/flutter.sh pub get`, `gen-l10n`, `analyze` and `test` first.
+
 ## Firebase and signing
 
 Both are secrets and neither is in the repository, so a fresh clone must build without them: the google-services Gradle plugin is applied only when `android/app/google-services.json` exists, the release signing config only when `android/key.properties` does, and `FirebaseService` records a failed init rather than crashing. Nothing here is optional in a real build.

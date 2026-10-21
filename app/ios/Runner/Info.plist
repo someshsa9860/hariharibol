@@ -42,6 +42,16 @@
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.sss.ramkrishnahari.open</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hariharibol</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.52994508754-fenms319bgpkdnjo1tslp5ojpe0b06ef</string>

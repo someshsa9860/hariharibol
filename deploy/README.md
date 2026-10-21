@@ -146,6 +146,15 @@ Only the six server files the website's deploy runs (`config.sh`, `common.sh`, `
 `website.sh`) are uploaded by that workflow. Anything else in `deploy/server/` reaches the server when you copy it
 there yourself.
 
+## Shared links and refer and earn
+
+After merging `main` into `production`: the deploy applies `20261027000000_share_referral`. Then set, in the API's env
+file, `APPLE_TEAM_ID` (Apple Developer team id), `ANDROID_CERT_SHA256` (signing-certificate fingerprint from Play
+Console → App integrity) and, once the apps are listed, `PLAY_STORE_URL` and `APP_STORE_URL`. The nginx change
+(`/.well-known/apple-app-site-association` and `assetlinks.json` proxied to the deeplink container on the apex domain)
+needs `deploy/server/nginx.conf` installed and nginx reloaded. Check
+`https://hariharibol.com/.well-known/assetlinks.json` and `apple-app-site-association` return JSON with no redirect.
+
 ## GitHub secrets and variables
 
 Add these under **Settings → Secrets and variables → Actions**.

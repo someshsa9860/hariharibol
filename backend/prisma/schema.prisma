@@ -102,6 +102,7 @@ enum NotificationType {
   ANNOUNCEMENT // broadcast from admin
   SYSTEM // account, payment, security
   REEL // someone engaged with your reel, or with you as a creator
+  REFERRAL // a referral qualified and earned a month
 }
 
 enum VerseLinkRelation {
@@ -284,6 +285,13 @@ model User {
   aiWalletTxns      AiWalletTransaction[]
   aiDailyUsage      AiDailyUsage[]
   chatConversations ChatConversation[]
+
+  shareLinks        ShareLink[]
+  referralCode      ReferralCode?
+  referralsMade     Referral[]         @relation("Referrer")
+  referredBy        Referral?          @relation("Referee")
+  entitlementGrants EntitlementGrant[]
+  shareImageJobs    ShareImageJob[]
 
   favorites       Favorite[]
   readingProgress ReadingProgress[]
@@ -1307,6 +1315,7 @@ model SubscriptionPlan {
   features      PlanFeature[]
   subscriptions Subscription[]
   aiConfig      AiPlanConfig?
+  grants        EntitlementGrant[]
 
   @@index([isActive, tier])
 }
@@ -1763,8 +1772,8 @@ model Mantra {
   chantSessions    ChantSession[]
   favorites        Favorite[]
   reels            Reel[]
-  preferredByUsers SadhanaProfile[] @relation("PreferredMantra")
-  legacyFavoriteOf SadhanaProfile[] @relation("LegacyFavoriteMantra")
+  preferredByUsers SadhanaProfile[]    @relation("PreferredMantra")
+  legacyFavoriteOf SadhanaProfile[]    @relation("LegacyFavoriteMantra")
 
   @@index([category])
   @@index([sampradaya])
@@ -2567,6 +2576,7 @@ enum AiWalletSource {
   ADMIN_ADJUST
   PLAN_RENEWAL
   OTHER_AI_FEATURE
+  SHARE_IMAGE // a background picture made for a share card
 }
 
 enum AiModelTier {
@@ -2668,11 +2678,11 @@ model AiDailyUsage {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date   String @db.VarChar(10) // user-local "YYYY-MM-DD"
-  tokens Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
+  date        String @db.VarChar(10) // user-local "YYYY-MM-DD"
+  tokens      Int    @default(0) // paid from the wallet; this is what the plan's daily cap counts
   // Paid from that day's free-tier bonus instead (services/ai/free-tier.js, utils/ai-bonus.js). Not part of `tokens`,
   // so the bonus never uses up the cap and never touches the wallet.
-  bonusTokens Int @default(0)
+  bonusTokens Int    @default(0)
 
   @@id([userId, date])
   @@index([date])
@@ -2733,4 +2743,146 @@ model ChatMessage {
   createdAt DateTime @default(now())
 
   @@unique([conversationId, seq])
+}
+
+// ── Sharing and referrals ─────────────────────────────────────────────────
+
+enum ShareContentType {
+  VERSE // a verse or shloka, target = Verse.verseId
+  MANTRA // target = Mantra.slug
+  REEL // target = Reel.id
+}
+
+// A public, opaque code for one piece of content: hariharibol.com/shloka/<code>.
+// The code is random, never derived from the target or the sharer, so it exposes
+// neither. It is deliberately a separate thing from ReferralCode: opening shared
+// content never attributes a referral or earns a reward.
+model ShareLink {
+  id String @id @default(cuid())
+
+  code        String           @unique @db.VarChar(16)
+  type        ShareContentType
+  targetId    String           @db.VarChar(120)
+  createdById String?
+  createdBy   User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  // Set by an admin to switch a code off without deleting its record.
+  revokedAt DateTime?
+  clicks    Int       @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([type, targetId])
+  @@index([createdById, type, targetId])
+}
+
+// Each user's own referral code, made on first use. Random and short enough to
+// type (it is the fallback when a link does not survive an app install).
+model ReferralCode {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  code      String   @unique @db.VarChar(16)
+  createdAt DateTime @default(now())
+}
+
+enum ReferralStatus {
+  PENDING // attributed, not yet qualified
+  QUALIFIED // met the rules and was rewarded
+  REJECTED // failed a rule for good (see rejectReason)
+  REVERSED // the reward was taken back (refund, abuse)
+}
+
+enum ReferralSource {
+  LINK
+  CODE
+}
+
+// One row per referred person (`refereeId` is unique: a person is referred once,
+// by the first valid code they present — later codes are ignored).
+model Referral {
+  id String @id @default(cuid())
+
+  referrerId String
+  referrer   User   @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId  String @unique
+  referee    User   @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  code   String         @db.VarChar(16)
+  source ReferralSource @default(LINK)
+
+  status       ReferralStatus @default(PENDING)
+  rejectReason String?        @db.VarChar(120)
+
+  attributedAt DateTime  @default(now())
+  qualifiedAt  DateTime?
+
+  reward EntitlementGrant?
+
+  @@index([referrerId, status])
+  @@index([status, attributedAt])
+}
+
+enum EntitlementGrantSource {
+  REFERRAL
+  ADMIN
+}
+
+// Premium access given rather than bought. It is not a store subscription and is
+// never shown as one: services/entitlement.js reads it beside Subscription and
+// Payment, takes the highest tier, and a grant never shortens or replaces a
+// subscription. `referralId` is unique, so a referral can pay out once however
+// many times it is evaluated.
+model EntitlementGrant {
+  id String @id @default(cuid())
+
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId String
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  source     EntitlementGrantSource
+  referralId String?                @unique
+  referral   Referral?              @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  note       String?                @db.VarChar(200)
+
+  startsAt  DateTime
+  endsAt    DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, endsAt])
+}
+
+enum ShareImageStatus {
+  PENDING
+  DONE
+  FAILED
+}
+
+// One AI-made background for a share card. `(userId, requestKey)` is unique, so a
+// retry of the same request finds the same job and cannot be charged twice.
+model ShareImageJob {
+  id String @id @default(cuid())
+
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestKey String @db.VarChar(80)
+
+  prompt    String           @db.VarChar(600)
+  status    ShareImageStatus @default(PENDING)
+  tokens    Int
+  // Where the picture is kept (S3 key). Removed with the job after a day.
+  imagePath String?
+  error     String?          @db.VarChar(200)
+  refunded  Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, requestKey])
+  @@index([createdAt])
 }

@@ -2193,4 +2193,117 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sourcesContactBody =>
       'If you hold rights in any text shown here, or find a mistake in one, please write to us. We will reply promptly and, where asked, correct or remove it.';
+
+  @override
+  String get shareTitle => 'Share';
+
+  @override
+  String get shareAsText => 'Share as text';
+
+  @override
+  String get shareCopied => 'Copied';
+
+  @override
+  String get shareCopyLink => 'Copy link';
+
+  @override
+  String get shareFailed => 'We couldn’t share this. Please try again.';
+
+  @override
+  String get shareImageTooBig => 'That picture is too large. Please choose a smaller one.';
+
+  @override
+  String get shareLinkShare => 'Share link';
+
+  @override
+  String get shareMakeIt => 'Create';
+
+  @override
+  String get shareMakePicture => 'Make a picture';
+
+  @override
+  String get sharePickPicture => 'Choose a picture';
+
+  @override
+  String sharePictureCost(int percent) {
+    return 'Uses about $percent% of your Sakha credit';
+  }
+
+  @override
+  String get sharePictureFailed => 'The picture could not be made. Your credit was returned.';
+
+  @override
+  String get sharePictureNoCredit => 'Your Sakha credit for today is used up.';
+
+  @override
+  String get sharePicturePrompt => 'Describe the picture';
+
+  @override
+  String get sharePictureShare => 'Share picture';
+
+  @override
+  String get shareRemovePicture => 'Remove picture';
+
+  @override
+  String get shareShowMeaning => 'Meaning';
+
+  @override
+  String get shareShowTransliteration => 'Transliteration';
+
+  @override
+  String get shareTextSize => 'Text size';
+
+  @override
+  String get shareLinkGone => 'This link is no longer available.';
+
+  @override
+  String get settingsRefer => 'Refer and earn';
+
+  @override
+  String get referTitle => 'Refer and earn';
+
+  @override
+  String referIntro(int days) {
+    return 'Invite a friend. When they finish their first round of chanting, you receive $days days of Ārta, free.';
+  }
+
+  @override
+  String get referYourCode => 'Your invite code';
+
+  @override
+  String get referInvite => 'Invite a friend';
+
+  @override
+  String referInviteMessage(String url) {
+    return 'Join me on HariHariBol: verses, mantras and chanting in one place. $url';
+  }
+
+  @override
+  String referActiveUntil(String date) {
+    return 'Ārta is yours until $date';
+  }
+
+  @override
+  String get referStatInvited => 'Invited';
+
+  @override
+  String get referStatWaiting => 'Waiting';
+
+  @override
+  String get referStatRewarded => 'Rewarded';
+
+  @override
+  String get referNone => 'No invitations yet.';
+
+  @override
+  String get referEnterCode => 'Have a friend’s code?';
+
+  @override
+  String get referUseCode => 'Use code';
+
+  @override
+  String get referAccepted => 'Code accepted. Finish a round of chanting so your friend receives their reward.';
+
+  @override
+  String get referRefused => 'This code can’t be used.';
 }

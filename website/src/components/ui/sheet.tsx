@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { Icon } from './icon';
 
 /** A bottom sheet on phones, a centred dialog on desktop. Escape and the backdrop close it; focus stays inside. */
-export function Sheet({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+export function Sheet({ title, onClose, children, wide, className }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string }) {
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
 
@@ -35,7 +35,7 @@ export function Sheet({ title, onClose, children, wide }: { title: string; onClo
 
   return (
     <div className="sheet-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div ref={panel} className={clsx('sheet', wide && 'sheet-wide')} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+      <div ref={panel} className={clsx('sheet', wide && 'sheet-wide', className)} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className="sheet-grip" />
         <div className="sheet-head">
           <h3 id={titleId}>{title}</h3>

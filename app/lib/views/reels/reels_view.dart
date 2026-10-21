@@ -22,6 +22,8 @@ import '../../widgets/reels/reel_comments_sheet.dart';
 import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
+import '../../core/share_links.dart';
+import '../../services/share_service.dart';
 
 /// The reels feed — the third tab.
 ///
@@ -143,7 +145,12 @@ class _ReelsViewState extends ConsumerState<ReelsView>
 
   Future<void> _share(Reel reel) async {
     final text = AppLocalizations.of(context);
-    final link = '${AppConfig.appScheme}://reels/${reel.id}';
+    // The public /darshan link when the server can make one; the app's own address otherwise.
+    final link = await ShareService.instance.linkOrFallback(
+      ShareType.reel,
+      reel.id,
+      '${AppConfig.appScheme}://reels/${reel.id}',
+    );
 
     try {
       final result = await SharePlus.instance.share(
@@ -169,9 +176,12 @@ class _ReelsViewState extends ConsumerState<ReelsView>
 
   Future<void> _copyLink(Reel reel) async {
     final text = AppLocalizations.of(context);
-    await Clipboard.setData(
-      ClipboardData(text: '${AppConfig.appScheme}://reels/${reel.id}'),
+    final link = await ShareService.instance.linkOrFallback(
+      ShareType.reel,
+      reel.id,
+      '${AppConfig.appScheme}://reels/${reel.id}',
     );
+    await Clipboard.setData(ClipboardData(text: link));
     AppNavigator.instance.showMessage(text.reelLinkCopied);
 
     try {
