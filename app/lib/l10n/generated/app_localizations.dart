@@ -3004,6 +3004,12 @@ abstract class AppLocalizations {
   /// **'Daily sloka and updates'**
   String get pushChannelName;
 
+  /// Name of the quieter Android notification channel an admin's quiet pushes arrive on (shown in the tray, no pop-up or sound); shown in the phone's notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet updates'**
+  String get pushQuietChannelName;
+
   /// No description provided for @readingSectionVerse.
   ///
   /// In en, this message translates to:

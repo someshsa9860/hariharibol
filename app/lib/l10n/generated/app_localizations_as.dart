@@ -1729,6 +1729,9 @@ class AppLocalizationsAs extends AppLocalizations {
   String get pushChannelName => 'দৈনিক শ্লোক আৰু জাননী';
 
   @override
+  String get pushQuietChannelName => 'শান্ত জাননী';
+
+  @override
   String get readingSectionVerse => 'শ্লোক';
 
   @override

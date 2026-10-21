@@ -1727,6 +1727,9 @@ class AppLocalizationsMr extends AppLocalizations {
   String get pushChannelName => 'दैनिक श्लोक आणि सूचना';
 
   @override
+  String get pushQuietChannelName => 'शांत सूचना';
+
+  @override
   String get readingSectionVerse => 'श्लोक';
 
   @override

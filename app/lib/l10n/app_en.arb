@@ -1053,6 +1053,10 @@
   "@pushChannelName": {
     "description": "Name of the Android notification channel the daily sloka and other pushes arrive on; shown in the phone's notification settings."
   },
+  "pushQuietChannelName": "Quiet updates",
+  "@pushQuietChannelName": {
+    "description": "Name of the quieter Android notification channel an admin's quiet pushes arrive on (shown in the tray, no pop-up or sound); shown in the phone's notification settings."
+  },
   "readingSectionVerse": "Verse",
   "readingSectionMeaning": "Meaning",
   "readingSectionPurport": "Purport",

@@ -17,22 +17,30 @@ import * as notify from '../../services/notify.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import * as campaigns from '../../services/push-campaign.js';
+import * as pushRich from '../../utils/push-rich.js';
 import { badRequest, notFound } from '../../utils/errors.js';
 
 /** POST /api/admin/notifications/topic */
 export const broadcastTopic = async (req, res) => {
-  const { topicKey, title, body, data } = req.valid.body;
+  const { topicKey, title, body, data, ...look } = req.valid.body;
 
   const topic = await prisma.fcmTopic.findUnique({ where: { key: topicKey } });
   if (!topic || !topic.isActive) throw badRequest('No such active topic');
 
-  const result = await notify.toTopic(topicKey, { title, body, data });
+  const rich = await pushRich.build(look);
+  const result = await notify.toTopic(topicKey, {
+    title,
+    body,
+    image: rich.image,
+    rich,
+    data: { ...rich.data, ...(data || {}) },
+  });
 
   await audit.record(req, {
     action: 'notification.broadcast.topic',
     entityType: 'FcmTopic',
     entityId: topic.id,
-    after: { topicKey, title },
+    after: { topicKey, title, image: !!rich.image, deeplink: rich.data.deeplink },
   });
 
   return ok(res, { sent: true, messageId: result.messageId });
@@ -46,7 +54,8 @@ export const broadcastTopic = async (req, res) => {
  * — anything larger belongs in a job, not a request.
  */
 export const broadcastAudience = async (req, res) => {
-  const { title, body, data, audience } = req.valid.body;
+  const { title, body, data, audience, ...look } = req.valid.body;
+  const rich = await pushRich.build(look);
 
   const where = {
     isBanned: false,
@@ -66,13 +75,13 @@ export const broadcastAudience = async (req, res) => {
 
   const result = await notify.toUsers(
     users.map((u) => u.id),
-    { type: 'ANNOUNCEMENT', title, body, data, source: 'audience', campaign: `audience:${audience}:${Date.now()}` }
+    { type: 'ANNOUNCEMENT', title, body, image: rich.image, rich, data: { ...rich.data, ...(data || {}) }, source: 'audience', campaign: `audience:${audience}:${Date.now()}` }
   );
 
   await audit.record(req, {
     action: 'notification.broadcast.audience',
     entityType: 'Notification',
-    after: { audience, title, recipients: users.length },
+    after: { audience, title, recipients: users.length, image: !!rich.image, deeplink: rich.data.deeplink },
   });
 
   return ok(res, { recipients: users.length, created: result.created, campaignId: result.campaignId });
@@ -80,13 +89,16 @@ export const broadcastAudience = async (req, res) => {
 
 /** POST /api/admin/notifications/user/:userId — a message to one person. */
 export const toUser = async (req, res) => {
-  const { title, body, data, type = 'SYSTEM' } = req.valid.body;
+  const { title, body, data, type = 'SYSTEM', ...look } = req.valid.body;
+  const rich = await pushRich.build(look);
 
   const notification = await notify.toUser(req.valid.params.userId, {
     type,
     title,
     body,
-    data,
+    image: rich.image,
+    rich,
+    data: { ...rich.data, ...(data || {}) },
     source: 'user',
     campaign: `user:${Date.now()}`,
   });
@@ -95,7 +107,7 @@ export const toUser = async (req, res) => {
     action: 'notification.direct',
     entityType: 'Notification',
     entityId: notification.id,
-    after: { userId: req.valid.params.userId, title },
+    after: { userId: req.valid.params.userId, title, image: !!rich.image, deeplink: rich.data.deeplink },
   });
 
   return ok(res, notification);
@@ -107,6 +119,14 @@ export const SORT_COLUMNS = {
   type: 'type',
   title: 'title',
 };
+
+/** GET /api/admin/notifications/options — the tap targets the app understands. */
+export const options = async (req, res) =>
+  ok(res, {
+    targets: Object.entries(pushRich.TARGETS).map(([key, t]) => ({ key, ...t })),
+    styles: pushRich.STYLES,
+    importance: pushRich.IMPORTANCE,
+  });
 
 /** GET /api/admin/notifications — what has been sent, for checking delivery. */
 export const list = async (req, res) => {
