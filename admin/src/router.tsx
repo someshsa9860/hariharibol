@@ -21,6 +21,7 @@ import { BookReelStylePage } from '@/routes/book-reel-style';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
+import { FinancePage } from '@/routes/finance';
 import { PlansPage } from '@/routes/plans';
 import { NotificationsPage } from '@/routes/notifications';
 import { SettingsPage } from '@/routes/settings';
@@ -240,6 +241,14 @@ export function Router() {
         element={
           <Protected permission="notification.send">
             <NotificationsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/finance"
+        element={
+          <Protected permission="finance.manage">
+            <FinancePage />
           </Protected>
         }
       />

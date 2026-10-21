@@ -70,6 +70,7 @@ const PERMISSIONS = {
   'audit.read': { group: 'system', name: 'View the audit log' },
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
+  'finance.manage': { group: 'system', name: 'View revenue, AI cost and the books; add credit and debit entries (super admin only)' },
   'system.maintenance': { group: 'system', name: 'Run the listed maintenance scripts (seed and similar) from the panel' },
 };
 
@@ -91,7 +92,7 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', ...AUDITOR_ONLY].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', 'finance.manage', ...AUDITOR_ONLY].includes(slug)
   ),
   // Everything, including permissions added later — except the auditor-only ones: a book's
   // text is corrected by one named role so every correction has one accountable hand.
@@ -193,6 +194,8 @@ const SETTING_KEYS = {
   CHAT_LIMITS: 'chat.limits',
   // How book reels (verses drawn as pages) look and which buttons they show — see config/book-reel.js.
   BOOK_REEL_STYLE: 'reels.book_style',
+  // Rupees per US dollar, used to put AI spend (billed in dollars) into the books in INR — see services/finance.js.
+  FINANCE_USD_INR_RATE: 'finance.usd_inr_rate',
 };
 
 // When the daily sloka is pushed, in each reader's own timezone, if the

@@ -43,6 +43,13 @@ const schedules = [
     description: 'Push an upcoming Ekadashi, Chaturthi or festival to readers, once each, the day before.',
   },
   {
+    name: 'finance.remind',
+    queue: 'notification',
+    // 03:30 UTC = 09:00 IST: asks the super admins for the month's costs on the last two days of a month and the first week of the next.
+    cron: '30 3 * * *',
+    description: 'Ask the super admins to enter and confirm the month’s costs, once a day until they do.',
+  },
+  {
     name: 'preferences.rebuild',
     queue: 'preferences',
     // Monday 20:00 UTC, after the week has closed everywhere.

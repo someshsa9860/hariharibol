@@ -449,3 +449,7 @@ Books → row menu → **Read verses** opens `components/book-reader-dialog.tsx`
 ## Admins, Add user, Add admin
 
 The **Admins** page (`routes/admins.tsx`, permission `role.manage`, so super admin only) lists users whose role carries any permission (`GET /api/admin/users?staff=true`). **Add admin** and **Add user** (Users page, `user.write`) both post to `POST /api/admin/users` with an email: the API makes a placeholder account (`authProvider = LEGACY`, the same one the old-app carry-over uses) with the chosen role, and the first Google or Apple sign-in with that address adopts it and keeps the role (`claimLegacy`). Any role other than `user` needs `role.manage`. No migration and no seed change. Add creator picks an existing account, so add the person first.
+
+## Finance
+
+`/finance` (`routes/finance.tsx`, nav System → Finance, permission `finance.manage`, super admin only). A month picker; revenue (gross, commission, net, refunds, free trials as ₹0), AI cost by kind with the dollar rate editor, credits and debits (add / edit / delete), a twelve-month table, and **Confirm month** (fixes that month's dollar rate and stops the reminder; Reopen undoes it). `components/finance-banner.tsx` shows an amber bar on every page for the super admin while last month (or this month, in its last two days) is unconfirmed. See "Finance" in [backend/CLAUDE.md](../backend/CLAUDE.md).

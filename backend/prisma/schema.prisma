@@ -1627,6 +1627,55 @@ model AppSetting {
   updatedById String?
 }
 
+// ============================================================================
+// Finance — the owner's books (super admin only)
+// ============================================================================
+
+enum FinanceDirection {
+  CREDIT // money in that is not a store payment: a grant, a sponsor, a refund from a vendor
+  DEBIT // money out: advertising, salary, a purchase
+}
+
+// One line the super admin typed in. Store revenue and AI spend are not here — they are
+// read from Payment and AiUsageLog, so the same rupee is never counted twice.
+model FinanceEntry {
+  id String @id @default(cuid())
+
+  direction FinanceDirection
+  // advertising · purchase · salary · tools · other (validated in controllers/admin/finance.js)
+  category  String          @db.VarChar(30)
+  // Paise, always positive; `direction` says which way it went.
+  amountInr Int
+
+  // The day it happened in India (UTC midnight of the IST date); the month it belongs to follows from it.
+  occurredOn DateTime @db.Date
+  note       String?  @db.VarChar(500)
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([occurredOn])
+}
+
+// One row per calendar month (IST), made when the super admin first confirms it.
+model FinanceMonth {
+  month String @id @db.VarChar(7) // "2026-09"
+
+  // The USD to INR rate the month's AI spend is converted at. Fixed when the month is confirmed so a
+  // closed month never moves; an open month uses the current rate (setting finance.usd_inr_rate).
+  usdInrRate Decimal? @db.Decimal(10, 4)
+
+  // The super admin has entered (or ruled out) this month's costs. Stops the month-end reminder.
+  costsConfirmedAt DateTime?
+  costsConfirmedById String?
+
+  // The last reminder sent for this month, so one day sends one.
+  lastRemindedOn DateTime? @db.Date
+
+  updatedAt DateTime @updatedAt
+}
+
 // One row per AI call. Exists so spend is visible per operation — without it
 // there is no way to tell which job is costing money or when a prompt change
 // made it worse.
