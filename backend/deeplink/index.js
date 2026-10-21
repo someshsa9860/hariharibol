@@ -39,7 +39,7 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
       details: env.appleBundleIds.map((bundleId) => ({
         appID: env.APPLE_TEAM_ID ? `${env.APPLE_TEAM_ID}.${bundleId}` : bundleId,
         // The legacy paths, then the share and invitation families (utils/share.js).
-        paths: ['/verse/*', '/sloka/*', '/mantra/*', '/book/*', '/shloka/*', '/naam/*', '/darshan/*', '/satsang/*'],
+        paths: ['/verse/*', '/sloka/*', '/mantra/*', '/book/*', '/shloka/*', '/naam/*', '/darshan/*', '/satsang/*', '/get-app'],
       })),
     },
   });

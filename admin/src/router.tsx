@@ -7,6 +7,7 @@ import { Loader2, ShieldOff } from 'lucide-react';
 import { Login } from '@/routes/login';
 import { Dashboard } from '@/routes/dashboard';
 import { UsersPage } from '@/routes/users';
+import { UserDetailPage } from '@/routes/user-detail';
 import { AdminsPage } from '@/routes/admins';
 import { CreatorsPage } from '@/routes/creators';
 import { RolesPage } from '@/routes/roles';
@@ -20,6 +21,7 @@ import { BookReelStylePage } from '@/routes/book-reel-style';
 import { ReferencePage } from '@/routes/reference';
 import { SlokasPage } from '@/routes/slokas';
 import { PaymentsPage } from '@/routes/payments';
+import { FinancePage } from '@/routes/finance';
 import { PlansPage } from '@/routes/plans';
 import { NotificationsPage } from '@/routes/notifications';
 import { SettingsPage } from '@/routes/settings';
@@ -119,6 +121,14 @@ export function Router() {
         element={
           <Protected permission="user.read">
             <UsersPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/users/:id"
+        element={
+          <Protected permission="user.read">
+            <UserDetailPage />
           </Protected>
         }
       />
@@ -231,6 +241,14 @@ export function Router() {
         element={
           <Protected permission="notification.send">
             <NotificationsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/finance"
+        element={
+          <Protected permission="finance.manage">
+            <FinancePage />
           </Protected>
         }
       />

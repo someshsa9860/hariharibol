@@ -160,6 +160,18 @@ function pickTransliteration(rows, chain, fallback = null, sanskrit = null) {
   return fallback;
 }
 
+// A verse's word-by-word meanings in the reader's own language: walking the chain, a
+// language's imported list (VerseTranslation.wordMeanings) wins; the verse's own list
+// is English, the fallback, and is where a chain that reaches English stops.
+function pickWordMeanings(rows, chain, fallback = null) {
+  for (const code of chain) {
+    if (code === DEFAULT_LANGUAGE) break;
+    const row = Array.isArray(rows) && rows.find((r) => r.languageCode === code && Array.isArray(r.wordMeanings) && r.wordMeanings.length);
+    if (row) return row.wordMeanings;
+  }
+  return fallback;
+}
+
 // Localised JSON columns (`titleI18n`, `nameI18n`) fall back to the plain
 // column when the chain misses.
 function localised(row, baseField, i18nField, chain) {
@@ -197,6 +209,7 @@ export {
   mantraNameClauses,
   pickTranslation,
   pickTransliteration,
+  pickWordMeanings,
   localised,
   fromHeader,
 };

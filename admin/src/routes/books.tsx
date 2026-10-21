@@ -249,7 +249,7 @@ export function BooksPage() {
       />
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent page>
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? 'New book' : `Edit ${(editing as Book)?.title}`}</DialogTitle>
           </DialogHeader>
@@ -337,6 +337,7 @@ export function BooksPage() {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing?.title}
         description={viewing?.slug}
+        audit={viewing ? { entityType: 'Book', entityId: viewing.id } : undefined}
         fields={
           viewing
             ? [

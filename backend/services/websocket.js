@@ -48,6 +48,7 @@ const EVENTS = {
   // Admin panel, to `scenes.read`: the same two for the scene prompt runs.
   SCENES_RUN: 'scenes.run',
   SCENES_ACTIVITY: 'scenes.activity',
+  SCENES_USAGE: 'scenes.usage',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

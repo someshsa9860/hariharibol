@@ -101,7 +101,10 @@ export type Overview = {
 export type Score = 1 | 2 | 3;
 export type Coverage = {
   book: BookId;
-  generatedAt: string;
+  generatedAt: string | null;
+  /** A fill from storage is running in the background; the counts grow as chapters are done. */
+  recounting?: boolean;
+  recount?: { done: number; total: number } | null;
   /** The version a new run would translate under. Null only when TRANSLATION_VERSION is malformed. */
   version: string | null;
   total: number;
@@ -269,6 +272,7 @@ export function useCoverage(book: BookId) {
     queryKey: keys.coverage(book),
     queryFn: async () => (await api.get<Coverage>(`${ROOT}/coverage`, { book })).data,
     staleTime: 60_000,
+    refetchInterval: (query) => (query.state.data?.recounting ? 3000 : false),
   });
 }
 

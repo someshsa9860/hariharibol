@@ -1,5 +1,6 @@
 import { createRouter, z, schemas } from '../../utils/router.js';
 import * as controller from '../../controllers/admin/user.js';
+import * as detail from '../../controllers/admin/user-detail.js';
 
 const router = createRouter({
   tag: 'Admin · Users',
@@ -59,6 +60,73 @@ router.get(
     responds: { 200: 'The user', 404: 'No such user' },
   },
   controller.get
+);
+
+router.get(
+  '/:id/overview',
+  {
+    summary: 'Everything about one person at a glance',
+    description: 'The profile, plan, chanting totals and streaks, activity, what they read / watch / ask, devices and referrals.',
+    permission: 'user.read',
+    limit: 'read',
+    params: schemas.id,
+    responds: { 200: 'The data', 404: 'No such user' },
+  },
+  detail.overview
+);
+
+router.get(
+  '/:id/chanting',
+  {
+    summary: 'What a person chants',
+    description: 'Per-mantra totals (rounds, sittings, minutes, last chanted) and their sittings, newest first, paged.',
+    permission: 'user.read',
+    limit: 'read',
+    params: schemas.id,
+    query: z.object({ page: z.coerce.number().int().min(1).optional(), pageSize: z.coerce.number().int().min(1).max(100).optional() }),
+    responds: { 200: 'The data', 404: 'No such user' },
+  },
+  detail.chanting
+);
+
+router.get(
+  '/:id/daily',
+  {
+    summary: 'A person day by day',
+    description: 'One row per day (up to 365): rounds against target, tasks, sittings and minutes, and whether they were active.',
+    permission: 'user.read',
+    limit: 'read',
+    params: schemas.id,
+    query: z.object({ days: z.coerce.number().int().min(7).max(365).optional() }),
+    responds: { 200: 'The data', 404: 'No such user' },
+  },
+  detail.daily
+);
+
+router.get(
+  '/:id/engagement',
+  {
+    summary: 'What a person reads, saves, watches and is sent',
+    description: 'Reading progress per book, saved items, notes, recent reels watched, Sakha conversations (titles and counts only — never what was said) and notifications.',
+    permission: 'user.read',
+    limit: 'read',
+    params: schemas.id,
+    responds: { 200: 'The data', 404: 'No such user' },
+  },
+  detail.engagement
+);
+
+router.get(
+  '/:id/billing',
+  {
+    summary: 'A person’s plan and money',
+    description: 'Entitlement, subscriptions, payments, the Ask Sakha wallet and its ledger, and referral or admin grants.',
+    permission: 'user.read',
+    limit: 'read',
+    params: schemas.id,
+    responds: { 200: 'The data', 404: 'No such user' },
+  },
+  detail.billing
 );
 
 router.patch(

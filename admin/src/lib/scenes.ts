@@ -301,6 +301,11 @@ export function useScenesLive() {
     }
   });
 
+  // The worker's minute and today's tokens, sent each time a request starts or finishes.
+  useSocketEvent<{ minute: ScenesOverview['usage']['minute']; today: ScenesOverview['usage']['today'] | null }>('scenes.usage', (usage) => {
+    queryClient.setQueryData<ScenesOverview>(keys.overview, (prev) => (prev ? { ...prev, usage: { minute: usage.minute, today: usage.today ?? prev.usage.today } } : prev));
+  });
+
   useSocketEvent<FeedLine & { runId: string }>('scenes.activity', (line) => {
     if (!line?.runId) return;
     const { runId, ...entry } = line;

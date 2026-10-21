@@ -175,7 +175,7 @@ export function BookReaderDialog({ book, onClose }: { book: { id: string; title:
 
   return (
     <Dialog open={!!book} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+      <DialogContent page className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{book?.title}</DialogTitle>
           <p className="text-sm text-muted-foreground">

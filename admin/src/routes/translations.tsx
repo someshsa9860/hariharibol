@@ -179,7 +179,7 @@ export function TranslationsPage() {
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Languages</h3>
-                  <RefreshCoverage book={book.id} />
+                  <RefreshCoverage book={book.id} recount={coverage.data?.recounting ? (coverage.data.recount ?? { done: 0, total: 0 }) : null} />
                 </div>
                 <LanguageGrid
                   overview={data}
@@ -256,25 +256,26 @@ function LiveIndicator() {
   );
 }
 
-function RefreshCoverage({ book }: { book: BookId }) {
+function RefreshCoverage({ book, recount }: { book: BookId; recount?: { done: number; total: number } | null }) {
   const queryClient = useQueryClient();
-  const [busy, setBusy] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const busy = starting || !!recount;
   return (
     <Button
       size="sm"
       variant="ghost"
       disabled={busy}
-      title="Counts are cached for a few minutes; this reads storage again"
+      title="Counts are kept in the database; this counts the saved files in storage again, in the background"
       onClick={async () => {
-        setBusy(true);
+        setStarting(true);
         try {
           await refreshCoverage(queryClient, book);
         } finally {
-          setBusy(false);
+          setStarting(false);
         }
       }}
     >
-      <RefreshCw className={cn(busy && 'animate-spin')} /> Recount
+      <RefreshCw className={cn(busy && 'animate-spin')} /> {recount?.total ? `Counting ${recount.done}/${recount.total}` : busy ? 'Counting…' : 'Recount'}
     </Button>
   );
 }
@@ -613,7 +614,7 @@ function RunDialog({ id, books, onClose, onOpenOutput }: { id: string | null; bo
   const run = useRun(id);
   return (
     <Dialog open={!!id} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent page className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Translation run</DialogTitle>
           <DialogDescription>Everything about this run, as the server has it.</DialogDescription>

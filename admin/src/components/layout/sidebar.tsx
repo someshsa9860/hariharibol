@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 import { NAV } from '@/lib/nav';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { Flame } from 'lucide-react';
 
 export function Sidebar() {
   const { hasPermission } = useAuth();
@@ -10,7 +9,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-        <Flame className="h-5 w-5 text-chart-3" />
+        <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
         <span className="text-sm font-semibold tracking-tight">HariHariBol Admin</span>
       </div>
 

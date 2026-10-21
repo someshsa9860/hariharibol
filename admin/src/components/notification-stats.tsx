@@ -158,6 +158,7 @@ function CampaignDialog({ campaign, onClose }: { campaign: Campaign | null; onCl
       onOpenChange={(open) => !open && onClose()}
       title={campaign?.title}
       description={campaign ? `${campaign.type} · ${formatDate(campaign.createdAt)}` : undefined}
+      audit={campaign ? { entityType: 'Notification', entityId: campaign.id } : undefined}
       fields={campaign ? [{ label: 'Message', value: campaign.body, full: true }] : []}
     >
       {campaign && f && (

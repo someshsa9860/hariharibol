@@ -288,6 +288,7 @@ model User {
   chatConversations ChatConversation[]
 
   shareLinks        ShareLink[]
+  activeDays UserActiveDay[]
   referralCode      ReferralCode?
   referralsMade     Referral[]         @relation("Referrer")
   referredBy        Referral?          @relation("Referee")
@@ -1495,6 +1496,12 @@ model Subscription {
   cancelledAt      DateTime?
   autoRenew        Boolean   @default(true)
 
+  // Last store event applied, for support ("why is this cancelled?").
+  lastEvent   String?
+  lastEventAt DateTime?
+  // Set while the store is retrying a failed renewal (grace or on hold).
+  billingIssueAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1536,6 +1543,38 @@ model Payment {
   paidAt     DateTime?
   refundedAt DateTime?
 
+  // ── Revenue (see services/payments/money.js) ──────────────────────────────
+  // `amountMinor` + `currency` above are what the payer was charged, in the
+  // payer's own currency (tax included where the store includes it). Everything
+  // below is derived once, when the payment is recorded, and never re-derived,
+  // so a month's revenue does not change when exchange rates move later.
+  //
+  // A free trial is a real row with amountMinor 0 and isTrial true, so the
+  // subscriber's history is complete and the revenue is zero.
+  isTrial Boolean @default(false)
+
+  // Original currency: what the platform kept and what reaches the bank.
+  commissionMinor Int?
+  netMinor        Int?
+
+  // INR (paise) — the figures the admin panel and the finance section read.
+  // gross = what the payer paid, commission = the platform's cut, net = what we
+  // earn. Null while the exchange rate could not be fetched (the nightly job
+  // fills them in); 0 for a free trial.
+  grossInrMinor      Int?
+  commissionInrMinor Int?
+  netInrMinor        Int?
+
+  // How the commission was found: STORE (the store reported it), RATE (our
+  // configured rate x the price), NONE (a trial).
+  commissionSource String?
+  commissionRate   Decimal? @db.Decimal(6, 4)
+
+  // INR per one unit of `currency`, where it came from and the day it is for.
+  fxRate   Decimal?  @db.Decimal(18, 8)
+  fxSource String?
+  fxDate   DateTime? @db.Date
+
   // The provider's raw webhook body, kept for disputes and for replaying a
   // payment that failed to process on our side.
   providerPayload Json?
@@ -1550,6 +1589,22 @@ model Payment {
   @@index([userId, purpose])
   @@index([status, createdAt])
   @@index([purpose, paidAt])
+  @@index([grossInrMinor, paidAt])
+}
+
+// One day's exchange rate into INR, so each rate is fetched once and every
+// payment of that day and currency is converted with the same number.
+model FxRate {
+  id String @id @default(cuid())
+
+  currency   String   @db.VarChar(3)
+  date       DateTime @db.Date
+  inrPerUnit Decimal  @db.Decimal(18, 8)
+  source     String // FRANKFURTER, OPEN_ER_API, MANUAL
+
+  createdAt DateTime @default(now())
+
+  @@unique([currency, date])
 }
 
 // ============================================================================
@@ -1570,6 +1625,55 @@ model AppSetting {
 
   updatedAt   DateTime @updatedAt
   updatedById String?
+}
+
+// ============================================================================
+// Finance — the owner's books (super admin only)
+// ============================================================================
+
+enum FinanceDirection {
+  CREDIT // money in that is not a store payment: a grant, a sponsor, a refund from a vendor
+  DEBIT // money out: advertising, salary, a purchase
+}
+
+// One line the super admin typed in. Store revenue and AI spend are not here — they are
+// read from Payment and AiUsageLog, so the same rupee is never counted twice.
+model FinanceEntry {
+  id String @id @default(cuid())
+
+  direction FinanceDirection
+  // advertising · purchase · salary · tools · other (validated in controllers/admin/finance.js)
+  category  String          @db.VarChar(30)
+  // Paise, always positive; `direction` says which way it went.
+  amountInr Int
+
+  // The day it happened in India (UTC midnight of the IST date); the month it belongs to follows from it.
+  occurredOn DateTime @db.Date
+  note       String?  @db.VarChar(500)
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([occurredOn])
+}
+
+// One row per calendar month (IST), made when the super admin first confirms it.
+model FinanceMonth {
+  month String @id @db.VarChar(7) // "2026-09"
+
+  // The USD to INR rate the month's AI spend is converted at. Fixed when the month is confirmed so a
+  // closed month never moves; an open month uses the current rate (setting finance.usd_inr_rate).
+  usdInrRate Decimal? @db.Decimal(10, 4)
+
+  // The super admin has entered (or ruled out) this month's costs. Stops the month-end reminder.
+  costsConfirmedAt DateTime?
+  costsConfirmedById String?
+
+  // The last reminder sent for this month, so one day sends one.
+  lastRemindedOn DateTime? @db.Date
+
+  updatedAt DateTime @updatedAt
 }
 
 // One row per AI call. Exists so spend is visible per operation — without it
@@ -3090,4 +3194,48 @@ model Festival {
   @@unique([date, locationKey, slug])
   @@index([locationKey, date])
   @@index([date, notify])
+}
+
+// What each translated chapter file in S3 holds, counted once and kept here so the admin Translations page reads a
+// table instead of ~3,700 objects. One row per book × chapter × language. The worker rewrites a run's rows when it
+// stops, and Recount (or the first visit, or a new TRANSLATION_VERSION) refills them from S3. See services/translation.js.
+model TranslationProgress {
+  book     String @db.VarChar(40)
+  chapter  Int // the book's chapter id (canto × 100 + chapter for the Bhagavatam)
+  language String @db.VarChar(10)
+
+  total    Int // verses in the chapter
+  saved    Int @default(0) // verses with a translation
+  upToDate Int @default(0) // saved under `version`, or by a person
+  byClaude Int @default(0)
+  scores   Json @default("{}") // { 1, 2, 3, unscored }
+  versions Json @default("{}") // translation version -> verses
+  parts    Json @default("{}") // part -> verses current for it
+  status   String @default("EMPTY") @db.VarChar(10) // EMPTY | PARTIAL | COMPLETE
+  version  String? @db.VarChar(40) // the TRANSLATION_VERSION `upToDate` was worked out under
+  s3Key    String @db.VarChar(200)
+
+  syncedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([book, chapter, language])
+  @@index([book, language])
+}
+
+
+// One row per person per (Indian) calendar day on which they used the app or the website — the history behind
+// daily / weekly / monthly active users and retention. `User.lastActiveAt` only says when someone was last seen,
+// so it cannot answer "how many people were active last Tuesday". Written by the auth middleware at most once a
+// day per person (see middleware/auth.js), and backfilled once from older activity by the migration.
+model UserActiveDay {
+  userId String
+  date   DateTime @db.Date
+
+  firstSeenAt DateTime @default(now())
+  platform    String?  @db.VarChar(20) // "ios" | "android" | "web", from the first request of the day
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
+  @@index([date])
 }

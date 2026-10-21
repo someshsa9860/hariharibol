@@ -143,10 +143,8 @@ export const start = async (req, res) => {
   if (!gotLock) throw conflict('A run is being started. Try again in a moment.');
 
   try {
-    // One run at a time: the model's free limits are the project's, so two would only meet them sooner.
-    const existing = await prisma.sceneRun.findFirst({ where: { status: { in: ACTIVE_STATUSES } }, select: { id: true, status: true } });
-    if (existing) throw conflict(`There is already a ${existing.status.toLowerCase()} scene run. Cancel it or wait for it to finish.`, { runId: existing.id });
-
+    // A run started while another is going waits its turn: the worker takes them in the order they were made, one at a time
+    // (the model's free limits are the project's, so two at once would only meet them sooner). What is left is worked out when it starts.
     const picked = pickChapters(book, asked);
     const todo = await service.chaptersToWrite(book, picked, force ?? false);
     if (todo.length === 0) throw conflict('Every chapter asked for already has its scene file. Choose “Write again” to replace them.', { upToDate: true });
@@ -185,9 +183,6 @@ export const resume = async (req, res) => {
   const row = await prisma.sceneRun.findUnique({ where: { id: req.valid.params.id } });
   if (!row) throw notFound('Scene run');
   if (row.status !== 'PAUSED' && row.status !== 'FAILED') throw conflict(`Only a paused or failed run can be resumed — this one is ${row.status.toLowerCase()}.`);
-  const other = await prisma.sceneRun.findFirst({ where: { status: { in: ACTIVE_STATUSES }, id: { not: row.id } }, select: { id: true, status: true } });
-  if (other) throw conflict(`Another scene run is ${other.status.toLowerCase()}. Cancel it first.`, { runId: other.id });
-
   const next = await prisma.sceneRun.update({
     where: { id: row.id },
     data: { status: 'QUEUED', pauseReason: null, statusMessage: 'Resumed. Waiting for the worker.', stopReason: null, errorChapter: null, resumeAt: null, retriesInARow: 0, cancelRequested: false, finishedAt: null },

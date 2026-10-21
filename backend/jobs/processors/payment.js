@@ -10,6 +10,8 @@
 
 import logger from '../../config/logger.js';
 import * as entitlement from '../../services/entitlement.js';
+import * as lifecycle from '../../services/payments/lifecycle.js';
+import * as money from '../../services/payments/money.js';
 
 export default async function paymentProcessor(job) {
   switch (job.name) {
@@ -18,6 +20,12 @@ export default async function paymentProcessor(job) {
       logger.info(result, 'entitlement sweep finished');
       return result;
     }
+
+    case 'subscription.reconcile':
+      return lifecycle.reconcile();
+
+    case 'payment.fx.backfill':
+      return money.backfillMissing();
 
     default:
       throw new Error(`Unknown payment job: ${job.name}`);

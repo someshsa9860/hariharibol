@@ -364,7 +364,7 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
       />
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent page>
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? `New ${config.singular}` : `Edit ${config.singular}`}</DialogTitle>
           </DialogHeader>
@@ -468,6 +468,7 @@ function ResourceTab({ config }: { config: ResourceConfig }) {
         onOpenChange={(open) => !open && setViewing(null)}
         title={viewing ? text(viewing[config.titleField]) : ''}
         description={viewing ? text(viewing[config.idField]) : ''}
+        audit={viewing ? { entityType: ({ deities: 'Deity', gurus: 'Guru', translators: 'Translator', languages: 'Language', issues: 'Issue', topics: 'FcmTopic' } as Record<string, string>)[config.key] ?? config.label, entityId: String(viewing.id ?? '') } : undefined}
         fields={
           viewing
             ? [

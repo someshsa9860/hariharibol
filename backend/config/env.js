@@ -143,6 +143,23 @@ const schema = z.object({
   APPLE_ISSUER_ID: z.string().optional(),
   APPLE_KEY_ID: z.string().optional(),
   APPLE_PRIVATE_KEY: z.string().optional(),
+  // The App Store Connect .p8 key as a file (preferred over pasting it into APPLE_PRIVATE_KEY).
+  APPLE_PRIVATE_KEY_PATH: z.string().optional(),
+  // Service account JSON for the Play Developer API, as a file. Falls back to
+  // GOOGLE_SERVICE_ACCOUNT_PATH, then the FIREBASE_* trio.
+  GOOGLE_PLAY_SERVICE_ACCOUNT_PATH: z.string().optional(),
+  // Pub/Sub push authentication (OIDC): the audience set on the subscription and the
+  // service account that signs. Optional on top of PUBSUB_VERIFICATION_TOKEN.
+  PUBSUB_AUDIENCE: z.string().optional(),
+  PUBSUB_SERVICE_ACCOUNT_EMAIL: z.string().optional(),
+  // What each platform keeps, as a fraction, used when the store does not report it
+  // (see services/payments/money.js). Each payment stores the rate it was given.
+  PLAY_COMMISSION_RATE: z.coerce.number().min(0).max(0.5).default(0.15),
+  APPLE_COMMISSION_RATE: z.coerce.number().min(0).max(0.5).default(0.15),
+  RAZORPAY_FEE_RATE: z.coerce.number().min(0).max(0.2).default(0.02),
+  // Exchange rates into INR: dated rates first, latest rates if that fails.
+  FX_API_URL: z.string().default('https://api.frankfurter.dev/v1'),
+  FX_FALLBACK_URL: z.string().default('https://open.er-api.com/v6/latest'),
 
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
@@ -186,6 +203,10 @@ if (!parsed.success) {
   process.exit(1);
 }
 
+function resolveFromBackend(path) {
+  return path ? resolve(dirname(fileURLToPath(import.meta.url)), '..', path) : null;
+}
+
 const env = {
   ...parsed.data,
   isProduction: parsed.data.NODE_ENV === 'production',
@@ -202,6 +223,10 @@ const env = {
   // Multi-line PEM keys survive .env only as escaped newlines.
   firebasePrivateKey: (parsed.data.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
   applePrivateKey: (parsed.data.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  applePrivateKeyPath: resolveFromBackend(parsed.data.APPLE_PRIVATE_KEY_PATH),
+  googlePlayServiceAccountPath: resolveFromBackend(
+    parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_PATH || parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH
+  ),
 };
 
 export default env;

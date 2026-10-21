@@ -157,7 +157,6 @@ async function mapLimit(items, limit, fn) {
 /* ---------- what is saved, and what a run would do ---------- */
 
 const emptyScores = () => ({ 1: 0, 2: 0, 3: 0, unscored: 0 });
-const coverageInFlight = new Map();
 
 /** The version new runs use, or null when TRANSLATION_VERSION is malformed (the overview reports that; coverage just goes on). */
 function versionOrNull() {
@@ -169,70 +168,145 @@ function versionOrNull() {
 }
 
 /**
- * How much of the Gita each language has: per language the verses saved, how many of those are up to date
+ * How much of a book each language has: per language the verses saved, how many of those are up to date
  * for the version new runs use (`upToDate`: made under it, or not by Claude), how many Claude made and
- * their scores, and per chapter the saved and up-to-date counts. Reads every chapter file, so it is kept in
- * Redis for `coverageCacheSeconds` and dropped when a run stops (`forgetCoverage`) — and when it was worked
- * out for another version, which is what a restart with a new TRANSLATION_VERSION leaves behind.
+ * their scores, and per chapter the saved and up-to-date counts.
+ *
+ * Read from `TranslationProgress`, one row per chapter and language, never from S3: counting reads every
+ * chapter file, which takes minutes for the Bhagavatam. The rows are kept by `syncProgress` — the worker
+ * rewrites a run's rows when it stops — and are filled from S3 in the background when there are none yet,
+ * when they were counted under another TRANSLATION_VERSION, and when `refresh` is asked for (Recount).
+ * `recounting` says a fill is under way, so the page can poll.
  */
 export async function coverage({ book = BOOK, refresh = false } = {}) {
-  if (!refresh) {
-    const cached = await redis.get(coverageKey(book)).catch(() => null);
-    const found = cached ? JSON.parse(cached) : null;
-    if (found && found.version === versionOrNull()) return found;
-  }
-  if (!coverageInFlight.has(book)) coverageInFlight.set(book, computeCoverage(book).finally(() => coverageInFlight.delete(book)));
-  return coverageInFlight.get(book);
+  const version = versionOrNull();
+  const rows = await prisma.translationProgress.findMany({ where: { book }, orderBy: [{ language: 'asc' }, { chapter: 'asc' }] });
+  const expected = bookOf(book).chapters.length;
+  const stale = rows.some((r) => r.version !== version);
+  const incomplete = rows.length < expected * LANGUAGE_CODES.length;
+  if (refresh || stale || incomplete) startRecount(book, { onlyMissing: !refresh && !stale }).catch((err) => logger.warn({ err, book }, 'translation recount failed'));
+  const recount = await recountState(book);
+  return presentCoverage(book, rows, version, recount);
 }
 
-async function computeCoverage(book) {
+function presentCoverage(book, rows, version, recount) {
+  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, parts: Object.fromEntries(PARTS.map((p) => [p, 0])), chapters: [] }]));
+  const totals = new Map();
+  for (const r of rows) {
+    const by = byLang[r.language];
+    if (!by) continue;
+    totals.set(r.chapter, r.total);
+    by.saved += r.saved;
+    by.upToDate += r.upToDate;
+    by.byClaude += r.byClaude;
+    for (const k of Object.keys(by.scores)) by.scores[k] += r.scores?.[k] ?? 0;
+    for (const [k, n] of Object.entries(r.versions ?? {})) by.versions[k] = (by.versions[k] || 0) + n;
+    for (const part of PARTS) by.parts[part] += r.parts?.[part] ?? 0;
+    by.chapters.push({ chapter: r.chapter, total: r.total, saved: r.saved, upToDate: r.upToDate });
+  }
+  const newest = rows.reduce((t, r) => Math.max(t, r.syncedAt.getTime()), 0);
+  return {
+    book,
+    generatedAt: newest ? new Date(newest).toISOString() : null,
+    version,
+    total: [...totals.values()].reduce((n, t) => n + t, 0),
+    languages: Object.values(byLang),
+    recounting: Boolean(recount),
+    recount, // { done, total } while a fill runs, else null
+  };
+}
+
+const lockKey = (book) => `${translation.coverageCacheKey}:recount:${book}`;
+const recountState = async (book) => {
+  const raw = await redis.get(lockKey(book)).catch(() => null);
+  return raw ? JSON.parse(raw) : null;
+};
+
+/**
+ * Fills `TranslationProgress` from S3 for a whole book, in the background and one fill at a time per book
+ * (a Redis lock, so a second API process does not repeat it). `onlyMissing` leaves the chapters already
+ * counted under the current version alone, which is what makes a fill that was cut off resume where it stopped.
+ */
+export async function startRecount(book = BOOK, { onlyMissing = false } = {}) {
+  const taken = await redis.set(lockKey(book), JSON.stringify({ done: 0, total: 0 }), 'EX', translation.recountLockSeconds, 'NX').catch(() => null);
+  if (taken !== 'OK') return false;
+  (async () => {
+    try {
+      let chapters = bookOf(book).chapters;
+      if (onlyMissing) {
+        const have = await prisma.translationProgress.findMany({ where: { book, version: versionOrNull() }, select: { chapter: true, language: true } });
+        const count = new Map();
+        for (const r of have) count.set(r.chapter, (count.get(r.chapter) || 0) + 1);
+        chapters = chapters.filter((n) => (count.get(n) || 0) < LANGUAGE_CODES.length);
+      }
+      await syncProgress({
+        book, chapters,
+        onChapter: (done, total) => redis.set(lockKey(book), JSON.stringify({ done, total }), 'EX', translation.recountLockSeconds).catch(() => {}),
+      });
+    } catch (err) {
+      logger.warn({ err, book }, 'translation recount failed');
+    } finally {
+      await redis.del(lockKey(book)).catch(() => {});
+    }
+  })();
+  return true;
+}
+
+/** Reads these chapters' files from S3 and rewrites their `TranslationProgress` rows. */
+export async function syncProgress({ book = BOOK, chapters = bookOf(book).chapters, languages = LANGUAGE_CODES, onChapter } = {}) {
   const { store, getSource } = await openWorkspace();
   const version = versionOrNull();
-  const byLang = Object.fromEntries(LANGUAGE_CODES.map((code) => [code, { code, saved: 0, upToDate: 0, byClaude: 0, scores: emptyScores(), versions: {}, parts: Object.fromEntries(PARTS.map((p) => [p, 0])), chapters: [] }]));
-  let total = 0;
-
-  const chapters = await mapLimit(bookOf(book).chapters, translation.readConcurrency, async (n) => {
+  let done = 0;
+  await mapLimit(chapters, translation.readConcurrency, async (n) => {
     const { units } = await loadChapter(getSource, n, book);
-    const files = await Promise.all(LANGUAGE_CODES.map((code) => store.getJson(langChapterKey(code, n, book))));
-    return { n, units, files };
+    for (const code of languages) {
+      const key = langChapterKey(code, n, book);
+      const file = await store.getJson(key);
+      const data = chapterStats(file, units, code, version);
+      await prisma.translationProgress.upsert({
+        where: { book_chapter_language: { book, chapter: n, language: code } },
+        create: { book, chapter: n, language: code, version, s3Key: key, ...data },
+        update: { version, s3Key: key, syncedAt: new Date(), ...data },
+      });
+    }
+    onChapter?.(++done, chapters.length);
   });
+}
 
-  for (const { n, units, files } of chapters) {
-    total += units.length;
-    LANGUAGE_CODES.forEach((code, i) => {
-      const file = files[i];
-      const by = byLang[code];
-      const have = new Map((file?.verses || []).map((v) => [v.verseId, v]));
-      let saved = 0;
-      let upToDate = 0;
-      for (const unit of units) {
-        if (!hasTranslation(file, unit.verseId, code)) continue;
-        saved++;
-        if (isCurrent(file, unit.verseId, code, version, unit)) upToDate++;
-        for (const part of PARTS) if (isPartCurrent(file, unit, code, part, version) && hasPartText(have.get(unit.verseId), code, part)) by.parts[part]++;
-        const ai = have.get(unit.verseId)?.aiTranslation;
-        if (!ai) continue;
-        by.byClaude++;
-        by.scores[[1, 2, 3].includes(ai.correctness) ? ai.correctness : 'unscored']++;
-        by.versions[ai.version ?? 'unversioned'] = (by.versions[ai.version ?? 'unversioned'] || 0) + 1;
-      }
-      by.saved += saved;
-      by.upToDate += upToDate;
-      by.chapters.push({ chapter: n, total: units.length, saved, upToDate });
-    });
+/** After a run stops: its chapters in its language, in the background. Never throws. */
+export function refreshRunProgress(run) {
+  const book = run?.book ?? BOOK;
+  const chapters = run?.chapters?.length ? run.chapters : bookOf(book).chapters;
+  return syncProgress({ book, chapters, languages: [run.language] }).catch((err) => logger.warn({ err, book }, 'translation progress sync failed'));
+}
+
+function chapterStats(file, units, code, version) {
+  const have = new Map((file?.verses || []).map((v) => [v.verseId, v]));
+  const scores = emptyScores();
+  const versions = {};
+  const parts = Object.fromEntries(PARTS.map((p) => [p, 0]));
+  let saved = 0;
+  let upToDate = 0;
+  let byClaude = 0;
+  for (const unit of units) {
+    if (!hasTranslation(file, unit.verseId, code)) continue;
+    saved++;
+    if (isCurrent(file, unit.verseId, code, version, unit)) upToDate++;
+    for (const part of PARTS) if (isPartCurrent(file, unit, code, part, version) && hasPartText(have.get(unit.verseId), code, part)) parts[part]++;
+    const ai = have.get(unit.verseId)?.aiTranslation;
+    if (!ai) continue;
+    byClaude++;
+    scores[[1, 2, 3].includes(ai.correctness) ? ai.correctness : 'unscored']++;
+    versions[ai.version ?? 'unversioned'] = (versions[ai.version ?? 'unversioned'] || 0) + 1;
   }
-
-  const result = { book, generatedAt: new Date().toISOString(), version, total, languages: Object.values(byLang) };
-  await redis.set(coverageKey(book), JSON.stringify(result), 'EX', translation.coverageCacheSeconds).catch(() => {});
-  return result;
+  const status = saved === 0 ? 'EMPTY' : saved >= units.length ? 'COMPLETE' : 'PARTIAL';
+  return { total: units.length, saved, upToDate, byClaude, scores, versions, parts, status };
 }
 
 // Does the saved verse hold text for the part? (A part the English lacks counts as current but is not "saved".)
 const hasPartText = (verse, lang, part) =>
   part === 'transliteration' ? Boolean(verse?.transliteration) : part === 'wordMeanings' ? Boolean(verse?.wordMeanings?.length) : ownRows(verse, lang).some((c) => c.type === part && c.text);
 
-const coverageKey = (book) => `${translation.coverageCacheKey}:${book}`;
-export const forgetCoverage = () => redis.del(...BOOK_IDS.map(coverageKey)).catch(() => {});
 
 /** Every book that can be translated, with its chapter ids and how to label them; what the page builds its book tabs from. */
 export const books = () => BOOK_IDS.map((id) => ({ id, title: BOOKS[id].title, chapters: BOOKS[id].chapters.map((chapter) => ({ id: chapter, label: chapterLabel(chapter, id) })) }));

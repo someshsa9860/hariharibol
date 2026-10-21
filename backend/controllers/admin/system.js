@@ -13,6 +13,7 @@ import { redis } from '../../config/redis.js';
 import * as logBuffer from '../../config/log-buffer.js';
 import * as s3 from '../../services/s3.js';
 import { ok } from '../../utils/respond.js';
+import * as presence from '../../services/presence.js';
 import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
 
 /**
@@ -188,9 +189,9 @@ export const analytics = async (req, res) => {
   const rangeStart = toDateColumn(shiftDays(today, -30));
 
   const [dau, wau, mau, sadhanaSeries, mantraRows, reels] = await Promise.all([
-    prisma.user.count({ where: { lastActiveAt: { gte: dayStart } } }),
-    prisma.user.count({ where: { lastActiveAt: { gte: weekAgo } } }),
-    prisma.user.count({ where: { lastActiveAt: { gte: monthAgo } } }),
+    distinctActive(dayStart),
+    distinctActive(weekAgo),
+    distinctActive(monthAgo),
     prisma.$queryRaw`
       SELECT "date"::text AS date, COUNT(DISTINCT "userId")::int AS "activeUsers"
       FROM "SadhanaDay"
@@ -246,5 +247,103 @@ export const analytics = async (req, res) => {
       commentCount: r.commentCount,
       shareCount: r.shareCount,
     })),
+  });
+};
+
+
+// People active on or after a day: from the daily record (UserActiveDay), which is the true history.
+async function distinctActive(since) {
+  const [row] = await prisma.$queryRaw`SELECT COUNT(DISTINCT "userId")::int AS n FROM "UserActiveDay" WHERE "date" >= ${since}`;
+  return row.n;
+}
+
+/**
+ * GET /api/admin/system/activity?days=30
+ * The history behind the headline numbers: a daily series of active users and new sign-ups, rolling weekly and
+ * monthly actives, stickiness (DAU ÷ MAU), what share of each day's sign-ups came back on day 1 / 7 / 30, and
+ * today's split by platform. Days are Indian calendar days, like the dashboard's.
+ */
+export const activity = async (req, res) => {
+  const days = Math.min(Math.max(Number.parseInt(req.valid?.query?.days ?? '30', 10) || 30, 7), 180);
+  const today = localDateString('Asia/Kolkata');
+  const from = toDateColumn(shiftDays(today, -(days - 1)));
+  const todayCol = toDateColumn(today);
+
+  const [daily, signups, rolling, platformToday, newToday, retention, firstDay] = await Promise.all([
+    prisma.$queryRaw`
+      SELECT "date"::text AS date, COUNT(*)::int AS active
+      FROM "UserActiveDay" WHERE "date" >= ${from} GROUP BY "date" ORDER BY "date"`,
+    prisma.$queryRaw`
+      SELECT (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kolkata')::date::text AS date, COUNT(*)::int AS signups
+      FROM "User" WHERE "createdAt" >= ${from}::date - interval '1 day' GROUP BY 1 ORDER BY 1`,
+    // For each day in range: people active in the 7 / 30 days ending that day.
+    prisma.$queryRaw`
+      SELECT d::date::text AS date,
+        (SELECT COUNT(DISTINCT "userId")::int FROM "UserActiveDay" a WHERE a."date" > d::date - 7 AND a."date" <= d::date) AS wau,
+        (SELECT COUNT(DISTINCT "userId")::int FROM "UserActiveDay" a WHERE a."date" > d::date - 30 AND a."date" <= d::date) AS mau
+      FROM generate_series(${from}::date, ${todayCol}::date, interval '1 day') d ORDER BY d`,
+    prisma.$queryRaw`
+      SELECT COALESCE("platform", 'unknown') AS platform, COUNT(*)::int AS n
+      FROM "UserActiveDay" WHERE "date" = ${todayCol} GROUP BY 1 ORDER BY n DESC`,
+    prisma.$queryRaw`
+      SELECT COUNT(*)::int AS n FROM "User"
+      WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kolkata')::date = ${todayCol}`,
+    // Cohort = people who joined that day; a retention figure exists only once that many days have passed.
+    prisma.$queryRaw`
+      WITH cohort AS (
+        SELECT "id", (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kolkata')::date AS joined
+        FROM "User" WHERE "createdAt" >= ${toDateColumn(shiftDays(today, -60))}
+      )
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 1)::int AS d1_base,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 1 AND EXISTS (SELECT 1 FROM "UserActiveDay" a WHERE a."userId" = cohort."id" AND a."date" = joined + 1))::int AS d1,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 7)::int AS d7_base,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 7 AND EXISTS (SELECT 1 FROM "UserActiveDay" a WHERE a."userId" = cohort."id" AND a."date" BETWEEN joined + 1 AND joined + 7))::int AS d7,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 30)::int AS d30_base,
+        COUNT(*) FILTER (WHERE joined <= ${todayCol}::date - 30 AND EXISTS (SELECT 1 FROM "UserActiveDay" a WHERE a."userId" = cohort."id" AND a."date" BETWEEN joined + 1 AND joined + 30))::int AS d30
+      FROM cohort`,
+    prisma.$queryRaw`SELECT MIN("date")::text AS d FROM "UserActiveDay"`,
+  ]);
+
+  const byDate = (rows, key) => new Map(rows.map((r) => [r.date, r[key]]));
+  const dailyMap = byDate(daily, 'active');
+  const signupMap = byDate(signups, 'signups');
+  const rollMap = new Map(rolling.map((r) => [r.date, r]));
+  const series = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const date = shiftDays(today, -i);
+    const active = dailyMap.get(date) ?? 0;
+    const roll = rollMap.get(date);
+    series.push({ date, active, signups: signupMap.get(date) ?? 0, wau: roll?.wau ?? 0, mau: roll?.mau ?? 0, stickiness: roll?.mau ? Math.round((active / roll.mau) * 1000) / 10 : 0 });
+  }
+  const r = retention[0] || {};
+  const pct = (n, base) => (base > 0 ? Math.round((n / base) * 1000) / 10 : null);
+
+  return ok(res, {
+    days,
+    series,
+    today: { active: dailyMap.get(today) ?? 0, newUsers: newToday[0]?.n ?? 0, byPlatform: platformToday },
+    retention: { d1: pct(r.d1, r.d1_base), d7: pct(r.d7, r.d7_base), d30: pct(r.d30, r.d30_base), cohortSize: r.total ?? 0 },
+    // The record starts when this was first deployed (older days are rebuilt from other tables and are approximate).
+    historySince: firstDay[0]?.d ?? null,
+  });
+};
+
+/**
+ * GET /api/admin/system/live
+ * Who is online right now (seen within five minutes), with the people themselves for the live list. The websocket
+ * container publishes the same numbers on a timer (`presence.update`); this is the first paint and the fallback.
+ */
+export const live = async (req, res) => {
+  const [counts, recent] = await Promise.all([presence.counts(), presence.recent(presence.ONLINE_WINDOW_S, 50)]);
+  const people = await presence.describe(recent.map((r) => r.userId));
+  const at = new Map(recent.map((r) => [r.userId, r.at]));
+  return ok(res, {
+    online: counts[presence.ONLINE_WINDOW_S],
+    last15m: counts[900],
+    lastHour: counts[3600],
+    people: people.map((u) => ({ ...u, seenAt: at.get(u.id) })),
+    at: Date.now(),
   });
 };

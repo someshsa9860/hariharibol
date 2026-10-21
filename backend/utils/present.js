@@ -167,7 +167,7 @@ async function verse(row, user) {
     // In the reading language's own script — stored, else carried over from the Devanagari —
     // and the Roman text only for a reader whose languages are Roman or Devanagari.
     transliteration: language.pickTransliteration(row.translations, chain, row.transliteration, row.sanskrit),
-    wordMeanings: row.wordMeanings,
+    wordMeanings: language.pickWordMeanings(row.translations, chain, row.wordMeanings),
     audioUrl: audioKey ? await s3.presignGet(audioKey) : null,
     tags: row.tags,
 

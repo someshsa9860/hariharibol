@@ -82,7 +82,7 @@ export function ImportDialog({ onClose, overview, book, language: initial, canPu
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent page className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Import into the database</DialogTitle>
           <DialogDescription>

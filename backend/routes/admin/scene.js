@@ -71,7 +71,7 @@ router.post(
     summary: 'Start a scene run',
     description:
       'Queues a run for the chapters given (all of the book when left out). Chapters that already have a file are skipped unless ' +
-      '`force` is true. Only one run is active at a time. `provider` and `model` default to the server’s (Gemini and ' +
+      '`force` is true. A run started while another is going is queued and starts by itself, one at a time in the order made. `provider` and `model` default to the server’s (Gemini and ' +
       '`SCENES_GEMINI_MODEL`). A chapter with no Hindi meanings yet is skipped and said so in the feed.',
     permission: 'scenes.run',
     limit: 'write',
@@ -82,7 +82,7 @@ router.post(
       model: z.string().trim().min(1).max(100).optional(),
       force: z.boolean().optional(),
     }),
-    responds: { 201: 'The queued run', 409: 'A run is already active, or everything asked for is already written', 422: 'No API key for the provider, storage not set up, or the queue is unreachable' },
+    responds: { 201: 'The queued run', 409: 'Everything asked for is already written', 422: 'No API key for the provider, storage not set up, or the queue is unreachable' },
   },
   controller.start
 );
@@ -102,7 +102,7 @@ router.post(
     limit: 'write',
     params: schemas.id,
     body: z.object({}).optional(),
-    responds: { 200: 'The run, queued again', 404: 'No such run', 409: 'Not paused or failed, or another run is active' },
+    responds: { 200: 'The run, queued again', 404: 'No such run', 409: 'Not paused or failed' },
   },
   controller.resume
 );

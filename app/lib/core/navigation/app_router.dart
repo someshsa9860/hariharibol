@@ -80,6 +80,10 @@ GoRouter createRouter() {
         return AppRoutes.splash;
       }
 
+      // The website's "Get the app" page. Android and iOS hand it to the installed app (it is in the
+      // app links), and the app has nothing to show for it: it goes on to wherever the session says.
+      if (state.uri.path == '/get-app') return AppRoutes.splash;
+
       final location = state.matchedLocation;
 
       if (location == AppRoutes.splash && !gate.isOpen) return null;
