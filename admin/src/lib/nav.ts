@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   ShieldCheck,
+  ShieldPlus,
   BookOpen,
   ScrollText,
   Music,
@@ -63,6 +64,7 @@ export const NAV: NavSection[] = [
     label: 'Users',
     items: [
       { label: 'Users', path: '/users', icon: Users, permission: 'user.read' },
+      { label: 'Admins', path: '/admins', icon: ShieldPlus, permission: 'role.manage' },
       { label: 'Creators', path: '/creators', icon: UserCheck, permission: 'creator.manage' },
       { label: 'Roles & permissions', path: '/roles', icon: ShieldCheck, permission: 'role.manage' },
     ],

@@ -20,10 +20,31 @@ router.get(
       role: z.string().max(50).optional(),
       isPremium: schemas.flag.optional(),
       isBanned: schemas.flag.optional(),
+      staff: schemas.flag.optional(),
     }),
     responds: { 200: 'A page of users' },
   },
   controller.list
+);
+
+router.post(
+  '/',
+  {
+    summary: 'Add a user or admin by email',
+    description:
+      'Makes the account before the person has signed in, as a placeholder that their first ' +
+      'Google or Apple sign-in with the same address adopts, keeping the role chosen here. ' +
+      'The default role is `user`; any other role (an admin) needs role.manage.',
+    permission: 'user.write',
+    limit: 'write',
+    body: z.object({
+      email: z.string().trim().email().max(255),
+      name: z.string().trim().max(120).optional(),
+      roleSlug: z.string().min(1).max(50).optional(),
+    }),
+    responds: { 201: 'The new account', 403: 'Only a super admin can add admins', 409: 'That email already has an account' },
+  },
+  controller.create
 );
 
 router.get(

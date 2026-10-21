@@ -7,6 +7,7 @@ import { Loader2, ShieldOff } from 'lucide-react';
 import { Login } from '@/routes/login';
 import { Dashboard } from '@/routes/dashboard';
 import { UsersPage } from '@/routes/users';
+import { AdminsPage } from '@/routes/admins';
 import { CreatorsPage } from '@/routes/creators';
 import { RolesPage } from '@/routes/roles';
 import { BooksPage } from '@/routes/books';
@@ -93,6 +94,14 @@ export function Router() {
         element={
           <Protected permission="panchang.manage">
             <CalendarPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/admins"
+        element={
+          <Protected permission="role.manage">
+            <AdminsPage />
           </Protected>
         }
       />
