@@ -1694,5 +1694,26 @@
   "@referAccepted": {
     "description": "Shown after the reader enters a friend's code. The friend is rewarded once the reader finishes a round of chanting."
   },
-  "referRefused": "This code can’t be used."
+  "referRefused": "This code can’t be used.",
+  "shareMakeReel": "Make reel",
+  "@shareMakeReel": {
+    "description": "Button in the share studio that turns the card into a reel everyone can watch."
+  },
+  "shareReelIntro": "Your card becomes a reel that everyone in Reels can watch.",
+  "shareReelAddMusic": "Add music from your phone",
+  "shareReelMusic": "Music: {name}",
+  "@shareReelMusic": {
+    "description": "The music file chosen for the reel.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shareReelRemoveMusic": "Remove music",
+  "shareReelPost": "Post reel",
+  "shareReelPosting": "Posting your reel…",
+  "shareReelDone": "Your reel is live. Find it in Reels.",
+  "shareReelFailed": "The reel could not be posted. Please try again.",
+  "shareReelTooBig": "That music file is too large (up to 25 MB)."
 }

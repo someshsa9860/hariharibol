@@ -2319,4 +2319,36 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get referRefused => 'এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।';
+
+  @override
+  String get shareMakeReel => 'ৰিল বনাওক';
+
+  @override
+  String get shareReelIntro => 'আপোনাৰ কাৰ্ডখন এটা ৰিল হৈ যাব, যিটো ৰিলছত সকলোৱে চাব পাৰিব।';
+
+  @override
+  String get shareReelAddMusic => 'ফোনৰ পৰা সংগীত যোগ কৰক';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'সংগীত: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'সংগীত আঁতৰাওক';
+
+  @override
+  String get shareReelPost => 'ৰিল পোষ্ট কৰক';
+
+  @override
+  String get shareReelPosting => 'আপোনাৰ ৰিল পোষ্ট হৈ আছে…';
+
+  @override
+  String get shareReelDone => 'আপোনাৰ ৰিল লাইভ হৈছে। ৰিলছত চাওক।';
+
+  @override
+  String get shareReelFailed => 'ৰিল পোষ্ট কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get shareReelTooBig => 'এই সংগীত ফাইলটো বহুত ডাঙৰ (সৰ্বোচ্চ 25 MB)।';
 }

@@ -2319,4 +2319,36 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get referRefused => 'ଏହି କୋଡ୍ ବ୍ୟବହାର କରାଯାଇପାରିବ ନାହିଁ।';
+
+  @override
+  String get shareMakeReel => 'ରିଲ୍ ତିଆରି କରନ୍ତୁ';
+
+  @override
+  String get shareReelIntro => 'ଆପଣଙ୍କ କାର୍ଡ ଏକ ରିଲ୍ ହୋଇଯିବ, ଯାହାକୁ ରିଲ୍ସରେ ସମସ୍ତେ ଦେଖିପାରିବେ।';
+
+  @override
+  String get shareReelAddMusic => 'ଫୋନରୁ ସଙ୍ଗୀତ ଯୋଡନ୍ତୁ';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'ସଙ୍ଗୀତ: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'ସଙ୍ଗୀତ ହଟାନ୍ତୁ';
+
+  @override
+  String get shareReelPost => 'ରିଲ୍ ପୋଷ୍ଟ କରନ୍ତୁ';
+
+  @override
+  String get shareReelPosting => 'ଆପଣଙ୍କ ରିଲ୍ ପୋଷ୍ଟ ହେଉଛି…';
+
+  @override
+  String get shareReelDone => 'ଆପଣଙ୍କ ରିଲ୍ ଲାଇଭ୍ ଅଛି। ଏହାକୁ ରିଲ୍ସରେ ଦେଖନ୍ତୁ।';
+
+  @override
+  String get shareReelFailed => 'ରିଲ୍ ପୋଷ୍ଟ ହୋଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get shareReelTooBig => 'ଏହି ସଙ୍ଗୀତ ଫାଇଲ୍ ବହୁତ ବଡ଼ (ସର୍ବାଧିକ 25 MB)।';
 }

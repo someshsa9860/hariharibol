@@ -650,5 +650,15 @@
   "referEnterCode": "বন্ধুৰ ক’ড আছে নেকি?",
   "referUseCode": "ক’ড ব্যৱহাৰ কৰক",
   "referAccepted": "ক’ড গ্ৰহণ কৰা হ’ল। জপৰ এটা পাক সম্পূৰ্ণ কৰক, তেতিয়া আপোনাৰ বন্ধুৱে তেওঁৰ পুৰস্কাৰ পাব।",
-  "referRefused": "এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।"
+  "referRefused": "এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।",
+  "shareMakeReel": "ৰিল বনাওক",
+  "shareReelIntro": "আপোনাৰ কাৰ্ডখন এটা ৰিল হৈ যাব, যিটো ৰিলছত সকলোৱে চাব পাৰিব।",
+  "shareReelAddMusic": "ফোনৰ পৰা সংগীত যোগ কৰক",
+  "shareReelMusic": "সংগীত: {name}",
+  "shareReelRemoveMusic": "সংগীত আঁতৰাওক",
+  "shareReelPost": "ৰিল পোষ্ট কৰক",
+  "shareReelPosting": "আপোনাৰ ৰিল পোষ্ট হৈ আছে…",
+  "shareReelDone": "আপোনাৰ ৰিল লাইভ হৈছে। ৰিলছত চাওক।",
+  "shareReelFailed": "ৰিল পোষ্ট কৰিব পৰা নগ'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।",
+  "shareReelTooBig": "এই সংগীত ফাইলটো বহুত ডাঙৰ (সৰ্বোচ্চ 25 MB)।"
 }

@@ -1,5 +1,9 @@
+import express from 'express';
+
 import { createRouter, z, schemas } from '../../utils/router.js';
+import { AppError } from '../../utils/errors.js';
 import * as controller from '../../controllers/app/reel.js';
+import * as make from '../../controllers/app/reel-make.js';
 
 const router = createRouter({
   tag: 'Reels',
@@ -30,6 +34,57 @@ const reportReason = z.enum([
   'SEXUAL_OR_VIOLENT',
   'OTHER',
 ]);
+
+// The file arrives as the request body itself; what it really is is judged from its bytes.
+const rawFile = express.raw({ type: () => true, limit: make.AUDIO_MAX_BYTES });
+const readFile = (req, res, next) =>
+  rawFile(req, res, (error) =>
+    next(error?.type === 'entity.too.large' ? new AppError(413, 'MEDIA_TOO_LARGE', 'That file is too large') : error)
+  );
+
+router.post(
+  '/media',
+  {
+    summary: 'Upload a picture or music for my reel',
+    description:
+      'The request body is the file. `kind=image` takes the share studio card (JPEG, PNG or WebP, up to ' +
+      '8 MB); `kind=audio` takes music from the phone (MP3, M4A/MP4, AAC or WAV, up to 25 MB). What the ' +
+      'file really is is judged from its bytes. Returns `{ key, url }`: name `key` in `POST /reels/make`.',
+    limit: 'write',
+    query: z.object({ kind: z.enum(['image', 'audio']) }),
+    middleware: readFile,
+    responds: { 200: 'The key and a link', 400: 'Empty body', 413: 'MEDIA_TOO_LARGE', 422: 'MEDIA_NOT_USABLE' },
+  },
+  (req, res) => {
+    if (req.valid.query.kind === 'image' && req.body?.length > make.IMAGE_MAX_BYTES) {
+      throw new AppError(413, 'MEDIA_TOO_LARGE', 'That picture is too large');
+    }
+    return make.uploadMedia(req, res);
+  }
+);
+
+router.post(
+  '/make',
+  {
+    summary: 'Make a reel from the share studio',
+    description:
+      'Publishes a reel straight away from an uploaded picture (and optional background music) — the ' +
+      'reader becomes an approved creator on the spot, with no moderation queue. The reel then shows in ' +
+      'the feed (app and website) and on their profile. A creator an admin rejected gets 403. At most ' +
+      `${make.DAILY_LIMIT} a day (429 REEL_LIMIT).`,
+    limit: 'write',
+    body: z.object({
+      imageKey: z.string().min(1).max(500),
+      audioKey: z.string().min(1).max(500).optional(),
+      caption: z.string().trim().max(2200).optional(),
+      tags: z.array(z.string().trim().min(1).max(50)).max(30).optional(),
+      languageCode: z.string().max(10).optional(),
+      mantraSlug: z.string().max(100).optional(),
+    }),
+    responds: { 201: 'The reel id', 400: 'A bad key or a missing file', 403: 'Creator rejected', 429: 'REEL_LIMIT' },
+  },
+  make.make
+);
 
 router.get(
   '/',

@@ -2332,4 +2332,36 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get referRefused => 'இந்தக் குறியீட்டைப் பயன்படுத்த முடியாது.';
+
+  @override
+  String get shareMakeReel => 'ரீல் உருவாக்கு';
+
+  @override
+  String get shareReelIntro => 'உங்கள் அட்டை ஒரு ரீலாக மாறும்; ரீல்ஸில் அனைவரும் பார்க்கலாம்.';
+
+  @override
+  String get shareReelAddMusic => 'போனிலிருந்து இசை சேர்க்கவும்';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'இசை: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'இசையை நீக்கு';
+
+  @override
+  String get shareReelPost => 'ரீலை பதிவிடு';
+
+  @override
+  String get shareReelPosting => 'உங்கள் ரீல் பதிவிடப்படுகிறது…';
+
+  @override
+  String get shareReelDone => 'உங்கள் ரீல் நேரலையில் உள்ளது. ரீல்ஸில் பாருங்கள்.';
+
+  @override
+  String get shareReelFailed => 'ரீலை பதிவிட முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get shareReelTooBig => 'இந்த இசைக் கோப்பு மிகப் பெரியது (அதிகபட்சம் 25 MB).';
 }

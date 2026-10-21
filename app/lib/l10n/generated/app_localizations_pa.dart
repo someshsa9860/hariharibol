@@ -2317,4 +2317,36 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get referRefused => 'ਇਹ ਕੋਡ ਵਰਤਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।';
+
+  @override
+  String get shareMakeReel => 'ਰੀਲ ਬਣਾਓ';
+
+  @override
+  String get shareReelIntro => 'ਤੁਹਾਡਾ ਕਾਰਡ ਇੱਕ ਰੀਲ ਬਣ ਜਾਵੇਗਾ, ਜਿਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਹਰ ਕੋਈ ਦੇਖ ਸਕੇਗਾ।';
+
+  @override
+  String get shareReelAddMusic => 'ਫ਼ੋਨ ਤੋਂ ਸੰਗੀਤ ਜੋੜੋ';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'ਸੰਗੀਤ: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'ਸੰਗੀਤ ਹਟਾਓ';
+
+  @override
+  String get shareReelPost => 'ਰੀਲ ਪੋਸਟ ਕਰੋ';
+
+  @override
+  String get shareReelPosting => 'ਤੁਹਾਡੀ ਰੀਲ ਪੋਸਟ ਹੋ ਰਹੀ ਹੈ…';
+
+  @override
+  String get shareReelDone => 'ਤੁਹਾਡੀ ਰੀਲ ਲਾਈਵ ਹੈ। ਇਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਦੇਖੋ।';
+
+  @override
+  String get shareReelFailed => 'ਰੀਲ ਪੋਸਟ ਨਹੀਂ ਹੋ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
+
+  @override
+  String get shareReelTooBig => 'ਇਹ ਸੰਗੀਤ ਫ਼ਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ (ਵੱਧ ਤੋਂ ਵੱਧ 25 MB)।';
 }

@@ -79,6 +79,8 @@ abstract final class ApiPaths {
   // Reels
   static const String reels = '$_app/reels';
   static const String savedReels = '$_app/reels/saved';
+  static const String reelMedia = '$_app/reels/media';
+  static const String reelMake = '$_app/reels/make';
   static String reel(String id) => '$_app/reels/$id';
   static String reelSimilar(String id) => '$_app/reels/$id/similar';
   static String reelLike(String id) => '$_app/reels/$id/like';

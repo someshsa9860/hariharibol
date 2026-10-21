@@ -2316,4 +2316,36 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get referRefused => 'हा कोड वापरता येत नाही.';
+
+  @override
+  String get shareMakeReel => 'रील बनवा';
+
+  @override
+  String get shareReelIntro => 'तुमचे कार्ड एक रील बनेल, जी रील्समध्ये सर्वांना पाहता येईल.';
+
+  @override
+  String get shareReelAddMusic => 'फोनमधून संगीत जोडा';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'संगीत: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'संगीत काढा';
+
+  @override
+  String get shareReelPost => 'रील पोस्ट करा';
+
+  @override
+  String get shareReelPosting => 'तुमची रील पोस्ट होत आहे…';
+
+  @override
+  String get shareReelDone => 'तुमची रील लाइव्ह आहे. ती रील्समध्ये पाहा.';
+
+  @override
+  String get shareReelFailed => 'रील पोस्ट होऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.';
+
+  @override
+  String get shareReelTooBig => 'ही संगीत फाइल खूप मोठी आहे (कमाल 25 MB).';
 }

@@ -18,6 +18,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/share.dart';
 import '../../services/share_service.dart';
+import '../../widgets/common/peacock_feather_icon.dart';
+import '../../widgets/share/make_reel_sheet.dart';
 import '../../widgets/share/share_card.dart';
 import '../../widgets/share/share_target.dart';
 
@@ -106,6 +108,16 @@ class _ShareStudioState extends State<ShareStudio> {
           text: widget.target.plainText(_link),
         ));
       });
+
+  /// The card, posted as a reel everyone can watch. The sheet asks for music
+  /// and does the posting.
+  Future<void> _makeReel() async {
+    final text = AppLocalizations.of(context);
+    final bytes = await _renderPng();
+    if (bytes == null || !mounted) return;
+    final posted = await MakeReelSheet.open(context, card: bytes, target: widget.target);
+    if (posted == true) AppNavigator.instance.showMessage(text.shareReelDone);
+  }
 
   Future<void> _shareText() => _run(() async {
         await SharePlus.instance.share(ShareParams(text: widget.target.plainText(_link)));
@@ -261,6 +273,12 @@ class _ShareStudioState extends State<ShareStudio> {
             onPressed: _busy ? null : _sharePicture,
             icon: const Icon(Icons.ios_share_rounded),
             label: Text(text.sharePictureShare),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _makeReel,
+            icon: const PeacockFeatherIcon(size: 20),
+            label: Text(text.shareMakeReel),
           ),
           const SizedBox(height: AppSpacing.sm),
           Wrap(

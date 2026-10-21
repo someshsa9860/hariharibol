@@ -4023,6 +4023,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This code can’t be used.'**
   String get referRefused;
+
+  /// Button in the share studio that turns the card into a reel everyone can watch.
+  ///
+  /// In en, this message translates to:
+  /// **'Make reel'**
+  String get shareMakeReel;
+
+  /// No description provided for @shareReelIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card becomes a reel that everyone in Reels can watch.'**
+  String get shareReelIntro;
+
+  /// No description provided for @shareReelAddMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Add music from your phone'**
+  String get shareReelAddMusic;
+
+  /// The music file chosen for the reel.
+  ///
+  /// In en, this message translates to:
+  /// **'Music: {name}'**
+  String shareReelMusic(String name);
+
+  /// No description provided for @shareReelRemoveMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove music'**
+  String get shareReelRemoveMusic;
+
+  /// No description provided for @shareReelPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post reel'**
+  String get shareReelPost;
+
+  /// No description provided for @shareReelPosting.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting your reel…'**
+  String get shareReelPosting;
+
+  /// No description provided for @shareReelDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reel is live. Find it in Reels.'**
+  String get shareReelDone;
+
+  /// No description provided for @shareReelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The reel could not be posted. Please try again.'**
+  String get shareReelFailed;
+
+  /// No description provided for @shareReelTooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'That music file is too large (up to 25 MB).'**
+  String get shareReelTooBig;
 }
 
 class _AppLocalizationsDelegate

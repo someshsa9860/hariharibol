@@ -650,5 +650,15 @@
   "referEnterCode": "મિત્રનો કોડ છે?",
   "referUseCode": "કોડ વાપરો",
   "referAccepted": "કોડ સ્વીકારાયો. જપનો એક ફેરો પૂરો કરો, જેથી તમારા મિત્રને તેમનો પુરસ્કાર મળે.",
-  "referRefused": "આ કોડ વાપરી શકાતો નથી."
+  "referRefused": "આ કોડ વાપરી શકાતો નથી.",
+  "shareMakeReel": "રીલ બનાવો",
+  "shareReelIntro": "તમારું કાર્ડ એક રીલ બનશે, જે રીલ્સમાં બધા જોઈ શકશે.",
+  "shareReelAddMusic": "ફોનમાંથી સંગીત ઉમેરો",
+  "shareReelMusic": "સંગીત: {name}",
+  "shareReelRemoveMusic": "સંગીત દૂર કરો",
+  "shareReelPost": "રીલ પોસ્ટ કરો",
+  "shareReelPosting": "તમારી રીલ પોસ્ટ થઈ રહી છે…",
+  "shareReelDone": "તમારી રીલ લાઇવ છે. તેને રીલ્સમાં જુઓ.",
+  "shareReelFailed": "રીલ પોસ્ટ થઈ શકી નથી. કૃપા કરીને ફરી પ્રયાસ કરો.",
+  "shareReelTooBig": "આ સંગીત ફાઇલ ખૂબ મોટી છે (વધુમાં વધુ 25 MB)."
 }

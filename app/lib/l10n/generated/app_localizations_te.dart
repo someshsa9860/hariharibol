@@ -2322,4 +2322,36 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get referRefused => 'ఈ కోడ్ ఉపయోగించలేరు.';
+
+  @override
+  String get shareMakeReel => 'రీల్ చేయండి';
+
+  @override
+  String get shareReelIntro => 'మీ కార్డ్ ఒక రీల్‌గా మారుతుంది, దీన్ని రీల్స్‌లో అందరూ చూడవచ్చు.';
+
+  @override
+  String get shareReelAddMusic => 'ఫోన్ నుండి సంగీతం జోడించండి';
+
+  @override
+  String shareReelMusic(String name) {
+    return 'సంగీతం: $name';
+  }
+
+  @override
+  String get shareReelRemoveMusic => 'సంగీతం తొలగించండి';
+
+  @override
+  String get shareReelPost => 'రీల్ పోస్ట్ చేయండి';
+
+  @override
+  String get shareReelPosting => 'మీ రీల్ పోస్ట్ అవుతోంది…';
+
+  @override
+  String get shareReelDone => 'మీ రీల్ లైవ్‌లో ఉంది. దాన్ని రీల్స్‌లో చూడండి.';
+
+  @override
+  String get shareReelFailed => 'రీల్ పోస్ట్ కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get shareReelTooBig => 'ఈ సంగీతం ఫైల్ చాలా పెద్దది (గరిష్టంగా 25 MB).';
 }

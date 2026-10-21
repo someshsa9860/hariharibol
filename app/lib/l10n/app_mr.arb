@@ -650,5 +650,15 @@
   "referEnterCode": "मित्राचा कोड आहे का?",
   "referUseCode": "कोड वापरा",
   "referAccepted": "कोड स्वीकारला. जपाची एक फेरी पूर्ण करा, म्हणजे तुमच्या मित्राला त्यांचे बक्षीस मिळेल.",
-  "referRefused": "हा कोड वापरता येत नाही."
+  "referRefused": "हा कोड वापरता येत नाही.",
+  "shareMakeReel": "रील बनवा",
+  "shareReelIntro": "तुमचे कार्ड एक रील बनेल, जी रील्समध्ये सर्वांना पाहता येईल.",
+  "shareReelAddMusic": "फोनमधून संगीत जोडा",
+  "shareReelMusic": "संगीत: {name}",
+  "shareReelRemoveMusic": "संगीत काढा",
+  "shareReelPost": "रील पोस्ट करा",
+  "shareReelPosting": "तुमची रील पोस्ट होत आहे…",
+  "shareReelDone": "तुमची रील लाइव्ह आहे. ती रील्समध्ये पाहा.",
+  "shareReelFailed": "रील पोस्ट होऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.",
+  "shareReelTooBig": "ही संगीत फाइल खूप मोठी आहे (कमाल 25 MB)."
 }

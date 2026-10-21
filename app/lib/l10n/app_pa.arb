@@ -650,5 +650,15 @@
   "referEnterCode": "ਕੀ ਤੁਹਾਡੇ ਕੋਲ ਕਿਸੇ ਮਿੱਤਰ ਦਾ ਕੋਡ ਹੈ?",
   "referUseCode": "ਕੋਡ ਵਰਤੋ",
   "referAccepted": "ਕੋਡ ਮਨਜ਼ੂਰ ਹੋ ਗਿਆ। ਜਪ ਦਾ ਇੱਕ ਗੇੜਾ ਪੂਰਾ ਕਰੋ, ਤਾਂ ਜੋ ਤੁਹਾਡੇ ਮਿੱਤਰ ਨੂੰ ਉਨ੍ਹਾਂ ਦਾ ਇਨਾਮ ਮਿਲੇ।",
-  "referRefused": "ਇਹ ਕੋਡ ਵਰਤਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।"
+  "referRefused": "ਇਹ ਕੋਡ ਵਰਤਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।",
+  "shareMakeReel": "ਰੀਲ ਬਣਾਓ",
+  "shareReelIntro": "ਤੁਹਾਡਾ ਕਾਰਡ ਇੱਕ ਰੀਲ ਬਣ ਜਾਵੇਗਾ, ਜਿਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਹਰ ਕੋਈ ਦੇਖ ਸਕੇਗਾ।",
+  "shareReelAddMusic": "ਫ਼ੋਨ ਤੋਂ ਸੰਗੀਤ ਜੋੜੋ",
+  "shareReelMusic": "ਸੰਗੀਤ: {name}",
+  "shareReelRemoveMusic": "ਸੰਗੀਤ ਹਟਾਓ",
+  "shareReelPost": "ਰੀਲ ਪੋਸਟ ਕਰੋ",
+  "shareReelPosting": "ਤੁਹਾਡੀ ਰੀਲ ਪੋਸਟ ਹੋ ਰਹੀ ਹੈ…",
+  "shareReelDone": "ਤੁਹਾਡੀ ਰੀਲ ਲਾਈਵ ਹੈ। ਇਸਨੂੰ ਰੀਲਜ਼ ਵਿੱਚ ਦੇਖੋ।",
+  "shareReelFailed": "ਰੀਲ ਪੋਸਟ ਨਹੀਂ ਹੋ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  "shareReelTooBig": "ਇਹ ਸੰਗੀਤ ਫ਼ਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ (ਵੱਧ ਤੋਂ ਵੱਧ 25 MB)।"
 }
