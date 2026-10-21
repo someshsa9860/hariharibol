@@ -6,17 +6,14 @@ Nothing is kept in `/home/ubuntu`.
 ```text
 /var/www/hariharibol/
 ├── server/     the deploy scripts (one per container) and the live .env; nginx.conf and apache/ are the web-server configs
-├── secrets/    Google service-account JSON, CloudFront key, other credential files
-└── website/    the built landing page, served read-only by the website container
+└── secrets/    Google service-account JSON, CloudFront key, other credential files
 ```
 
-The GitHub workflows build two independent images and push them to ECR:
+The GitHub workflows build three independent images and push them to ECR:
 
 - `hariharibol-backend` — API, worker, websocket and deeplink containers
 - `hariharibol-admin` — the Vite build served by nginx
-
-The landing page is not an image: its workflow builds `website/` and uploads
-the files.
+- `hariharibol-website` — the Next.js server (`website/Dockerfile`), on `127.0.0.1:8081`
 
 ## Setting up a server
 
@@ -28,7 +25,7 @@ cd /var/www/hariharibol/server && chmod +x *.sh && ./setup.sh
 ```
 
 `setup.sh` installs Docker, the AWS CLI and Nginx, creates `.env` from
-`.env.example`, and creates the empty `secrets/` and `website/` folders. Fill in
+`.env.example`, and creates the empty `secrets/` folder. Fill in
 `server/.env`, then put the Google service-account JSON, CloudFront key files and
 other credential material in `/var/www/hariharibol/secrets/`; the backend
 containers mount that directory read-only at `/app/secrets`.
@@ -36,7 +33,8 @@ containers mount that directory read-only at `/app/secrets`.
 The server's AWS identity (an instance role, or an IAM user set up with
 `aws configure`) only needs to pull from ECR: `ecr:GetAuthorizationToken`,
 `ecr:BatchCheckLayerAvailability`, `ecr:GetDownloadUrlForLayer` and
-`ecr:BatchGetImage`.
+`ecr:BatchGetImage` — on all three repositories (if the policy lists repositories one by one, `hariharibol-website`
+has to be on it).
 
 `setup.sh` also configures Nginx, for a server that hosts only this project. `/api/` and `/health` go to the API, `/ws`
 to the websocket service, `/verse`, `/sloka`, `/mantra`, `/book` and the app
@@ -98,7 +96,9 @@ git push origin production
 ```
 
 Each workflow still decides by what changed: a merge that only touches `backend/` deploys the backend,
-`admin/` the admin panel, `website/` the landing page. To redeploy without a new commit, use **Actions →
+`admin/` the admin panel, `website/` the website. A merge that touches several deploys each of them, so look at
+what `git log production..main` brings (new Prisma migrations in `backend/` run on the backend's deploy) before
+you merge. To redeploy without a new commit, use **Actions →
 the workflow → Run workflow** and pick the `production` branch; run by hand from any other branch it only
 checks the code and does not deploy. `production` is only ever updated by merging `main` into it, never committed to
 directly.
@@ -116,32 +116,34 @@ that stops the old container and starts the new one with `docker run`: `redis.sh
 is not running, run the migrations in a throwaway container (`migrate.sh`, so a failed migration stops the
 deploy while the old containers keep serving), then restart the four backend containers. `config.sh` holds
 the paths, image names, tags and CPU/memory limits; `common.sh` holds the little functions the scripts share.
-`./pull.sh` pulls the images; `./prune.sh` removes superseded images, and the backend and admin workflows run
+`./pull.sh` pulls the images; `./prune.sh` removes superseded images, and all three workflows run
 it after each deploy.
 
-The backend and admin workflows run `deploy.sh` over SSH when the
+The backend, admin and website workflows run `deploy.sh` over SSH when the
 `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` and `DEPLOY_PATH` secrets are
 set; without `DEPLOY_HOST` the image still builds and is pushed, and no
 deployment is attempted. GitHub Actions does not write runtime environment
 variables or credential files to the server; those stay on the server.
 
-The two workflows also tell the server which registry they just pushed to
+The three workflows also tell the server which registry they just pushed to
 (`EXPECT_ECR_REGISTRY`), and `deploy.sh` stops if `server/.env` names a different
 one. Without that, a server still pointing at the old account would pull the old
 image and the run would pass while nothing changed.
 
-The public landing page lives in `website/`. Changes to it deploy through
-`.github/workflows/deploy-website.yml` to the root `hariharibol.com` host. The
-workflow uploads the built files to `$DEPLOY_PATH/website`, uploads the website
-scripts to `$DEPLOY_PATH/server`, starts the small nginx
-website container and checks it answers on `127.0.0.1:8081`. It does not touch
-the host web server or request a certificate; do that once as described above.
+The website lives in `website/` and deploys through `.github/workflows/deploy-website.yml` to the root
+`hariharibol.com` host, like the other two: typecheck and build, then build `website/Dockerfile`, push
+`hariharibol-website:<sha>` and `:latest`, upload the website's scripts to `$DEPLOY_PATH/server`, and run
+`deploy.sh website` over SSH (pull the image, restart `hariharibol-website` on `127.0.0.1:8081`). It then checks
+that the home page answers with its headline and prunes old images. It does not touch the host web server or
+request a certificate; do that once as described above.
 
-The website is a public nginx image plus static files, so it deploys without
-any AWS login on the server.
+`NEXT_PUBLIC_*` values are written into the browser bundle when the image is built, so they are build arguments in
+the workflow, not container settings. The site's addresses are in the workflow; the sign-in ones come from the
+optional secrets below. The only runtime setting is `API_BASE_URL` (how the server reaches the API to render a
+page), in `website.sh`.
 
-Only those four server files (`config.sh`, `common.sh`, `deploy.sh`, `website.sh`) are uploaded by that
-workflow. Anything else in `deploy/server/` (for example `prune.sh`) reaches the server when you copy it
+Only the six server files the website's deploy runs (`config.sh`, `common.sh`, `deploy.sh`, `pull.sh`, `prune.sh`,
+`website.sh`) are uploaded by that workflow. Anything else in `deploy/server/` reaches the server when you copy it
 there yourself.
 
 ## GitHub secrets and variables
@@ -158,6 +160,7 @@ Add these under **Settings → Secrets and variables → Actions**.
 | `DEPLOY_USER` | SSH user, normally `ubuntu` |
 | `DEPLOY_SSH_KEY` | Full private SSH key contents |
 | `DEPLOY_PATH` | Server folder, `/var/www/hariharibol` |
+| `WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG`, `WEBSITE_RECAPTCHA_SITE_KEY` | Optional, for the website's sign-in and App Check (see `website/.env.example`). They are baked into the public bundle. Unset, the site builds and only sign-in is off. |
 
 **Variables** (not secret):
 
@@ -187,15 +190,15 @@ through Prisma migrations during API deployment.
 The account appears in five places. Change them in this order, so the server
 can already pull from the new registry when the first image lands there:
 
-1. **New account** — create the ECR repositories `hariharibol-backend` and
-   `hariharibol-admin`, an IAM user that can push to them (for GitHub), and one
+1. **New account** — create the ECR repositories `hariharibol-backend`,
+   `hariharibol-admin` and `hariharibol-website`, an IAM user that can push to them (for GitHub), and one
    that can only pull (for the server).
 2. **Server** — run `aws configure` with the pull user's keys, and set
    `ECR_REGISTRY` in `/var/www/hariharibol/server/config.sh`. Until it matches the
    GitHub variable, deploys fail on purpose (see above).
 3. **GitHub** — update the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
    secrets and the `ECR_REGISTRY` variable.
-4. **Run the Backend CI and Admin CI workflows** (Actions → Run workflow). Each
+4. **Run the Backend CI, Admin CI and Website CI workflows** (Actions → Run workflow). Each
    pushes to the new registry and the server pulls from it.
 5. **The app's own AWS keys** — `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and
    `S3_BUCKET` in `server/.env` are what the API uses for media storage, not for

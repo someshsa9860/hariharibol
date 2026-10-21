@@ -2,15 +2,9 @@
 set -e
 source "$(dirname "$0")/common.sh"
 
-# The website is a Next.js server. CI uploads its standalone build (server.js, the few modules it needs, .next/static,
-# public/) as website.tgz; it is unpacked here and a public Node image runs it, so no ECR login is needed and the site
-# deploys even when the server has no AWS credentials. API_BASE_URL lets the server reach the API directly.
-rm -rf "$WEBSITE_DIR/app.new"
-mkdir -p "$WEBSITE_DIR/app.new"
-tar xzf "$WEBSITE_DIR/website.tgz" -C "$WEBSITE_DIR/app.new"
-rm -rf "$WEBSITE_DIR/app"
-mv "$WEBSITE_DIR/app.new" "$WEBSITE_DIR/app"
-
+# The website is a Next.js server in its own image (hariharibol-website, built by deploy-website.yml);
+# ./pull.sh website fetches it. NEXT_PUBLIC_* values are already inside the image. API_BASE_URL is only how this
+# server reaches the API when it renders a page.
 stop_remove_container hariharibol-website
 
 docker run -d \
@@ -22,11 +16,6 @@ docker run -d \
   --restart unless-stopped \
   --log-opt max-size=10m \
   --log-opt max-file=3 \
-  -e NODE_ENV=production \
-  -e PORT=3000 \
-  -e HOSTNAME=0.0.0.0 \
-  -e NEXT_TELEMETRY_DISABLED=1 \
+  -e NODE_OPTIONS="--max-old-space-size=$WEBSITE_HEAP_MB" \
   -e API_BASE_URL="${WEBSITE_API_URL:-https://api.hariharibol.com}" \
-  -v "$WEBSITE_DIR/app:/app:ro" \
-  -w /app \
-  "$WEBSITE_IMAGE" node server.js
+  "$WEBSITE_IMAGE"

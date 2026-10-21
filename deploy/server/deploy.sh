@@ -22,14 +22,19 @@ deploy_admin () {
   "$DIR/admin.sh"
 }
 
+deploy_website () {
+  "$DIR/pull.sh" website
+  "$DIR/website.sh"
+}
+
 case "${1:-all}" in
   backend) deploy_backend ;;
   admin)   deploy_admin ;;
-  website) "$DIR/website.sh" ;;
+  website) deploy_website ;;
   all)
     deploy_backend
     deploy_admin
-    "$DIR/website.sh"
+    deploy_website
     ;;
   *)
     echo "usage: $0 [backend|admin|website|all]" >&2

@@ -1,6 +1,7 @@
 name: Website CI
 
-# Deploys when main is merged into production (see deploy/README.md).
+# Runs only for the production branch: nothing happens when main is pushed. A release is
+# main merged into production, which checks the code and then deploys (see deploy/README.md).
 on:
   push:
     branches: [production]
@@ -9,16 +10,21 @@ on:
       - deploy/server/config.sh
       - deploy/server/common.sh
       - deploy/server/deploy.sh
+      - deploy/server/pull.sh
+      - deploy/server/prune.sh
       - deploy/server/website.sh
+      - .github/workflows/deploy-website.yml
+  pull_request:
+    branches: [production]
+    paths:
+      - website/**
       - .github/workflows/deploy-website.yml
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy landing page
+  validate:
+    name: Typecheck and build
     runs-on: ubuntu-latest
-    # "Run workflow" from any branch other than production does nothing.
-    if: github.ref == 'refs/heads/production'
     permissions:
       contents: read
     steps:
@@ -28,51 +34,99 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: website/package-lock.json
-
       - name: Install dependencies
         working-directory: website
         run: npm ci
-
-      # NEXT_PUBLIC_* values are baked into the browser bundle at build time, so they are set here.
-      - name: Build website
+      - name: Typecheck
+        working-directory: website
+        run: npm run typecheck
+      - name: Build
         working-directory: website
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: https://hariharibol.com
           NEXT_PUBLIC_API_BASE_URL: https://api.hariharibol.com
+
+  build-push-deploy:
+    name: Build, push and deploy
+    runs-on: ubuntu-latest
+    needs: validate
+    # Only the production branch deploys, for a push and for "Run workflow"
+    # alike: running it from main or any other branch checks the code and stops.
+    if: github.ref == 'refs/heads/production'
+    permissions:
+      contents: read
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPOSITORY: hariharibol-website
+      IMAGE_TAG: ${{ github.sha }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # The AWS keys decide which account receives the image, so stop if they
+      # belong to any account other than the one in the ECR_REGISTRY variable.
+      - name: Check the AWS account
+        env:
+          LOGGED_IN_TO: ${{ steps.login-ecr.outputs.registry }}
+          EXPECTED: ${{ vars.ECR_REGISTRY }}
+        run: |
+          if [ "$LOGGED_IN_TO" != "$EXPECTED" ]; then
+            echo "::error::AWS keys are for $LOGGED_IN_TO but the ECR_REGISTRY variable is '$EXPECTED'"
+            exit 1
+          fi
+
+      # NEXT_PUBLIC_* values are baked into the browser bundle at build time, so they are build arguments.
+      # The four sign-in / App Check ones are optional: left unset, the site builds and only sign-in is off.
+      - name: Build and push website image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.WEBSITE_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_APPLE_CLIENT_ID: ${{ secrets.WEBSITE_APPLE_CLIENT_ID }}
-          NEXT_PUBLIC_APPLE_REDIRECT_URI: https://hariharibol.com/
           NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.WEBSITE_FIREBASE_CONFIG }}
           NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.WEBSITE_RECAPTCHA_SITE_KEY }}
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SITE_URL=https://hariharibol.com \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.hariharibol.com \
+            --build-arg NEXT_PUBLIC_APPLE_REDIRECT_URI=https://hariharibol.com/ \
+            --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID="$NEXT_PUBLIC_GOOGLE_CLIENT_ID" \
+            --build-arg NEXT_PUBLIC_APPLE_CLIENT_ID="$NEXT_PUBLIC_APPLE_CLIENT_ID" \
+            --build-arg NEXT_PUBLIC_FIREBASE_CONFIG="$NEXT_PUBLIC_FIREBASE_CONFIG" \
+            --build-arg NEXT_PUBLIC_RECAPTCHA_SITE_KEY="$NEXT_PUBLIC_RECAPTCHA_SITE_KEY" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" \
+            website
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-      # The standalone build is one self-contained folder; it travels as a single archive (it holds dot-folders)
-      # and website.sh unpacks it beside the running container before restarting it.
-      - name: Pack website
-        run: tar czf website.tgz -C website/.next/standalone .
-
-      - name: Upload website
+      # The scripts the website deploy runs; the other services' scripts reach the server when you copy them there.
+      - name: Upload server scripts
+        if: env.DEPLOY_HOST != ''
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "website.tgz"
-          target: ${{ secrets.DEPLOY_PATH }}/website
-
-      - name: Upload server config
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/server/config.sh,deploy/server/common.sh,deploy/server/deploy.sh,deploy/server/website.sh"
+          source: "deploy/server/config.sh,deploy/server/common.sh,deploy/server/deploy.sh,deploy/server/pull.sh,deploy/server/prune.sh,deploy/server/website.sh"
           target: ${{ secrets.DEPLOY_PATH }}/server
           strip_components: 2
 
       # The host's web server (Apache, shared with other sites) and the domain's certificate are set up by
       # hand once, not here: this only starts the container and checks it answers on its own port.
-      - name: Deploy
+      - name: Deploy on server
+        if: env.DEPLOY_HOST != ''
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -82,10 +136,11 @@ jobs:
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
             chmod +x server/*.sh
-            IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh website
+            EXPECT_ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" IMAGE_TAG="${{ github.sha }}" ./server/deploy.sh website
             for attempt in 1 2 3 4 5; do
               if curl --fail --silent --show-error http://127.0.0.1:8081/ |
                 grep -Fq 'Make room for the sacred in your everyday.'; then
+                ./server/prune.sh || true
                 exit 0
               fi
               sleep 2

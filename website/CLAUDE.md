@@ -93,12 +93,19 @@ Point it at a local API with `NEXT_PUBLIC_API_BASE_URL` in `.env.local` (see `.e
 
 ## Deploy
 
-`.github/workflows/deploy-website.yml` builds (with the `NEXT_PUBLIC_*` values, some from secrets
-`WEBSITE_GOOGLE_CLIENT_ID`, `WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG`, `WEBSITE_RECAPTCHA_SITE_KEY`), packs
-`.next/standalone` as `website.tgz`, uploads it, and `deploy/server/website.sh` unpacks it and runs it in a `node:22-alpine`
-container on `127.0.0.1:8081` (the port the host's web server already proxies). **It is a Node server now, not static files:**
-the first deploy needs the container image pulled and the new secrets set; the smoke check still greps the home page for its
-headline. The API's `WEB_BASE_URL` must be the site's origin (CORS), and `GOOGLE_CLIENT_IDS` must include the web client id.
+`website/Dockerfile` builds the site into one small image (`npm run build`, then only `.next/standalone` is copied into a
+`node:22-alpine` runtime that runs as the `node` user under tini). `.github/workflows/deploy-website.yml` — which, like the
+backend and admin workflows, runs only for the `production` branch — typechecks and builds, then builds that image with the
+`NEXT_PUBLIC_*` values as build arguments (the addresses are in the workflow; `WEBSITE_GOOGLE_CLIENT_ID`,
+`WEBSITE_APPLE_CLIENT_ID`, `WEBSITE_FIREBASE_CONFIG` and `WEBSITE_RECAPTCHA_SITE_KEY` are optional secrets), pushes it to
+the ECR repository `hariharibol-website` as `:<sha>` and `:latest`, and runs `deploy/server/deploy.sh website` over SSH: pull
+the image, restart `hariharibol-website` on `127.0.0.1:8081` (the port the host's web server already proxies). The smoke
+check greps the home page for its headline. A `NEXT_PUBLIC_*` value cannot be changed on a running container — it is in the
+browser bundle — so changing one means a new build. The API's `WEB_BASE_URL` must be the site's origin (CORS), and
+`GOOGLE_CLIENT_IDS` must include the web client id.
+
+The sitemap files are made at build time from the API (`app/sitemap.ts`), so a build made while the API is down ships an
+empty sitemap until the next deploy. The build itself still succeeds.
 
 ## Not yet verified
 
@@ -106,5 +113,8 @@ Run against a local API with seeded test content in a real browser (home, librar
 Bhagavatam canto route, search, jap counter and its sync, routine sync, favourites, reels, Sakha's error path, mobile and desktop).
 **Not run:** Google / Apple sign-in itself (needs real client ids), App Check, Sakha against a live model, video reels, chant-along
 audio, the production deploy. The 404 status of unknown chapters, verses and mantras was checked on the built server.
+The standalone build was run as the container will run it (a bare copy of `.next/standalone`, the container's env vars)
+and answered every page checked, the static files and `public/`; **the Docker image itself has not been built** (no Docker on
+the machine it was written on) and the ECR push and server pull have not run.
 
 - **Story mode** (`components/read/story-reader.tsx`): Reading settings → *Reading style*, or the Story button on the reader bar. One part of every verse (Sanskrit, transliteration, meaning, purport) as running text with small verse numbers; clicking a verse opens play / save / copy / open. Kept in `usePrefs().reader` (`mode`, `storyPart`, `storyNumbers`). Same behaviour as the app's story mode; not tried against a live API in a browser.
