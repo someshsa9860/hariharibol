@@ -2228,10 +2228,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get shareCopyLink => 'ലിങ്ക് പകർത്തുക';
 
   @override
-  String get shareFailed => 'ഇത് പങ്കിടാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+  String get shareFailed =>
+      'ഇത് പങ്കിടാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
 
   @override
-  String get shareImageTooBig => 'ആ ചിത്രം വളരെ വലുതാണ്. ദയവായി ചെറിയ ചിത്രം തിരഞ്ഞെടുക്കുക.';
+  String get shareImageTooBig =>
+      'ആ ചിത്രം വളരെ വലുതാണ്. ദയവായി ചെറിയ ചിത്രം തിരഞ്ഞെടുക്കുക.';
 
   @override
   String get shareLinkShare => 'ലിങ്ക് പങ്കിടുക';
@@ -2251,10 +2253,12 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'ചിത്രം ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. നിങ്ങളുടെ ക്രെഡിറ്റ് തിരികെ നൽകി.';
+  String get sharePictureFailed =>
+      'ചിത്രം ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. നിങ്ങളുടെ ക്രെഡിറ്റ് തിരികെ നൽകി.';
 
   @override
-  String get sharePictureNoCredit => 'ഇന്നത്തേക്കുള്ള നിങ്ങളുടെ Sakha ക്രെഡിറ്റ് തീർന്നു.';
+  String get sharePictureNoCredit =>
+      'ഇന്നത്തേക്കുള്ള നിങ്ങളുടെ Sakha ക്രെഡിറ്റ് തീർന്നു.';
 
   @override
   String get sharePicturePrompt => 'ചിത്രം വിവരിക്കുക';
@@ -2323,7 +2327,8 @@ class AppLocalizationsMl extends AppLocalizations {
   String get referUseCode => 'കോഡ് ഉപയോഗിക്കുക';
 
   @override
-  String get referAccepted => 'കോഡ് സ്വീകരിച്ചു. ജപത്തിന്റെ ഒരു റൗണ്ട് പൂർത്തിയാക്കൂ, അപ്പോൾ നിങ്ങളുടെ സുഹൃത്തിന് അവരുടെ സമ്മാനം ലഭിക്കും.';
+  String get referAccepted =>
+      'കോഡ് സ്വീകരിച്ചു. ജപത്തിന്റെ ഒരു റൗണ്ട് പൂർത്തിയാക്കൂ, അപ്പോൾ നിങ്ങളുടെ സുഹൃത്തിന് അവരുടെ സമ്മാനം ലഭിക്കും.';
 
   @override
   String get referRefused => 'ഈ കോഡ് ഉപയോഗിക്കാൻ കഴിയില്ല.';

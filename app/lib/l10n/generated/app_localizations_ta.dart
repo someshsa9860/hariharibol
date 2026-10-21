@@ -2231,7 +2231,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get shareFailed => 'இதைப் பகிர முடியவில்லை. மீண்டும் முயலுங்கள்.';
 
   @override
-  String get shareImageTooBig => 'அந்தப் படம் மிகப் பெரியது. சிறிய படத்தைத் தேர்ந்தெடுங்கள்.';
+  String get shareImageTooBig =>
+      'அந்தப் படம் மிகப் பெரியது. சிறிய படத்தைத் தேர்ந்தெடுங்கள்.';
 
   @override
   String get shareLinkShare => 'இணைப்பைப் பகிர்';
@@ -2251,10 +2252,12 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'படத்தை உருவாக்க முடியவில்லை. உங்கள் கிரெடிட் திருப்பி அளிக்கப்பட்டது.';
+  String get sharePictureFailed =>
+      'படத்தை உருவாக்க முடியவில்லை. உங்கள் கிரெடிட் திருப்பி அளிக்கப்பட்டது.';
 
   @override
-  String get sharePictureNoCredit => 'இன்றைக்கான உங்கள் Sakha கிரெடிட் தீர்ந்துவிட்டது.';
+  String get sharePictureNoCredit =>
+      'இன்றைக்கான உங்கள் Sakha கிரெடிட் தீர்ந்துவிட்டது.';
 
   @override
   String get sharePicturePrompt => 'படத்தை விவரியுங்கள்';
@@ -2323,7 +2326,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get referUseCode => 'குறியீட்டைப் பயன்படுத்து';
 
   @override
-  String get referAccepted => 'குறியீடு ஏற்கப்பட்டது. ஜபத்தின் ஒரு சுற்றை முடியுங்கள், அப்போது உங்கள் நண்பருக்குப் பரிசு கிடைக்கும்.';
+  String get referAccepted =>
+      'குறியீடு ஏற்கப்பட்டது. ஜபத்தின் ஒரு சுற்றை முடியுங்கள், அப்போது உங்கள் நண்பருக்குப் பரிசு கிடைக்கும்.';
 
   @override
   String get referRefused => 'இந்தக் குறியீட்டைப் பயன்படுத்த முடியாது.';

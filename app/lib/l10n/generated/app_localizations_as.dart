@@ -2215,10 +2215,12 @@ class AppLocalizationsAs extends AppLocalizations {
   String get shareCopyLink => 'লিংক কপি কৰক';
 
   @override
-  String get shareFailed => 'এইটো শ্বেয়াৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+  String get shareFailed =>
+      'এইটো শ্বেয়াৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
 
   @override
-  String get shareImageTooBig => 'সেই ছবিখন বেছি ডাঙৰ। অনুগ্ৰহ কৰি সৰু ছবি বাছনি কৰক।';
+  String get shareImageTooBig =>
+      'সেই ছবিখন বেছি ডাঙৰ। অনুগ্ৰহ কৰি সৰু ছবি বাছনি কৰক।';
 
   @override
   String get shareLinkShare => 'লিংক শ্বেয়াৰ কৰক';
@@ -2238,7 +2240,8 @@ class AppLocalizationsAs extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'ছবিখন বনাব পৰা নগ’ল। আপোনাৰ ক্ৰেডিট ঘূৰাই দিয়া হ’ল।';
+  String get sharePictureFailed =>
+      'ছবিখন বনাব পৰা নগ’ল। আপোনাৰ ক্ৰেডিট ঘূৰাই দিয়া হ’ল।';
 
   @override
   String get sharePictureNoCredit => 'আজিৰ বাবে আপোনাৰ Sakha ক্ৰেডিট শেষ হৈছে।';
@@ -2310,7 +2313,8 @@ class AppLocalizationsAs extends AppLocalizations {
   String get referUseCode => 'ক’ড ব্যৱহাৰ কৰক';
 
   @override
-  String get referAccepted => 'ক’ড গ্ৰহণ কৰা হ’ল। জপৰ এটা পাক সম্পূৰ্ণ কৰক, তেতিয়া আপোনাৰ বন্ধুৱে তেওঁৰ পুৰস্কাৰ পাব।';
+  String get referAccepted =>
+      'ক’ড গ্ৰহণ কৰা হ’ল। জপৰ এটা পাক সম্পূৰ্ণ কৰক, তেতিয়া আপোনাৰ বন্ধুৱে তেওঁৰ পুৰস্কাৰ পাব।';
 
   @override
   String get referRefused => 'এই ক’ড ব্যৱহাৰ কৰিব নোৱাৰি।';

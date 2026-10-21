@@ -2206,10 +2206,12 @@ class AppLocalizationsGu extends AppLocalizations {
   String get shareCopyLink => 'લિંક કૉપિ કરો';
 
   @override
-  String get shareFailed => 'અમે આ શેર કરી શક્યા નથી. કૃપા કરીને ફરી પ્રયત્ન કરો.';
+  String get shareFailed =>
+      'અમે આ શેર કરી શક્યા નથી. કૃપા કરીને ફરી પ્રયત્ન કરો.';
 
   @override
-  String get shareImageTooBig => 'એ ચિત્ર ખૂબ મોટું છે. કૃપા કરીને નાનું ચિત્ર પસંદ કરો.';
+  String get shareImageTooBig =>
+      'એ ચિત્ર ખૂબ મોટું છે. કૃપા કરીને નાનું ચિત્ર પસંદ કરો.';
 
   @override
   String get shareLinkShare => 'લિંક શેર કરો';
@@ -2229,10 +2231,12 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'ચિત્ર બની શક્યું નથી. તમારું ક્રેડિટ પાછું આપ્યું છે.';
+  String get sharePictureFailed =>
+      'ચિત્ર બની શક્યું નથી. તમારું ક્રેડિટ પાછું આપ્યું છે.';
 
   @override
-  String get sharePictureNoCredit => 'આજ માટે તમારું Sakha ક્રેડિટ પૂરું થઈ ગયું છે.';
+  String get sharePictureNoCredit =>
+      'આજ માટે તમારું Sakha ક્રેડિટ પૂરું થઈ ગયું છે.';
 
   @override
   String get sharePicturePrompt => 'ચિત્રનું વર્ણન કરો';
@@ -2301,7 +2305,8 @@ class AppLocalizationsGu extends AppLocalizations {
   String get referUseCode => 'કોડ વાપરો';
 
   @override
-  String get referAccepted => 'કોડ સ્વીકારાયો. જપનો એક ફેરો પૂરો કરો, જેથી તમારા મિત્રને તેમનો પુરસ્કાર મળે.';
+  String get referAccepted =>
+      'કોડ સ્વીકારાયો. જપનો એક ફેરો પૂરો કરો, જેથી તમારા મિત્રને તેમનો પુરસ્કાર મળે.';
 
   @override
   String get referRefused => 'આ કોડ વાપરી શકાતો નથી.';

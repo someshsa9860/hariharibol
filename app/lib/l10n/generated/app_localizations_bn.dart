@@ -2214,10 +2214,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get shareCopyLink => 'লিংক কপি করুন';
 
   @override
-  String get shareFailed => 'এটি শেয়ার করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+  String get shareFailed =>
+      'এটি শেয়ার করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
 
   @override
-  String get shareImageTooBig => 'ছবিটি খুব বড়। অনুগ্রহ করে ছোট একটি ছবি বেছে নিন।';
+  String get shareImageTooBig =>
+      'ছবিটি খুব বড়। অনুগ্রহ করে ছোট একটি ছবি বেছে নিন।';
 
   @override
   String get shareLinkShare => 'লিংক শেয়ার করুন';
@@ -2237,7 +2239,8 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get sharePictureFailed => 'ছবিটি তৈরি করা যায়নি। আপনার ক্রেডিট ফেরত দেওয়া হয়েছে।';
+  String get sharePictureFailed =>
+      'ছবিটি তৈরি করা যায়নি। আপনার ক্রেডিট ফেরত দেওয়া হয়েছে।';
 
   @override
   String get sharePictureNoCredit => 'আজকের জন্য আপনার Sakha ক্রেডিট শেষ।';
@@ -2309,7 +2312,8 @@ class AppLocalizationsBn extends AppLocalizations {
   String get referUseCode => 'কোড ব্যবহার করুন';
 
   @override
-  String get referAccepted => 'কোড গ্রহণ করা হয়েছে। জপের একটি পাক শেষ করুন, তাহলে আপনার বন্ধু তাঁর পুরস্কার পাবেন।';
+  String get referAccepted =>
+      'কোড গ্রহণ করা হয়েছে। জপের একটি পাক শেষ করুন, তাহলে আপনার বন্ধু তাঁর পুরস্কার পাবেন।';
 
   @override
   String get referRefused => 'এই কোডটি ব্যবহার করা যাবে না।';
