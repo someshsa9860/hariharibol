@@ -21,6 +21,7 @@ import {
   Languages,
   Film,
   MessageCircle,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -55,6 +56,7 @@ export const NAV: NavSection[] = [
       { label: 'Scenes', path: '/scenes', icon: Film, permission: 'scenes.read' },
       { label: 'Reference data', path: '/reference', icon: Library, permission: 'reference.manage' },
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
+      { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
     ],
   },
   {

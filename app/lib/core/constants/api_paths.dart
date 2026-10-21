@@ -21,6 +21,10 @@ abstract final class ApiPaths {
   static const String topics = '$_app/devices/topics';
   static String topic(String key) => '$_app/devices/topics/$key';
 
+  // Hindu calendar
+  static const String calendar = '$_app/calendar';
+  static const String calendarUpcoming = '$_app/calendar/upcoming';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';
@@ -52,6 +56,7 @@ abstract final class ApiPaths {
   // Library
   static const String books = '$_app/books';
   static String book(String slug) => '$_app/books/$slug';
+  static String bookLanguages(String slug) => '$_app/books/$slug/languages';
   static String bookCantos(String slug) => '$_app/books/$slug/cantos';
   static String bookChapters(String slug) => '$_app/books/$slug/chapters';
   static String bookChapter(String slug, int number) => '$_app/books/$slug/chapters/$number';

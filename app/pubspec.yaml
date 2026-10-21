@@ -129,6 +129,7 @@ flutter:
     - assets/hariharibol_trprt.png
     - assets/peacock_feather.svg
     - assets/sakha_icon.svg
+    - assets/calendar/
     - assets/verse_backdrop.jpg
     - assets/fonts/OFL.txt
     - assets/models/auto_chant/vad/

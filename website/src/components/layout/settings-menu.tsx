@@ -15,7 +15,7 @@ const THEMES: { value: Theme; label: string; icon: 'sun' | 'moon' | 'settings' }
 ];
 
 /** Reading language and colour theme — the two choices that apply before anyone signs in. */
-export function ReadingLanguageSelect({ id }: { id?: string }) {
+export function ReadingLanguageSelect({ id, bookSlug }: { id?: string; bookSlug?: string }) {
   const { readingLanguage, setReadingLanguage } = usePrefs();
   const [languages, setLanguages] = useState<{ code: string; nativeName: string; englishName: string }[]>(FALLBACK_LANGUAGES);
 
@@ -28,9 +28,19 @@ export function ReadingLanguageSelect({ id }: { id?: string }) {
       .catch(() => undefined);
   }, []);
 
+  // On a book's page, offer only the languages that book has text in (the one in use stays listed).
+  const [bookCodes, setBookCodes] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!bookSlug) return;
+    api<string[]>(`/books/${encodeURIComponent(bookSlug)}/languages`, { auth: 'none' })
+      .then((codes) => setBookCodes(codes))
+      .catch(() => undefined);
+  }, [bookSlug]);
+  const shown = bookCodes?.length ? languages.filter((language) => bookCodes.includes(language.code) || language.code === readingLanguage) : languages;
+
   return (
     <select id={id} className="select" value={readingLanguage} onChange={(event) => setReadingLanguage(event.target.value)}>
-      {languages.map((language) => (
+      {shown.map((language) => (
         <option key={language.code} value={language.code}>
           {language.nativeName} · {language.englishName}
         </option>

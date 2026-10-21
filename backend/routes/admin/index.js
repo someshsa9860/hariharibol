@@ -35,6 +35,7 @@ import sceneRoutes from './scene.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
+import panchangRoutes from './panchang.js';
 
 const routers = [
   dashboardRoutes,
@@ -63,6 +64,7 @@ const routers = [
   bookCacheRoutes,
   systemRoutes,
   chatRoutes,
+  panchangRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

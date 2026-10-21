@@ -20,6 +20,16 @@ final bookDetailProvider = FutureProvider.family.autoDispose<Book, String>((ref,
   return BookService.instance.get(slug);
 });
 
+/// The reading languages a book has text in. Empty when it cannot be fetched
+/// (offline, say), which the reading settings read as "offer every language".
+final bookLanguagesProvider = FutureProvider.family.autoDispose<Set<String>, String>((ref, slug) async {
+  try {
+    return await BookService.instance.languages(slug);
+  } on ApiFailure {
+    return const <String>{};
+  }
+});
+
 /// True if a failure is worth falling back to the offline copy for — no
 /// connection at all, or the connection timed out. Anything else (a 404, a
 /// validation error) is a real answer from the server and offline data would

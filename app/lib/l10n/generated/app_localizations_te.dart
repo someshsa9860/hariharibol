@@ -2371,4 +2371,16 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get shareReelTooBig => 'ఈ సంగీతం ఫైల్ చాలా పెద్దది (గరిష్టంగా 25 MB).';
+
+  @override
+  String get calendarTitle => 'హిందూ పంచాంగం';
+
+  @override
+  String get calendarEmpty => 'ఈ నెల పంచాంగం ఇంకా నింపలేదు.';
+
+  @override
+  String get calendarUpcoming => 'ఏకాదశి, చతుర్థి మరియు పండుగ రోజులు';
+
+  @override
+  String get calendarVaishnavaNote => 'వైష్ణవులు ఈ వ్రతాన్ని మరుసటి రోజు ఆచరించవచ్చు.';
 }
