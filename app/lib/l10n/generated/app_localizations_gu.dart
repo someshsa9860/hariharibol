@@ -2381,4 +2381,97 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get calendarVaishnavaNote => 'વૈષ્ણવો આ વ્રત બીજા દિવસે રાખી શકે છે.';
+
+  @override
+  String get supportTitle => 'મદદ અને પ્રતિભાવ';
+
+  @override
+  String get supportRaiseTicket => 'ટિકિટ બનાવો';
+
+  @override
+  String get supportSendFeedback => 'પ્રતિભાવ મોકલો';
+
+  @override
+  String get supportMyTickets => 'તમારી ટિકિટો';
+
+  @override
+  String get supportEmpty => 'તમે હજી સુધી અમને કંઈ લખ્યું નથી.';
+
+  @override
+  String get supportCategoryLabel => 'વિષય';
+
+  @override
+  String get supportCategoryBug => 'કંઈક કામ કરતું નથી';
+
+  @override
+  String get supportCategoryPayment => 'ચુકવણી અથવા પ્લાન';
+
+  @override
+  String get supportCategoryAccount => 'મારું ખાતું';
+
+  @override
+  String get supportCategoryContent => 'કોઈ શ્લોક, અનુવાદ અથવા મંત્ર';
+
+  @override
+  String get supportCategorySuggestion => 'એક સૂચન';
+
+  @override
+  String get supportCategoryOther => 'બીજું કંઈક';
+
+  @override
+  String get supportMessageHint => 'શું થયું તે અમને જણાવો';
+
+  @override
+  String get supportAttachScreenshot => 'સ્ક્રીનશોટ જોડો';
+
+  @override
+  String get supportRemoveScreenshot => 'સ્ક્રીનશોટ કાઢી નાખો';
+
+  @override
+  String get supportSend => 'મોકલો';
+
+  @override
+  String get supportSent => 'આભાર. અમે અહીં જ જવાબ આપીશું.';
+
+  @override
+  String get supportStatusOpen => 'ખુલ્લી';
+
+  @override
+  String get supportStatusInProgress => 'પ્રક્રિયામાં';
+
+  @override
+  String get supportStatusResolved => 'ઉકેલાઈ';
+
+  @override
+  String get supportReplyHint => 'જવાબ લખો';
+
+  @override
+  String get supportFromSupport => 'સહાય ટીમ';
+
+  @override
+  String get supportYou => 'તમે';
+
+  @override
+  String get supportFeedbackTitle => 'અમે કેવું કરી રહ્યા છીએ?';
+
+  @override
+  String get supportFeedbackNoteHint => 'કંઈ ઉમેરવું હોય તો લખો (વૈકલ્પિક)';
+
+  @override
+  String get supportFeedbackThanks => 'તમારા પ્રતિભાવ બદલ આભાર.';
+
+  @override
+  String get supportDeviceNote => 'તમારા ફોનનું મોડેલ અને એપનું સંસ્કરણ આની સાથે મોકલાય છે, જેથી અમે ઝડપથી મદદ કરી શકીએ.';
+
+  @override
+  String get supportTicketTitle => 'તમારી ટિકિટ';
+
+  @override
+  String get reviewPromptTitle => 'શું તમને હરિહરિબોલ ગમે છે?';
+
+  @override
+  String get reviewPromptYes => 'હા, બહુ ગમે છે';
+
+  @override
+  String get reviewPromptNo => 'બહુ નહીં';
 }

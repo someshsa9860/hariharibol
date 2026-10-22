@@ -102,6 +102,8 @@ dependencies:
   # (Apple's on iOS, Google's on Android). Both sit behind a service in
   # lib/services/ so the screens can be tested without a phone.
   image_picker: ^1.2.4
+  # The store's own rating sheet: Play In-App Review, iOS SKStoreReviewController.
+  in_app_review: ^2.0.11
   # Music from the phone's own files for a reel made in the share studio
   # (services/reel_music_picker.dart).
   file_picker: ^13.1.0

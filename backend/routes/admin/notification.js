@@ -114,7 +114,7 @@ router.get(
     permission: 'notification.send',
     limit: 'read',
     query: schemas.sorted(controller.CAMPAIGN_SORT_COLUMNS).extend({
-      type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM', 'REEL', 'REFERRAL', 'FESTIVAL']).optional(),
+      type: z.enum(['SLOKA', 'SADHANA', 'ANNOUNCEMENT', 'SYSTEM', 'REEL', 'REFERRAL', 'FESTIVAL', 'SUPPORT']).optional(),
       minSeconds,
     }),
     responds: { 200: 'A page of notifications with their funnel' },

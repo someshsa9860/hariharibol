@@ -7,6 +7,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/calendar/calendar_view.dart';
+import '../../views/support/support_ticket_view.dart';
+import '../../views/support/support_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
 import '../../views/chant/chant_session_view.dart';
@@ -325,6 +327,23 @@ GoRouter createRouter() {
               ),
             );
           },
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.support,
+        name: RouteNames.support,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const SupportView(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.ticketPattern,
+        name: RouteNames.ticket,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: SupportTicketView(id: state.pathParameters['id']!),
         ),
       ),
 

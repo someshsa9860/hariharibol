@@ -25,6 +25,15 @@ abstract final class ApiPaths {
   static const String calendar = '$_app/calendar';
   static const String calendarUpcoming = '$_app/calendar/upcoming';
 
+  // Support, feedback and the store-rating prompt
+  static const String supportTickets = '$_app/support/tickets';
+  static String supportTicket(String id) => '$_app/support/tickets/$id';
+  static String supportTicketMessages(String id) => '$_app/support/tickets/$id/messages';
+  static const String supportMedia = '$_app/support/media';
+  static const String supportUnread = '$_app/support/unread';
+  static const String reviewCheck = '$_app/support/review-check';
+  static const String reviewPrompts = '$_app/support/review-prompts';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';

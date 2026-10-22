@@ -25,6 +25,12 @@ abstract final class BoxNames {
 }
 
 abstract final class BoxKeys {
+  /// When the store-rating prompt (or its "Enjoying HariHariBol?" question) was
+  /// last put in front of the reader, in milliseconds since the epoch. A cheap
+  /// local gate in front of the server's own check, so a reader is not asked
+  /// twice in a row even offline or when the server is unreachable.
+  static const String reviewPromptAt = 'review.prompt_at';
+
   /// An invitation code from a link, kept until there is an account to present
   /// it with (DeepLinkService). Only the first is kept.
   static const String pendingInvite = 'referral.pending_invite';

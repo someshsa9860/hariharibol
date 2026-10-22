@@ -29,6 +29,9 @@ abstract final class PushConfig {
   static const String deeplinkMantra = 'mantra';
   static const String deeplinkReel = 'reel';
   static const String deeplinkVerse = 'verse';
+  // Support (`backend/utils/push-rich.js`): the help screen, and one ticket by id.
+  static const String deeplinkSupport = 'support';
+  static const String deeplinkTicket = 'ticket';
 
   // ── What a rich push carries (all strings) ──────────────────────────────
   /// `picture` or `text` — how the expanded notification is drawn.

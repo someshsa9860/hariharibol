@@ -2406,4 +2406,97 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get calendarVaishnavaNote =>
       'வைஷ்ணவர்கள் இந்த விரதத்தை மறுநாள் அனுசரிக்கலாம்.';
+
+  @override
+  String get supportTitle => 'உதவி மற்றும் கருத்து';
+
+  @override
+  String get supportRaiseTicket => 'டிக்கெட் உருவாக்கவும்';
+
+  @override
+  String get supportSendFeedback => 'கருத்தை அனுப்பவும்';
+
+  @override
+  String get supportMyTickets => 'உங்கள் டிக்கெட்டுகள்';
+
+  @override
+  String get supportEmpty => 'நீங்கள் இன்னும் எங்களுக்கு எதுவும் எழுதவில்லை.';
+
+  @override
+  String get supportCategoryLabel => 'தலைப்பு';
+
+  @override
+  String get supportCategoryBug => 'ஏதோ வேலை செய்யவில்லை';
+
+  @override
+  String get supportCategoryPayment => 'கட்டணம் அல்லது திட்டம்';
+
+  @override
+  String get supportCategoryAccount => 'என் கணக்கு';
+
+  @override
+  String get supportCategoryContent => 'ஒரு ஸ்லோகம், மொழிபெயர்ப்பு அல்லது மந்திரம்';
+
+  @override
+  String get supportCategorySuggestion => 'ஒரு பரிந்துரை';
+
+  @override
+  String get supportCategoryOther => 'வேறு ஏதோ';
+
+  @override
+  String get supportMessageHint => 'என்ன நடந்தது என்று எங்களுக்குச் சொல்லுங்கள்';
+
+  @override
+  String get supportAttachScreenshot => 'ஸ்கிரீன்ஷாட்டை இணைக்கவும்';
+
+  @override
+  String get supportRemoveScreenshot => 'ஸ்கிரீன்ஷாட்டை நீக்கவும்';
+
+  @override
+  String get supportSend => 'அனுப்பு';
+
+  @override
+  String get supportSent => 'நன்றி. இங்கேயே பதிலளிப்போம்.';
+
+  @override
+  String get supportStatusOpen => 'திறந்தது';
+
+  @override
+  String get supportStatusInProgress => 'நடைபெறுகிறது';
+
+  @override
+  String get supportStatusResolved => 'தீர்க்கப்பட்டது';
+
+  @override
+  String get supportReplyHint => 'பதிலை எழுதுங்கள்';
+
+  @override
+  String get supportFromSupport => 'உதவிக் குழு';
+
+  @override
+  String get supportYou => 'நீங்கள்';
+
+  @override
+  String get supportFeedbackTitle => 'நாங்கள் எப்படி செய்கிறோம்?';
+
+  @override
+  String get supportFeedbackNoteHint => 'மேலும் ஏதாவது சேர்க்க விரும்பினால் எழுதுங்கள் (விருப்பம்)';
+
+  @override
+  String get supportFeedbackThanks => 'உங்கள் கருத்துக்கு நன்றி.';
+
+  @override
+  String get supportDeviceNote => 'உங்கள் தொலைபேசி மாடலும் செயலியின் பதிப்பும் இதனுடன் அனுப்பப்படும், அதனால் நாங்கள் விரைவாக உதவ முடியும்.';
+
+  @override
+  String get supportTicketTitle => 'உங்கள் டிக்கெட்';
+
+  @override
+  String get reviewPromptTitle => 'ஹரிஹரிபோல் உங்களுக்குப் பிடிக்கிறதா?';
+
+  @override
+  String get reviewPromptYes => 'ஆம், மிகவும் பிடிக்கும்';
+
+  @override
+  String get reviewPromptNo => 'அவ்வளவாக இல்லை';
 }

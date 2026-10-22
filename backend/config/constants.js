@@ -71,6 +71,7 @@ const PERMISSIONS = {
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
   'finance.manage': { group: 'system', name: 'View revenue, AI cost and the books; add credit and debit entries (super admin only)' },
+  'support.manage': { group: 'users', name: 'View and reply to support tickets and feedback' },
   'system.maintenance': { group: 'system', name: 'Run the listed maintenance scripts (seed and similar) from the panel' },
 };
 

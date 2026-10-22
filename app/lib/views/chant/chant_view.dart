@@ -9,6 +9,7 @@ import '../../core/constants/chant_sync_config.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/constants/storage_keys.dart';
+import '../../core/constants/support_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
@@ -25,6 +26,7 @@ import '../../services/chant_recorder.dart';
 import '../../services/local_store.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
+import '../../services/review_prompter.dart';
 import '../../services/sadhana_service.dart';
 import '../../widgets/chant/chant_along_card.dart';
 import '../../widgets/chant/chant_disc.dart';
@@ -497,7 +499,13 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     // refreshed here rather than left for the tab's own pull to refresh.
     unawaited(ref.read(sadhanaTodayProvider.notifier).refresh());
     unawaited(ref.read(homeFeedProvider.notifier).refresh());
+    final completedRound = _recorder.completedMalas > 0;
     if (mounted) Navigator.of(context).pop();
+    // A round just finished is a happy moment; the prompter decides whether it
+    // is a good one (a streak of days, nothing recent, never after a complaint).
+    if (completedRound) {
+      unawaited(ReviewPrompter.instance.maybeAsk(trigger: SupportConfig.triggerStreak));
+    }
   }
 
   /// The picture in the ring: the list picture, or the 9:16 one when that is
