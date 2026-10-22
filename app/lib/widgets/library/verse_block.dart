@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../core/format/script.dart';
@@ -125,30 +127,21 @@ class VerseBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (onPlay != null)
-                _ActionIcon(
-                  icon: playing == true
-                      ? Icons.volume_up_rounded
-                      : Icons.play_arrow_rounded,
-                  tooltip: text.readingAudioPlayVerse,
-                  onPressed: onPlay!,
-                ),
-              Expanded(
-                child: Text(
-                  text.labelVerseShort(verse.verseNumber ?? 0),
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.eyebrow(
-                    context,
-                    color: context.colors.primary,
+          _VerseHeader(
+            label: text.labelVerseShort(verse.verseNumber ?? 0),
+            play: onPlay == null
+                ? null
+                : _Action(
+                    icon: playing == true
+                        ? Icons.volume_up_rounded
+                        : Icons.play_arrow_rounded,
+                    tooltip: text.readingAudioPlayVerse,
+                    onPressed: onPlay!,
                   ),
-                ),
-              ),
-              _ActionIcon(
+            // In the order they are given up when the row is too narrow: the
+            // last ones go into the "more" menu first.
+            actions: [
+              _Action(
                 icon: isFavorite
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
@@ -157,7 +150,7 @@ class VerseBlock extends StatelessWidget {
                     : text.actionBookmark,
                 onPressed: onToggleFavorite,
               ),
-              _ActionIcon(
+              _Action(
                 icon: isHighlighted
                     ? Icons.format_paint_rounded
                     : Icons.format_paint_outlined,
@@ -166,37 +159,37 @@ class VerseBlock extends StatelessWidget {
                     : text.actionHighlight,
                 onPressed: onToggleHighlight,
               ),
-              _ActionIcon(
+              _Action(
                 icon: Icons.edit_note_rounded,
                 tooltip: text.verseNotesTitle,
                 badgeCount: noteCount,
                 onPressed: onOpenNotes,
               ),
-              _ActionIcon(
+              _Action(
                 icon: Icons.ios_share_rounded,
                 tooltip: text.shareTitle,
                 onPressed: () => ShareStudio.open(context, ShareTarget.verse(verse, translation: translation)),
               ),
               if (onStartReels != null)
-                _ActionIcon(
+                _Action(
                   iconWidget: const PeacockFeatherIcon(size: AppSizes.iconSm),
                   tooltip: text.verseStartReels,
                   onPressed: onStartReels!,
                 ),
               if (onAskSakha != null)
-                _ActionIcon(
+                _Action(
                   icon: Icons.chat_bubble_outline_rounded,
                   tooltip: text.verseAskSakha,
                   onPressed: onAskSakha!,
                 ),
               if (onCompareTranslations != null)
-                _ActionIcon(
+                _Action(
                   icon: Icons.compare_arrows_rounded,
                   tooltip: text.verseCompareTranslations,
                   onPressed: onCompareTranslations!,
                 ),
               if (verse.relatedCount > 0)
-                _ActionIcon(
+                _Action(
                   icon: Icons.link_rounded,
                   tooltip: text.verseRelatedTitle,
                   onPressed: onOpenRelated,
@@ -275,8 +268,9 @@ String? _transliterationToShow(String? transliteration, String? sanskrit) {
   return transliteration;
 }
 
-class _ActionIcon extends StatelessWidget {
-  const _ActionIcon({
+/// One button of the verse's action row.
+class _Action {
+  const _Action({
     this.icon,
     this.iconWidget,
     required this.tooltip,
@@ -292,15 +286,96 @@ class _ActionIcon extends StatelessWidget {
   final VoidCallback onPressed;
   final int badgeCount;
 
+  Widget get glyph => iconWidget ?? Icon(icon, size: AppSizes.iconSm);
+}
+
+/// The verse's label and its actions in one row. Each action is a full-size
+/// tap target, so a phone holds only a few; the ones that do not fit go into a
+/// "more" menu rather than running off the edge, and with room (a tablet) every
+/// action stays in the row.
+class _VerseHeader extends StatelessWidget {
+  const _VerseHeader({
+    required this.label,
+    required this.play,
+    required this.actions,
+  });
+
+  final String label;
+  final _Action? play;
+  final List<_Action> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final slots =
+            ((box.maxWidth - AppSizes.verseLabelMin) / kMinInteractiveDimension)
+                .floor() -
+            (play == null ? 0 : 1);
+        final inline = actions.length <= slots
+            ? actions
+            : actions.take(math.max(slots - 1, 0)).toList();
+        final more = actions.skip(inline.length).toList();
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (play != null) _ActionIcon(action: play!),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.eyebrow(
+                  context,
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            for (final action in inline) _ActionIcon(action: action),
+            if (more.isNotEmpty)
+              PopupMenuButton<_Action>(
+                tooltip: text.reelMore,
+                icon: const Icon(Icons.more_vert_rounded, size: AppSizes.iconSm),
+                iconColor: context.colors.onSurfaceVariant,
+                onSelected: (action) => action.onPressed(),
+                itemBuilder: (context) => [
+                  for (final action in more)
+                    PopupMenuItem(
+                      value: action,
+                      child: Row(
+                        children: [
+                          action.glyph,
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(child: Text(action.tooltip)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ActionIcon extends StatelessWidget {
+  const _ActionIcon({required this.action});
+
+  final _Action action;
+
   @override
   Widget build(BuildContext context) {
     return Badge(
-      isLabelVisible: badgeCount > 0,
-      label: Text('$badgeCount'),
+      isLabelVisible: action.badgeCount > 0,
+      label: Text('${action.badgeCount}'),
       child: IconButton(
-        icon: iconWidget ?? Icon(icon, size: AppSizes.iconSm),
-        tooltip: tooltip,
-        onPressed: onPressed,
+        icon: action.glyph,
+        tooltip: action.tooltip,
+        onPressed: action.onPressed,
         color: context.colors.onSurfaceVariant,
       ),
     );

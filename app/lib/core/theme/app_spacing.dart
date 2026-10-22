@@ -68,6 +68,10 @@ abstract final class AppSizes {
 
   /// Widest a text column is allowed to get on a tablet.
   static const double readingMaxWidth = 680;
+
+  /// How much of a verse's header row its label keeps before the verse's
+  /// actions start moving into the "more" menu.
+  static const double verseLabelMin = 64;
 }
 
 /// Animation and delay durations.

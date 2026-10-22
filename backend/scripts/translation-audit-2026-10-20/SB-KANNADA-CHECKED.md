@@ -1,9 +1,73 @@
 # Śrīmad-Bhāgavatam → Kannada: what has been checked and fixed
 
 Memory file for the next quality check. **If asked to check more Kannada Bhāgavatam cantos, skip everything in the
-table below and check only cantos that are not listed.**
+tables below. Cantos 1–12 are all done; there is nothing left to check unless a canto is re-translated.**
 
-## Already checked AND fixed on S3 (2026-10-20)
+## Cantos 4–12: checked AND fixed on S3 (2026-10-22, in-session, no AI API)
+
+| Language | Canto | Chapters (files) | Verses | Bytes after |
+|---|---|---|---|---|
+| `kn` | 4 | 31 | 1,387 | 13,389,914 |
+| `kn` | 5 | 26 | 650 | 6,833,197 |
+| `kn` | 6 | 19 | 760 | 6,478,196 |
+| `kn` | 7 | 15 | 676 | 6,598,143 |
+| `kn` | 8 | 24 | 848 | 6,320,047 |
+| `kn` | 9 | 24 | 846 | 5,894,216 |
+| `kn` | 10 | 90 | 3,572 | 26,591,501 |
+| `kn` | 11 | 31 | 1,244 | 11,887,539 |
+| `kn` | 12 | 13 | 480 | 3,161,599 |
+
+- **273 files, 10,463 verses, 87,154,352 bytes**, written to `s3://sanatan-db/json/srimad-bhagavatam/kn/c<canto>-ch-<n>.json`
+  canto by canto on 2026-10-22 (each upload read back and compared). **Backup of the files as audited:**
+  `s3://sanatan-db/json-backup-2026-10-22/json/srimad-bhagavatam/kn/`.
+- **No Anthropic / OpenAI / Gemini API was called** (the user's rule). The new Kannada was written in the session by Claude
+  (Sonnet subagents and by hand); the audit and repair scripts only read files and S3. Everything of the job is in
+  `backend/.translate-work/sb-kn-c4-12/` (gitignored): `orig/` (as downloaded), `work/` (as uploaded), `patches/`,
+  `manual-patches.json`, the audits `audit-*.json`, the per-canto `kn-fix-patches-c<N>.json` / `kn-fix-report-c<N>*.json`,
+  `RESUME.md`. The scripts there (`make-canto.mjs`, `check-patches.mjs`, `audit.mjs`, `show.mjs`, `fix-wm-lists.mjs`) are the tools used.
+- **What was done:** 129 verses had a wholly wrong-language part (translation / purport / transliteration / word meanings) and were
+  rewritten in Kannada from the English (28 batches, 129/129 validated); then 432 hand patches (an English word left
+  in the Kannada, a Sanskrit quote or name in Roman letters turned into Kannada letters, Chinese / Korean / Cyrillic / Tamil /
+  Malayalam / Sinhala / Gujarati letters that slipped into a word, an unclosed bracket) written by Sonnet agents against the exact
+  text and checked by `check-patches.mjs`; then `tools/kn-fix.js` (Devanagari and other-script transliteration → Kannada letters,
+  short e/o → long, verse number tails, junk word-meaning entries). 41 of the 432 patches are single transliteration letters (`manual-patches.json`);
+  10 word lists whose length differed from the English were mended by `fix-wm-lists.mjs`. The final `kn-fix` dry
+  run reported 0 changes for every canto, and `audit.mjs` shows no foreign script, no Roman run, no leaked `correctness` in the
+  fixed files except the items under "Left as it is" below.
+- **Rewritten parts are stamped** provider `anthropic`, model `claude-sonnet-5-5`, effort `in-session`, version `1.0-12-10-26`,
+  with a note that they were written in-session with no API call. Small patches leave the original stamp.
+- **Re-check cantos 4–12 only if** the file count / size above no longer matches, a file was modified after the upload on
+  2026-10-22, or the user says they were re-translated. A re-translation would bring the defects back.
+
+### Left as it is (4–12), for the next person to decide or to ask a native speaker
+
+- **Dandas** (`।`) left in some purports: 2.7.15.26, 2.8.3.16, 2.9.4.26, 2.9.8.21, 2.10.2.27, 2.10.4.29, 2.10.10.17, 2.10.10.25,
+  2.10.13.60, 2.10.78.16, 2.11.12.9, 2.11.15.16, 2.11.21.4. Many canto-11 transliterations end in ॥ — that is the verse-end mark.
+  The (aa)–(ff) list markers in 2.7.5.23-24 stay Roman on purpose.
+- **Patches the agent was not sure of (`sure: false`)** — spelling of Sanskrit quotes that could not be checked against the printed
+  verse: p01 n4 (and 2.7.5.16 / the word meaning in the same verse, "argumentum ad baculum"), p02 n49 / n58 / n85, p07 n218
+  (2.10.46.1), p12 n386 / n387 / n393 / n394 (`purports` → ಭಾಷ್ಯಗಳು), p06's 26 (Rādhā-kuṇḍa and foot-mark quotes spelled letter by
+  letter), p09 n275 / n277 / n281 / n294, p10 n314 (a Śrīdhara quote, sandhi joins unknown), n326 (Bhāg. 4.29.79: source hyphens
+  kept, so `ತದ್-ಆತ್ಮಕಂ` reads awkwardly), n343 (Brahma-saṁhitā 5.40), p11 n370 (2.11.14.26, a Bengali song line).
+- **Quotes restored from Roman letters only** (not checked against the Devanagari verse): 2.6.1.16, 2.6.5.30, 2.7.6.17-18, 2.8.24.48,
+  2.9.2.17. Word lists the translator rated 2: 2.6.18.78, 2.8.7.7, 2.9.14.38. Also worth a second look: 2.9.24.59, 2.10.6.22-23,
+  2.10.16.30, 2.10.23.9, 2.10.27.11, 2.10.33.34, 2.10.42.28-31, 2.10.82.11, 2.10.85.20, 2.11.7.47 (ಪಿಎಚ್.ಡಿ.), 2.10.90.24 (ನೀನು for
+  the swan), 2.11.2.23 (cāraṇa → ದೇವದೂತರು).
+- **Sanskrit-quote joining differs a little between batches** (some leave a space, "ಮಾಮ್ ಅಜಮ್ ಅವ್ಯಯಮ್"; the later ones join as the
+  Devanagari does, "ಕಾಮಾನ್ಯಃ ಸರ್ವಾನ್ಪುಮಾಂಶ್ಚರತಿ"). Roman-letter quotes of cantos 1–3 still stand as before.
+- **Judgement calls:** 2.10.49.28 ಪಾಪಮ್ vs printed ಪಾಪಂ; 2.10.45.35-36 "(so)" → "(60)"; 2.10.60.37 "some" / "supreme" → ಕೆಲವು / ಸರ್ವೋಚ್ಚ;
+  2.5.22.11 mended as a hyphenated `ಸಹಾಭಿಜಿತಾಷ್ಟಾ-ವಿಂಶತಿಃ`; 2.6.2.45 as `ವಿಪ್ಲಾವಿತ`; ಪ್ರಹ್ಲಾದೋ → ಪ್ರಹ್ರಾದೋ in the
+  transliteration of 2.7.13.12-13 follows the Devanagari source; item 373 of p11 has ISKCON → ಇಸ್ಕಾನ್ followed by a ZWNJ and ನಲ್ಲಿ.
+- **Probably an earlier mistranslation, not swept:** 37 other chapter-end lines say ಪುರಾಣಗಳು ("Purāṇas") where the English says
+  "purports". Transliteration lines that differ from the source by 64–131 letters were flagged by the audit and may belong to the
+  wrong verse; two `wholeRoman` texts in `patch-items/index.json` are not itemised and should be looked at.
+- **Open glossary choices** (style, not errors; the same as for cantos 1–3): ಅತೀಂದ್ರಿಯ / ಅಲೌಕಿಕ, ನಿಮ್ಮ / ನಿನ್ನ for the Lord,
+  ಸುಳ್ಳು / ಮಿಥ್ಯಾ ಅಹಂಕಾರ, ಅಸುರ / ರಾಕ್ಷಸ, ದ್ವಾರಕೆ, ಜಪಿಸುವುದು / ಕೀರ್ತನೆ. The patches follow `TASK.md`'s glossary (ಅತೀಂದ್ರಿಯ,
+  ಸುಳ್ಳು ಅಹಂಕಾರ, ಭಗವದ್ಗೀತೆ, ಶ್ರೀಮದ್ಭಾಗವತ, ಪರಮ ಪುರುಷೋತ್ತಮ ಭಗವಂತ).
+- **No native Kannada speaker has read any of it**, before or after. The mechanical defects are gone; nothing here says the Kannada is good.
+- **Reaching the app is the same two steps as for cantos 1–3** (below) and **neither has been done** for cantos 4–12 either.
+
+## Cantos 1–3: checked AND fixed on S3 (2026-10-20)
 
 | Language | Canto | Chapters | Verses | Files (S3) |
 |---|---|---|---|---|
@@ -21,8 +85,7 @@ table below and check only cantos that are not listed.**
 - **Re-check cantos 1–3 only if** the file count / size above no longer matches, a file was modified after 10:19 UTC on
   2026-10-20, or the user says they were re-translated or redone. A re-translation would bring the defects back.
 - Verse ids are `2.<canto>.<chapter>.<verse>` (the leading `2` is the book number).
-- **Not done yet:** kn cantos 4–12 (the canto-4 run was still writing `c4-*` — 24 files — when cantos 1–3 were fixed; it has the
-  same defects and the same tools apply, see the end). Hindi (cantos 1–6) was audited on 2026-10-17 (see the Hindi audit notes in memory).
+- Cantos 4–12 were done on 2026-10-22 (section above). Hindi (cantos 1–6) was audited on 2026-10-17 (see the Hindi audit notes in memory).
 - **Not seen by a native Kannada speaker** — before and after. Nothing here says the Kannada is good, only that the mechanical
   defects below are gone.
 
@@ -77,9 +140,16 @@ S3 is the source of truth; phones read the database and the offline book export,
    `book.cache.sync` do it — so phones fetch the changed units.
 3. The app reads an imported `transliteration` (the reader's script) but **not yet `wordMeanings`**; the fixed word meanings
    show on the web/API only where they are sent.
-Neither step has been done as part of this fix.
+Neither step has been done as part of this fix (cantos 1–3, nor 4–12).
 
-## Before running kn cantos 4–12 (and for canto 4 now)
+## If a canto has to be fixed again (the way cantos 4–12 were done, and the way cantos 1–3 were)
+
+Cantos 4–12 were done **without the model**: write the new Kannada in the session, patch against the exact text
+(`backend/.translate-work/sb-kn-c4-12/PATCH-TASK.md`, `check-patches.mjs`), then `kn-fix.js` and `kn-upload.js`. Do it **one canto at a
+time** (`make-canto.mjs <N>`), so something is on S3 even if the session ends. After every `kn-fix.js --write`, run it again as a
+dry run and repeat `--write` until it reports `0` verses changed (a verse whose source transliteration is Devanagari only matches
+a Kannada-letter patch on a second pass). Cut a patch's `find` from the stored text by program, never by hand — look-alike
+letters of other scripts sit inside the Kannada.
 
 Tools are in `tools/` here (none committed yet). All take a folder laid out like the bucket (`json/srimad-bhagavatam/kn/…`, plus `en/`):
 
