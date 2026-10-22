@@ -62,7 +62,8 @@
     "test:scenes": "node scripts/scenes-e2e.js",
     "test:share-referral": "OPENAI_API_KEY=test-key-not-real node scripts/share-referral-e2e.js",
     "test:translation-import": "node scripts/translation-import-e2e.js",
-    "test:admin-users": "node scripts/admin-users-e2e.js"
+    "test:admin-users": "node scripts/admin-users-e2e.js",
+    "test:dev-companion": "node scripts/dev-companion-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

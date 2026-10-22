@@ -4,6 +4,7 @@
 // (`NotificationType.SUPPORT`, deeplink `hariharibol://ticket?id=…`, see controllers/admin/support.js).
 // Feedback is the same row with `kind = FEEDBACK` and a 1–5 rating, so one admin inbox covers both.
 
+import * as devEvents from '../../services/dev-events.js';
 import { prisma } from '../../config/database.js';
 import * as s3 from '../../services/s3.js';
 import * as support from '../../services/support.js';
@@ -72,6 +73,15 @@ export const create = async (req, res) => {
     select: SELECT,
   });
 
+  // For the developer's feed (queued; never slows or fails this request).
+  const text = (message || '').trim();
+  devEvents.emit(kind === 'FEEDBACK' ? 'feedback.new' : 'ticket.new', {
+    severity: kind === 'FEEDBACK' && rating <= 2 ? 'warning' : 'info',
+    title: kind === 'FEEDBACK' ? `New feedback: ${rating}★` : `New ticket: ${subject || category}`,
+    body: text.slice(0, 200) || null,
+    data: { ticketId: ticket.id, userId: user.id, category, rating: rating ?? null },
+  });
+
   return created(res, ticket);
 };
 
@@ -125,6 +135,11 @@ export const reply = async (req, res) => {
   await prisma.supportTicket.update({
     where: { id: ticket.id },
     data: { lastMessageAt: message.createdAt, ...(ticket.status === 'RESOLVED' ? { status: 'OPEN', resolvedAt: null } : {}) },
+  });
+  devEvents.emit('ticket.reply', {
+    title: 'Ticket reply from a reader',
+    body: req.valid.body.body.trim().slice(0, 200),
+    data: { ticketId: ticket.id, userId: user.id },
   });
   return created(res, message);
 };
