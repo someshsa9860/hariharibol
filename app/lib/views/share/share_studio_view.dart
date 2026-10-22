@@ -34,6 +34,7 @@ class ShareStudio extends StatefulWidget {
   static Future<void> open(BuildContext context, ShareTarget target) {
     return showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
@@ -151,6 +152,7 @@ class _ShareStudioState extends State<ShareStudio> {
   Future<void> _makePicture() async {
     final bytes = await showModalBottomSheet<Uint8List>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => const _MakePictureSheet(),

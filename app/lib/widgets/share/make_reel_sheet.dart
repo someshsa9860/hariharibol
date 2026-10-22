@@ -27,6 +27,7 @@ class MakeReelSheet extends StatefulWidget {
   static Future<bool?> open(BuildContext context, {required Uint8List card, required ShareTarget target}) {
     return showModalBottomSheet<bool>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => MakeReelSheet(card: card, target: target),

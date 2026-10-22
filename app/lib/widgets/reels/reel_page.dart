@@ -85,6 +85,10 @@ class _ReelPageState extends ConsumerState<ReelPage> {
 
   Reel get reel => widget.reel;
 
+  /// What the author row, the verse tag and a line of caption take above the
+  /// nav; text laid over the reel stays clear of it.
+  static const double _captionReserve = 120;
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -105,7 +109,12 @@ class _ReelPageState extends ConsumerState<ReelPage> {
               isMuted: widget.isMuted,
             ),
           const _Scrim(),
-          ReelOverlays(overlays: reel.overlays),
+          ReelOverlays(
+            overlays: reel.overlays,
+            margin: AppSpacing.lg,
+            topReserve: MediaQuery.paddingOf(context).top + AppSpacing.xxxl,
+            bottomReserve: widget.bottomInset + MediaQuery.paddingOf(context).bottom + _captionReserve,
+          ),
           Positioned(
             left: AppSpacing.lg,
             right: 0,

@@ -68,6 +68,7 @@ class SettingsView extends ConsumerWidget {
 
     final chosen = await showModalBottomSheet<ThemeMode>(
       context: context,
+      useRootNavigator: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
