@@ -13,6 +13,7 @@ import { AppError } from '../utils/errors.js';
 import { fail } from '../utils/respond.js';
 import { requestChain } from '../utils/language.js';
 import { translateError } from '../utils/messages.js';
+import * as devEvents from '../services/dev-events.js';
 
 // Prisma's own errors carry enough to answer properly instead of as a 500.
 function fromPrisma(err) {
@@ -65,6 +66,15 @@ function errorHandler(err, req, res, next) {
     { requestId: req.id, err, path: req.originalUrl, userId: req.auth?.user?.id },
     'unhandled error'
   );
+
+  // For the developer's feed: counted in memory and sent as a batch, so a failing route under load costs
+  // one increment per request.
+  devEvents.recordError({
+    method: req.method,
+    route: req.route?.path ? `${req.baseUrl || ''}${req.route.path}` : req.originalUrl.split('?')[0],
+    status: 500,
+    message: err?.message || 'unknown error',
+  });
 
   return fail(
     res,

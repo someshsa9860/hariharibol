@@ -38,9 +38,11 @@ import chatRoutes from './chat.js';
 import shareRoutes from './share.js';
 import referralRoutes from './referral.js';
 import calendarRoutes from './calendar.js';
+import developerChatRoutes from './developer-chat.js';
 
 const routers = [
   authRoutes,
+  developerChatRoutes,
   deviceRoutes,
   userRoutes,
   homeRoutes,

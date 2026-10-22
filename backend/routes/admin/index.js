@@ -39,6 +39,7 @@ import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
 import panchangRoutes from './panchang.js';
 import maintenanceRoutes from './maintenance.js';
+import devRoutes from './dev.js';
 
 const routers = [
   dashboardRoutes,
@@ -71,6 +72,7 @@ const routers = [
   chatRoutes,
   panchangRoutes,
   maintenanceRoutes,
+  devRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

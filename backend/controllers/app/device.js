@@ -30,6 +30,7 @@ export const register = async (req, res) => {
       osVersion: body.osVersion,
       appVersion: body.appVersion || req.appVersion,
       fcmToken: body.fcmToken,
+      ...(body.app ? { app: body.app } : {}),
       lastSeenAt: new Date(),
     },
     create: {
@@ -40,6 +41,7 @@ export const register = async (req, res) => {
       osVersion: body.osVersion,
       appVersion: body.appVersion || req.appVersion,
       fcmToken: body.fcmToken,
+      app: body.app || 'main',
     },
     select: { id: true, deviceId: true, platform: true, isBanned: true },
   });

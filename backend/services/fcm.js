@@ -51,9 +51,11 @@ async function sendToTokens(tokens, payload) {
   return { sent: response.successCount, failed: response.failureCount, skipped: 0 };
 }
 
-async function sendToUser(userId, payload) {
+// `app` says which installation the push is for: a reader's message must not land on the developer's
+// companion app (same account, other device row), nor the developer's alerts on the reader's.
+async function sendToUser(userId, payload, app = 'main') {
   const devices = await prisma.device.findMany({
-    where: { userId, fcmToken: { not: null }, isBanned: false },
+    where: { userId, app, fcmToken: { not: null }, isBanned: false },
     select: { fcmToken: true },
   });
   return sendToTokens(devices.map((d) => d.fcmToken), payload);
@@ -63,7 +65,7 @@ async function sendToUser(userId, payload) {
 // tokens in memory at once.
 async function sendToUsers(userIds, payload, batchSize = 400) {
   const devices = await prisma.device.findMany({
-    where: { userId: { in: userIds }, fcmToken: { not: null }, isBanned: false },
+    where: { userId: { in: userIds }, app: 'main', fcmToken: { not: null }, isBanned: false },
     select: { fcmToken: true },
   });
   const tokens = devices.map((d) => d.fcmToken);

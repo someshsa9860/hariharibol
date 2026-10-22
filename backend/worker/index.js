@@ -27,6 +27,7 @@ import aiProcessor from '../jobs/processors/ai.js';
 import maintenanceProcessor from '../jobs/processors/maintenance.js';
 import contentProcessor from '../jobs/processors/content.js';
 import translationProcessor, { abortActiveRuns, onJobFailed } from '../jobs/processors/translation.js';
+import devopsProcessor from '../jobs/processors/devops.js';
 import scenesProcessor, { abortActiveRuns as abortSceneRuns, onJobFailed as onSceneJobFailed } from '../jobs/processors/scenes.js';
 import { reconcileRuns as reconcileSceneRuns } from '../services/scenes.js';
 
@@ -42,6 +43,7 @@ const processors = {
   content: contentProcessor,
   translation: translationProcessor,
   scenes: scenesProcessor,
+  devops: devopsProcessor,
 };
 
 // How many jobs of each kind may run at once.
@@ -64,6 +66,8 @@ const CONCURRENCY = {
   translation: 1,
   // One run at a time: the free tier's limits are per project, so two runs would only meet them sooner.
   scenes: 1,
+  // Short jobs; a few at once so a burst of events does not queue behind a health check.
+  devops: 3,
 };
 
 const workers = [];

@@ -16,6 +16,7 @@ import logger from '../../config/logger.js';
 import * as authService from '../../services/auth.js';
 import * as chatImages from '../../services/chat-images.js';
 import * as legacyService from '../../services/legacy.js';
+import * as devEvents from '../../services/dev-events.js';
 import { ok, created } from '../../utils/respond.js';
 import { AppError, badRequest, conflict, notFound } from '../../utils/errors.js';
 import { emailForApp, placeholderEmail } from '../../utils/legacy.js';
@@ -100,6 +101,7 @@ async function claimLegacy(holder, identity, req, body) {
     },
     include: { role: true },
   });
+  announceSignup(user, identity.provider);
 
   await linkDevice(user.id, req, body);
   const session = await authService.issueSession(user, body.deviceId || req.deviceId);
@@ -113,6 +115,16 @@ async function claimLegacy(holder, identity, req, body) {
  * Verifies the provider's id token, finds or creates the account, and returns
  * a session. Guarded by client attestation — see middleware/attestation.js.
  */
+// A new account, for the developer's feed. Queued and non-blocking; the name is not sent, only the provider and
+// the email's domain, so the feed (and any push) says who is joining without spreading anyone's address.
+function announceSignup(user, provider) {
+  devEvents.emit('user.signup', {
+    title: 'New sign-up',
+    body: `${user.name || 'Someone'} joined with ${String(provider).toLowerCase()} (${String(user.email).split('@')[1] || '?'})`,
+    data: { userId: user.id, provider },
+  });
+}
+
 export const social = async (req, res) => {
   const body = req.valid.body;
 
@@ -299,6 +311,7 @@ async function carryOver(old, body) {
       },
       include: { role: true },
     });
+    announceSignup(user, 'LEGACY');
     return { user, isNew: true };
   } catch (error) {
     if (error.code !== 'P2002') throw error;

@@ -266,6 +266,7 @@ model User {
   lastActiveAt DateTime @default(now())
 
   devices       Device[]
+  devConversation DevConversation?
   refreshTokens RefreshToken[]
 
   sadhanaProfile   SadhanaProfile?
@@ -379,6 +380,10 @@ model Device {
   appVersion  String?
 
   fcmToken String?
+
+  // Which app this installation is: "main" (the reader's app) or "dev" (the developer companion).
+  // Pushes meant for one never go to the other.
+  app String @default("main") @db.VarChar(10)
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -3329,4 +3334,57 @@ model ReviewPrompt {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// ── Developer companion app ────────────────────────────────────────────────
+
+// One line of the developer's live feed: a server alert, an error spike, a sign-up, new feedback.
+// Written by the worker (jobs/processors/devops.js), never on a request path; pruned after 30 days.
+model DevEvent {
+  id String @id @default(cuid())
+
+  type     String @db.VarChar(40) // "error.spike" | "health.alert" | "user.signup" | "ticket.new" | "feedback.new" | ...
+  severity String @default("info") @db.VarChar(10) // "info" | "warning" | "critical"
+  title    String
+  body     String?
+  data     Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([type, createdAt])
+}
+
+// A reader's one open line to the developer. One conversation per reader.
+model DevConversation {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastMessageAt      DateTime @default(now())
+  lastMessagePreview String?  @db.VarChar(200)
+
+  userUnread Int @default(0) // developer replies the reader has not seen
+  devUnread  Int @default(0) // reader messages the developer has not seen
+
+  messages DevMessage[]
+
+  @@index([lastMessageAt])
+  @@index([devUnread])
+}
+
+model DevMessage {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   DevConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  fromDeveloper Boolean @default(false)
+  authorId      String?
+  body          String
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
 }
