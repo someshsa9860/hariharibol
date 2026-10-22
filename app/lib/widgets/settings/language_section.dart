@@ -67,6 +67,7 @@ class LanguageSection extends ConsumerWidget {
   Future<void> _pick(BuildContext context, WidgetRef ref, LanguageSlot slot, String title, String current) async {
     final chosen = await showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
       showDragHandle: true,
       isScrollControlled: true,
       backgroundColor: context.colors.surface,

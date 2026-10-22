@@ -2382,4 +2382,122 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get calendarVaishnavaNote =>
       'Vaishnavas may keep this fast the next day.';
+
+  @override
+  String get supportTitle => 'Help and feedback';
+
+  @override
+  String get supportRaiseTicket => 'Raise a ticket';
+
+  @override
+  String get supportSendFeedback => 'Send feedback';
+
+  @override
+  String get supportMyTickets => 'Your tickets';
+
+  @override
+  String get supportEmpty => 'You have not written to us yet.';
+
+  @override
+  String get supportCategoryLabel => 'Topic';
+
+  @override
+  String get supportCategoryBug => 'Something is not working';
+
+  @override
+  String get supportCategoryPayment => 'Payment or plan';
+
+  @override
+  String get supportCategoryAccount => 'My account';
+
+  @override
+  String get supportCategoryContent => 'A verse, translation or mantra';
+
+  @override
+  String get supportCategorySuggestion => 'A suggestion';
+
+  @override
+  String get supportCategoryOther => 'Something else';
+
+  @override
+  String get supportMessageHint => 'Tell us what happened';
+
+  @override
+  String get supportAttachScreenshot => 'Attach a screenshot';
+
+  @override
+  String get supportRemoveScreenshot => 'Remove screenshot';
+
+  @override
+  String get supportSend => 'Send';
+
+  @override
+  String get supportSent => 'Thank you. We will reply here.';
+
+  @override
+  String get supportStatusOpen => 'Open';
+
+  @override
+  String get supportStatusInProgress => 'In progress';
+
+  @override
+  String get supportStatusResolved => 'Resolved';
+
+  @override
+  String get supportReplyHint => 'Write a reply';
+
+  @override
+  String get supportFromSupport => 'Support team';
+
+  @override
+  String get supportYou => 'You';
+
+  @override
+  String get supportFeedbackTitle => 'How are we doing?';
+
+  @override
+  String get supportFeedbackNoteHint =>
+      'Anything you would like to add? (optional)';
+
+  @override
+  String get supportFeedbackThanks => 'Thank you for your feedback.';
+
+  @override
+  String get supportDeviceNote =>
+      'Your phone model and app version are sent with this so we can help faster.';
+
+  @override
+  String get supportTicketTitle => 'Your ticket';
+
+  @override
+  String get reviewPromptTitle => 'Enjoying HariHariBol?';
+
+  @override
+  String get reviewPromptYes => 'Yes, I love it';
+
+  @override
+  String get reviewPromptNo => 'Not really';
+
+  @override
+  String get developerChatTitle => 'Chat with the developer';
+
+  @override
+  String get developerChatSubtitle =>
+      'Questions, ideas, or something not working';
+
+  @override
+  String get developerChatEmpty =>
+      'No messages yet. Say hello, and you will get a reply here.';
+
+  @override
+  String get developerChatHint => 'Write a message';
+
+  @override
+  String get developerChatSend => 'Send';
+
+  @override
+  String get developerChatSending => 'Sending…';
+
+  @override
+  String get developerChatNotSent => 'Not sent. Tap to try again.';
 }

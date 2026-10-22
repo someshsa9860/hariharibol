@@ -21,6 +21,8 @@ import { createClient, channels } from '../config/redis.js';
 import { connectDatabase, disconnectDatabase } from '../config/database.js';
 import * as authService from '../services/auth.js';
 import * as presence from '../services/presence.js';
+import { devops } from '../config/devops.js';
+import { redis } from '../config/redis.js';
 
 // userId → Set of live sockets. One person may have several: a phone, a tablet,
 // the website open in a tab.
@@ -105,6 +107,9 @@ async function start() {
       return;
     }
 
+    // The developer companion app says so on its handshake (`?app=dev`) and needs `dev.access`.
+    const isDevApp = url.searchParams.get('app') === 'dev';
+
     let userId;
     let permissions;
     try {
@@ -116,6 +121,10 @@ async function start() {
       }
       userId = loaded.user.id;
       permissions = loaded.permissions;
+      if (isDevApp && !permissions.has('dev.access')) {
+        socket.close(4003, 'Not authorised');
+        return;
+      }
     } catch {
       socket.close(4001, 'Invalid token');
       return;
@@ -139,13 +148,23 @@ async function start() {
       // already live — duplicating that here would mean two doors to keep shut.
       try {
         const message = JSON.parse(raw);
-        if (message.type === 'ping') send(socket, 'pong', {});
+        if (message.type === 'ping') {
+          send(socket, 'pong', {});
+          // The companion app tells us whether it is on screen. While it is, the developer's pushes are held
+          // back (services/dev-push.js); the key expires on its own when the app goes quiet.
+          if (isDevApp && message.foreground === true) {
+            redis.set(`dev:fg:${userId}`, '1', 'EX', devops.PUSH_FOREGROUND_TTL_S).catch(() => {});
+          } else if (isDevApp) {
+            redis.del(`dev:fg:${userId}`).catch(() => {});
+          }
+        }
       } catch {
         /* ignore malformed frames */
       }
     });
 
     socket.on('close', () => {
+      if (isDevApp) redis.del(`dev:fg:${userId}`).catch(() => {});
       remove(userId, socket);
       logger.debug({ userId }, 'socket closed');
     });

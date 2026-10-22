@@ -25,6 +25,7 @@ import 'story_part_bar.dart';
 Future<void> showReadingSettingsSheet(BuildContext context, {String? bookSlug}) {
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,

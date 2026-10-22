@@ -60,6 +60,9 @@ String? deeplinkRoute(String? deeplink) {
     PushConfig.deeplinkSearch => AppRoutes.search,
     PushConfig.deeplinkMantra => query('slug') == null ? null : AppRoutes.mantraPath(query('slug')!),
     PushConfig.deeplinkReel => query('id') == null ? null : AppRoutes.reelPath(query('id')!),
+    PushConfig.deeplinkSupport => AppRoutes.support,
+    PushConfig.deeplinkDeveloper => AppRoutes.developerChat,
+    PushConfig.deeplinkTicket => query('id') == null ? null : AppRoutes.ticketPath(query('id')!),
     PushConfig.deeplinkVerse => _versePath(query),
     _ => null,
   };

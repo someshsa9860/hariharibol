@@ -18,6 +18,7 @@ import bookRoutes from './book.js';
 import verseRoutes from './verse.js';
 import mantraRoutes from './mantra.js';
 import creatorRoutes from './creator.js';
+import supportRoutes from './support.js';
 import reelRoutes from './reel.js';
 import reelRecipeRoutes from './reel-recipe.js';
 import referenceRoutes from './reference.js';
@@ -38,6 +39,7 @@ import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
 import panchangRoutes from './panchang.js';
 import maintenanceRoutes from './maintenance.js';
+import devRoutes from './dev.js';
 
 const routers = [
   dashboardRoutes,
@@ -49,6 +51,7 @@ const routers = [
   verseRoutes,
   mantraRoutes,
   creatorRoutes,
+  supportRoutes,
   reelRoutes,
   reelRecipeRoutes,
   referenceRoutes,
@@ -69,6 +72,7 @@ const routers = [
   chatRoutes,
   panchangRoutes,
   maintenanceRoutes,
+  devRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

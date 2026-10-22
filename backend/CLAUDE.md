@@ -1281,3 +1281,44 @@ The admin **Maintenance** page (`system.maintenance`, super admin only — `admi
 - **Manual lines** are `FinanceEntry` (CREDIT/DEBIT, category advertising / purchase / salary / tools / other, amount in paise, an IST date, a note), added any day. Profit = net revenue + credits − AI − debits.
 - **Month end:** the worker job `finance.remind` (09:00 IST, `config/cron.js`, `jobs/processors/finance-remind.js`) pushes (`SYSTEM` notification) and emails (`views/emails/finance-reminder.ejs`) every super admin once a day on the last two days of a month and the first seven days of the next, until `FinanceMonth.costsConfirmedAt` is set. The admin panel banner (`GET /finance/pending`) stays until it is confirmed.
 - `npm run test:finance` (43 checks, needs the API; fakes the date for the reminder). **Production needs `prisma migrate deploy` for `20261101000100_finance`; nothing else.**
+
+## Support, feedback and the store-rating prompt
+
+`SupportTicket` (kind `TICKET` or `FEEDBACK`, category, status `OPEN`/`IN_PROGRESS`/`RESOLVED`, optional 1–5 `rating`, `screenshotKey`, `deviceInfo` JSON the app attaches, `userUnread`) with its conversation in `SupportMessage`, and `ReviewPrompt` (each time the app showed or declined the store's rating sheet). Reader side `routes/app/support.js` + `controllers/app/support.js` (`/api/app/support/...`: `tickets`, `tickets/:id`, `tickets/:id/messages`, `media`, `unread`, `review-check`, `review-prompts`); desk side `routes/admin/support.js` + `controllers/admin/support.js` under permission **`support.manage`** (migration `20261102000000_support_feedback` grants it to `admin` and `super_admin`; `config/constants.js` lists it for new databases).
+
+- **A staff reply** saves the message, sets `userUnread`, moves OPEN to IN_PROGRESS, and pushes the reader through `notify.toUser` (`NotificationType.SUPPORT`, deeplink `hariharibol://ticket?id=…`). A reader's follow-up on a RESOLVED ticket reopens it. 10 tickets a day per reader.
+- **Screenshots** go up first (`POST /support/media`, body is the file, JPEG/PNG/WebP up to 5 MB, judged from bytes, S3 prefix `support/images`), then the ticket names the key.
+- **Asking for a store rating** (`services/support.js` `reviewCheck`): only after `STREAK_DAYS` (7) consecutive days with a round chanted (`trigger=streak`) or, for `session`, once the reader has five chanting days; never within `PROMPT_GAP_DAYS` (90) of a `SHOWN`/`LIKED`/`UNHAPPY` prompt, never within 60 days of writing in, never after feedback of 3 stars or less in the last 180 days. A `DISMISSED` pre-prompt is logged but does not start the quiet period. The app keeps its own 90-day local gate in front of this.
+- `npm run test:support` walks it (needs the API and a database). **Written without a database to run against: not executed.** Production needs `prisma migrate deploy` for `20261102000000_support_feedback`.
+
+## Developer companion (the owner's app: live feed, alerts, chat)
+
+The Flutter app in `dev_app/` is for the owner. It signs in through the same Google endpoint as everyone, and
+every route it calls checks the **`dev.access`** permission (`routes/admin/dev.js`): the super admin has it
+(migration `20261102000000_dev_companion` grants it), the **admin role does not** unless a role is given it,
+and the websocket refuses `?app=dev` without it (close code 4003). `POST /auth/social` with `app: 'dev'` signs in only an *existing* account that holds `dev.access` (403 otherwise) and never creates a reader account — that branch is not covered by `test:dev-companion` (it needs a real Google token). The ticket tab also needs `support.manage`.
+
+| Piece | Where |
+|---|---|
+| Models | `DevEvent` (the feed, 30 days), `DevConversation` (one per reader, unread counts both ways), `DevMessage`; `Device.app` (`main` or `dev`) |
+| Producing events | `services/dev-events.js` `emit(type, {...})` — fire and forget, never throws, queues a job on the `devops` queue, per-process burst limit. Called from sign-up (`controllers/app/auth.js`), new ticket / feedback / ticket reply (`controllers/app/support.js`), chat messages (`services/dev-chat.js`) |
+| Errors | The error handler calls `recordError()`: counted **in memory** and flushed every 15 s as one job. The worker raises `error.new` once per signature a day and `error.spike` (critical) at 20 5xx in 5 minutes |
+| Health | `devops.health` every 2 min: database speed, queue backlog and failed jobs → `health.alert` (critical, once per 30 min per cause) |
+| The worker | `jobs/processors/devops.js`: stores the event, publishes `dev.event` to every socket holding `dev.access`, then `services/dev-push.js` decides about a push. Tunables in `config/devops.js` |
+| Chat | `services/dev-chat.js`; reader side `/api/app/developer-chat` (get / messages / unread / read), developer side `/api/admin/dev/conversations…`. Both ends get `dev.chat.message` over the socket |
+| API | `/api/admin/dev/summary`, `/feed`, `/conversations`, `/users?q=`, `/prefs` |
+
+**Pushes to the owner are rationed** (`services/dev-push.js`): none while the app says it is in the foreground
+(it sends `{type:'ping', foreground}` every 30 s; the websocket container keeps `dev:fg:<user>` for 75 s); critical
+events push at once from their own allowance (6 an hour); a reader's chat message pushes at most once per
+conversation per 2 minutes; everything else waits in a list and leaves as **one digest push** ("3 new sign-ups,
+1 new ticket") no sooner than 15 minutes after the last push; 8 pushes an hour in all. The owner can mute types
+in the app (`/api/admin/dev/prefs`, kept in Redis). A push for the reader (`developer replied`) is limited to one
+per conversation per 5 minutes. `fcm.sendToUser` now takes an `app` (`main` by default), so a reader's pushes never
+reach the companion app and the other way round. The dev app registers its token with `POST /api/app/devices`
+and `app: 'dev'`.
+
+**Production needs** `prisma migrate deploy` for `20261102000000_dev_companion` and a restart of the API, the
+worker and the websocket container (the worker owns the new `devops` queue and its three schedules).
+`npm run test:dev-companion` walks it (31 checks; needs the API, worker and websocket running, Postgres and Redis).
+Not run against Firebase: no push has left a machine.

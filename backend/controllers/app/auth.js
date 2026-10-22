@@ -16,8 +16,9 @@ import logger from '../../config/logger.js';
 import * as authService from '../../services/auth.js';
 import * as chatImages from '../../services/chat-images.js';
 import * as legacyService from '../../services/legacy.js';
+import * as devEvents from '../../services/dev-events.js';
 import { ok, created } from '../../utils/respond.js';
-import { AppError, badRequest, conflict, notFound } from '../../utils/errors.js';
+import { AppError, badRequest, conflict, forbidden, notFound } from '../../utils/errors.js';
 import { emailForApp, placeholderEmail } from '../../utils/legacy.js';
 import { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } from '../../config/constants.js';
 import * as settings from '../../services/setting.js';
@@ -100,6 +101,7 @@ async function claimLegacy(holder, identity, req, body) {
     },
     include: { role: true },
   });
+  announceSignup(user, identity.provider);
 
   await linkDevice(user.id, req, body);
   const session = await authService.issueSession(user, body.deviceId || req.deviceId);
@@ -113,6 +115,16 @@ async function claimLegacy(holder, identity, req, body) {
  * Verifies the provider's id token, finds or creates the account, and returns
  * a session. Guarded by client attestation — see middleware/attestation.js.
  */
+// A new account, for the developer's feed. Queued and non-blocking; the name is not sent, only the provider and
+// the email's domain, so the feed (and any push) says who is joining without spreading anyone's address.
+function announceSignup(user, provider) {
+  devEvents.emit('user.signup', {
+    title: 'New sign-up',
+    body: `${user.name || 'Someone'} joined with ${String(provider).toLowerCase()} (${String(user.email).split('@')[1] || '?'})`,
+    data: { userId: user.id, provider },
+  });
+}
+
 export const social = async (req, res) => {
   const body = req.valid.body;
 
@@ -123,6 +135,13 @@ export const social = async (req, res) => {
     where: { providerUserId: identity.providerUserId },
     include: { role: true },
   });
+
+  // The developer companion app (`app: 'dev'`) is for existing accounts that hold `dev.access`: it must never
+  // create a reader account for whoever tries it, nor hand a session to one that may not use it.
+  if (body.app === 'dev') {
+    const loaded = user ? await authService.loadAuthUser(user.id) : null;
+    if (!loaded?.permissions.has('dev.access')) throw forbidden('This account does not have developer access');
+  }
 
   if (user) {
     if (user.isBanned) throw conflict('This account is banned');
@@ -299,6 +318,7 @@ async function carryOver(old, body) {
       },
       include: { role: true },
     });
+    announceSignup(user, 'LEGACY');
     return { user, isNew: true };
   } catch (error) {
     if (error.code !== 'P2002') throw error;

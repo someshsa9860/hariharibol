@@ -53,6 +53,24 @@ const schedules = [
     description: 'Ask the super admins to enter and confirm the month’s costs, once a day until they do.',
   },
   {
+    name: 'devops.health',
+    queue: 'devops',
+    cron: '*/2 * * * *',
+    description: 'Check the database and the queues for the developer’s alerts.',
+  },
+  {
+    name: 'devops.digest',
+    queue: 'devops',
+    cron: '*/5 * * * *',
+    description: 'Send the developer one digest push for whatever waited, if any (and not sooner than 15 minutes after the last push).',
+  },
+  {
+    name: 'devops.prune',
+    queue: 'devops',
+    cron: '20 2 * * *',
+    description: 'Delete developer-feed events older than 30 days.',
+  },
+  {
     name: 'preferences.rebuild',
     queue: 'preferences',
     // Monday 20:00 UTC, after the week has closed everywhere.

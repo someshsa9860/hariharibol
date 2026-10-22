@@ -16,6 +16,7 @@ Future<void> showRelatedVersesSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,

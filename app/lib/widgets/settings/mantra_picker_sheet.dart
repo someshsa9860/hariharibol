@@ -18,6 +18,7 @@ const String clearPreferredMantra = '';
 Future<String?> showMantraPickerSheet(BuildContext context, {String? currentId}) {
   return showModalBottomSheet<String>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,

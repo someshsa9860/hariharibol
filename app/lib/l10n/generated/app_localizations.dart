@@ -4143,6 +4143,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vaishnavas may keep this fast the next day.'**
   String get calendarVaishnavaNote;
+
+  /// No description provided for @supportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help and feedback'**
+  String get supportTitle;
+
+  /// No description provided for @supportRaiseTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a ticket'**
+  String get supportRaiseTicket;
+
+  /// No description provided for @supportSendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get supportSendFeedback;
+
+  /// No description provided for @supportMyTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tickets'**
+  String get supportMyTickets;
+
+  /// No description provided for @supportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not written to us yet.'**
+  String get supportEmpty;
+
+  /// No description provided for @supportCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic'**
+  String get supportCategoryLabel;
+
+  /// No description provided for @supportCategoryBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Something is not working'**
+  String get supportCategoryBug;
+
+  /// No description provided for @supportCategoryPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment or plan'**
+  String get supportCategoryPayment;
+
+  /// No description provided for @supportCategoryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My account'**
+  String get supportCategoryAccount;
+
+  /// No description provided for @supportCategoryContent.
+  ///
+  /// In en, this message translates to:
+  /// **'A verse, translation or mantra'**
+  String get supportCategoryContent;
+
+  /// No description provided for @supportCategorySuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'A suggestion'**
+  String get supportCategorySuggestion;
+
+  /// No description provided for @supportCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get supportCategoryOther;
+
+  /// No description provided for @supportMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened'**
+  String get supportMessageHint;
+
+  /// No description provided for @supportAttachScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a screenshot'**
+  String get supportAttachScreenshot;
+
+  /// No description provided for @supportRemoveScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove screenshot'**
+  String get supportRemoveScreenshot;
+
+  /// No description provided for @supportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get supportSend;
+
+  /// No description provided for @supportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. We will reply here.'**
+  String get supportSent;
+
+  /// No description provided for @supportStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get supportStatusOpen;
+
+  /// No description provided for @supportStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get supportStatusInProgress;
+
+  /// No description provided for @supportStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get supportStatusResolved;
+
+  /// No description provided for @supportReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reply'**
+  String get supportReplyHint;
+
+  /// No description provided for @supportFromSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support team'**
+  String get supportFromSupport;
+
+  /// No description provided for @supportYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get supportYou;
+
+  /// No description provided for @supportFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are we doing?'**
+  String get supportFeedbackTitle;
+
+  /// No description provided for @supportFeedbackNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you would like to add? (optional)'**
+  String get supportFeedbackNoteHint;
+
+  /// No description provided for @supportFeedbackThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback.'**
+  String get supportFeedbackThanks;
+
+  /// No description provided for @supportDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone model and app version are sent with this so we can help faster.'**
+  String get supportDeviceNote;
+
+  /// No description provided for @supportTicketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ticket'**
+  String get supportTicketTitle;
+
+  /// No description provided for @reviewPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying HariHariBol?'**
+  String get reviewPromptTitle;
+
+  /// No description provided for @reviewPromptYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I love it'**
+  String get reviewPromptYes;
+
+  /// No description provided for @reviewPromptNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not really'**
+  String get reviewPromptNo;
+
+  /// No description provided for @developerChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the developer'**
+  String get developerChatTitle;
+
+  /// No description provided for @developerChatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions, ideas, or something not working'**
+  String get developerChatSubtitle;
+
+  /// No description provided for @developerChatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Say hello, and you will get a reply here.'**
+  String get developerChatEmpty;
+
+  /// No description provided for @developerChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get developerChatHint;
+
+  /// No description provided for @developerChatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get developerChatSend;
+
+  /// No description provided for @developerChatSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get developerChatSending;
+
+  /// No description provided for @developerChatNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. Tap to try again.'**
+  String get developerChatNotSent;
 }
 
 class _AppLocalizationsDelegate

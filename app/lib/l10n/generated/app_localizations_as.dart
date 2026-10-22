@@ -2390,4 +2390,121 @@ class AppLocalizationsAs extends AppLocalizations {
   @override
   String get calendarVaishnavaNote =>
       'বৈষ্ণৱসকলে এই ব্ৰত পিছৰ দিনা পালন কৰিব পাৰে।';
+
+  @override
+  String get supportTitle => 'সহায় আৰু মতামত';
+
+  @override
+  String get supportRaiseTicket => 'টিকেট সৃষ্টি কৰক';
+
+  @override
+  String get supportSendFeedback => 'মতামত পঠিয়াওক';
+
+  @override
+  String get supportMyTickets => 'আপোনাৰ টিকেটবোৰ';
+
+  @override
+  String get supportEmpty => 'আপুনি এতিয়ালৈকে আমাক একো লিখা নাই।';
+
+  @override
+  String get supportCategoryLabel => 'বিষয়';
+
+  @override
+  String get supportCategoryBug => 'কিবা কাম কৰা নাই';
+
+  @override
+  String get supportCategoryPayment => 'পেমেণ্ট বা প্লেন';
+
+  @override
+  String get supportCategoryAccount => 'মোৰ একাউণ্ট';
+
+  @override
+  String get supportCategoryContent => 'এটা শ্লোক, অনুবাদ বা মন্ত্ৰ';
+
+  @override
+  String get supportCategorySuggestion => 'এটা পৰামৰ্শ';
+
+  @override
+  String get supportCategoryOther => 'আন কিবা';
+
+  @override
+  String get supportMessageHint => 'কি হ\'ল আমাক কওক';
+
+  @override
+  String get supportAttachScreenshot => 'স্ক্ৰীণশ্বট সংযোগ কৰক';
+
+  @override
+  String get supportRemoveScreenshot => 'স্ক্ৰীণশ্বট আঁতৰাওক';
+
+  @override
+  String get supportSend => 'পঠিয়াওক';
+
+  @override
+  String get supportSent => 'ধন্যবাদ। আমি ইয়াতেই উত্তৰ দিম।';
+
+  @override
+  String get supportStatusOpen => 'মুকলি';
+
+  @override
+  String get supportStatusInProgress => 'চলি আছে';
+
+  @override
+  String get supportStatusResolved => 'সমাধান হ\'ল';
+
+  @override
+  String get supportReplyHint => 'উত্তৰ লিখক';
+
+  @override
+  String get supportFromSupport => 'সহায় দল';
+
+  @override
+  String get supportYou => 'আপুনি';
+
+  @override
+  String get supportFeedbackTitle => 'আমি কেনে কৰি আছো?';
+
+  @override
+  String get supportFeedbackNoteHint =>
+      'আৰু কিবা যোগ কৰিবলৈ ইচ্ছা কৰিলে লিখক (ঐচ্ছিক)';
+
+  @override
+  String get supportFeedbackThanks => 'আপোনাৰ মতামতৰ বাবে ধন্যবাদ।';
+
+  @override
+  String get supportDeviceNote =>
+      'আমি সোনকালে সহায় কৰিব পাৰিবলৈ আপোনাৰ ফোনৰ মডেল আৰু এপৰ সংস্কৰণ ইয়াৰ লগত পঠোৱা হয়।';
+
+  @override
+  String get supportTicketTitle => 'আপোনাৰ টিকেট';
+
+  @override
+  String get reviewPromptTitle => 'আপোনাৰ হৰিহৰিবোল ভাল লাগিছেনে?';
+
+  @override
+  String get reviewPromptYes => 'হয়, বহুত ভাল লাগে';
+
+  @override
+  String get reviewPromptNo => 'বেছি নহয়';
+
+  @override
+  String get developerChatTitle => 'ডেভেলপাৰৰ সৈতে কথা পাতক';
+
+  @override
+  String get developerChatSubtitle => 'প্ৰশ্ন, পৰামৰ্শ, বা কিবা কাম নকৰিলে';
+
+  @override
+  String get developerChatEmpty =>
+      'এতিয়ালৈকে কোনো বাৰ্তা নাই। নমস্কাৰ জনাওক, উত্তৰ ইয়াতেই পাব।';
+
+  @override
+  String get developerChatHint => 'বাৰ্তা লিখক';
+
+  @override
+  String get developerChatSend => 'পঠিয়াওক';
+
+  @override
+  String get developerChatSending => 'পঠিয়াই আছে…';
+
+  @override
+  String get developerChatNotSent => 'পঠোৱা নহ’ল। পুনৰ চেষ্টা কৰিবলৈ টেপ কৰক।';
 }

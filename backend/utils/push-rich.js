@@ -25,6 +25,8 @@ const TARGETS = {
   premium: { label: 'Plans', params: [] },
   refer: { label: 'Refer and earn', params: [] },
   search: { label: 'Search', params: [] },
+  support: { label: 'Help and feedback', params: [] },
+  ticket: { label: 'A support ticket', params: ['id'], required: ['id'] },
   mantra: { label: 'A mantra', params: ['slug'], required: ['slug'] },
   reel: { label: 'A reel', params: ['id'], required: ['id'] },
   verse: {

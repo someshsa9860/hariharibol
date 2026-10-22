@@ -40,6 +40,7 @@
     "test:book-cache": "node scripts/book-cache-e2e.js",
     "test:panchang": "node scripts/panchang-e2e.js",
     "test:finance": "node scripts/finance-e2e.js",
+    "test:support": "node scripts/support-e2e.js",
     "test:chat": "node scripts/chat-e2e.js",
     "test:auth": "node scripts/auth-e2e.js",
     "test:legacy-migration": "node scripts/legacy-migration-e2e.js",
@@ -61,7 +62,8 @@
     "test:scenes": "node scripts/scenes-e2e.js",
     "test:share-referral": "OPENAI_API_KEY=test-key-not-real node scripts/share-referral-e2e.js",
     "test:translation-import": "node scripts/translation-import-e2e.js",
-    "test:admin-users": "node scripts/admin-users-e2e.js"
+    "test:admin-users": "node scripts/admin-users-e2e.js",
+    "test:dev-companion": "node scripts/dev-companion-e2e.js"
   },
   "prisma": {
     "seed": "node prisma/seed/index.js"

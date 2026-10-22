@@ -10,6 +10,7 @@ import { UsersPage } from '@/routes/users';
 import { UserDetailPage } from '@/routes/user-detail';
 import { AdminsPage } from '@/routes/admins';
 import { CreatorsPage } from '@/routes/creators';
+import { SupportPage } from '@/routes/support';
 import { RolesPage } from '@/routes/roles';
 import { BooksPage } from '@/routes/books';
 import { VersesPage } from '@/routes/verses';
@@ -113,6 +114,14 @@ export function Router() {
         element={
           <Protected permission="creator.manage">
             <CreatorsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <Protected permission="support.manage">
+            <SupportPage />
           </Protected>
         }
       />

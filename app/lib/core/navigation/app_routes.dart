@@ -30,6 +30,15 @@ abstract final class AppRoutes {
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
+  /// Help and feedback: the reader's tickets and the way to write a new one.
+  /// Pushed from settings; a push for a staff reply opens [ticketPattern].
+  static const String support = '/support';
+  static const String ticketPattern = '/support/:id';
+
+  /// The reader's chat with the developer. A fixed path, so it can sit beside [ticketPattern].
+  static const String developerChat = '/developer';
+  static String ticketPath(String id) => '/support/$id';
+
   /// Invite a friend and see what it has earned. Pushed from settings.
   static const String refer = '/refer';
 
@@ -135,6 +144,9 @@ abstract final class RouteNames {
   static const String routine = 'routine';
   static const String calendar = 'calendar';
   static const String settings = 'settings';
+  static const String support = 'support';
+  static const String ticket = 'ticket';
+  static const String developerChat = 'developerChat';
   static const String plans = 'plans';
   static const String refer = 'refer';
   static const String voices = 'voices';

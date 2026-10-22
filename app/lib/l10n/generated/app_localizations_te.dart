@@ -2393,4 +2393,122 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get calendarVaishnavaNote =>
       'వైష్ణవులు ఈ వ్రతాన్ని మరుసటి రోజు ఆచరించవచ్చు.';
+
+  @override
+  String get supportTitle => 'సహాయం మరియు అభిప్రాయం';
+
+  @override
+  String get supportRaiseTicket => 'టికెట్ సృష్టించండి';
+
+  @override
+  String get supportSendFeedback => 'అభిప్రాయం పంపండి';
+
+  @override
+  String get supportMyTickets => 'మీ టికెట్లు';
+
+  @override
+  String get supportEmpty => 'మీరు ఇంకా మాకు ఏమీ రాయలేదు.';
+
+  @override
+  String get supportCategoryLabel => 'అంశం';
+
+  @override
+  String get supportCategoryBug => 'ఏదో పని చేయడం లేదు';
+
+  @override
+  String get supportCategoryPayment => 'చెల్లింపు లేదా ప్లాన్';
+
+  @override
+  String get supportCategoryAccount => 'నా ఖాతా';
+
+  @override
+  String get supportCategoryContent => 'ఒక శ్లోకం, అనువాదం లేదా మంత్రం';
+
+  @override
+  String get supportCategorySuggestion => 'ఒక సూచన';
+
+  @override
+  String get supportCategoryOther => 'ఇంకేదో';
+
+  @override
+  String get supportMessageHint => 'ఏం జరిగిందో మాకు చెప్పండి';
+
+  @override
+  String get supportAttachScreenshot => 'స్క్రీన్‌షాట్ జోడించండి';
+
+  @override
+  String get supportRemoveScreenshot => 'స్క్రీన్‌షాట్ తొలగించండి';
+
+  @override
+  String get supportSend => 'పంపండి';
+
+  @override
+  String get supportSent => 'ధన్యవాదాలు. మేము ఇక్కడే సమాధానం ఇస్తాము.';
+
+  @override
+  String get supportStatusOpen => 'తెరిచి ఉంది';
+
+  @override
+  String get supportStatusInProgress => 'జరుగుతోంది';
+
+  @override
+  String get supportStatusResolved => 'పరిష్కరించబడింది';
+
+  @override
+  String get supportReplyHint => 'సమాధానం రాయండి';
+
+  @override
+  String get supportFromSupport => 'సహాయ బృందం';
+
+  @override
+  String get supportYou => 'మీరు';
+
+  @override
+  String get supportFeedbackTitle => 'మేము ఎలా చేస్తున్నాము?';
+
+  @override
+  String get supportFeedbackNoteHint =>
+      'ఇంకేమైనా చేర్చాలనుకుంటే రాయండి (ఐచ్ఛికం)';
+
+  @override
+  String get supportFeedbackThanks => 'మీ అభిప్రాయానికి ధన్యవాదాలు.';
+
+  @override
+  String get supportDeviceNote =>
+      'మేము త్వరగా సహాయం చేయడానికి మీ ఫోన్ మోడల్ మరియు యాప్ వెర్షన్ దీనితో పంపబడతాయి.';
+
+  @override
+  String get supportTicketTitle => 'మీ టికెట్';
+
+  @override
+  String get reviewPromptTitle => 'మీకు హరిహరిబోల్ నచ్చుతోందా?';
+
+  @override
+  String get reviewPromptYes => 'అవును, చాలా నచ్చింది';
+
+  @override
+  String get reviewPromptNo => 'అంతగా లేదు';
+
+  @override
+  String get developerChatTitle => 'డెవలపర్‌తో మాట్లాడండి';
+
+  @override
+  String get developerChatSubtitle =>
+      'ప్రశ్నలు, ఆలోచనలు, లేదా ఏదైనా పని చేయకపోతే';
+
+  @override
+  String get developerChatEmpty =>
+      'ఇంకా సందేశాలు లేవు. నమస్కారం చెప్పండి, జవాబు ఇక్కడే వస్తుంది.';
+
+  @override
+  String get developerChatHint => 'సందేశం రాయండి';
+
+  @override
+  String get developerChatSend => 'పంపు';
+
+  @override
+  String get developerChatSending => 'పంపుతోంది…';
+
+  @override
+  String get developerChatNotSent => 'పంపలేదు. మళ్లీ ప్రయత్నించడానికి తాకండి.';
 }

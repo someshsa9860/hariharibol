@@ -71,6 +71,8 @@ const PERMISSIONS = {
   'job.manage': { group: 'system', name: 'Inspect and retry background jobs' },
   'system.read': { group: 'system', name: 'View server health, storage and analytics' },
   'finance.manage': { group: 'system', name: 'View revenue, AI cost and the books; add credit and debit entries (super admin only)' },
+  'support.manage': { group: 'users', name: 'View and reply to support tickets and feedback' },
+  'dev.access': { group: 'system', name: 'Sign in to the developer companion app (live feed, alerts, chat with readers)' },
   'system.maintenance': { group: 'system', name: 'Run the listed maintenance scripts (seed and similar) from the panel' },
 };
 
@@ -92,7 +94,7 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', 'finance.manage', ...AUDITOR_ONLY].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', 'finance.manage', 'dev.access', ...AUDITOR_ONLY].includes(slug)
   ),
   // Everything, including permissions added later — except the auditor-only ones: a book's
   // text is corrected by one named role so every correction has one accountable hand.

@@ -2385,4 +2385,121 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get calendarVaishnavaNote => 'वैष्णव हे व्रत दुसऱ्या दिवशी करू शकतात.';
+
+  @override
+  String get supportTitle => 'मदत आणि अभिप्राय';
+
+  @override
+  String get supportRaiseTicket => 'तिकीट तयार करा';
+
+  @override
+  String get supportSendFeedback => 'अभिप्राय पाठवा';
+
+  @override
+  String get supportMyTickets => 'तुमची तिकिटे';
+
+  @override
+  String get supportEmpty => 'तुम्ही अजून आम्हाला काही लिहिलेले नाही.';
+
+  @override
+  String get supportCategoryLabel => 'विषय';
+
+  @override
+  String get supportCategoryBug => 'काहीतरी चालत नाही';
+
+  @override
+  String get supportCategoryPayment => 'पेमेंट किंवा प्लॅन';
+
+  @override
+  String get supportCategoryAccount => 'माझे खाते';
+
+  @override
+  String get supportCategoryContent => 'एखादा श्लोक, भाषांतर किंवा मंत्र';
+
+  @override
+  String get supportCategorySuggestion => 'एक सूचना';
+
+  @override
+  String get supportCategoryOther => 'इतर काहीतरी';
+
+  @override
+  String get supportMessageHint => 'काय झाले ते आम्हाला सांगा';
+
+  @override
+  String get supportAttachScreenshot => 'स्क्रीनशॉट जोडा';
+
+  @override
+  String get supportRemoveScreenshot => 'स्क्रीनशॉट काढा';
+
+  @override
+  String get supportSend => 'पाठवा';
+
+  @override
+  String get supportSent => 'धन्यवाद. आम्ही येथेच उत्तर देऊ.';
+
+  @override
+  String get supportStatusOpen => 'उघडे';
+
+  @override
+  String get supportStatusInProgress => 'प्रक्रियेत';
+
+  @override
+  String get supportStatusResolved => 'सुटले';
+
+  @override
+  String get supportReplyHint => 'उत्तर लिहा';
+
+  @override
+  String get supportFromSupport => 'सहायता गट';
+
+  @override
+  String get supportYou => 'तुम्ही';
+
+  @override
+  String get supportFeedbackTitle => 'आम्ही कसे करत आहोत?';
+
+  @override
+  String get supportFeedbackNoteHint => 'आणखी काही जोडायचे आहे का? (ऐच्छिक)';
+
+  @override
+  String get supportFeedbackThanks => 'तुमच्या अभिप्रायाबद्दल धन्यवाद.';
+
+  @override
+  String get supportDeviceNote =>
+      'तुमच्या फोनचे मॉडेल आणि अ‍ॅपची आवृत्ती यासोबत पाठवली जाते, म्हणजे आम्ही लवकर मदत करू शकू.';
+
+  @override
+  String get supportTicketTitle => 'तुमचे तिकीट';
+
+  @override
+  String get reviewPromptTitle => 'तुम्हाला हरिहरिबोल आवडत आहे का?';
+
+  @override
+  String get reviewPromptYes => 'होय, खूप आवडते';
+
+  @override
+  String get reviewPromptNo => 'फारसे नाही';
+
+  @override
+  String get developerChatTitle => 'डेव्हलपरशी बोला';
+
+  @override
+  String get developerChatSubtitle => 'प्रश्न, सूचना, किंवा काही चालत नसेल तर';
+
+  @override
+  String get developerChatEmpty =>
+      'अजून संदेश नाही. नमस्कार म्हणा, उत्तर इथेच मिळेल.';
+
+  @override
+  String get developerChatHint => 'संदेश लिहा';
+
+  @override
+  String get developerChatSend => 'पाठवा';
+
+  @override
+  String get developerChatSending => 'पाठवत आहे…';
+
+  @override
+  String get developerChatNotSent =>
+      'पाठवले नाही. पुन्हा प्रयत्न करण्यासाठी स्पर्श करा.';
 }
