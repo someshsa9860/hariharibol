@@ -1,0 +1,52 @@
+name: hariharibol_dev
+description: "HariHariBol Dev — the owner's companion: server alerts, new sign-ups and feedback, and chat with readers."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State — one solution, everywhere (same as the reader's app).
+  flutter_riverpod: ^3.3.2
+
+  # Routing.
+  go_router: ^17.5.0
+
+  # Network. Dio for the API; web_socket_channel for the live feed and chat
+  # (the backend's websocket container, /ws).
+  dio: ^5.11.1
+  web_socket_channel: ^3.0.3
+  flutter_secure_storage: ^11.0.0
+
+  # Sign-in: Google only, like the admin panel. The account must hold the
+  # `dev.access` permission (the owner/super admin has it).
+  google_sign_in: ^7.2.0
+
+  # Push when the app is in the background; App Check because the sign-in
+  # endpoint asks for it in production.
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  firebase_app_check: ^0.4.7
+
+  package_info_plus: ^10.2.1
+  device_info_plus: ^13.2.0
+  intl: ^0.20.2
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  stream_channel: ^2.1.4
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
