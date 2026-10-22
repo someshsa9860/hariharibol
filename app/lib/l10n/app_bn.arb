@@ -701,5 +701,12 @@
   "supportTicketTitle": "আপনার টিকিট",
   "reviewPromptTitle": "আপনার কি হরিহরিবল ভালো লাগছে?",
   "reviewPromptYes": "হ্যাঁ, খুব ভালো লাগছে",
-  "reviewPromptNo": "খুব একটা না"
+  "reviewPromptNo": "খুব একটা না",
+  "developerChatTitle": "ডেভেলপারের সঙ্গে কথা বলুন",
+  "developerChatSubtitle": "প্রশ্ন, পরামর্শ, বা কিছু কাজ না করলে",
+  "developerChatEmpty": "এখনও কোনো বার্তা নেই। নমস্কার জানান, উত্তর এখানেই পাবেন।",
+  "developerChatHint": "বার্তা লিখুন",
+  "developerChatSend": "পাঠান",
+  "developerChatSending": "পাঠানো হচ্ছে…",
+  "developerChatNotSent": "পাঠানো হয়নি। আবার চেষ্টা করতে ট্যাপ করুন।"
 }

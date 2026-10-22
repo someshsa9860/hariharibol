@@ -701,5 +701,12 @@
   "supportTicketTitle": "നിങ്ങളുടെ ടിക്കറ്റ്",
   "reviewPromptTitle": "നിങ്ങൾക്ക് ഹരിഹരിബോൾ ഇഷ്ടമാകുന്നുണ്ടോ?",
   "reviewPromptYes": "അതെ, വളരെ ഇഷ്ടം",
-  "reviewPromptNo": "അത്രയില്ല"
+  "reviewPromptNo": "അത്രയില്ല",
+  "developerChatTitle": "ഡെവലപ്പറോട് സംസാരിക്കൂ",
+  "developerChatSubtitle": "ചോദ്യങ്ങൾ, ആശയങ്ങൾ, അല്ലെങ്കിൽ എന്തെങ്കിലും പ്രവർത്തിക്കുന്നില്ലെങ്കിൽ",
+  "developerChatEmpty": "ഇതുവരെ സന്ദേശങ്ങളില്ല. നമസ്കാരം പറയൂ, മറുപടി ഇവിടെത്തന്നെ ലഭിക്കും.",
+  "developerChatHint": "സന്ദേശം എഴുതൂ",
+  "developerChatSend": "അയയ്ക്കുക",
+  "developerChatSending": "അയയ്ക്കുന്നു…",
+  "developerChatNotSent": "അയച്ചില്ല. വീണ്ടും ശ്രമിക്കാൻ ടാപ്പ് ചെയ്യുക."
 }

@@ -701,5 +701,12 @@
   "supportTicketTitle": "तुमचे तिकीट",
   "reviewPromptTitle": "तुम्हाला हरिहरिबोल आवडत आहे का?",
   "reviewPromptYes": "होय, खूप आवडते",
-  "reviewPromptNo": "फारसे नाही"
+  "reviewPromptNo": "फारसे नाही",
+  "developerChatTitle": "डेव्हलपरशी बोला",
+  "developerChatSubtitle": "प्रश्न, सूचना, किंवा काही चालत नसेल तर",
+  "developerChatEmpty": "अजून संदेश नाही. नमस्कार म्हणा, उत्तर इथेच मिळेल.",
+  "developerChatHint": "संदेश लिहा",
+  "developerChatSend": "पाठवा",
+  "developerChatSending": "पाठवत आहे…",
+  "developerChatNotSent": "पाठवले नाही. पुन्हा प्रयत्न करण्यासाठी स्पर्श करा."
 }

@@ -701,5 +701,12 @@
   "supportTicketTitle": "ನಿಮ್ಮ ಟಿಕೆಟ್",
   "reviewPromptTitle": "ನಿಮಗೆ ಹರಿಹರಿಬೋಲ್ ಇಷ್ಟವಾಗುತ್ತಿದೆಯೇ?",
   "reviewPromptYes": "ಹೌದು, ತುಂಬಾ ಇಷ್ಟ",
-  "reviewPromptNo": "ಹೆಚ್ಚು ಅಲ್ಲ"
+  "reviewPromptNo": "ಹೆಚ್ಚು ಅಲ್ಲ",
+  "developerChatTitle": "ಡೆವಲಪರ್ ಜೊತೆ ಮಾತನಾಡಿ",
+  "developerChatSubtitle": "ಪ್ರಶ್ನೆಗಳು, ಸಲಹೆಗಳು, ಅಥವಾ ಏನಾದರೂ ಕೆಲಸ ಮಾಡದಿದ್ದರೆ",
+  "developerChatEmpty": "ಇನ್ನೂ ಸಂದೇಶಗಳಿಲ್ಲ. ನಮಸ್ಕಾರ ಹೇಳಿ, ಉತ್ತರ ಇಲ್ಲಿಯೇ ಬರುತ್ತದೆ.",
+  "developerChatHint": "ಸಂದೇಶ ಬರೆಯಿರಿ",
+  "developerChatSend": "ಕಳುಹಿಸಿ",
+  "developerChatSending": "ಕಳುಹಿಸುತ್ತಿದೆ…",
+  "developerChatNotSent": "ಕಳುಹಿಸಲಾಗಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ."
 }

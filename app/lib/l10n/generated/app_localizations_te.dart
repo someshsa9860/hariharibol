@@ -2467,13 +2467,15 @@ class AppLocalizationsTe extends AppLocalizations {
   String get supportFeedbackTitle => 'మేము ఎలా చేస్తున్నాము?';
 
   @override
-  String get supportFeedbackNoteHint => 'ఇంకేమైనా చేర్చాలనుకుంటే రాయండి (ఐచ్ఛికం)';
+  String get supportFeedbackNoteHint =>
+      'ఇంకేమైనా చేర్చాలనుకుంటే రాయండి (ఐచ్ఛికం)';
 
   @override
   String get supportFeedbackThanks => 'మీ అభిప్రాయానికి ధన్యవాదాలు.';
 
   @override
-  String get supportDeviceNote => 'మేము త్వరగా సహాయం చేయడానికి మీ ఫోన్ మోడల్ మరియు యాప్ వెర్షన్ దీనితో పంపబడతాయి.';
+  String get supportDeviceNote =>
+      'మేము త్వరగా సహాయం చేయడానికి మీ ఫోన్ మోడల్ మరియు యాప్ వెర్షన్ దీనితో పంపబడతాయి.';
 
   @override
   String get supportTicketTitle => 'మీ టికెట్';
@@ -2486,4 +2488,27 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'అంతగా లేదు';
+
+  @override
+  String get developerChatTitle => 'డెవలపర్‌తో మాట్లాడండి';
+
+  @override
+  String get developerChatSubtitle =>
+      'ప్రశ్నలు, ఆలోచనలు, లేదా ఏదైనా పని చేయకపోతే';
+
+  @override
+  String get developerChatEmpty =>
+      'ఇంకా సందేశాలు లేవు. నమస్కారం చెప్పండి, జవాబు ఇక్కడే వస్తుంది.';
+
+  @override
+  String get developerChatHint => 'సందేశం రాయండి';
+
+  @override
+  String get developerChatSend => 'పంపు';
+
+  @override
+  String get developerChatSending => 'పంపుతోంది…';
+
+  @override
+  String get developerChatNotSent => 'పంపలేదు. మళ్లీ ప్రయత్నించడానికి తాకండి.';
 }

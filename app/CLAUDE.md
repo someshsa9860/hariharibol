@@ -536,3 +536,15 @@ The app adapts to the window, not the device: `core/layout/adaptive.dart` holds 
 - **A push for a staff reply** carries `hariharibol://ticket?id=…` and opens that ticket; `hariharibol://support` opens the screen (`PushConfig.deeplinkSupport` / `deeplinkTicket`).
 - **The store-rating prompt** (`services/review_prompter.dart`) runs after a chanting sitting that completed a round (`ChantView._close`). Gates, cheapest first: a local 90-day gate (`BoxKeys.reviewPromptAt`), the server's `review-check` (streak of days, nothing recent, never after writing in or unhappy feedback), then the store's own availability (`in_app_review`: Play In-App Review, iOS `SKStoreReviewController`, which has its own quota). It first asks **"Enjoying HariHariBol?"** (`review_prompt_sheet.dart`): yes opens the store's sheet, no opens the feedback sheet. Each step is recorded server-side (`SHOWN`, `LIKED`, `UNHAPPY`, `DISMISSED`). Never throws and never blocks the screen.
 - 31 new strings (`support*`, `reviewPrompt*`) in every ARB, AI-drafted in the 11 languages; the generated l10n files were edited by hand. `test/support_test.dart`.
+
+## Chat with the developer
+
+Help and feedback (`/support`) opens **Chat with the developer** (`/developer`, `views/support/developer_chat_view.dart`):
+the reader's one conversation with the owner, answered from the companion app in `dev_app/`. It reads
+`/api/app/developer-chat` and writes to it; while the screen is open a websocket (`services/live_socket.dart`,
+`/ws` on the API host, or `--dart-define=WS_URL=…` locally) brings the owner's replies in as they are written, and
+a reply that comes while the app is closed is a push (`hariharibol://developer`). A message is shown at once and
+confirmed behind it; a failed one says so and is sent again by tapping it. The Help entry carries a count of
+unread replies. 7 new strings in every ARB (`developerChat*`); the 11 translations are AI-drafted.
+`test/developer_chat_test.dart` drives it with a fake service and a fake websocket (`test/fake_live_socket.dart`).
+**Not tried on a phone or against a live API.**

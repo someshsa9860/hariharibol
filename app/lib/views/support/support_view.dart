@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/support.dart';
+import '../../providers/developer_chat_provider.dart';
 import '../../providers/support_provider.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
@@ -45,6 +46,8 @@ class SupportView extends ConsumerWidget {
           child: ListView(
             padding: AppSpacing.page,
             children: [
+              const _DeveloperChatEntry(),
+              const SizedBox(height: AppSpacing.md),
               FilledButton.icon(
                 onPressed: () => _write(context, ref, TicketSheet.show),
                 icon: const Icon(Icons.support_agent_rounded),
@@ -68,6 +71,30 @@ class SupportView extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The way into the chat with the developer, with a count of replies not yet read.
+class _DeveloperChatEntry extends ConsumerWidget {
+  const _DeveloperChatEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = AppLocalizations.of(context);
+    final unread = ref.watch(developerUnreadProvider).value ?? 0;
+
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.forum_rounded),
+        title: Text(text.developerChatTitle, style: context.texts.titleSmall),
+        subtitle: Text(text.developerChatSubtitle),
+        trailing: unread > 0 ? Badge(label: Text('$unread')) : const Icon(Icons.chevron_right_rounded),
+        onTap: () async {
+          await AppNavigator.instance.push(AppRoutes.developerChat);
+          ref.invalidate(developerUnreadProvider);
+        },
       ),
     );
   }

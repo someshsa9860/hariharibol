@@ -701,5 +701,12 @@
   "supportTicketTitle": "તમારી ટિકિટ",
   "reviewPromptTitle": "શું તમને હરિહરિબોલ ગમે છે?",
   "reviewPromptYes": "હા, બહુ ગમે છે",
-  "reviewPromptNo": "બહુ નહીં"
+  "reviewPromptNo": "બહુ નહીં",
+  "developerChatTitle": "ડેવલપર સાથે વાત કરો",
+  "developerChatSubtitle": "પ્રશ્નો, સૂચનો, અથવા કંઈ કામ ન કરતું હોય તો",
+  "developerChatEmpty": "હજુ કોઈ સંદેશ નથી. નમસ્તે કહો, જવાબ અહીં જ મળશે.",
+  "developerChatHint": "સંદેશ લખો",
+  "developerChatSend": "મોકલો",
+  "developerChatSending": "મોકલી રહ્યા છીએ…",
+  "developerChatNotSent": "મોકલાયું નથી. ફરી પ્રયત્ન કરવા ટેપ કરો."
 }

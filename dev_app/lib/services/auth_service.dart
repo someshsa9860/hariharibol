@@ -67,6 +67,9 @@ class AuthService {
       body: {
         'provider': 'GOOGLE',
         'idToken': idToken,
+        // Tells the server this is the companion app: it signs in only an existing account with `dev.access`
+        // and never creates a reader account.
+        'app': 'dev',
         'name': ?name,
         'appLanguage': AppConfig.defaultLanguage,
         'timezone': device.timezone,

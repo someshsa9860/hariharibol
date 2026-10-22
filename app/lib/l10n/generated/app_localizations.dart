@@ -4329,6 +4329,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not really'**
   String get reviewPromptNo;
+
+  /// No description provided for @developerChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the developer'**
+  String get developerChatTitle;
+
+  /// No description provided for @developerChatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions, ideas, or something not working'**
+  String get developerChatSubtitle;
+
+  /// No description provided for @developerChatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Say hello, and you will get a reply here.'**
+  String get developerChatEmpty;
+
+  /// No description provided for @developerChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get developerChatHint;
+
+  /// No description provided for @developerChatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get developerChatSend;
+
+  /// No description provided for @developerChatSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get developerChatSending;
+
+  /// No description provided for @developerChatNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. Tap to try again.'**
+  String get developerChatNotSent;
 }
 
 class _AppLocalizationsDelegate

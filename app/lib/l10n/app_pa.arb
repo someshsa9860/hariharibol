@@ -701,5 +701,12 @@
   "supportTicketTitle": "ਤੁਹਾਡੀ ਟਿਕਟ",
   "reviewPromptTitle": "ਕੀ ਤੁਹਾਨੂੰ ਹਰੀਹਰੀਬੋਲ ਪਸੰਦ ਆ ਰਿਹਾ ਹੈ?",
   "reviewPromptYes": "ਹਾਂ, ਬਹੁਤ ਪਸੰਦ ਹੈ",
-  "reviewPromptNo": "ਬਹੁਤ ਨਹੀਂ"
+  "reviewPromptNo": "ਬਹੁਤ ਨਹੀਂ",
+  "developerChatTitle": "ਡਿਵੈਲਪਰ ਨਾਲ ਗੱਲ ਕਰੋ",
+  "developerChatSubtitle": "ਸਵਾਲ, ਸੁਝਾਅ, ਜਾਂ ਕੁਝ ਕੰਮ ਨਾ ਕਰ ਰਿਹਾ ਹੋਵੇ",
+  "developerChatEmpty": "ਹਾਲੇ ਕੋਈ ਸੁਨੇਹਾ ਨਹੀਂ। ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਕਹੋ, ਜਵਾਬ ਇੱਥੇ ਹੀ ਮਿਲੇਗਾ।",
+  "developerChatHint": "ਸੁਨੇਹਾ ਲਿਖੋ",
+  "developerChatSend": "ਭੇਜੋ",
+  "developerChatSending": "ਭੇਜ ਰਹੇ ਹਾਂ…",
+  "developerChatNotSent": "ਭੇਜਿਆ ਨਹੀਂ ਗਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਲਈ ਛੂਹੋ।"
 }

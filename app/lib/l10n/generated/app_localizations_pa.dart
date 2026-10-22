@@ -2468,7 +2468,8 @@ class AppLocalizationsPa extends AppLocalizations {
   String get supportFeedbackThanks => 'ਤੁਹਾਡੇ ਫੀਡਬੈਕ ਲਈ ਧੰਨਵਾਦ।';
 
   @override
-  String get supportDeviceNote => 'ਅਸੀਂ ਜਲਦੀ ਮਦਦ ਕਰ ਸਕੀਏ, ਇਸ ਲਈ ਤੁਹਾਡੇ ਫ਼ੋਨ ਦਾ ਮਾਡਲ ਅਤੇ ਐਪ ਵਰਜਨ ਇਸ ਦੇ ਨਾਲ ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ।';
+  String get supportDeviceNote =>
+      'ਅਸੀਂ ਜਲਦੀ ਮਦਦ ਕਰ ਸਕੀਏ, ਇਸ ਲਈ ਤੁਹਾਡੇ ਫ਼ੋਨ ਦਾ ਮਾਡਲ ਅਤੇ ਐਪ ਵਰਜਨ ਇਸ ਦੇ ਨਾਲ ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ।';
 
   @override
   String get supportTicketTitle => 'ਤੁਹਾਡੀ ਟਿਕਟ';
@@ -2481,4 +2482,27 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'ਬਹੁਤ ਨਹੀਂ';
+
+  @override
+  String get developerChatTitle => 'ਡਿਵੈਲਪਰ ਨਾਲ ਗੱਲ ਕਰੋ';
+
+  @override
+  String get developerChatSubtitle =>
+      'ਸਵਾਲ, ਸੁਝਾਅ, ਜਾਂ ਕੁਝ ਕੰਮ ਨਾ ਕਰ ਰਿਹਾ ਹੋਵੇ';
+
+  @override
+  String get developerChatEmpty =>
+      'ਹਾਲੇ ਕੋਈ ਸੁਨੇਹਾ ਨਹੀਂ। ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਕਹੋ, ਜਵਾਬ ਇੱਥੇ ਹੀ ਮਿਲੇਗਾ।';
+
+  @override
+  String get developerChatHint => 'ਸੁਨੇਹਾ ਲਿਖੋ';
+
+  @override
+  String get developerChatSend => 'ਭੇਜੋ';
+
+  @override
+  String get developerChatSending => 'ਭੇਜ ਰਹੇ ਹਾਂ…';
+
+  @override
+  String get developerChatNotSent => 'ਭੇਜਿਆ ਨਹੀਂ ਗਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਲਈ ਛੂਹੋ।';
 }

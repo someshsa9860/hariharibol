@@ -18,7 +18,7 @@ import * as chatImages from '../../services/chat-images.js';
 import * as legacyService from '../../services/legacy.js';
 import * as devEvents from '../../services/dev-events.js';
 import { ok, created } from '../../utils/respond.js';
-import { AppError, badRequest, conflict, notFound } from '../../utils/errors.js';
+import { AppError, badRequest, conflict, forbidden, notFound } from '../../utils/errors.js';
 import { emailForApp, placeholderEmail } from '../../utils/legacy.js';
 import { ROLES, DEFAULT_ROUND_TARGET, SETTING_KEYS } from '../../config/constants.js';
 import * as settings from '../../services/setting.js';
@@ -135,6 +135,13 @@ export const social = async (req, res) => {
     where: { providerUserId: identity.providerUserId },
     include: { role: true },
   });
+
+  // The developer companion app (`app: 'dev'`) is for existing accounts that hold `dev.access`: it must never
+  // create a reader account for whoever tries it, nor hand a session to one that may not use it.
+  if (body.app === 'dev') {
+    const loaded = user ? await authService.loadAuthUser(user.id) : null;
+    if (!loaded?.permissions.has('dev.access')) throw forbidden('This account does not have developer access');
+  }
 
   if (user) {
     if (user.isBanned) throw conflict('This account is banned');

@@ -701,5 +701,12 @@
   "supportTicketTitle": "আপোনাৰ টিকেট",
   "reviewPromptTitle": "আপোনাৰ হৰিহৰিবোল ভাল লাগিছেনে?",
   "reviewPromptYes": "হয়, বহুত ভাল লাগে",
-  "reviewPromptNo": "বেছি নহয়"
+  "reviewPromptNo": "বেছি নহয়",
+  "developerChatTitle": "ডেভেলপাৰৰ সৈতে কথা পাতক",
+  "developerChatSubtitle": "প্ৰশ্ন, পৰামৰ্শ, বা কিবা কাম নকৰিলে",
+  "developerChatEmpty": "এতিয়ালৈকে কোনো বাৰ্তা নাই। নমস্কাৰ জনাওক, উত্তৰ ইয়াতেই পাব।",
+  "developerChatHint": "বাৰ্তা লিখক",
+  "developerChatSend": "পঠিয়াওক",
+  "developerChatSending": "পঠিয়াই আছে…",
+  "developerChatNotSent": "পঠোৱা নহ’ল। পুনৰ চেষ্টা কৰিবলৈ টেপ কৰক।"
 }

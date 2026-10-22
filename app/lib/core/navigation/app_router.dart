@@ -8,6 +8,7 @@ import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/calendar/calendar_view.dart';
 import '../../views/support/support_ticket_view.dart';
+import '../../views/support/developer_chat_view.dart';
 import '../../views/support/support_view.dart';
 import '../../views/chant/chant_analytics_view.dart';
 import '../../views/chat/chat_view.dart';
@@ -336,6 +337,14 @@ GoRouter createRouter() {
         builder: (context, state) => ContentWidth(
           maxWidth: ContentWidths.regular,
           child: const SupportView(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.developerChat,
+        name: RouteNames.developerChat,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const DeveloperChatView(),
         ),
       ),
       GoRoute(

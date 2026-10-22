@@ -2464,13 +2464,15 @@ class AppLocalizationsAs extends AppLocalizations {
   String get supportFeedbackTitle => 'আমি কেনে কৰি আছো?';
 
   @override
-  String get supportFeedbackNoteHint => 'আৰু কিবা যোগ কৰিবলৈ ইচ্ছা কৰিলে লিখক (ঐচ্ছিক)';
+  String get supportFeedbackNoteHint =>
+      'আৰু কিবা যোগ কৰিবলৈ ইচ্ছা কৰিলে লিখক (ঐচ্ছিক)';
 
   @override
   String get supportFeedbackThanks => 'আপোনাৰ মতামতৰ বাবে ধন্যবাদ।';
 
   @override
-  String get supportDeviceNote => 'আমি সোনকালে সহায় কৰিব পাৰিবলৈ আপোনাৰ ফোনৰ মডেল আৰু এপৰ সংস্কৰণ ইয়াৰ লগত পঠোৱা হয়।';
+  String get supportDeviceNote =>
+      'আমি সোনকালে সহায় কৰিব পাৰিবলৈ আপোনাৰ ফোনৰ মডেল আৰু এপৰ সংস্কৰণ ইয়াৰ লগত পঠোৱা হয়।';
 
   @override
   String get supportTicketTitle => 'আপোনাৰ টিকেট';
@@ -2483,4 +2485,26 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'বেছি নহয়';
+
+  @override
+  String get developerChatTitle => 'ডেভেলপাৰৰ সৈতে কথা পাতক';
+
+  @override
+  String get developerChatSubtitle => 'প্ৰশ্ন, পৰামৰ্শ, বা কিবা কাম নকৰিলে';
+
+  @override
+  String get developerChatEmpty =>
+      'এতিয়ালৈকে কোনো বাৰ্তা নাই। নমস্কাৰ জনাওক, উত্তৰ ইয়াতেই পাব।';
+
+  @override
+  String get developerChatHint => 'বাৰ্তা লিখক';
+
+  @override
+  String get developerChatSend => 'পঠিয়াওক';
+
+  @override
+  String get developerChatSending => 'পঠিয়াই আছে…';
+
+  @override
+  String get developerChatNotSent => 'পঠোৱা নহ’ল। পুনৰ চেষ্টা কৰিবলৈ টেপ কৰক।';
 }

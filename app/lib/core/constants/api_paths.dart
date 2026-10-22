@@ -31,6 +31,11 @@ abstract final class ApiPaths {
   static String supportTicketMessages(String id) => '$_app/support/tickets/$id/messages';
   static const String supportMedia = '$_app/support/media';
   static const String supportUnread = '$_app/support/unread';
+  // The reader's one line to the developer (`backend/routes/app/developer-chat.js`).
+  static const String developerChat = '$_app/developer-chat';
+  static const String developerChatMessages = '$_app/developer-chat/messages';
+  static const String developerChatUnread = '$_app/developer-chat/unread';
+  static const String developerChatRead = '$_app/developer-chat/read';
   static const String reviewCheck = '$_app/support/review-check';
   static const String reviewPrompts = '$_app/support/review-prompts';
 

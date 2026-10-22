@@ -2435,7 +2435,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get supportCategoryAccount => 'என் கணக்கு';
 
   @override
-  String get supportCategoryContent => 'ஒரு ஸ்லோகம், மொழிபெயர்ப்பு அல்லது மந்திரம்';
+  String get supportCategoryContent =>
+      'ஒரு ஸ்லோகம், மொழிபெயர்ப்பு அல்லது மந்திரம்';
 
   @override
   String get supportCategorySuggestion => 'ஒரு பரிந்துரை';
@@ -2444,7 +2445,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get supportCategoryOther => 'வேறு ஏதோ';
 
   @override
-  String get supportMessageHint => 'என்ன நடந்தது என்று எங்களுக்குச் சொல்லுங்கள்';
+  String get supportMessageHint =>
+      'என்ன நடந்தது என்று எங்களுக்குச் சொல்லுங்கள்';
 
   @override
   String get supportAttachScreenshot => 'ஸ்கிரீன்ஷாட்டை இணைக்கவும்';
@@ -2480,13 +2482,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get supportFeedbackTitle => 'நாங்கள் எப்படி செய்கிறோம்?';
 
   @override
-  String get supportFeedbackNoteHint => 'மேலும் ஏதாவது சேர்க்க விரும்பினால் எழுதுங்கள் (விருப்பம்)';
+  String get supportFeedbackNoteHint =>
+      'மேலும் ஏதாவது சேர்க்க விரும்பினால் எழுதுங்கள் (விருப்பம்)';
 
   @override
   String get supportFeedbackThanks => 'உங்கள் கருத்துக்கு நன்றி.';
 
   @override
-  String get supportDeviceNote => 'உங்கள் தொலைபேசி மாடலும் செயலியின் பதிப்பும் இதனுடன் அனுப்பப்படும், அதனால் நாங்கள் விரைவாக உதவ முடியும்.';
+  String get supportDeviceNote =>
+      'உங்கள் தொலைபேசி மாடலும் செயலியின் பதிப்பும் இதனுடன் அனுப்பப்படும், அதனால் நாங்கள் விரைவாக உதவ முடியும்.';
 
   @override
   String get supportTicketTitle => 'உங்கள் டிக்கெட்';
@@ -2499,4 +2503,28 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'அவ்வளவாக இல்லை';
+
+  @override
+  String get developerChatTitle => 'டெவலப்பரிடம் பேசுங்கள்';
+
+  @override
+  String get developerChatSubtitle =>
+      'கேள்விகள், யோசனைகள் அல்லது ஏதாவது வேலை செய்யவில்லை என்றால்';
+
+  @override
+  String get developerChatEmpty =>
+      'இன்னும் செய்திகள் இல்லை. வணக்கம் சொல்லுங்கள், பதில் இங்கேயே வரும்.';
+
+  @override
+  String get developerChatHint => 'செய்தியை எழுதுங்கள்';
+
+  @override
+  String get developerChatSend => 'அனுப்பு';
+
+  @override
+  String get developerChatSending => 'அனுப்புகிறது…';
+
+  @override
+  String get developerChatNotSent =>
+      'அனுப்பப்படவில்லை. மீண்டும் முயல தட்டவும்.';
 }

@@ -2456,13 +2456,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportFeedbackTitle => 'How are we doing?';
 
   @override
-  String get supportFeedbackNoteHint => 'Anything you would like to add? (optional)';
+  String get supportFeedbackNoteHint =>
+      'Anything you would like to add? (optional)';
 
   @override
   String get supportFeedbackThanks => 'Thank you for your feedback.';
 
   @override
-  String get supportDeviceNote => 'Your phone model and app version are sent with this so we can help faster.';
+  String get supportDeviceNote =>
+      'Your phone model and app version are sent with this so we can help faster.';
 
   @override
   String get supportTicketTitle => 'Your ticket';
@@ -2475,4 +2477,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'Not really';
+
+  @override
+  String get developerChatTitle => 'Chat with the developer';
+
+  @override
+  String get developerChatSubtitle =>
+      'Questions, ideas, or something not working';
+
+  @override
+  String get developerChatEmpty =>
+      'No messages yet. Say hello, and you will get a reply here.';
+
+  @override
+  String get developerChatHint => 'Write a message';
+
+  @override
+  String get developerChatSend => 'Send';
+
+  @override
+  String get developerChatSending => 'Sending…';
+
+  @override
+  String get developerChatNotSent => 'Not sent. Tap to try again.';
 }

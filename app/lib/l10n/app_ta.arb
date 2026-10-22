@@ -701,5 +701,12 @@
   "supportTicketTitle": "உங்கள் டிக்கெட்",
   "reviewPromptTitle": "ஹரிஹரிபோல் உங்களுக்குப் பிடிக்கிறதா?",
   "reviewPromptYes": "ஆம், மிகவும் பிடிக்கும்",
-  "reviewPromptNo": "அவ்வளவாக இல்லை"
+  "reviewPromptNo": "அவ்வளவாக இல்லை",
+  "developerChatTitle": "டெவலப்பரிடம் பேசுங்கள்",
+  "developerChatSubtitle": "கேள்விகள், யோசனைகள் அல்லது ஏதாவது வேலை செய்யவில்லை என்றால்",
+  "developerChatEmpty": "இன்னும் செய்திகள் இல்லை. வணக்கம் சொல்லுங்கள், பதில் இங்கேயே வரும்.",
+  "developerChatHint": "செய்தியை எழுதுங்கள்",
+  "developerChatSend": "அனுப்பு",
+  "developerChatSending": "அனுப்புகிறது…",
+  "developerChatNotSent": "அனுப்பப்படவில்லை. மீண்டும் முயல தட்டவும்."
 }

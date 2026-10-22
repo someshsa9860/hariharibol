@@ -701,5 +701,12 @@
   "supportTicketTitle": "ଆପଣଙ୍କ ଟିକେଟ୍",
   "reviewPromptTitle": "ଆପଣଙ୍କୁ ହରିହରିବୋଲ୍ ଭଲ ଲାଗୁଛି କି?",
   "reviewPromptYes": "ହଁ, ବହୁତ ଭଲ ଲାଗୁଛି",
-  "reviewPromptNo": "ବେଶି ନୁହେଁ"
+  "reviewPromptNo": "ବେଶି ନୁହେଁ",
+  "developerChatTitle": "ଡେଭେଲପର୍ଙ୍କ ସହ କଥା ହୁଅନ୍ତୁ",
+  "developerChatSubtitle": "ପ୍ରଶ୍ନ, ପରାମର୍ଶ, କିମ୍ବା କିଛି କାମ କରୁନଥିଲେ",
+  "developerChatEmpty": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ବାର୍ତ୍ତା ନାହିଁ। ନମସ୍କାର କୁହନ୍ତୁ, ଉତ୍ତର ଏଠାରେ ମିଳିବ।",
+  "developerChatHint": "ବାର୍ତ୍ତା ଲେଖନ୍ତୁ",
+  "developerChatSend": "ପଠାନ୍ତୁ",
+  "developerChatSending": "ପଠାଉଛି…",
+  "developerChatNotSent": "ପଠାଗଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରିବାକୁ ଟାପ୍ କରନ୍ତୁ।"
 }

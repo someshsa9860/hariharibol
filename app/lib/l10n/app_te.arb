@@ -701,5 +701,12 @@
   "supportTicketTitle": "మీ టికెట్",
   "reviewPromptTitle": "మీకు హరిహరిబోల్ నచ్చుతోందా?",
   "reviewPromptYes": "అవును, చాలా నచ్చింది",
-  "reviewPromptNo": "అంతగా లేదు"
+  "reviewPromptNo": "అంతగా లేదు",
+  "developerChatTitle": "డెవలపర్‌తో మాట్లాడండి",
+  "developerChatSubtitle": "ప్రశ్నలు, ఆలోచనలు, లేదా ఏదైనా పని చేయకపోతే",
+  "developerChatEmpty": "ఇంకా సందేశాలు లేవు. నమస్కారం చెప్పండి, జవాబు ఇక్కడే వస్తుంది.",
+  "developerChatHint": "సందేశం రాయండి",
+  "developerChatSend": "పంపు",
+  "developerChatSending": "పంపుతోంది…",
+  "developerChatNotSent": "పంపలేదు. మళ్లీ ప్రయత్నించడానికి తాకండి."
 }

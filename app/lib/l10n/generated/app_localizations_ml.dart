@@ -2433,7 +2433,8 @@ class AppLocalizationsMl extends AppLocalizations {
   String get supportCategoryAccount => 'എന്റെ അക്കൗണ്ട്';
 
   @override
-  String get supportCategoryContent => 'ഒരു ശ്ലോകം, വിവർത്തനം അല്ലെങ്കിൽ മന്ത്രം';
+  String get supportCategoryContent =>
+      'ഒരു ശ്ലോകം, വിവർത്തനം അല്ലെങ്കിൽ മന്ത്രം';
 
   @override
   String get supportCategorySuggestion => 'ഒരു നിർദേശം';
@@ -2478,13 +2479,15 @@ class AppLocalizationsMl extends AppLocalizations {
   String get supportFeedbackTitle => 'ഞങ്ങൾ എങ്ങനെ ചെയ്യുന്നു?';
 
   @override
-  String get supportFeedbackNoteHint => 'കൂടുതലായി എന്തെങ്കിലും ചേർക്കണമെങ്കിൽ എഴുതൂ (ഓപ്ഷണൽ)';
+  String get supportFeedbackNoteHint =>
+      'കൂടുതലായി എന്തെങ്കിലും ചേർക്കണമെങ്കിൽ എഴുതൂ (ഓപ്ഷണൽ)';
 
   @override
   String get supportFeedbackThanks => 'നിങ്ങളുടെ അഭിപ്രായത്തിന് നന്ദി.';
 
   @override
-  String get supportDeviceNote => 'ഞങ്ങൾക്ക് വേഗം സഹായിക്കാൻ നിങ്ങളുടെ ഫോൺ മോഡലും ആപ്പ് പതിപ്പും ഇതോടൊപ്പം അയയ്ക്കുന്നു.';
+  String get supportDeviceNote =>
+      'ഞങ്ങൾക്ക് വേഗം സഹായിക്കാൻ നിങ്ങളുടെ ഫോൺ മോഡലും ആപ്പ് പതിപ്പും ഇതോടൊപ്പം അയയ്ക്കുന്നു.';
 
   @override
   String get supportTicketTitle => 'നിങ്ങളുടെ ടിക്കറ്റ്';
@@ -2497,4 +2500,28 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'അത്രയില്ല';
+
+  @override
+  String get developerChatTitle => 'ഡെവലപ്പറോട് സംസാരിക്കൂ';
+
+  @override
+  String get developerChatSubtitle =>
+      'ചോദ്യങ്ങൾ, ആശയങ്ങൾ, അല്ലെങ്കിൽ എന്തെങ്കിലും പ്രവർത്തിക്കുന്നില്ലെങ്കിൽ';
+
+  @override
+  String get developerChatEmpty =>
+      'ഇതുവരെ സന്ദേശങ്ങളില്ല. നമസ്കാരം പറയൂ, മറുപടി ഇവിടെത്തന്നെ ലഭിക്കും.';
+
+  @override
+  String get developerChatHint => 'സന്ദേശം എഴുതൂ';
+
+  @override
+  String get developerChatSend => 'അയയ്ക്കുക';
+
+  @override
+  String get developerChatSending => 'അയയ്ക്കുന്നു…';
+
+  @override
+  String get developerChatNotSent =>
+      'അയച്ചില്ല. വീണ്ടും ശ്രമിക്കാൻ ടാപ്പ് ചെയ്യുക.';
 }

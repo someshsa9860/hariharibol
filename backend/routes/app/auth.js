@@ -32,6 +32,8 @@ router.post(
     body: z.object({
       provider: z.enum(['GOOGLE', 'APPLE']),
       idToken: z.string().min(20),
+      // `dev` from the developer companion app: only an existing account with `dev.access` may sign in.
+      app: z.enum(['main', 'dev']).optional(),
       // Apple sends the display name to the client only, only on the very first
       // sign-in. If the app does not forward it here it is gone for good.
       name: z.string().max(100).optional(),

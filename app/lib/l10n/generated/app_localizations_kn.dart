@@ -2463,13 +2463,15 @@ class AppLocalizationsKn extends AppLocalizations {
   String get supportFeedbackTitle => 'ನಾವು ಹೇಗೆ ಮಾಡುತ್ತಿದ್ದೇವೆ?';
 
   @override
-  String get supportFeedbackNoteHint => 'ಇನ್ನೇನಾದರೂ ಸೇರಿಸಲು ಬಯಸಿದರೆ ಬರೆಯಿರಿ (ಐಚ್ಛಿಕ)';
+  String get supportFeedbackNoteHint =>
+      'ಇನ್ನೇನಾದರೂ ಸೇರಿಸಲು ಬಯಸಿದರೆ ಬರೆಯಿರಿ (ಐಚ್ಛಿಕ)';
 
   @override
   String get supportFeedbackThanks => 'ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಗೆ ಧನ್ಯವಾದಗಳು.';
 
   @override
-  String get supportDeviceNote => 'ನಾವು ಬೇಗ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮ ಫೋನ್ ಮಾದರಿ ಮತ್ತು ಆ್ಯಪ್ ಆವೃತ್ತಿಯನ್ನು ಇದರೊಂದಿಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.';
+  String get supportDeviceNote =>
+      'ನಾವು ಬೇಗ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮ ಫೋನ್ ಮಾದರಿ ಮತ್ತು ಆ್ಯಪ್ ಆವೃತ್ತಿಯನ್ನು ಇದರೊಂದಿಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.';
 
   @override
   String get supportTicketTitle => 'ನಿಮ್ಮ ಟಿಕೆಟ್';
@@ -2482,4 +2484,28 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get reviewPromptNo => 'ಹೆಚ್ಚು ಅಲ್ಲ';
+
+  @override
+  String get developerChatTitle => 'ಡೆವಲಪರ್ ಜೊತೆ ಮಾತನಾಡಿ';
+
+  @override
+  String get developerChatSubtitle =>
+      'ಪ್ರಶ್ನೆಗಳು, ಸಲಹೆಗಳು, ಅಥವಾ ಏನಾದರೂ ಕೆಲಸ ಮಾಡದಿದ್ದರೆ';
+
+  @override
+  String get developerChatEmpty =>
+      'ಇನ್ನೂ ಸಂದೇಶಗಳಿಲ್ಲ. ನಮಸ್ಕಾರ ಹೇಳಿ, ಉತ್ತರ ಇಲ್ಲಿಯೇ ಬರುತ್ತದೆ.';
+
+  @override
+  String get developerChatHint => 'ಸಂದೇಶ ಬರೆಯಿರಿ';
+
+  @override
+  String get developerChatSend => 'ಕಳುಹಿಸಿ';
+
+  @override
+  String get developerChatSending => 'ಕಳುಹಿಸುತ್ತಿದೆ…';
+
+  @override
+  String get developerChatNotSent =>
+      'ಕಳುಹಿಸಲಾಗಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.';
 }

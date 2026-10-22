@@ -21,6 +21,7 @@ extension ApiFailureText on ApiFailure {
           FailureKind.timeout => text.errorTimeout,
           FailureKind.network => text.errorNetwork,
           FailureKind.unauthorized => text.errorSessionExpired,
+          FailureKind.forbidden => text.errorNotAllowed,
           _ => text.errorGeneric,
         },
     };

@@ -22,6 +22,8 @@ dependencies:
 
   # Network.
   dio: ^5.11.1
+  # The websocket the chat with the developer listens on (services/live_socket.dart).
+  web_socket_channel: ^3.0.3
 
   # Storage. Drift for content (relational, searchable, offline),
   # hive_ce for small key-value state, secure storage for tokens.
@@ -115,6 +117,8 @@ dependencies:
   shared_preferences: ^2.5.6
 
 dev_dependencies:
+  # Only so a test can stand in for the websocket (test/fake_live_socket.dart).
+  stream_channel: ^2.1.4
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0

@@ -1778,5 +1778,12 @@
   "supportTicketTitle": "Your ticket",
   "reviewPromptTitle": "Enjoying HariHariBol?",
   "reviewPromptYes": "Yes, I love it",
-  "reviewPromptNo": "Not really"
+  "reviewPromptNo": "Not really",
+  "developerChatTitle": "Chat with the developer",
+  "developerChatSubtitle": "Questions, ideas, or something not working",
+  "developerChatEmpty": "No messages yet. Say hello, and you will get a reply here.",
+  "developerChatHint": "Write a message",
+  "developerChatSend": "Send",
+  "developerChatSending": "Sending…",
+  "developerChatNotSent": "Not sent. Tap to try again."
 }

@@ -32,6 +32,8 @@ abstract final class PushConfig {
   // Support (`backend/utils/push-rich.js`): the help screen, and one ticket by id.
   static const String deeplinkSupport = 'support';
   static const String deeplinkTicket = 'ticket';
+  // The developer replied to the reader's chat (`backend/jobs/processors/devops.js`).
+  static const String deeplinkDeveloper = 'developer';
 
   // ── What a rich push carries (all strings) ──────────────────────────────
   /// `picture` or `text` — how the expanded notification is drawn.
