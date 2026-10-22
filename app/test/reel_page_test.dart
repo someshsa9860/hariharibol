@@ -285,10 +285,10 @@ void main() {
         };
 
     testWidgets('lands where the editor put it, sized as a share of the width', (tester) async {
-      await pumpReel(tester, reel(overlays: [box('Karmanye vadhikaraste')]));
+      await pumpReel(tester, reel(overlays: [box('Karma yoga hari')]));
       await tester.pump();
 
-      final finder = find.text('Karmanye vadhikaraste');
+      final finder = find.text('Karma yoga hari');
       expect(finder, findsOneWidget);
 
       final topLeft = tester.getTopLeft(finder);
@@ -298,6 +298,17 @@ void main() {
 
       final style = tester.widget<Text>(finder).style!;
       expect(style.fontSize, closeTo(frameWidth * 0.05, 0.01));
+    });
+
+    testWidgets('shrinks a word too long for its box instead of running off the edges', (tester) async {
+      await pumpReel(tester, reel(overlays: [box('Sankirtanayajnenayajanti')]));
+      await tester.pump();
+
+      final finder = find.text('Sankirtanayajnenayajanti');
+      final rect = tester.getRect(finder);
+      expect(rect.left, greaterThanOrEqualTo(0));
+      expect(rect.right, lessThanOrEqualTo(frameWidth));
+      expect(tester.widget<Text>(finder).style!.fontSize!, lessThan(frameWidth * 0.05));
     });
 
     testWidgets('does not scale with the system text size', (tester) async {
