@@ -7,6 +7,7 @@ import '../models/routine_data.dart';
 import '../models/routine_task.dart';
 import '../services/ekadashi_calendar.dart';
 import '../services/local_store.dart';
+import '../services/routine_alert_ticks.dart';
 import 'routine_sync_provider.dart';
 import 'session_provider.dart';
 
@@ -149,6 +150,11 @@ class RoutineNotifier extends Notifier<RoutineData> {
   /// Ticks [task] on the day it is shown on, done at [minute] (minutes after
   /// midnight). Ticking a done task again at another time changes its time.
   Future<void> markDone(RoutineTask task, {required int minute}) async {
+    _tick(task, minute);
+    await _persist();
+  }
+
+  void _tick(RoutineTask task, int minute) {
     if (task.isDaily) {
       state = state.copyWith(
         checks: {
@@ -159,7 +165,22 @@ class RoutineNotifier extends Notifier<RoutineData> {
     } else {
       _replace(task.id, (each) => each.doneAtMinute(minute));
     }
-    await _persist();
+  }
+
+  /// Ticks what was marked done from an alert's button (see
+  /// `RoutineAlertTicks`), each at the time the button was pressed. A task that
+  /// is gone, or already done, is left as it is: a press is never counted twice
+  /// and never changes the time of a tick made in the app.
+  Future<void> markDoneFromAlerts(List<RoutineAlertTick> presses) async {
+    var changed = false;
+    for (final press in presses) {
+      for (final task in state.on(press.day)) {
+        if (task.id != press.taskId || task.isDone) continue;
+        _tick(task, press.minute);
+        changed = true;
+      }
+    }
+    if (changed) await _persist();
   }
 
   /// Unticks [task]; the time it was done at goes with the tick.

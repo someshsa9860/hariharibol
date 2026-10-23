@@ -24,6 +24,7 @@ import '../../widgets/dashboard/log_rounds_sheet.dart';
 import '../../widgets/dashboard/mantra_category_label.dart';
 import '../../widgets/dashboard/mantra_list_tile.dart';
 import '../../widgets/dashboard/open_chant.dart';
+import '../../widgets/mantra/add_mantra_card.dart';
 
 /// Chanting and today's rounds.
 ///
@@ -173,7 +174,7 @@ class _RoundsHero extends StatelessWidget {
                         Semantics(
                           label: text.sadhanaRoundsProgress(
                             day.roundsCompleted,
-                            day.roundTarget,
+                            day.roundGoal,
                           ),
                           excludeSemantics: true,
                           child: Row(
@@ -186,7 +187,7 @@ class _RoundsHero extends StatelessWidget {
                               ),
                               const SizedBox(width: AppSpacing.xs),
                               Text(
-                                '/ ${day.roundTarget}',
+                                '/ ${day.roundGoal}',
                                 style: context.texts.titleMedium?.copyWith(
                                   color: context.colors.onSurfaceVariant,
                                 ),
@@ -301,6 +302,8 @@ class _MantraBrowserState extends ConsumerState<_MantraBrowser> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(title: text.homeMantras),
+        const AddMantraCard(),
+        const SizedBox(height: AppSpacing.md),
         if (categories.isNotEmpty) ...[
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -357,6 +360,10 @@ class _MantraBrowserState extends ConsumerState<_MantraBrowser> {
                         text: mantra.text,
                         category: mantra.category,
                         deity: mantra.deity,
+                        guru: mantra.guru,
+                        imageUrl: mantra.imageUrl,
+                        imageCacheKey: mantra.imageCacheKey,
+                        isPrivate: mantra.isPrivate,
                         hasAudio: mantra.hasAudio,
                         onTap: () => AppNavigator.instance.push(
                           AppRoutes.mantraPath(mantra.slug),

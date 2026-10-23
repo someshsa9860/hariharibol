@@ -161,6 +161,13 @@ function tithiEnd(at) {
   return nextElongation(at, (t % 30) * 12);
 }
 
+// When the tithi running at `at` began (a tithi lasts under 27 hours, so three days back is plenty).
+function tithiStart(at) {
+  const t = tithiAt(at);
+  const hit = Astronomy.SearchMoonPhase((t - 1) * 12, Astronomy.MakeTime(at), -3);
+  return hit ? hit.date : null;
+}
+
 // Bisect the first instant after `from` when f(date) changes from its value at `from`.
 function nextChange(from, f, stepMinutes, limitDays = 3) {
   const start = f(from);
@@ -283,7 +290,7 @@ function vikramYear(dateStr, month) {
 
 export {
   LOCATIONS, DEFAULT_LOCATION_KEY, MONTHS, SIGNS, NAKSHATRAS, WEEKDAYS,
-  panchangFor, tithiAt, tithiName, tithiEnd, newMoonsAround, lunationOf, localMidnight, addDays, weekdayOf,
+  panchangFor, tithiAt, tithiName, tithiStart, tithiEnd, newMoonsAround, lunationOf, localMidnight, addDays, weekdayOf,
   sunSidereal, moonSidereal, ayanamsa, signIndexAt, riseSet, elongation, nextElongation,
   zoneOffsetMinutes,
 };

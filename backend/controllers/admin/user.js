@@ -26,6 +26,12 @@ const LIST_SELECT = {
   isBanned: true,
   createdAt: true,
   lastActiveAt: true,
+  // Where their IP address put them the last time they were seen (services/geo-ip.js); null until then.
+  countryCode: true,
+  country: true,
+  state: true,
+  district: true,
+  city: true,
   role: { select: { slug: true, name: true } },
   // A creator is the same account with a profile attached, not another kind of user.
   creatorProfile: { select: { id: true, status: true } },

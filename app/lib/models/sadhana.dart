@@ -1,4 +1,22 @@
+import '../core/constants/sadhana_config.dart';
 import 'json.dart';
+
+/// The number a day's [rounds] are shown against: the person's [target] while
+/// they are at or under it, then the next rung of
+/// [SadhanaConfig.roundGoalSteps], then the next multiple of
+/// [SadhanaConfig.roundGoalBeyondStep]. With a target of 16: 16, 32, 64, 108,
+/// 112, 128, 144… — 16 rounds is 16 / 16, the 17th makes it 17 / 32. No target
+/// stays no target.
+int roundGoalFor(int target, int rounds) {
+  if (target <= 0 || rounds <= target) return target;
+
+  for (final step in SadhanaConfig.roundGoalSteps) {
+    if (step > target && rounds <= step) return step;
+  }
+
+  const beyond = SadhanaConfig.roundGoalBeyondStep;
+  return ((rounds + beyond - 1) ~/ beyond) * beyond;
+}
 
 /// Today's practice: the target, what is done, and how the day is going.
 ///
@@ -17,10 +35,16 @@ class SadhanaDay {
   final int tasksTotal;
   final int tasksDone;
 
-  /// 0.0–1.0, clamped, and 0 when no target is set so a progress bar never
-  /// divides by zero.
-  double get roundProgress =>
-      roundTarget <= 0 ? 0 : (roundsCompleted / roundTarget).clamp(0.0, 1.0);
+  /// What the rounds are counted against right now: the target until it is
+  /// passed, then each rung above it (see [roundGoalFor]).
+  int get roundGoal => roundGoalFor(roundTarget, roundsCompleted);
+
+  /// 0.0–1.0 towards [roundGoal], clamped, and 0 when no target is set so a
+  /// progress bar never divides by zero.
+  double get roundProgress {
+    final goal = roundGoal;
+    return goal <= 0 ? 0 : (roundsCompleted / goal).clamp(0.0, 1.0);
+  }
 
   double get taskProgress => tasksTotal <= 0 ? 0 : (tasksDone / tasksTotal).clamp(0.0, 1.0);
 

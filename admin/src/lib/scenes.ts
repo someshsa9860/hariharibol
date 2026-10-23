@@ -40,7 +40,8 @@ export type SceneRun = {
   stalled: boolean;
 };
 
-export type ProviderInfo = { id: ProviderId; label: string; company: string; keyEnv: string; apiKeyConfigured: boolean; defaultModel: string };
+export type ModelInfo = { id: string; inputPerMillion: number | null; outputPerMillion: number | null; unusableReason: string | null };
+export type ProviderInfo = { id: ProviderId; label: string; company: string; keyEnv: string; apiKeyConfigured: boolean; defaultModel: string; models: ModelInfo[] };
 export type ChapterInfo = { id: number; canto: number | null; label: string };
 
 export type ScenesOverview = {
@@ -51,6 +52,7 @@ export type ScenesOverview = {
     apiKeyConfigured: boolean;
     storage: { ok: boolean; describe?: string; error?: string };
     workerOnline: boolean | null;
+    /** Gemini's free-tier limits, which only a Gemini run keeps to. */
     limits: { rpm: number; tpm: number; rpd: number };
     promptVersion: string;
     outputFolder: string;
@@ -88,9 +90,17 @@ export type SceneEstimate = {
   sampled: number;
   inputTokensPerChapter: number;
   inputTokens: number;
+  outputTokens: number;
   requests: number;
   minutes: number;
-  limits: { rpm: number; tpm: number };
+  provider: ProviderId;
+  model: string;
+  /** Rough, from the catalogue's prices; null for a model it has no price for. */
+  costUsd: number | null;
+  /** Why the model cannot run here, when it cannot. */
+  unusable: string | null;
+  /** Only Gemini's free tier has limits of ours; null means none. */
+  limits: { rpm: number | null; tpm: number | null };
 };
 
 export type Scene = {
@@ -174,10 +184,13 @@ export function useChapters(busy: boolean) {
   });
 }
 
-export function useSceneEstimate(chapters: number[], force: boolean, enabled: boolean) {
+/** `model` blank asks for the provider's default. */
+export function useSceneEstimate(chapters: number[], force: boolean, provider: ProviderId, model: string, enabled: boolean) {
+  const modelName = model.trim();
   return useQuery({
-    queryKey: ['scenes', 'estimate', chapters.join(','), force],
-    queryFn: async () => (await api.get<SceneEstimate>(`${ROOT}/estimate`, { chapters: chapters.join(','), force: force ? 'true' : 'false' })).data,
+    queryKey: ['scenes', 'estimate', chapters.join(','), force, provider, modelName],
+    queryFn: async () =>
+      (await api.get<SceneEstimate>(`${ROOT}/estimate`, { chapters: chapters.join(','), force: force ? 'true' : 'false', provider, ...(modelName ? { model: modelName } : {}) })).data,
     enabled: enabled && chapters.length > 0,
     staleTime: 30_000,
     placeholderData: (prev) => prev,

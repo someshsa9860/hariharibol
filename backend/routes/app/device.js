@@ -26,6 +26,7 @@ router.post(
       osVersion: z.string().max(50).optional(),
       appVersion: z.string().max(50).optional(),
       fcmToken: z.string().max(500).optional(),
+      app: z.enum(['main', 'dev']).optional(),
     }),
     responds: { 200: 'The device record' },
   },

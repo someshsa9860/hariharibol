@@ -25,6 +25,25 @@ abstract final class ApiPaths {
   static const String calendar = '$_app/calendar';
   static const String calendarUpcoming = '$_app/calendar/upcoming';
 
+  // Devotee etiquette
+  static const String etiquette = '$_app/etiquette';
+  static const String etiquetteToday = '$_app/etiquette/today';
+  static String etiquetteItem(String id) => '$_app/etiquette/$id';
+
+  // Support, feedback and the store-rating prompt
+  static const String supportTickets = '$_app/support/tickets';
+  static String supportTicket(String id) => '$_app/support/tickets/$id';
+  static String supportTicketMessages(String id) => '$_app/support/tickets/$id/messages';
+  static const String supportMedia = '$_app/support/media';
+  static const String supportUnread = '$_app/support/unread';
+  // The reader's one line to the developer (`backend/routes/app/developer-chat.js`).
+  static const String developerChat = '$_app/developer-chat';
+  static const String developerChatMessages = '$_app/developer-chat/messages';
+  static const String developerChatUnread = '$_app/developer-chat/unread';
+  static const String developerChatRead = '$_app/developer-chat/read';
+  static const String reviewCheck = '$_app/support/review-check';
+  static const String reviewPrompts = '$_app/support/review-prompts';
+
   // Account
   static const String me = '$_app/me';
   static const String meLanguages = '$_app/me/languages';
@@ -49,6 +68,7 @@ abstract final class ApiPaths {
   static const String chatCurrent = '$_app/chat/current';
   static const String chatImages = '$_app/chat/images';
   static const String chatConversations = '$_app/chat/conversations';
+  static const String chatProfile = '$_app/chat/profile';
   static String chatMessages(String id) => '$_app/chat/conversations/$id/messages';
   static String chatRegenerate(String id) => '$_app/chat/conversations/$id/regenerate';
   static String chatContinue(String id) => '$_app/chat/conversations/$id/continue';
@@ -78,6 +98,12 @@ abstract final class ApiPaths {
   static const String mantras = '$_app/mantras';
   static const String mantraCategories = '$_app/mantras/categories';
   static String mantra(String slug) => '$_app/mantras/$slug';
+
+  // A reader's own mantras. The server registers these before `/:slug`.
+  static const String mantraOwnSuggest = '$_app/mantras/own/suggest';
+  static const String mantraOwn = '$_app/mantras/own';
+  static String mantraOwnOne(String slug) => '$_app/mantras/own/$slug';
+  static String mantraOwnImage(String slug) => '$_app/mantras/own/$slug/image';
 
   static const String search = '$_app/search';
 

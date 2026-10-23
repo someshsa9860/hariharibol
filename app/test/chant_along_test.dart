@@ -16,12 +16,14 @@ import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/mantra.dart';
 import 'package:hariharibol/models/sadhana.dart';
 import 'package:hariharibol/providers/chant_audio_provider.dart';
+import 'package:hariharibol/providers/language_chain_provider.dart';
 import 'package:hariharibol/providers/sadhana_provider.dart';
 import 'package:hariharibol/services/chant_mala_player.dart';
 import 'package:hariharibol/services/chant_mala_timing.dart';
 import 'package:hariharibol/views/chant/chant_view.dart';
 import 'package:hariharibol/widgets/chant/chant_along_card.dart';
 import 'package:hariharibol/widgets/chant/chant_disc.dart';
+import 'package:hariharibol/widgets/chant/chant_tap_row.dart';
 
 import 'fake_audio_player.dart';
 
@@ -138,6 +140,9 @@ Future<void> pumpView(
   final container = ProviderContainer(
     overrides: [
       sadhanaTodayProvider.overrideWith(_FakeToday.new),
+      // A round ends in the prayer, written in the reading language, which is
+      // kept in a store this test does not open.
+      readingChainProvider.overrideWithValue(const ['en']),
       malaAudioPlayerProvider.overrideWithValue(() {
         onPlayerMade?.call();
         return fake;
@@ -341,7 +346,12 @@ void main() {
       await tester.pump();
       expect(find.text('2/4'), findsOneWidget);
       expect(find.text('#2'), findsOneWidget);
-      expect(find.byIcon(Icons.mic_rounded), findsNWidgets(2));
+      // Only the chants' own marks: the microphone switch under the ring wears the
+      // same icon.
+      expect(
+        find.descendant(of: find.byType(ChantTapRow), matching: find.byIcon(Icons.mic_rounded)),
+        findsNWidgets(2),
+      );
 
       // Four chants fill the round the day is counted in.
       fake.playTo(const Duration(seconds: 50));
@@ -349,13 +359,18 @@ void main() {
       expect(find.text('#4'), findsOneWidget);
       expect(find.byIcon(Icons.insights_rounded), findsOneWidget);
 
-      // The rest of the recording is silence: the count stops where the chanting does.
+      // That was the round's last chant, and the mantra has no prayer of its own: the
+      // prayer that ends every round takes the card's place, and the recording is
+      // paused so that it does not count the prayer.
+      expect(find.text('Offering to Krishna'), findsOneWidget);
+      expect(find.byType(ChantAlongCard), findsNothing);
+      expect(fake.pauses, greaterThan(0));
+      expect(wakelock.held, isFalse);
+
+      // The rest of the recording is silence: it plays on unheard and counts nothing.
       fake.playTo(const Duration(seconds: 59, milliseconds: 900));
-      fake.finish();
       await tester.pump();
       expect(find.text('#5'), findsNothing);
-      expect(find.byTooltip('Play recording'), findsOneWidget);
-      expect(wakelock.held, isFalse);
       expect(tester.takeException(), isNull);
 
       await leave(tester);

@@ -7,6 +7,7 @@ import { prisma } from '../config/database.js';
 import * as setting from './setting.js';
 import { buildYear } from './festivals.js';
 import { LOCATIONS, DEFAULT_LOCATION_KEY } from './panchang.js';
+import { plainWords } from '../utils/calendar-translation.js';
 
 const SETTING_KEY = 'panchang.location';
 const asDate = (s) => new Date(`${s}T00:00:00.000Z`);
@@ -42,15 +43,16 @@ async function saveYear(year, locationKey) {
 
   let festivalsWritten = 0;
   for (const f of festivals) {
-    const { date, notify, ...fields } = f;
+    const { date, notify, notifyDaysBefore, ...fields } = f;
     const where = { date_locationKey_slug: { date: asDate(date), locationKey, slug: f.slug } };
     const existing = await prisma.festival.findUnique({ where, select: { isEdited: true } });
     if (existing?.isEdited) continue;
     await prisma.festival.upsert({
       where,
       update: { ...fields },
-      // Whether to push is decided once, at creation — an admin's choice survives a re-run.
-      create: { date: asDate(date), locationKey, notify, ...fields },
+      // Whether to push, and how many days ahead, is decided once, at creation — an admin's
+      // choice survives a re-run. (No `notifyDaysBefore` means the column's default, the day before.)
+      create: { date: asDate(date), locationKey, notify, ...(notifyDaysBefore ? { notifyDaysBefore } : {}), ...fields },
     });
     festivalsWritten += 1;
   }
@@ -66,38 +68,42 @@ async function saveYear(year, locationKey) {
   return { days: written, adminEditedKept: kept, festivals: festivalsWritten, removed: stale.length };
 }
 
-/** What the apps are sent for a festival. */
-function presentFestival(f) {
+/**
+ * What the apps are sent for a festival. `words(kind, text)` gives a name or a description in the reader's language
+ * (`wordsFor` in services/calendar-translation.js); the default leaves the English. A parana's description is the
+ * day's own times, built in English for that date, so it is never passed through.
+ */
+function presentFestival(f, words = plainWords) {
   return {
     id: f.id,
     date: dateOnly(f.date),
     slug: f.slug,
     kind: f.kind,
-    name: f.name,
-    description: f.description,
+    name: words('NAME', f.name),
+    description: f.kind === 'PARANA' ? f.description : words('DESCRIPTION', f.description),
     paksha: f.paksha,
     month: f.month,
     vaishnavaDate: f.details?.vaishnavaDate && f.details.vaishnavaDate !== dateOnly(f.date) ? f.details.vaishnavaDate : null,
   };
 }
 
-/** What the apps are sent for a day. */
-function presentDay(d) {
+/** What the apps are sent for a day; `words` as for `presentFestival`, applied to the panchang terms. */
+function presentDay(d, words = plainWords) {
   return {
     date: dateOnly(d.date),
     weekday: d.weekday,
     sunrise: d.sunrise,
     sunset: d.sunset,
     moonrise: d.moonrise,
-    tithi: { number: d.tithiNumber, name: d.tithiName, paksha: d.paksha, endsAt: d.tithiEndsAt },
-    nakshatra: { number: d.nakshatraNumber, name: d.nakshatra, endsAt: d.nakshatraEndsAt },
-    yoga: d.yoga,
-    karana: d.karana,
-    month: d.monthAmanta,
-    monthPurnimanta: d.monthPurnimanta,
+    tithi: { number: d.tithiNumber, name: words('TERM', d.tithiName), paksha: d.paksha, endsAt: d.tithiEndsAt },
+    nakshatra: { number: d.nakshatraNumber, name: words('TERM', d.nakshatra), endsAt: d.nakshatraEndsAt },
+    yoga: words('TERM', d.yoga),
+    karana: words('TERM', d.karana),
+    month: words('TERM', d.monthAmanta),
+    monthPurnimanta: words('TERM', d.monthPurnimanta),
     isAdhika: d.isAdhika,
-    sunSign: d.sunSign,
-    moonSign: d.moonSign,
+    sunSign: words('TERM', d.sunSign),
+    moonSign: words('TERM', d.moonSign),
     vikramSamvat: d.vikramSamvat,
     shakaSamvat: d.shakaSamvat,
     notes: d.notes,

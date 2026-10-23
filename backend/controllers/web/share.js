@@ -11,6 +11,8 @@ import { CONTENT_ROUTES } from '../../utils/share.js';
 import { ok } from '../../utils/respond.js';
 import env from '../../config/env.js';
 import { notFound } from '../../utils/errors.js';
+import { requestChain } from '../../utils/language.js';
+import { translateError } from '../../utils/messages.js';
 
 const TYPE_BY_ROUTE = Object.fromEntries(Object.entries(CONTENT_ROUTES).map(([type, route]) => [route, type]));
 
@@ -23,7 +25,7 @@ export const resolve = async (req, res) => {
   const result = await share.resolve(code, type, { language: req.valid.query.lang || 'en' });
   if (result.status === 'ok') return ok(res, result);
   const status = result.status === 'not_found' ? 404 : 410;
-  return res.status(status).json({ success: false, error: { code: result.status.toUpperCase(), message: 'This link is not available' }, data: result });
+  return res.status(status).json({ success: false, error: { code: result.status.toUpperCase(), message: translateError({ message: 'This link is not available' }, requestChain(req)) }, data: result });
 };
 
 /** GET /api/web/referral/:code — enough to greet an invited person, nothing more. */

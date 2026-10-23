@@ -19,6 +19,8 @@ type Overview = {
     isPremium: boolean; premiumSince: string | null; premiumUntil: string | null;
     isBanned: boolean; bannedReason: string | null; bannedAt: string | null;
     createdAt: string; updatedAt: string; lastActiveAt: string | null;
+    countryCode: string | null; country: string | null; state: string | null; district: string | null; city: string | null;
+    locationUpdatedAt: string | null;
     role: { slug: string; name: string }; creatorProfile: { id: string; status: string; displayName: string } | null;
   };
   entitlement: { plan: string | null; slug: string | null; reason: string; until: string | null };
@@ -132,6 +134,9 @@ function OverviewTab({ id }: { id: string }) {
               ['Email', u.email], ['Name', u.name], ['Role', <Badge variant="outline">{u.role.name}</Badge>],
               ['Sign-in', u.authProvider + (u.legacyUserId ? ` (old app #${u.legacyUserId})` : '')],
               ['Joined', formatDate(u.createdAt)], ['Last active', u.lastActiveAt ? formatDate(u.lastActiveAt) : 'Never'],
+              ['Location (from IP)', u.country
+                ? `${[u.city, u.district, u.state].filter(Boolean).join(', ')}${u.city || u.district || u.state ? ', ' : ''}${u.country}${u.locationUpdatedAt ? ` · seen ${formatDate(u.locationUpdatedAt)}` : ''}`
+                : 'Not known yet'],
               ['App language', u.appLanguage], ['Reading / mantra', `${u.readingLanguage} / ${u.mantraLanguage}`], ['Timezone', u.timezone],
               ['Tradition (from chanting)', u.sampradaya ?? 'Not yet known'],
               ['Status', (

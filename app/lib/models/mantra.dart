@@ -1,3 +1,4 @@
+import '../core/constants/own_mantra_config.dart';
 import 'json.dart';
 import 'reference_item.dart';
 
@@ -34,6 +35,9 @@ class Mantra {
     this.availableLanguages = const [],
     this.isFavorite = false,
     this.myRounds = 0,
+    this.mantraType = OwnMantraConfig.typePublic,
+    this.isMine = false,
+    this.imageUrl,
   });
 
   final String id;
@@ -92,6 +96,25 @@ class Mantra {
   /// out or never chanted — same as not being shown at all.
   final int myRounds;
 
+  /// `PUBLIC` for the catalogue, `PRIVATE` for one a reader added: listed only
+  /// for the readers who hold it, until enough of them do. A copy saved before
+  /// this existed has neither field, so both default to a public mantra.
+  final String mantraType;
+
+  /// This reader was the one who added it.
+  final bool isMine;
+
+  /// A picture for the mantra itself — a public web address, or the reader's
+  /// own upload. Null falls back to the deity's, then the guru's.
+  final String? imageUrl;
+
+  bool get isPrivate => mantraType == OwnMantraConfig.typePrivate;
+
+  /// The picture's cache key: its address without the query, because an
+  /// uploaded picture is a signed link whose query changes every time it is
+  /// asked for, and the picture behind it has not.
+  String? get imageCacheKey => imageUrl?.split('?').first;
+
   /// What auto count listens for: the API's phrases, or failing those the
   /// transliteration, when there is one.
   List<String> get spokenPhrases {
@@ -144,5 +167,8 @@ class Mantra {
         availableLanguages: asStringList(json['availableLanguages']),
         isFavorite: asBool(json['isFavorite']),
         myRounds: asInt(json['myRounds']),
+        mantraType: asString(json['mantraType'], OwnMantraConfig.typePublic),
+        isMine: asBool(json['isMine']),
+        imageUrl: asStringOrNull(json['imageUrl']),
       );
 }

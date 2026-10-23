@@ -1,22 +1,21 @@
-import { CONTACT_EMAIL, SHOW_AUTHOR_NAME, TEXT_SOURCES } from '@/lib/config';
+import { CONTACT_EMAIL, TEXT_SOURCES } from '@/lib/config';
 
 /**
  * The body of `/sources`: whose words the texts are, where they were taken from, that the other languages are
  * AI-assisted, what Sakha is and is not, that the project speaks for no one else, and whom to write to. The same
- * wording as the app's Settings → Sources & disclaimer. Prabhupāda's credit line follows `SHOW_AUTHOR_NAME`.
+ * wording as the app's Settings → Sources & disclaimer. Prabhupāda's credit line always shows here — this page is
+ * the record of where the texts come from, not the per-verse byline that `SHOW_AUTHOR_NAME` still keeps off.
  */
 export function Sources() {
   return (
     <div className="sources">
       <section>
         <h2>Translations and commentaries</h2>
-        {SHOW_AUTHOR_NAME && (
-          <p>
-            The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His
-            Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna
-            Consciousness. © The Bhaktivedanta Book Trust International, Inc.
-          </p>
-        )}
+        <p>
+          The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His
+          Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna
+          Consciousness. © The Bhaktivedanta Book Trust International, Inc.
+        </p>
         <p>
           Every translation, purport and commentary is the work of its author, and all rights in it remain with its
           authors and publishers. They are reproduced here for personal devotional study, not for redistribution.

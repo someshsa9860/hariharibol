@@ -18,7 +18,7 @@ void main() {
 
   setUp(() {
     clock = _Clock();
-    counter = VoiceChantCounter(standard: const Duration(seconds: 1), now: clock.call);
+    counter = VoiceChantCounter(pace: const Duration(seconds: 1), now: clock.call);
   });
 
   test('counts one chant for each standard time of sound', () {
@@ -69,7 +69,7 @@ void main() {
 
   test('the detector\'s delay at each end is not counted as chanting', () {
     counter = VoiceChantCounter(
-      standard: const Duration(seconds: 1),
+      pace: const Duration(seconds: 1),
       lead: const Duration(milliseconds: 250),
       tail: const Duration(milliseconds: 500),
       now: clock.call,
@@ -101,80 +101,135 @@ void main() {
     expect(counter.phase, AutoChantPhase.idle);
   });
 
-  group('a chanter gets quicker as the sitting goes on', () {
-    // 10% quicker with each chant, never below half: 1000, 900, 810, 729 ms...
-    VoiceChantCounter quickening({double speedUp = 0.1, double fastest = 0.5}) => VoiceChantCounter(
-          standard: const Duration(seconds: 1),
-          speedUpPerChant: speedUp,
-          fastestShare: fastest,
-          now: clock.call,
-        );
-
-    test('each chant is due sooner than the one before', () {
-      counter = quickening();
+  group('the pace is the reader\'s, and can change while counting', () {
+    test('a pace of its own is counted by, not the standard time', () {
+      counter = VoiceChantCounter(pace: const Duration(milliseconds: 1500), now: clock.call);
       counter.onVoice(true);
-      clock.advance(1000);
-      expect(counter.tick(), 1);
-      clock.advance(899);
+      clock.advance(1499);
       expect(counter.tick(), 0);
       clock.advance(1);
-      expect(counter.tick(), 1); // 1900 ms in: the 900 ms chant
-      clock.advance(810);
-      expect(counter.tick(), 1); // 2710 ms in: the 810 ms chant
-      expect(counter.total, 3);
+      expect(counter.tick(), 1);
+      clock.advance(1500);
+      expect(counter.tick(), 1);
     });
 
-    test('never quicker than the fastest share of the standard time', () {
-      counter = quickening(speedUp: 0.5, fastest: 0.5);
+    test('a chant is never quicker than the pace, however long the sitting', () {
       counter.onVoice(true);
-      clock.advance(1000);
+      var counted = 0;
+      for (var i = 0; i < 120; i++) {
+        clock.advance(500);
+        counted += counter.tick();
+      }
+      // 60 s of sound at one chant a second: no speeding up on its own.
+      expect(counted, 60);
+    });
+
+    test('a slower pace set mid-count keeps what was chanted, and does not stall it', () {
+      counter.onVoice(true);
+      clock.advance(1400); // one chant counted, 400 ms towards the next
       expect(counter.tick(), 1);
-      // 500 ms from here on, however many chants have gone before.
-      clock.advance(500);
+      expect(counter.changePace(const Duration(milliseconds: 2000)), 0);
+      expect(counter.pace, const Duration(milliseconds: 2000));
+      clock.advance(1599);
+      expect(counter.tick(), 0);
+      clock.advance(1);
+      expect(counter.tick(), 1); // 400 kept + 1600 more = one 2000 ms chant
+    });
+
+    test('a quicker pace set mid-count does not make a chant jump out', () {
+      counter.onVoice(true);
+      clock.advance(900); // 900 of 1000 ms towards the first chant
+      expect(counter.changePace(const Duration(milliseconds: 500)), 0);
+      // 900 ms kept against a 500 ms pace is already one chant and 400 over; it is
+      // counted on the next tick, not twice.
       expect(counter.tick(), 1);
-      clock.advance(500);
+      expect(counter.tick(), 0);
+      clock.advance(100);
       expect(counter.tick(), 1);
-      clock.advance(1000);
-      expect(counter.tick(), 2);
+      expect(counter.total, 2);
+    });
+
+    test('the chants an old pace had made due are counted when the pace changes', () {
+      counter.onVoice(true);
+      clock.advance(2100);
+      expect(counter.changePace(const Duration(seconds: 3)), 2);
+      expect(counter.total, 2);
     });
 
     test('the pace is kept through a silence and through a reset', () {
-      counter = quickening();
       counter.onVoice(true);
-      clock.advance(1000);
-      counter.tick();
-      clock.advance(900);
-      counter.tick();
+      counter.changePace(const Duration(milliseconds: 800));
       counter.onVoice(false);
-
-      expect(counter.currentStandard, const Duration(milliseconds: 810));
       counter.reset();
-      expect(counter.currentStandard, const Duration(milliseconds: 810));
+      expect(counter.pace, const Duration(milliseconds: 800));
       expect(counter.total, 0);
 
       counter.onVoice(true);
-      clock.advance(809);
+      clock.advance(799);
       expect(counter.tick(), 0);
       clock.advance(1);
       expect(counter.tick(), 1);
     });
 
-    test('a last, unfinished chant is judged against its own, quicker time', () {
-      counter = quickening();
+    test('a last, unfinished chant is judged against the pace in force', () {
+      counter.changePace(const Duration(seconds: 2));
       counter.onVoice(true);
-      clock.advance(1000);
-      expect(counter.tick(), 1);
-      // 540 ms of a 900 ms chant is 60%: it counts. Against 1000 ms it would not.
-      clock.advance(540);
+      clock.advance(1100); // 55% of 2 s: not enough
+      expect(counter.onVoice(false), 0);
+      counter.onVoice(true);
+      clock.advance(1300); // 65%: counts
       expect(counter.onVoice(false), 1);
     });
+  });
 
-    test('with no speed-up every chant takes the standard time', () {
-      counter = quickening(speedUp: 0);
-      counter.onVoice(true);
-      clock.advance(3000);
-      expect(counter.tick(), 3);
-      expect(counter.standardAt(50), const Duration(seconds: 1));
+  group('counting by the clock alone', () {
+    test('one chant every pace from the moment it starts, with no sound at all', () {
+      counter.startSteady();
+      expect(counter.phase, AutoChantPhase.listening);
+      clock.advance(999);
+      expect(counter.tick(), 0);
+      clock.advance(1);
+      expect(counter.tick(), 1);
+      clock.advance(5000);
+      expect(counter.tick(), 5);
+      expect(counter.total, 6);
+    });
+
+    test('it does not wait for a lead the way the detector does', () {
+      counter = VoiceChantCounter(
+        pace: const Duration(seconds: 1),
+        lead: const Duration(milliseconds: 250),
+        now: clock.call,
+      );
+      counter.startSteady();
+      clock.advance(1000);
+      expect(counter.tick(), 1);
+    });
+
+    test('starting twice does not restart the clock', () {
+      counter.startSteady();
+      clock.advance(600);
+      counter.startSteady();
+      clock.advance(400);
+      expect(counter.tick(), 1);
+    });
+
+    test('a change of pace keeps the time already chanted towards the next chant', () {
+      counter.startSteady();
+      clock.advance(600);
+      counter.changePace(const Duration(seconds: 2));
+      clock.advance(1399);
+      expect(counter.tick(), 0);
+      clock.advance(1);
+      expect(counter.tick(), 1);
+    });
+
+    test('reset stops it', () {
+      counter.startSteady();
+      counter.reset();
+      clock.advance(5000);
+      expect(counter.tick(), 0);
+      expect(counter.phase, AutoChantPhase.idle);
     });
   });
 }

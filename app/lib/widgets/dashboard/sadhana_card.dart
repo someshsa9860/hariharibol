@@ -138,7 +138,7 @@ class _Progress extends StatelessWidget {
         // rather than as a sentence. The sentence is still there for a screen
         // reader, which should hear "4 of 16 rounds", not "4 slash 16".
         Semantics(
-          label: text.sadhanaRoundsProgress(day.roundsCompleted, day.roundTarget),
+          label: text.sadhanaRoundsProgress(day.roundsCompleted, day.roundGoal),
           child: ExcludeSemantics(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -148,7 +148,7 @@ class _Progress extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Flexible(
                   child: Text(
-                    '/ ${day.roundTarget}',
+                    '/ ${day.roundGoal}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: context.texts.titleMedium?.copyWith(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../core/constants/api_paths.dart';
 import '../models/chat.dart';
+import '../models/sakha_profile.dart';
 import 'api_client.dart';
 
 /// Ask Sakha's API. Everything but sending is an ordinary call;
@@ -43,6 +44,23 @@ class ChatService {
 
   /// Removes everything said so far, and with it what Sakha remembers of it.
   Future<void> clear() => _api.delete(ApiPaths.chatConversations);
+
+  /// What Sakha has noted about the reader from their chats. The keywords in
+  /// the answer are for the reader to see; the server never puts them in a prompt.
+  Future<SakhaProfile> profile() async {
+    final response = await _api.get(ApiPaths.chatProfile);
+    return SakhaProfile.fromJson(response.json);
+  }
+
+  /// Turns the noticing on or off. Off, Sakha notes nothing new and does not use
+  /// what is saved. Answers with the profile as it now stands.
+  Future<SakhaProfile> setProfileLearning(bool learning) async {
+    final response = await _api.patch(ApiPaths.chatProfile, body: {'learning': learning});
+    return SakhaProfile.fromJson(response.json);
+  }
+
+  /// Deletes what Sakha has noted. The conversation is left as it is.
+  Future<void> deleteProfile() => _api.delete(ApiPaths.chatProfile);
 
   /// Hands a picture to the server to be read and kept with the next question.
   /// The file is the one the picker already scaled down.

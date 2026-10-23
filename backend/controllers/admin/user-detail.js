@@ -19,6 +19,7 @@ async function requireUser(id) {
       isPremium: true, premiumSince: true, premiumUntil: true,
       isBanned: true, bannedReason: true, bannedAt: true,
       createdAt: true, updatedAt: true, lastActiveAt: true,
+      countryCode: true, country: true, state: true, district: true, city: true, locationUpdatedAt: true,
       role: { select: { slug: true, name: true } },
       creatorProfile: { select: { id: true, status: true, displayName: true } },
     },

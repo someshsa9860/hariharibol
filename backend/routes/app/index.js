@@ -19,6 +19,7 @@ import mantraRoutes from './mantra.js';
 import reelRoutes from './reel.js';
 import reelCommentRoutes from './reel-comment.js';
 import creatorRoutes from './creator.js';
+import supportRoutes from './support.js';
 import sadhanaRoutes from './sadhana.js';
 import taskRoutes from './task.js';
 import routineRoutes from './routine.js';
@@ -37,9 +38,12 @@ import chatRoutes from './chat.js';
 import shareRoutes from './share.js';
 import referralRoutes from './referral.js';
 import calendarRoutes from './calendar.js';
+import etiquetteRoutes from './etiquette.js';
+import developerChatRoutes from './developer-chat.js';
 
 const routers = [
   authRoutes,
+  developerChatRoutes,
   deviceRoutes,
   userRoutes,
   homeRoutes,
@@ -50,6 +54,7 @@ const routers = [
   reelRoutes,
   reelCommentRoutes,
   creatorRoutes,
+  supportRoutes,
   sadhanaRoutes,
   taskRoutes,
   routineRoutes,
@@ -68,6 +73,7 @@ const routers = [
   shareRoutes,
   referralRoutes,
   calendarRoutes,
+  etiquetteRoutes,
 ];
 
 export default mount(express.Router(), '/api/app', routers);

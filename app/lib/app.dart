@@ -18,13 +18,15 @@ import 'providers/theme_provider.dart';
 import 'services/api_client.dart';
 import 'services/book_sync_manager.dart';
 import 'widgets/push/push_foreground.dart';
+import 'widgets/routine/routine_alerts.dart';
 
 /// The root widget.
 ///
 /// It builds the router once — rebuilding it would reset the whole navigation
 /// stack — and hands the theme, the localisations and the messenger key to
 /// `MaterialApp`. Nothing else lives here (`PushForeground` draws a push that
-/// arrives while the app is open, so it wraps every screen), apart from two
+/// arrives while the app is open, and `RoutineAlerts` sets the routine's task
+/// alerts, so both wrap every screen), apart from two
 /// errands. When the app opens or comes back to the front, an access token that
 /// is a day old is swapped for a new one (see `ApiClient.renewAccessTokenIfDue`),
 /// and the books on the phone are checked against the server for new text
@@ -79,7 +81,7 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBin
       routerConfig: _router,
       scrollBehavior: const AppScrollBehavior(),
       builder: (context, child) => _SeatedForTheRoom(
-        child: PushForeground(child: child ?? const SizedBox.shrink()),
+        child: RoutineAlerts(child: PushForeground(child: child ?? const SizedBox.shrink())),
       ),
       scaffoldMessengerKey: AppNavigator.instance.messengerKey,
       theme: AppTheme.light,

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "FestivalKind" ADD VALUE IF NOT EXISTS 'PARANA';

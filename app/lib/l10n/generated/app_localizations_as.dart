@@ -491,6 +491,36 @@ class AppLocalizationsAs extends AppLocalizations {
       'স্বয়ংক্ৰিয় গণনা এতিয়া উপলব্ধ নহয়';
 
   @override
+  String get sadhanaAutoCountTimed => 'সময় অনুসৰি গণনা — মাইক্ৰফোন নহয়';
+
+  @override
+  String get chantAutoMicTitle => 'মাইক্ৰফোন ব্যৱহাৰ কৰক';
+
+  @override
+  String get chantAutoMicOn => 'আপোনাৰ জপ শুনি গণনা কৰে';
+
+  @override
+  String get chantAutoMicOff =>
+      'ইয়াৰ সলনি সময় অনুসৰি গণনা কৰে — বেটাৰী ৰাহি হয়';
+
+  @override
+  String get chantPaceTitle => 'এটা জপৰ সময়';
+
+  @override
+  String chantPaceSummary(String seconds, String round) {
+    return 'প্ৰতিটোৰ বাবে $seconds ছেকেণ্ড · এটা মালাত প্ৰায় $round';
+  }
+
+  @override
+  String get chantPaceShorter => 'জপৰ সময় কমাওক';
+
+  @override
+  String get chantPaceLonger => 'জপৰ সময় বঢ়াওক';
+
+  @override
+  String get chantPrayerFallbackName => 'কৃষ্ণক অৰ্পণ';
+
+  @override
   String get chantModelTitle => 'অধিক সঠিকভাৱে শুনা';
 
   @override
@@ -1142,6 +1172,15 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get routineDailyBadge => 'দৈনিক';
+
+  @override
+  String get routineAlertChannelName => 'কামৰ সোঁৱৰণী';
+
+  @override
+  String get routineAlertBody => 'এই কামৰ সময় হৈছে।';
+
+  @override
+  String get routineAlertDone => 'সম্পন্ন বুলি চিহ্নিত কৰক';
 
   @override
   String get routineDailyRemove => 'দৈনিক দিনচৰ্যাৰ পৰা আঁতৰাওক';
@@ -2390,4 +2429,366 @@ class AppLocalizationsAs extends AppLocalizations {
   @override
   String get calendarVaishnavaNote =>
       'বৈষ্ণৱসকলে এই ব্ৰত পিছৰ দিনা পালন কৰিব পাৰে।';
+
+  @override
+  String get supportTitle => 'সহায় আৰু মতামত';
+
+  @override
+  String get supportRaiseTicket => 'টিকেট সৃষ্টি কৰক';
+
+  @override
+  String get supportSendFeedback => 'মতামত পঠিয়াওক';
+
+  @override
+  String get supportMyTickets => 'আপোনাৰ টিকেটবোৰ';
+
+  @override
+  String get supportEmpty => 'আপুনি এতিয়ালৈকে আমাক একো লিখা নাই।';
+
+  @override
+  String get supportCategoryLabel => 'বিষয়';
+
+  @override
+  String get supportCategoryBug => 'কিবা কাম কৰা নাই';
+
+  @override
+  String get supportCategoryPayment => 'পেমেণ্ট বা প্লেন';
+
+  @override
+  String get supportCategoryAccount => 'মোৰ একাউণ্ট';
+
+  @override
+  String get supportCategoryContent => 'এটা শ্লোক, অনুবাদ বা মন্ত্ৰ';
+
+  @override
+  String get supportCategorySuggestion => 'এটা পৰামৰ্শ';
+
+  @override
+  String get supportCategoryOther => 'আন কিবা';
+
+  @override
+  String get supportMessageHint => 'কি হ\'ল আমাক কওক';
+
+  @override
+  String get supportAttachScreenshot => 'স্ক্ৰীণশ্বট সংযোগ কৰক';
+
+  @override
+  String get supportRemoveScreenshot => 'স্ক্ৰীণশ্বট আঁতৰাওক';
+
+  @override
+  String get supportSend => 'পঠিয়াওক';
+
+  @override
+  String get supportSent => 'ধন্যবাদ। আমি ইয়াতেই উত্তৰ দিম।';
+
+  @override
+  String get supportStatusOpen => 'মুকলি';
+
+  @override
+  String get supportStatusInProgress => 'চলি আছে';
+
+  @override
+  String get supportStatusResolved => 'সমাধান হ\'ল';
+
+  @override
+  String get supportReplyHint => 'উত্তৰ লিখক';
+
+  @override
+  String get supportFromSupport => 'সহায় দল';
+
+  @override
+  String get supportYou => 'আপুনি';
+
+  @override
+  String get supportFeedbackTitle => 'আমি কেনে কৰি আছো?';
+
+  @override
+  String get supportFeedbackNoteHint =>
+      'আৰু কিবা যোগ কৰিবলৈ ইচ্ছা কৰিলে লিখক (ঐচ্ছিক)';
+
+  @override
+  String get supportFeedbackThanks => 'আপোনাৰ মতামতৰ বাবে ধন্যবাদ।';
+
+  @override
+  String get supportDeviceNote =>
+      'আমি সোনকালে সহায় কৰিব পাৰিবলৈ আপোনাৰ ফোনৰ মডেল আৰু এপৰ সংস্কৰণ ইয়াৰ লগত পঠোৱা হয়।';
+
+  @override
+  String get supportTicketTitle => 'আপোনাৰ টিকেট';
+
+  @override
+  String get reviewPromptTitle => 'আপোনাৰ হৰিহৰিবোল ভাল লাগিছেনে?';
+
+  @override
+  String get reviewPromptYes => 'হয়, বহুত ভাল লাগে';
+
+  @override
+  String get reviewPromptNo => 'বেছি নহয়';
+
+  @override
+  String get developerChatTitle => 'ডেভেলপাৰৰ সৈতে কথা পাতক';
+
+  @override
+  String get developerChatSubtitle => 'প্ৰশ্ন, পৰামৰ্শ, বা কিবা কাম নকৰিলে';
+
+  @override
+  String get developerChatEmpty =>
+      'এতিয়ালৈকে কোনো বাৰ্তা নাই। নমস্কাৰ জনাওক, উত্তৰ ইয়াতেই পাব।';
+
+  @override
+  String get developerChatHint => 'বাৰ্তা লিখক';
+
+  @override
+  String get developerChatSend => 'পঠিয়াওক';
+
+  @override
+  String get developerChatSending => 'পঠিয়াই আছে…';
+
+  @override
+  String get developerChatNotSent => 'পঠোৱা নহ’ল। পুনৰ চেষ্টা কৰিবলৈ টেপ কৰক।';
+
+  @override
+  String get chatGreeting => 'হৰি বোল, আজি আপোনাৰ মন কেনে আছে?';
+
+  @override
+  String chatGreetingNamed(String name) {
+    return 'হৰি বোল $name, আজি আপোনাৰ মন কেনে আছে?';
+  }
+
+  @override
+  String get chatProfileTitle => 'Sakha-এ কি লক্ষ্য কৰিছে';
+
+  @override
+  String get chatProfileIntro =>
+      'Sakha-এ আপোনাৰ কথোপকথনৰ পৰা আপোনাৰ বিষয়ে কিছু কথা বুজি লয়, যাতে তাৰ উত্তৰ আপোনাৰ বাবে অধিক উপযুক্ত হয়। ই আপোনাৰ হাতত: যিকোনো সময়তে বন্ধ কৰক বা মচি পেলাওক।';
+
+  @override
+  String get chatProfileLearning => 'মোৰ বিষয়ে শিকি থাকক';
+
+  @override
+  String get chatProfileLearningHint =>
+      'ই বন্ধ থাকিলে Sakha-এ নতুন একো লক্ষ্য নকৰে আৰু ইয়াত সংৰক্ষিত কথাবোৰ ব্যৱহাৰ নকৰে।';
+
+  @override
+  String get chatProfileEmpty =>
+      'এতিয়ালৈকে একো লিখা হোৱা নাই। কথোপকথন আগবাঢ়ি যাওঁতে আপুনি কেনে উত্তৰ ভাল পায়, এনে কথা Sakha-এ লিখি ৰাখিব।';
+
+  @override
+  String get chatProfileGender => 'লিংগ';
+
+  @override
+  String get chatProfileAge => 'বয়স';
+
+  @override
+  String get chatProfileBehaviour => 'আপোনাৰ স্বভাৱ';
+
+  @override
+  String get chatProfileLifeStage => 'জীৱনৰ পৰ্যায়';
+
+  @override
+  String get chatProfileSpiritualStage => 'সাধনাৰ পথত';
+
+  @override
+  String get chatProfileCommunication => 'আপুনি কেনে উত্তৰ ভাল পায়';
+
+  @override
+  String get chatProfileNotes => 'আৰু মনত ৰখা কথা';
+
+  @override
+  String get chatProfileKeywords => 'আপোনাৰ কথোপকথন কিহৰ বিষয়ে আছিল';
+
+  @override
+  String get chatProfileKeywordsNote =>
+      'এই শব্দবোৰ কেৱল আপুনিয়ে দেখে। উত্তৰ লিখোঁতে Sakha-এ এইবোৰ কেতিয়াও নপঢ়ে।';
+
+  @override
+  String get chatProfileIssuesNote =>
+      'আজি আপুনি কিহৰ সৈতে যুঁজি আছে সেয়া কলে, Sakha-এ সেয়া কেৱল সেইদিনাৰ বাবে জানে। ইয়াত সংৰক্ষণ কৰা নহয়।';
+
+  @override
+  String get chatProfileDelete => 'Sakha-এ লিখাবোৰ মচি পেলাওক';
+
+  @override
+  String get chatProfileDeleteBody =>
+      'এই পৃষ্ঠাত সংৰক্ষিত সকলো আঁতৰোৱা হ’ব। আপোনাৰ চেট পৰিষ্কাৰ নহ’ব।';
+
+  @override
+  String get etiquetteTitle => 'ভক্তৰ শিষ্টাচাৰ';
+
+  @override
+  String get etiquetteTodayEyebrow => 'আজিৰ শিষ্টাচাৰ';
+
+  @override
+  String get etiquetteHomeSubtitle => 'ভক্তসকলৰ বাবে প্ৰতিদিনে এটা সৰল অভ্যাস';
+
+  @override
+  String get etiquetteEmpty =>
+      'দেখুৱাবলৈ এতিয়াও কোনো শিষ্টাচাৰ নাই। অনুগ্ৰহ কৰি অলপ পিছত পুনৰ চাওক।';
+
+  @override
+  String get etiquetteAll => 'সকলো';
+
+  @override
+  String get etiquetteSourceLabel => 'উৎস';
+
+  @override
+  String get etiquetteAuthorLabel => 'লেখক';
+
+  @override
+  String get etiquetteReferenceLabel => 'সূত্ৰ';
+
+  @override
+  String get etiquetteCategoryTemple => 'মন্দিৰত';
+
+  @override
+  String get etiquetteCategoryDeity => 'শ্ৰীবিগ্ৰহৰ সেৱা';
+
+  @override
+  String get etiquetteCategoryPrasad => 'প্ৰসাদ আৰু আহাৰ';
+
+  @override
+  String get etiquetteCategoryHolyName => 'পবিত্ৰ নাম';
+
+  @override
+  String get etiquetteCategoryGuruVaishnava => 'গুৰু আৰু ভক্তসকল';
+
+  @override
+  String get etiquetteCategorySpeechMind => 'বাক্য আৰু মন';
+
+  @override
+  String get etiquetteCategoryDailyLife => 'দৈনন্দিন জীৱন';
+
+  @override
+  String get etiquetteCategoryScripture => 'শাস্ত্ৰ';
+
+  @override
+  String get etiquetteCategoryHolyPlaces => 'পবিত্ৰ স্থান আৰু দিন';
+
+  @override
+  String get ownMantraAddTitle => 'নিজৰ মন্ত্ৰ যোগ কৰক';
+
+  @override
+  String get ownMantraAddBody =>
+      'আমাৰ তালিকাত নথকা মন্ত্ৰ জপ কৰে নেকি? কোনটো কওক, আমি বিচাৰি উলিয়াম।';
+
+  @override
+  String get ownMantraInputHint => 'মন্ত্ৰ বা দেৱতাৰ নাম লিখক বা কওক';
+
+  @override
+  String get ownMantraWellKnownNote =>
+      'আমি কেৱল সুপৰিচিত দেৱতা আৰু সাধুৰ মন্ত্ৰ যোগ কৰোঁ।';
+
+  @override
+  String get ownMantraMic => 'কৈ জনাওক';
+
+  @override
+  String get ownMantraMicDenied =>
+      'মন্ত্ৰ ক\'বলৈ ফোনৰ ছেটিংছত মাইক্ৰ\'ফোন আৰু কথা চিনাক্তকৰণৰ অনুমতি দিয়ক।';
+
+  @override
+  String get ownMantraFind => 'মন্ত্ৰ বিচাৰক';
+
+  @override
+  String get ownMantraNoneFound =>
+      'ইয়াৰ বাবে আমি কোনো সুপৰিচিত দেৱতা বা সাধুৰ মন্ত্ৰ বিচাৰি পোৱা নাই। আন এটা নাম চেষ্টা কৰক।';
+
+  @override
+  String ownMantraChosenCount(int chosen, int max) {
+    return '$maxটাৰ ভিতৰত $chosenটা বাছনি কৰা হৈছে';
+  }
+
+  @override
+  String get ownMantraAddChosen => 'বাছনি কৰা মন্ত্ৰ যোগ কৰক';
+
+  @override
+  String ownMantraForDeity(String name) {
+    return '$nameৰ বাবে মন্ত্ৰ';
+  }
+
+  @override
+  String ownMantraForSaint(String name) {
+    return '$nameৰ মন্ত্ৰ';
+  }
+
+  @override
+  String get ownMantraStatusShared => 'আন পাঠকে যোগ কৰিছে';
+
+  @override
+  String get ownMantraStatusYours => 'আপোনাৰ তালিকাত আগৰে পৰা আছে';
+
+  @override
+  String get ownMantraStatusCatalog => 'আমাৰ তালিকাত আগৰে পৰা আছে';
+
+  @override
+  String get ownMantraResultCreated => 'আপোনাৰ তালিকাত যোগ কৰা হ\'ল';
+
+  @override
+  String get ownMantraResultShared => 'যোগ কৰা হ\'ল — আন পাঠকৰো আছে';
+
+  @override
+  String get ownMantraResultFailed =>
+      'যোগ কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get ownMantraOpen => 'খোলক';
+
+  @override
+  String get ownMantraChangePicture => 'ছবি সলনি কৰক';
+
+  @override
+  String get ownMantraPictureNote =>
+      'এখন স্পষ্ট, শ্ৰদ্ধাপূৰ্ণ ছবি বাছনি কৰক। এই মন্ত্ৰ ব্যৱহাৰ কৰা পাঠকে ইয়াক দেখিব।';
+
+  @override
+  String get ownMantraPictureSaved => 'ছবি সলনি হ\'ল';
+
+  @override
+  String get ownMantraPictureTooLarge =>
+      'সেই ছবিখন বেছি ডাঙৰ। অনুগ্ৰহ কৰি সৰু এখন বাছনি কৰক।';
+
+  @override
+  String get ownMantraPictureNotUsable =>
+      'সেই ছবিখন ব্যৱহাৰ কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি JPEG, PNG বা WebP ফটো বাছনি কৰক।';
+
+  @override
+  String get ownMantraPictureForbidden =>
+      'এই মন্ত্ৰ যোগ কৰা পাঠকেহে ইয়াৰ ছবি সলনি কৰিব পাৰে।';
+
+  @override
+  String get ownMantraRemove => 'মোৰ তালিকাৰ পৰা আঁতৰাওক';
+
+  @override
+  String get ownMantraRemoveTitle => 'এই মন্ত্ৰ আঁতৰাব নেকি?';
+
+  @override
+  String get ownMantraRemoveBody => 'ই আপোনাৰ তালিকাৰ পৰা আঁতৰি যাব।';
+
+  @override
+  String get ownMantraRemoveConfirm => 'আঁতৰাওক';
+
+  @override
+  String get ownMantraRemoved => 'আপোনাৰ তালিকাৰ পৰা আঁতৰোৱা হ\'ল';
+
+  @override
+  String get ownMantraPrivate => 'ব্যক্তিগত';
+
+  @override
+  String get ownMantraErrorNotUsable =>
+      'আমি এইটো বুজি পোৱা নাই। অনুগ্ৰহ কৰি মন্ত্ৰ বা দেৱতাৰ নাম লিখক বা কওক।';
+
+  @override
+  String get ownMantraErrorLimitReached =>
+      'এতিয়াৰ বাবে আপুনি সীমা পাইছে। অনুগ্ৰহ কৰি পিছত আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get ownMantraErrorUnavailable =>
+      'মন্ত্ৰ যোগ কৰা এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পিছত আকৌ চেষ্টা কৰক।';
+
+  @override
+  String get ownMantraErrorLimit =>
+      'আপোনাৰ নিজৰ মন্ত্ৰৰ তালিকা পূৰ্ণ হৈছে। নতুন যোগ কৰিবলৈ এটা আঁতৰাওক।';
+
+  @override
+  String get ownMantraErrorExpired =>
+      'এই পৰামৰ্শবোৰৰ ম্যাদ শেষ হৈছে। অনুগ্ৰহ কৰি আকৌ বিচাৰক।';
 }

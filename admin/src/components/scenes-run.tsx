@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input, Label, Select } from '@/components/ui/input';
+import { Label } from '@/components/ui/input';
 import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/lib/scenes';
 import { useNow } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
+import { ModelPicker, unusableReasonFor } from './model-picker';
 import { ActivityFeed } from './translation-run-panel';
 import { ProgressBar, StatusBadge, formatCount, formatDuration, timeAgo } from './translation-bits';
 
@@ -180,8 +181,6 @@ export function SceneRunPanel({ run: initial, onOpenChapter, feedHeight = 'max-h
 
 export type StartPreset = { chapters?: number[]; cantos?: number[]; force?: boolean };
 
-const MODEL_HINTS = ['gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
-
 export function StartScenesDialog({ open, onOpenChange, overview, coverage, preset, onStarted }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -208,9 +207,10 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
 
   const chapters: ChapterInfo[] = preset?.chapters ? book.chapters.filter((c) => preset.chapters!.includes(c.id)) : book.chapters.filter((c) => picked.has(c.canto ?? 0));
   const ids = chapters.map((c) => c.id);
-  const estimate = useSceneEstimate(ids, force, open);
+  const estimate = useSceneEstimate(ids, force, provider, model, open);
   const providerInfo = overview.settings.providers.find((p) => p.id === provider);
   const keyMissing = providerInfo && !providerInfo.apiKeyConfigured;
+  const unusable = unusableReasonFor(overview.settings.providers, provider, model);
   const nothing = estimate.data?.willWrite === 0;
 
   const toggle = (canto: number) =>
@@ -243,7 +243,7 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
           <DialogTitle>{preset?.chapters?.length === 1 ? `Write chapter ${chapters[0]?.label}` : 'New scene run'}</DialogTitle>
           <DialogDescription>
             {overview.active.length > 0 && <span className="mb-1 block font-medium text-foreground">A run is going, so this one joins the queue and starts by itself when the others are done.</span>}
-            For each chapter the model reads the Hindi meaning of every verse and writes the scenes: narrator, dialogue and a visual prompt for each. One request a chapter, kept under the model's free limits.
+            For each chapter the model reads the Hindi meaning of every verse and writes the scenes: narrator, dialogue and a visual prompt for each. One request a chapter; any of the three providers can write them, and a Gemini run is kept under the free tier's limits.
           </DialogDescription>
         </DialogHeader>
 
@@ -292,38 +292,16 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
             </span>
           </label>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="scene-provider">Provider</Label>
-              <Select
-                id="scene-provider"
-                className="w-full"
-                value={provider}
-                onChange={(ev) => {
-                  setProvider(ev.target.value as ProviderId);
-                  setModel('');
-                }}
-              >
-                {overview.settings.providers.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                    {p.apiKeyConfigured ? '' : ' (no key)'}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="scene-model">Model</Label>
-              <Input id="scene-model" list="scene-models" value={model} onChange={(ev) => setModel(ev.target.value)} placeholder={providerInfo?.defaultModel ?? ''} />
-              {provider === 'gemini' && (
-                <datalist id="scene-models">
-                  {MODEL_HINTS.map((m) => (
-                    <option key={m} value={m} />
-                  ))}
-                </datalist>
-              )}
-            </div>
-          </div>
+          <ModelPicker
+            idPrefix="scene"
+            providers={overview.settings.providers}
+            provider={provider}
+            model={model}
+            onChange={(next) => {
+              setProvider(next.provider as ProviderId);
+              setModel(next.model);
+            }}
+          />
           {keyMissing && (
             <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {providerInfo!.keyEnv} is not set on the server, so {providerInfo!.company} cannot be called.
@@ -349,12 +327,26 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   About {formatCount(e.inputTokens)} input tokens in {formatCount(e.requests)} request{e.requests === 1 ? '' : 's'}
-                  {e.sampled > 0 && <> (≈ {formatCount(e.inputTokensPerChapter)} a chapter, from {e.sampled} sampled)</>}. At {e.limits.rpm} requests and {formatCount(e.limits.tpm)} tokens a minute that takes roughly{' '}
+                  {e.sampled > 0 && <> (≈ {formatCount(e.inputTokensPerChapter)} a chapter, from {e.sampled} sampled)</>}.{' '}
+                  {e.limits.rpm && e.limits.tpm
+                    ? `Gemini's free tier allows ${e.limits.rpm} requests and ${formatCount(e.limits.tpm)} tokens a minute, so the run keeps to that and takes roughly `
+                    : `${providerInfo?.company ?? 'This provider'} has no limit of ours on it (if it reports one, the run waits and carries on), so the time is the model's own, roughly `}
                   {e.minutes < 90 ? `${e.minutes} minute${e.minutes === 1 ? '' : 's'}` : `${(e.minutes / 60).toFixed(1)} hours`}. Output tokens depend on the chapter and are counted as they arrive.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {e.costUsd !== null
+                    ? `About $${e.costUsd < 0.01 ? '<0.01' : e.costUsd.toFixed(2)} for ${e.model}, assuming about ${formatCount(e.outputTokens)} tokens written.`
+                    : `${e.model} has no price in the catalogue, so the cost is not estimated.`}
                 </p>
               </>
             )}
           </div>
+
+          {unusable && (
+            <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {unusable}
+            </p>
+          )}
 
           {problem && (
             <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -367,7 +359,7 @@ export function StartScenesDialog({ open, onOpenChange, overview, coverage, pres
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={submit} disabled={start.isPending || ids.length === 0 || nothing || !!keyMissing}>
+          <Button onClick={submit} disabled={start.isPending || ids.length === 0 || nothing || !!keyMissing || !!unusable}>
             {start.isPending ? <Loader2 className="animate-spin" /> : <Rocket />} {overview.active.length > 0 ? 'Add to queue' : 'Start'}
           </Button>
         </DialogFooter>

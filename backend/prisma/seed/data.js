@@ -10,6 +10,7 @@ import {
   PERMISSIONS,
   SETTING_KEYS,
   SLOKA_DEFAULT_DELIVERY_TIME,
+  ETIQUETTE_DEFAULT_DELIVERY_TIME,
 } from '../../config/constants.js';
 
 // ── Roles ──────────────────────────────────────────────────────────────────
@@ -937,6 +938,7 @@ const settings = [
   // 0 means no cap. Set one before running a batch pass.
   { key: SETTING_KEYS.AI_MONTHLY_BUDGET_MICROS, value: '0' },
   { key: SETTING_KEYS.SLOKA_DELIVERY_TIME, value: SLOKA_DEFAULT_DELIVERY_TIME },
+  { key: SETTING_KEYS.ETIQUETTE_DELIVERY_TIME, value: ETIQUETTE_DEFAULT_DELIVERY_TIME },
   { key: SETTING_KEYS.SIGNUP_ENABLED, value: 'true' },
 ];
 

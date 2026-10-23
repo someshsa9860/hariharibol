@@ -2,7 +2,7 @@ name: hariharibol
 description: "HariHariBol — Vedic verses, mantras and daily sadhana."
 publish_to: "none"
 
-version: 2.0.0+31
+version: 2.0.0+32
 
 environment:
   sdk: ^3.12.2
@@ -22,6 +22,8 @@ dependencies:
 
   # Network.
   dio: ^5.11.1
+  # The websocket the chat with the developer listens on (services/live_socket.dart).
+  web_socket_channel: ^3.0.3
 
   # Storage. Drift for content (relational, searchable, offline),
   # hive_ce for small key-value state, secure storage for tokens.
@@ -94,6 +96,9 @@ dependencies:
   audio_session: ^0.2.4
   archive: ^4.4.0
   flutter_local_notifications: ^22.3.2
+  # A scheduled notification takes a TZDateTime; the routine alerts use it for a
+  # moment in UTC only (lib/services/routine_alert_service.dart).
+  timezone: ^0.11.2
   flutter_markdown_plus: ^1.0.12
   markdown: ^7.3.1
 
@@ -102,6 +107,8 @@ dependencies:
   # (Apple's on iOS, Google's on Android). Both sit behind a service in
   # lib/services/ so the screens can be tested without a phone.
   image_picker: ^1.2.4
+  # The store's own rating sheet: Play In-App Review, iOS SKStoreReviewController.
+  in_app_review: ^2.0.11
   # Music from the phone's own files for a reel made in the share studio
   # (services/reel_music_picker.dart).
   file_picker: ^13.1.0
@@ -113,6 +120,8 @@ dependencies:
   shared_preferences: ^2.5.6
 
 dev_dependencies:
+  # Only so a test can stand in for the websocket (test/fake_live_socket.dart).
+  stream_channel: ^2.1.4
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -120,6 +129,9 @@ dev_dependencies:
   drift_dev: ^2.34.6
   # Only so a test can stand in for the wakelock plugin (test/fake_audio_player.dart).
   wakelock_plus_platform_interface: ^1.7.0
+  # Only so a test can stand in for shared_preferences' async store, where a
+  # routine alert's button press waits (test/routine_alert_ticks_test.dart).
+  shared_preferences_platform_interface: ^2.4.2
 
 flutter:
   uses-material-design: true

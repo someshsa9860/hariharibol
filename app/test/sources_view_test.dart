@@ -2,8 +2,8 @@
 //
 // The page is all copy, so what is tested is that it says what it must — every
 // source, the AI notice, the address to write to — that Prabhupāda's credit
-// follows the same switch as every other place his name would appear, and that
-// no language's longer wording breaks the layout.
+// always shows here even while AppConfig.showAuthorName keeps his name off
+// every other surface, and that no language's longer wording breaks the layout.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -61,14 +61,10 @@ void main() {
     expect(find.textContaining('Cantos 10–12', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets("Prabhupada's credit follows AppConfig.showAuthorName", (tester) async {
+  testWidgets("Prabhupada's credit always shows, regardless of AppConfig.showAuthorName", (tester) async {
     await pumpPage(tester);
 
-    expect(
-      find.textContaining('Bhaktivedanta', skipOffstage: false),
-      AppConfig.showAuthorName ? findsOneWidget : findsNothing,
-    );
-    // The rest of the section is there either way.
+    expect(find.textContaining('Bhaktivedanta', skipOffstage: false), findsOneWidget);
     expect(find.textContaining('all rights in it remain', skipOffstage: false), findsOneWidget);
   });
 

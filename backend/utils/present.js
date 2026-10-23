@@ -307,6 +307,13 @@ async function mantra(row, user) {
 
     deity: row.deity ? await s3.presignFields(row.deity, ['imagePath', 'fullImagePath']) : null,
     guru: row.guru ? await s3.presignFields(row.guru, ['imagePath']) : null,
+
+    // A mantra a reader added is PRIVATE until enough readers hold it (config/mantra-own.js); `isMine` says this
+    // reader is the one who added it, who alone may change its picture. The picture is the reader's upload, else
+    // the public one we found, else none (the app then shows the deity's).
+    mantraType: row.mantraType ?? 'PUBLIC',
+    isMine: Boolean(user) && row.createdById === user.id,
+    imageUrl: row.imagePath ? await s3.presignGet(row.imagePath) : row.imageUrl || null,
   };
 }
 

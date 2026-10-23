@@ -13,7 +13,6 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as ai from '../../services/ai/index.js';
 import * as freeTier from '../../services/ai/free-tier.js';
-import * as translations from '../../services/translation.js';
 import { queues } from '../../jobs/index.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
@@ -90,17 +89,10 @@ export const spend = async (req, res) => {
 };
 
 // The free-tier switch as the panel shows it: the saved state, today's tally pool by pool and model by model, and what
-// chat and translations would use if they ran this moment — chat as the engines it would try in turn.
+// chat would use if it ran this moment — as the engines it would try in turn.
 async function freeTierState() {
-  const [status, chat, translation] = await Promise.all([freeTier.status(), ai.describeChain('text'), freeTier.check('translation')]);
-  const paidModel = translations.model('openai');
-  return {
-    ...status,
-    now: {
-      chat,
-      translation: { model: translation.model ?? paidModel, paidModel, onFreeTier: Boolean(translation.model), reason: translation.reason },
-    },
-  };
+  const [status, chat] = await Promise.all([freeTier.status(), ai.describeChain('text')]);
+  return { ...status, now: { chat } };
 }
 
 const pickBonus = ({ poolTokens, maxPerUser }) => ({ poolTokens, maxPerUser });
@@ -108,7 +100,7 @@ const pickBonus = ({ poolTokens, maxPerUser }) => ({ poolTokens, maxPerUser });
 /** GET /api/admin/ai/free-tier */
 export const getFreeTier = async (req, res) => ok(res, await freeTierState());
 
-/** PUT /api/admin/ai/free-tier — the switch, the two models and the daily bonus; a field left out is left alone. */
+/** PUT /api/admin/ai/free-tier — the switch, the chat model and the daily bonus; a field left out is left alone. */
 export const saveFreeTier = async (req, res) => {
   const before = await freeTier.status();
   await freeTier.save(req.valid.body, req.auth.user.id);

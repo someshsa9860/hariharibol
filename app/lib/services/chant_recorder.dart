@@ -114,6 +114,23 @@ class ChantRecorder {
     return true;
   }
 
+  /// The reader says the round in progress is done, though the counter has not
+  /// reached its end (they chanted on a mala in the hand, a little faster than
+  /// the counter followed). The beads still missing are added now, so the round
+  /// completes and the next tap begins a new one. They are [ChantTapLog.filler]:
+  /// they take no time and no average is worked out from them. Returns how many
+  /// were added; none for a round with no beads, which has nothing to finish.
+  int finishRound() {
+    final missing = beadsPerRound - beadsInMala;
+    if (beadsInMala == 0) return 0;
+    final at = _now();
+    for (var i = 0; i < missing; i++) {
+      _taps.add(ChantTapLog(seq: _taps.length + 1, at: at, gapMs: 0, filler: true));
+    }
+    _dirty.add(malaOf(_taps.last.seq));
+    return missing;
+  }
+
   /// Every round with at least one bead, in order.
   List<ChantMalaLog> get malas {
     final total = _counted;

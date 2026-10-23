@@ -1,5 +1,5 @@
-// OpenAI's free daily tokens, as plain rules: which models have a free pool, how big each pool is, where we stop using
-// it, and which translation parts may be moved onto a free model. Pure functions — no database, no Redis; the switch
+// OpenAI's free daily tokens, as plain rules: which models have a free pool, how big each pool is, and where we stop
+// using it. Pure functions — no database, no Redis; the switch
 // and the day's tally are in services/ai/free-tier.js and services/ai/token-tally.js.
 //
 // An organisation that shares its API traffic with OpenAI (platform.openai.com → Settings → Data controls → Sharing)
@@ -22,11 +22,11 @@ export const POOLS = {
   },
 };
 
-// The models the admin can pick: the ones in a pool whose request parameters openai.js and the translation client
-// already know (no reasoning effort, a plain temperature). A reasoning model in a pool (gpt-5.x, o-series) wants
-// different parameters and has not been run here, so it is not offered. All three are in the big `mini` pool.
+// The models the admin can pick for chat: the ones in a pool whose request parameters openai.js already knows (no
+// reasoning effort, a plain temperature). A reasoning model in a pool (gpt-5.x, o-series) wants different parameters and
+// has not been run here, so it is not offered. All three are in the big `mini` pool. Book translation never uses them.
 export const USABLE_MODELS = ['gpt-4o-mini', 'gpt-4.1-mini', 'gpt-4.1-nano'];
-export const DEFAULT_MODELS = { text: 'gpt-4o-mini', translation: 'gpt-4.1-mini' };
+export const DEFAULT_MODELS = { text: 'gpt-4o-mini' };
 
 // Stop at this share of a pool's limit: other projects on the same OpenAI organisation draw on the pool without us
 // seeing it.
@@ -59,40 +59,4 @@ export function poolUsed(rows, pool) {
     if (String(row.provider).toLowerCase() === 'openai' && poolOf(row.model) === pool) total += (row.inputTokens || 0) + (row.outputTokens || 0);
   }
   return total;
-}
-
-/**
- * May a translation plan entry be moved to the free model? Only the paid default (`paidModel`, GPT-6 Luna unless the
- * server says otherwise) at thinking `off`: a part given another model, a thinking level or another provider was
- * chosen on purpose, and the GPT-4 free models cannot think anyway. A model that already has a pool is free as it is.
- */
-export const isSwappable = (entry, paidModel) =>
-  entry.provider === 'openai' && entry.effort === 'off' && entry.model === paidModel && !poolOf(entry.model);
-
-/** A translation plan with its swappable parts moved to `freeModel` → `{ plan, swapped }`, `swapped` being the parts that moved. */
-export function swapPlan(plan, freeModel, paidModel) {
-  const out = {};
-  const swapped = [];
-  for (const [part, entry] of Object.entries(plan)) {
-    if (isSwappable(entry, paidModel)) {
-      out[part] = { ...entry, model: freeModel };
-      swapped.push(part);
-    } else {
-      out[part] = entry;
-    }
-  }
-  return { plan: out, swapped };
-}
-
-/**
- * Thrown from a translation lane's ask when the free tier stops being available part-way through an attempt (the day's
- * tokens are spent, or the switch was turned off). The processor catches it, puts the run back in the queue, and the next
- * attempt plans again on the paid model.
- */
-export class FreeTierEnded extends Error {
-  constructor(reason) {
-    super(reason === 'off' ? 'The OpenAI free tier was switched off.' : 'OpenAI’s free tokens for today are spent.');
-    this.name = 'FreeTierEnded';
-    this.reason = reason;
-  }
 }

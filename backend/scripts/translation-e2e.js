@@ -39,7 +39,7 @@ import * as service from '../services/translation.js';
 import * as tally from '../services/ai/token-tally.js';
 import { JOBS, queues } from '../jobs/index.js';
 import { abortActiveRuns, processRun, realDeps } from '../jobs/processors/translation.js';
-import { DEFAULT_MODELS } from '../utils/ai-free-tier.js';
+import { poolOf } from '../utils/ai-free-tier.js';
 import { FatalApiError, RefusalError } from './lib/claude-translate-client.js';
 import { chapterKey, saChapterKey } from './lib/claude-translate-source.js';
 import { checkpointKey, langChapterKey } from './lib/claude-translate-store.js';
@@ -171,9 +171,9 @@ const depsWith = (claude) => ({ ...realDeps, apiKey: () => 'e2e-not-a-real-key',
 
 /* ---------- OpenAI's free tokens: the switch, and the day's count ---------- */
 
-// The switch, the free models and today's token count are real data in the dev database and Redis. The run takes them
+// The switch, the free chat model and today's token count are real data in the dev database and Redis. The run takes them
 // over — every run counts its tokens, whatever the model — and puts back exactly what was there.
-const FREE_TIER_SETTINGS = [SETTING_KEYS.AI_FREE_TIER_ENABLED, SETTING_KEYS.AI_FREE_TIER_TEXT_MODEL, SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL];
+const FREE_TIER_SETTINGS = [SETTING_KEYS.AI_FREE_TIER_ENABLED, SETTING_KEYS.AI_FREE_TIER_TEXT_MODEL];
 
 const setFreeTier = (on) => settings.set(SETTING_KEYS.AI_FREE_TIER_ENABLED, on ? 'true' : 'false', { description: 'translation e2e' });
 
@@ -350,8 +350,7 @@ async function main() {
   const tallyBefore = await saveTally();
 
   try {
-    // OpenAI's free tokens are off, and the free model is the default, until a section turns them on.
-    await settings.set(SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL, DEFAULT_MODELS.translation, { description: 'translation e2e' });
+    // OpenAI's free tokens are off until a section turns them on.
     await setFreeTier(false);
     await clearTally();
 
@@ -601,78 +600,45 @@ async function main() {
     }
 
     /* -- 9b. OpenAI's free daily tokens ---------------------------------------------------------------- */
-    section('OpenAI’s free daily tokens');
+    section('OpenAI’s free daily tokens are not used');
     {
-      // Admin → AI usage has a switch for the free tokens OpenAI gives in return for sharing prompts. While it is on and the
-      // day's tokens last, a part that asked for the paid default model is written by the free one, at no cost; when they
-      // run out, the run goes back in the queue and carries on with the paid model from the first verse not saved.
+      // Admin → AI usage has a switch for the free tokens OpenAI gives in return for sharing prompts. It is for chat. A
+      // book translation cannot work within the free models' limits, so a run uses the model its plan names, whatever the
+      // switch says and however many free tokens are left.
       const paid = service.model('openai');
-      const free = DEFAULT_MODELS.translation;
+      const free = 'gpt-4.1-mini'; // a model with a free pool: the one a run used to be moved to
       const wanted = { provider: 'openai', model: paid }; // what a run row says it asked for
       const feedOf = async (row) => (await service.readFeed(row.id, 100)).map((l) => l.text);
       const costs = (n) => n * 500_000; // what fakeClaude reports for each call it answers
       const savedModel = (lang, ch, n) => readSaved(dir, lang, ch)?.verses?.find((v) => v.verseId === `1.${ch}.${n}`)?.aiTranslation?.model;
-      check('(the paid model is not one of the free ones)', paid !== free && paid === 'gpt-6-luna', `${paid} / ${free}`);
+      const noFreeWord = async (row) => !(await feedOf(row)).some((t) => /free (daily )?tokens/i.test(t));
+      check('(the paid model is not one of the free ones)', paid !== free && paid === 'gpt-6-luna' && !poolOf(paid) && Boolean(poolOf(free)), `${paid} / ${free}`);
 
-      // On, with the whole day's tokens to spare: the free model writes it all, and nothing is charged.
+      // On, with the whole day's tokens to spare: the paid model still writes it all, and is charged for it.
       await clearTally();
       await setFreeTier(true);
       const onRow = await newRun('hi', { ...wanted, chapters: [15] });
       const onClaude = fakeClaude();
       const on = await work(onRow, onClaude);
       check('on: the run completes', on.row.status === 'COMPLETED', `${on.row.status}: ${on.row.statusMessage}`);
-      check('on: one client is built, for the free model, at the effort the plan had', same(onClaude.built, [{ provider: 'openai', model: free, effort: 'off' }]), JSON.stringify(onClaude.built));
-      check('on: every verse is asked of the free model', same(onClaude.asked, ['15.1', '15.2']) && onClaude.models.every((m) => m === free), `${onClaude.asked.join(' ')} on ${onClaude.models.join(' ')}`);
-      check('on: the calls cost nothing, though their tokens are counted on the run', on.row.costMicros === 0 && on.row.calls === 2 && on.row.inputTokens === 200 && on.row.outputTokens === 400, `${on.row.costMicros} micros, ${on.row.calls} calls, ${on.row.inputTokens}/${on.row.outputTokens}`);
-      check('on: the day’s tally has them under the free model and none under the paid one', same(await counted(free), { inputTokens: 200, outputTokens: 400, calls: 2 }) && (await counted(paid)).calls === 0, JSON.stringify(await tally.today()));
-      check('on: the row still says what was asked for, and its lane what did the work', on.row.provider === 'openai' && on.row.model === paid && on.row.plan === null && on.row.lanes?.[0]?.model === free, JSON.stringify({ model: on.row.model, lanes: on.row.lanes }));
-      check('on: each verse is stamped with the model that wrote it', savedModel('hi', 15, 1) === free && savedModel('hi', 15, 2) === free, `${savedModel('hi', 15, 1)} ${savedModel('hi', 15, 2)}`);
-      check('on: the feed says the free tokens are being used, and what takes over', (await feedOf(onRow)).some((t) => t.includes(`free daily tokens (${free})`) && t.includes(`${paid} takes over`)), (await feedOf(onRow)).join(' | '));
+      check('on: one client is built, for the paid model, at the effort the plan had', same(onClaude.built, [{ provider: 'openai', model: paid, effort: 'off' }]), JSON.stringify(onClaude.built));
+      check('on: every verse is asked of the paid model', same(onClaude.asked, ['15.1', '15.2']) && onClaude.models.every((m) => m === paid), `${onClaude.asked.join(' ')} on ${onClaude.models.join(' ')}`);
+      check('on: the calls are charged, and their tokens counted on the run', on.row.costMicros === costs(2) && on.row.calls === 2 && on.row.inputTokens === 200 && on.row.outputTokens === 400, `${on.row.costMicros} micros, ${on.row.calls} calls, ${on.row.inputTokens}/${on.row.outputTokens}`);
+      check('on: the day’s tally has them under the paid model and none under a free one', same(await counted(paid), { inputTokens: 200, outputTokens: 400, calls: 2 }) && (await counted(free)).calls === 0, JSON.stringify(await tally.today()));
+      check('on: the row and its lane both name the paid model', on.row.provider === 'openai' && on.row.model === paid && on.row.lanes?.[0]?.model === paid, JSON.stringify({ model: on.row.model, lanes: on.row.lanes }));
+      check('on: each verse is stamped with the paid model', savedModel('hi', 15, 1) === paid && savedModel('hi', 15, 2) === paid, `${savedModel('hi', 15, 1)} ${savedModel('hi', 15, 2)}`);
+      check('on: the feed has no word of free tokens', await noFreeWord(onRow), (await feedOf(onRow)).join(' | '));
 
-      // Off: the same run on the paid model, at its price.
-      await clearTally();
-      await setFreeTier(false);
-      const offRow = await newRun('ta', { ...wanted, chapters: [15] });
-      const offClaude = fakeClaude();
-      const off = await work(offRow, offClaude);
-      check('off: the paid model writes it, and is charged for it', off.row.status === 'COMPLETED' && same(offClaude.built, [{ provider: 'openai', model: paid, effort: 'off' }]) && offClaude.models.every((m) => m === paid) && off.row.costMicros === costs(2), `${off.row.status} ${off.row.costMicros}`);
-      check('off: the tokens are counted under the paid model, none under the free one', same(await counted(paid), { inputTokens: 200, outputTokens: 400, calls: 2 }) && (await counted(free)).calls === 0, JSON.stringify(await tally.today()));
-      check('off: the verses are stamped with the paid model, and the feed has no word of free tokens', savedModel('ta', 15, 1) === paid && !(await feedOf(offRow)).some((t) => /free (daily )?tokens/i.test(t)));
-
-      // On, but the day's tokens are already gone — some of them to chat, on another model of the same pool.
+      // On, and the day's free tokens are already gone: the same, and no talk of them being spent.
       await clearTally();
       await spend('gpt-4o-mini', 2_250_000);
-      await setFreeTier(true);
       const goneRow = await newRun('te', { ...wanted, chapters: [15] });
       const goneClaude = fakeClaude();
       const gone = await work(goneRow, goneClaude);
-      check('spent before it starts: the paid model writes it, at its price', gone.row.status === 'COMPLETED' && goneClaude.models.every((m) => m === paid) && gone.row.costMicros === costs(2), `${gone.row.status} ${goneClaude.models.join(' ')}`);
-      check('spent before it starts: the feed says why', (await feedOf(goneRow)).some((t) => t.includes('free tokens for today are spent') && t.includes(paid)), (await feedOf(goneRow)).join(' | '));
-      check('tokens spent on one model of the pool use up the whole pool’s day', same(await counted('gpt-4o-mini'), { inputTokens: 2_250_000, outputTokens: 0, calls: 1 }) && (await counted(free)).calls === 0);
+      check('free tokens spent: the paid model writes it, at its price', gone.row.status === 'COMPLETED' && goneClaude.models.every((m) => m === paid) && gone.row.costMicros === costs(2), `${gone.row.status} ${goneClaude.models.join(' ')}`);
+      check('free tokens spent: the feed does not mention them', await noFreeWord(goneRow), (await feedOf(goneRow)).join(' | '));
 
-      // They run out part-way through: the run is handed back to the queue at once, and the next attempt carries on, paid.
-      await clearTally();
-      await setFreeTier(true);
-      const halfRow = await newRun('hi', { ...wanted, chapters: [16] });
-      const halfClaude = fakeClaude(async ({ asked: so }) => {
-        if (so.length === 1) await spend(free, 2_250_000); // while the first verse is being written, the rest of the day goes elsewhere
-      });
-      const half = await work(halfRow, halfClaude);
-      check('spent half way: the job is handed back to the queue to start again at once', half.delayed && half.job.delayedTo >= Date.now() - 1000 && half.job.delayedTo < Date.now() + 10_000, String(half.job.delayedTo));
-      check('spent half way: the run is QUEUED — not paused, not failed — with the verse it saved', half.row.status === 'QUEUED' && half.row.pauseReason === null && half.row.finishedAt === null && half.row.doneVerses === 1 && half.row.retriesInARow === 0, `${half.row.status}/${half.row.pauseReason} ${half.row.doneVerses}`);
-      check('spent half way: it says the tokens are spent and what carries on', /spent/.test(half.row.statusMessage) && half.row.statusMessage.includes(paid), half.row.statusMessage);
-      check('spent half way: nothing was sent once the tokens had gone', same(halfClaude.asked, ['16.1']), halfClaude.asked.join(' '));
-      check('spent half way: the first verse is saved, stamped with the free model', savedModel('hi', 16, 1) === free && savedModel('hi', 16, 2) === undefined, `${savedModel('hi', 16, 1)}`);
-
-      const halfRest = fakeClaude();
-      const halfDone = await work(await reload(halfRow.id), halfRest);
-      check('then: the next attempt writes only the verse left, with the paid model', halfDone.row.status === 'COMPLETED' && same(halfRest.asked, ['16.2']) && same(halfRest.models, [paid]) && same(halfRest.built, [{ provider: 'openai', model: paid, effort: 'off' }]), `${halfDone.row.status} ${halfRest.asked.join(' ')} on ${halfRest.models.join(' ')}`);
-      check('then: both verses count, and only the paid one cost anything', halfDone.row.doneVerses === 2 && halfDone.row.totalVerses === 2 && halfDone.row.costMicros === costs(1) && halfDone.row.calls === 2, `${halfDone.row.doneVerses}/${halfDone.row.totalVerses} ${halfDone.row.costMicros} micros ${halfDone.row.calls} calls`);
-      check('then: each verse says which model wrote it', savedModel('hi', 16, 1) === free && savedModel('hi', 16, 2) === paid, `${savedModel('hi', 16, 1)} ${savedModel('hi', 16, 2)}`);
-      check('then: the paid model’s tokens are counted under it', same(await counted(paid), { inputTokens: 100, outputTokens: 200, calls: 1 }), JSON.stringify(await tally.today()));
-      check('then: the attempts are counted', halfDone.row.attempts === 2, String(halfDone.row.attempts));
-
-      // The switch is turned off while a run works: the same hand-over, and it says it was switched off.
+      // The switch is turned off while a run works: nothing changes — the run is not handed back to the queue.
       await clearTally();
       await setFreeTier(true);
       const flipRow = await newRun('kn', { ...wanted, chapters: [17] });
@@ -680,13 +646,10 @@ async function main() {
         if (so.length === 1) await setFreeTier(false);
       });
       const flip = await work(flipRow, flipClaude);
-      check('switched off half way: the run is handed back, QUEUED, with its first verse', flip.delayed && flip.row.status === 'QUEUED' && flip.row.doneVerses === 1 && same(flipClaude.asked, ['17.1']), `${flip.row.status} ${flip.row.doneVerses} ${flipClaude.asked.join(' ')}`);
-      check('switched off half way: it says so', /switched off/.test(flip.row.statusMessage) && flip.row.statusMessage.includes(paid), flip.row.statusMessage);
-      const flipRest = fakeClaude();
-      const flipDone = await work(await reload(flipRow.id), flipRest);
-      check('switched off half way: the paid model finishes it, with no claim that tokens ran out', flipDone.row.status === 'COMPLETED' && same(flipRest.models, [paid]) && !(await feedOf(flipRow)).some((t) => /tokens for today are spent/.test(t)), `${flipDone.row.status} ${flipRest.models.join(' ')}`);
+      check('switched off half way: the run just carries on and completes', !flip.delayed && flip.row.status === 'COMPLETED' && same(flipClaude.asked, ['17.1', '17.2']) && flipClaude.models.every((m) => m === paid), `${flip.row.status} ${flipClaude.asked.join(' ')}`);
+      check('switched off half way: one attempt, nothing said about the switch', flip.row.attempts === 1 && !/switched off/.test(flip.row.statusMessage || ''), `${flip.row.attempts} ${flip.row.statusMessage}`);
 
-      // A plan that sends one part to another company: that part stays where it was, the OpenAI parts move.
+      // A plan that sends one part to another company: both lanes stay where the plan put them.
       await clearTally();
       await setFreeTier(true);
       const mixedPlan = {
@@ -699,21 +662,8 @@ async function main() {
       const mixedClaude = fakeClaude();
       const mixed = await work(mixedRow, mixedClaude);
       check('a plan with another company’s part: it completes', mixed.row.status === 'COMPLETED', `${mixed.row.status}: ${mixed.row.statusMessage}`);
-      check('a plan with another company’s part: two lanes, the OpenAI one moved and the other left alone', same(mixedClaude.built.map((b) => `${b.provider}|${b.model}`).sort(), ['anthropic|claude-sonnet-5-5', `openai|${free}`]), JSON.stringify(mixedClaude.built));
-      check('a plan with another company’s part: only its calls cost anything', mixed.row.costMicros === costs(1), `${mixed.row.costMicros} micros`);
-      check('a plan with another company’s part: both models are in the day’s tally', same(await counted(free), { inputTokens: 200, outputTokens: 400, calls: 2 }) && same(await counted('claude-sonnet-5-5', 'anthropic'), { inputTokens: 100, outputTokens: 200, calls: 1 }), JSON.stringify(await tally.today()));
-      const mixedVerse = readSaved(dir, 'ta', 16)?.verses?.find((v) => v.verseId === '1.16.1')?.aiTranslation?.parts;
-      check('a plan with another company’s part: each part is stamped with the model that wrote it', mixedVerse?.translation?.model === free && mixedVerse?.wordMeanings?.model === free && mixedVerse?.purport?.model === 'claude-sonnet-5-5', JSON.stringify(Object.fromEntries(Object.entries(mixedVerse || {}).map(([part, s]) => [part, s.model]))));
-
-      // A part that asks for reasoning is not moved: the free models do not reason.
-      await clearTally();
-      await setFreeTier(true);
-      const thinking = Object.fromEntries(['translation', 'transliteration', 'wordMeanings', 'purport'].map((part) => [part, { ...wanted, effort: 'low' }]));
-      const thinkRow = await newRun('bn', { ...wanted, plan: thinking, chapters: [15] });
-      const thinkClaude = fakeClaude();
-      const think = await work(thinkRow, thinkClaude);
-      check('a part that asks for reasoning stays on the paid model', think.row.status === 'COMPLETED' && same(thinkClaude.built, [{ provider: 'openai', model: paid, effort: 'low' }]) && think.row.costMicros === costs(2), `${think.row.status} ${JSON.stringify(thinkClaude.built)}`);
-      check('and the feed does not claim otherwise', !(await feedOf(thinkRow)).some((t) => /free (daily )?tokens/i.test(t)), (await feedOf(thinkRow)).join(' | '));
+      check('a plan with another company’s part: two lanes, each on the model the plan named', same(mixedClaude.built.map((b) => `${b.provider}|${b.model}`).sort(), ['anthropic|claude-sonnet-5-5', `openai|${paid}`]), JSON.stringify(mixedClaude.built));
+      check('a plan with another company’s part: both models are in the day’s tally, no free one', same(await counted(paid), { inputTokens: 200, outputTokens: 400, calls: 2 }) && same(await counted('claude-sonnet-5-5', 'anthropic'), { inputTokens: 100, outputTokens: 200, calls: 1 }) && (await counted(free)).calls === 0, JSON.stringify(await tally.today()));
 
       await setFreeTier(false);
       await settle();

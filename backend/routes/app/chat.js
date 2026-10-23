@@ -4,6 +4,7 @@ import { IMAGE_UPLOAD_MAX_BYTES } from '../../config/chat.js';
 import { createRouter, z, schemas } from '../../utils/router.js';
 import { AppError } from '../../utils/errors.js';
 import * as controller from '../../controllers/app/chat.js';
+import * as profile from '../../controllers/app/chat-profile.js';
 
 const router = createRouter({
   tag: 'Chat',
@@ -39,6 +40,49 @@ router.get(
     responds: { 200: 'Description, credits and limits' },
   },
   controller.getStatus
+);
+
+router.get(
+  '/profile',
+  {
+    summary: 'What Sakha has noticed about me',
+    description:
+      'The character profile Sakha keeps across all chats, all of it: `traits` (gender, age, behaviour, lifeStage, ' +
+      'spiritualStage, communication — short phrases — and `notes`, a short list), `keywords` (what the messages were ' +
+      'about; never sent to the model) and `learning` (false once switched off). Traits are read once per message by ' +
+      'the cheap model and go into later prompts; clearing the chat does not clear them. An empty profile is ' +
+      '`traits: {}`, `keywords: []`.',
+    limit: 'read',
+    responds: { 200: 'The profile' },
+  },
+  profile.get
+);
+
+router.patch(
+  '/profile',
+  {
+    summary: 'Switch Sakha’s noticing on or off',
+    description:
+      'Off: no more messages are read, and what is stored is not used in prompts. It stays until deleted. ' +
+      '409 for a moment while a message is being read.',
+    limit: 'write',
+    body: z.object({ learning: z.boolean() }),
+    responds: { 200: 'The profile', 409: 'Try again in a moment' },
+  },
+  profile.update
+);
+
+router.delete(
+  '/profile',
+  {
+    summary: 'Delete what Sakha has noticed about me',
+    description:
+      'Removes the traits and the keywords. The switch is remembered: if learning is on, Sakha starts again from ' +
+      'the next message. 409 for a moment while a message is being read.',
+    limit: 'write',
+    responds: { 204: 'Deleted', 409: 'Try again in a moment' },
+  },
+  profile.remove
 );
 
 router.post(

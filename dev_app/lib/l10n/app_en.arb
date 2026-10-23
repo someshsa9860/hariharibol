@@ -1,0 +1,106 @@
+{
+  "@@locale": "en",
+  "appName": "HariHariBol Dev",
+  "@appName": {
+    "description": "The app's name"
+  },
+  "actionCancel": "Cancel",
+  "actionRetry": "Try again",
+  "tabLive": "Live",
+  "tabChats": "Chats",
+  "tabTickets": "Tickets",
+  "tabSettings": "Settings",
+  "signInTitle": "Owner sign-in",
+  "signInBody": "Server alerts, new sign-ups, feedback and chat with readers. Only accounts with developer access can sign in.",
+  "signInGoogle": "Continue with Google",
+  "signInBusy": "Signing in…",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorNetwork": "No connection. Check the internet and try again.",
+  "errorTimeout": "The server took too long to answer. Try again.",
+  "errorSessionExpired": "You were signed out. Please sign in again.",
+  "errorSignIn": "Could not sign in with Google.",
+  "errorInsecureConnection": "The connection is not secure, so it was refused.",
+  "errorCancelled": "Cancelled.",
+  "errorNotAllowed": "This account does not have developer access.",
+  "statOnline": "Online now",
+  "statUsers": "Readers",
+  "statSignupsToday": "Sign-ups today",
+  "statErrorsHour": "Errors, last hour",
+  "statCriticalHour": "Critical alerts, last hour",
+  "statUnreadChats": "Unread chats",
+  "filterAll": "All",
+  "filterErrors": "Errors",
+  "filterServer": "Server",
+  "filterSignups": "Sign-ups",
+  "filterTickets": "Tickets",
+  "filterFeedback": "Feedback",
+  "filterChats": "Chats",
+  "feedEmpty": "Nothing yet. Events appear here the moment they happen.",
+  "feedNewEvents": "{count, plural, one{1 new} other{{count} new}}",
+  "@feedNewEvents": {
+    "description": "The chip above the feed when events arrived live",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventDetails": "Details",
+  "socketLive": "Live",
+  "socketConnecting": "Connecting…",
+  "socketOffline": "Offline, retrying",
+  "socketForbidden": "No access to the live feed",
+  "socketIdle": "Not connected",
+  "typeErrorNew": "New error",
+  "typeErrorSpike": "Error spike",
+  "typeHealth": "Server alert",
+  "typeSignup": "New sign-up",
+  "typeTicket": "New ticket",
+  "typeTicketReply": "Ticket reply",
+  "typeFeedback": "New feedback",
+  "typeChat": "Chat message",
+  "chatsEmpty": "No conversations yet. Readers can write to you from the reader app.",
+  "chatNew": "New message",
+  "chatSearchHint": "Find a reader by name or email",
+  "chatSearchPrompt": "Type at least two letters.",
+  "chatNoResults": "No readers found.",
+  "chatFirstMessageTitle": "Message to {name}",
+  "@chatFirstMessageTitle": {
+    "description": "Title of the dialog for the first message to a reader",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSend": "Send",
+  "chatComposerHint": "Write a message",
+  "chatSending": "Sending…",
+  "chatNotSent": "Not sent. Tap to try again.",
+  "ticketFilterOpen": "Open",
+  "ticketFilterProgress": "In progress",
+  "ticketFilterResolved": "Resolved",
+  "ticketFilterFeedback": "Feedback",
+  "ticketsEmpty": "Nothing here.",
+  "ticketsNoAccess": "This account can read the live feed and chats, but not support tickets (it needs the support.manage permission).",
+  "ticketFeedbackTitle": "{rating, plural, one{Feedback: 1 star} other{Feedback: {rating} stars}}",
+  "@ticketFeedbackTitle": {
+    "description": "Title of a feedback row",
+    "placeholders": {
+      "rating": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketSetStatus": "Set status",
+  "settingsPush": "Push notifications",
+  "settingsPushHelp": "Used only when the app is closed or in the background. While it is open, everything arrives live.",
+  "settingsMuted": "Leave out of pushes",
+  "settingsMutedHelp": "These still appear in the feed. Server alerts always push.",
+  "settingsServer": "Server",
+  "settingsVersion": "Version",
+  "settingsSignOut": "Sign out",
+  "settingsSignOutBody": "You will stop receiving alerts on this phone.",
+  "timeJustNow": "Just now",
+  "timeYesterday": "Yesterday"
+}

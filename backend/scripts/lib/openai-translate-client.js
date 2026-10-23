@@ -20,6 +20,9 @@ const PRICING = {
   'gpt-4.1-nano': { input: 0.1, output: 0.4, cacheRead: 0.025 },
 };
 
+/** The models priced above, for the admin panel's model lists. Others still run when typed in. */
+export const KNOWN_MODELS = Object.entries(PRICING).map(([id, p]) => ({ id, inputPerMillion: p.input, outputPerMillion: p.output }));
+
 export function costUsd(model, usage) {
   const p = PRICING[model];
   if (!p) return null;

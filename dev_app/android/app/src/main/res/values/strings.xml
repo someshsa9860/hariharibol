@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The two channels the API names in a push (backend/utils/push-message.js). Android 8+ shows a push on a
+         channel the app has not created on a generic fallback channel, which is neither loud nor quiet. They are
+         created in MainActivity. -->
+    <string name="channel_alerts_name">Alerts</string>
+    <string name="channel_alerts_description">Errors, outages, readers\' messages and tickets — shown on screen with a sound.</string>
+    <string name="channel_updates_name">Updates</string>
+    <string name="channel_updates_description">Sign-ups, feedback and other summaries — quiet.</string>
+</resources>

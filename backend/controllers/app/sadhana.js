@@ -25,6 +25,7 @@ import { localDateString, toDateColumn, shiftDays, dateRange, isValidDateString 
 import { BEADS_PER_ROUND, DEFAULT_ROUND_TARGET, CHANT_TRANSCRIPT_TTL_DAYS } from '../../config/constants.js';
 import * as websocket from '../../services/websocket.js';
 import * as sampradaya from '../../services/sampradaya.js';
+import { visibleTo } from '../../utils/mantra-visibility.js';
 
 /**
  * The day row for a user's local date, created on first touch.
@@ -129,9 +130,9 @@ async function favouriteMantra(user, mantraStub) {
     .map((g) => ({ id: g.mantraId, rounds: g._sum.rounds || 0, sessions: g._count._all }))
     .sort((a, b) => b.rounds - a.rounds || b.sessions - a.sessions);
 
-  // The top one may have been unpublished since; fall through to the next.
+  // The top one may have been unpublished since (or be a private mantra the reader no longer holds); fall through to the next.
   for (const { id } of ranked.slice(0, 5)) {
-    const mantra = await prisma.mantra.findFirst({ where: { id, isPublished: true }, ...mantraStub });
+    const mantra = await prisma.mantra.findFirst({ where: { id, AND: [visibleTo(user)] }, ...mantraStub });
     if (mantra) return mantra;
   }
 

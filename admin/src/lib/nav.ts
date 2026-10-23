@@ -8,6 +8,7 @@ import {
   Music,
   Clapperboard,
   UserCheck,
+  LifeBuoy,
   Library,
   Sun,
   CreditCard,
@@ -24,6 +25,7 @@ import {
   Film,
   MessageCircle,
   CalendarDays,
+  Flower2,
   Terminal,
   type LucideIcon,
 } from 'lucide-react';
@@ -60,6 +62,7 @@ export const NAV: NavSection[] = [
       { label: 'Reference data', path: '/reference', icon: Library, permission: 'reference.manage' },
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
       { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
+      { label: 'Devotee etiquette', path: '/etiquette', icon: Flower2, permission: 'etiquette.manage' },
     ],
   },
   {
@@ -68,6 +71,7 @@ export const NAV: NavSection[] = [
       { label: 'Users', path: '/users', icon: Users, permission: 'user.read' },
       { label: 'Admins', path: '/admins', icon: ShieldPlus, permission: 'role.manage' },
       { label: 'Creators', path: '/creators', icon: UserCheck, permission: 'creator.manage' },
+      { label: 'Support', path: '/support', icon: LifeBuoy, permission: 'support.manage' },
       { label: 'Roles & permissions', path: '/roles', icon: ShieldCheck, permission: 'role.manage' },
     ],
   },

@@ -489,6 +489,36 @@ class AppLocalizationsKn extends AppLocalizations {
   String get sadhanaAutoCountUnavailable => 'ಸ್ವಯಂ ಎಣಿಕೆ ಈಗ ಲಭ್ಯವಿಲ್ಲ';
 
   @override
+  String get sadhanaAutoCountTimed => 'ಸಮಯದಿಂದ ಎಣಿಕೆ — ಮೈಕ್ರೋಫೋನ್ ಇಲ್ಲ';
+
+  @override
+  String get chantAutoMicTitle => 'ಮೈಕ್ರೋಫೋನ್ ಬಳಸಿ';
+
+  @override
+  String get chantAutoMicOn => 'ನಿಮ್ಮ ಜಪವನ್ನು ಆಲಿಸಿ ಎಣಿಸುತ್ತದೆ';
+
+  @override
+  String get chantAutoMicOff =>
+      'ಬದಲಿಗೆ ಸಮಯದಿಂದ ಎಣಿಸುತ್ತದೆ — ಬ್ಯಾಟರಿ ಉಳಿಯುತ್ತದೆ';
+
+  @override
+  String get chantPaceTitle => 'ಒಂದು ಜಪದ ಸಮಯ';
+
+  @override
+  String chantPaceSummary(String seconds, String round) {
+    return 'ಒಂದಕ್ಕೆ $seconds ಸೆ · ಒಂದು ಮಾಲೆಗೆ ಸುಮಾರು $round';
+  }
+
+  @override
+  String get chantPaceShorter => 'ಜಪದ ಸಮಯ ಕಡಿಮೆ ಮಾಡಿ';
+
+  @override
+  String get chantPaceLonger => 'ಜಪದ ಸಮಯ ಹೆಚ್ಚಿಸಿ';
+
+  @override
+  String get chantPrayerFallbackName => 'ಕೃಷ್ಣನಿಗೆ ಅರ್ಪಣೆ';
+
+  @override
   String get chantModelTitle => 'ಹೆಚ್ಚು ನಿಖರವಾದ ಆಲಿಸುವಿಕೆ';
 
   @override
@@ -1142,6 +1172,15 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get routineDailyBadge => 'ಪ್ರತಿದಿನ';
+
+  @override
+  String get routineAlertChannelName => 'ಕೆಲಸದ ಜ್ಞಾಪನೆಗಳು';
+
+  @override
+  String get routineAlertBody => 'ಈ ಕೆಲಸದ ಸಮಯ ಬಂದಿದೆ.';
+
+  @override
+  String get routineAlertDone => 'ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಿ';
 
   @override
   String get routineDailyRemove => 'ದೈನಂದಿನ ದಿನಚರಿಯಿಂದ ತೆಗೆದುಹಾಕಿ';
@@ -2389,4 +2428,369 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get calendarVaishnavaNote => 'ವೈಷ್ಣವರು ಈ ವ್ರತವನ್ನು ಮರುದಿನ ಆಚರಿಸಬಹುದು.';
+
+  @override
+  String get supportTitle => 'ಸಹಾಯ ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ';
+
+  @override
+  String get supportRaiseTicket => 'ಟಿಕೆಟ್ ರಚಿಸಿ';
+
+  @override
+  String get supportSendFeedback => 'ಪ್ರತಿಕ್ರಿಯೆ ಕಳುಹಿಸಿ';
+
+  @override
+  String get supportMyTickets => 'ನಿಮ್ಮ ಟಿಕೆಟ್‌ಗಳು';
+
+  @override
+  String get supportEmpty => 'ನೀವು ಇನ್ನೂ ನಮಗೆ ಏನನ್ನೂ ಬರೆದಿಲ್ಲ.';
+
+  @override
+  String get supportCategoryLabel => 'ವಿಷಯ';
+
+  @override
+  String get supportCategoryBug => 'ಏನೋ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ';
+
+  @override
+  String get supportCategoryPayment => 'ಪಾವತಿ ಅಥವಾ ಯೋಜನೆ';
+
+  @override
+  String get supportCategoryAccount => 'ನನ್ನ ಖಾತೆ';
+
+  @override
+  String get supportCategoryContent => 'ಒಂದು ಶ್ಲೋಕ, ಅನುವಾದ ಅಥವಾ ಮಂತ್ರ';
+
+  @override
+  String get supportCategorySuggestion => 'ಒಂದು ಸಲಹೆ';
+
+  @override
+  String get supportCategoryOther => 'ಇನ್ನೇನೋ';
+
+  @override
+  String get supportMessageHint => 'ಏನಾಯಿತು ಎಂದು ನಮಗೆ ತಿಳಿಸಿ';
+
+  @override
+  String get supportAttachScreenshot => 'ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಲಗತ್ತಿಸಿ';
+
+  @override
+  String get supportRemoveScreenshot => 'ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ತೆಗೆಯಿರಿ';
+
+  @override
+  String get supportSend => 'ಕಳುಹಿಸಿ';
+
+  @override
+  String get supportSent => 'ಧನ್ಯವಾದಗಳು. ನಾವು ಇಲ್ಲಿಯೇ ಉತ್ತರಿಸುತ್ತೇವೆ.';
+
+  @override
+  String get supportStatusOpen => 'ತೆರೆದಿದೆ';
+
+  @override
+  String get supportStatusInProgress => 'ನಡೆಯುತ್ತಿದೆ';
+
+  @override
+  String get supportStatusResolved => 'ಪರಿಹರಿಸಲಾಗಿದೆ';
+
+  @override
+  String get supportReplyHint => 'ಉತ್ತರ ಬರೆಯಿರಿ';
+
+  @override
+  String get supportFromSupport => 'ಸಹಾಯ ತಂಡ';
+
+  @override
+  String get supportYou => 'ನೀವು';
+
+  @override
+  String get supportFeedbackTitle => 'ನಾವು ಹೇಗೆ ಮಾಡುತ್ತಿದ್ದೇವೆ?';
+
+  @override
+  String get supportFeedbackNoteHint =>
+      'ಇನ್ನೇನಾದರೂ ಸೇರಿಸಲು ಬಯಸಿದರೆ ಬರೆಯಿರಿ (ಐಚ್ಛಿಕ)';
+
+  @override
+  String get supportFeedbackThanks => 'ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಗೆ ಧನ್ಯವಾದಗಳು.';
+
+  @override
+  String get supportDeviceNote =>
+      'ನಾವು ಬೇಗ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮ ಫೋನ್ ಮಾದರಿ ಮತ್ತು ಆ್ಯಪ್ ಆವೃತ್ತಿಯನ್ನು ಇದರೊಂದಿಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.';
+
+  @override
+  String get supportTicketTitle => 'ನಿಮ್ಮ ಟಿಕೆಟ್';
+
+  @override
+  String get reviewPromptTitle => 'ನಿಮಗೆ ಹರಿಹರಿಬೋಲ್ ಇಷ್ಟವಾಗುತ್ತಿದೆಯೇ?';
+
+  @override
+  String get reviewPromptYes => 'ಹೌದು, ತುಂಬಾ ಇಷ್ಟ';
+
+  @override
+  String get reviewPromptNo => 'ಹೆಚ್ಚು ಅಲ್ಲ';
+
+  @override
+  String get developerChatTitle => 'ಡೆವಲಪರ್ ಜೊತೆ ಮಾತನಾಡಿ';
+
+  @override
+  String get developerChatSubtitle =>
+      'ಪ್ರಶ್ನೆಗಳು, ಸಲಹೆಗಳು, ಅಥವಾ ಏನಾದರೂ ಕೆಲಸ ಮಾಡದಿದ್ದರೆ';
+
+  @override
+  String get developerChatEmpty =>
+      'ಇನ್ನೂ ಸಂದೇಶಗಳಿಲ್ಲ. ನಮಸ್ಕಾರ ಹೇಳಿ, ಉತ್ತರ ಇಲ್ಲಿಯೇ ಬರುತ್ತದೆ.';
+
+  @override
+  String get developerChatHint => 'ಸಂದೇಶ ಬರೆಯಿರಿ';
+
+  @override
+  String get developerChatSend => 'ಕಳುಹಿಸಿ';
+
+  @override
+  String get developerChatSending => 'ಕಳುಹಿಸುತ್ತಿದೆ…';
+
+  @override
+  String get developerChatNotSent =>
+      'ಕಳುಹಿಸಲಾಗಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.';
+
+  @override
+  String get chatGreeting => 'ಹರಿ ಬೋಲ್, ಇಂದು ನಿಮ್ಮ ಮನಸ್ಸು ಹೇಗಿದೆ?';
+
+  @override
+  String chatGreetingNamed(String name) {
+    return 'ಹರಿ ಬೋಲ್ $name, ಇಂದು ನಿಮ್ಮ ಮನಸ್ಸು ಹೇಗಿದೆ?';
+  }
+
+  @override
+  String get chatProfileTitle => 'Sakha ಏನನ್ನು ಗಮನಿಸಿದ್ದಾರೆ';
+
+  @override
+  String get chatProfileIntro =>
+      'Sakha ನಿಮ್ಮ ಸಂಭಾಷಣೆಗಳಿಂದ ನಿಮ್ಮ ಬಗ್ಗೆ ಕೆಲವು ವಿಷಯಗಳನ್ನು ತಿಳಿದುಕೊಳ್ಳುತ್ತಾರೆ, ಇದರಿಂದ ಅವರ ಉತ್ತರಗಳು ನಿಮಗೆ ಹೆಚ್ಚು ಹೊಂದುತ್ತವೆ. ಇದು ನಿಮ್ಮ ಕೈಯಲ್ಲಿದೆ: ಬೇಕಾದಾಗ ಇದನ್ನು ಆಫ್ ಮಾಡಿ ಅಥವಾ ಅಳಿಸಿ.';
+
+  @override
+  String get chatProfileLearning => 'ನನ್ನ ಬಗ್ಗೆ ತಿಳಿದುಕೊಳ್ಳುತ್ತಲೇ ಇರಿ';
+
+  @override
+  String get chatProfileLearningHint =>
+      'ಇದು ಆಫ್ ಆಗಿದ್ದರೆ Sakha ಹೊಸದನ್ನು ಗಮನಿಸುವುದಿಲ್ಲ ಮತ್ತು ಇಲ್ಲಿ ಉಳಿಸಿದ ಸಂಗತಿಗಳನ್ನು ಬಳಸುವುದಿಲ್ಲ.';
+
+  @override
+  String get chatProfileEmpty =>
+      'ಇನ್ನೂ ಏನೂ ದಾಖಲಾಗಿಲ್ಲ. ಸಂಭಾಷಣೆ ಮುಂದುವರಿದಂತೆ ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಉತ್ತರಗಳು ಇಷ್ಟ ಎಂಬಂತಹ ಸಂಗತಿಗಳನ್ನು Sakha ದಾಖಲಿಸುತ್ತಾರೆ.';
+
+  @override
+  String get chatProfileGender => 'ಲಿಂಗ';
+
+  @override
+  String get chatProfileAge => 'ವಯಸ್ಸು';
+
+  @override
+  String get chatProfileBehaviour => 'ನಿಮ್ಮ ಸ್ವಭಾವ';
+
+  @override
+  String get chatProfileLifeStage => 'ಜೀವನದ ಹಂತ';
+
+  @override
+  String get chatProfileSpiritualStage => 'ಸಾಧನೆಯ ದಾರಿಯಲ್ಲಿ';
+
+  @override
+  String get chatProfileCommunication => 'ನಿಮಗೆ ಇಷ್ಟವಾಗುವ ಉತ್ತರದ ರೀತಿ';
+
+  @override
+  String get chatProfileNotes => 'ಇನ್ನೂ ನೆನಪಿನಲ್ಲಿಟ್ಟದ್ದು';
+
+  @override
+  String get chatProfileKeywords => 'ನಿಮ್ಮ ಸಂಭಾಷಣೆಗಳು ಯಾವುದರ ಬಗ್ಗೆ ಇದ್ದವು';
+
+  @override
+  String get chatProfileKeywordsNote =>
+      'ಈ ಪದಗಳು ನಿಮಗೆ ಮಾತ್ರ ಕಾಣಿಸುತ್ತವೆ. ಉತ್ತರ ಬರೆಯುವಾಗ Sakha ಇವನ್ನು ಎಂದಿಗೂ ಓದುವುದಿಲ್ಲ.';
+
+  @override
+  String get chatProfileIssuesNote =>
+      'ಇಂದು ನೀವು ಯಾವುದರೊಂದಿಗೆ ಹೋರಾಡುತ್ತಿದ್ದೀರಿ ಎಂದು ಹೇಳಿದರೆ, Sakha ಅವರಿಗೆ ಅದು ಆ ದಿನಕ್ಕೆ ಮಾತ್ರ ತಿಳಿಯುತ್ತದೆ. ಅದನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ.';
+
+  @override
+  String get chatProfileDelete => 'Sakha ದಾಖಲಿಸಿದ್ದನ್ನು ಅಳಿಸಿ';
+
+  @override
+  String get chatProfileDeleteBody =>
+      'ಈ ಪುಟದಲ್ಲಿ ಉಳಿಸಿದ್ದೆಲ್ಲವೂ ತೆಗೆದುಹಾಕಲ್ಪಡುತ್ತದೆ. ನಿಮ್ಮ ಚಾಟ್ ತೆರವಾಗುವುದಿಲ್ಲ.';
+
+  @override
+  String get etiquetteTitle => 'ಭಕ್ತರ ಆಚಾರ';
+
+  @override
+  String get etiquetteTodayEyebrow => 'ಇಂದಿನ ಆಚಾರ';
+
+  @override
+  String get etiquetteHomeSubtitle => 'ಭಕ್ತರಿಗಾಗಿ ಪ್ರತಿದಿನ ಒಂದು ಸರಳ ಅಭ್ಯಾಸ';
+
+  @override
+  String get etiquetteEmpty =>
+      'ತೋರಿಸಲು ಇನ್ನೂ ಯಾವ ಆಚಾರವೂ ಇಲ್ಲ. ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ನೋಡಿ.';
+
+  @override
+  String get etiquetteAll => 'ಎಲ್ಲವೂ';
+
+  @override
+  String get etiquetteSourceLabel => 'ಮೂಲ';
+
+  @override
+  String get etiquetteAuthorLabel => 'ಲೇಖಕ';
+
+  @override
+  String get etiquetteReferenceLabel => 'ಉಲ್ಲೇಖ';
+
+  @override
+  String get etiquetteCategoryTemple => 'ದೇವಾಲಯದಲ್ಲಿ';
+
+  @override
+  String get etiquetteCategoryDeity => 'ಶ್ರೀವಿಗ್ರಹ ಸೇವೆ';
+
+  @override
+  String get etiquetteCategoryPrasad => 'ಪ್ರಸಾದ ಮತ್ತು ಆಹಾರ';
+
+  @override
+  String get etiquetteCategoryHolyName => 'ಪವಿತ್ರ ನಾಮ';
+
+  @override
+  String get etiquetteCategoryGuruVaishnava => 'ಗುರು ಮತ್ತು ಭಕ್ತರು';
+
+  @override
+  String get etiquetteCategorySpeechMind => 'ಮಾತು ಮತ್ತು ಮನಸ್ಸು';
+
+  @override
+  String get etiquetteCategoryDailyLife => 'ದೈನಂದಿನ ಜೀವನ';
+
+  @override
+  String get etiquetteCategoryScripture => 'ಶಾಸ್ತ್ರ';
+
+  @override
+  String get etiquetteCategoryHolyPlaces => 'ಪವಿತ್ರ ಸ್ಥಳಗಳು ಮತ್ತು ದಿನಗಳು';
+
+  @override
+  String get ownMantraAddTitle => 'ನಿಮ್ಮದೇ ಮಂತ್ರವನ್ನು ಸೇರಿಸಿ';
+
+  @override
+  String get ownMantraAddBody =>
+      'ನಮ್ಮ ಪಟ್ಟಿಯಲ್ಲಿ ಇಲ್ಲದ ಮಂತ್ರವನ್ನು ಜಪಿಸುತ್ತೀರಾ? ಯಾವುದೆಂದು ಹೇಳಿ, ನಾವು ಹುಡುಕುತ್ತೇವೆ.';
+
+  @override
+  String get ownMantraInputHint =>
+      'ಮಂತ್ರ ಅಥವಾ ದೇವತೆಯ ಹೆಸರನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಹೇಳಿ';
+
+  @override
+  String get ownMantraWellKnownNote =>
+      'ನಾವು ಪ್ರಸಿದ್ಧ ದೇವತೆಗಳು ಮತ್ತು ಸಂತರ ಮಂತ್ರಗಳನ್ನು ಮಾತ್ರ ಸೇರಿಸುತ್ತೇವೆ.';
+
+  @override
+  String get ownMantraMic => 'ಹೇಳಿ ತಿಳಿಸಿ';
+
+  @override
+  String get ownMantraMicDenied =>
+      'ಮಂತ್ರ ಹೇಳಲು, ಫೋನ್ ಸೆಟ್ಟಿಂಗ್ಸ್ ನಲ್ಲಿ ಮೈಕ್ರೊಫೋನ್ ಮತ್ತು ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆಗೆ ಅನುಮತಿ ನೀಡಿ.';
+
+  @override
+  String get ownMantraFind => 'ಮಂತ್ರಗಳನ್ನು ಹುಡುಕಿ';
+
+  @override
+  String get ownMantraNoneFound =>
+      'ಇದಕ್ಕೆ ಪ್ರಸಿದ್ಧ ದೇವತೆ ಅಥವಾ ಸಂತರ ಮಂತ್ರ ನಮಗೆ ಸಿಗಲಿಲ್ಲ. ಬೇರೆ ಹೆಸರನ್ನು ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String ownMantraChosenCount(int chosen, int max) {
+    return '$max ರಲ್ಲಿ $chosen ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ';
+  }
+
+  @override
+  String get ownMantraAddChosen => 'ಆಯ್ದ ಮಂತ್ರಗಳನ್ನು ಸೇರಿಸಿ';
+
+  @override
+  String ownMantraForDeity(String name) {
+    return '$nameಗಾಗಿ ಮಂತ್ರ';
+  }
+
+  @override
+  String ownMantraForSaint(String name) {
+    return '$name ಅವರ ಮಂತ್ರ';
+  }
+
+  @override
+  String get ownMantraStatusShared => 'ಇತರ ಓದುಗರು ಸೇರಿಸಿದ್ದಾರೆ';
+
+  @override
+  String get ownMantraStatusYours => 'ಈಗಾಗಲೇ ನಿಮ್ಮ ಪಟ್ಟಿಯಲ್ಲಿದೆ';
+
+  @override
+  String get ownMantraStatusCatalog => 'ಈಗಾಗಲೇ ನಮ್ಮ ಪಟ್ಟಿಯಲ್ಲಿದೆ';
+
+  @override
+  String get ownMantraResultCreated => 'ನಿಮ್ಮ ಪಟ್ಟಿಗೆ ಸೇರಿಸಲಾಗಿದೆ';
+
+  @override
+  String get ownMantraResultShared => 'ಸೇರಿಸಲಾಗಿದೆ — ಇತರ ಓದುಗರ ಬಳಿಯೂ ಇದೆ';
+
+  @override
+  String get ownMantraResultFailed =>
+      'ಸೇರಿಸಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get ownMantraOpen => 'ತೆರೆಯಿರಿ';
+
+  @override
+  String get ownMantraChangePicture => 'ಚಿತ್ರ ಬದಲಿಸಿ';
+
+  @override
+  String get ownMantraPictureNote =>
+      'ಸ್ಪಷ್ಟವಾದ, ಗೌರವಯುತ ಚಿತ್ರವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ. ಈ ಮಂತ್ರವನ್ನು ಹಂಚಿಕೊಳ್ಳುವ ಓದುಗರು ಇದನ್ನು ನೋಡುತ್ತಾರೆ.';
+
+  @override
+  String get ownMantraPictureSaved => 'ಚಿತ್ರ ಬದಲಾಯಿತು';
+
+  @override
+  String get ownMantraPictureTooLarge =>
+      'ಆ ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದು. ದಯವಿಟ್ಟು ಚಿಕ್ಕದನ್ನು ಆಯ್ಕೆ ಮಾಡಿ.';
+
+  @override
+  String get ownMantraPictureNotUsable =>
+      'ಆ ಚಿತ್ರವನ್ನು ಬಳಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು JPEG, PNG ಅಥವಾ WebP ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.';
+
+  @override
+  String get ownMantraPictureForbidden =>
+      'ಈ ಮಂತ್ರವನ್ನು ಸೇರಿಸಿದ ಓದುಗರು ಮಾತ್ರ ಅದರ ಚಿತ್ರವನ್ನು ಬದಲಿಸಬಹುದು.';
+
+  @override
+  String get ownMantraRemove => 'ನನ್ನ ಪಟ್ಟಿಯಿಂದ ತೆಗೆದುಹಾಕಿ';
+
+  @override
+  String get ownMantraRemoveTitle => 'ಈ ಮಂತ್ರವನ್ನು ತೆಗೆದುಹಾಕಬೇಕೆ?';
+
+  @override
+  String get ownMantraRemoveBody => 'ಇದು ನಿಮ್ಮ ಪಟ್ಟಿಯಿಂದ ತೆಗೆದುಹಾಕಲ್ಪಡುತ್ತದೆ.';
+
+  @override
+  String get ownMantraRemoveConfirm => 'ತೆಗೆದುಹಾಕಿ';
+
+  @override
+  String get ownMantraRemoved => 'ನಿಮ್ಮ ಪಟ್ಟಿಯಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ';
+
+  @override
+  String get ownMantraPrivate => 'ಖಾಸಗಿ';
+
+  @override
+  String get ownMantraErrorNotUsable =>
+      'ನಮಗೆ ಅರ್ಥವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮಂತ್ರ ಅಥವಾ ದೇವತೆಯ ಹೆಸರನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಹೇಳಿ.';
+
+  @override
+  String get ownMantraErrorLimitReached =>
+      'ಸದ್ಯಕ್ಕೆ ನೀವು ಮಿತಿ ತಲುಪಿದ್ದೀರಿ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get ownMantraErrorUnavailable =>
+      'ಮಂತ್ರಗಳನ್ನು ಸೇರಿಸುವುದು ಈಗ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get ownMantraErrorLimit =>
+      'ನಿಮ್ಮ ಸ್ವಂತ ಮಂತ್ರಗಳ ಪಟ್ಟಿ ತುಂಬಿದೆ. ಹೊಸದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆದುಹಾಕಿ.';
+
+  @override
+  String get ownMantraErrorExpired =>
+      'ಈ ಸಲಹೆಗಳ ಅವಧಿ ಮುಗಿದಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಹುಡುಕಿ.';
 }

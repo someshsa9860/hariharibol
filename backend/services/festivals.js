@@ -11,6 +11,7 @@
 // later, is carried beside it (`details.vaishnavaDate`).
 
 import { panchangFor, newMoonsAround, lunationOf, addDays, localMidnight, tithiAt, signIndexAt, SIGNS } from './panchang.js';
+import { paranaWindow } from './parana.js';
 
 const MINUTE = 60000;
 const DAY = 86400000;
@@ -58,7 +59,18 @@ const FESTIVAL_RULES = [
 ];
 
 // Festivals the push goes out for by default; the rest are in the calendar only.
-const NOTIFY_KINDS = new Set(['EKADASHI', 'CHATURTHI', 'PURNIMA', 'AMAVASYA', 'FESTIVAL']);
+const NOTIFY_KINDS = new Set(['EKADASHI', 'CHATURTHI', 'PURNIMA', 'AMAVASYA', 'FESTIVAL', 'PARANA']);
+
+// Kinds that go out on their own day only, with no "tomorrow" heads-up (the Ekadashi push the
+// day before is the heads-up for the fast, and a parana time is of no use a day early).
+const SAME_DAY_KINDS = new Set(['PARANA']);
+
+// "6:26 AM" at the calendar's place, for the English description kept on a parana row.
+function clock(date, timezone) {
+  return date
+    .toLocaleTimeString('en-IN', { timeZone: timezone, hour: 'numeric', minute: '2-digit', hour12: true })
+    .toUpperCase();
+}
 
 // Ekadashi names by amanta month (the month the dark half is counted in, not the purnimanta
 // month printed calendars of North India use): [krishna, shukla].
@@ -178,6 +190,44 @@ function buildYear(year, location) {
           month: lun.isAdhika ? `Adhika ${lun.month}` : lun.month,
           details: { vaishnavaDate, anchor: 'sunrise' },
         });
+
+        // Parana: the morning after each day the fast is kept — one day, or two when the
+        // Smarta and Vaishnava dates differ. The first of two can be the second's fast day,
+        // so a row says when the fast is kept again that day (`alsoFastToday`) and the push is
+        // worded "if you kept the fast yesterday", never telling anyone to break a fast they
+        // are still keeping.
+        const fastDates = [...new Set([smarta.date, vaishnavaDate])];
+        for (const fast of fastDates) {
+          const day = days.find((d) => d.date === addDays(fast, 1));
+          const window = day && paranaWindow(day, base + 12);
+          if (!window) continue;
+          push({
+            date: day.date,
+            slug: 'parana',
+            kind: 'PARANA',
+            name: `${name} Ekadashi parana`,
+            description:
+              `${fastDates.length > 1 ? 'If you kept the fast the day before, break it' : 'Break the fast'} between ` +
+              `${clock(window.startsAt, location.timezone)} and ${clock(window.endsAt, location.timezone)} (${location.name}).`,
+            paksha: paksha === 'S' ? 'SHUKLA' : 'KRISHNA',
+            tithiNumber: base + 12,
+            month: lun.isAdhika ? `Adhika ${lun.month}` : lun.month,
+            details: {
+              ekadashi: `${name} Ekadashi`,
+              fastDate: fast,
+              twoDates: fastDates.length > 1,
+              alsoFastToday: fastDates.includes(day.date),
+              startsAt: window.startsAt.toISOString(),
+              endsAt: window.endsAt.toISOString(),
+              hariVasaraEndsAt: window.hariVasaraEndsAt?.toISOString() ?? null,
+              dwadashiEndsAt: window.dwadashiEndsAt.toISOString(),
+              afterMadhyahna: window.afterMadhyahna,
+              place: location.name,
+              timezone: location.timezone,
+              anchor: 'sunrise',
+            },
+          });
+        }
       }
 
       // Chaturthi: Vinayaka (bright half, midday) and Sankashti (dark half, moonrise).
@@ -278,8 +328,11 @@ function buildYear(year, location) {
   }));
 
   festivals.sort((x, y) => (x.date === y.date ? x.slug.localeCompare(y.slug) : x.date.localeCompare(y.date)));
-  for (const f of festivals) f.notify = NOTIFY_KINDS.has(f.kind);
+  for (const f of festivals) {
+    f.notify = NOTIFY_KINDS.has(f.kind);
+    if (SAME_DAY_KINDS.has(f.kind)) f.notifyDaysBefore = [];
+  }
   return { days: rows, festivals };
 }
 
-export { buildYear, FESTIVAL_RULES, EKADASHI_NAMES, NOTIFY_KINDS };
+export { buildYear, FESTIVAL_RULES, EKADASHI_NAMES, NOTIFY_KINDS, SAME_DAY_KINDS };

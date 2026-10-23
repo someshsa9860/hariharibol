@@ -27,6 +27,7 @@ Future<void> showStoryVerseActions(
 
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     backgroundColor: context.colors.surface,
     builder: (sheet) {

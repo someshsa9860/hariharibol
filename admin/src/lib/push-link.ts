@@ -22,6 +22,8 @@ export const PUSH_TARGETS: PushTarget[] = [
   { key: 'premium', label: 'Plans', params: [] },
   { key: 'refer', label: 'Refer and earn', params: [] },
   { key: 'search', label: 'Search', params: [] },
+  { key: 'support', label: 'Help and feedback', params: [] },
+  { key: 'ticket', label: 'A support ticket', params: [p('id', 'Ticket id')] },
   { key: 'mantra', label: 'A mantra', params: [p('slug', 'Mantra slug')] },
   { key: 'reel', label: 'A reel', params: [p('id', 'Reel id')] },
   {

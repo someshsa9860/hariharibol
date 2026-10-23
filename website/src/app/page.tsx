@@ -19,7 +19,7 @@ import { SITE_URL } from '@/lib/config';
 import type { HomeData, Verse, WebVerse } from '@/lib/types';
 
 export default async function HomePage() {
-  const home = await serverGetOrNull<HomeData>('/api/app/home', { revalidate: 300 }).catch(() => null);
+  const home = await serverGetOrNull<HomeData>('/api/app/home', { revalidate: 0 }).catch(() => null);
 
   // A verse is always shown: today's if one is set, else the day's pick from a short list of well-loved verses.
   let verse: Verse | WebVerse | null = home?.slokaOfTheDay?.verse ?? null;
@@ -78,7 +78,7 @@ export default async function HomePage() {
 
       <section className="page" aria-label="A verse to begin with">
         <Reveal className="photo-band">
-          <img src="/img/krishna.jpg" alt="Lord Krishna playing the flute" loading="lazy" />
+          <img src="/img/gita-band.jpg" alt="Lord Krishna playing the flute" loading="lazy" />
           <div className="photo-band-text">
             <p className="eyebrow">From the Gita</p>
             <blockquote lang="sa">योगस्थः कुरु कर्माणि</blockquote>

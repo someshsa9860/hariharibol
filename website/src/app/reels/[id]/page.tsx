@@ -9,7 +9,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const reel = await serverGetOrNull<Reel>(`/api/app/reels/${id}`, { revalidate: 300 }).catch(() => null);
+  const reel = await serverGetOrNull<Reel>(`/api/app/reels/${id}`, { revalidate: 0 }).catch(() => null);
   if (!reel) return { title: 'Reel' };
   const description = excerpt(reel.caption) || 'A devotional reel on HariHariBol.';
   return {

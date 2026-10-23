@@ -19,6 +19,11 @@ import '../../widgets/common/app_loader.dart';
 /// Refer and earn: the person's code and link, what their invitations have
 /// done, and the explicit-code fallback for an invitation whose link did not
 /// survive the install (the app cannot know which link opened a store page).
+/// The theme's buttons are full width (an infinite minimum), which a `Row`
+/// cannot lay out — the screen threw and drew nothing but its title. Buttons
+/// here are as wide as their label.
+final ButtonStyle _labelWidth = ButtonStyle(minimumSize: WidgetStatePropertyAll(Size(0, AppSizes.buttonHeight)));
+
 class ReferView extends ConsumerStatefulWidget {
   const ReferView({super.key});
 
@@ -90,11 +95,16 @@ class _ReferViewState extends ConsumerState<ReferView> {
               const SizedBox(height: AppSpacing.xs),
               Row(
                 children: [
-                  Semantics(
-                    label: data.code.split('').join(' '),
-                    child: Text(
-                      data.code,
-                      style: context.texts.headlineMedium?.copyWith(letterSpacing: 4, fontWeight: FontWeight.w700),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Semantics(
+                        label: data.code.split('').join(' '),
+                        child: Text(
+                          data.code,
+                          style: context.texts.headlineMedium?.copyWith(letterSpacing: 4, fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   ),
                   IconButton(onPressed: () => _copy(data.code), icon: const Icon(Icons.copy_rounded), tooltip: text.shareCopyLink),
@@ -103,9 +113,15 @@ class _ReferViewState extends ConsumerState<ReferView> {
               const SizedBox(height: AppSpacing.md),
               Wrap(
                 spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
                 children: [
-                  FilledButton.icon(onPressed: () => _share(data), icon: const Icon(Icons.ios_share_rounded), label: Text(text.referInvite)),
-                  OutlinedButton(onPressed: () => _copy(data.url), child: Text(text.shareCopyLink)),
+                  FilledButton.icon(
+                    style: _labelWidth,
+                    onPressed: () => _share(data),
+                    icon: const Icon(Icons.ios_share_rounded),
+                    label: Text(text.referInvite),
+                  ),
+                  OutlinedButton(style: _labelWidth, onPressed: () => _copy(data.url), child: Text(text.shareCopyLink)),
                 ],
               ),
               if (data.rewardActiveUntil != null) ...[
@@ -117,11 +133,10 @@ class _ReferViewState extends ConsumerState<ReferView> {
               ],
               const SizedBox(height: AppSpacing.xl),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _Stat(value: data.invited, label: text.referStatInvited),
-                  _Stat(value: data.pending, label: text.referStatWaiting),
-                  _Stat(value: data.successful, label: text.referStatRewarded),
+                  Expanded(child: _Stat(value: data.invited, label: text.referStatInvited)),
+                  Expanded(child: _Stat(value: data.pending, label: text.referStatWaiting)),
+                  Expanded(child: _Stat(value: data.successful, label: text.referStatRewarded)),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -149,7 +164,7 @@ class _ReferViewState extends ConsumerState<ReferView> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  FilledButton(onPressed: _busy ? null : _useCode, child: Text(text.referUseCode)),
+                  FilledButton(style: _labelWidth, onPressed: _busy ? null : _useCode, child: Text(text.referUseCode)),
                 ],
               ),
             ],
@@ -177,7 +192,7 @@ class _Stat extends StatelessWidget {
     return Column(
       children: [
         Text('$value', style: context.texts.headlineMedium),
-        Text(label, style: context.texts.bodySmall),
+        Text(label, style: context.texts.bodySmall, textAlign: TextAlign.center),
       ],
     );
   }

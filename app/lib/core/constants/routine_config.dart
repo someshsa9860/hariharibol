@@ -55,4 +55,46 @@ abstract final class RoutineConfig {
   /// Rows (tasks, daily items, ticks and removals together) in one request. A
   /// phone with a year of history to upload sends it in pieces this size.
   static const int syncChunkRows = 500;
+
+  // ── Task alerts: one notification when a task's time range opens ────────
+  /// How many days ahead (today included) the alerts are set. They are set again
+  /// whenever the routine changes and the app comes to the front, so the days
+  /// roll forward on their own.
+  static const int alertDays = 7;
+
+  /// The most alerts set at once. The nearest ones win.
+  static const int alertMaxPending = 100;
+
+  /// An alert's notification id is [alertIdBase] plus a number below
+  /// [alertIdSpan], worked out from its task and day, so the same alert always
+  /// has the same id: setting it again replaces it, and a task ticked in the app
+  /// can clear its own notification. A push drawn by the app counts up from 0 and
+  /// never reaches the base. Android keeps an id in 32 bits.
+  static const int alertIdBase = 1000000;
+  static const int alertIdSpan = 1 << 30;
+
+  /// The Android channel the alerts are on, so a reader can silence them in the
+  /// phone's settings without touching the daily sloka.
+  static const String alertChannelId = 'routine_alerts';
+
+  /// The notification's one button, and what its payload carries.
+  static const String alertDoneActionId = 'routine_done';
+  static const String alertTaskKey = 'routineTask';
+  static const String alertDayKey = 'routineDay';
+
+  /// What a tap on the alert itself opens (see `deeplinkRoute`).
+  static const String alertDeeplink = 'hariharibol://routine';
+
+  /// How long after a change the alerts are set, so a run of ticks is one pass.
+  static const Duration alertDebounce = Duration(seconds: 1);
+
+  /// Where a button press waits for the app. The press runs in an isolate of its
+  /// own, which cannot reach the routine on the phone (Hive is open in the app's
+  /// isolate only), so it is written under this prefix in `shared_preferences`
+  /// and the app takes it from there — see `routine_alert_ticks.dart`.
+  static const String alertTickPrefix = 'routine.alertTick.';
+
+  /// The app's own isolate listens on this port name for "a press was written",
+  /// so a press made with the app open lands at once.
+  static const String alertPortName = 'hariharibol/routine_alert_tick';
 }

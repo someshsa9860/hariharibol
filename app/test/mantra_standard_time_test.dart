@@ -1,5 +1,5 @@
 // How long one chant of a mantra is taken to last, and the shortest wait
-// between two hand taps that follows from it.
+// between two hand taps that follows from a pace.
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,8 +32,10 @@ void main() {
     expect(MantraAutoChantSession.standardChantMsOf(m), 2800);
   });
 
-  test('a hand tap has to wait half of one chant after the last', () {
-    expect(MantraAutoChantSession.manualTapGapOf(mantra(durationMs: 4000)), const Duration(seconds: 2));
-    expect(MantraAutoChantSession.manualTapGapOf(mantra(text: 'Om')), const Duration(milliseconds: 500));
+  test('a hand tap has to wait half of one chant, at the reader\'s pace, after the last', () {
+    expect(MantraAutoChantSession.manualTapGapOf(const Duration(seconds: 4)), const Duration(seconds: 2));
+    expect(MantraAutoChantSession.manualTapGapOf(const Duration(seconds: 1)), const Duration(milliseconds: 500));
+    // A reader who chants slower waits longer.
+    expect(MantraAutoChantSession.manualTapGapOf(const Duration(milliseconds: 6000)), const Duration(seconds: 3));
   });
 }

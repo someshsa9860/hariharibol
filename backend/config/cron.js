@@ -30,6 +30,14 @@ const schedules = [
     description: 'Push the day’s sloka to users whose local delivery time has arrived.',
   },
   {
+    name: 'etiquette.deliver',
+    queue: 'notification',
+    // Every quarter hour: each run pushes the day's devotee etiquette to the readers whose local delivery
+    // time (default 07:15) fell in the last quarter hour.
+    cron: '*/15 * * * *',
+    description: 'Push the day’s devotee etiquette to readers whose local delivery time has arrived.',
+  },
+  {
     name: 'sadhana.reminder',
     queue: 'notification',
     cron: '*/15 * * * *',
@@ -51,6 +59,24 @@ const schedules = [
     // 03:30 UTC = 09:00 IST: asks the super admins for the month's costs on the last two days of a month and the first week of the next.
     cron: '30 3 * * *',
     description: 'Ask the super admins to enter and confirm the month’s costs, once a day until they do.',
+  },
+  {
+    name: 'devops.health',
+    queue: 'devops',
+    cron: '*/2 * * * *',
+    description: 'Check the database and the queues for the developer’s alerts.',
+  },
+  {
+    name: 'devops.digest',
+    queue: 'devops',
+    cron: '*/5 * * * *',
+    description: 'Send the developer one digest push for whatever waited, if any (and not sooner than 15 minutes after the last push).',
+  },
+  {
+    name: 'devops.prune',
+    queue: 'devops',
+    cron: '20 2 * * *',
+    description: 'Delete developer-feed events older than 30 days.',
   },
   {
     name: 'preferences.rebuild',

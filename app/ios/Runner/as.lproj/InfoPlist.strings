@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol-এ আপোনাৰ জপ গণনা কৰিবলৈ আপুনি জপ কৰোঁতে শুনে, আৰু Sakha-ক বাৰ্তা ক'বলৈ আপুনি মাইক্ৰ'ফোন টিপিলেও।";
+"NSSpeechRecognitionUsageDescription" = "আপুনি Sakha-ক বাৰ্তা ক'লে, HariHariBol-এ আপোনাৰ ফোনৰ কথা চিনাক্তকৰণৰ জৰিয়তে আপুনি কোৱা কথাক লিখনলৈ ৰূপান্তৰ কৰে।";
+"NSPhotoLibraryUsageDescription" = "Sakha-ৰ সৈতে শ্বেয়াৰ কৰিবলৈ এখন ছবি বাছনি কৰিব পৰাকৈ HariHariBol-এ আপোনাৰ ফটোবোৰ খোলে।";
+"NSCameraUsageDescription" = "Sakha-ৰ সৈতে শ্বেয়াৰ কৰিবলৈ এখন ছবি তুলিব পৰাকৈ HariHariBol-এ কেমেৰা খোলে।";

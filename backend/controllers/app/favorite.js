@@ -11,6 +11,7 @@ import * as s3 from '../../services/s3.js';
 import * as language from '../../utils/language.js';
 import { ok, created, noContent } from '../../utils/respond.js';
 import { badRequest, notFound } from '../../utils/errors.js';
+import { visibleTo } from '../../utils/mantra-visibility.js';
 
 const TARGETS = ['verseId', 'mantraId', 'bookId', 'reelId'];
 
@@ -95,7 +96,7 @@ export const add = async (req, res) => {
   // error surfacing as a 500.
   const exists = await {
     verseId: () => prisma.verse.findUnique({ where: { id: value }, select: { id: true } }),
-    mantraId: () => prisma.mantra.findUnique({ where: { id: value }, select: { id: true } }),
+    mantraId: () => prisma.mantra.findFirst({ where: { id: value, AND: [visibleTo(user)] }, select: { id: true } }),
     bookId: () => prisma.book.findUnique({ where: { id: value }, select: { id: true } }),
     reelId: () =>
       prisma.reel.findFirst({

@@ -83,7 +83,8 @@ export const make = async (req, res) => {
   // A missing file is a black screen in the feed, so nothing is published until both are in storage.
   await assertShowable({ mediaType: 'IMAGE', media: [{ imagePath: imageKey }], audioTracks: [], audioTrackPath: audioKey ?? null, thumbnailPath: imageKey });
 
-  const mantra = mantraSlug ? await prisma.mantra.findUnique({ where: { slug: mantraSlug }, select: { id: true } }) : null;
+  // A reel is public, so it can name a catalogue mantra but never a reader's private one.
+  const mantra = mantraSlug ? await prisma.mantra.findFirst({ where: { slug: mantraSlug, mantraType: 'PUBLIC' }, select: { id: true } }) : null;
   const creator = await approvedCreator(user);
 
   const now = new Date();

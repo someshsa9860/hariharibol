@@ -25,6 +25,12 @@ abstract final class BoxNames {
 }
 
 abstract final class BoxKeys {
+  /// When the store-rating prompt (or its "Enjoying HariHariBol?" question) was
+  /// last put in front of the reader, in milliseconds since the epoch. A cheap
+  /// local gate in front of the server's own check, so a reader is not asked
+  /// twice in a row even offline or when the server is unreachable.
+  static const String reviewPromptAt = 'review.prompt_at';
+
   /// An invitation code from a link, kept until there is an account to present
   /// it with (DeepLinkService). Only the first is kept.
   static const String pendingInvite = 'referral.pending_invite';
@@ -39,6 +45,15 @@ abstract final class BoxKeys {
   /// Whether auto count was left on. The chant counter opens already listening
   /// when it was.
   static const String autoChantEnabled = 'settings.auto_chant_enabled';
+
+  /// Whether auto count listens with the microphone (the default) or counts by
+  /// time alone, which saves the battery. Absent means the microphone.
+  static const String autoChantMicrophone = 'settings.auto_chant_microphone';
+
+  /// How long one chant of a mantra takes this reader, in milliseconds — set with
+  /// the shorter / longer buttons or learned from a finished round. One key per
+  /// mantra; absent means the mantra's standard time.
+  static String chantPace(String mantraId) => 'chant.pace.$mantraId';
 
   /// Beads counted into the round in progress, one key per mantra (`any` for a
   /// sitting with none), so the counter opens on the count it was left at.

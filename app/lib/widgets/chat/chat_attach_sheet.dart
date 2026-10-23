@@ -10,6 +10,7 @@ import '../../services/chat_image_picker.dart';
 Future<PictureSource?> chooseChatPicture(BuildContext context) {
   return showModalBottomSheet<PictureSource>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     builder: (context) {
       final text = AppLocalizations.of(context);

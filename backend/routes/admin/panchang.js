@@ -11,7 +11,7 @@ const router = createRouter({
 });
 
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');
-const KINDS = ['EKADASHI', 'CHATURTHI', 'PRADOSH', 'PURNIMA', 'AMAVASYA', 'SANKRANTI', 'FESTIVAL'];
+const KINDS = ['EKADASHI', 'PARANA', 'CHATURTHI', 'PRADOSH', 'PURNIMA', 'AMAVASYA', 'SANKRANTI', 'FESTIVAL'];
 const text = (max) => z.string().trim().min(1).max(max);
 const daysBefore = z.array(z.number().int().min(0).max(7)).max(4);
 

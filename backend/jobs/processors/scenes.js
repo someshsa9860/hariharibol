@@ -42,7 +42,11 @@ export const realDeps = {
   chaptersToWrite: service.chaptersToWrite,
   save: service.saveOutput,
   addToIndex: service.addToIndex,
-  limiter: () => createLimiter({ rpm: scenes.rpm, tpm: scenes.tpm }),
+  // Gemini's free-tier minute applies to a Gemini run only; any other provider has no limit of ours (a 429 from it is a wait).
+  limiter: (provider) => {
+    const { rpm, tpm } = service.limitsFor(provider);
+    return createLimiter({ rpm: rpm ?? Infinity, tpm: tpm ?? Infinity });
+  },
 };
 
 export default function scenesProcessor(job, token) {
@@ -187,7 +191,7 @@ async function execute(ctx, entry, deps) {
   }
   if (todo.length === 0) return { kind: 'finished' };
 
-  const limiter = deps.limiter();
+  const limiter = deps.limiter(row.provider);
   const aborted = () => entry.controller.signal.aborted;
 
   for (const chapterId of todo) {

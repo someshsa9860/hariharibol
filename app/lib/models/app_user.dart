@@ -62,6 +62,15 @@ class AppUser {
   /// Empty when there is nothing to call the person by.
   String get firstName => displayName.split(RegExp(r'\s+')).first;
 
+  /// The first word of the name the person gave, for a greeting that opens
+  /// "Hari Bol". Unlike [firstName] it never borrows the start of an email
+  /// address, so the greeting cannot become "Hari Bol asha42"; null when the
+  /// account has no name.
+  String? get greetingName {
+    final given = name?.trim() ?? '';
+    return given.isEmpty ? null : given.split(RegExp(r'\s+')).first;
+  }
+
   String get initials {
     final parts = displayName.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';

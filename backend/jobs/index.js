@@ -13,14 +13,17 @@ import { Queue } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { defaultJobOptions } from '../config/cron.js';
 
-const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'scenes'];
+const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'translation-import', 'scenes', 'etiquette', 'calendar', 'devops'];
 
 // A queue that needs different job options than the default says so here. A translation run is hours
 // long and costs money, so BullMQ never retries it by itself: the processor decides what a failure
 // means (jobs/processors/translation.js) and the TranslationRun row records it.
 const QUEUE_JOB_OPTIONS = {
   translation: { attempts: 1 },
+  'translation-import': { attempts: 1 }, // same reasoning: jobs/processors/translation-import.js decides what a failure means
   scenes: { attempts: 1 }, // same reasoning: jobs/processors/scenes.js decides what a failure means
+  etiquette: { attempts: 1 }, // and jobs/processors/etiquette.js
+  calendar: { attempts: 1 }, // and jobs/processors/calendar.js
 };
 
 const queues = Object.fromEntries(
@@ -48,10 +51,15 @@ const JOBS = {
   S3_TEMP_PRUNE: 's3.temp.prune',
   BOOK_CACHE_EXPORT: 'book.cache.export',
   BOOK_CACHE_SYNC: 'book.cache.sync',
+  MANTRA_TRANSLATE: 'mantra.translate',
   AI_ISSUE_MAP: 'issue-map',
   AI_EXPLANATIONS: 'explanations',
   TRANSLATION_RUN: 'translation.run',
+  TRANSLATION_IMPORT_RUN: 'translation-import.run',
   SCENES_RUN: 'scenes.run',
+  ETIQUETTE_RUN: 'etiquette.run',
+  ETIQUETTE_DELIVER: 'etiquette.deliver',
+  CALENDAR_RUN: 'calendar.run',
 };
 
 async function closeQueues() {

@@ -15,6 +15,7 @@ import * as google from './google.js';
 import * as apple from './apple.js';
 import * as razorpay from './razorpay.js';
 import * as money from './money.js';
+import { greeted, notice } from '../../utils/messages.js';
 
 const providers = { GOOGLE_PLAY: google, APPLE_APP_STORE: apple, RAZORPAY: razorpay };
 
@@ -137,10 +138,11 @@ async function markRefunded({ provider, externalId }) {
 // Sent after a donation, once — the thank-you is part of the transaction as far
 // as the donor is concerned.
 async function thankDonor(userId, amountMinor, currency) {
+  const { name, chain } = await notify.recipient(userId);
   await notify.toUser(userId, {
     type: 'SYSTEM',
-    title: 'Thank you',
-    body: 'Your donation keeps HariHariBol running. Premium is yours, permanently.',
+    title: notice('thanksTitle', chain),
+    body: greeted(name, chain, notice('thanksDonation', chain)),
     data: { deeplink: 'hariharibol://premium', amountMinor: String(amountMinor), currency },
   });
 }

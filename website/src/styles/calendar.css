@@ -1,6 +1,7 @@
 /* The Hindu calendar page. Each kind of day has one colour, used for its drawing on the grid and in lists. */
 .cal-glyph { flex: none; }
 .cal-ekadashi { color: #2f7d4a; }
+.cal-parana { color: #1f7fa0; }
 .cal-chaturthi { color: #c4621b; }
 .cal-purnima { color: #b07a00; }
 .cal-amavasya { color: var(--muted); }
@@ -8,6 +9,7 @@
 .cal-sankranti { color: #a37400; }
 .cal-festival { color: #b3382c; }
 [data-theme='dark'] .cal-ekadashi { color: #6fcf8d; }
+[data-theme='dark'] .cal-parana { color: #5cc8e8; }
 [data-theme='dark'] .cal-chaturthi { color: #ff9d57; }
 [data-theme='dark'] .cal-purnima { color: #f2c75c; }
 [data-theme='dark'] .cal-pradosh { color: #9a96ff; }
@@ -53,6 +55,7 @@
 .cal-list-date { min-width: 8.5ch; color: var(--muted); font-size: .86rem; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .cal-ekadashi { color: #6fcf8d; }
+  :root:not([data-theme='light']) .cal-parana { color: #5cc8e8; }
   :root:not([data-theme='light']) .cal-chaturthi { color: #ff9d57; }
   :root:not([data-theme='light']) .cal-purnima { color: #f2c75c; }
   :root:not([data-theme='light']) .cal-pradosh { color: #9a96ff; }

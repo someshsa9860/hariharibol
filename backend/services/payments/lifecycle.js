@@ -27,52 +27,49 @@ import env from '../../config/env.js';
 import logger from '../../config/logger.js';
 import * as entitlement from '../entitlement.js';
 import * as notify from '../notify.js';
+import { longDate } from '../../utils/date.js';
+import { greeted, notice } from '../../utils/messages.js';
 import * as payments from './index.js';
 
 const PAYING = ['ACTIVE', 'IN_TRIAL', 'CANCELLED']; // states in which a charge has really gone through
 const ENTITLED = ['IN_TRIAL', 'ACTIVE', 'GRACE', 'CANCELLED'];
 
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
-
 const storeName = (provider) => (provider === 'APPLE_APP_STORE' ? 'App Store' : 'Google Play');
 
-// The push for a change. Deep link is the app's own plans screen.
-function messageFor({ kind, plan, until, provider }) {
-  const link = { deeplink: 'hariharibol://premium' };
-  const date = until ? fmtDate(until) : '';
-  switch (kind) {
-    case 'TRIAL_STARTED':
-      return { title: `Your ${plan} free trial has begun`, body: `Enjoy ${plan} free until ${date}. Cancel any time in ${storeName(provider)}.`, data: link };
-    case 'SUBSCRIBED':
-      return { title: `Plan upgraded to ${plan}`, body: `Thank you! ${plan} is active until ${date}. Ask Sakha is ready for more.`, data: link };
-    case 'UPGRADED':
-      return { title: `Plan upgraded to ${plan}`, body: `${plan} is yours now, active until ${date}.`, data: link };
-    case 'CHANGED':
-      return { title: `Your plan is now ${plan}`, body: `${plan} is active until ${date}.`, data: link };
-    case 'DOWNGRADE_SCHEDULED':
-      return { title: `Your plan will change to ${plan}`, body: `You keep your current plan until ${date}, then move to ${plan}.`, data: link };
-    case 'RENEWED':
-      return { title: 'Subscription renewed', body: `${plan} renewed. Active until ${date}. Thank you for your support!`, data: link };
-    case 'CANCELLED':
-      return { title: 'Subscription cancelled', body: `${plan} will not renew. You keep it until ${date}.`, data: link };
-    case 'RESUMED':
-      return { title: 'Auto-renew is back on', body: `${plan} will renew on ${date}.`, data: link };
-    case 'GRACE':
-      return { title: 'We could not renew your plan', body: `${storeName(provider)} could not take the payment. Please update your payment method to keep ${plan}.`, data: link };
-    case 'EXPIRED':
-      return { title: 'Your subscription has ended', body: `${plan} has ended. You can come back any time from Plans.`, data: link };
-    case 'REFUNDED':
-      return { title: 'Your payment was refunded', body: `${plan} has ended with the refund.`, data: link };
-    default:
-      return null;
-  }
+// What each change says: [title id, body id] in utils/messages.js. Both take the plan, the date and the
+// store as {0}, {1}, {2}.
+const WORDING = {
+  TRIAL_STARTED: ['subTrialTitle', 'subTrialBody'],
+  SUBSCRIBED: ['subSubscribedTitle', 'subSubscribedBody'],
+  UPGRADED: ['subSubscribedTitle', 'subChangedBody'],
+  CHANGED: ['subChangedTitle', 'subChangedBody'],
+  DOWNGRADE_SCHEDULED: ['subDowngradeTitle', 'subDowngradeBody'],
+  RENEWED: ['subRenewedTitle', 'subRenewedBody'],
+  CANCELLED: ['subCancelledTitle', 'subCancelledBody'],
+  RESUMED: ['subResumedTitle', 'subResumedBody'],
+  GRACE: ['subGraceTitle', 'subGraceBody'],
+  EXPIRED: ['subExpiredTitle', 'subExpiredBody'],
+  REFUNDED: ['subRefundedTitle', 'subRefundedBody'],
+};
+
+// The push for a change, in the reader's language and opening "Hari Bol <name>". Deep link is the
+// app's own plans screen.
+function messageFor({ kind, plan, until, provider, name = null, chain = [] }) {
+  const ids = WORDING[kind];
+  if (!ids) return null;
+  const params = [plan, until ? longDate(until, chain) : '', storeName(provider)];
+  return {
+    title: notice(ids[0], chain, params),
+    body: greeted(name, chain, notice(ids[1], chain, params)),
+    data: { deeplink: 'hariharibol://premium' },
+  };
 }
 
 async function push(userId, args) {
-  const msg = messageFor(args);
-  if (!msg) return;
   try {
+    const { name, chain } = await notify.recipient(userId);
+    const msg = messageFor({ ...args, name, chain });
+    if (!msg) return;
     await notify.toUser(userId, { type: 'SYSTEM', source: 'subscription', campaign: `subscription-${args.kind.toLowerCase()}`, ...msg });
   } catch (err) {
     logger.error({ err: err.message, userId, kind: args.kind }, 'subscription push failed');

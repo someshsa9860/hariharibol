@@ -862,6 +862,60 @@ abstract class AppLocalizations {
   /// **'Auto count isn\'t available right now'**
   String get sadhanaAutoCountUnavailable;
 
+  /// No description provided for @sadhanaAutoCountTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting by time — no microphone'**
+  String get sadhanaAutoCountTimed;
+
+  /// No description provided for @chantAutoMicTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the microphone'**
+  String get chantAutoMicTitle;
+
+  /// No description provided for @chantAutoMicOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Listens to your chanting'**
+  String get chantAutoMicOn;
+
+  /// No description provided for @chantAutoMicOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts by time instead — saves battery'**
+  String get chantAutoMicOff;
+
+  /// No description provided for @chantPaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for one chant'**
+  String get chantPaceTitle;
+
+  /// No description provided for @chantPaceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s each · about {round} a round'**
+  String chantPaceSummary(String seconds, String round);
+
+  /// No description provided for @chantPaceShorter.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorter chant time'**
+  String get chantPaceShorter;
+
+  /// No description provided for @chantPaceLonger.
+  ///
+  /// In en, this message translates to:
+  /// **'Longer chant time'**
+  String get chantPaceLonger;
+
+  /// No description provided for @chantPrayerFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Offering to Krishna'**
+  String get chantPrayerFallbackName;
+
   /// No description provided for @chantModelTitle.
   ///
   /// In en, this message translates to:
@@ -2013,6 +2067,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily'**
   String get routineDailyBadge;
+
+  /// No description provided for @routineAlertChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Task reminders'**
+  String get routineAlertChannelName;
+
+  /// No description provided for @routineAlertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s time for this task.'**
+  String get routineAlertBody;
+
+  /// No description provided for @routineAlertDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get routineAlertDone;
 
   /// No description provided for @routineDailyRemove.
   ///
@@ -4143,6 +4215,666 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vaishnavas may keep this fast the next day.'**
   String get calendarVaishnavaNote;
+
+  /// No description provided for @supportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help and feedback'**
+  String get supportTitle;
+
+  /// No description provided for @supportRaiseTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a ticket'**
+  String get supportRaiseTicket;
+
+  /// No description provided for @supportSendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get supportSendFeedback;
+
+  /// No description provided for @supportMyTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tickets'**
+  String get supportMyTickets;
+
+  /// No description provided for @supportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not written to us yet.'**
+  String get supportEmpty;
+
+  /// No description provided for @supportCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic'**
+  String get supportCategoryLabel;
+
+  /// No description provided for @supportCategoryBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Something is not working'**
+  String get supportCategoryBug;
+
+  /// No description provided for @supportCategoryPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment or plan'**
+  String get supportCategoryPayment;
+
+  /// No description provided for @supportCategoryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My account'**
+  String get supportCategoryAccount;
+
+  /// No description provided for @supportCategoryContent.
+  ///
+  /// In en, this message translates to:
+  /// **'A verse, translation or mantra'**
+  String get supportCategoryContent;
+
+  /// No description provided for @supportCategorySuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'A suggestion'**
+  String get supportCategorySuggestion;
+
+  /// No description provided for @supportCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get supportCategoryOther;
+
+  /// No description provided for @supportMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened'**
+  String get supportMessageHint;
+
+  /// No description provided for @supportAttachScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a screenshot'**
+  String get supportAttachScreenshot;
+
+  /// No description provided for @supportRemoveScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove screenshot'**
+  String get supportRemoveScreenshot;
+
+  /// No description provided for @supportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get supportSend;
+
+  /// No description provided for @supportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. We will reply here.'**
+  String get supportSent;
+
+  /// No description provided for @supportStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get supportStatusOpen;
+
+  /// No description provided for @supportStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get supportStatusInProgress;
+
+  /// No description provided for @supportStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get supportStatusResolved;
+
+  /// No description provided for @supportReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reply'**
+  String get supportReplyHint;
+
+  /// No description provided for @supportFromSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support team'**
+  String get supportFromSupport;
+
+  /// No description provided for @supportYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get supportYou;
+
+  /// No description provided for @supportFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are we doing?'**
+  String get supportFeedbackTitle;
+
+  /// No description provided for @supportFeedbackNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you would like to add? (optional)'**
+  String get supportFeedbackNoteHint;
+
+  /// No description provided for @supportFeedbackThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback.'**
+  String get supportFeedbackThanks;
+
+  /// No description provided for @supportDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone model and app version are sent with this so we can help faster.'**
+  String get supportDeviceNote;
+
+  /// No description provided for @supportTicketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ticket'**
+  String get supportTicketTitle;
+
+  /// No description provided for @reviewPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying HariHariBol?'**
+  String get reviewPromptTitle;
+
+  /// No description provided for @reviewPromptYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I love it'**
+  String get reviewPromptYes;
+
+  /// No description provided for @reviewPromptNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not really'**
+  String get reviewPromptNo;
+
+  /// No description provided for @developerChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the developer'**
+  String get developerChatTitle;
+
+  /// No description provided for @developerChatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions, ideas, or something not working'**
+  String get developerChatSubtitle;
+
+  /// No description provided for @developerChatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Say hello, and you will get a reply here.'**
+  String get developerChatEmpty;
+
+  /// No description provided for @developerChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get developerChatHint;
+
+  /// No description provided for @developerChatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get developerChatSend;
+
+  /// No description provided for @developerChatSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get developerChatSending;
+
+  /// No description provided for @developerChatNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. Tap to try again.'**
+  String get developerChatNotSent;
+
+  /// The first line of an empty Ask Sakha chat when the reader's name is not known: a new chat, or one that was cleared. Shown in the reader's reading language and never sent to Sakha. It opens with Hari Bol.
+  ///
+  /// In en, this message translates to:
+  /// **'Hari Bol, how is your heart today?'**
+  String get chatGreeting;
+
+  /// The same greeting with the reader's first name, which follows Hari Bol directly. Shown in the reader's reading language and never sent to Sakha.
+  ///
+  /// In en, this message translates to:
+  /// **'Hari Bol {name}, how is your heart today?'**
+  String chatGreetingNamed(String name);
+
+  /// Title of the page where the reader sees, switches off and deletes what Sakha has noticed about them from their chats.
+  ///
+  /// In en, this message translates to:
+  /// **'What Sakha has noticed'**
+  String get chatProfileTitle;
+
+  /// No description provided for @chatProfileIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Sakha picks up a few things about you from your chats, so its replies fit you better. This is yours to control: switch it off or delete it whenever you like.'**
+  String get chatProfileIntro;
+
+  /// No description provided for @chatProfileLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep learning about me'**
+  String get chatProfileLearning;
+
+  /// No description provided for @chatProfileLearningHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When this is off, Sakha notices nothing new and does not use what is saved here.'**
+  String get chatProfileLearningHint;
+
+  /// No description provided for @chatProfileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing noted yet. As you chat, Sakha will note things like how you like to be answered.'**
+  String get chatProfileEmpty;
+
+  /// No description provided for @chatProfileGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get chatProfileGender;
+
+  /// No description provided for @chatProfileAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get chatProfileAge;
+
+  /// Label for a short description of the reader's temperament, such as calm or reflective, as Sakha noticed it.
+  ///
+  /// In en, this message translates to:
+  /// **'How you come across'**
+  String get chatProfileBehaviour;
+
+  /// No description provided for @chatProfileLifeStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Life stage'**
+  String get chatProfileLifeStage;
+
+  /// Label for how far along the spiritual path the reader seems to be, such as new to the path or a regular practitioner.
+  ///
+  /// In en, this message translates to:
+  /// **'On the path'**
+  String get chatProfileSpiritualStage;
+
+  /// Label for how the reader likes to be answered: the language, the length and the formality.
+  ///
+  /// In en, this message translates to:
+  /// **'How you like to be answered'**
+  String get chatProfileCommunication;
+
+  /// No description provided for @chatProfileNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Also remembered'**
+  String get chatProfileNotes;
+
+  /// Heading above the words that say what the reader's chats were about. Sakha never reads these when it writes a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'What your chats were about'**
+  String get chatProfileKeywords;
+
+  /// No description provided for @chatProfileKeywordsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you see these words. Sakha never reads them when it writes a reply.'**
+  String get chatProfileKeywordsNote;
+
+  /// No description provided for @chatProfileIssuesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'If you say what you are struggling with today, Sakha is told for that day only. It is not kept here.'**
+  String get chatProfileIssuesNote;
+
+  /// No description provided for @chatProfileDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete what Sakha has noted'**
+  String get chatProfileDelete;
+
+  /// No description provided for @chatProfileDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes everything saved on this page. Your chat is not cleared.'**
+  String get chatProfileDeleteBody;
+
+  /// No description provided for @etiquetteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Devotee etiquette'**
+  String get etiquetteTitle;
+
+  /// No description provided for @etiquetteTodayEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Etiquette for today'**
+  String get etiquetteTodayEyebrow;
+
+  /// No description provided for @etiquetteHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One gentle practice for devotees, every day'**
+  String get etiquetteHomeSubtitle;
+
+  /// No description provided for @etiquetteEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No etiquette to show yet. Please check again soon.'**
+  String get etiquetteEmpty;
+
+  /// No description provided for @etiquetteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get etiquetteAll;
+
+  /// No description provided for @etiquetteSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get etiquetteSourceLabel;
+
+  /// No description provided for @etiquetteAuthorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get etiquetteAuthorLabel;
+
+  /// No description provided for @etiquetteReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get etiquetteReferenceLabel;
+
+  /// No description provided for @etiquetteCategoryTemple.
+  ///
+  /// In en, this message translates to:
+  /// **'In the temple'**
+  String get etiquetteCategoryTemple;
+
+  /// No description provided for @etiquetteCategoryDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Serving the Deity'**
+  String get etiquetteCategoryDeity;
+
+  /// No description provided for @etiquetteCategoryPrasad.
+  ///
+  /// In en, this message translates to:
+  /// **'Prasāda and food'**
+  String get etiquetteCategoryPrasad;
+
+  /// No description provided for @etiquetteCategoryHolyName.
+  ///
+  /// In en, this message translates to:
+  /// **'The holy name'**
+  String get etiquetteCategoryHolyName;
+
+  /// No description provided for @etiquetteCategoryGuruVaishnava.
+  ///
+  /// In en, this message translates to:
+  /// **'Guru and devotees'**
+  String get etiquetteCategoryGuruVaishnava;
+
+  /// No description provided for @etiquetteCategorySpeechMind.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech and mind'**
+  String get etiquetteCategorySpeechMind;
+
+  /// No description provided for @etiquetteCategoryDailyLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily life'**
+  String get etiquetteCategoryDailyLife;
+
+  /// No description provided for @etiquetteCategoryScripture.
+  ///
+  /// In en, this message translates to:
+  /// **'Scripture'**
+  String get etiquetteCategoryScripture;
+
+  /// No description provided for @etiquetteCategoryHolyPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Holy places and days'**
+  String get etiquetteCategoryHolyPlaces;
+
+  /// No description provided for @ownMantraAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your own mantra'**
+  String get ownMantraAddTitle;
+
+  /// No description provided for @ownMantraAddBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant a mantra that is not in our list? Tell us which one and we will find it.'**
+  String get ownMantraAddBody;
+
+  /// No description provided for @ownMantraInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type or say a mantra, or the name of a deity'**
+  String get ownMantraInputHint;
+
+  /// No description provided for @ownMantraWellKnownNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We add mantras of well-known deities and saints only.'**
+  String get ownMantraWellKnownNote;
+
+  /// No description provided for @ownMantraMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Say it instead'**
+  String get ownMantraMic;
+
+  /// No description provided for @ownMantraMicDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the microphone and speech recognition in your phone\'s Settings to say a mantra.'**
+  String get ownMantraMicDenied;
+
+  /// No description provided for @ownMantraFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find mantras'**
+  String get ownMantraFind;
+
+  /// No description provided for @ownMantraNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not find a mantra of a well-known deity or saint for that. Try another name.'**
+  String get ownMantraNoneFound;
+
+  /// No description provided for @ownMantraChosenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{chosen} of {max} chosen'**
+  String ownMantraChosenCount(int chosen, int max);
+
+  /// No description provided for @ownMantraAddChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Add chosen mantras'**
+  String get ownMantraAddChosen;
+
+  /// No description provided for @ownMantraForDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Mantra for {name}'**
+  String ownMantraForDeity(String name);
+
+  /// No description provided for @ownMantraForSaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mantra of {name}'**
+  String ownMantraForSaint(String name);
+
+  /// No description provided for @ownMantraStatusShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by other readers'**
+  String get ownMantraStatusShared;
+
+  /// No description provided for @ownMantraStatusYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on your list'**
+  String get ownMantraStatusYours;
+
+  /// No description provided for @ownMantraStatusCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in our list'**
+  String get ownMantraStatusCatalog;
+
+  /// No description provided for @ownMantraResultCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your list'**
+  String get ownMantraResultCreated;
+
+  /// No description provided for @ownMantraResultShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Added — other readers have it too'**
+  String get ownMantraResultShared;
+
+  /// No description provided for @ownMantraResultFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not be added. Please try again.'**
+  String get ownMantraResultFailed;
+
+  /// No description provided for @ownMantraOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get ownMantraOpen;
+
+  /// No description provided for @ownMantraChangePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Change picture'**
+  String get ownMantraChangePicture;
+
+  /// No description provided for @ownMantraPictureNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a clear, respectful picture. Readers who share this mantra will see it.'**
+  String get ownMantraPictureNote;
+
+  /// No description provided for @ownMantraPictureSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture changed'**
+  String get ownMantraPictureSaved;
+
+  /// No description provided for @ownMantraPictureTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too large. Please choose a smaller one.'**
+  String get ownMantraPictureTooLarge;
+
+  /// No description provided for @ownMantraPictureNotUsable.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture could not be used. Please choose a JPEG, PNG or WebP photo.'**
+  String get ownMantraPictureNotUsable;
+
+  /// No description provided for @ownMantraPictureForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the reader who added this mantra can change its picture.'**
+  String get ownMantraPictureForbidden;
+
+  /// No description provided for @ownMantraRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from my list'**
+  String get ownMantraRemove;
+
+  /// No description provided for @ownMantraRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this mantra?'**
+  String get ownMantraRemoveTitle;
+
+  /// No description provided for @ownMantraRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be taken off your list.'**
+  String get ownMantraRemoveBody;
+
+  /// No description provided for @ownMantraRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get ownMantraRemoveConfirm;
+
+  /// No description provided for @ownMantraRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your list'**
+  String get ownMantraRemoved;
+
+  /// No description provided for @ownMantraPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get ownMantraPrivate;
+
+  /// No description provided for @ownMantraErrorNotUsable.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not understand that. Please type or say the name of a mantra or a deity.'**
+  String get ownMantraErrorNotUsable;
+
+  /// No description provided for @ownMantraErrorLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached the limit for now. Please try again later.'**
+  String get ownMantraErrorLimitReached;
+
+  /// No description provided for @ownMantraErrorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding mantras is not available right now. Please try again later.'**
+  String get ownMantraErrorUnavailable;
+
+  /// No description provided for @ownMantraErrorLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your list of own mantras is full. Remove one to add another.'**
+  String get ownMantraErrorLimit;
+
+  /// No description provided for @ownMantraErrorExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'These suggestions have expired. Please search again.'**
+  String get ownMantraErrorExpired;
 }
 
 class _AppLocalizationsDelegate

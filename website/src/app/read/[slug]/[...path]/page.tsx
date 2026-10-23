@@ -22,11 +22,11 @@ function parsePath(path: string[]): { canto: number | null; chapter: number } | 
   return numbers.length === 2 ? { canto: numbers[0], chapter: numbers[1] } : { canto: null, chapter: numbers[0] };
 }
 
-const loadBook = (slug: string, lang: string) => serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 300 });
+const loadBook = (slug: string, lang: string) => serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 });
 const loadChapter = (slug: string, where: { canto: number | null; chapter: number }, lang: string) =>
   serverGetOrNull<ChapterData>(`/api/app/books/${slug}/chapters/${where.chapter}`, {
     query: { canto: where.canto ?? undefined, languages: languagesQuery(lang) },
-    revalidate: 300,
+    revalidate: 0,
   });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -17,6 +17,7 @@ class CalendarGlyph extends StatelessWidget {
     final dark = brightness == Brightness.dark;
     return switch (kind) {
       FestivalKind.ekadashi => dark ? const Color(0xFF6FCF8D) : const Color(0xFF2F7D4A),
+      FestivalKind.parana => dark ? const Color(0xFF5CC8E8) : const Color(0xFF1F7FA0),
       FestivalKind.chaturthi => dark ? const Color(0xFFFF9D57) : const Color(0xFFC4621B),
       FestivalKind.purnima => dark ? const Color(0xFFF2C75C) : const Color(0xFFB07A00),
       FestivalKind.amavasya => dark ? const Color(0xFFB8B0A6) : const Color(0xFF6A5F54),

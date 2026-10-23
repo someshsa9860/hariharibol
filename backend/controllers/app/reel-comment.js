@@ -127,16 +127,15 @@ export const add = async (req, res) => {
   });
 
   // Fire-and-forget, deliberately not awaited — see notifyCreator.
-  const actorName = user.name || 'Someone';
   if (parentId && replyingTo) {
     notifyCreator(replyingTo, user, {
-      title: `${actorName} replied to you`,
+      titleId: 'reelReplyTitle',
       body: preview(text),
       data: { kind: 'reel_reply', reelId: reel.id, commentId: row.id },
     });
   } else {
     notifyCreator(reel.creator.userId, user, {
-      title: `${actorName} commented on your reel`,
+      titleId: 'reelCommentTitle',
       body: preview(text),
       data: { kind: 'reel_comment', reelId: reel.id, commentId: row.id },
     });

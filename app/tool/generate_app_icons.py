@@ -11,6 +11,8 @@ resized, and the adaptive foreground is also padded with white.
 
   iOS      AppIcon.appiconset/        one PNG per entry in its Contents.json,
                                       flattened (no alpha)
+  macOS    AppIcon.appiconset/        same idea, one PNG per entry in its own
+                                      Contents.json
   Android  mipmap-*/ic_launcher.png            the whole master, for Android 7 and below
            mipmap-*/ic_launcher_foreground.png the master shrunk into the adaptive
                                                icon's safe area; the white behind it
@@ -28,6 +30,7 @@ APP = Path(__file__).resolve().parent.parent
 MASTER = APP / "assets" / "hariharibol.png"
 
 IOS_ICONS = APP / "ios" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
+MACOS_ICONS = APP / "macos" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
 ANDROID_RES = APP / "android" / "app" / "src" / "main" / "res"
 
 # Pixels per Android density bucket: the plain launcher icon is 48dp, an
@@ -65,12 +68,20 @@ def save(image, path):
     print(f"  {path.relative_to(APP)}  {image.width}x{image.height}")
 
 
-def ios(master):
-    contents = json.loads((IOS_ICONS / "Contents.json").read_text())
+def appiconset(master, folder):
+    contents = json.loads((folder / "Contents.json").read_text())
     for entry in contents["images"]:
         points = float(entry["size"].split("x")[0])
         scale = int(entry["scale"].rstrip("x"))
-        save(resized(master, round(points * scale)), IOS_ICONS / entry["filename"])
+        save(resized(master, round(points * scale)), folder / entry["filename"])
+
+
+def ios(master):
+    appiconset(master, IOS_ICONS)
+
+
+def macos(master):
+    appiconset(master, MACOS_ICONS)
 
 
 def android(master):
@@ -88,4 +99,5 @@ if __name__ == "__main__":
     source = load_master()
     print(f"{MASTER.relative_to(APP)}  {source.width}x{source.height}")
     ios(source)
+    macos(source)
     android(source)

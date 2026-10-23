@@ -18,6 +18,10 @@ async function start() {
 
   server = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'api listening');
+    // Share and referral links are built from this. Left at a dev address they are shared as links nobody can open.
+    if (env.NODE_ENV === 'production' && /\/\/(localhost|127\.0\.0\.1)\b/.test(env.WEB_BASE_URL)) {
+      logger.warn({ WEB_BASE_URL: env.WEB_BASE_URL }, 'WEB_BASE_URL is a local address: shared and referral links will not open');
+    }
     // Ask Sakha's first reply must not be the one that pays for building the tokenizer (~300 ms, blocking).
     setImmediate(warmUp);
   });

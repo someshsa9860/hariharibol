@@ -125,11 +125,65 @@ void main() {
       expect(day.roundTargetMet, isFalse);
     });
 
-    test('clamps progress once the target is passed', () {
+    test('keeps counting past the target, towards the next goal', () {
       const day = SadhanaDay(roundTarget: 16, roundsCompleted: 20, tasksTotal: 3, tasksDone: 1);
-      expect(day.roundProgress, 1);
+      expect(day.roundGoal, 32);
+      expect(day.roundProgress, closeTo(20 / 32, 0.001));
       expect(day.roundTargetMet, isTrue);
       expect(day.taskProgress, closeTo(0.333, 0.001));
+    });
+
+    test('is full at the target itself', () {
+      const day = SadhanaDay(roundTarget: 16, roundsCompleted: 16, tasksTotal: 0, tasksDone: 0);
+      expect(day.roundGoal, 16);
+      expect(day.roundProgress, 1);
+      expect(day.roundTargetMet, isTrue);
+    });
+  });
+
+  group('roundGoalFor', () {
+    int goal(int rounds, {int target = 16}) => roundGoalFor(target, rounds);
+
+    test('stays on the target up to and including it', () {
+      expect([0, 1, 16].map(goal), everyElement(16));
+    });
+
+    test('steps 16, 32, 64, 108 as the rounds pass each one', () {
+      expect(goal(17), 32);
+      expect(goal(32), 32);
+      expect(goal(33), 64);
+      expect(goal(64), 64);
+      expect(goal(65), 108);
+      expect(goal(108), 108);
+    });
+
+    test('goes on in multiples of 16 after 108', () {
+      expect(goal(109), 112);
+      expect(goal(112), 112);
+      expect(goal(113), 128);
+      expect(goal(128), 128);
+      expect(goal(129), 144);
+      expect(goal(1000), 1008);
+    });
+
+    test('skips a rung at or under the target', () {
+      expect(goal(41, target: 40), 64);
+      expect(goal(109, target: 108), 112);
+      expect(goal(121, target: 120), 128);
+    });
+
+    test('never goes down as the rounds rise', () {
+      var last = 0;
+      for (var rounds = 0; rounds <= 400; rounds++) {
+        final next = goal(rounds);
+        expect(next, greaterThanOrEqualTo(last));
+        expect(next, greaterThanOrEqualTo(rounds));
+        last = next;
+      }
+    });
+
+    test('leaves a day with no target alone', () {
+      expect(roundGoalFor(0, 40), 0);
     });
   });
 

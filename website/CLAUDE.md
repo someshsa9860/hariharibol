@@ -11,7 +11,9 @@ Sakha. Next.js (App Router) + TypeScript, plain hand-written CSS, no UI library.
   browser's storage when signed out — never to a wall.
 - **The verse of the day, the library and the mantras always show.** The home page falls back to a day-of-year pick of well-loved verses (`lib/daily-verse.ts`) when none is set, and when the *server* cannot reach the API the same sections load in the browser (`LiveSections`, `LibraryLoader`, `MantraLoader`).
 - **Public content is server-rendered** so search engines get the words: books, chapters, verses, mantras, the home page.
-  Pages fetch with `lib/api/server.ts` (no token, cached by Next for 1–10 minutes). Anything that depends on *who* is
+  Pages fetch with `lib/api/server.ts` (no token, cached by Next for 1–10 minutes — **except responses that carry pictures
+  or audio, which pass `revalidate: 0`**: the API signs those S3 links for an hour and Next serves a stale cache entry once
+  before refreshing, so a cached answer handed the first reader after a quiet hour expired links and broken images). Anything that depends on *who* is
   reading is a client component that fetches after load (`lib/api/client.ts`).
 - **Reading language** is a cookie (`hhb_read`) the browser sets and the server reads (`lib/prefs/server.ts`), so a chapter
   is rendered in the reader's language; a crawler has no cookie and gets English. Changing it calls `router.refresh()`.
@@ -33,8 +35,9 @@ Sakha. Next.js (App Router) + TypeScript, plain hand-written CSS, no UI library.
   (`lib/format.ts`), never `translator.name`. The app has the same switch (`AppConfig.showAuthorName`).
 - **`/sources` (Sources & disclaimer, linked from the footer)** names the sources (`TEXT_SOURCES` in `lib/config.ts`, shown
   as text, not links), says the other languages are AI-assisted and Sakha is not a teacher, that the project is
-  independent, and gives `CONTACT_EMAIL` for rights and corrections — the same wording as the app's Settings page. Only
-  the Prabhupāda / © BBT line follows `SHOW_AUTHOR_NAME`.
+  independent, and gives `CONTACT_EMAIL` for rights and corrections — the same wording as the app's Settings page. **The
+  Prabhupāda / © BBT line always shows on this page**, unlike the verse card and compare sheet above — it does not
+  follow `SHOW_AUTHOR_NAME`, since this is the record of where the texts come from, not the per-verse byline.
 - **Colours** follow the app: saffron on warm white in light, charcoal with a white accent in dark (`styles/tokens.css`).
   Saffron is a fill, never text (`--accent-ink` is the text version). Status is never colour alone — the routine's
   Early / On time / Late carry words.

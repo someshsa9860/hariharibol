@@ -5,6 +5,7 @@ import 'json.dart';
 /// `assets/calendar/`.
 enum FestivalKind {
   ekadashi('EKADASHI', 'ekadashi'),
+  parana('PARANA', 'parana'),
   chaturthi('CHATURTHI', 'chaturthi'),
   purnima('PURNIMA', 'purnima'),
   amavasya('AMAVASYA', 'amavasya'),

@@ -11,6 +11,7 @@ import '../../l10n/generated/app_localizations.dart';
 Future<int?> showDailyGoalSheet(BuildContext context, {required int initial}) {
   return showModalBottomSheet<int>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,

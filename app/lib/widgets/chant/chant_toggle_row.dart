@@ -13,6 +13,7 @@ class ChantToggleRow extends StatelessWidget {
     required this.status,
     required this.value,
     required this.onChanged,
+    this.enabled = true,
   });
 
   final IconData icon;
@@ -20,6 +21,9 @@ class ChantToggleRow extends StatelessWidget {
   final String status;
   final bool value;
   final ValueChanged<bool> onChanged;
+
+  /// False dims the switch and leaves it unable to be turned.
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,7 @@ class ChantToggleRow extends StatelessWidget {
               ],
             ),
           ),
-          Switch(value: value, onChanged: onChanged),
+          Switch(value: value, onChanged: enabled ? onChanged : null),
         ],
       ),
     );

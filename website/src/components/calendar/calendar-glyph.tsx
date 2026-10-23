@@ -2,6 +2,7 @@ import { CALENDAR_ICONS } from '@/lib/calendar-icons';
 
 export const KIND_LABEL: Record<string, string> = {
   EKADASHI: 'Ekadashi',
+  PARANA: 'Parana',
   CHATURTHI: 'Chaturthi',
   PURNIMA: 'Purnima',
   AMAVASYA: 'Amavasya',

@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../core/constants/push_config.dart';
 import '../core/theme/app_colors.dart';
 import 'push_link.dart';
+import 'routine_alert_ticks.dart';
 
 /// Draws a push as a notification while the app is open.
 ///
@@ -60,6 +61,9 @@ class LocalPushService {
           android: AndroidInitializationSettings(PushConfig.androidSmallIcon),
         ),
         onDidReceiveNotificationResponse: (response) => _tapped(response.payload, response.actionId),
+        // A button that does not open the app — a routine alert's "Mark as done" —
+        // is answered here, in an isolate of its own.
+        onDidReceiveBackgroundNotificationResponse: routineAlertBackground,
       );
 
       // A notification drawn here and tapped after the app was closed starts it
@@ -74,6 +78,11 @@ class LocalPushService {
       return false;
     }
   }
+
+  /// The plugin, started, for the routine alerts to schedule on — there is one
+  /// plugin per app and a second `initialize` would replace this one's callbacks.
+  /// Null where notifications are not drawn by the app, or could not start.
+  Future<FlutterLocalNotificationsPlugin?> started() async => await _init() ? _plugin : null;
 
   /// Makes sure both push channels exist, so a push drawn by the system — app
   /// closed — is on a channel the reader can recognise in settings and that

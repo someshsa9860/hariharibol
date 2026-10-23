@@ -9,6 +9,7 @@ import 'chant_tap_row.dart';
 
 /// The last few chants, newest first, under the ring — each with the time it
 /// was counted and the seconds it took, so the pace is visible as it happens.
+/// Beads added when a round was finished early are not chants and are not listed.
 class ChantRecentTaps extends StatelessWidget {
   const ChantRecentTaps({super.key, required this.taps});
 
@@ -20,7 +21,7 @@ class ChantRecentTaps extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final recent = taps.reversed.take(_shown).toList();
+    final recent = taps.reversed.where((tap) => !tap.filler).take(_shown).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

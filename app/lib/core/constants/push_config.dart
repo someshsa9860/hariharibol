@@ -15,6 +15,9 @@ abstract final class PushConfig {
   static const String deeplinkSadhana = 'sadhana';
   static const String deeplinkPremium = 'premium';
   static const String deeplinkCalendar = 'calendar';
+  // The 7:15 devotee etiquette push (`backend/jobs/processors/etiquette-deliver.js`):
+  // `hariharibol://etiquette/<id>` opens that item, a bare `etiquette` the list.
+  static const String deeplinkEtiquette = 'etiquette';
   // Added with rich pushes (`backend/utils/push-rich.js` TARGETS). `sakha` is Ask
   // Sakha; the route inside the app is still /chat.
   static const String deeplinkHome = 'home';
@@ -29,6 +32,11 @@ abstract final class PushConfig {
   static const String deeplinkMantra = 'mantra';
   static const String deeplinkReel = 'reel';
   static const String deeplinkVerse = 'verse';
+  // Support (`backend/utils/push-rich.js`): the help screen, and one ticket by id.
+  static const String deeplinkSupport = 'support';
+  static const String deeplinkTicket = 'ticket';
+  // The developer replied to the reader's chat (`backend/jobs/processors/devops.js`).
+  static const String deeplinkDeveloper = 'developer';
 
   // ── What a rich push carries (all strings) ──────────────────────────────
   /// `picture` or `text` — how the expanded notification is drawn.

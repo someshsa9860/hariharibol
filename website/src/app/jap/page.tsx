@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function JapPage() {
-  const mantras = await serverGet<Mantra[]>('/api/app/mantras', { query: { pageSize: 100 }, revalidate: 300 }).catch(() => null);
+  const mantras = await serverGet<Mantra[]>('/api/app/mantras', { query: { pageSize: 100 }, revalidate: 0 }).catch(() => null);
 
   return (
     <div className="page">
