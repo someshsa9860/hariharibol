@@ -34,6 +34,8 @@ import etiquetteProcessor, { abortActiveRuns as abortEtiquetteRuns, onJobFailed 
 import { reconcileRuns as reconcileEtiquetteRuns } from '../services/etiquette.js';
 import calendarProcessor, { abortActiveRuns as abortCalendarRuns, onJobFailed as onCalendarJobFailed } from '../jobs/processors/calendar.js';
 import { reconcileRuns as reconcileCalendarRuns } from '../services/calendar-translation.js';
+import translationImportProcessor, { abortActiveRuns as abortTranslationImportRuns, onJobFailed as onTranslationImportJobFailed } from '../jobs/processors/translation-import.js';
+import { reconcileImportRuns } from '../services/translation-import.js';
 
 // One processor per queue. The queue name is the key, so worker/ and jobs/
 // cannot disagree about which processor runs what.
@@ -49,6 +51,7 @@ const processors = {
   scenes: scenesProcessor,
   etiquette: etiquetteProcessor,
   calendar: calendarProcessor,
+  'translation-import': translationImportProcessor,
   devops: devopsProcessor,
 };
 
@@ -76,6 +79,9 @@ const CONCURRENCY = {
   etiquette: 1,
   // One calendar translation run at a time, for the same reason.
   calendar: 1,
+  // Not a provider call, just per-chapter database writes — no shared rate limit the way the AI
+  // runs above have, so a few languages can import at once.
+  'translation-import': 3,
   // Short jobs; a few at once so a burst of events does not queue behind a health check.
   devops: 3,
 };
@@ -85,6 +91,7 @@ let reconcileTimer = null;
 let reconcileScenesTimer = null;
 let reconcileEtiquetteTimer = null;
 let reconcileCalendarTimer = null;
+let reconcileImportRunsTimer = null;
 
 async function start() {
   await connectDatabase();
@@ -94,7 +101,7 @@ async function start() {
       connection: bullConnection,
       concurrency: CONCURRENCY[name] || 1,
       // A translation run whose worker died is handed to another many times over; the others, once.
-      ...((name === 'translation' || name === 'scenes' || name === 'etiquette' || name === 'calendar') && { maxStalledCount: translation.maxStalledCount }),
+      ...((name === 'translation' || name === 'scenes' || name === 'etiquette' || name === 'calendar' || name === 'translation-import') && { maxStalledCount: translation.maxStalledCount }),
     });
 
     worker.on('completed', (job, result) => {
@@ -117,6 +124,9 @@ async function start() {
       }
       if (name === 'calendar') {
         onCalendarJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed calendar job'));
+      }
+      if (name === 'translation-import') {
+        onTranslationImportJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed translation import job'));
       }
     });
 
@@ -145,6 +155,9 @@ async function start() {
   const reconcileCalendar = () => reconcileCalendarRuns().catch((err) => logger.error({ err: err.message }, 'calendar reconcile failed'));
   await reconcileCalendar();
   reconcileCalendarTimer = setInterval(reconcileCalendar, translation.reconcileEveryMs);
+  const reconcileImports = () => reconcileImportRuns().catch((err) => logger.error({ err: err.message }, 'translation import reconcile failed'));
+  await reconcileImports();
+  reconcileImportRunsTimer = setInterval(reconcileImports, translation.reconcileEveryMs);
 
   await registerSchedules();
   logger.info('worker ready');
@@ -158,14 +171,16 @@ async function shutdown(signal) {
   clearInterval(reconcileScenesTimer);
   clearInterval(reconcileEtiquetteTimer);
   clearInterval(reconcileCalendarTimer);
+  clearInterval(reconcileImportRunsTimer);
   // A translation run is hours long, so it is not waited out: it stops after its current call, puts
   // itself back in the queue, and the next worker carries on from the verse after the last one saved.
   const stopped = abortActiveRuns('shutdown');
   const stoppedScenes = abortSceneRuns('shutdown');
   const stoppedEtiquette = abortEtiquetteRuns('shutdown');
   const stoppedCalendar = abortCalendarRuns('shutdown');
-  if (stopped || stoppedScenes || stoppedEtiquette || stoppedCalendar) {
-    logger.info({ stopped, stoppedScenes, stoppedEtiquette, stoppedCalendar }, 'translation, scene, etiquette and calendar runs handed back to the queue');
+  const stoppedImports = abortTranslationImportRuns('shutdown');
+  if (stopped || stoppedScenes || stoppedEtiquette || stoppedCalendar || stoppedImports) {
+    logger.info({ stopped, stoppedScenes, stoppedEtiquette, stoppedCalendar, stoppedImports }, 'translation, scene, etiquette, calendar and import runs handed back to the queue');
   }
   await Promise.all(workers.map((worker) => worker.close()));
   await disconnectDatabase();

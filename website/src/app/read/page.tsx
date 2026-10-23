@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ReadPage() {
-  const books = await serverGet<Book[]>('/api/app/books', { query: { pageSize: 100 }, revalidate: 300 }).catch(() => null);
+  const books = await serverGet<Book[]>('/api/app/books', { query: { pageSize: 100 }, revalidate: 0 }).catch(() => null);
 
   return (
     <div className="page">

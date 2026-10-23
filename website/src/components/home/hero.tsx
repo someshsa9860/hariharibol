@@ -31,8 +31,8 @@ export function Hero() {
         </div>
         <div className="art-card art-card-top">
           <span className="eyebrow">Today’s verse</span>
-          <strong lang="sa" className="deva">शान्तिः शान्तिः शान्तिः</strong>
-          <small>Peace in thought, word, and action.</small>
+          <strong lang="sa" className="deva">सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज</strong>
+          <small>Bhagavad Gita 18.66 · Surrender to Me alone, and do not fear.</small>
         </div>
         <div className="art-card art-card-bottom">
           <span className="play-dot"><Icon name="play" size={16} /></span>

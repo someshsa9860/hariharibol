@@ -19,7 +19,7 @@ interface WebBook extends Book {
 type Props = { params: Promise<{ slug: string }> };
 
 const load = (slug: string, lang: string) =>
-  serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 300 });
+  serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -56,7 +56,7 @@ export default async function BookPage({ params }: Props) {
   if (book.totalChapters === 0) {
     const verses = await serverGetOrNull<Verse[]>(`/api/app/books/${slug}/verses`, {
       query: { languages: languagesQuery(lang) },
-      revalidate: 300,
+      revalidate: 0,
     });
     return (
       <>

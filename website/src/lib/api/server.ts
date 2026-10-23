@@ -4,7 +4,12 @@ import { ApiError, readEnvelope, withQuery, type Envelope, type Query } from './
 
 interface Options {
   query?: Query;
-  /** Seconds the Next data cache may serve the answer. Public content changes rarely; the default is a minute. */
+  /**
+   * Seconds the Next data cache may serve the answer. Public content changes rarely; the default is a minute.
+   * **Pass 0 for anything that carries pictures or audio.** The API signs those S3 links for an hour, and Next serves
+   * a stale entry once before it refreshes, so after a quiet hour the first reader would get expired links (broken
+   * images, silent recitations) and only a reload would fix them. 0 fetches fresh on every request.
+   */
   revalidate?: number;
   /** The reader's reading language, for endpoints that accept `Accept-Language`. */
   language?: string;
@@ -18,7 +23,7 @@ export async function serverGetEnvelope<T>(path: string, options: Options = {}):
   try {
     response = await fetch(`${SERVER_API_BASE}${withQuery(path, options.query)}`, {
       headers,
-      next: { revalidate: options.revalidate ?? 60 },
+      ...(options.revalidate === 0 ? { cache: 'no-store' as const } : { next: { revalidate: options.revalidate ?? 60 } }),
     });
   } catch {
     throw new ApiError(503, 'API_UNREACHABLE', 'The library could not be reached');

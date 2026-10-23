@@ -12,6 +12,7 @@ class ChantTapLog {
     required this.at,
     required this.gapMs,
     this.auto = false,
+    this.filler = false,
     this.heard,
   });
 
@@ -24,6 +25,11 @@ class ChantTapLog {
   /// Counted by the microphone rather than a thumb.
   final bool auto;
 
+  /// Not a chant the counter saw: a bead added when the reader finished a round
+  /// early, to bring the count to its end. It has no gap of its own and no
+  /// average is worked out from it.
+  final bool filler;
+
   /// What speech recognition heard for this tap, when word detection was on.
   /// Only held for a sitting still on screen, or fetched back from the server
   /// within its 7-day life.
@@ -32,13 +38,14 @@ class ChantTapLog {
   double get gapSeconds => gapMs / 1000;
 
   ChantTapLog withHeard(String? text) =>
-      ChantTapLog(seq: seq, at: at, gapMs: gapMs, auto: auto, heard: text);
+      ChantTapLog(seq: seq, at: at, gapMs: gapMs, auto: auto, filler: filler, heard: text);
 
   Json toJson() => {
         'seq': seq,
         'at': at.millisecondsSinceEpoch,
         'gapMs': gapMs,
         'auto': auto,
+        'filler': filler,
       };
 
   factory ChantTapLog.fromJson(Json json) => ChantTapLog(
@@ -46,6 +53,7 @@ class ChantTapLog {
         at: DateTime.fromMillisecondsSinceEpoch(asInt(json['at'])),
         gapMs: asInt(json['gapMs']),
         auto: asBool(json['auto']),
+        filler: asBool(json['filler']),
       );
 }
 
@@ -286,7 +294,7 @@ class ChantStats {
     for (final mala in malas) {
       if (mala.taps.isNotEmpty) {
         for (final tap in mala.taps) {
-          if (tap.seq > 1) {
+          if (tap.seq > 1 && !tap.filler) {
             gapTotalMs += tap.gapMs;
             gapCount += 1;
           }

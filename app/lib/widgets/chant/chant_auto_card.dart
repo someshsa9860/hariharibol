@@ -10,6 +10,9 @@ import 'chant_toggle_row.dart';
 /// Everything that sets how a mantra is counted, in one card under the ring: the
 /// auto-count switch, whether it listens with the microphone or counts by time
 /// (which saves the battery), and how long one chant takes.
+///
+/// While [resting] — a recording is counting — auto count and the microphone
+/// switch cannot be turned; how long a chant takes still can.
 class ChantAutoCard extends StatelessWidget {
   const ChantAutoCard({
     super.key,
@@ -21,6 +24,7 @@ class ChantAutoCard extends StatelessWidget {
     required this.onAutoChanged,
     required this.onMicrophoneChanged,
     required this.onPaceChange,
+    this.resting = false,
   });
 
   final AutoChantStatus status;
@@ -31,6 +35,7 @@ class ChantAutoCard extends StatelessWidget {
   final ValueChanged<bool> onAutoChanged;
   final ValueChanged<bool> onMicrophoneChanged;
   final void Function({required bool longer}) onPaceChange;
+  final bool resting;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +46,7 @@ class ChantAutoCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           children: [
-            AutoChantSwitch(status: status, onChanged: onAutoChanged),
+            AutoChantSwitch(status: status, onChanged: onAutoChanged, resting: resting),
             const Divider(height: 1),
             ChantToggleRow(
               icon: useMicrophone ? Icons.mic_rounded : Icons.mic_off_rounded,
@@ -49,6 +54,7 @@ class ChantAutoCard extends StatelessWidget {
               status: useMicrophone ? text.chantAutoMicOn : text.chantAutoMicOff,
               value: useMicrophone,
               onChanged: onMicrophoneChanged,
+              enabled: !resting,
             ),
             const Divider(height: 1),
             ChantPaceRow(

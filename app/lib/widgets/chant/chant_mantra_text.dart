@@ -10,13 +10,17 @@ import '../../models/mantra.dart';
 /// being said between rounds — the prayer's name and text with the line telling
 /// the reader to tap the ring when it is done.
 class ChantMantraText extends StatelessWidget {
-  const ChantMantraText({super.key, required this.mantra, this.prayer});
+  const ChantMantraText({super.key, required this.mantra, this.prayer, this.prayerHint});
 
   /// The mantra being chanted; nothing is shown for a sitting with none.
   final Mantra? mantra;
 
   /// The prayer on screen in place of the mantra, if one is.
   final Mantra? prayer;
+
+  /// The line under the prayer when it is not the usual "tap the ring": a
+  /// recording that carries the prayer says to press play instead.
+  final String? prayerHint;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,7 @@ class ChantMantraText extends StatelessWidget {
           Text(shown.text, textAlign: TextAlign.center, style: AppTypography.verse(context, size: 22)),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            AppLocalizations.of(context).chantPrayerHint,
+            prayerHint ?? AppLocalizations.of(context).chantPrayerHint,
             textAlign: TextAlign.center,
             style: context.texts.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
           ),

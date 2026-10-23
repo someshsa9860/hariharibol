@@ -1974,7 +1974,9 @@ model Mantra {
 
   // The consonant skeleton of the transliteration (utils/legacy.js `skeleton`), so a mantra a reader asks
   // for that we already hold is found by an indexed equality instead of a scan. Filled lazily when null.
-  matchKey String? @db.VarChar(120)
+  // 400, not something smaller: `skeleton()` is capped at `MATCH.maxLength` (400), and a reader's own
+  // mantra can be long enough that its skeleton used to overflow a narrower column (P2000).
+  matchKey String? @db.VarChar(400)
 
   // A picture for the mantra: a public web address (found when it was added) or a file the reader who added
   // it uploaded (an S3 key, which wins). Neither: the app shows the deity's picture, as it always has.
@@ -2799,6 +2801,41 @@ model TranslationRun {
   startedAt   DateTime?
   finishedAt  DateTime?
   heartbeatAt DateTime? // the worker touches it every few seconds while the job runs
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
+}
+
+// Copies a language's chapter files for a book out of storage into VerseTranslation (services/translation-import.js);
+// the counterpart to TranslationRun, which makes the files. Runs in the worker so a big import cannot block the API —
+// see jobs/processors/translation-import.js. There is no pauseReason/resumeAt: a read-then-write pass over Postgres has
+// no provider to wait on, so a failed chapter is just reported in `result` and the admin starts a fresh run.
+model TranslationImportRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  book     String  @default("bhagavat-gita") @db.VarChar(40)
+  publish  Boolean @default(false)
+  chapters Int[] // what was asked for, already resolved to the book's full list when none were named
+
+  status          TranslationRunStatus @default(QUEUED) // reuses the enum; an import never needs a person, so only QUEUED | RUNNING | COMPLETED | FAILED | CANCELLED appear
+  statusMessage   String?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+
+  totalChapters  Int     @default(0)
+  doneChapters   Int     @default(0)
+  currentChapter Int?
+  result         Json? // the finished `{ totals, chapters }` from importLanguage(), for the page once the run ends
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
 
   @@index([status, createdAt])
   @@index([language, createdAt])

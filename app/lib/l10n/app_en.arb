@@ -1606,7 +1606,7 @@
   },
   "sourcesAuthorCredit": "The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.",
   "@sourcesAuthorCredit": {
-    "description": "Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin."
+    "description": "Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Always shown on this page, even while AppConfig.showAuthorName keeps his name off the verse and other surfaces. Keep the copyright holder's name in Latin."
   },
   "sourcesTextsBody": "Every translation, purport and commentary is the work of its author, and all rights in it remain with its authors and publishers. They are reproduced here for personal devotional study, not for redistribution.",
   "@sourcesTextsBody": {

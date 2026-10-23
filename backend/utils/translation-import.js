@@ -3,6 +3,7 @@
 // holds, and what differs from the row already there. services/translation-import.js reads and writes;
 // this decides. test/translation-import.test.js holds the cases.
 
+import { translation } from '../config/translation.js';
 import { TRANSLATOR } from '../scripts/lib/claude-translate-source.js';
 import { normalizeWordMeanings } from '../scripts/lib/word-meanings.js';
 
@@ -122,5 +123,37 @@ export function totalsOf(chapters, versions = {}) {
     conflicts: chapters.reduce((n, c) => n + c.conflicts.length, 0),
     failedChapters: chapters.filter((c) => c.error).length,
     versions,
+  };
+}
+
+/** A TranslationImportRun, as the admin panel receives it. */
+export function presentImportRun(row, now = new Date()) {
+  const total = row.totalChapters;
+  const done = row.doneChapters;
+  const beat = row.heartbeatAt ? new Date(row.heartbeatAt).getTime() : null;
+  return {
+    id: row.id,
+    language: row.language,
+    book: row.book,
+    publish: row.publish,
+    chapters: row.chapters,
+    status: row.status,
+    statusMessage: row.statusMessage,
+    cancelRequested: row.cancelRequested,
+    progress: {
+      total,
+      done,
+      percent: total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0,
+      currentChapter: row.currentChapter,
+    },
+    result: row.result ?? null,
+    requestedBy: row.requestedById ? { id: row.requestedById, name: row.requestedByName } : null,
+    createdAt: row.createdAt,
+    startedAt: row.startedAt,
+    finishedAt: row.finishedAt,
+    heartbeatAt: row.heartbeatAt,
+    // RUNNING but silent: the worker died or is stuck. BullMQ hands the job to another worker by itself
+    // (see worker/index.js), so this is a warning, not a verdict.
+    stalled: row.status === 'RUNNING' && (beat == null || now.getTime() - beat > translation.staleHeartbeatSeconds * 1000),
   };
 }

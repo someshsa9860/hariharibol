@@ -26,12 +26,19 @@
 
 import { Prisma } from '@prisma/client';
 
+import { redis } from '../config/redis.js';
+import logger from '../config/logger.js';
 import { prisma } from '../config/database.js';
+import { translation } from '../config/translation.js';
+import { JOBS, queues } from '../jobs/index.js';
+import { EVENTS, toPermission } from './websocket.js';
 import { unprocessable } from '../utils/errors.js';
-import { changedColumns, emptyChapter, placeProblem, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
+import { changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
+
+const queue = queues['translation-import'];
 
 /** The Gita's `Book.bookNumber`, as scripts/import-bg.js has it. Its storage folder (`BOOK`) has another spelling than its slug. */
 export const GITA_BOOK_NUMBER = 1;
@@ -57,9 +64,13 @@ async function workspaceStore() {
  * that would do). `folder` and `bookNumber` name the book — the Gita unless a test says otherwise — and `store`
  * is where the files are read from (the app's bucket unless a test passes a folder).
  *
+ * `onChapter(line, done, total)` — given a job by the worker — hears about each chapter right after it is
+ * worked, so a run row can show progress; `shouldStop()`, checked before each one, lets a cancelled run
+ * leave the rest undone instead of ploughing through them.
+ *
  * → { language, publish, dryRun, totals, chapters: [one `emptyChapter` line each] }
  */
-export async function importLanguage({ language, book: bookId = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null }) {
+export async function importLanguage({ language, book: bookId = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null, onChapter = null, shouldStop = null }) {
   // `folder` and `bookNumber` are for a test's throwaway book; a real one is named by `book`.
   const named = folder == null && BOOKS[bookId] ? bookOf(bookId) : null;
   chapters ??= named?.chapters ?? CHAPTERS;
@@ -78,6 +89,7 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
   const versions = {};
 
   for (const number of picked) {
+    if (shouldStop?.()) break;
     const line = emptyChapter(number);
     lines.push(line);
     const key = langChapterKey(language, number, named ? bookId : folder);
@@ -92,6 +104,8 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
       await importChapter({ file, line, versions, language, publish, dryRun, bookId: book.id, translatorId: translator.id, parts: chapterParts(number, named ? bookId : BOOK) });
     } catch (err) {
       line.error = reasonOf(err);
+    } finally {
+      await onChapter?.(line, lines.length, picked.length);
     }
   }
 
@@ -197,4 +211,82 @@ export async function importStatus({ version = null, book: bookId = BOOK, bookNu
     byLanguage.set(g.languageCode, entry);
   }
   return { version, book: bookId, languages: [...byLanguage.values()].map((l) => ({ ...l, updatedAt: l.updatedAt?.toISOString() ?? null })) };
+}
+
+/* ---------- the live channel and the activity feed ---------- */
+// Same shape as services/translation.js's — a separate feed key and event pair so an import's lines
+// never land in a translation run's own feed.
+
+const feedKey = (runId) => `translation-import:feed:${runId}`;
+
+/** Sends an import run's whole state to every admin who may watch translations. */
+export function publishImportRun(row) {
+  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_RUN, presentImportRun(row));
+}
+
+/**
+ * Adds a line to an import run's activity feed (kept in Redis, newest first, capped) and sends it to the
+ * watchers. Never throws: the feed is a convenience, a failure here must not stop a run.
+ */
+export async function pushImportFeed(runId, line) {
+  const entry = { at: new Date().toISOString(), ...line };
+  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_ACTIVITY, { runId, ...entry });
+  try {
+    await redis.multi().lpush(feedKey(runId), JSON.stringify(entry)).ltrim(feedKey(runId), 0, translation.feedLines - 1).expire(feedKey(runId), translation.feedDays * 86400).exec();
+  } catch (err) {
+    logger.warn({ err: err.message, runId }, 'translation import feed write failed');
+  }
+}
+
+export async function readImportFeed(runId, count = 100) {
+  const lines = await redis.lrange(feedKey(runId), 0, Math.min(count, translation.feedLines) - 1).catch(() => []);
+  return lines.map((l) => JSON.parse(l));
+}
+
+/* ---------- a run's job on the queue ---------- */
+
+const LIVE_STATES = ['waiting', 'active', 'delayed', 'prioritized', 'waiting-children'];
+export const newImportJobId = (runId) => `translation-import-${runId}-${Date.now().toString(36)}`;
+
+/** Adds the job that works a run. The run row names it (`jobId`); a job whose id the row does not name does nothing. */
+export async function addImportRunJob(runId, jobId = newImportJobId(runId)) {
+  await queue.add(JOBS.TRANSLATION_IMPORT_RUN, { runId }, { jobId });
+  return jobId;
+}
+
+/** Takes a run's job off the queue if it has not started. A running one is stopped by the run itself (cancelRequested). */
+export async function dropImportRunJob(run) {
+  if (!run.jobId) return;
+  const job = await queue.getJob(run.jobId).catch(() => null);
+  if (job) await job.remove().catch(() => {});
+}
+
+/**
+ * The safety net: a run that should be working but whose job is gone (Redis was flushed, a job failed for
+ * good) gets a new one. Called by the worker on boot and every `reconcileEveryMs`.
+ * @returns {Promise<string[]>} ids of the runs it re-queued
+ */
+export async function reconcileImportRuns() {
+  const youngerThan = new Date(Date.now() - 30_000);
+  const rows = await prisma.translationImportRun.findMany({
+    where: { updatedAt: { lt: youngerThan }, status: { in: ['QUEUED', 'RUNNING'] } },
+  });
+  const requeued = [];
+  for (const row of rows) {
+    const job = row.jobId ? await queue.getJob(row.jobId).catch(() => null) : null;
+    const state = job ? await job.getState().catch(() => 'unknown') : 'missing';
+    if (LIVE_STATES.includes(state)) continue;
+    if (job) await job.remove().catch(() => {});
+    const jobId = newImportJobId(row.id);
+    const next = await prisma.translationImportRun.update({
+      where: { id: row.id },
+      data: { jobId, status: 'QUEUED', statusMessage: 'Picked up again after its background job was lost.' },
+    });
+    await addImportRunJob(row.id, jobId);
+    publishImportRun(next);
+    pushImportFeed(row.id, { kind: 'status', level: 'warn', text: 'Its background job was lost; queued again.' });
+    logger.warn({ runId: row.id, was: state }, 'translation import run re-queued');
+    requeued.push(row.id);
+  }
+  return requeued;
 }

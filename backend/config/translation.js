@@ -48,10 +48,10 @@ const translation = {
   // Chapter files read from S3 at once when counting or estimating.
   readConcurrency: 16,
 
-  // An import of one language (storage → database) holds a Redis lock so two clicks, or two admins,
-  // cannot overlap. It is let go the moment the import ends; this is only how long a crashed one
-  // keeps the next out.
-  importLockSeconds: 300,
+  // An import now runs as a TranslationImportRun job, same as a translation run — the active-row check
+  // is what stops two from overlapping. This lock only guards the moment of creating that row, so two
+  // clicks a heartbeat apart cannot both pass the check; it is let go right after.
+  importLockSeconds: 20,
 
   // The worker re-queues a run whose background job has gone missing (Redis flushed, a job lost
   // after a crash) this often, and once on boot.

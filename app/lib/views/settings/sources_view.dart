@@ -11,8 +11,10 @@ import '../../widgets/settings/sources_section.dart';
 /// taken from, that the other languages are AI-assisted, what Sakha is and is
 /// not, that the project speaks for no one else, and whom to write to.
 ///
-/// Śrīla Prabhupāda's credit line follows [AppConfig.showAuthorName] like
-/// every other place his name would appear; the rest of the page does not.
+/// Śrīla Prabhupāda's credit line always shows here — this page is the
+/// record of where the texts come from, not the per-verse byline — even
+/// while [AppConfig.showAuthorName] keeps his name off the verse, the Home
+/// cards and the translation picker until permission to name him there too.
 class SourcesView extends StatelessWidget {
   const SourcesView({super.key});
 
@@ -31,8 +33,7 @@ class SourcesView extends StatelessWidget {
           SourcesSection(
             title: text.sourcesTextsHeading,
             children: [
-              if (AppConfig.showAuthorName)
-                Text(text.sourcesAuthorCredit, style: context.texts.bodyMedium),
+              Text(text.sourcesAuthorCredit, style: context.texts.bodyMedium),
               Text(text.sourcesTextsBody, style: context.texts.bodyMedium),
             ],
           ),

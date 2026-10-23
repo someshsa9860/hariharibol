@@ -169,6 +169,13 @@ class ChantMalaPlayer {
 
   Future<void> toggle() => isPlaying ? pause() : play();
 
+  /// Stops and goes back to the start, so the next press of play is the next time
+  /// through and not a wait for the silence after the last chant to run out.
+  Future<void> rewind() async {
+    await pause();
+    if (state.value.phase == ChantMalaPhase.ready) await seek(Duration.zero);
+  }
+
   /// Moves playback without counting what is skipped over or heard again.
   Future<void> seek(Duration position) async {
     _seeking = true;

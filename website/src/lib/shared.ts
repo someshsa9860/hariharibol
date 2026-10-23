@@ -24,7 +24,7 @@ export type SharedResult = { state: 'ok'; content: SharedContent } | { state: 'g
 export async function loadShared(route: 'shloka' | 'naam' | 'darshan', code: string): Promise<SharedResult> {
   if (!/^[1-9A-HJ-NP-Za-km-z]{8,16}$/.test(code)) return { state: 'missing' };
   try {
-    return { state: 'ok', content: await serverGet<SharedContent>(`/api/web/share/${route}/${code}`, { revalidate: 120 }) };
+    return { state: 'ok', content: await serverGet<SharedContent>(`/api/web/share/${route}/${code}`, { revalidate: 0 }) };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return { state: 'missing' };
     if (error instanceof ApiError && error.status === 410) return { state: 'gone' };

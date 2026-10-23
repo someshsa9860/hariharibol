@@ -8,7 +8,7 @@ import { excerpt } from '@/lib/format';
 import type { Mantra } from '@/lib/types';
 
 type Props = { params: Promise<{ slug: string }> };
-const load = (slug: string) => serverGetOrNull<Mantra>(`/api/app/mantras/${slug}`, { revalidate: 300 });
+const load = (slug: string) => serverGetOrNull<Mantra>(`/api/app/mantras/${slug}`, { revalidate: 0 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
