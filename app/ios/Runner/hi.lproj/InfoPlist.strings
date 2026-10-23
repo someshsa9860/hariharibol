@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol आपके जप के दौरान सुनता है ताकि आपके जप गिन सके, और जब आप Sakha को संदेश बोलने के लिए माइक्रोफ़ोन दबाते हैं।";
+"NSSpeechRecognitionUsageDescription" = "जब आप Sakha को संदेश बोलते हैं, तो HariHariBol आपके फ़ोन की वाणी पहचान से आपकी बात को लिखित रूप में बदलता है।";
+"NSPhotoLibraryUsageDescription" = "HariHariBol आपकी तस्वीरें खोलता है ताकि आप Sakha के साथ साझा करने के लिए कोई तस्वीर चुन सकें।";
+"NSCameraUsageDescription" = "HariHariBol कैमरा खोलता है ताकि आप Sakha के साथ साझा करने के लिए तस्वीर खींच सकें।";

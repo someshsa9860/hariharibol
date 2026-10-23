@@ -38,6 +38,7 @@ import chatRoutes from './chat.js';
 import shareRoutes from './share.js';
 import referralRoutes from './referral.js';
 import calendarRoutes from './calendar.js';
+import etiquetteRoutes from './etiquette.js';
 import developerChatRoutes from './developer-chat.js';
 
 const routers = [
@@ -72,6 +73,7 @@ const routers = [
   shareRoutes,
   referralRoutes,
   calendarRoutes,
+  etiquetteRoutes,
 ];
 
 export default mount(express.Router(), '/api/app', routers);

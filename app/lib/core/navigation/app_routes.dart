@@ -27,6 +27,12 @@ abstract final class AppRoutes {
   /// Pushed from Home, and where the festival push opens.
   static const String calendar = '/calendar';
 
+  /// Devotee etiquette: today's practice and the whole list. Pushed from Home;
+  /// the daily push opens one item at [etiquettePattern].
+  static const String etiquette = '/etiquette';
+  static const String etiquettePattern = '/etiquette/:id';
+  static String etiquettePath(String id) => '/etiquette/$id';
+
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
@@ -60,6 +66,10 @@ abstract final class AppRoutes {
   /// this builds the concrete path for `push`/`go`.
   static const String mantraPattern = '/mantras/:slug';
   static String mantraPath(String slug) => '/mantras/$slug';
+
+  /// Adding a mantra of the reader's own. Registered before [mantraPattern],
+  /// which would otherwise take "add" for a slug.
+  static const String addMantra = '/mantras/add';
 
   /// A book: its cantos (Srimad Bhagavatam) or chapters (everything else)
   /// directly.
@@ -143,6 +153,8 @@ abstract final class RouteNames {
   static const String library = 'library';
   static const String routine = 'routine';
   static const String calendar = 'calendar';
+  static const String etiquette = 'etiquette';
+  static const String etiquetteItem = 'etiquetteItem';
   static const String settings = 'settings';
   static const String support = 'support';
   static const String ticket = 'ticket';
@@ -153,6 +165,7 @@ abstract final class RouteNames {
   static const String sources = 'sources';
   static const String search = 'search';
   static const String mantraDetail = 'mantraDetail';
+  static const String addMantra = 'addMantra';
   static const String bookDetail = 'bookDetail';
   static const String bookCanto = 'bookCanto';
   static const String chapterRead = 'chapterRead';

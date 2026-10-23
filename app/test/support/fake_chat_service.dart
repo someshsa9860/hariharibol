@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:hariharibol/models/api_failure.dart';
 import 'package:hariharibol/models/chat.dart';
+import 'package:hariharibol/models/sakha_profile.dart';
 import 'package:hariharibol/services/api_client.dart';
 import 'package:hariharibol/services/chat_service.dart';
 
@@ -140,6 +141,56 @@ class FakeChatService implements ChatService {
       throw failure;
     }
     detail = null;
+  }
+
+  /// What the server has noted about the reader. A test sets it; the three
+  /// calls below read and change it the way the server would.
+  SakhaProfile profileValue = const SakhaProfile();
+
+  /// When set, the next `profile()`, `setProfileLearning()` or `deleteProfile()`
+  /// fails with it (once).
+  ApiFailure? profileFailure;
+  ApiFailure? learningFailure;
+  ApiFailure? deleteProfileFailure;
+
+  /// When set, `profile()` waits for the test to complete this.
+  Completer<void>? profileGate;
+
+  @override
+  Future<SakhaProfile> profile() async {
+    calls.add('profile');
+    final gate = profileGate;
+    if (gate != null) await gate.future;
+    final failure = profileFailure;
+    if (failure != null) {
+      profileFailure = null;
+      throw failure;
+    }
+    return profileValue;
+  }
+
+  @override
+  Future<SakhaProfile> setProfileLearning(bool learning) async {
+    calls.add('learning:$learning');
+    final failure = learningFailure;
+    if (failure != null) {
+      learningFailure = null;
+      throw failure;
+    }
+    return profileValue = profileValue.copyWith(learning: learning);
+  }
+
+  @override
+  Future<void> deleteProfile() async {
+    calls.add('deleteProfile');
+    final failure = deleteProfileFailure;
+    if (failure != null) {
+      deleteProfileFailure = null;
+      throw failure;
+    }
+    // The server empties the row when learning is off and removes it when on;
+    // either way the reader is left with nothing noted and the same switch.
+    profileValue = SakhaProfile(learning: profileValue.learning);
   }
 
   @override

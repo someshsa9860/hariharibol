@@ -38,11 +38,6 @@ const KNOWN = {
     help: `One of ${USABLE_MODELS.join(', ')}. Normally set on the AI usage page.`,
     options: USABLE_MODELS,
   },
-  [SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL]: {
-    label: 'Free-tier model for translations',
-    help: `One of ${USABLE_MODELS.join(', ')}. Normally set on the AI usage page.`,
-    options: USABLE_MODELS,
-  },
   [SETTING_KEYS.AI_MONTHLY_BUDGET_MICROS]: {
     label: 'Monthly AI budget',
     help: 'In millionths of a dollar. AI calls stop once the month exceeds it. 0 means no cap.',
@@ -52,6 +47,13 @@ const KNOWN = {
     help:
       'When the daily sloka is pushed, as HH:MM on a 24-hour clock in each reader’s own timezone ' +
       '(04:30 is the default). It is sent at the first half hour at or after this time.',
+    timeOfDay: true,
+  },
+  [SETTING_KEYS.ETIQUETTE_DELIVERY_TIME]: {
+    label: 'Devotee etiquette delivery time',
+    help:
+      'When the day’s devotee etiquette is pushed, as HH:MM on a 24-hour clock in each reader’s own timezone ' +
+      '(07:15 is the default). It is sent at the first quarter hour at or after this time, so use a multiple of 15 minutes.',
     timeOfDay: true,
   },
   [SETTING_KEYS.SIGNUP_ENABLED]: {

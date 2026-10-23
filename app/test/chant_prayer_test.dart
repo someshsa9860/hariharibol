@@ -23,6 +23,7 @@ import 'package:hariharibol/views/chant/chant_view.dart';
 import 'package:hariharibol/widgets/chant/chant_disc.dart';
 
 import 'fake_audio_player.dart';
+import 'support/chant_stores.dart';
 
 const Mantra panchatattva = Mantra(
   id: 'prayer',
@@ -143,10 +144,9 @@ void main() {
     clock = TestClock();
   });
 
-  // A widget test must not write the real store: see ChantProgressStore.
   group('the opening prayer', () {
-    setUp(ChantProgressStore.keepInMemory);
-    tearDown(ChantProgressStore.keepInStore);
+    setUp(keepStoresInMemory);
+    tearDown(keepStoresInStore);
 
     testWidgets('comes first, with the mantra held back', (tester) async {
       await pumpView(tester, mahamantra, clock);
@@ -242,8 +242,8 @@ void main() {
   });
 
   group('a round left part-way', () {
-    setUp(ChantProgressStore.keepInMemory);
-    tearDown(ChantProgressStore.keepInStore);
+    setUp(keepStoresInMemory);
+    tearDown(keepStoresInStore);
 
     testWidgets('carries on from its beads when the mantra is opened again', (tester) async {
       await pumpView(tester, plain, clock);

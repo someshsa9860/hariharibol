@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <!-- Routine alerts are set with the system's alarm clock, which forgets them
+         when the phone restarts; this lets the plugin set them again. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- A phone is not required: on Android TV there is no touchscreen, and the
          leanback launcher needs the app to say it can run without one. -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
@@ -82,6 +85,19 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>
         </receiver>
+        <!-- Routine alerts (flutter_local_notifications): the alarm that shows one,
+             setting them again after a restart or an update of the app, and the
+             "Mark as done" button on it. -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"/>
         <!-- How a push notification looks. Firebase shows the notification itself
              while the app is closed or in the background, so without these it
              falls back to the launcher icon, which Android draws as a plain

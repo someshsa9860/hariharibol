@@ -6,14 +6,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hariharibol/core/navigation/app_navigator.dart';
 import 'package:hariharibol/core/theme/app_theme.dart';
 import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/api_failure.dart';
+import 'package:hariharibol/models/app_user.dart';
 import 'package:hariharibol/models/chat.dart';
 import 'package:hariharibol/providers/chat_provider.dart';
+import 'package:hariharibol/providers/language_chain_provider.dart';
+import 'package:hariharibol/providers/session_provider.dart';
 import 'package:hariharibol/services/chat_image_picker.dart';
 import 'package:hariharibol/services/speech_input.dart';
 import 'package:hariharibol/views/chat/chat_view.dart';
@@ -27,7 +31,7 @@ void main() {
   late FakeChatImagePicker picker;
   late FakeSpeechInput speech;
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(WidgetTester tester, {List<Override> overrides = const []}) async {
     tester.view.physicalSize = const Size(400 * 3, 800 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -37,6 +41,9 @@ void main() {
         chatServiceProvider.overrideWithValue(fake),
         chatImagePickerProvider.overrideWithValue(picker),
         speechInputProvider.overrideWithValue(speech),
+        // The empty chat greets in the reading language, which needs the store.
+        readingChainProvider.overrideWithValue(const ['en']),
+        ...overrides,
       ],
       child: MaterialApp(
         navigatorKey: AppNavigator.instance.rootKey,
@@ -133,11 +140,32 @@ void main() {
       await open(tester);
 
       expect(find.text('Your friend Sakha'), findsOneWidget);
+      // No name on the account, so the greeting is just the devotional line.
+      expect(find.text('Hari Bol, how is your heart today?'), findsOneWidget);
       expect(find.text('Answers from the Sri Vaishnava tradition.'), findsOneWidget);
       expect(find.text('Try asking'), findsOneWidget);
       expect(find.text('A verse to live by'), findsOneWidget);
       // Nothing to clear yet.
       expect(find.byTooltip('Clear chat'), findsNothing);
+    });
+
+    testWidgets('an empty chat greets the reader by the first name they gave, never by their email', (tester) async {
+      fake.detail = null;
+      final asha = AppUser.fromJson({'id': 'usr_1', 'email': 'asha42@smoke.test', 'name': 'Asha Devi'});
+      await open(tester, overrides: [currentUserProvider.overrideWith(() => _FixedUser(asha))]);
+
+      expect(find.text('Hari Bol Asha, how is your heart today?'), findsOneWidget);
+      expect(find.textContaining('asha42'), findsNothing);
+    });
+
+    testWidgets('the button in the app bar opens what Sakha has noticed about the reader', (tester) async {
+      await open(tester);
+
+      await tester.tap(find.byTooltip('What Sakha has noticed'));
+      await settle(tester);
+
+      expect(find.text('Keep learning about me'), findsOneWidget);
+      expect(fake.calls, contains('profile'));
     });
 
     testWidgets('a failed load shows the error and Try again fetches the conversation', (tester) async {
@@ -657,7 +685,7 @@ void main() {
       expect(offset(), greaterThan(240));
       expect(_jumpShown(tester), isTrue);
 
-      await tester.tap(find.text('Latest'));
+      await tester.tap(find.byTooltip('Latest'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(seconds: 1));
@@ -673,5 +701,15 @@ void main() {
 /// bottom edge, faded out, and slides up over it when the reader has scrolled.
 bool _jumpShown(WidgetTester tester) {
   final list = tester.getRect(find.byType(ChatMessageList));
-  return list.contains(tester.getCenter(find.text('Latest')));
+  return list.contains(tester.getCenter(find.byTooltip('Latest')));
+}
+
+/// A signed-in reader, so the screen has a name to greet without the session.
+class _FixedUser extends CurrentUser {
+  _FixedUser(this._user);
+
+  final AppUser? _user;
+
+  @override
+  AppUser? build() => _user;
 }

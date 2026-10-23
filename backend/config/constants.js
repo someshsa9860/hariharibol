@@ -34,6 +34,7 @@ const PERMISSIONS = {
   'reference.manage': { group: 'content', name: 'Manage deities, gurus, languages, issues' },
   'sloka.manage': { group: 'content', name: 'Curate the daily sloka' },
   'panchang.manage': { group: 'content', name: 'Edit the Hindu calendar and festivals' },
+  'panchang.translate': { group: 'content', name: 'Start, resume and cancel Hindu calendar translation runs, and edit its translations' },
   'media.upload': { group: 'content', name: 'Upload media to S3' },
   'reelTemplate.read': { group: 'content', name: 'View reel templates' },
   'reelTemplate.write': { group: 'content', name: 'Create and edit reel templates' },
@@ -48,6 +49,8 @@ const PERMISSIONS = {
   'scenes.read': { group: 'content', name: 'View AI reel scene prompts and their runs' },
   'scenes.run': { group: 'content', name: 'Start, resume and cancel AI reel scene prompt runs' },
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
+  'etiquette.manage': { group: 'content', name: 'View and edit devotee etiquette, and set one aside' },
+  'etiquette.translate': { group: 'content', name: 'Start, resume and cancel devotee etiquette translation runs' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },
@@ -183,11 +186,11 @@ const SETTING_KEYS = {
   // OpenAI's free daily tokens for shared traffic — see services/ai/free-tier.js.
   AI_FREE_TIER_ENABLED: 'ai.free_tier.enabled',
   AI_FREE_TIER_TEXT_MODEL: 'ai.free_tier.text_model',
-  AI_FREE_TIER_TRANSLATION_MODEL: 'ai.free_tier.translation_model',
   // The daily bonus every reader gets while the free tier is on — its pool, and the most one reader can be given.
   AI_FREE_TIER_BONUS_POOL: 'ai.free_tier.bonus_pool',
   AI_FREE_TIER_BONUS_MAX_USER: 'ai.free_tier.bonus_max_per_user',
   SLOKA_DELIVERY_TIME: 'sloka.delivery.time',
+  ETIQUETTE_DELIVERY_TIME: 'etiquette.delivery.time',
   SIGNUP_ENABLED: 'auth.signup.enabled',
   BOOK_CACHE_VERSION: 'book.cache_version',
   // AI chat — see config/chat.js for the defaults each falls back to.
@@ -204,6 +207,10 @@ const SETTING_KEYS = {
 // `sloka.delivery.time` setting is missing or unreadable. "04:30" is the quiet
 // hour before sunrise, when a day of practice starts.
 const SLOKA_DEFAULT_DELIVERY_TIME = '04:30';
+
+// The same for the day's devotee etiquette (`etiquette.delivery.time`): a quarter past seven, once the morning
+// worship has begun and before the day's work.
+const ETIQUETTE_DEFAULT_DELIVERY_TIME = '07:15';
 
 // ── Cache keys and TTLs ────────────────────────────────────────────────────
 const CACHE = {
@@ -241,5 +248,6 @@ export {
   REEL_MIN_VIEW_MS,
   SETTING_KEYS,
   SLOKA_DEFAULT_DELIVERY_TIME,
+  ETIQUETTE_DEFAULT_DELIVERY_TIME,
   CACHE,
 };

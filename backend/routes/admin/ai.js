@@ -62,9 +62,8 @@ router.get(
   {
     summary: 'Get the OpenAI free-tier switch',
     description:
-      'Whether the free daily tokens are used, which model stands in for chat and for translations, how much ' +
-      'of each pool this app has used today (UTC), and which provider and model chat and translations would ' +
-      'use right now.',
+      'Whether the free daily tokens are used, which model stands in for chat, how much of each pool this app ' +
+      'has used today (UTC), and which provider and model chat would use right now.',
     permission: 'ai.read',
     limit: 'read',
     responds: { 200: 'The switch, the pools and what is in use' },
@@ -77,7 +76,7 @@ router.put(
   {
     summary: 'Switch the OpenAI free tier on or off',
     description:
-      'While on, chat and the admin translation runs use OpenAI’s free daily tokens first — which sends what ' +
+      'While on, chat uses OpenAI’s free daily tokens first (book translation never does) — which sends what ' +
       'readers write to OpenAI under its data-sharing programme — and fall back to the paid model when the ' +
       'day’s tokens are spent. While it is on, every reader also gets a daily bonus of chat tokens: `bonusPoolTokens` ' +
       'shared among the readers who used the chat this week, at most `bonusMaxPerUser` each. Turn it off before turning ' +
@@ -87,7 +86,6 @@ router.put(
     body: z.object({
       enabled: z.boolean().optional(),
       textModel: z.enum(USABLE_MODELS).optional(),
-      translationModel: z.enum(USABLE_MODELS).optional(),
       bonusPoolTokens: z.number().int().min(0).max(BONUS_LIMITS.poolTokens.max).optional(),
       bonusMaxPerUser: z.number().int().min(0).max(BONUS_LIMITS.maxPerUser.max).optional(),
     }),

@@ -36,8 +36,16 @@ type User = {
   isBanned: boolean;
   createdAt: string;
   lastActiveAt: string | null;
+  countryCode: string | null;
+  country: string | null;
+  state: string | null;
+  district: string | null;
+  city: string | null;
   creatorProfile: { id: string; status: string } | null;
 };
+
+// "Pune, Maharashtra, India" — whatever of city, district, state and country is known, smallest place first.
+const placeOf = (u: User) => [u.city, u.district, u.state, u.country].filter(Boolean).join(', ');
 
 type Role = { id: string; slug: string; name: string };
 
@@ -107,6 +115,12 @@ export function UsersPage() {
           {u.creatorProfile && <Badge variant="secondary">Creator</Badge>}
         </div>
       ),
+    },
+    {
+      key: 'location',
+      header: 'Location',
+      csv: (u) => placeOf(u),
+      render: (u) => placeOf(u) || <span className="text-muted-foreground">—</span>,
     },
     { key: 'provider', header: 'Sign-in', csv: (u) => u.authProvider, defaultHidden: true, render: (u) => u.authProvider ?? '—' },
     {

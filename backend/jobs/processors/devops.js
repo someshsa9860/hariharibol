@@ -19,6 +19,7 @@ import { queues, QUEUE_NAMES } from '../index.js';
 import * as websocket from '../../services/websocket.js';
 import * as devPush from '../../services/dev-push.js';
 import * as notify from '../../services/notify.js';
+import { greetedTitle, notice } from '../../utils/messages.js';
 
 const minuteBucket = (at = Date.now()) => Math.floor(at / 60_000);
 
@@ -124,9 +125,10 @@ async function onHealthCheck() {
 async function onUserPush({ userId, conversationId, body }) {
   const free = await redis.set(`dev:userpush:${conversationId}`, '1', 'EX', devops.CHAT_USER_PUSH_GAP_S, 'NX');
   if (free !== 'OK') return { skipped: 'gap' };
+  const { name, chain } = await notify.recipient(userId);
   await notify.toUser(userId, {
     type: 'SYSTEM',
-    title: 'Message from the developer',
+    title: greetedTitle(name, chain, notice('devReplyTitle', chain)),
     body,
     data: { deeplink: 'hariharibol://developer' },
     campaign: `dev-chat:${conversationId}:${Math.floor(Date.now() / 86_400_000)}`,

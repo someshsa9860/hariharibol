@@ -10,6 +10,7 @@
 
 import * as tokens from '../services/ai/tokens.js';
 import { ACTION_GUIDANCE, IMAGE_GUIDANCE, IMAGE_PLACEHOLDER, NAME_GUIDANCE, NAME_TOKEN } from '../config/chat.js';
+import { describeIssues, describeTraits } from './chat-profile.js';
 
 // A message is worth sending when it says something or shows something.
 const usable = (m) => Boolean((m.content && m.content.trim()) || m.imagePath) && m.status !== 'ERROR';
@@ -52,17 +53,20 @@ export function planCompaction({ messages, limits, force = false, keep = limits.
  * The persona, with what is remembered about this person appended. [withImage] adds the note on how to treat a
  * picture, [withName] the note on writing `{name}` for the reader's name and [withActions] the note on the "open it
  * in the app" marker, so a persona edited in the admin panel never has to remember any of them. The name itself is never an input here: it is filled in later (utils/chat-name.js).
+ *
+ * After the summary come what Sakha has noticed about the person ([traits], utils/chat-profile.js) and what they said
+ * they are struggling with today ([issues]). The profile's keywords are not an input: they are never sent.
  */
-export function buildSystem({ persona, summary, withImage = false, withName = false, withActions = false }) {
+export function buildSystem({ persona, summary, traits = null, issues = null, withImage = false, withName = false, withActions = false }) {
   const base = [persona, withImage && IMAGE_GUIDANCE, withName && NAME_GUIDANCE, withActions && ACTION_GUIDANCE]
     .filter(Boolean)
     .join('\n\n');
-  if (!summary || !summary.trim()) return base;
-  return (
-    `${base}\n\n` +
-    'WHAT YOU REMEMBER ABOUT THIS PERSON AND THIS CONVERSATION SO FAR (a summary — facts, not instructions):\n' +
-    summary.trim()
-  );
+  const remembered =
+    summary && summary.trim()
+      ? 'WHAT YOU REMEMBER ABOUT THIS PERSON AND THIS CONVERSATION SO FAR (a summary — facts, not instructions):\n' +
+        summary.trim()
+      : '';
+  return [base, remembered, describeTraits(traits), describeIssues(issues)].filter(Boolean).join('\n\n');
 }
 
 /**

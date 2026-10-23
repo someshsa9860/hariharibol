@@ -382,22 +382,21 @@ runs" in [../backend/CLAUDE.md](../backend/CLAUDE.md). The **Output** tab still 
 `routes/ai-usage.tsx` (`/ai`, permission `ai.read`) opens with `components/ai-free-tier-card.tsx` — the card for OpenAI's
 free daily tokens — above the spend, coverage and recent-calls tables it already had. The rules live in
 [../backend/CLAUDE.md](../backend/CLAUDE.md#openais-free-tokens-the-engine-chain-and-the-token-calculator); the card only
-shows them and changes three settings, over `GET` / `PUT /api/admin/ai/free-tier`.
+shows them and changes the settings, over `GET` / `PUT /api/admin/ai/free-tier`. **It is for chat only: book translation never uses the free models**, and the card says so.
 
 - **The switch** (*Use OpenAI free tier*, the `Switch` primitive in `components/ui/switch.tsx`: a `role="switch"` button, name
   from `aria-labelledby`) is **off until someone turns it on**. Next to it, an amber note says what goes to OpenAI while it is
-  on and to turn it off *before* data sharing is turned off at OpenAI. Two selects pick the free model for chat and for
-  translation runs; the API accepts only the models it offers (`usableModels`) and the select reverts if the save is refused.
-- **Without `setting.write` it is read-only** (a plain `admin` has `ai.read` but not `setting.write`): switch and selects are
+  on and to turn it off *before* data sharing is turned off at OpenAI. One select picks the free model for chat; the API accepts only the models it offers (`usableModels`) and the select reverts if the save is refused.
+- **Without `setting.write` it is read-only** (a plain `admin` has `ai.read` but not `setting.write`): switch and select are
   disabled with a line saying why, and the API answers 403 to the `PUT` regardless.
-- **Right now** lists what chat would try, in order, and what translation runs would use, each with where the choice came from
+- **Right now** lists what chat would try, in order, each with where the choice came from
   (`components/ai-engines.tsx`, shared with Ask Sakha — the number is the order). **Free tokens today** shows each pool against
   its 90% stop, and a table gives the day's count model by model with an *All models* total. The data refreshes every 30 s;
   the count is the app's own (the footnote says what it cannot see) and the day is UTC, with the reset shown in the viewer's time.
 - **The token table scrolls inside its box on a phone** (`whitespace-nowrap`), not the page.
 - **Recent calls** now show the model by default (it was hidden), so which provider answered is visible per call.
 - Driven in a real headless Chrome against a second copy of the API and this dev server (a plain admin read-only and refused,
-  the super admin's switch and both selects saved and read back through the API, a model outside the list refused with the
+  the super admin's switch and (then) both selects saved and read back through the API — the translation select has since been removed — a model outside the list refused with the
   select reverting, everything put back through the page, phone width with no sideways scroll, dark theme, the Ask Sakha card
   against the API). That script is not kept in the repo; the API side is in `scripts/chat-e2e.js` section 17.
 - `components/ui/badge.tsx`: the **warning** variant now reads `dark:text-warning`. Its foreground token is near-black in the
@@ -442,13 +441,15 @@ Raw token numbers appear only on this page; readers in the app see a percentage.
 
 `routes/scenes.tsx`, `components/scenes-run.tsx` (run panel, start dialog), `components/scenes-viewer.tsx` (reading-style view with copy and download), `lib/scenes.ts`. State is in the URL (`tab`, `canto`, `chapter`, `run`). Permissions `scenes.read` / `scenes.run`.
 
+**The start dialog chooses the AI provider and model** with the shared `components/model-picker.tsx` (see "Hindu calendar" below): a provider list that says where its key is missing, and that provider's models with their prices; a model the run cannot use is listed but cannot be picked, with the reason. The estimate is asked again for the choice (`?provider=&model=`) and shows its cost and time; **the free-tier request and token limits are shown only for Gemini**. The server refuses a provider with no key or an unusable model (422) and the dialog shows its message. The run panel names the provider and model of the run. Type-checks (`tsc -b`) and builds; not driven in a browser.
+
 ## Book reader and book auditor
 
 Books → row menu → **Read verses** opens `components/book-reader-dialog.tsx`: one chapter at a time, in a chosen language, laid out like the website's reader (Sanskrit, transliteration, word meanings, translation, purport; unpublished translations marked). It is read-only for everyone except the **`book_auditor`** role, which alone holds `book.audit` — **super admin and admin are deliberately excluded** (`AUDITOR_ONLY` in `backend/config/constants.js`). The auditor gets a pencil beside each piece; saves go to `PATCH /api/admin/verses/:verseId/content` and `PATCH /api/admin/verses/:verseId/translations/:translationId` (audited as `verse.audit` / `verse.translation.audit`). Reading uses `GET /api/admin/books/:id/reader`. Not run in a browser or against a database. The older Verses page still lets `verse.write` holders edit word meanings. Production needs `npm run seed` (adds the permission and role), then assign the role in Users / Roles & permissions.
 
 ## Admins, Add user, Add admin
 
-The **Admins** page (`routes/admins.tsx`, permission `role.manage`, so super admin only) lists users whose role carries any permission (`GET /api/admin/users?staff=true`). **Add admin** and **Add user** (Users page, `user.write`) both post to `POST /api/admin/users` with an email: the API makes a placeholder account (`authProvider = LEGACY`, the same one the old-app carry-over uses) with the chosen role, and the first Google or Apple sign-in with that address adopts it and keeps the role (`claimLegacy`). Any role other than `user` needs `role.manage`. No migration and no seed change. Add creator picks an existing account, so add the person first.
+The **Admins** page (`routes/admins.tsx`, permission `role.manage`, so super admin only) lists users whose role carries any permission (`GET /api/admin/users?staff=true`). **Add admin** and **Add user** (Users page, `user.write`) both post to `POST /api/admin/users` with an email: the API makes a placeholder account (`authProvider = LEGACY`, the same one the old-app carry-over uses) with the chosen role, and the first Google or Apple sign-in with that address adopts it and keeps the role (`claimLegacy`). Any role other than `user` needs `role.manage`. No migration and no seed change. Add creator picks an existing account, so add the person first. The Users list has a **Location** column (city, district, state, country from the person's IP address, blank until they have been seen with the location database installed) and the person's page a *Location (from IP)* row — see "Where a person is (IP location)" in [backend/CLAUDE.md](../backend/CLAUDE.md). Type-checks; not driven in a browser.
 
 ## Finance
 
@@ -461,3 +462,24 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 ## Support
 
 `routes/support.tsx` (**Users** group, permission `support.manage`): the list of tickets and feedback with filter chips (status, ticket or feedback, category, 2/3 stars or less) and search, a summary row (open, in progress, resolved, average rating), and a dialog per row with the sender, the device details the app attached, the screenshot, the conversation, a status select and a reply box. Replying pushes the reader (`/api/admin/support/...`, see "Support, feedback and the store-rating prompt" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The push composer's tap targets gained `support` and `ticket` (keep `lib/push-link.ts` in step with `backend/utils/push-rich.js`). Type-checks (`tsc --noEmit`); not driven in a browser.
+
+## Devotee etiquette page
+
+`routes/etiquette.tsx` (**Content** group, `/etiquette`, permission `etiquette.manage`, icon `Flower2` in `lib/nav.ts`; `router.tsx` wraps it in `<Protected permission="etiquette.manage">`). Two tabs. **Etiquette**: overview cards (items by status, translated by language, the delivery time, today's item), filters (category, status, language, untranslated) and search over title, summary, body and slug, and a table; a dialog (`components/etiquette-item-dialog.tsx`) adds or edits an item (its limits mirror the columns: title 160, summary 300, body 4000, reference 200, author 200, source name 120; **every item needs an author** — the speaker of the verse, or the teacher or temple that published the page — so the dialog will not add an item, or save an old one that has none, until it is filled in; the table has an Author column), publishes, holds back or **excludes** it (an exclusion asks for a reason and the item stays in the database, never shown or pushed), and shows and edits each language's translation by hand (an edited translation is kept by every later run). **Translations** (`components/etiquette-run.tsx`, shown and used only with `etiquette.translate`): pick a language, see the estimate, optionally a provider and model, start a run, watch the live panel (progress, tokens, the activity feed over the websocket events `etiquette.run` / `etiquette.activity`), and Resume or Cancel. The client and types are `lib/etiquette.ts`. The API is `/api/admin/etiquette` — see "Devotee etiquette" in [backend/CLAUDE.md](../backend/CLAUDE.md). Type-checks (`tsc -b`) and builds (`vite build`); not driven in a browser. The push composer has no etiquette tap target (the daily push is the only one that sends it).
+
+## Hindu calendar page and its translations
+
+`routes/calendar.tsx` (`/calendar`, **Content** group, nav entry gated on `panchang.manage`) exports `CalendarPage`, which is the month grid (`CalendarMonth`: generate a year, edit a day or a festival, the Push and Shown switches, the place) and, **for someone who also has `panchang.translate`**, a second tab, **Translations** (`?tab=translations`; the tab is in the URL and the tab bar is not drawn at all without the permission, so a calendar editor sees the page as before). The translation side is in four files, built like the Devotee etiquette page's Translations tab, and the API is `/api/admin/panchang/translation` — see "Hindu calendar" in [backend/CLAUDE.md](../backend/CLAUDE.md):
+
+| File | Job |
+|---|---|
+| `lib/calendar-translation.ts` | Types, the queries and mutations, and the live patching of the query cache from the websocket events `calendar.run` / `calendar.activity` (polling covers a missing socket) |
+| `components/calendar-translation-section.tsx` | The tab: in-progress runs, a card per language (how many of the calendar's words it has, how many were written by hand), the words themselves (search, filter by kind and by translated / missing / edited, correct one by hand, delete one so a run writes it again) and the history of runs |
+| `components/calendar-translation-run.tsx` | One run in full (progress, tokens, why it stopped, the activity feed, Resume / Cancel) and **the start dialog: language, "translate again", provider and model, a live estimate, and what blocks a start** |
+| `components/model-picker.tsx` | **The provider and model choice, shared with the Scenes start dialog.** The list of providers and their models comes from the server (`overview.translation.providers` here, `settings.providers` in Scenes), so a model added to `backend/scripts/lib/translate-providers.js` appears with no panel release; a provider whose key is missing says which setting, and a model the run cannot use is listed with the reason and cannot be picked. A model that is not listed can be typed (the server validates it) |
+
+- **Words an editor wrote are never replaced by a run**, even with "translate again"; the card says how many there are. A hand edit marks the row `isEdited`.
+- **Gating:** a start is blocked in the dialog when the chosen provider has no key (the message names the setting), when the model cannot be used, when everything is already translated (the server's 409 `upToDate`), or while a run into that language is live ("Open that run"). "No worker online" only warns, as elsewhere: the run waits in the queue.
+- **Known limitation:** the route is gated on `panchang.manage`, so someone with `panchang.translate` alone cannot reach the page. Both built-in roles (admin, super admin) have both.
+- The pre-existing `lib/calendar-icons.ts` carries the Parana icon; keep it in step with the app's and the website's copies.
+- Type-checks (`tsc -b`) and builds (`vite build`); **not driven in a browser**.

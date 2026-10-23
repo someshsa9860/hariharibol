@@ -19,37 +19,54 @@ enum AutoChantError {
   unavailable,
 }
 
+/// What auto count counts by.
+enum AutoChantSource {
+  /// Sound: the microphone says someone is chanting, and each [pace] of it is a
+  /// chant. Follows the chanter through pauses, and costs battery.
+  microphone,
+
+  /// The clock alone: one chant every pace from the moment it starts, for as long
+  /// as it runs. No microphone, so it asks for no permission and saves the battery.
+  timer,
+}
+
 /// What the switch and its status row show.
 class AutoChantStatus {
-  const AutoChantStatus({required this.enabled, required this.phase, this.error});
+  const AutoChantStatus({
+    required this.enabled,
+    required this.phase,
+    this.source = AutoChantSource.microphone,
+    this.error,
+  });
 
   final bool enabled;
   final AutoChantPhase phase;
+  final AutoChantSource source;
   final AutoChantError? error;
 
   static const off = AutoChantStatus(enabled: false, phase: AutoChantPhase.idle);
 }
 
-/// One chanting sitting's worth of "listen and count".
+/// One chanting sitting's worth of "count the chants".
 ///
-/// Owns the microphone and the voice-detector isolate, and reduces them to two
-/// things a screen needs: a status to show, and a tick each time a chant is
-/// counted. Chants are counted by sound alone, one for each standard time of it
-/// ([VoiceChantCounter]) — nothing is recognised, so any mantra in any language
-/// is counted the same way.
+/// Counts by [AutoChantSource.microphone] — it owns the microphone and the
+/// voice-detector isolate — or by [AutoChantSource.timer], which holds neither.
+/// Either way it reduces to two things a screen needs: a status to show, and a
+/// tick each time a chant is counted. A chant takes [chantTime] ([VoiceChantCounter]);
+/// nothing is recognised, so any mantra in any language is counted the same way.
 ///
 /// Scoped to one mantra for its whole life — switching mantras means a new
 /// session. Everything it holds (microphone, isolate, model) is released by
 /// [disable] and [dispose], so leaving the counter leaves nothing running.
 class MantraAutoChantSession {
-  MantraAutoChantSession(this.mantra)
+  /// [chantTime] is how long one chant takes this reader — the mantra's standard
+  /// time when null.
+  MantraAutoChantSession(this.mantra, {Duration? chantTime, this._source = AutoChantSource.microphone})
       : _counter = VoiceChantCounter(
-          standard: Duration(milliseconds: standardChantMsOf(mantra)),
+          pace: chantTime ?? Duration(milliseconds: standardChantMsOf(mantra)),
           lead: Duration(milliseconds: (AutoChantConfig.vadMinSpeechDurationSeconds * 1000).round()),
           tail: Duration(milliseconds: (AutoChantConfig.vadMinSilenceDurationSeconds * 1000).round()),
           partialShare: AutoChantConfig.partialChantShare,
-          speedUpPerChant: AutoChantConfig.speedUpPerChant,
-          fastestShare: AutoChantConfig.fastestShare,
           countedFor: AutoChantConfig.defaultCooldown,
         );
 
@@ -69,6 +86,11 @@ class MantraAutoChantSession {
   Timer? _ticker;
 
   bool _enabled = false;
+
+  AutoChantSource _source;
+
+  /// What the running count is using, so stopping releases only what was taken.
+  bool _microphoneOn = false;
 
   /// Set when the app went to the background with auto-count on; [resume] turns
   /// it back on. Cleared by anything that turns it off for good.
@@ -95,10 +117,33 @@ class MantraAutoChantSession {
 
   int get standardChantMs => standardChantMsOf(mantra);
 
-  /// The least time between two hand taps of [mantra], when auto count is off:
-  /// half of one standard chant (see [AutoChantConfig.manualTapGapShare]).
-  static Duration manualTapGapOf(Mantra mantra) =>
-      Duration(milliseconds: (standardChantMsOf(mantra) * AutoChantConfig.manualTapGapShare).round());
+  /// The least time between two hand taps, when auto count is off: half of one
+  /// chant at the reader's [pace] (see [AutoChantConfig.manualTapGapShare]).
+  static Duration manualTapGapOf(Duration pace) =>
+      Duration(milliseconds: (pace.inMilliseconds * AutoChantConfig.manualTapGapShare).round());
+
+  /// How long one chant is taken to last now.
+  Duration get chantTime => _counter.pace;
+
+  AutoChantSource get source => _source;
+
+  /// Counts by [chantTime] from now on. A count already under way keeps what it
+  /// has chanted towards the next chant, and the chants the old time had made due
+  /// are counted first.
+  void setChantTime(Duration chantTime) {
+    _count(_counter.changePace(chantTime));
+    _emitStatus();
+  }
+
+  /// Counts by [source] from now on, restarting if it is running.
+  Future<void> useSource(AutoChantSource source) async {
+    if (source == _source) return;
+    final running = _enabled || _starting;
+    _source = source;
+    if (!running) return _emitStatus();
+    await disable();
+    await enable();
+  }
 
   Stream<AutoChantStatus> get statusStream => _statusController.stream;
 
@@ -116,6 +161,7 @@ class MantraAutoChantSession {
 
   Future<void> _start() async {
     if (_enabled) return;
+    if (_source == AutoChantSource.timer) return _startTimer();
 
     if (!await _capture.hasPermission()) {
       _emitStatus(error: AutoChantError.permissionDenied);
@@ -124,6 +170,9 @@ class MantraAutoChantSession {
 
     final stopsBefore = _stops;
     _starting = true;
+    // From here the engine and the recorder may be started, so a teardown must
+    // release them even if the start gives up half way.
+    _microphoneOn = true;
     try {
       await _engine.start();
       if (_stops != stopsBefore) return _abandonStart();
@@ -152,6 +201,15 @@ class MantraAutoChantSession {
       await _teardown();
       _emitStatus(error: AutoChantError.unavailable);
     }
+  }
+
+  /// Counting by the clock alone: nothing to load, nothing to release.
+  void _startTimer() {
+    _enabled = true;
+    _counter.reset();
+    _counter.startSteady();
+    _ticker = Timer.periodic(AutoChantConfig.countTick, (_) => _count(_counter.tick()));
+    _emitStatus();
   }
 
   /// It was switched off, or the app left the screen, while this was still
@@ -225,6 +283,8 @@ class MantraAutoChantSession {
     _audioSub = null;
     _voiceSub = null;
     _errorSub = null;
+    if (!_microphoneOn) return;
+    _microphoneOn = false;
     await _capture.stop();
     await _engine.stop();
   }
@@ -237,6 +297,8 @@ class MantraAutoChantSession {
 
   void _emitStatus({AutoChantError? error}) {
     if (_statusController.isClosed) return;
-    _statusController.add(AutoChantStatus(enabled: _enabled, phase: _counter.phase, error: error));
+    _statusController.add(
+      AutoChantStatus(enabled: _enabled, phase: _counter.phase, source: _source, error: error),
+    );
   }
 }

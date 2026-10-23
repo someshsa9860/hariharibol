@@ -14,7 +14,10 @@ import * as notify from '../../services/notify.js';
 import festivalNotify from './festival-notify.js';
 import festivalPlan from './festival-plan.js';
 import financeRemind from './finance-remind.js';
+import etiquetteDeliver from './etiquette-deliver.js';
 import { localDateString, toDateColumn } from '../../utils/date.js';
+import { greeted, notice } from '../../utils/messages.js';
+import { recipientOf } from '../../utils/recipient.js';
 
 const WINDOW_MINUTES = 15;
 const BATCH_SIZE = 500;
@@ -45,6 +48,7 @@ export default async function notificationProcessor(job) {
   if (job.name === 'festival.plan') return festivalPlan(job);
   if (job.name === 'festival.notify') return festivalNotify(job);
   if (job.name === 'finance.remind') return financeRemind(job);
+  if (job.name === 'etiquette.deliver') return etiquetteDeliver(job);
   const now = new Date();
   let cursor = null;
   let sent = 0;
@@ -56,7 +60,7 @@ export default async function notificationProcessor(job) {
         id: true,
         reminderTime: true,
         dailyRoundTarget: true,
-        user: { select: { id: true, timezone: true, name: true } },
+        user: { select: { id: true, timezone: true, name: true, appLanguage: true } },
       },
       orderBy: { id: 'asc' },
       take: BATCH_SIZE,
@@ -85,13 +89,13 @@ export default async function notificationProcessor(job) {
 
       const remaining = (day?.roundTarget || profile.dailyRoundTarget) - (day?.roundsCompleted || 0);
 
+      const { name, chain } = recipientOf(profile.user);
+      const sentence =
+        remaining > 1 ? notice('chantRoundsLeft', chain, [remaining]) : remaining === 1 ? notice('chantRoundLeft', chain) : notice('chantNow', chain);
       await notify.toUser(profile.user.id, {
         type: 'SADHANA',
-        title: 'Time to chant',
-        body:
-          remaining > 0
-            ? `${remaining} round${remaining === 1 ? '' : 's'} left today.`
-            : 'Your chanting time is here.',
+        title: notice('chantTitle', chain),
+        body: greeted(name, chain, sentence),
         data: { deeplink: 'hariharibol://sadhana' },
       });
 

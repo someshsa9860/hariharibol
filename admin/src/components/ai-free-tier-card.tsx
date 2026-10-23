@@ -13,15 +13,15 @@ import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useResource, useResourceMutation } from '@/lib/use-resource';
 
-// OpenAI’s free daily tokens: the switch that decides whether chat and the translation runs use them, the day’s count
-// pool by pool and model by model, and what each would use if it ran this moment. The rules are in
+// OpenAI’s free daily tokens: the switch that decides whether chat uses them (book translation never does), the day’s
+// count pool by pool and model by model, and what chat would use if it ran this moment. The rules are in
 // backend/utils/ai-free-tier.js and backend/services/ai/free-tier.js; this card only shows and changes them.
 
 type Pool = { id: string; label: string; limit: number; cap: number; used: number; models: string[] };
 type TokenRow = { provider: string; model: string; inputTokens: number; outputTokens: number; calls: number; pool: string | null };
 type FreeTier = {
   enabled: boolean;
-  models: { text: string; translation: string };
+  models: { text: string };
   usableModels: string[];
   safetyPercent: number;
   day: string;
@@ -37,12 +37,9 @@ type FreeTier = {
   };
   pools: Pool[];
   usage: TokenRow[];
-  now: {
-    chat: Engine[];
-    translation: { model: string; paidModel: string; onFreeTier: boolean; reason: 'off' | 'spent' | null };
-  };
+  now: { chat: Engine[] };
 };
-type Change = { enabled?: boolean; textModel?: string; translationModel?: string; bonusPoolTokens?: number; bonusMaxPerUser?: number };
+type Change = { enabled?: boolean; textModel?: string; bonusPoolTokens?: number; bonusMaxPerUser?: number };
 
 // US grouping, to read against OpenAI’s own page ("2,500,000").
 const fmt = (n: number) => n.toLocaleString('en-US');
@@ -128,7 +125,6 @@ export function AiFreeTierCard() {
     );
   }
 
-  const t = s.now.translation;
   const total = s.usage.reduce(
     (sum, row) => ({ calls: sum.calls + row.calls, input: sum.input + row.inputTokens, output: sum.output + row.outputTokens }),
     { calls: 0, input: 0, output: 0 }
@@ -147,8 +143,8 @@ export function AiFreeTierCard() {
             </div>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               OpenAI gives this organisation free tokens every day for sharing its API traffic with OpenAI (platform.openai.com → Settings →
-              Data controls → Sharing). With this on, chat and the translation runs use a free model first and move to the paid model once the
-              day’s free tokens are spent.
+              Data controls → Sharing). With this on, chat uses a free model first and moves to the paid model once the day’s free tokens are
+              spent. Book translation never uses the free models.
             </p>
           </div>
           <Switch aria-labelledby="free-tier-title" checked={s.enabled} disabled={!canEdit || save.isPending} onCheckedChange={(enabled) => change({ enabled })} />
@@ -188,25 +184,6 @@ export function AiFreeTierCard() {
               </Select>
               <p className="mt-1 text-xs text-muted-foreground">Chat replies, the summaries that tidy a long chat and the AI batch passes. Plans on the stronger tier never use it.</p>
             </div>
-            <div>
-              <Label htmlFor="free-translation-model">Translation runs use</Label>
-              <Select
-                id="free-translation-model"
-                className="mt-1 w-full max-w-xs"
-                value={s.models.translation}
-                disabled={!canEdit || save.isPending}
-                onChange={(e) => change({ translationModel: e.target.value })}
-              >
-                {s.usableModels.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </Select>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Only parts set to {t.paidModel} with thinking off move to it. Parts given to Claude, Gemini, another model or thinking are never changed.
-              </p>
-            </div>
           </div>
 
           <div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
@@ -215,21 +192,7 @@ export function AiFreeTierCard() {
               <p className="mb-1 text-xs text-muted-foreground">Chat answers with, in this order</p>
               <EngineChain engines={s.now.chat} />
             </div>
-            <div>
-              <p className="mb-1 text-xs text-muted-foreground">Translation runs use</p>
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span>OpenAI</span>
-                <span className="font-mono text-xs">{t.model}</span>
-                <Badge variant={t.onFreeTier ? 'success' : 'warning'}>{t.onFreeTier ? 'free tier' : 'paid'}</Badge>
-              </div>
-              {!t.onFreeTier && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t.reason === 'spent'
-                    ? `Today’s free tokens are spent, so runs use ${t.paidModel} until the count starts again.`
-                    : `The free tier is off, so runs use ${t.paidModel}.`}
-                </p>
-              )}
-            </div>
+            <p className="text-xs text-muted-foreground">Book translation runs always use the models they are started with, never the free ones.</p>
           </div>
         </div>
 
@@ -300,7 +263,7 @@ export function AiFreeTierCard() {
             </Table>
           )}
           <p className="mt-2 text-xs text-muted-foreground">
-            This counts what this app sent: chat, summaries, the AI batch passes and the admin translation runs. It cannot see other projects on the
+            This counts what this app sent: chat, summaries, the AI batch passes and any admin translation run that uses an OpenAI model. It cannot see other projects on the
             same OpenAI organisation or the command-line translation script, which is why we stop at {s.safetyPercent}% of a pool, and it starts
             from zero if Redis is cleared. It starts again at midnight UTC ({resetTime()} your time); OpenAI’s page does not say when its own day
             ends. Input and output are added together, because the page says only “tokens”.

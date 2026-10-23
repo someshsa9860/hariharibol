@@ -18,10 +18,18 @@ import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
 import { badRequest, conflict, notFound, unprocessable } from '../../utils/errors.js';
 import { bookOf, chapterLabel } from '../../scripts/lib/claude-translate-source.js';
+import { whyNotUsable } from '../../scripts/lib/translate-providers.js';
 
 const START_LOCK_SECONDS = 20;
 const lockKey = (book) => `scenes:start:${book}`;
 const forget = (entity) => ({ id: entity.id, status: entity.status, book: entity.book });
+
+/** What the provider and model chosen would cost, from the catalogue's prices; null for a model it has none for. */
+function costOf(provider, modelId, inputTokens, outputTokens) {
+  const known = service.providers().find((p) => p.id === provider)?.models.find((m) => m.id === modelId);
+  if (!known || known.inputPerMillion == null || known.outputPerMillion == null) return null;
+  return Math.round(((inputTokens * known.inputPerMillion + outputTokens * known.outputPerMillion) / 1_000_000) * 10_000) / 10_000;
+}
 
 function pickChapters(book, asked) {
   const all = bookOf(book).chapters;
@@ -73,6 +81,8 @@ export const chapters = async (req, res) => {
 /** GET /api/admin/scenes/estimate — what a run would do, from a sample of the chapters it would write. Nothing is spent. */
 export const estimate = async (req, res) => {
   const { book = service.BOOK, chapters: asked, force } = req.valid.query;
+  const provider = req.valid.query.provider ?? service.defaultProvider();
+  const modelId = req.valid.query.model ?? service.model(provider);
   const picked = pickChapters(book, asked);
   const todo = await service.chaptersToWrite(book, picked, force === 'true').catch((err) => {
     throw unprocessable(`Could not read the scene index from storage: ${err.message}`);
@@ -87,10 +97,15 @@ export const estimate = async (req, res) => {
     ? Math.round(readable.reduce((n, s) => n + estimateTokens(SYSTEM_PROMPT, ...s.verses.map((v) => v.hindi)), 0) / readable.length)
     : 0;
 
-  const { rpm, tpm } = service.limits();
+  // Gemini's free-tier limits are only Gemini's: another provider has none of our own, so only the model's time to write counts.
+  const { rpm, tpm } = service.limitsFor(provider);
   const inputTokens = perChapter * todo.length;
-  // Whichever is slowest: the request limit, the token limit, or the model's own time to write a storyboard (about 40 s).
-  const minutes = todo.length ? Math.ceil(Math.max(todo.length / rpm, inputTokens / tpm, (todo.length * 40) / 60)) : 0;
+  // A storyboard comes out about as long as the Hindi that went in (the cap is the room the model is given).
+  const outputTokens = Math.min(perChapter, scenes.maxTokens) * todo.length;
+  // Whichever is slowest: the request limit, the token limit (if the provider has them), or the model's own time to write a storyboard (about 40 s).
+  const minutes = todo.length
+    ? Math.ceil(Math.max(rpm ? todo.length / rpm : 0, tpm ? inputTokens / tpm : 0, (todo.length * 40) / 60))
+    : 0;
 
   return ok(res, {
     book,
@@ -103,6 +118,11 @@ export const estimate = async (req, res) => {
     inputTokens,
     requests: todo.length,
     minutes,
+    provider,
+    model: modelId,
+    outputTokens,
+    costUsd: costOf(provider, modelId, inputTokens, outputTokens),
+    unusable: whyNotUsable(provider, modelId),
     limits: { rpm, tpm },
   });
 };
@@ -136,6 +156,9 @@ export const start = async (req, res) => {
 
   const info = service.providers().find((p) => p.id === provider);
   if (!info.apiKeyConfigured) throw unprocessable(`${info.keyEnv} is not set on the server, so ${info.company} cannot be called.`);
+  // A model that cannot run without extended thinking would fail on its first chapter; refuse it here instead.
+  const unusable = whyNotUsable(provider, modelId);
+  if (unusable) throw unprocessable(unusable);
   const storage = await service.storageStatus(book);
   if (!storage.ok) throw unprocessable(`Storage is not set up: ${storage.error}`);
 

@@ -1,47 +1,30 @@
-import 'dart:math' as math;
-
 import 'mantra_repetition_counter.dart' show AutoChantPhase;
 
-/// Counts chants from nothing but "is someone making sound right now".
+/// Counts chants from nothing but "is someone making sound right now" — or, with
+/// [startSteady], from the clock alone.
 ///
-/// Every mantra has a standard time for one chant. While there is sound, one
-/// chant is counted for each standard time that passes; when the sound stops the
-/// counting stops, and when it comes back it starts again. No words are
-/// recognised — the voice detector is the only input, which is why this works
-/// for Sanskrit as well as for anything else.
+/// A chant takes [pace]. While there is sound, one chant is counted for each
+/// [pace] that passes; when the sound stops the counting stops, and when it comes
+/// back it starts again. No words are recognised — the voice detector is the only
+/// input, which is why this works for Sanskrit as well as for anything else.
 ///
-/// A chanter gets quicker as a sitting goes on, so the time a chant is taken to
-/// last shrinks by [speedUpPerChant] with each one counted, down to
-/// [fastestShare] of [standard]. The pace belongs to the sitting, not to one
-/// stretch of sound: it is kept through silences and through [reset].
+/// [pace] is the reader's: the mantra's standard time to begin with, then what
+/// they set or what their own rounds showed (`ChantPace`). It can change while
+/// counting ([changePace]) without losing or inventing a chant.
 ///
 /// Pure Dart with an injected clock, so a test drives it with a scripted
 /// sequence of calls rather than a microphone (`test/voice_chant_counter_test.dart`).
 class VoiceChantCounter {
   VoiceChantCounter({
-    required this.standard,
+    required Duration pace,
     this.lead = Duration.zero,
     this.tail = Duration.zero,
     this.partialShare = 0.6,
     this.countedFor = const Duration(milliseconds: 900),
-    this.speedUpPerChant = 0,
-    this.fastestShare = 1,
     DateTime Function()? now,
-  })  : assert(standard > Duration.zero),
-        assert(speedUpPerChant >= 0 && speedUpPerChant < 1),
-        assert(fastestShare > 0 && fastestShare <= 1),
+  })  : assert(pace > Duration.zero),
+        _pace = pace,
         _now = now ?? DateTime.now;
-
-  /// How long the first chant of a sitting takes at an ordinary pace.
-  final Duration standard;
-
-  /// The share of its time each chant takes off the next one: 0.01 makes every
-  /// chant 1% quicker than the one before. 0 keeps every chant [standard].
-  final double speedUpPerChant;
-
-  /// The quickest a chant is ever taken to be, as a share of [standard], so a
-  /// long sitting is not counted faster than anyone can chant.
-  final double fastestShare;
 
   /// The voice detector reports sound this long after it began (it wants a
   /// moment of it first), so a stretch is taken to have begun this much earlier.
@@ -51,7 +34,7 @@ class VoiceChantCounter {
   final Duration tail;
 
   /// When a stretch of sound ends, a last, unfinished chant still counts if at
-  /// least this share of [standard] was chanted — a short mantra said once and
+  /// least this share of [pace] was chanted — a short mantra said once and
   /// stopped is one chant, not none.
   final double partialShare;
 
@@ -60,38 +43,34 @@ class VoiceChantCounter {
 
   final DateTime Function() _now;
 
+  Duration _pace;
+
   bool _active = false;
   DateTime? _since;
   int _counted = 0;
   DateTime? _lastCountAt;
 
-  /// Chants counted in the sitting so far — what the pace is read from. Unlike
-  /// [total] it survives [reset], which is also what switching auto count off
-  /// and on calls.
-  int _sitting = 0;
-
-  /// [_sitting] when the current stretch of sound began, so every chant in the
-  /// stretch is timed from the pace it began at.
-  int _stretchBase = 0;
-
   /// Chants counted since [reset].
   int total = 0;
 
-  /// How long the [index]th chant of the sitting (from 0) is taken to last.
-  Duration standardAt(int index) {
-    if (speedUpPerChant <= 0) return standard;
-    final share = math.pow(1 - speedUpPerChant, index).toDouble();
-    return standard * (share < fastestShare ? fastestShare : share);
-  }
-
-  /// How long the next chant is taken to last.
-  Duration get currentStandard => standardAt(_sitting);
+  /// How long one chant is taken to last.
+  Duration get pace => _pace;
 
   AutoChantPhase get phase {
     if (!_active) return AutoChantPhase.idle;
     final last = _lastCountAt;
     if (last != null && _now().difference(last) < countedFor) return AutoChantPhase.cooldown;
     return AutoChantPhase.listening;
+  }
+
+  /// Counts by the clock alone: sound is taken to begin now and not to stop until
+  /// [reset] — for counting with no microphone. [lead] does not apply, there being
+  /// no detector to wait for.
+  void startSteady() {
+    if (_active) return;
+    _active = true;
+    _since = _now();
+    _counted = 0;
   }
 
   /// The voice detector's edge. Returns the chants this settles: a stretch that
@@ -104,7 +83,6 @@ class VoiceChantCounter {
     if (active) {
       _since = now.subtract(lead);
       _counted = 0;
-      _stretchBase = _sitting;
       return 0;
     }
 
@@ -116,7 +94,7 @@ class VoiceChantCounter {
 
     final settled = _settle(effective);
     var chants = settled.chants;
-    if (settled.rest >= settled.next * partialShare) chants += 1;
+    if (settled.rest >= _pace * partialShare) chants += 1;
     return _add(chants - _counted, now);
   }
 
@@ -130,36 +108,46 @@ class VoiceChantCounter {
     return _add(due - _counted, now);
   }
 
-  /// The whole chants [elapsed] of sound in this stretch makes, each taking the
-  /// time its place in the sitting calls for; what is left over; and how long
-  /// the chant that leftover is a part of takes.
-  ({int chants, Duration rest, Duration next}) _settle(Duration elapsed) {
-    var rest = elapsed;
-    var chants = 0;
-    while (true) {
-      final next = standardAt(_stretchBase + chants);
-      if (rest < next) return (chants: chants, rest: rest, next: next);
-      rest -= next;
-      chants += 1;
+  /// Takes [pace] as the time of one chant from now on, and returns the chants
+  /// the old pace had made due. What has been chanted towards the next chant is
+  /// kept: it is only measured against the new pace, so changing the pace never
+  /// stalls the count (a slower pace set after a long stretch) nor makes it jump
+  /// (a quicker one).
+  int changePace(Duration pace) {
+    assert(pace > Duration.zero);
+    final due = tick();
+    final since = _since;
+    if (_active && since != null) {
+      final now = _now();
+      var rest = now.difference(since) - _pace * _counted;
+      if (rest < Duration.zero) rest = Duration.zero;
+      _since = now.subtract(rest);
+      _counted = 0;
     }
+    _pace = pace;
+    return due;
+  }
+
+  /// The whole chants [elapsed] of sound in this stretch makes, and what is left
+  /// over.
+  ({int chants, Duration rest}) _settle(Duration elapsed) {
+    final chants = elapsed.inMicroseconds ~/ _pace.inMicroseconds;
+    return (chants: chants, rest: elapsed - _pace * chants);
   }
 
   int _add(int chants, DateTime now) {
     if (chants <= 0) return 0;
     _counted += chants;
-    _sitting += chants;
     total += chants;
     _lastCountAt = now;
     return chants;
   }
 
-  /// Forgets the count and any sound in progress. The pace the sitting has
-  /// reached is kept — coming back to the screen does not make a chanter slow.
+  /// Forgets the count and any sound in progress. The pace is kept.
   void reset() {
     _active = false;
     _since = null;
     _counted = 0;
-    _stretchBase = _sitting;
     _lastCountAt = null;
     total = 0;
   }

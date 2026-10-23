@@ -7,10 +7,9 @@
 // Turn the switch off before turning data sharing off at OpenAI: the free models are then billed at their normal rates
 // and, with the switch on, would still be preferred over the paid default.
 //
-// What it covers: every call through services/ai/index.js except the stronger-model tier (`text`), and the OpenAI lanes
-// of an admin translation run on the paid default model (`translation`). The command-line translation script does not
-// use it. When a free model is not available, chat goes on to the provider that is set and then to AI_FALLBACK_MODEL,
-// and a translation run goes on with its own model (GPT-6 Luna by default).
+// What it covers: every call through services/ai/index.js except the stronger-model tier (`text`). Book translation
+// (the admin runs and the command-line script) never uses it: the free models have limits a translation cannot work
+// within. When a free model is not available, chat goes on to the provider that is set and then to AI_FALLBACK_MODEL.
 
 import { SETTING_KEYS } from '../../config/constants.js';
 import { prisma } from '../../config/database.js';
@@ -23,7 +22,6 @@ import { DEFAULT_MODELS, POOLS, SAFETY, USABLE_MODELS, capOf, dayOf, hasRoom, po
 const KEYS = {
   enabled: SETTING_KEYS.AI_FREE_TIER_ENABLED,
   text: SETTING_KEYS.AI_FREE_TIER_TEXT_MODEL,
-  translation: SETTING_KEYS.AI_FREE_TIER_TRANSLATION_MODEL,
   bonusPool: SETTING_KEYS.AI_FREE_TIER_BONUS_POOL,
   bonusMax: SETTING_KEYS.AI_FREE_TIER_BONUS_MAX_USER,
 };
@@ -78,14 +76,14 @@ export const dailyBonus = async () => (await bonus()).tokens;
 
 export const isEnabled = () => settings.getBoolean(KEYS.enabled, false);
 
-/** The free-tier model for a use (`text` or `translation`): the saved one, if it is still offered, else the default. */
+/** The free-tier model for chat: the saved one, if it is still offered, else the default. */
 export async function modelFor(use) {
   const saved = await settings.get(KEYS[use], null);
   return USABLE_MODELS.includes(saved) ? saved : DEFAULT_MODELS[use];
 }
 
 /**
- * May a call for this use go to the free tier now?
+ * May a call for this use (`text`) go to the free tier now?
  * → `{ model }` when it may, `{ model: null, reason: 'off' | 'spent' }` when it may not.
  */
 export async function check(use) {
@@ -98,12 +96,10 @@ export async function check(use) {
 
 /** What the admin page shows: the switch, the pools against today's count, and the count model by model. */
 export async function status() {
-  const [enabled, text, translation, rows, dailyBonusNow] = await Promise.all([
-    isEnabled(), modelFor('text'), modelFor('translation'), tally.today(), bonus(),
-  ]);
+  const [enabled, text, rows, dailyBonusNow] = await Promise.all([isEnabled(), modelFor('text'), tally.today(), bonus()]);
   return {
     enabled,
-    models: { text, translation },
+    models: { text },
     usableModels: USABLE_MODELS,
     safetyPercent: Math.round(SAFETY * 100),
     day: dayOf(),
@@ -116,11 +112,10 @@ export async function status() {
 }
 
 /** Saves what the admin sent; a field left out is left alone. */
-export async function save({ enabled, textModel, translationModel, bonusPoolTokens, bonusMaxPerUser }, updatedById) {
+export async function save({ enabled, textModel, bonusPoolTokens, bonusMaxPerUser }, updatedById) {
   const options = { updatedById };
   if (enabled !== undefined) await settings.set(KEYS.enabled, enabled ? 'true' : 'false', { ...options, description: 'Use OpenAI’s free daily tokens' });
   if (textModel !== undefined) await settings.set(KEYS.text, textModel, { ...options, description: 'Free-tier model for chat and other AI calls' });
-  if (translationModel !== undefined) await settings.set(KEYS.translation, translationModel, { ...options, description: 'Free-tier model for translation runs' });
   if (bonusPoolTokens !== undefined) await settings.set(KEYS.bonusPool, String(bonusPoolTokens), { ...options, description: 'Free-tier daily bonus: tokens shared among readers' });
   if (bonusMaxPerUser !== undefined) await settings.set(KEYS.bonusMax, String(bonusMaxPerUser), { ...options, description: 'Free-tier daily bonus: most one reader gets' });
   clearBonusCache();

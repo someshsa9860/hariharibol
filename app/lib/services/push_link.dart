@@ -50,6 +50,7 @@ String? deeplinkRoute(String? deeplink) {
     PushConfig.deeplinkSadhana || PushConfig.deeplinkJap => AppRoutes.sadhana,
     PushConfig.deeplinkPremium => AppRoutes.plans,
     PushConfig.deeplinkCalendar => AppRoutes.calendar,
+    PushConfig.deeplinkEtiquette => _etiquettePath(link),
     PushConfig.deeplinkHome => AppRoutes.home,
     PushConfig.deeplinkSakha => AppRoutes.chat,
     PushConfig.deeplinkChant => AppRoutes.chant,
@@ -66,6 +67,12 @@ String? deeplinkRoute(String? deeplink) {
     PushConfig.deeplinkVerse => _versePath(query),
     _ => null,
   };
+}
+
+/// `hariharibol://etiquette/<id>` is one item; without an id it is the list.
+String _etiquettePath(Uri link) {
+  final id = link.pathSegments.isEmpty ? '' : link.pathSegments.first.trim();
+  return id.isEmpty ? AppRoutes.etiquette : AppRoutes.etiquettePath(id);
 }
 
 String? _versePath(String? Function(String name) query) {

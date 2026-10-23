@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What Android tints a push notification's small icon with. Must equal AppColors.seed in
+         lib/core/theme/app_colors.dart. -->
+    <color name="notification_accent">#3F51B5</color>
+</resources>

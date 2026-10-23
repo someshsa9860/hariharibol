@@ -141,6 +141,24 @@ class ApiClient {
     Uint8List bytes, {
     required String contentType,
     ApiCancelToken? cancel,
+  }) =>
+      _sendBytes('POST', path, bytes, contentType: contentType, cancel: cancel);
+
+  /// The same for a call that replaces what is there — a mantra's picture.
+  Future<ApiResponse> putBytes(
+    String path,
+    Uint8List bytes, {
+    required String contentType,
+    ApiCancelToken? cancel,
+  }) =>
+      _sendBytes('PUT', path, bytes, contentType: contentType, cancel: cancel);
+
+  Future<ApiResponse> _sendBytes(
+    String method,
+    String path,
+    Uint8List bytes, {
+    required String contentType,
+    ApiCancelToken? cancel,
   }) async {
     try {
       final response = await _dio.request<dynamic>(
@@ -148,7 +166,7 @@ class ApiClient {
         data: bytes,
         cancelToken: cancel?._token,
         options: Options(
-          method: 'POST',
+          method: method,
           contentType: contentType,
           sendTimeout: AppConfig.uploadTimeout,
         ),

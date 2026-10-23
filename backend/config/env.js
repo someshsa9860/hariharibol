@@ -64,6 +64,11 @@ const schema = z.object({
 
   APP_CHECK_ENABLED: flag(false),
 
+  // MaxMind's GeoLite2 City database (an .mmdb file), which turns a request's IP into country, state, district and
+  // city for the user's row (services/geo-ip.js). Relative to the backend directory, like the other secrets
+  // (`secrets/GeoLite2-City.mmdb`; see secrets/README.md for where it comes from). Blank turns the lookup off.
+  GEOIP_DB_PATH: z.string().trim().default(''),
+
   // Carrying people over from the old app's server (POST /auth/legacy, services/legacy.js). The URL is
   // the old server's migration route in full; the key is the secret both servers hold (HHB_MIGRATION_KEY
   // over there), sent as X-Migration-Key. Leave either blank and the feature is off: the endpoint answers
@@ -224,6 +229,7 @@ const env = {
   firebasePrivateKey: (parsed.data.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
   applePrivateKey: (parsed.data.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
   applePrivateKeyPath: resolveFromBackend(parsed.data.APPLE_PRIVATE_KEY_PATH),
+  geoIpDbPath: resolveFromBackend(parsed.data.GEOIP_DB_PATH),
   googlePlayServiceAccountPath: resolveFromBackend(
     parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_PATH || parsed.data.GOOGLE_SERVICE_ACCOUNT_PATH
   ),

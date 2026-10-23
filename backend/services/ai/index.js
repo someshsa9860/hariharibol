@@ -348,6 +348,10 @@ const OPERATIONS = {
   SLOKA_REASON: 'sloka.reason',
   CHAT_REPLY: 'chat.reply',
   CHAT_SUMMARY: 'chat.summary',
+  CHAT_PROFILE: 'chat.profile',
+  MANTRA_SUGGEST: 'mantra.suggest',
+  MANTRA_DETAILS: 'mantra.details',
+  MANTRA_TRANSLATE: 'mantra.translate',
 };
 
 export { complete, stream, OPERATIONS, describeChain, resolveEngines, resolveProvider, withinBudget, providers };

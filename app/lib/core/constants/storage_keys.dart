@@ -46,6 +46,15 @@ abstract final class BoxKeys {
   /// when it was.
   static const String autoChantEnabled = 'settings.auto_chant_enabled';
 
+  /// Whether auto count listens with the microphone (the default) or counts by
+  /// time alone, which saves the battery. Absent means the microphone.
+  static const String autoChantMicrophone = 'settings.auto_chant_microphone';
+
+  /// How long one chant of a mantra takes this reader, in milliseconds — set with
+  /// the shorter / longer buttons or learned from a finished round. One key per
+  /// mantra; absent means the mantra's standard time.
+  static String chantPace(String mantraId) => 'chant.pace.$mantraId';
+
   /// Beads counted into the round in progress, one key per mantra (`any` for a
   /// sitting with none), so the counter opens on the count it was left at.
   /// Deleted when the round completes.

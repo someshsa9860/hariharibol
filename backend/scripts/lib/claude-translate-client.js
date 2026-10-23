@@ -20,6 +20,9 @@ const PRICING = {
   'claude-fable-5-1': { input: 10, output: 50, cacheRead: 0.25 },
 };
 
+/** The models priced above, for the admin panel's model lists. Others still run when typed in. */
+export const KNOWN_MODELS = Object.entries(PRICING).map(([id, p]) => ({ id, inputPerMillion: p.input, outputPerMillion: p.output }));
+
 export function costUsd(model, usage) {
   const p = PRICING[model];
   if (!p) return null;

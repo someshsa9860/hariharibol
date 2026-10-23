@@ -486,6 +486,35 @@ class AppLocalizationsEn extends AppLocalizations {
       'Auto count isn\'t available right now';
 
   @override
+  String get sadhanaAutoCountTimed => 'Counting by time — no microphone';
+
+  @override
+  String get chantAutoMicTitle => 'Use the microphone';
+
+  @override
+  String get chantAutoMicOn => 'Listens to your chanting';
+
+  @override
+  String get chantAutoMicOff => 'Counts by time instead — saves battery';
+
+  @override
+  String get chantPaceTitle => 'Time for one chant';
+
+  @override
+  String chantPaceSummary(String seconds, String round) {
+    return '${seconds}s each · about $round a round';
+  }
+
+  @override
+  String get chantPaceShorter => 'Shorter chant time';
+
+  @override
+  String get chantPaceLonger => 'Longer chant time';
+
+  @override
+  String get chantPrayerFallbackName => 'Offering to Krishna';
+
+  @override
   String get chantModelTitle => 'Sharper listening';
 
   @override
@@ -1137,6 +1166,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routineDailyBadge => 'Daily';
+
+  @override
+  String get routineAlertChannelName => 'Task reminders';
+
+  @override
+  String get routineAlertBody => 'It\'s time for this task.';
+
+  @override
+  String get routineAlertDone => 'Mark as done';
 
   @override
   String get routineDailyRemove => 'Remove from daily routine';
@@ -2500,4 +2538,250 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get developerChatNotSent => 'Not sent. Tap to try again.';
+
+  @override
+  String get chatGreeting => 'Hari Bol, how is your heart today?';
+
+  @override
+  String chatGreetingNamed(String name) {
+    return 'Hari Bol $name, how is your heart today?';
+  }
+
+  @override
+  String get chatProfileTitle => 'What Sakha has noticed';
+
+  @override
+  String get chatProfileIntro =>
+      'Sakha picks up a few things about you from your chats, so its replies fit you better. This is yours to control: switch it off or delete it whenever you like.';
+
+  @override
+  String get chatProfileLearning => 'Keep learning about me';
+
+  @override
+  String get chatProfileLearningHint =>
+      'When this is off, Sakha notices nothing new and does not use what is saved here.';
+
+  @override
+  String get chatProfileEmpty =>
+      'Nothing noted yet. As you chat, Sakha will note things like how you like to be answered.';
+
+  @override
+  String get chatProfileGender => 'Gender';
+
+  @override
+  String get chatProfileAge => 'Age';
+
+  @override
+  String get chatProfileBehaviour => 'How you come across';
+
+  @override
+  String get chatProfileLifeStage => 'Life stage';
+
+  @override
+  String get chatProfileSpiritualStage => 'On the path';
+
+  @override
+  String get chatProfileCommunication => 'How you like to be answered';
+
+  @override
+  String get chatProfileNotes => 'Also remembered';
+
+  @override
+  String get chatProfileKeywords => 'What your chats were about';
+
+  @override
+  String get chatProfileKeywordsNote =>
+      'Only you see these words. Sakha never reads them when it writes a reply.';
+
+  @override
+  String get chatProfileIssuesNote =>
+      'If you say what you are struggling with today, Sakha is told for that day only. It is not kept here.';
+
+  @override
+  String get chatProfileDelete => 'Delete what Sakha has noted';
+
+  @override
+  String get chatProfileDeleteBody =>
+      'This removes everything saved on this page. Your chat is not cleared.';
+
+  @override
+  String get etiquetteTitle => 'Devotee etiquette';
+
+  @override
+  String get etiquetteTodayEyebrow => 'Etiquette for today';
+
+  @override
+  String get etiquetteHomeSubtitle =>
+      'One gentle practice for devotees, every day';
+
+  @override
+  String get etiquetteEmpty =>
+      'No etiquette to show yet. Please check again soon.';
+
+  @override
+  String get etiquetteAll => 'All';
+
+  @override
+  String get etiquetteSourceLabel => 'Source';
+
+  @override
+  String get etiquetteAuthorLabel => 'Author';
+
+  @override
+  String get etiquetteReferenceLabel => 'Reference';
+
+  @override
+  String get etiquetteCategoryTemple => 'In the temple';
+
+  @override
+  String get etiquetteCategoryDeity => 'Serving the Deity';
+
+  @override
+  String get etiquetteCategoryPrasad => 'Prasāda and food';
+
+  @override
+  String get etiquetteCategoryHolyName => 'The holy name';
+
+  @override
+  String get etiquetteCategoryGuruVaishnava => 'Guru and devotees';
+
+  @override
+  String get etiquetteCategorySpeechMind => 'Speech and mind';
+
+  @override
+  String get etiquetteCategoryDailyLife => 'Daily life';
+
+  @override
+  String get etiquetteCategoryScripture => 'Scripture';
+
+  @override
+  String get etiquetteCategoryHolyPlaces => 'Holy places and days';
+
+  @override
+  String get ownMantraAddTitle => 'Add your own mantra';
+
+  @override
+  String get ownMantraAddBody =>
+      'Chant a mantra that is not in our list? Tell us which one and we will find it.';
+
+  @override
+  String get ownMantraInputHint =>
+      'Type or say a mantra, or the name of a deity';
+
+  @override
+  String get ownMantraWellKnownNote =>
+      'We add mantras of well-known deities and saints only.';
+
+  @override
+  String get ownMantraMic => 'Say it instead';
+
+  @override
+  String get ownMantraMicDenied =>
+      'Allow the microphone and speech recognition in your phone\'s Settings to say a mantra.';
+
+  @override
+  String get ownMantraFind => 'Find mantras';
+
+  @override
+  String get ownMantraNoneFound =>
+      'We could not find a mantra of a well-known deity or saint for that. Try another name.';
+
+  @override
+  String ownMantraChosenCount(int chosen, int max) {
+    return '$chosen of $max chosen';
+  }
+
+  @override
+  String get ownMantraAddChosen => 'Add chosen mantras';
+
+  @override
+  String ownMantraForDeity(String name) {
+    return 'Mantra for $name';
+  }
+
+  @override
+  String ownMantraForSaint(String name) {
+    return 'Mantra of $name';
+  }
+
+  @override
+  String get ownMantraStatusShared => 'Added by other readers';
+
+  @override
+  String get ownMantraStatusYours => 'Already on your list';
+
+  @override
+  String get ownMantraStatusCatalog => 'Already in our list';
+
+  @override
+  String get ownMantraResultCreated => 'Added to your list';
+
+  @override
+  String get ownMantraResultShared => 'Added — other readers have it too';
+
+  @override
+  String get ownMantraResultFailed => 'Could not be added. Please try again.';
+
+  @override
+  String get ownMantraOpen => 'Open';
+
+  @override
+  String get ownMantraChangePicture => 'Change picture';
+
+  @override
+  String get ownMantraPictureNote =>
+      'Choose a clear, respectful picture. Readers who share this mantra will see it.';
+
+  @override
+  String get ownMantraPictureSaved => 'Picture changed';
+
+  @override
+  String get ownMantraPictureTooLarge =>
+      'That picture is too large. Please choose a smaller one.';
+
+  @override
+  String get ownMantraPictureNotUsable =>
+      'That picture could not be used. Please choose a JPEG, PNG or WebP photo.';
+
+  @override
+  String get ownMantraPictureForbidden =>
+      'Only the reader who added this mantra can change its picture.';
+
+  @override
+  String get ownMantraRemove => 'Remove from my list';
+
+  @override
+  String get ownMantraRemoveTitle => 'Remove this mantra?';
+
+  @override
+  String get ownMantraRemoveBody => 'It will be taken off your list.';
+
+  @override
+  String get ownMantraRemoveConfirm => 'Remove';
+
+  @override
+  String get ownMantraRemoved => 'Removed from your list';
+
+  @override
+  String get ownMantraPrivate => 'Private';
+
+  @override
+  String get ownMantraErrorNotUsable =>
+      'We could not understand that. Please type or say the name of a mantra or a deity.';
+
+  @override
+  String get ownMantraErrorLimitReached =>
+      'You have reached the limit for now. Please try again later.';
+
+  @override
+  String get ownMantraErrorUnavailable =>
+      'Adding mantras is not available right now. Please try again later.';
+
+  @override
+  String get ownMantraErrorLimit =>
+      'Your list of own mantras is full. Remove one to add another.';
+
+  @override
+  String get ownMantraErrorExpired =>
+      'These suggestions have expired. Please search again.';
 }

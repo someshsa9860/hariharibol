@@ -58,6 +58,14 @@ enum TranslationType {
   POETIC_EXPANSION // e.g. Dnyaneshwari's ovis expanding a BG verse
 }
 
+// Who may see a mantra. A reader's own mantra starts PRIVATE and is seen only by the readers in
+// `MantraAccess`; once enough of them hold it, it becomes PUBLIC — see "Readers' own mantras" in
+// backend/CLAUDE.md.
+enum MantraType {
+  PUBLIC
+  PRIVATE
+}
+
 enum ChantSource {
   IN_APP // counted bead by bead inside the app
   MANUAL // entered afterwards, chanted on physical beads
@@ -105,6 +113,7 @@ enum NotificationType {
   REFERRAL // a referral qualified and earned a month
   FESTIVAL // an upcoming Ekadashi, Chaturthi or festival
   SUPPORT // staff replied to a support ticket
+  ETIQUETTE // the day's devotee etiquette, 07:15 in the reader's own time
 }
 
 enum VerseLinkRelation {
@@ -235,6 +244,19 @@ model User {
   // the sloka cron needs a timezone for every user.
   timezone String @default("Asia/Kolkata") @db.VarChar(64)
 
+  // Where this person is, as far as their IP address says: country, state, district and city, looked up in the
+  // offline GeoLite2 City database (services/geo-ip.js). Approximate — a city at best, the district only where the
+  // database carries one, and a VPN shows the VPN's place. Never typed by the person; like `sampradaya` it is a
+  // cache that the API refreshes from an ordinary request at most once an hour (middleware/auth.js), and the IP
+  // itself is not kept. All null until the database is installed, and a lookup that finds nothing leaves the last
+  // place standing.
+  countryCode       String?   @db.VarChar(2) // ISO 3166-1 alpha-2, e.g. "IN"
+  country           String?   @db.VarChar(100)
+  state             String?   @db.VarChar(100)
+  district          String?   @db.VarChar(100)
+  city              String?   @db.VarChar(100)
+  locationUpdatedAt DateTime?
+
   // Which tradition this person's chanting says they follow — "shaiva",
   // "vaishnav", whatever `Mantra.sampradaya` carries. Null until some tradition
   // has been chanted on enough separate days to say.
@@ -269,6 +291,8 @@ model User {
   devConversation DevConversation?
   refreshTokens RefreshToken[]
 
+  mantraAccess     MantraAccess[]
+  mantrasCreated   Mantra[]               @relation("MantraCreator")
   sadhanaProfile   SadhanaProfile?
   sadhanaDays      SadhanaDay[]
   chantSessions    ChantSession[]
@@ -290,6 +314,7 @@ model User {
   aiWalletTxns      AiWalletTransaction[]
   aiDailyUsage      AiDailyUsage[]
   chatConversations ChatConversation[]
+  sakhaProfile      SakhaProfile?
 
   shareLinks        ShareLink[]
   activeDays UserActiveDay[]
@@ -299,11 +324,12 @@ model User {
   entitlementGrants EntitlementGrant[]
   shareImageJobs    ShareImageJob[]
 
-  favorites       Favorite[]
-  readingProgress ReadingProgress[]
-  verseNotes      VerseNote[]
-  verseHighlights VerseHighlight[]
-  notifications   Notification[]
+  favorites           Favorite[]
+  readingProgress     ReadingProgress[]
+  verseNotes          VerseNote[]
+  verseHighlights     VerseHighlight[]
+  notifications       Notification[]
+  etiquetteDeliveries EtiquetteDelivery[]
 
   // A user becomes a creator by having this row, not by a different Role — role
   // governs admin-panel access levels (user/moderator/admin), which is orthogonal
@@ -1933,8 +1959,27 @@ model Mantra {
   // is itself a mantra, so it has a standard chanting time and its own renderings.
   prayerMantraId String?
 
-  isPublished  Boolean @default(false)
-  displayOrder Int     @default(0)
+  // PUBLIC is the catalogue. PRIVATE is a mantra a reader added themselves (Jap tab → Add your mantra):
+  // `isPublished` stays false for it, so every query that lists "published mantras" leaves it out without
+  // having to know it exists; only the queries that serve a reader their own mantras look at `access`.
+  // Becoming PUBLIC sets `isPublished` too (services/user-mantra.js).
+  mantraType   MantraType @default(PUBLIC)
+  isPublished  Boolean    @default(false)
+  displayOrder Int        @default(0)
+
+  // Who first added it (a reader's own mantra), and the readers who can open it while it is PRIVATE.
+  createdById String?
+  createdBy   User?          @relation("MantraCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  access      MantraAccess[]
+
+  // The consonant skeleton of the transliteration (utils/legacy.js `skeleton`), so a mantra a reader asks
+  // for that we already hold is found by an indexed equality instead of a scan. Filled lazily when null.
+  matchKey String? @db.VarChar(120)
+
+  // A picture for the mantra: a public web address (found when it was added) or a file the reader who added
+  // it uploaded (an S3 key, which wins). Neither: the app shows the deity's picture, as it always has.
+  imageUrl  String?
+  imagePath String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1959,6 +2004,25 @@ model Mantra {
   @@index([guruId])
   @@index([prayerMantraId])
   @@index([isPublished])
+  @@index([mantraType])
+  @@index([createdById])
+  @@index([matchKey])
+}
+
+// A reader who can open a PRIVATE mantra. The count of these rows is what promotes the mantra to PUBLIC.
+model MantraAccess {
+  id String @id @default(cuid())
+
+  mantraId String
+  userId   String
+
+  createdAt DateTime @default(now())
+
+  mantra Mantra @relation(fields: [mantraId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([mantraId, userId])
+  @@index([userId])
 }
 
 // One language's rendering of a mantra. Carries both the mantra written in that
@@ -2761,6 +2825,7 @@ enum AiWalletSource {
   PLAN_RENEWAL
   OTHER_AI_FEATURE
   SHARE_IMAGE // a background picture made for a share card
+  PROFILE // Sakha reading a message to update what it has noticed about the reader
 }
 
 enum AiModelTier {
@@ -2870,6 +2935,27 @@ model AiDailyUsage {
 
   @@id([userId, date])
   @@index([date])
+}
+
+// What Sakha has noticed about one reader across all their chats, kept until they delete it — clearing the chat does
+// not clear it. Read once per message by the cheap model (services/chat-profile.js).
+//   traits    { gender, age, behaviour, lifeStage, spiritualStage, communication, notes[] } — short plain phrases; these,
+//             and only these, go into the prompt
+//   keywords  what every message was about, newest last, capped — never put in a prompt
+// `learning` false stops both the reading and the use of traits, and survives a delete.
+model SakhaProfile {
+  userId String @id
+
+  learning Boolean  @default(true)
+  traits   Json     @default("{}")
+  keywords String[] @default([])
+
+  messagesRead Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ChatConversation {
@@ -3095,10 +3181,10 @@ model SceneRun {
   attempts        Int                  @default(0)
   retriesInARow   Int                  @default(0)
 
-  totalChapters  Int  @default(0)
-  doneChapters   Int  @default(0)
-  skippedChapters Int @default(0) // chapters with no Hindi meanings to work from
-  currentChapter Int?
+  totalChapters   Int  @default(0)
+  doneChapters    Int  @default(0)
+  skippedChapters Int  @default(0) // chapters with no Hindi meanings to work from
+  currentChapter  Int?
 
   inputTokens   Int @default(0)
   outputTokens  Int @default(0)
@@ -3129,6 +3215,7 @@ enum FestivalKind {
   AMAVASYA
   SANKRANTI
   FESTIVAL
+  PARANA // the morning after an Ekadashi fast: when it may be broken
 }
 
 // One civil day of the panchang for one place. Worked out by services/panchang.js
@@ -3205,6 +3292,74 @@ model Festival {
   @@index([date, notify])
 }
 
+// The calendar's words in another language: a festival's name, a festival's description, or a panchang term (a tithi,
+// nakshatra, yoga, karana, month or sign). Keyed by the English text, not by a row, because the calendar repeats the same
+// words all year (24 Ekadashis, every Purnima) and across places: one translation serves every date. `sourceKey` is the
+// SHA-1 of the English text, so a name an admin later rewrites stops matching and falls back to English until a run
+// translates the new wording. See services/calendar-translation.js.
+model CalendarTranslation {
+  id String @id @default(cuid())
+
+  kind         String @db.VarChar(12) // NAME | DESCRIPTION | TERM
+  languageCode String @db.VarChar(10)
+  sourceKey    String @db.VarChar(40)
+
+  source String @db.Text // the English it was made from (what the admin page shows beside it)
+  text   String @db.Text
+
+  translatedBy String?  @db.VarChar(60) // the provider's brand for a run ("GPT", "Gemini", "Claude"), or "admin"
+  runId        String? // the CalendarRun that wrote it
+  isEdited     Boolean  @default(false) // an admin changed it by hand; a run will not write over it
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([kind, languageCode, sourceKey])
+  @@index([languageCode, kind])
+}
+
+// One admin-started run that translates the calendar's words into one language (admin → Hindu calendar → Translate).
+// The same shape as EtiquetteRun: the row is the truth, the BullMQ job only works it, and every item written is a
+// CalendarTranslation row, so a resumed run starts at the first item that has none.
+model CalendarRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  provider String  @default("openai") @db.VarChar(20)
+  model    String  @db.VarChar(100)
+  force    Boolean @default(false) // translate again items that already have a translation (a hand-edited one is kept)
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30)
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | cancelled | error
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalItems  Int     @default(0)
+  doneItems   Int     @default(0)
+  currentItem String? @db.VarChar(200) // the first English text of the request in progress
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
+}
+
 // What each translated chapter file in S3 holds, counted once and kept here so the admin Translations page reads a
 // table instead of ~3,700 objects. One row per book × chapter × language. The worker rewrites a run's rows when it
 // stops, and Recount (or the first visit, or a new TRANSLATION_VERSION) refills them from S3. See services/translation.js.
@@ -3214,15 +3369,15 @@ model TranslationProgress {
   language String @db.VarChar(10)
 
   total    Int // verses in the chapter
-  saved    Int @default(0) // verses with a translation
-  upToDate Int @default(0) // saved under `version`, or by a person
-  byClaude Int @default(0)
-  scores   Json @default("{}") // { 1, 2, 3, unscored }
-  versions Json @default("{}") // translation version -> verses
-  parts    Json @default("{}") // part -> verses current for it
-  status   String @default("EMPTY") @db.VarChar(10) // EMPTY | PARTIAL | COMPLETE
+  saved    Int     @default(0) // verses with a translation
+  upToDate Int     @default(0) // saved under `version`, or by a person
+  byClaude Int     @default(0)
+  scores   Json    @default("{}") // { 1, 2, 3, unscored }
+  versions Json    @default("{}") // translation version -> verses
+  parts    Json    @default("{}") // part -> verses current for it
+  status   String  @default("EMPTY") @db.VarChar(10) // EMPTY | PARTIAL | COMPLETE
   version  String? @db.VarChar(40) // the TRANSLATION_VERSION `upToDate` was worked out under
-  s3Key    String @db.VarChar(200)
+  s3Key    String  @db.VarChar(200)
 
   syncedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3230,7 +3385,6 @@ model TranslationProgress {
   @@id([book, chapter, language])
   @@index([book, language])
 }
-
 
 // One row per person per (Indian) calendar day on which they used the app or the website — the history behind
 // daily / weekly / monthly active users and retention. `User.lastActiveAt` only says when someone was last seen,
@@ -3268,27 +3422,27 @@ enum SupportStatus {
 model SupportTicket {
   id String @id @default(cuid())
 
-  userId String
-  kind   SupportKind @default(TICKET)
+  userId   String
+  kind     SupportKind   @default(TICKET)
   // bug · payment · account · content · suggestion · other (validated in controllers/app/support.js)
   category String        @db.VarChar(30)
   status   SupportStatus @default(OPEN)
   subject  String?       @db.VarChar(120)
   // 1–5 stars; feedback only.
-  rating Int?
+  rating   Int?
 
   // A picture the reader attached (S3 key), if any.
   screenshotKey String? @db.VarChar(500)
   // Attached by the app without asking: platform, OS, device model, app version, locale.
-  deviceInfo Json?
+  deviceInfo    Json?
 
   // Staff member looking after it, if one took it.
   assigneeId String?
 
   // The reader has not yet opened the newest staff reply.
-  userUnread Boolean   @default(false)
-  lastMessageAt DateTime @default(now())
-  resolvedAt DateTime?
+  userUnread    Boolean   @default(false)
+  lastMessageAt DateTime  @default(now())
+  resolvedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3304,9 +3458,9 @@ model SupportTicket {
 model SupportMessage {
   id String @id @default(cuid())
 
-  ticketId String
+  ticketId  String
   // The staff member's user id when `fromStaff`, otherwise the reader's.
-  authorId String
+  authorId  String
   fromStaff Boolean @default(false)
   body      String  @db.Text
 
@@ -3324,10 +3478,10 @@ model ReviewPrompt {
   userId   String
   platform String @db.VarChar(20)
   // streak · rounds — the happy moment that triggered it
-  trigger String @db.VarChar(30)
+  trigger  String @db.VarChar(30)
   // SHOWN: the store sheet was requested. LIKED / UNHAPPY: the answers to the "Enjoying HariHariBol?" pre-prompt.
   // DISMISSED: the pre-prompt was closed without an answer.
-  outcome String @db.VarChar(20)
+  outcome  String @db.VarChar(20)
 
   createdAt DateTime @default(now())
 
@@ -3343,8 +3497,8 @@ model ReviewPrompt {
 model DevEvent {
   id String @id @default(cuid())
 
-  type     String @db.VarChar(40) // "error.spike" | "health.alert" | "user.signup" | "ticket.new" | "feedback.new" | ...
-  severity String @default("info") @db.VarChar(10) // "info" | "warning" | "critical"
+  type     String  @db.VarChar(40) // "error.spike" | "health.alert" | "user.signup" | "ticket.new" | "feedback.new" | ...
+  severity String  @default("info") @db.VarChar(10) // "info" | "warning" | "critical"
   title    String
   body     String?
   data     Json?
@@ -3387,4 +3541,147 @@ model DevMessage {
   createdAt DateTime @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+// ============================================================================
+// Devotee etiquette — one courtesy a day, for every devotee
+// ============================================================================
+
+enum EtiquetteStatus {
+  PUBLISHED // shown in the app and eligible for the daily push
+  DRAFT // being written; not shown
+  EXCLUDED // kept here, never shown or pushed (see `excludedReason`): it speaks against another deity or faith
+}
+
+// One piece of etiquette, in English. The words in other languages are `EtiquetteTranslation` rows. The text is
+// written in the project's own wording with the source it comes from named (`reference`, `sourceName`,
+// `sourceUrl`) and whose teaching it is (`author`) — a source's own text is not copied. `slug` is how the seed
+// finds a row again, so it never changes.
+model Etiquette {
+  id String @id @default(cuid())
+
+  slug      String @unique @db.VarChar(80)
+  category  String @db.VarChar(30) // config/etiquette.js `categories`
+  sortOrder Int    @default(0)
+
+  title   String @db.VarChar(160)
+  summary String @db.VarChar(300) // the push body and the card on the list: one or two plain sentences
+  body    String @db.Text // the explanation, a few sentences
+
+  reference  String? @db.VarChar(200) // where it is taught: "Bhagavad-gītā 17.14", "The Nectar of Devotion"
+  sourceName String? @db.VarChar(200)
+  sourceUrl  String? @db.VarChar(500)
+  author     String? @db.VarChar(200) // whose teaching it is: the speaker of the verse, the teacher, the temple or the scripture; English only, like `reference`
+
+  status         EtiquetteStatus @default(PUBLISHED)
+  excludedReason String?         @db.Text
+  isEdited       Boolean         @default(false) // an admin changed the English; the seed will not write over it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations EtiquetteTranslation[]
+  days         EtiquetteDay[]
+  deliveries   EtiquetteDelivery[]
+
+  @@index([status, category, sortOrder])
+}
+
+model EtiquetteTranslation {
+  id String @id @default(cuid())
+
+  etiquetteId  String
+  languageCode String @db.VarChar(10)
+
+  title   String @db.VarChar(400)
+  summary String @db.VarChar(800)
+  body    String @db.Text
+
+  translatedBy String? @db.VarChar(60) // the provider's brand for a run ("GPT", "Gemini", "Claude"), or an admin's name
+  runId        String? // the EtiquetteRun that wrote it
+  isEdited     Boolean @default(false) // an admin changed it by hand; a run will not write over it unless told to
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  etiquette Etiquette @relation(fields: [etiquetteId], references: [id], onDelete: Cascade)
+
+  @@unique([etiquetteId, languageCode])
+  @@index([languageCode])
+}
+
+// The etiquette of one date, the same for everyone whose local date it is. Made the first time anyone needs it
+// (the push or the app), from the published items not yet used, then the one longest ago.
+model EtiquetteDay {
+  id String @id @default(cuid())
+
+  date        DateTime @unique @db.Date
+  etiquetteId String
+
+  createdAt DateTime @default(now())
+
+  etiquette Etiquette @relation(fields: [etiquetteId], references: [id], onDelete: Cascade)
+
+  @@index([etiquetteId, date])
+}
+
+// A push that went to one reader for one of their local dates — what makes the 15-minute job safe to run twice.
+model EtiquetteDelivery {
+  id String @id @default(cuid())
+
+  userId      String
+  date        DateTime @db.Date
+  etiquetteId String
+
+  notifiedAt DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  etiquette Etiquette @relation(fields: [etiquetteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+// One admin-started run that translates the etiquette into one language (admin → Etiquette → Translate). The same
+// shape as SceneRun: the row is the truth, the BullMQ job only works it. Several items go in each request; every
+// item written is an EtiquetteTranslation row, so a resumed run starts at the first item that has none.
+model EtiquetteRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  provider String  @default("openai") @db.VarChar(20)
+  model    String  @db.VarChar(100)
+  force    Boolean @default(false) // translate again items that already have a translation (a hand-edited one is kept)
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30)
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | cancelled | error
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalItems  Int     @default(0)
+  doneItems   Int     @default(0)
+  currentSlug String?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
 }

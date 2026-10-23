@@ -14,7 +14,7 @@ import { JOBS, queues } from '../jobs/index.js';
 import { EVENTS, toPermission } from './websocket.js';
 import * as translationService from './translation.js';
 import * as tally from './ai/token-tally.js';
-import { PROVIDERS, PROVIDER_IDS, providerOf } from '../scripts/lib/translate-providers.js';
+import { PROVIDER_IDS, providerChoices, providerOf } from '../scripts/lib/translate-providers.js';
 import { TRANSLATOR, bookOf, chapterKey, chapterLabel, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 import { indexKey, presentFile, presentRun, sceneKey } from '../utils/scenes.js';
@@ -33,10 +33,18 @@ export const apiKey = (provider = defaultProvider()) => env[providerOf(provider)
 export const model = (provider = defaultProvider()) =>
   (provider === 'gemini' && env.SCENES_GEMINI_MODEL) || env[providerOf(provider).modelEnv] || providerOf(provider).defaultModel;
 
-export const providers = () =>
-  PROVIDER_IDS.map((id) => ({ id, label: PROVIDERS[id].label, company: PROVIDERS[id].company, keyEnv: PROVIDERS[id].keyEnv, apiKeyConfigured: Boolean(apiKey(id)), defaultModel: model(id) }));
+/** Every provider with the models the page can offer (priced ones, the server's own, and why one cannot be used). */
+export const providers = () => providerChoices({ apiKey, model });
 
+/** Google's free-tier numbers from the environment. */
 export const limits = () => ({ rpm: scenes.rpm, tpm: scenes.tpm, rpd: scenes.rpd });
+
+/**
+ * The per-minute limits a run on this provider keeps to. They are Gemini's free tier, so only a Gemini run is held to
+ * them; the other providers are paid by the call and have limits of their own that a 429 reports (the run then waits).
+ * `null` means no limit of our own.
+ */
+export const limitsFor = (provider) => (provider === 'gemini' ? { rpm: scenes.rpm, tpm: scenes.tpm } : { rpm: null, tpm: null });
 
 export const books = () =>
   BOOK_IDS.map((id) => ({

@@ -6,7 +6,8 @@
 // `npm test` loads it on its own.
 
 import * as language from './language.js';
-import { slokaFallback, slokaTitle } from './messages.js';
+import { greetedTitle, slokaFallback, slokaTitle } from './messages.js';
+import { firstNameOf } from './chat-name.js';
 
 // A push is capped at 4 KB and a Devanagari character is three bytes of it.
 // The verse is cut only if it is far longer than any sloka is; the meaning is
@@ -39,7 +40,9 @@ function verseLabel(verse, chain) {
  * reading language.
  *
  * `verse` carries its `book` and published `translations`; `user` is read only
- * for the languages they read in. The data holds the verse's place in its book,
+ * for the languages they read in and their first name, which opens the title
+ * ("Hari Bol Somesh — Your sloka for today") — the body is the verse, so the
+ * greeting stays out of it. The data holds the verse's place in its book,
  * so tapping the notification opens it without asking the API where it lives.
  * FCM data values must be strings — `services/fcm.js` does that conversion.
  */
@@ -57,7 +60,7 @@ function slokaPush({ verse, user }) {
     .join('\n\n');
 
   return {
-    title: slokaTitle(chain),
+    title: greetedTitle(firstNameOf(user?.name), chain, slokaTitle(chain)),
     body: body || slokaFallback(chain),
     data: {
       deeplink: `hariharibol://sloka/${verse.verseId}`,

@@ -49,6 +49,12 @@ const EVENTS = {
   SCENES_RUN: 'scenes.run',
   SCENES_ACTIVITY: 'scenes.activity',
   SCENES_USAGE: 'scenes.usage',
+  // Admin panel, to `etiquette.translate`: the same two for the devotee etiquette translation runs.
+  ETIQUETTE_RUN: 'etiquette.run',
+  ETIQUETTE_ACTIVITY: 'etiquette.activity',
+  // Admin panel, to `panchang.translate`: the same two for the Hindu calendar translation runs.
+  CALENDAR_RUN: 'calendar.run',
+  CALENDAR_ACTIVITY: 'calendar.activity',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

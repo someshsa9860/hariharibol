@@ -96,6 +96,9 @@ dependencies:
   audio_session: ^0.2.4
   archive: ^4.4.0
   flutter_local_notifications: ^22.3.2
+  # A scheduled notification takes a TZDateTime; the routine alerts use it for a
+  # moment in UTC only (lib/services/routine_alert_service.dart).
+  timezone: ^0.11.2
   flutter_markdown_plus: ^1.0.12
   markdown: ^7.3.1
 
@@ -126,6 +129,9 @@ dev_dependencies:
   drift_dev: ^2.34.6
   # Only so a test can stand in for the wakelock plugin (test/fake_audio_player.dart).
   wakelock_plus_platform_interface: ^1.7.0
+  # Only so a test can stand in for shared_preferences' async store, where a
+  # routine alert's button press waits (test/routine_alert_ticks_test.dart).
+  shared_preferences_platform_interface: ^2.4.2
 
 flutter:
   uses-material-design: true

@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol உங்கள் ஜபத்தை எண்ணுவதற்காக ஜபிக்கும்போது கேட்கிறது, மேலும் Sakha-விடம் செய்தியைப் பேச மைக்ரோஃபோனைத் தொடும்போதும் கேட்கிறது.";
+"NSSpeechRecognitionUsageDescription" = "நீங்கள் Sakha-விடம் செய்தியைப் பேசும்போது, HariHariBol உங்கள் தொலைபேசியின் குரல் அறிதலைக் கொண்டு நீங்கள் சொல்வதை எழுத்தாக மாற்றுகிறது.";
+"NSPhotoLibraryUsageDescription" = "Sakha-வுடன் பகிர ஒரு படத்தைத் தேர்ந்தெடுக்க, HariHariBol உங்கள் புகைப்படங்களைத் திறக்கிறது.";
+"NSCameraUsageDescription" = "Sakha-வுடன் பகிர ஒரு படம் எடுக்க, HariHariBol கேமராவைத் திறக்கிறது.";

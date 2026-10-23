@@ -490,6 +490,35 @@ class AppLocalizationsBn extends AppLocalizations {
       'স্বয়ংক্রিয় গণনা এখন পাওয়া যাচ্ছে না';
 
   @override
+  String get sadhanaAutoCountTimed => 'সময় ধরে গণনা — মাইক্রোফোন নয়';
+
+  @override
+  String get chantAutoMicTitle => 'মাইক্রোফোন ব্যবহার করুন';
+
+  @override
+  String get chantAutoMicOn => 'আপনার জপ শুনে গণনা করে';
+
+  @override
+  String get chantAutoMicOff => 'এর বদলে সময় ধরে গণনা করে — ব্যাটারি বাঁচে';
+
+  @override
+  String get chantPaceTitle => 'এক জপের সময়';
+
+  @override
+  String chantPaceSummary(String seconds, String round) {
+    return 'প্রতিটি $seconds সেকেন্ড · এক মালায় প্রায় $round';
+  }
+
+  @override
+  String get chantPaceShorter => 'জপের সময় কমান';
+
+  @override
+  String get chantPaceLonger => 'জপের সময় বাড়ান';
+
+  @override
+  String get chantPrayerFallbackName => 'কৃষ্ণকে অর্পণ';
+
+  @override
   String get chantModelTitle => 'আরও ভালো শোনা';
 
   @override
@@ -1140,6 +1169,15 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get routineDailyBadge => 'দৈনিক';
+
+  @override
+  String get routineAlertChannelName => 'কাজের অনুস্মারক';
+
+  @override
+  String get routineAlertBody => 'এই কাজের সময় হয়েছে।';
+
+  @override
+  String get routineAlertDone => 'সম্পন্ন হিসেবে চিহ্নিত করুন';
 
   @override
   String get routineDailyRemove => 'দৈনিক রুটিন থেকে সরান';
@@ -2505,4 +2543,249 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get developerChatNotSent =>
       'পাঠানো হয়নি। আবার চেষ্টা করতে ট্যাপ করুন।';
+
+  @override
+  String get chatGreeting => 'হরি বোল, আজ আপনার মন কেমন আছে?';
+
+  @override
+  String chatGreetingNamed(String name) {
+    return 'হরি বোল $name, আজ আপনার মন কেমন আছে?';
+  }
+
+  @override
+  String get chatProfileTitle => 'Sakha কী লক্ষ করেছে';
+
+  @override
+  String get chatProfileIntro =>
+      'Sakha আপনার কথোপকথন থেকে আপনার সম্পর্কে কিছু বিষয় বুঝে নেয়, যাতে তার উত্তর আপনার জন্য আরও মানানসই হয়। এটি আপনার নিয়ন্ত্রণে: যখন খুশি বন্ধ করুন বা মুছে দিন।';
+
+  @override
+  String get chatProfileLearning => 'আমার সম্পর্কে শিখতে থাকুন';
+
+  @override
+  String get chatProfileLearningHint =>
+      'এটি বন্ধ থাকলে Sakha নতুন কিছু লক্ষ করে না এবং এখানে সংরক্ষিত বিষয়গুলোও ব্যবহার করে না।';
+
+  @override
+  String get chatProfileEmpty =>
+      'এখনও কিছু লেখা হয়নি। কথোপকথনের সঙ্গে সঙ্গে আপনি কেমন উত্তর পছন্দ করেন, এমন বিষয় Sakha লিখে রাখবে।';
+
+  @override
+  String get chatProfileGender => 'লিঙ্গ';
+
+  @override
+  String get chatProfileAge => 'বয়স';
+
+  @override
+  String get chatProfileBehaviour => 'আপনার স্বভাব';
+
+  @override
+  String get chatProfileLifeStage => 'জীবনের পর্যায়';
+
+  @override
+  String get chatProfileSpiritualStage => 'সাধনার পথে';
+
+  @override
+  String get chatProfileCommunication => 'আপনি কেমন উত্তর পছন্দ করেন';
+
+  @override
+  String get chatProfileNotes => 'আরও যা মনে রাখা হয়েছে';
+
+  @override
+  String get chatProfileKeywords => 'আপনার কথোপকথন কী নিয়ে ছিল';
+
+  @override
+  String get chatProfileKeywordsNote =>
+      'এই শব্দগুলো শুধু আপনিই দেখতে পান। উত্তর লেখার সময় Sakha এগুলো কখনও পড়ে না।';
+
+  @override
+  String get chatProfileIssuesNote =>
+      'আজ আপনি কী নিয়ে লড়ছেন তা জানালে, Sakha শুধু সেই দিনের জন্যই তা জানতে পারে। এখানে তা সংরক্ষিত হয় না।';
+
+  @override
+  String get chatProfileDelete => 'Sakha-র লেখা সবকিছু মুছুন';
+
+  @override
+  String get chatProfileDeleteBody =>
+      'এই পাতায় সংরক্ষিত সবকিছু সরিয়ে দেওয়া হবে। আপনার চ্যাট পরিষ্কার হবে না।';
+
+  @override
+  String get etiquetteTitle => 'ভক্তের শিষ্টাচার';
+
+  @override
+  String get etiquetteTodayEyebrow => 'আজকের শিষ্টাচার';
+
+  @override
+  String get etiquetteHomeSubtitle => 'ভক্তদের জন্য প্রতিদিন একটি সহজ অভ্যাস';
+
+  @override
+  String get etiquetteEmpty =>
+      'দেখানোর মতো কোনো শিষ্টাচার এখনও নেই। অনুগ্রহ করে একটু পরে আবার দেখুন।';
+
+  @override
+  String get etiquetteAll => 'সব';
+
+  @override
+  String get etiquetteSourceLabel => 'উৎস';
+
+  @override
+  String get etiquetteAuthorLabel => 'লেখক';
+
+  @override
+  String get etiquetteReferenceLabel => 'সূত্র';
+
+  @override
+  String get etiquetteCategoryTemple => 'মন্দিরে';
+
+  @override
+  String get etiquetteCategoryDeity => 'শ্রীবিগ্রহের সেবা';
+
+  @override
+  String get etiquetteCategoryPrasad => 'প্রসাদ ও আহার';
+
+  @override
+  String get etiquetteCategoryHolyName => 'পবিত্র নাম';
+
+  @override
+  String get etiquetteCategoryGuruVaishnava => 'গুরু ও ভক্তগণ';
+
+  @override
+  String get etiquetteCategorySpeechMind => 'বাক্য ও মন';
+
+  @override
+  String get etiquetteCategoryDailyLife => 'দৈনন্দিন জীবন';
+
+  @override
+  String get etiquetteCategoryScripture => 'শাস্ত্র';
+
+  @override
+  String get etiquetteCategoryHolyPlaces => 'পবিত্র স্থান ও দিন';
+
+  @override
+  String get ownMantraAddTitle => 'নিজের মন্ত্র যোগ করুন';
+
+  @override
+  String get ownMantraAddBody =>
+      'আমাদের তালিকায় নেই এমন মন্ত্র জপ করেন? কোনটি জানান, আমরা খুঁজে দেব।';
+
+  @override
+  String get ownMantraInputHint => 'মন্ত্র বা দেবতার নাম লিখুন বা বলুন';
+
+  @override
+  String get ownMantraWellKnownNote =>
+      'আমরা শুধু সুপরিচিত দেবতা ও সাধুদের মন্ত্র যোগ করি।';
+
+  @override
+  String get ownMantraMic => 'বলে জানান';
+
+  @override
+  String get ownMantraMicDenied =>
+      'মন্ত্র বলতে ফোনের সেটিংসে মাইক্রোফোন ও কণ্ঠস্বর শনাক্তকরণের অনুমতি দিন।';
+
+  @override
+  String get ownMantraFind => 'মন্ত্র খুঁজুন';
+
+  @override
+  String get ownMantraNoneFound =>
+      'এর জন্য আমরা কোনো সুপরিচিত দেবতা বা সাধুর মন্ত্র খুঁজে পাইনি। অন্য নাম চেষ্টা করুন।';
+
+  @override
+  String ownMantraChosenCount(int chosen, int max) {
+    return '$maxটির মধ্যে $chosenটি বাছাই করা হয়েছে';
+  }
+
+  @override
+  String get ownMantraAddChosen => 'বাছাই করা মন্ত্র যোগ করুন';
+
+  @override
+  String ownMantraForDeity(String name) {
+    return '$name-এর জন্য মন্ত্র';
+  }
+
+  @override
+  String ownMantraForSaint(String name) {
+    return '$name-এর মন্ত্র';
+  }
+
+  @override
+  String get ownMantraStatusShared => 'অন্য পাঠকেরা যোগ করেছেন';
+
+  @override
+  String get ownMantraStatusYours => 'আপনার তালিকায় আগে থেকেই আছে';
+
+  @override
+  String get ownMantraStatusCatalog => 'আমাদের তালিকায় আগে থেকেই আছে';
+
+  @override
+  String get ownMantraResultCreated => 'আপনার তালিকায় যোগ হয়েছে';
+
+  @override
+  String get ownMantraResultShared => 'যোগ হয়েছে — অন্য পাঠকদেরও আছে';
+
+  @override
+  String get ownMantraResultFailed =>
+      'যোগ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+
+  @override
+  String get ownMantraOpen => 'খুলুন';
+
+  @override
+  String get ownMantraChangePicture => 'ছবি বদলান';
+
+  @override
+  String get ownMantraPictureNote =>
+      'একটি পরিষ্কার, শ্রদ্ধাপূর্ণ ছবি বাছুন। এই মন্ত্র যাঁরা ব্যবহার করেন সেই পাঠকেরা এটি দেখবেন।';
+
+  @override
+  String get ownMantraPictureSaved => 'ছবি বদলানো হয়েছে';
+
+  @override
+  String get ownMantraPictureTooLarge =>
+      'ছবিটি অনেক বড়। অনুগ্রহ করে ছোট ছবি বাছুন।';
+
+  @override
+  String get ownMantraPictureNotUsable =>
+      'ছবিটি ব্যবহার করা যায়নি। অনুগ্রহ করে JPEG, PNG বা WebP ছবি বাছুন।';
+
+  @override
+  String get ownMantraPictureForbidden =>
+      'এই মন্ত্রের ছবি শুধু যিনি এটি যোগ করেছেন সেই পাঠকই বদলাতে পারেন।';
+
+  @override
+  String get ownMantraRemove => 'আমার তালিকা থেকে সরান';
+
+  @override
+  String get ownMantraRemoveTitle => 'এই মন্ত্র সরাবেন?';
+
+  @override
+  String get ownMantraRemoveBody => 'এটি আপনার তালিকা থেকে সরে যাবে।';
+
+  @override
+  String get ownMantraRemoveConfirm => 'সরান';
+
+  @override
+  String get ownMantraRemoved => 'আপনার তালিকা থেকে সরানো হয়েছে';
+
+  @override
+  String get ownMantraPrivate => 'ব্যক্তিগত';
+
+  @override
+  String get ownMantraErrorNotUsable =>
+      'আমরা এটি বুঝতে পারিনি। অনুগ্রহ করে মন্ত্রের বা দেবতার নাম লিখুন বা বলুন।';
+
+  @override
+  String get ownMantraErrorLimitReached =>
+      'আপাতত আপনি সীমায় পৌঁছে গেছেন। অনুগ্রহ করে পরে আবার চেষ্টা করুন।';
+
+  @override
+  String get ownMantraErrorUnavailable =>
+      'মন্ত্র যোগ করা এখন উপলব্ধ নেই। অনুগ্রহ করে পরে আবার চেষ্টা করুন।';
+
+  @override
+  String get ownMantraErrorLimit =>
+      'আপনার নিজের মন্ত্রের তালিকা পূর্ণ। নতুন যোগ করতে একটি সরান।';
+
+  @override
+  String get ownMantraErrorExpired =>
+      'এই প্রস্তাবগুলির মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার খুঁজুন।';
 }

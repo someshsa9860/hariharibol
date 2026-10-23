@@ -9,6 +9,7 @@ import { ok } from '../../utils/respond.js';
 import { badRequest, notFound } from '../../utils/errors.js';
 import { isValidTimezone } from '../../utils/date.js';
 import { emailForApp } from '../../utils/legacy.js';
+import { visibleTo } from '../../utils/mantra-visibility.js';
 
 // A stand-in address (a person carried over from the old server who had none) is not theirs to be shown.
 const visible = (user) => ({ ...user, email: emailForApp(user.email) });
@@ -144,7 +145,7 @@ export const updateSadhanaProfile = async (req, res) => {
   // this only looks the mantra up when a specific id was actually sent.
   if (preferredMantraId) {
     const mantra = await prisma.mantra.findFirst({
-      where: { id: preferredMantraId, isPublished: true },
+      where: { id: preferredMantraId, AND: [visibleTo(req.auth.user)] },
       select: { id: true },
     });
     if (!mantra) throw notFound('Mantra');

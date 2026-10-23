@@ -7,6 +7,7 @@ import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
+import { PROMOTED_DISPLAY_ORDER } from '../../config/mantra-own.js';
 
 // Columns the mantras table can be sorted by — see readSort.
 export const SORT_COLUMNS = {
@@ -188,7 +189,13 @@ export const publish = async (req, res) => {
     }
   }
 
-  const updated = await prisma.mantra.update({ where: { id: mantra.id }, data: { isPublished } });
+  // Publishing a reader's private mantra makes it the catalogue's own (the same step as 11 readers reaching it).
+  const data = { isPublished };
+  if (isPublished && mantra.mantraType === 'PRIVATE') {
+    data.mantraType = 'PUBLIC';
+    data.displayOrder = PROMOTED_DISPLAY_ORDER;
+  }
+  const updated = await prisma.mantra.update({ where: { id: mantra.id }, data });
 
   await audit.record(req, {
     action: isPublished ? 'mantra.publish' : 'mantra.unpublish',

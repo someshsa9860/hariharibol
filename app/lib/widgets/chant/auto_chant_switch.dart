@@ -8,6 +8,8 @@ import 'chant_toggle_row.dart';
 /// The auto-count toggle: a switch plus one line of status underneath it —
 /// listening, just counted, or why it isn't running. Lives on the counter
 /// itself; the choice is remembered, so the counter opens already listening.
+/// Counting by time alone ([AutoChantSource.timer]) says so instead of
+/// "listening", since nothing is listened to.
 class AutoChantSwitch extends StatelessWidget {
   const AutoChantSwitch({super.key, required this.status, required this.onChanged});
 
@@ -37,6 +39,7 @@ class AutoChantSwitch extends StatelessWidget {
         break;
     }
     if (!status.enabled) return text.sadhanaAutoCountOff;
+    if (status.source == AutoChantSource.timer) return text.sadhanaAutoCountTimed;
     return switch (status.phase) {
       AutoChantPhase.idle => text.sadhanaAutoCountIdle,
       AutoChantPhase.listening => text.sadhanaAutoCountListening,

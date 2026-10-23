@@ -21,6 +21,8 @@ import * as entitlement from './entitlement.js';
 import * as notify from './notify.js';
 import { ENTITLING_STATUSES } from './entitlement.js';
 import { inbox, newReferralCode, normaliseReferralCode, referralUrl } from '../utils/share.js';
+import { longDate } from '../utils/date.js';
+import { greeted, notice } from '../utils/messages.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -187,12 +189,17 @@ export async function evaluate(refereeId) {
   // Outside the transaction: the reward is already safe, and a failed refresh or
   // push must not undo it. The nightly sweep catches up a refresh that failed.
   await entitlement.refresh(referral.referrerId).catch((err) => logger.error({ err }, 'entitlement refresh after referral failed'));
-  notify.toUser(referral.referrerId, {
-    type: 'REFERRAL',
-    title: 'A month of Ārta is yours',
-    body: `Someone you invited has begun chanting. ${plan.name} is active until ${result.grant.endsAt.toISOString().slice(0, 10)}.`,
-    data: { route: 'refer' },
-  }).catch((err) => logger.warn({ err }, 'referral notification failed'));
+  notify
+    .recipient(referral.referrerId)
+    .then(({ name, chain }) =>
+      notify.toUser(referral.referrerId, {
+        type: 'REFERRAL',
+        title: notice('referralTitle', chain, [plan.name]),
+        body: greeted(name, chain, notice('referralBody', chain, [plan.name, longDate(result.grant.endsAt, chain)])),
+        data: { route: 'refer' },
+      })
+    )
+    .catch((err) => logger.warn({ err }, 'referral notification failed'));
   logger.info({ referralId: referral.id, referrerId: referral.referrerId, endsAt: result.grant.endsAt }, 'referral rewarded');
   return { changed: true, status: 'QUALIFIED' };
 }

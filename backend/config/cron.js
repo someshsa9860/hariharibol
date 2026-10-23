@@ -30,6 +30,14 @@ const schedules = [
     description: 'Push the day’s sloka to users whose local delivery time has arrived.',
   },
   {
+    name: 'etiquette.deliver',
+    queue: 'notification',
+    // Every quarter hour: each run pushes the day's devotee etiquette to the readers whose local delivery
+    // time (default 07:15) fell in the last quarter hour.
+    cron: '*/15 * * * *',
+    description: 'Push the day’s devotee etiquette to readers whose local delivery time has arrived.',
+  },
+  {
     name: 'sadhana.reminder',
     queue: 'notification',
     cron: '*/15 * * * *',

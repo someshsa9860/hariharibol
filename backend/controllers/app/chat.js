@@ -19,6 +19,9 @@
 //   5. the *name stays out of the prompt*: Sakha writes `{name}` where it would
 //      say the reader's first name and the server fills it in on the way out
 //      (utils/chat-name.js). What is stored keeps the token.
+//   6. *what Sakha has noticed* about the reader (SakhaProfile: traits, and keywords that are never sent) and what they
+//      said they struggle with today go into the prompt after the summary; the profile is brought up to date from the
+//      reader's message in the background, after the reply, like the summary (services/chat-profile.js).
 //
 // SSE events, in order: `meta` · `delta`… · `done`, or `error` at any point. A
 // request the server refuses before streaming gets an
@@ -40,6 +43,7 @@ import * as tokens from '../../services/ai/tokens.js';
 import * as wallet from '../../services/ai-wallet.js';
 import * as chatActions from '../../services/chat-actions.js';
 import * as chatImages from '../../services/chat-images.js';
+import * as chatProfile from '../../services/chat-profile.js';
 import * as chatSettings from '../../services/chat-settings.js';
 import * as s3 from '../../services/s3.js';
 import * as chatImage from '../../utils/chat-image.js';
@@ -400,10 +404,15 @@ async function claimedPicture(key, userId, limits) {
  * carries a picture. Good for the cost pre-check; `reply()` builds the system prompt again once the pictures are
  * read, because only then is it known which ones will really be sent.
  */
-function promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions }) {
+function promptFor({ persona, conversation, about, live, limits, userText, pictureKey, withName, withActions }) {
   const messages = context.buildMessages({ live, recentMessages: limits.recentMessages, userText, userImageKey: pictureKey });
   const withImage = messages.some((m) => m.imageKey);
-  return { messages, system: context.buildSystem({ persona, summary: conversation.contextSummary, withImage, withName, withActions }) };
+  return {
+    messages,
+    system: context.buildSystem({
+      persona, summary: conversation.contextSummary, traits: about.traits, issues: about.issues, withImage, withName, withActions,
+    }),
+  };
 }
 
 /**
@@ -443,8 +452,8 @@ async function reply(req, res, { regenerate }) {
   return withLock(user.id, async () => {
     let conversation = await owned(id, user.id);
     // Nothing below depends on anything else here, so it is read together rather than one after another.
-    const [persona, limits, opened, liveRows] = await Promise.all([
-      chatSettings.systemPrompt(), chatSettings.limits(), wallet.open(user), loadLive(conversation),
+    const [persona, limits, opened, liveRows, about] = await Promise.all([
+      chatSettings.systemPrompt(), chatSettings.limits(), wallet.open(user), loadLive(conversation), chatProfile.forPrompt(user),
     ]);
 
     if (text && text.length > limits.maxInputChars) {
@@ -482,7 +491,7 @@ async function reply(req, res, { regenerate }) {
     // Cheap pre-check, before opening a stream: can this person afford even the prompt?
     const withName = Boolean(firstName);
     const withActions = limits.appActions > 0;
-    const quickPrompt = context.estimatePrompt(promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions }));
+    const quickPrompt = context.estimatePrompt(promptFor({ persona, conversation, about, live, limits, userText, pictureKey, withName, withActions }));
     const quick = wallet.room(opened, conversation);
     if (quick.available < quickPrompt + MIN_REPLY_TOKENS) {
       throw creditsError(opened, user, quick.blockedBy(quickPrompt + MIN_REPLY_TOKENS) || 'WALLET', await wallet.status(user));
@@ -502,17 +511,19 @@ async function reply(req, res, { regenerate }) {
 
     let assistant = null;
     let tidyAfter = false; // set once a reply has gone out whole and the history has outgrown its window
+    let learnAfter = false; // set once a new message of the reader's has been answered: Sakha reads it for the profile
     try {
       // 1. The prompt, and what is left to spend on the answer. A history that has outgrown its window is not
       //    compacted here: the prompt takes the newest messages and the summary as it stands, and the summary is
       //    brought up to date after the reply (below), so nobody waits for a model call that is not their answer.
-      const draft = promptFor({ persona, conversation, live, limits, userText, pictureKey, withName, withActions });
+      const draft = promptFor({ persona, conversation, about, live, limits, userText, pictureKey, withName, withActions });
       // Read before the question is saved: saving moves a fresh upload to its permanent key.
       const messages = await withPictures(draft.messages, limits);
       // Built from what is really sent: pictures switched off, or a file gone from storage, must not leave the
       // persona describing a picture the model was never given.
       const system = context.buildSystem({
-        persona, summary: conversation.contextSummary, withImage: messages.some((m) => m.image), withName, withActions,
+        persona, summary: conversation.contextSummary, traits: about.traits, issues: about.issues,
+        withImage: messages.some((m) => m.image), withName, withActions,
       });
       const estimatedInput = context.estimatePrompt({ system, messages });
       const room = wallet.room(opened, conversation);
@@ -678,7 +689,9 @@ async function reply(req, res, { regenerate }) {
           conversation: presentConversation(conversation, await limitFor(conversation, openedAfter, limits)),
           credits: await wallet.statusFrom(openedAfter, user),
         });
-        // The summary is brought up to date once the reader has the whole answer (below).
+        // The summary and the profile are brought up to date once the reader has the whole answer (below). A regenerated
+        // reply answers a message that was read when it was first sent.
+        learnAfter = !regenerate;
         tidyAfter = Boolean(context.planCompaction({
           messages: context.liveMessages(
             [...live, answered || rows.question, savedAnswer].filter(Boolean), conversation.summarizedThroughSeq,
@@ -709,6 +722,7 @@ async function reply(req, res, { regenerate }) {
     // The reader has everything they asked for; only now is the summary brought up to date. The reply lock is released
     // as this returns, so their next message is not held up by it.
     if (tidyAfter) compactInBackground({ conversationId: conversation.id, user, limits });
+    if (learnAfter) chatProfile.learnInBackground({ user, text: userText, conversationId: conversation.id });
     return undefined;
   });
 }

@@ -50,10 +50,19 @@ router.get(
   '/estimate',
   {
     summary: 'Estimate a run',
-    description: 'How many chapters a run would write, the input tokens and requests that is, and about how long it takes under the limits. Worked out from a sample of the chapters. Nothing is spent.',
+    description:
+      'How many chapters a run would write, the input tokens and requests that is, and about how long it takes under the limits of the ' +
+      'provider chosen (only Gemini’s free tier has any of ours). Worked out from a sample of the chapters. When the model has a known price, ' +
+      '`costUsd` is a rough cost in US dollars, and `unusable` says why the model cannot be used, if it cannot. Nothing is spent.',
     permission: 'scenes.read',
     limit: 'read',
-    query: z.object({ book: book.optional(), chapters: chapterList.optional(), force: z.enum(['true', 'false']).optional() }),
+    query: z.object({
+      book: book.optional(),
+      chapters: chapterList.optional(),
+      force: z.enum(['true', 'false']).optional(),
+      provider: z.enum(['anthropic', 'openai', 'gemini']).optional(),
+      model: z.string().trim().min(1).max(100).optional(),
+    }),
     responds: { 200: 'The estimate', 422: 'Storage cannot be read' },
   },
   controller.estimate
@@ -72,7 +81,7 @@ router.post(
     description:
       'Queues a run for the chapters given (all of the book when left out). Chapters that already have a file are skipped unless ' +
       '`force` is true. A run started while another is going is queued and starts by itself, one at a time in the order made. `provider` and `model` default to the server’s (Gemini and ' +
-      '`SCENES_GEMINI_MODEL`). A chapter with no Hindi meanings yet is skipped and said so in the feed.',
+      '`SCENES_GEMINI_MODEL`); a model that cannot run without extended thinking is refused. A chapter with no Hindi meanings yet is skipped and said so in the feed.',
     permission: 'scenes.run',
     limit: 'write',
     body: z.object({
@@ -82,7 +91,7 @@ router.post(
       model: z.string().trim().min(1).max(100).optional(),
       force: z.boolean().optional(),
     }),
-    responds: { 201: 'The queued run', 409: 'Everything asked for is already written', 422: 'No API key for the provider, storage not set up, or the queue is unreachable' },
+    responds: { 201: 'The queued run', 409: 'Everything asked for is already written', 422: 'No API key for the provider, a model that cannot be used, storage not set up, or the queue is unreachable' },
   },
   controller.start
 );

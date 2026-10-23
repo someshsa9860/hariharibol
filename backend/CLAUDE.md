@@ -192,17 +192,17 @@ code adds input and output together and assumes the day ends at midnight UTC, wh
 
 | File | Job |
 |---|---|
-| `utils/ai-free-tier.js` | **Pure.** The pools and which model is in which, the 90% stop (`SAFETY`), the models an admin may pick (`USABLE_MODELS`), which translation parts may move to a free model (`isSwappable`, `swapPlan`) and `FreeTierEnded` — `test/ai-free-tier.test.js` |
+| `utils/ai-free-tier.js` | **Pure.** The pools and which model is in which, the 90% stop (`SAFETY`), and the models an admin may pick (`USABLE_MODELS`) — `test/ai-free-tier.test.js` |
 | `services/ai/token-tally.js` | The token calculator, below |
-| `services/ai/free-tier.js` | The switch, and the one question every caller asks: `check('text' \| 'translation')` → a model, or `reason: 'off' \| 'spent'`. `status()` and `save()` serve the admin page |
-| `routes/admin/ai.js`, `controllers/admin/ai.js` | `GET /api/admin/ai/free-tier` (`ai.read`: the switch, the pools against today's count, the count model by model, what chat and translation would use right now) and `PUT` (`setting.write`: `{ enabled?, textModel?, translationModel? }`; a model outside `USABLE_MODELS` is a 400; audit action `ai.free-tier.update`). `GET /api/admin/chat/settings` also returns `engines` for the three purposes |
+| `services/ai/free-tier.js` | The switch, and the one question every caller asks: `check('text')` → a model, or `reason: 'off' \| 'spent'`. `status()` and `save()` serve the admin page |
+| `routes/admin/ai.js`, `controllers/admin/ai.js` | `GET /api/admin/ai/free-tier` (`ai.read`: the switch, the pools against today's count, the count model by model, what chat would use right now) and `PUT` (`setting.write`: `{ enabled?, textModel?, bonusPoolTokens?, bonusMaxPerUser? }`; a model outside `USABLE_MODELS` is a 400; audit action `ai.free-tier.update`). `GET /api/admin/chat/settings` also returns `engines` for the three purposes |
 
 - **The switch is off until an admin turns it on** (admin → AI usage → *Use OpenAI free tier*; `AppSetting`
-  `ai.free_tier.enabled`, with `ai.free_tier.text_model` and `ai.free_tier.translation_model`), so a database that has never
-  seen it behaves as before. It exists so data sharing can be switched off at OpenAI one day without a deploy.
+  `ai.free_tier.enabled`, with `ai.free_tier.text_model`), so a database that has never
+  seen it behaves as before. A `ai.free_tier.translation_model` row left by an earlier version is read by nothing and can be deleted. It exists so data sharing can be switched off at OpenAI one day without a deploy.
 - **Only `gpt-4o-mini`, `gpt-4.1-mini` and `gpt-4.1-nano` are offered.** They are in the 2.5 M pool and take plain request
   parameters; the `gpt-5.x` and `o` models in the pools want reasoning parameters `openai.js` has not been run with. Defaults:
-  `gpt-4o-mini` for chat, `gpt-4.1-mini` for translation (a saved model that is no longer offered reads as its default).
+  `gpt-4o-mini` for chat (a saved model that is no longer offered reads as its default).
 - **The engine chain** (`resolveEngines` in `services/ai/index.js`). A call is tried on, in order: (1) the free-tier model,
   while the switch is on and the pool has room — never for `purpose: 'advanced'`, so a paying reader's model does not depend
   on the day's count; (2) the provider and model that are set (the Settings page, else `.env`); (3) OpenAI
@@ -223,22 +223,22 @@ code adds input and output together and assumes the day ends at midnight UTC, wh
   is not counted, which is why use stops at 90% of a pool (`capOf`); a flushed Redis starts the day from zero; a Redis that
   cannot answer reads as empty, so a counter outage never stops a reply. One call can still cross the cap by its own size; the
   margin covers it.
-- **Translation runs** are covered in "Translation runs" below: parts on the paid default move to the free model for an
-  attempt, every request re-checks, and a run that outlives the day's tokens is requeued onto the paid model.
+- **Book translation never uses the free models** — the admin runs and the command-line script keep to the models their plan
+  names (`gpt-6-luna` by default), whatever the switch says; the free models have limits a translation cannot work within. The
+  runs' OpenAI requests are still counted in the token calculator, so the day's tally stays honest for chat.
 - **Privacy.** With the switch on, what readers write to Sakha and any picture they send goes to OpenAI and is shared under
   that programme. With it off, chat can still reach OpenAI as the paid fallback when the set provider fails, unless
   `AI_FALLBACK_MODEL` is blank. **Turn the switch off before turning data sharing off at OpenAI** — the free models are then
   billed at their normal rates, and the switch would still prefer them to the paid default.
 - **Not verified:** that OpenAI really bills these calls at nothing — there is no API to read the free allowance, so watch the
-  Usage page at platform.openai.com after a day with the switch on. `gpt-4.1-mini` has not been tried on the Indic languages;
-  compare a chapter with `gpt-6-luna` before leaving it on for a whole language.
+  Usage page at platform.openai.com after a day with the switch on.
 - Tests: `test/ai-free-tier.test.js` (pure) and `test/translate-providers.test.js`; `scripts/chat-e2e.js` section 17 (the
   chain, failing over, the switch, the tally, the audit rows — both providers faked) and `scripts/translation-e2e.js` section 9b
-  (the swap, the requeue, the tally). Under Node 20 run the unit files one at a time with `node --test <file>`.
+  (a run never moves to a free model: switch on, free pool spent, switch turned off mid-run, a mixed plan). Under Node 20 run the unit files one at a time with `node --test <file>`.
 
 ### Cost rule: AI never runs on the request path
 
-(The one exception is **AI chat**, below — a person is waiting for a reply and pays for it from their own wallet.)
+(The exceptions are **AI chat**, below — a person is waiting for a reply and pays for it from their own wallet — and **a reader's own mantras**, further down: a person is waiting for a list of suggestions, and it is bounded per reader per day instead of by a wallet.)
 
 Generating per user per day does not survive contact with scale — 10,000 users is
 10,000 calls every morning, for content that is largely the same. So the work is
@@ -275,6 +275,7 @@ Sakha, the streamed devotional friend readers know as **Ask Sakha** ("AI chat" i
 | `utils/chat-name.js` | The reader's first name and the `{name}` placeholder: `firstNameOf`, `fill`, `createFiller` (chunk-safe, for the stream) — **pure**, `test/chat-name.test.js` |
 | `utils/chat-errors.js` | What the stream's `error` event says: a fixed line and a `code` per failure, never the provider's or the server's own text — **pure**, `test/chat-errors.test.js` |
 | `services/chat-settings.js`, `config/chat.js` | Persona, description and limits (AppSetting) and their defaults |
+| `services/chat-profile.js`, `controllers/app/chat-profile.js`, `utils/chat-profile.js` | What Sakha has noticed about a reader (`SakhaProfile`): the background reading of each message, the prompt's view of it, and the reader's own say (`GET` / `PATCH` / `DELETE /chat/profile`, routes in `routes/app/chat.js`). The rules for what a profile may hold are **pure** — `test/chat-profile.test.js` |
 
 Rules worth knowing before changing it:
 
@@ -396,6 +397,48 @@ Rules worth knowing before changing it:
   the model *follows* it has to be read in real conversations — the prompt is only an instruction.
   **The summary memory still records "the tradition or sampradaya they lean towards"** (`summarizerRequest`) — that is
   private to the prompt and lets Sakha speak in a person's own terms; the persona forbids saying it back.
+- **Sakha answers first and ties it to Krishna last** (`config/chat.js`). Whatever is asked, the answer comes first,
+  genuine and complete; then, at the very end, **one closing paragraph of one to three sentences** ties the matter to
+  Krishna (a pastime, a verse it is certain of, or an invitation to remember a holy name) and differs from reply to
+  reply. It is **left out** for someone grieving, frightened, ill or in distress (comfort first, at most one quiet line),
+  and in a reply that is only a greeting, a thank-you or a refusal. It never bends a scripture or a fact to reach Krishna.
+  **The scope was widened a little**: ordinary life (study, work, family, anger, stress, habits, curious questions) is
+  answered properly, then turned to Krishna; long technical or professional work (programs, business documents,
+  detailed legal, financial or medical advice) is still declined kindly. **A persona saved on the admin Ask Sakha page
+  replaces this default**, so an admin who saved one before must clear the field and save to get the new behaviour.
+  Whether the model *follows* the persona has to be read in real conversations — `npm run test:chat` only checks the words.
+- **What Sakha has noticed about a reader** (`SakhaProfile`, one row per user, `onDelete: Cascade`; migration
+  `20261105000000_sakha_profile`). Permanent until the reader deletes it, and **separate from the chat**: *Clear chat*
+  does not touch it, account deletion removes it.
+  - **Traits** are short plain phrases under fixed keys — `gender`, `age`, `behaviour`, `lifeStage`, `spiritualStage`,
+    `communication` — plus up to six `notes` (`PROFILE` in `config/chat.js`; every value is cut and cleaned by
+    `utils/chat-profile.js`, so a model cannot store a line break, markup, a long paragraph or a key of its own).
+    **Only the traits go into the prompt** (`buildSystem({ traits })`), under a heading that says they are impressions
+    that may be wrong and are not instructions, with a footer telling Sakha to use them quietly and never state or list
+    them, and to believe the person if they say one is wrong.
+  - **Keywords** are what each message was about (lowercased, at most 12 a message, at most 300 kept, the oldest fall
+    away). **They are never put in any prompt** — `forPrompt` does not select them — and exist for the reader to see (and
+    for analysis later). Nothing else in the chat reads them.
+  - **It is learned after the reply, never before it.** Once a new message of the reader's has been answered and `done`
+    sent, `reply()` calls `chatProfile.learnInBackground` (not for a regenerated answer, which answers a message already
+    read), which asks the cheap model to read that one message (not one under `minMessageChars`) and merges the result
+    into the row. A reader whose wallet cannot afford it is
+    simply not read. It is **charged to the same wallet as everything else, ledger source `PROFILE`**, so a reader's meter
+    moves a little more per message. One reading at a time per reader (Redis lock `chat:profile:<userId>`), and the
+    reader's own switch or delete waits for one under way (up to 15 s, then 409 `CONFLICT`).
+  - **Today's struggles are asked, not guessed.** The Home "Where would you like to grow?" check-in is the existing
+    `UserIssue` rows (the vikaras and the chanting ones); the reader's issues for **their own local date**
+    (`User.timezone`), at most `TODAY_ISSUES.max` (6) with their note cut to 120 characters, go into the prompt
+    (`describeIssues`) for that day. They are read fresh each time and **not copied into the profile**, so tomorrow's
+    prompt does not carry them.
+  - **The reader's say.** `GET /api/app/chat/profile` → `{ learning, traits, keywords, updatedAt }` (no row: learning
+    on, nothing else); `PATCH` `{ learning }` stops or restarts the reading **and the use of what is stored** (the stored
+    profile stays until deleted); `DELETE` removes everything (204) — with learning switched off the row stays, empty, so
+    the switch is remembered. A new reader's profile starts with learning on.
+  - **A failure to read the profile never fails a reply** (`forPrompt` answers with no traits and no issues, and logs).
+  - `node --test test/chat-profile.test.js` (the pure rules) and section 20 of `scripts/chat-e2e.js` walk it. **Not run
+    against a real provider**: whether the cheap model finds sensible traits in real chats, and how much a reading costs
+    per message, are unmeasured. **Production needs `prisma migrate deploy` for `20261105000000_sakha_profile`.**
 
 ### Opening things in the app (chat actions)
 
@@ -539,7 +582,7 @@ and Redis). **Not run against the real stores. Production needs `prisma migrate 
 
 ## Server wording in the user's language
 
-What the server says in its own voice — error messages and the daily sloka's title — is in the person's language;
+What the server says in its own voice — error messages and every notification — is in the person's language;
 content (verses, meanings, names) was already, via `utils/language.js`.
 
 - **Errors follow the *app* language.** `middleware/error.js` (and the rate limiter) call `translateError` with
@@ -555,9 +598,31 @@ content (verses, meanings, names) was already, via `utils/language.js`.
   the sloka and home responses is already in the reading language.
 - **The sloka picture is not translated.** It is drawn once per verse for everyone (English "Sloka of Day" title and book
   name); a per-language card would need a font per script and one image per language.
+- **Every push written for a person opens "Hari Bol <first name>"** — never "Hi" or "Dear" — in the reader's script
+  ("हरि बोल Somesh"), or "Hari Bol" alone when the account has no usable name. `greeted(name, chain, sentence)` opens a body
+  ("Hari Bol Somesh, 3 rounds left today."), `greetedTitle(name, chain, title)` a title ("Hari Bol Somesh — Your sloka for
+  today"); the name is `firstNameOf` (`utils/chat-name.js`: first word, cleaned, 30 characters) and `notify.recipient(userId)`
+  loads `{ name, chain }` for a sender that has only an id (`utils/recipient.js` is the pure half). **The chain is the *app*
+  language** for everything except the daily sloka and the etiquette push, which follow the *reading* language because the
+  verse in them is in it. Where the greeting goes: the chant reminder, the sloka and etiquette pushes, the donation thanks,
+  the subscription pushes (trial, subscribed, changed, downgrade, renewed, cancelled, resumed, grace, expired, refunded),
+  the referral reward, the reply to a support ticket, the developer's reply and the reel comment / reply pushes. **A
+  message written by staff or by the developer keeps its own words** (the support reply, the developer's reply, an admin's
+  broadcast or direct message): only the title is ours. **The festival push has no name** — it is one message for everyone,
+  so the readers are grouped by app language and each group gets one send (`campaign` `festival:<id>:<days>:<lang>`); the
+  festival's name and description are the calendar's data and go as saved.
+- **The wording of a notification** lives in `NOTICES` in `utils/messages.js` (the English source; there is no
+  `locales/en.json`) and in every `locales/*.json`. `notice(id, chain, params)` is the localized text or the English;
+  `{0}` `{1}` `{2}` are filled by position. Dates in a body are `longDate(date, chain)` in `utils/date.js` (the language's
+  own month names, India's calendar day). A body that follows the greeting starts in lower case in English.
 - **Adding a message**: an id in *every* `locales/*.json` (`test/messages.test.js` fails on a missing id or a changed
-  `{0}`), then a rule in `utils/messages.js`. **Adding a language**: one new file with all the ids.
+  `{0}`; for a notification also add it to `NOTICES`), then, for an error, a rule in `utils/messages.js`. **Adding a
+  language**: one new file with all the ids.
 - The translations are AI-drafted and **not yet read by a native speaker**.
+- **Not translated, on purpose or not yet:** the admin API and the admin and developer apps (staff, English); developer-facing
+  messages; the festival names and descriptions (database content); the server-rendered fallback pages in `views/deeplink/`
+  and the privacy / terms pages; the OTP and welcome email templates (nothing sends them today); the finance reminder (goes
+  to the super admin). The website's own screens are English as well — see [website/CLAUDE.md](../website/CLAUDE.md).
 - `language.localised` now stops at English (the plain column), like `pickName`: English reader + Hindi app no longer gets Hindi
   from an `…I18n` column.
 
@@ -1066,17 +1131,11 @@ Things to know before changing it:
   - **FAILED** — something nobody foresaw. It gets `unknownRetries` (2) quiet retries first, then the message and
     the verse it stopped on are shown. Resume still works.
   Every verse saved to S3 stays saved, so a resumed run starts at the first verse that is not.
-- **OpenAI's free daily tokens come first, when the switch is on** (rules and numbers in "OpenAI's free tokens, the engine
-  chain and the token calculator" under AI). `execute` in the processor asks `freeTier.check('translation')` before it plans;
-  with room, `swapPlan` moves only the parts on the paid default — OpenAI, `gpt-6-luna` (the server's `service.model('openai')`),
-  thinking `off` — to the free translation model (`gpt-4.1-mini` unless the admin picked another). A part given to Claude,
-  Gemini, another model or a thinking level is never touched. The row keeps the plan that was asked for; the attempt runs,
-  and stamps each verse with, the plan it really used, so a verse's `aiTranslation` names the model that wrote it. Every
-  lane's request is counted in the token calculator, and a swapped lane re-checks the allowance **before each request**
-  (`countedAsk`) and is logged at $0, so the run's spending limit moves only on paid tokens. When the day's tokens run out,
-  or the switch goes off, the lane throws `FreeTierEnded`; the processor puts the run straight back in the queue and the next
-  attempt plans on the paid model, starting at the first verse not saved — a feed line says so. If a swapped part lands on
-  the model another part already uses, the two lanes become one and its `done` restarts from 0 on the bar (cosmetic).
+- **A run never uses OpenAI's free models.** The free-tier switch (rules under AI, "OpenAI's free tokens, the engine chain and the
+  token calculator") is for chat only: `execute` in the processor plans on exactly the models the row names (OpenAI's default is
+  `gpt-6-luna`, `service.model('openai')`) and never swaps a part, whatever the switch or the day's tally says. Every lane's
+  request is still counted in the token calculator (`countedAsk`), so the tally chat reads includes what a run spent.
+  `sameParts` stays in `conclude` so a run that began on a free model under the earlier behaviour still resumes cleanly.
   `scripts/translation-e2e.js` section 9b walks it.
 - **One live run per language**, enforced twice: a Redis start-lock and a database check. A second start returns
   409 with `error.details.runId`, which the page turns into "Open that run".
@@ -1183,6 +1242,67 @@ association files then list nothing and the page hides the store badge instead o
 `deeplink/index.js` serves `/.well-known/apple-app-site-association` and `assetlinks.json`; `deploy/server/nginx.conf`
 proxies both on the apex domain. `npm run test:share-referral` (57 checks, provider faked) and
 `node --test test/share.test.js`.
+**A private mantra (a reader's own, below) is never shared:** `services/share.js` needs `isPublished`, so `POST /share/link`
+answers 404 and a resolve 410; the app hides Share for it, and `controllers/app/reel-make.js` takes only `PUBLIC` mantras.
+
+## Readers' own mantras
+
+A reader who chants something we do not hold (Jap tab → **Add your mantra**) says or types it, the AI names related
+**well-known** mantras, the reader ticks up to 5, and each tick becomes a `Mantra` row only that reader (and anyone else who
+asks for the same one) can open. At **11 readers** it becomes the catalogue's own, in every language. App half: "Readers' own
+mantras" in [app/CLAUDE.md](../app/CLAUDE.md). `services/user-mantra.js` is a service, not a controller, because the
+controller and the worker both use it (the worker writes the extra languages, `translateMissing`); the pure half (cleaning the text, the prompts,
+checking what the AI sent) is `utils/mantra-own.js`, the visibility rule `utils/mantra-visibility.js`, the picture search
+`services/public-image.js`, every number `config/mantra-own.js`.
+
+**The flow** (all under `/api/app/mantras`; `/own…` is registered before `/:slug`):
+
+| Call | What happens |
+|---|---|
+| `POST /own/suggest` `{text}` | Text cleaned (2–200 characters). Operation `mantra.suggest` returns up to 8 mantras; each is checked, labelled `new` / `shared` (someone else holds it) / `yours` / `catalog` (public), and the list is held in Redis for **1 hour** under a `suggestionId`. 422 `MANTRA_INPUT_NOT_USABLE`, 429, 503 `MANTRA_AI_UNAVAILABLE`. |
+| `POST /own` `{suggestionId, picks}` | **The phone sends back index numbers only**, so nothing but what the AI itself suggested can ever be saved. At most 5. An existing mantra is not made twice: the reader is given `MantraAccess` to it. A new one gets `mantra.details` (every field a catalogue mantra has), a picture, `mantraType = PRIVATE`, `isPublished = false`, `createdById`, and `mantra.translate` for English + the reading languages of the readers who asked. 201 `{items:[{index,status,mantra}]}`; 409 `MANTRA_LIMIT`, 410 (suggestions expired), 429, 503. |
+| `PUT /own/:slug/image` | The reader's own picture (raw body, 5 MB, re-encoded and stripped like a chat picture). Only the one who made it. 403, 404, 413 `IMAGE_TOO_LARGE`, 422 `IMAGE_NOT_USABLE`. |
+| `DELETE /own/:slug` | The reader leaves it: their `MantraAccess`, favourite and preferred-mantra pointer go; the mantra itself (and an uploaded picture) is deleted only when no reader holds it and no chant session or reel refers to it. 204. |
+
+**It is the one place besides the chat where a reader's words reach an AI provider, and it is not wallet-charged.** `ai.complete`
+(`services/ai/index.js`) debits no wallet, so the limits are the guard: **20 suggestions and 10 creations per reader per UTC day**,
+**50 own mantras** held at once, the `ai` rate-limit bucket on suggest and create (`write` on image and delete), and the usage is
+still logged to `AiUsageLog` (operations `mantra.suggest`, `mantra.details`, `mantra.translate`). A new mantra made by two readers
+at once is serialised by `withLock`, so it is made once.
+
+**"Well known" is layered, not one rule.** The prompt asks only for mantras with a long recorded tradition, addressed to a
+deity or a saint of the Hindu bhakti and wider Indian traditions (the model answers `wellKnown: true`, a `kind` of deity or saint
+and `addressedTo`); `utils/mantra-own.js` then rejects any item that is not `wellKnown === true`, has another kind, or has no
+`addressedTo`, and a **deity mantra needs a deity and a saint's mantra a guru**. **Living persons are excluded by the prompt
+only** — nothing in the code can tell. **Whether a mantra is well known is the model's judgment.**
+
+**A deity or guru we do not hold is created, unpublished.** The AI's `addressedTo` is matched to `Deity` / `Guru` by slug and
+name; when nothing matches, a row is created with `isPublished: false` (no picture, no `nameI18n`) so an admin can review it, add
+a picture and publish it. Until then the mantra shows without that chip. A different spelling of an existing name can still make
+a duplicate.
+
+**Visibility** (`visibleTo(user)`): published, or private **and** the reader has a `MantraAccess` row. A private mantra stays
+`isPublished = false` for good, so every public path (search, the catalogue, share, reels, the export) already leaves it out;
+the Jap list puts a reader's own first (`PRIVATE_DISPLAY_ORDER = -1`). `Mantra.matchKey` (name + text, normalised) is how
+"someone already holds this" is found; it goes stale if an admin edits the name or text.
+
+**Promotion at 11 readers** (`promote`): sets `PUBLIC`, publishes, gives it a `displayOrder` after the curated catalogue
+(`PROMOTED_DISPLAY_ORDER`), **drops any picture a reader uploaded and its S3 object** (a private upload is not made public), and
+queues translation into every supported language. Readers keep their access rows. `controllers/admin/mantra.js` makes a
+published `PRIVATE` mantra `PUBLIC` on save (the admin guard); an admin has no way to hide a private mantra except deleting it.
+
+**Pictures:** `findPicture` searches **Wikimedia Commons** by a few words the AI gave and takes a file only when Commons marks it
+public domain or CC0, JPEG or PNG, at least 400 px wide, on `upload.wikimedia.org`; the address is stored in `imageUrl` and
+hotlinked (nothing is downloaded, and the credit is not kept). Any trouble is no picture. `imagePath` (the reader's upload) wins
+over `imageUrl`. No AI image is ever generated.
+
+**Error wording:** the new `AppError` codes (`MANTRA_INPUT_NOT_USABLE`, `MANTRA_AI_UNAVAILABLE`, `MANTRA_LIMIT`, `IMAGE_NOT_USABLE`,
+`IMAGE_TOO_LARGE`) have **no `locales/*.json` ids, so the server text is English**; the app words every one by its code (and 410 /
+413 by status, which `ApiClient._kindFor` maps to `unknown`). A new code that is not in the app shows the app's general line.
+
+**Tests:** `node --test test/mantra-own.test.js` (46) and `npm run test:mantra-own` (`scripts/mantra-own-e2e.js`, 146 checks: needs
+Postgres and Redis only; it fakes the AI and blanks the AWS keys itself). **Not run against a real AI provider, Wikimedia from a
+server, or S3.** **Production needs `prisma migrate deploy` for `20261104000000_user_mantras`** (no seed).
 
 ## Active users, live presence and the per-person admin page
 
@@ -1206,6 +1326,36 @@ proxies both on the apex domain. `npm run test:share-referral` (57 checks, provi
 - Tests: `npm run test:admin-users` (31 checks over HTTP and the websocket; needs the API **and** `node websocket/index.js` running).
   **Not run at scale:** the presence write is one Redis `SET NX` per signed-in request, one `ZADD` per person per 20 s, and one
   upsert per person per day.
+
+## Where a person is (IP location)
+
+`User` carries `countryCode`, `country`, `state`, `district`, `city` and `locationUpdatedAt` (migration `20261106000000_user_location`),
+worked out from the caller's IP address by `services/geo-ip.js`: MaxMind's **GeoLite2-City** `.mmdb` read from disk with the `maxmind`
+package, so a lookup is a few microseconds in memory and **no reader's address is sent to anyone**. State is the record's first
+subdivision, district its second. Setup is in [secrets/README.md](secrets/README.md): the file is not in the repo (the licence forbids
+redistributing it, and `secrets/` is ignored) and `GEOIP_DB_PATH` names it.
+
+- **When it is written.** On the hourly `lastActiveAt` write in `middleware/auth.js` (`touchLastActive`, gated by the Redis key
+  `active:<userId>`), in the same `UPDATE`: no extra write and nothing on the request path (the function is not awaited). So a new
+  account is placed on its first signed-in request and someone who travels within the hour. `req.ip` is the real client because
+  `trust proxy` is 1 and Apache / nginx set `X-Forwarded-For`.
+- **The raw IP is not stored.** Only the place is. A lookup that finds nothing (database not installed, private / loopback address,
+  an address MaxMind does not know) **leaves the last known place standing**; it never blanks it.
+- **Optional.** Blank `GEOIP_DB_PATH`, or a file that is not there, and `locate()` answers null: the API boots and the columns stay
+  empty. A file that cannot be opened logs one warning. It is read once, so restart the API after replacing it.
+- **What it can say.** Country is nearly always right, state usually, city often. **District is rare** (MaxMind fills a second
+  subdivision mostly in the UK and a few other countries; for India it is usually null). A VPN, a company network or a mobile
+  carrier's gateway shows that network's place, not the phone's. Do not use it for anything that needs to be right about one person.
+- **Memory.** The database is a Buffer outside the Node heap, roughly the size of the file (60–70 MB for GeoLite2-City): watch it
+  against the API container's 512 MB limit on first deploy.
+- **Shown in** the admin Users list (a Location column) and the person's page (`user.read`, `controllers/admin/user.js`,
+  `user-detail.js`). Not in any app or website response. Disclosed on the privacy page.
+- Tests: `node --test test/geo-ip.test.js` (the pure parts and "no database" behaviour). **Not in the suite:** a lookup against a real
+  database, since the file cannot be committed; it was checked by hand against MaxMind's published `GeoLite2-City-Test.mmdb`
+  (London, Boxford with a district, Milton WA) and through the running API with an `X-Forwarded-For` header.
+- **Production needs** `prisma migrate deploy` for `20261106000000_user_location`, then the `.mmdb` in the server's secrets folder
+  and `GEOIP_DB_PATH=/app/secrets/GeoLite2-City.mmdb` in the API's `.env`, then a restart (see [deploy/README.md](../deploy/README.md)).
+  Existing users get a place the next time they make a signed-in request after the hour gate expires; there is no backfill.
 
 ## Client attestation on signup
 
@@ -1251,6 +1401,8 @@ still work; nothing rewrites them.
 
 `SceneRun` + `jobs/processors/scenes.js` + `services/scenes.js` + `utils/scenes.js` (pure: file names, prompt, schema, checks, limiter) + `controllers/admin/scene.js`. Built like translation runs; read those first. One request per chapter with the Hindi meaning of each verse (from `hi/` in the bucket, else `VerseTranslation`), answer checked so every verse is in a scene (asked again once with the problems), saved to `json/<book>/scenes/sk-<canto>-ch-<n>.json` (old file backed up) and listed in `_index.json`. A 429 is always a wait, never "credit". One run at a time. Settings: `SCENES_PROVIDER`, `SCENES_GEMINI_MODEL`, `SCENES_RPM`, `SCENES_TPM`, `SCENES_RPD`. Tests: `npm run test:scenes`, `test/scenes.test.js`.
 
+**The provider and model are chosen per run.** `POST /api/admin/scenes/runs` and `GET …/estimate` take an optional `provider` (`anthropic`, `openai`, `gemini`) and `model`; left out, the run uses `SCENES_PROVIDER` and that provider's configured model (`service.model(provider)`). The catalogue is the one the translation scripts use, `scripts/lib/translate-providers.js` (`providerChoices` for the picker, `whyNotUsable` for a model that cannot be run). The start is refused with a 422 before anything is queued when the server has no key for the provider (the message names the setting, e.g. `ANTHROPIC_API_KEY`) or the model cannot be used (e.g. `gemini-2.5-pro` always thinks, `claude-fable-5-1` cannot turn thinking off); an unknown provider is a 400. The run row stores `provider` and `model`, and the worker builds its client from them (`makeAsk`). **The request/token limiter (`SCENES_RPM`, `SCENES_TPM`) is Gemini's free tier and is applied only to a Gemini run** (`limitsFor(provider)`); another provider has none of our own, so its estimate counts only the model's time to write a storyboard, and `limits` in the estimate is `null`. The estimate's cost is the catalogue's price for the chosen model (`null` when it has none). `npm run test:scenes` (61 checks) walks it, including the 422s and the Gemini-only limits.
+
 
 ## Hindu calendar
 
@@ -1258,7 +1410,24 @@ still work; nothing rewrites them.
 - **Storing** is `services/panchang-store.js` (`saveYear`), used by `npm run seed:panchang [year] [place]` and the admin Generate button. `isEdited` rows are never overwritten; a festival's `notify` choice is made once, at creation.
 - **Place**: `AppSetting` `panchang.location`; places are `LOCATIONS` in `services/panchang.js`. Generate a year for a place before selecting it.
 - **Push**: two jobs on the `notification` queue. `festival.plan` (`jobs/processors/festival-plan.js`) is the only schedule, **04:45 IST** (`tz: 'Asia/Kolkata'`): it asks `dueFestivals` whether any push is due today and, if so, queues `festival.notify` as a delayed job for **05:00 IST** (`jobId festival-notify-<date>`, so planning twice queues once; run after 05:00 it goes at once); a day with nothing due queues nothing. `festival.notify` (`jobs/processors/festival-notify.js`) sends: a festival is **always announced on its own day** ("X today"), and `Festival.notifyDaysBefore` (default `[1]`) adds earlier heads-ups ("X tomorrow"), so an observance is announced the day before *and* on the day unless it is set to `[]`. `notifiedDays` records what has gone, so a rerun never repeats a push. It goes to every user with a push-capable device, dated by the calendar place's today. `npm run test:panchang` covers the day-of push and the planner.
-- **API**: public `GET /api/app/calendar?from&to` (max 62 days) and `/calendar/upcoming`; admin `/api/admin/panchang` (permission `panchang.manage`).
+- **Parana (fast-breaking) push**: the morning after an Ekadashi fast, a `PARANA` festival row says when the fast may be broken. `services/parana.js` (pure) is the rule: after sunrise, inside Dvadashi, never in Hari Vasara (the first quarter of Dvadashi). If Hari Vasara ends before Pratahkala (the first fifth of the day) does, the window is `[max(sunrise, Hari Vasara end), min(Pratahkala end, Dvadashi end)]`; otherwise it starts no earlier than the end of Madhyahna (3/5) and ends at Dvadashi's end or Aparahna's (4/5), falling back to `[Hari Vasara end, Dvadashi end]` when that is empty; a Dvadashi that ended before sunrise gives `[sunrise, Pratahkala end]`. `services/festivals.js` makes one `slug: 'parana'` row per distinct fast date (two when Smarta and Vaishnava dates differ) on the day after it, with `details` = `{ekadashi, fastDate, twoDates, alsoFastToday, startsAt, endsAt, hariVasaraEndsAt, dwadashiEndsAt, afterMadhyahna, place, timezone}` and `notifyDaysBefore: []` (`SAME_DAY_KINDS`: parana is pushed that morning only, never "tomorrow"). The wording is `utils/festival-message.js` (pure; `festival-notify.js` calls it): "Fast-breaking time: 5:55 AM to 6:20 AM", times in the reader's language and the calendar place's timezone through `clockTime` (`utils/date.js`), naming the place. **It is built from `details`, not from `description`**, because an admin's PATCH sets `isEdited` for any change (the notify switch too) and would otherwise swap the wording; an edited `description` is therefore not what the push says. Where two dates exist the body is conditional ("If you kept the {0} fast yesterday, break it today…", `paranaBodyIfYesterday`) and, when that day is itself the other fast day, adds `paranaFastToday`, so nobody still fasting is told to break. Notices `paranaTitle`, `paranaBody`, `paranaBodyIfYesterday`, `paranaFastToday` in `utils/messages.js` and all 11 `locales/*.json` (**AI-drafted, not read by a native speaker**). Like every festival push it is one message per app language with no "Hari Bol <name>". Admin, website and app know the kind (`PARANA`, a sunrise-over-horizon glyph, sky blue; `app/assets/calendar/parana.svg`, `FestivalKind.parana`). **Checked** against Drik Panchang's New Delhi pages for 8 windows (within about a minute) and on every 2026 Ekadashi for the rule's invariants (`test/panchang.test.js`, `test/parana-notify.test.js`, `test/messages.test.js`; `node --test` on those three). **Known gaps:** the Vaishnava date of Shravana Putrada 2026 is one day off Drik's (the existing Ekadashi push has the same date), so that Vaishnava parana is not generated; for Padmini the "Smarta" date differs from Drik's single date (the conditional wording covers it); an "after Madhyahna" window can fall in the afternoon; the windows are for the one calendar place only. **Production needs `prisma migrate deploy` for `20261108000000_parana_festival_kind` (adds the enum value), then `npm run seed:panchang` to make the parana rows for 2026 (and 2027 when wanted; rows already there are updated in place with their notify choices kept, and admin-edited rows are skipped), then a restart of the API and the worker.** Not run against a database or a real push.
+- **Translation** (admin → Hindu calendar → *Translations* tab): the calendar's words in the 11 app languages other than English (hi mr gu bn ta te kn or pa ml as, `languages` in `config/calendar.js`, the same as Devotee etiquette's), made by an AI run the way Scenes, Translations and Etiquette are, with **the provider and model chosen per run**. Three kinds of word (`KINDS`): a festival's `NAME` (a parana's Ekadashi, `details.ekadashi`, included), a festival's `DESCRIPTION` (**not a parana's**: that one is built for its date from `details`, so it is never asked for), and a panchang `TERM` (`TERM_FIELDS`: tithi, nakshatra, yoga, karana, the two lunar months, sun and moon sign; each goes in the prompt with what it is, because "Mesha" as a rashi and as a sankranti are the same word). **A translation is keyed by (kind, language, sha1 of the trimmed English)** (`sourceKeyOf` in `utils/calendar-translation.js`), not by the row it came from: the same word is translated once however many days and years use it, a new year of generated rows needs nothing translated that already is, and an admin's edit of a festival's English makes the new wording show as missing. Rows: `CalendarTranslation` (the text, `translatedBy`, `runId`, `isEdited`) and `CalendarRun` (like `SceneRun`/`EtiquetteRun`: status, `jobId`, pause reason, resume time, counts, tokens, `force`, provider and model).
+  - **The run** is `jobs/processors/calendar.js` on the `calendar` queue (concurrency 1, `attempts: 1`; the row names the only job allowed to work it; `reconcileRuns` every 2 minutes in the worker): `services/calendar-translation.js` collects the words (`collectItems`), takes those with no translation in the language (`itemsToTranslate`; with `force` the ones a run wrote too, **never an `isEdited` row, forced or not**), and asks `batchSize` (40) at a time for `{items:[{ref,text}]}`. Each answer is checked (`checkAnswer`: every ref present, none empty, not far longer than the English, **written in the language's script** — at least half the letters, digits and spaces ignored); a batch that fails is asked again with the problems named, up to `invalidTries` (2), then the run FAILS with the words it could not do (what passed is kept and what the failed asks cost is counted). A refused key, no credit or a missing key pauses it for a person (Resume); a busy provider (429/5xx) pauses and retries by itself (`resumeAt`); one run at a time (an earlier queued or live run holds the later ones back), one live run per language (409). Resume carries on at the first word with no translation. Tokens are on the row and in the token calculator (`services/ai/token-tally.js`) under the provider and model; live progress is the websocket events `calendar.run` / `calendar.activity`, sent to `panchang.translate`. Start-time checks are the Scenes ones: no key → 422 naming the setting, a model that cannot run → 422, a bad language or provider → 400, everything already translated → 409 with `details.upToDate`.
+  - **Admin API** `/api/admin/panchang/translation` (`controllers/admin/calendar-translation.js`, `routes/admin/calendar-translation.js`), all behind **`panchang.translate`** (a different permission from `panchang.manage`, which gates the calendar page and editing days and festivals): `GET /overview` (words by kind, coverage by language, the providers with their models and whether each has a key, active runs), `GET /items` (paged; `language`, `kind`, `state` = translated / missing / edited, `q` searches the English and the translation), `PUT /items` (write one by hand: marked `isEdited` and `translatedBy: 'admin'`, so no run replaces it; 404 for a word the calendar does not hold, or one held under another kind), `DELETE /items/:id`, `GET /estimate` (`language`, `force`, `provider`, `model`), `GET`/`POST /runs`, `GET /runs/:id` (the run and its feed), `POST /runs/:id/resume`, `POST /runs/:id/cancel`. Audited as `calendar.run.start|resume|cancel` and `calendar.translation.save|delete`.
+  - **What readers get.** `GET /api/app/calendar` and `/calendar/upcoming` take an optional `?language=` (one code; a list or a longer name is a 400); without it the signed-in reader's app language, then the browser's, then English. `wordsFor(chain, days, festivals)` reads the translations in one query and the presenters (`presentDay`, `presentFestival` in `services/panchang-store.js`) use them for `tithi.name`, `nakshatra.name`, `yoga`, `karana`, `month`, `monthPurnimanta`, `sunSign`, `moonSign`, and a festival's `name` and `description` (a parana's description is left as built); **a word with no translation is English**, and dates, times and numbers are the same in every language. The festival push uses the same words (`message()` in `utils/festival-message.js`, called by `festival-notify.js` once per app language): the title around the translated name, the body the translated description (or the name and paksha), and a parana's body the translated Ekadashi with its times. The app does not send `?language=` yet (it follows the account's app language), and was not changed.
+  - **Tests**: `node --test test/calendar-translation.test.js` (21: the key, the prompt, the answer checks) and `npm run test:calendar-translation` (`scripts/calendar-translation-e2e.js`, 116 checks, provider faked, local Postgres and Redis, no worker connected; it makes its own festivals and a panchang day in 2031 and removes them, and makes the `panchang.manage` permission only if the database lacks it): the words collected, a run end to end, tokens in the calculator, every way it stops (key, limit, credit, wrong script, a word left out, Cancel), Resume, a forced run keeping an editor's words, the queue, the push wording, and the admin and public APIs including 403/400/404/409/422.
+  - **Production needs `prisma migrate deploy` for `20261109000000_calendar_translation`** (the two tables and `panchang.translate`, granted to admin and super_admin by the migration itself; `npm run seed` keeps it in step), **then a restart of the API and the worker** (the worker registers the `calendar` queue), then run the translations from the admin page. **Not done / not checked:** no live provider call has been made, so what a model writes for these words (and what a run costs) is unmeasured; the translations will be AI drafts, not read by a native speaker; the admin page was type-checked and built but not driven in a browser.
+- **API**: public `GET /api/app/calendar?from&to&language` (max 62 days) and `/calendar/upcoming?days&language`; admin `/api/admin/panchang` (permission `panchang.manage`) and `/api/admin/panchang/translation` (permission `panchang.translate`).
+
+## Devotee etiquette
+
+- **What it is**: short English guidance for every devotee, one row per item in `Etiquette` (slug, category, title, summary, body, `reference`, `author`, `sourceName`, `sourceUrl`, `status`, `excludedReason`, `isEdited`), one row per language in `EtiquetteTranslation` (`isPublished`, `translatedBy`, `runId`, `isEdited`). `EtiquetteStatus` is `PUBLISHED` (readers see it and it can be the day's push), `DRAFT`, or `EXCLUDED` (kept with `excludedReason`, never shown or pushed — etiquette that would set one deity or faith above another). **A non-published item is a 404 in the app API**, whoever asks. The nine categories and the translation languages are in `config/etiquette.js`; the status list and pure helpers are `utils/etiquette.js`.
+- **Seed**: `prisma/seed/etiquette/` (nine category files, `sources.js`, `index.js`) — 95 items, 93 `PUBLISHED` and 2 `EXCLUDED`. The wording is original; each item cites a `reference`, whose teaching it is in `author` (the speaker of the verse, a teacher, a temple or a scripture — never the author of the books we cite, since the app does not show his name yet), and a `sourceName` / `sourceUrl`; the names in `author` and `sourceName` are centralised in `sources.js`. `checkItems` refuses text that names the hidden author (`AppConfig.showAuthorName` is false) and over-long fields (the `LIMITS` there match the columns, `author` included). It is idempotent and leaves an `isEdited` row's wording alone; the one thing it still fills on an edited row is a missing `author` (a row made before the column existed), so every row ends up with one without undoing a hand edit. `npm run seed:etiquette` (`scripts/seed-etiquette.js`), `npm run seed` runs it too, and the admin Maintenance page has a `seed-etiquette` entry. Purity rules were deliberately left out.
+- **The daily push**: cron `etiquette.deliver` (`config/cron.js`, queue `notification`, every 15 minutes) → `jobs/processors/etiquette-deliver.js`. A reader gets it when their local time reaches the setting `etiquette.delivery.time` (default `ETIQUETTE_DEFAULT_DELIVERY_TIME`, `07:15`; **it must be a multiple of 15 minutes**, so each reader falls in exactly one run's window). `EtiquetteDay` holds one shared item per date (`dayFor` takes the least recently used, and replaces it if it was un-published since); `EtiquetteDelivery (userId, date)` is unique, so a repeated run cannot send twice. Recipients are users who are not banned and have a `Device` with `app: 'main'`, an `fcmToken` and `isBanned: false`, read in batches of 500. The title is "Hari Bol <first name>" in the reader's *reading* language (see "Server wording in the user's language"), the body is the item's title and summary clipped to 220 characters, the data is `{ deeplink: 'hariharibol://etiquette/<id>', etiquetteId, category }`, the type `NotificationType.ETIQUETTE`. The worker registers the repeatable job at boot (`jobs/schedules.js`), so **a deploy needs the worker restarted**.
+- **Translation runs** are built like Scenes and Translations — read those first. The `EtiquetteRun` row is the truth and the BullMQ `etiquette` queue (`attempts: 1`) only works it: `jobs/processors/etiquette.js` + `services/etiquette.js` (`itemsToTranslate`, `itemsForRun`, `saveTranslations`, `coverage`, the feed in Redis `etiquette:feed:<runId>`, `reconcileRuns`). A run translates one language's published items that have no translation (every one with `force`); **a translation an editor wrote by hand is never replaced, with or without `force`**. `batchSize` 8, `invalidTries` 2, `maxTokens` 16,000; a reply that comes back still in English is rejected by the script block of the language. One live run per language. Statuses are `TranslationRunStatus`; out-of-credit or a bad key pauses (Resume), a busy provider retries by itself. Websocket events `etiquette.run` and `etiquette.activity` go to `etiquette.translate`. Saved rows are `isPublished: true` with `translatedBy`. The default provider is `TRANSLATION_PROVIDER` (OpenAI), `provider` and `model` can be chosen when the run is started.
+- **API**: app `GET /api/app/etiquette/today`, `GET /api/app/etiquette?category=`, `GET /api/app/etiquette/:id` (all take `languages` for the reader's chain; `today` uses the reader-local date); admin `/api/admin/etiquette` — `overview`, `items` (list, add, get, edit, `status`), `items/:id/translations/:language` (PUT, DELETE), `estimate`, `runs` (list, start, get, `resume`, `cancel`). Permissions **`etiquette.manage`** (items, translations by hand) and **`etiquette.translate`** (estimate and runs). Migration `20261103000000_devotee_etiquette` creates both and grants them to `admin` and `super_admin` itself.
+- **Tests**: `node --test test/etiquette.test.js test/messages.test.js` (46 + 14, no database) and `npm run test:etiquette` (`scripts/etiquette-e2e.js`, 114 checks against a real Postgres and Redis, provider not called — it now also covers `author` round-tripping through the admin and app APIs, and the seed filling in a missing `author` on an edited row without touching its other edits). Run the e2e against a scratch database with the AWS and Firebase variables blanked — the dev `.env` points at real AWS.
+- **Not done**: no live provider call has been made by a run, no push has left a machine, and the translations (and the server wording in `locales/*.json` for the etiquette push) are AI-drafted.
 
 ## Rich pushes (admin Notifications page)
 

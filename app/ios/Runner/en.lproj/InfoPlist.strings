@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol listens while you chant to count your repetitions, and when you tap the microphone to speak a message to Sakha.";
+"NSSpeechRecognitionUsageDescription" = "HariHariBol uses your phone's speech recognition to turn what you say into text when you speak a message to Sakha.";
+"NSPhotoLibraryUsageDescription" = "HariHariBol opens your photos so you can choose a picture to share with Sakha.";
+"NSCameraUsageDescription" = "HariHariBol opens the camera so you can take a picture to share with Sakha.";

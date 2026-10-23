@@ -494,6 +494,36 @@ class AppLocalizationsMl extends AppLocalizations {
   String get sadhanaAutoCountUnavailable => 'സ്വയം എണ്ണൽ ഇപ്പോൾ ലഭ്യമല്ല';
 
   @override
+  String get sadhanaAutoCountTimed => 'സമയം അനുസരിച്ച് എണ്ണൽ — മൈക്രോഫോൺ ഇല്ല';
+
+  @override
+  String get chantAutoMicTitle => 'മൈക്രോഫോൺ ഉപയോഗിക്കുക';
+
+  @override
+  String get chantAutoMicOn => 'നിങ്ങളുടെ ജപം കേട്ട് എണ്ണുന്നു';
+
+  @override
+  String get chantAutoMicOff =>
+      'പകരം സമയം അനുസരിച്ച് എണ്ണുന്നു — ബാറ്ററി ലാഭിക്കാം';
+
+  @override
+  String get chantPaceTitle => 'ഒരു ജപത്തിന്റെ സമയം';
+
+  @override
+  String chantPaceSummary(String seconds, String round) {
+    return 'ഓരോന്നിനും $seconds സെക്കൻഡ് · ഒരു മാലയ്ക്ക് ഏകദേശം $round';
+  }
+
+  @override
+  String get chantPaceShorter => 'ജപസമയം കുറയ്ക്കുക';
+
+  @override
+  String get chantPaceLonger => 'ജപസമയം കൂട്ടുക';
+
+  @override
+  String get chantPrayerFallbackName => 'കൃഷ്ണന് സമർപ്പണം';
+
+  @override
   String get chantModelTitle => 'കൂടുതൽ കൃത്യമായി കേൾക്കൽ';
 
   @override
@@ -1150,6 +1180,15 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get routineDailyBadge => 'ദിവസേന';
+
+  @override
+  String get routineAlertChannelName => 'ടാസ്ക് ഓർമ്മപ്പെടുത്തലുകൾ';
+
+  @override
+  String get routineAlertBody => 'ഈ ടാസ്കിനുള്ള സമയമായി.';
+
+  @override
+  String get routineAlertDone => 'പൂർത്തിയായതായി അടയാളപ്പെടുത്തുക';
 
   @override
   String get routineDailyRemove => 'ദൈനംദിന ദിനചര്യയിൽ നിന്ന് നീക്കുക';
@@ -2524,4 +2563,253 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get developerChatNotSent =>
       'അയച്ചില്ല. വീണ്ടും ശ്രമിക്കാൻ ടാപ്പ് ചെയ്യുക.';
+
+  @override
+  String get chatGreeting => 'ഹരി ബോൾ, ഇന്ന് നിങ്ങളുടെ മനസ്സ് എങ്ങനെയുണ്ട്?';
+
+  @override
+  String chatGreetingNamed(String name) {
+    return 'ഹരി ബോൾ $name, ഇന്ന് നിങ്ങളുടെ മനസ്സ് എങ്ങനെയുണ്ട്?';
+  }
+
+  @override
+  String get chatProfileTitle => 'Sakha ശ്രദ്ധിച്ചത്';
+
+  @override
+  String get chatProfileIntro =>
+      'Sakha നിങ്ങളുടെ സംഭാഷണങ്ങളിൽ നിന്ന് നിങ്ങളെക്കുറിച്ച് ചില കാര്യങ്ങൾ മനസ്സിലാക്കുന്നു, അങ്ങനെ മറുപടികൾ നിങ്ങൾക്ക് കൂടുതൽ യോജിക്കും. ഇത് നിങ്ങളുടെ നിയന്ത്രണത്തിലാണ്: എപ്പോൾ വേണമെങ്കിലും ഇത് ഓഫ് ചെയ്യുകയോ ഇല്ലാതാക്കുകയോ ചെയ്യാം.';
+
+  @override
+  String get chatProfileLearning => 'എന്നെക്കുറിച്ച് പഠിച്ചുകൊണ്ടിരിക്കുക';
+
+  @override
+  String get chatProfileLearningHint =>
+      'ഇത് ഓഫ് ആയിരിക്കുമ്പോൾ Sakha പുതിയതൊന്നും ശ്രദ്ധിക്കില്ല, ഇവിടെ സൂക്ഷിച്ചവ ഉപയോഗിക്കുകയുമില്ല.';
+
+  @override
+  String get chatProfileEmpty =>
+      'ഇതുവരെ ഒന്നും രേഖപ്പെടുത്തിയിട്ടില്ല. സംഭാഷണം തുടരുമ്പോൾ നിങ്ങൾക്ക് ഏത് തരം മറുപടികൾ ഇഷ്ടമാണെന്ന് Sakha രേഖപ്പെടുത്തും.';
+
+  @override
+  String get chatProfileGender => 'ലിംഗം';
+
+  @override
+  String get chatProfileAge => 'പ്രായം';
+
+  @override
+  String get chatProfileBehaviour => 'നിങ്ങളുടെ സ്വഭാവം';
+
+  @override
+  String get chatProfileLifeStage => 'ജീവിതഘട്ടം';
+
+  @override
+  String get chatProfileSpiritualStage => 'സാധനയുടെ വഴിയിൽ';
+
+  @override
+  String get chatProfileCommunication => 'നിങ്ങൾക്ക് ഇഷ്ടമുള്ള മറുപടിയുടെ രീതി';
+
+  @override
+  String get chatProfileNotes => 'മറ്റ് ഓർമ്മകൾ';
+
+  @override
+  String get chatProfileKeywords =>
+      'നിങ്ങളുടെ സംഭാഷണങ്ങൾ എന്തിനെക്കുറിച്ചായിരുന്നു';
+
+  @override
+  String get chatProfileKeywordsNote =>
+      'ഈ വാക്കുകൾ നിങ്ങൾക്ക് മാത്രമേ കാണാനാകൂ. മറുപടി എഴുതുമ്പോൾ Sakha ഇവ ഒരിക്കലും വായിക്കില്ല.';
+
+  @override
+  String get chatProfileIssuesNote =>
+      'ഇന്ന് നിങ്ങൾ എന്തിനോടാണ് പൊരുതുന്നത് എന്ന് പറഞ്ഞാൽ, Sakha അത് ആ ദിവസത്തേക്ക് മാത്രം അറിയും. അത് ഇവിടെ സൂക്ഷിക്കുന്നില്ല.';
+
+  @override
+  String get chatProfileDelete => 'Sakha രേഖപ്പെടുത്തിയവ ഇല്ലാതാക്കുക';
+
+  @override
+  String get chatProfileDeleteBody =>
+      'ഈ പേജിൽ സൂക്ഷിച്ചതെല്ലാം നീക്കം ചെയ്യപ്പെടും. നിങ്ങളുടെ ചാറ്റ് മായ്ക്കപ്പെടില്ല.';
+
+  @override
+  String get etiquetteTitle => 'ഭക്തരുടെ ആചാരങ്ങൾ';
+
+  @override
+  String get etiquetteTodayEyebrow => 'ഇന്നത്തെ ആചാരം';
+
+  @override
+  String get etiquetteHomeSubtitle => 'ഭക്തർക്കായി ദിവസവും ഒരു ലളിതമായ ശീലം';
+
+  @override
+  String get etiquetteEmpty =>
+      'കാണിക്കാൻ ഇതുവരെ ആചാരങ്ങളൊന്നുമില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും നോക്കുക.';
+
+  @override
+  String get etiquetteAll => 'എല്ലാം';
+
+  @override
+  String get etiquetteSourceLabel => 'ഉറവിടം';
+
+  @override
+  String get etiquetteAuthorLabel => 'രചയിതാവ്';
+
+  @override
+  String get etiquetteReferenceLabel => 'പരാമർശം';
+
+  @override
+  String get etiquetteCategoryTemple => 'ക്ഷേത്രത്തിൽ';
+
+  @override
+  String get etiquetteCategoryDeity => 'ശ്രീവിഗ്രഹ സേവ';
+
+  @override
+  String get etiquetteCategoryPrasad => 'പ്രസാദവും ഭക്ഷണവും';
+
+  @override
+  String get etiquetteCategoryHolyName => 'പവിത്രനാമം';
+
+  @override
+  String get etiquetteCategoryGuruVaishnava => 'ഗുരുവും ഭക്തരും';
+
+  @override
+  String get etiquetteCategorySpeechMind => 'വാക്കും മനസ്സും';
+
+  @override
+  String get etiquetteCategoryDailyLife => 'ദൈനംദിന ജീവിതം';
+
+  @override
+  String get etiquetteCategoryScripture => 'ശാസ്ത്രം';
+
+  @override
+  String get etiquetteCategoryHolyPlaces => 'പുണ്യസ്ഥലങ്ങളും ദിവസങ്ങളും';
+
+  @override
+  String get ownMantraAddTitle => 'സ്വന്തം മന്ത്രം ചേർക്കുക';
+
+  @override
+  String get ownMantraAddBody =>
+      'ഞങ്ങളുടെ പട്ടികയിലില്ലാത്ത ഒരു മന്ത്രം ജപിക്കാറുണ്ടോ? ഏതെന്ന് പറയൂ, ഞങ്ങൾ കണ്ടെത്താം.';
+
+  @override
+  String get ownMantraInputHint =>
+      'മന്ത്രമോ ദേവന്റെ പേരോ ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ പറയുക';
+
+  @override
+  String get ownMantraWellKnownNote =>
+      'അറിയപ്പെടുന്ന ദേവതകളുടെയും സന്ന്യാസിമാരുടെയും മന്ത്രങ്ങൾ മാത്രമേ ഞങ്ങൾ ചേർക്കൂ.';
+
+  @override
+  String get ownMantraMic => 'പറഞ്ഞു നൽകുക';
+
+  @override
+  String get ownMantraMicDenied =>
+      'മന്ത്രം പറയാൻ ഫോണിന്റെ ക്രമീകരണങ്ങളിൽ മൈക്രോഫോണിനും സംഭാഷണ തിരിച്ചറിയലിനും അനുമതി നൽകുക.';
+
+  @override
+  String get ownMantraFind => 'മന്ത്രങ്ങൾ കണ്ടെത്തുക';
+
+  @override
+  String get ownMantraNoneFound =>
+      'ഇതിന് അറിയപ്പെടുന്ന ദേവന്റെയോ സന്ന്യാസിയുടെയോ മന്ത്രം ഞങ്ങൾക്ക് കണ്ടെത്താനായില്ല. മറ്റൊരു പേര് പരീക്ഷിക്കൂ.';
+
+  @override
+  String ownMantraChosenCount(int chosen, int max) {
+    return '$max-ൽ $chosen തിരഞ്ഞെടുത്തു';
+  }
+
+  @override
+  String get ownMantraAddChosen => 'തിരഞ്ഞെടുത്ത മന്ത്രങ്ങൾ ചേർക്കുക';
+
+  @override
+  String ownMantraForDeity(String name) {
+    return '$nameനുള്ള മന്ത്രം';
+  }
+
+  @override
+  String ownMantraForSaint(String name) {
+    return '$nameന്റെ മന്ത്രം';
+  }
+
+  @override
+  String get ownMantraStatusShared => 'മറ്റ് വായനക്കാർ ചേർത്തത്';
+
+  @override
+  String get ownMantraStatusYours => 'ഇതിനകം നിങ്ങളുടെ പട്ടികയിലുണ്ട്';
+
+  @override
+  String get ownMantraStatusCatalog => 'ഇതിനകം ഞങ്ങളുടെ പട്ടികയിലുണ്ട്';
+
+  @override
+  String get ownMantraResultCreated => 'നിങ്ങളുടെ പട്ടികയിൽ ചേർത്തു';
+
+  @override
+  String get ownMantraResultShared =>
+      'ചേർത്തു — മറ്റ് വായനക്കാർക്കും ഇത് ഉണ്ട്';
+
+  @override
+  String get ownMantraResultFailed =>
+      'ചേർക്കാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get ownMantraOpen => 'തുറക്കുക';
+
+  @override
+  String get ownMantraChangePicture => 'ചിത്രം മാറ്റുക';
+
+  @override
+  String get ownMantraPictureNote =>
+      'വ്യക്തവും ആദരവുള്ളതുമായ ഒരു ചിത്രം തിരഞ്ഞെടുക്കുക. ഈ മന്ത്രം പങ്കിടുന്ന വായനക്കാർ ഇത് കാണും.';
+
+  @override
+  String get ownMantraPictureSaved => 'ചിത്രം മാറ്റി';
+
+  @override
+  String get ownMantraPictureTooLarge =>
+      'ആ ചിത്രം വളരെ വലുതാണ്. ദയവായി ചെറുത് തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get ownMantraPictureNotUsable =>
+      'ആ ചിത്രം ഉപയോഗിക്കാൻ കഴിഞ്ഞില്ല. ദയവായി JPEG, PNG അല്ലെങ്കിൽ WebP ഫോട്ടോ തിരഞ്ഞെടുക്കുക.';
+
+  @override
+  String get ownMantraPictureForbidden =>
+      'ഈ മന്ത്രം ചേർത്ത വായനക്കാരന് മാത്രമേ അതിന്റെ ചിത്രം മാറ്റാൻ കഴിയൂ.';
+
+  @override
+  String get ownMantraRemove => 'എന്റെ പട്ടികയിൽ നിന്ന് നീക്കുക';
+
+  @override
+  String get ownMantraRemoveTitle => 'ഈ മന്ത്രം നീക്കണോ?';
+
+  @override
+  String get ownMantraRemoveBody =>
+      'ഇത് നിങ്ങളുടെ പട്ടികയിൽ നിന്ന് നീക്കം ചെയ്യപ്പെടും.';
+
+  @override
+  String get ownMantraRemoveConfirm => 'നീക്കുക';
+
+  @override
+  String get ownMantraRemoved => 'നിങ്ങളുടെ പട്ടികയിൽ നിന്ന് നീക്കി';
+
+  @override
+  String get ownMantraPrivate => 'സ്വകാര്യം';
+
+  @override
+  String get ownMantraErrorNotUsable =>
+      'ഞങ്ങൾക്ക് ഇത് മനസ്സിലായില്ല. ദയവായി ഒരു മന്ത്രത്തിന്റെയോ ദേവന്റെയോ പേര് ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ പറയുക.';
+
+  @override
+  String get ownMantraErrorLimitReached =>
+      'തൽക്കാലം നിങ്ങൾ പരിധിയിലെത്തി. ദയവായി പിന്നീട് വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get ownMantraErrorUnavailable =>
+      'മന്ത്രങ്ങൾ ചേർക്കുന്നത് ഇപ്പോൾ ലഭ്യമല്ല. ദയവായി പിന്നീട് വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get ownMantraErrorLimit =>
+      'നിങ്ങളുടെ സ്വന്തം മന്ത്രങ്ങളുടെ പട്ടിക നിറഞ്ഞു. പുതിയത് ചേർക്കാൻ ഒന്ന് നീക്കുക.';
+
+  @override
+  String get ownMantraErrorExpired =>
+      'ഈ നിർദ്ദേശങ്ങളുടെ കാലാവധി കഴിഞ്ഞു. ദയവായി വീണ്ടും തിരയുക.';
 }

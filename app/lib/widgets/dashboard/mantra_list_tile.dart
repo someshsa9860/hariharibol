@@ -18,6 +18,10 @@ class MantraListTile extends StatelessWidget {
     required this.text,
     this.category,
     this.deity,
+    this.guru,
+    this.imageUrl,
+    this.imageCacheKey,
+    this.isPrivate = false,
     this.hasAudio = false,
     this.onTap,
   });
@@ -31,6 +35,18 @@ class MantraListTile extends StatelessWidget {
   /// Whose mantra this is. Most have one; the portrait is skipped rather than
   /// shown blank when it does not.
   final ReferenceItem? deity;
+
+  /// A saint's mantra has a guru instead of a deity.
+  final ReferenceItem? guru;
+
+  /// The mantra's own picture, which comes before the deity's and the guru's,
+  /// and the key to cache it under (its address without the signature).
+  final String? imageUrl;
+  final String? imageCacheKey;
+
+  /// A mantra the reader added, which only they (and readers who added the same
+  /// one) can see.
+  final bool isPrivate;
   final bool hasAudio;
   final VoidCallback? onTap;
 
@@ -38,9 +54,21 @@ class MantraListTile extends StatelessWidget {
   /// motif and the list does not reshuffle on every rebuild.
   Motif get _motif => Motif.values[name.hashCode.abs() % Motif.values.length];
 
+  /// The first picture there is: the mantra's own, then the deity's, then the
+  /// guru's; null when there is none and the motif is drawn instead.
+  (String, String)? get _picture {
+    final own = imageUrl;
+    if (own != null && own.isNotEmpty) return (own, imageCacheKey ?? own);
+    final deityImage = deity?.imageUrl;
+    if (deityImage != null && deityImage.isNotEmpty) return (deityImage, 'deity-${deity!.id}');
+    final guruImage = guru?.imageUrl;
+    if (guruImage != null && guruImage.isNotEmpty) return (guruImage, 'guru-${guru!.id}');
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final image = deity?.imageUrl;
+    final picture = _picture;
     final isLight = context.theme.brightness == Brightness.light;
 
     return Card(
@@ -56,10 +84,10 @@ class MantraListTile extends StatelessWidget {
                 child: SizedBox(
                   width: AppSizes.avatarMd,
                   height: AppSizes.avatarMd,
-                  child: image != null && image.isNotEmpty
+                  child: picture != null
                       ? AppImage(
-                          url: image,
-                          cacheKey: 'deity-${deity!.id}',
+                          url: picture.$1,
+                          cacheKey: picture.$2,
                           width: AppSizes.avatarMd,
                           height: AppSizes.avatarMd,
                           borderRadius: BorderRadius.zero,
@@ -83,6 +111,26 @@ class MantraListTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name, style: context.texts.titleSmall),
+                    if (isPrivate) ...[
+                      const SizedBox(height: AppSpacing.xxs),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lock_outline_rounded,
+                            size: AppSizes.iconSm,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            AppLocalizations.of(context).ownMantraPrivate,
+                            style: context.texts.bodySmall?.copyWith(
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       text,

@@ -28,6 +28,7 @@ import * as language from '../../utils/language.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, paginated } from '../../utils/respond.js';
 import { vocabulary } from '../../services/search-vocabulary.js';
+import { visibleTo } from '../../utils/mantra-visibility.js';
 import {
   alternation,
   escapeRegex,
@@ -187,15 +188,17 @@ async function presentVerses(ids, terms, user, chain) {
 const everyWord = (terms, clausesFor) =>
   terms.map((t) => ({ OR: t.variants.flatMap((variant) => clausesFor(variant)) }));
 
-function mantraWhere(terms, readingChain) {
+function mantraWhere(terms, readingChain, user) {
   return {
-    isPublished: true,
-    AND: everyWord(terms, (v) => [
-      ...language.mantraNameClauses(v, readingChain),
-      { sanskrit: { contains: v, mode: 'insensitive' } },
-      { transliteration: { contains: v, mode: 'insensitive' } },
-      { tags: { has: v.toLowerCase() } },
-    ]),
+    AND: [
+      visibleTo(user),
+      ...everyWord(terms, (v) => [
+        ...language.mantraNameClauses(v, readingChain),
+        { sanskrit: { contains: v, mode: 'insensitive' } },
+        { transliteration: { contains: v, mode: 'insensitive' } },
+        { tags: { has: v.toLowerCase() } },
+      ]),
+    ],
   };
 }
 
@@ -278,7 +281,7 @@ export const search = async (req, res) => {
   }
 
   if (type === 'mantra') {
-    const where = noMantrasOrBooks ? { id: '' } : mantraWhere(terms, readingChain);
+    const where = noMantrasOrBooks ? { id: '' } : mantraWhere(terms, readingChain, user);
     const [items, total] = await Promise.all([
       prisma.mantra.findMany({
         where,
@@ -308,7 +311,7 @@ export const search = async (req, res) => {
 
   // No type: a small preview of everything, with how many there are of each so the
   // app can label its tabs. Capped well under a page.
-  const mantraFilter = noMantrasOrBooks ? { id: '' } : mantraWhere(terms, readingChain);
+  const mantraFilter = noMantrasOrBooks ? { id: '' } : mantraWhere(terms, readingChain, user);
   const bookFilter = noMantrasOrBooks ? { id: '' } : bookWhere(terms);
 
   const [verseResult, mantras, mantraTotal, bookRows, bookTotal] = await Promise.all([

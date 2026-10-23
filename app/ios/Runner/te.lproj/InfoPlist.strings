@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol మీ జపాలను లెక్కించడానికి మీరు జపించేటప్పుడు వింటుంది, అలాగే Sakhaకు సందేశం చెప్పడానికి మీరు మైక్రోఫోన్‌ను నొక్కినప్పుడు కూడా.";
+"NSSpeechRecognitionUsageDescription" = "మీరు Sakhaకు సందేశం చెప్పినప్పుడు, HariHariBol మీ ఫోన్ యొక్క ప్రసంగ గుర్తింపుతో మీరు చెప్పినదాన్ని పాఠ్యంగా మారుస్తుంది.";
+"NSPhotoLibraryUsageDescription" = "Sakhaతో పంచుకోవడానికి ఒక చిత్రాన్ని ఎంచుకునేందుకు HariHariBol మీ ఫోటోలను తెరుస్తుంది.";
+"NSCameraUsageDescription" = "Sakhaతో పంచుకోవడానికి ఒక ఫోటో తీసేందుకు HariHariBol కెమెరాను తెరుస్తుంది.";

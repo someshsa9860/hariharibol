@@ -22,6 +22,7 @@ import '../../widgets/chat/chat_credits_card.dart';
 import '../../widgets/chat/chat_dictation.dart';
 import '../../widgets/chat/chat_message_list.dart';
 import '../../widgets/chat/chat_notices.dart';
+import '../../widgets/chat/chat_profile_sheet.dart';
 import '../../widgets/chat/chat_suggestions.dart';
 import '../../widgets/chat/chat_welcome.dart';
 import '../../widgets/chat/sakha_avatar.dart';
@@ -240,6 +241,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
           ],
         ),
         actions: [
+          // What Sakha has noted about the reader, and the way to switch it off
+          // or delete it. Always there: it is the reader's, chat or no chat.
+          IconButton(
+            tooltip: text.chatProfileTitle,
+            onPressed: () => showChatProfileSheet(context),
+            icon: const Icon(Icons.manage_accounts_outlined),
+          ),
           if (state.loaded && state.hasHistory)
             IconButton(
               tooltip: text.chatClearTooltip,

@@ -15,9 +15,9 @@ import env from '../../config/env.js';
 // arbitrary path from a request parameter is how a template engine turns into
 // a file read.
 const PAGES = {
-  privacy: { template: 'privacy', title: 'Privacy Policy' },
-  terms: { template: 'terms', title: 'Terms of Use' },
-  'account-deletion': { template: 'account-deletion', title: 'Deleting Your Account' },
+  privacy: { template: 'privacy', title: 'Privacy Policy', updatedAt: 'October 2026' },
+  terms: { template: 'terms', title: 'Terms of Use', updatedAt: 'September 2026' },
+  'account-deletion': { template: 'account-deletion', title: 'Deleting Your Account', updatedAt: 'September 2026' },
 };
 
 export const render = async (req, res) => {
@@ -28,7 +28,7 @@ export const render = async (req, res) => {
     title: page.title,
     appName: 'HariHariBol',
     webBaseUrl: env.WEB_BASE_URL,
-    updatedAt: 'September 2026',
+    updatedAt: page.updatedAt,
     year: new Date().getFullYear(),
   });
 };

@@ -16,6 +16,7 @@
 
 import * as authService from '../services/auth.js';
 import * as presence from '../services/presence.js';
+import * as geoIp from '../services/geo-ip.js';
 import logger from '../config/logger.js';
 import { prisma } from '../config/database.js';
 import { redis } from '../config/redis.js';
@@ -33,12 +34,24 @@ function readBearer(req) {
 
 // lastActiveAt drives retention reporting, but writing it on every request
 // would mean a database write per request. Once an hour per user is enough.
-async function touchLastActive(userId) {
+//
+// The same write refreshes where the request came from (User.country … city, from the IP). The lookup is in
+// memory, so it adds no round trip, and tying it to this beat means a new account is placed on its first
+// signed-in request and a traveller within the hour, without a write of its own. A lookup that finds nothing
+// (no database installed, a private address) leaves the last known place standing.
+async function touchLastActive(req, userId) {
   const key = `active:${userId}`;
   const fresh = await redis.set(key, '1', 'EX', 3600, 'NX').catch(() => null);
   if (fresh !== 'OK') return;
+
+  const now = new Date();
+  const place = await geoIp.locate(req.ip);
+
   prisma.user
-    .update({ where: { id: userId }, data: { lastActiveAt: new Date() } })
+    .update({
+      where: { id: userId },
+      data: { lastActiveAt: now, ...(place ? { ...place, locationUpdatedAt: now } : {}) },
+    })
     .catch((err) => logger.debug({ err: err.message }, 'lastActiveAt update failed'));
 }
 
@@ -59,7 +72,7 @@ export default async function auth(req, res, next) {
     if (!loaded) return next(unauthorized('Account no longer exists'));
 
     req.auth = { user: loaded.user, permissions: loaded.permissions, isAuthenticated: true };
-    touchLastActive(loaded.user.id);
+    touchLastActive(req, loaded.user.id);
     presence.touch(loaded.user.id, String(req.get('X-Platform') || '').toLowerCase());
     return next();
   } catch (err) {

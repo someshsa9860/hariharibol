@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { CalendarIcon } from '@/components/calendar-icon';
+import { CalendarTranslations } from '@/components/calendar-translation-section';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +11,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input, Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiRequestError } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { useResource, useResourceMutation } from '@/lib/use-resource';
 import { cn } from '@/lib/utils';
 
@@ -53,9 +57,10 @@ type Festival = {
 type Place = { key: string; name: string; lat: number; lon: number; timezone: string };
 type MonthData = { location: Place; locations: Place[]; days: Day[]; festivals: Festival[] };
 
-const KINDS = ['EKADASHI', 'CHATURTHI', 'PURNIMA', 'AMAVASYA', 'PRADOSH', 'SANKRANTI', 'FESTIVAL'];
+const KINDS = ['EKADASHI', 'PARANA', 'CHATURTHI', 'PURNIMA', 'AMAVASYA', 'PRADOSH', 'SANKRANTI', 'FESTIVAL'];
 const KIND_LABEL: Record<string, string> = {
   EKADASHI: 'Ekadashi',
+  PARANA: 'Parana',
   CHATURTHI: 'Chaturthi',
   PURNIMA: 'Purnima',
   AMAVASYA: 'Amavasya',
@@ -65,6 +70,7 @@ const KIND_LABEL: Record<string, string> = {
 };
 const KIND_TINT: Record<string, string> = {
   EKADASHI: 'text-emerald-600 dark:text-emerald-400',
+  PARANA: 'text-sky-600 dark:text-sky-400',
   CHATURTHI: 'text-orange-600 dark:text-orange-400',
   PURNIMA: 'text-amber-500',
   AMAVASYA: 'text-slate-500',
@@ -82,7 +88,52 @@ const time = (iso: string | null, zone: string) =>
 const dateTime = (iso: string | null, zone: string) =>
   iso ? new Date(iso).toLocaleString('en-IN', { ...IST, timeZone: zone, day: 'numeric', month: 'short' }) : '—';
 
+/**
+ * Two views of the one calendar: its days and festivals, and (for someone who may run translations) the words it shows readers
+ * in other languages. The tab is in the URL, so a refresh or a pasted link lands on the same view.
+ */
 export function CalendarPage() {
+  const { hasPermission } = useAuth();
+  const canTranslate = hasPermission('panchang.translate');
+  const [params, setParams] = useSearchParams();
+  const tab = canTranslate && params.get('tab') === 'translations' ? 'translations' : 'calendar';
+
+  const tabs = canTranslate ? (
+    <Tabs
+      value={tab}
+      onValueChange={(value) =>
+        setParams((prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === 'translations') next.set('tab', 'translations');
+          else {
+            next.delete('tab');
+            next.delete('run');
+          }
+          return next;
+        })
+      }
+      className="mb-4"
+    >
+      <TabsList>
+        <TabsTrigger value="calendar">Calendar</TabsTrigger>
+        <TabsTrigger value="translations">Translations</TabsTrigger>
+      </TabsList>
+    </Tabs>
+  ) : null;
+
+  if (tab === 'translations') {
+    return (
+      <div>
+        <PageHeader title="Hindu calendar" description="Festival names, descriptions and panchang terms in the reading languages, made by an AI provider and model you choose, or written by hand." />
+        {tabs}
+        <CalendarTranslations canTranslate={canTranslate} />
+      </div>
+    );
+  }
+  return <CalendarMonth tabs={tabs} />;
+}
+
+function CalendarMonth({ tabs }: { tabs: React.ReactNode }) {
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear() < 2026 ? 2026 : now.getFullYear(), m: now.getMonth() });
   const key = monthKey(cursor.y, cursor.m);
@@ -148,6 +199,7 @@ export function CalendarPage() {
           </>
         }
       />
+      {tabs}
       {notice && <p className="mb-3 text-sm text-muted-foreground">{notice}</p>}
 
       <div className="mb-3 flex items-center gap-2">

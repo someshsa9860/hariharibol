@@ -15,6 +15,8 @@ import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/eyebrow.dart';
 import '../../widgets/dashboard/mantra_category_label.dart';
+import '../../widgets/mantra/mantra_picture_header.dart';
+import '../../widgets/mantra/own_mantra_actions.dart';
 import '../../widgets/share/share_target.dart';
 import '../share/share_studio_view.dart';
 
@@ -33,7 +35,8 @@ class MantraDetailView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          if (mantra.value != null)
+          // A mantra only its readers hold has no public page to share.
+          if (mantra.value != null && !mantra.value!.isPrivate)
             IconButton(
               icon: const Icon(Icons.ios_share_rounded),
               tooltip: text.shareTitle,
@@ -77,6 +80,10 @@ class _MantraDetail extends StatelessWidget {
         bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
       ),
       children: [
+        if (mantra.isPrivate) ...[
+          MantraPictureHeader(mantra: mantra),
+          const SizedBox(height: AppSpacing.lg),
+        ],
         if (mantra.category != null)
           Eyebrow(
             mantraCategoryLabel(text, mantra.category!),
@@ -159,6 +166,10 @@ class _MantraDetail extends StatelessWidget {
             label: Text(text.mantraChantThis),
           ),
         ),
+        if (mantra.isPrivate) ...[
+          const SizedBox(height: AppSpacing.lg),
+          OwnMantraActions(mantra: mantra),
+        ],
       ],
     );
   }

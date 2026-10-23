@@ -29,6 +29,8 @@ import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
 import * as notify from '../../services/notify.js';
+import { firstNameOf } from '../../utils/chat-name.js';
+import { greetedTitle, notice } from '../../utils/messages.js';
 import logger from '../../config/logger.js';
 import { readPage } from '../../utils/pagination.js';
 import { ok, created, paginated } from '../../utils/respond.js';
@@ -520,11 +522,16 @@ export const saved = async (req, res) => {
  * that saved but whose notification did not is a much smaller problem than a
  * comment that appeared to fail because a push did.
  */
-export async function notifyCreator(creatorUserId, actor, { title, body, data }) {
+export async function notifyCreator(creatorUserId, actor, { titleId, body, data }) {
   // Engaging with your own reel is not news.
   if (!creatorUserId || creatorUserId === actor.id) return;
 
   try {
+    // The title is worded in the creator's language and opens "Hari Bol <their name>"; `actor` is
+    // the person who commented, named inside it.
+    const { name, chain } = await notify.recipient(creatorUserId);
+    const who = firstNameOf(actor.name) || notice('someone', chain);
+    const title = greetedTitle(name, chain, notice(titleId, chain, [who]));
     await notify.toUser(creatorUserId, { type: 'REEL', title, body, data });
   } catch (err) {
     logger.warn({ err: err.message, creatorUserId }, 'reel notification failed');

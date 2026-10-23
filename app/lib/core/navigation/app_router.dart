@@ -7,6 +7,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/mantra.dart';
 import '../../views/auth/sign_in_view.dart';
 import '../../views/calendar/calendar_view.dart';
+import '../../views/etiquette/etiquette_item_view.dart';
+import '../../views/etiquette/etiquette_view.dart';
 import '../../views/support/support_ticket_view.dart';
 import '../../views/support/developer_chat_view.dart';
 import '../../views/support/support_view.dart';
@@ -22,6 +24,7 @@ import '../../views/dashboard/sadhana_tab.dart';
 import '../../views/library/book_detail_view.dart';
 import '../../views/library/chapter_list_view.dart';
 import '../../views/library/chapter_read_view.dart';
+import '../../views/mantra/add_mantra_view.dart';
 import '../../views/mantra/mantra_detail_view.dart';
 import '../../views/onboarding/intro_view.dart';
 import '../../views/onboarding/language_view.dart';
@@ -213,6 +216,14 @@ GoRouter createRouter() {
         ),
       ),
       GoRoute(
+        path: AppRoutes.addMantra,
+        name: RouteNames.addMantra,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: const AddMantraView(),
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.mantraPattern,
         name: RouteNames.mantraDetail,
         builder: (context, state) => ContentWidth(
@@ -362,6 +373,24 @@ GoRouter createRouter() {
         builder: (context, state) => ContentWidth(
           maxWidth: ContentWidths.regular,
           child: const CalendarView(),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.etiquette,
+        name: RouteNames.etiquette,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const EtiquetteView(),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.etiquettePattern,
+        name: RouteNames.etiquetteItem,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: EtiquetteItemView(id: state.pathParameters['id']!),
         ),
       ),
 

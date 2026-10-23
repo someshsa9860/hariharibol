@@ -10,6 +10,7 @@ import logger from '../config/logger.js';
 import * as fcm from './fcm.js';
 import * as campaigns from './push-campaign.js';
 import * as websocket from './websocket.js';
+import { recipientOf } from '../utils/recipient.js';
 
 // How a push looks and how loud it is (see utils/push-rich.js `build`).
 const pushLook = (rich) => ({ importance: rich?.importance, hasActions: rich?.hasActions });
@@ -118,4 +119,10 @@ async function toTopic(topicKey, { title, body, image, data, rich, campaign }) {
   return { ...result, campaignId: group.id };
 }
 
-export { toUser, toUsers, toTopic };
+// The name and language a notification to this user is worded in (see utils/recipient.js).
+async function recipient(userId) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, appLanguage: true } });
+  return recipientOf(user);
+}
+
+export { toUser, toUsers, toTopic, recipient };

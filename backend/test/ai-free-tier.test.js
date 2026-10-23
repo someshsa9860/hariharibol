@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
-  DEFAULT_MODELS, FreeTierEnded, POOLS, SAFETY, USABLE_MODELS, capOf, dayOf, hasRoom, isSwappable, poolOf, poolUsed, swapPlan,
+  DEFAULT_MODELS, POOLS, SAFETY, USABLE_MODELS, capOf, dayOf, hasRoom, poolOf, poolUsed,
 } from '../utils/ai-free-tier.js';
 
 describe('which pool a model counts against', () => {
@@ -42,7 +42,6 @@ describe('which pool a model counts against', () => {
     assert.deepEqual(USABLE_MODELS, ['gpt-4o-mini', 'gpt-4.1-mini', 'gpt-4.1-nano']);
     assert.ok(USABLE_MODELS.every((model) => poolOf(model) === 'mini'));
     assert.ok(USABLE_MODELS.includes(DEFAULT_MODELS.text));
-    assert.ok(USABLE_MODELS.includes(DEFAULT_MODELS.translation));
   });
 });
 
@@ -91,71 +90,5 @@ describe('what a pool has used today', () => {
 
   it('reads the provider in any case', () => {
     assert.equal(poolUsed([{ provider: 'OPENAI', model: 'gpt-4o-mini', inputTokens: 5, outputTokens: 5 }], 'mini'), 10);
-  });
-});
-
-describe('which translation parts move to the free model', () => {
-  const PAID = 'gpt-6-luna';
-  const FREE = 'gpt-4.1-mini';
-  const entry = (extra = {}) => ({ provider: 'openai', model: PAID, effort: 'off', ...extra });
-
-  it('moves the paid default at thinking off, and only that', () => {
-    assert.equal(isSwappable(entry(), PAID), true);
-    assert.equal(isSwappable(entry({ effort: 'low' }), PAID), false, 'a part that asked to think stays');
-    assert.equal(isSwappable(entry({ model: 'gpt-5-nano' }), PAID), false, 'a model chosen on purpose stays');
-    assert.equal(isSwappable(entry({ provider: 'anthropic' }), PAID), false);
-    assert.equal(isSwappable(entry({ provider: 'gemini', model: PAID }), PAID), false);
-  });
-
-  it('leaves a model that is already free as it is', () => {
-    assert.equal(isSwappable(entry({ model: 'gpt-4.1-mini' }), 'gpt-4.1-mini'), false);
-  });
-
-  it('follows the server’s paid model, not the name gpt-6-luna', () => {
-    assert.equal(isSwappable(entry({ model: 'gpt-6-sol' }), 'gpt-6-sol'), true);
-    assert.equal(isSwappable(entry({ model: PAID }), 'gpt-6-sol'), false);
-  });
-
-  it('swaps part by part and says which moved', () => {
-    const plan = {
-      translation: entry(),
-      transliteration: entry(),
-      wordMeanings: entry({ effort: 'medium' }),
-      purport: { provider: 'anthropic', model: 'claude-sonnet-5-5', effort: 'off' },
-    };
-    const { plan: next, swapped } = swapPlan(plan, FREE, PAID);
-    assert.deepEqual(swapped, ['translation', 'transliteration']);
-    assert.deepEqual(next.translation, entry({ model: FREE }));
-    assert.deepEqual(next.transliteration, entry({ model: FREE }));
-    assert.deepEqual(next.wordMeanings, plan.wordMeanings);
-    assert.deepEqual(next.purport, plan.purport);
-    assert.deepEqual(Object.keys(next), Object.keys(plan), 'the parts keep their order');
-  });
-
-  it('does not change the plan it was given', () => {
-    const plan = { translation: entry(), purport: entry() };
-    const before = JSON.stringify(plan);
-    swapPlan(plan, FREE, PAID);
-    assert.equal(JSON.stringify(plan), before);
-  });
-
-  it('reports nothing swapped for a plan with nothing to move', () => {
-    const plan = { translation: entry({ effort: 'high' }) };
-    const { plan: next, swapped } = swapPlan(plan, FREE, PAID);
-    assert.deepEqual(swapped, []);
-    assert.deepEqual(next, plan);
-  });
-});
-
-describe('the free tier ending part-way through a run', () => {
-  it('says why in plain words, and carries the reason', () => {
-    const spent = new FreeTierEnded('spent');
-    const off = new FreeTierEnded('off');
-    assert.ok(spent instanceof Error);
-    assert.equal(spent.name, 'FreeTierEnded');
-    assert.equal(spent.reason, 'spent');
-    assert.match(spent.message, /spent/);
-    assert.equal(off.reason, 'off');
-    assert.match(off.message, /switched off/);
   });
 });

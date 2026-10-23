@@ -24,6 +24,7 @@ import { bhagavatamChapterTitles } from './section-titles/bhagavatam/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
 import { routineKinds } from './routine-nudges.js';
+import { seedEtiquette } from './etiquette/index.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
 
@@ -432,6 +433,11 @@ async function seedRoutineNudges() {
   log(`${routineKinds.length} routine kinds, ${nudges} verses`);
 }
 
+async function seedEtiquetteItems() {
+  const { created, updated, kept, unchanged } = await seedEtiquette(prisma);
+  log(`devotee etiquette: ${created} added, ${updated} brought up to date, ${unchanged} unchanged, ${kept} edited by an admin and left alone`);
+}
+
 async function main() {
   console.log('Seeding HariHariBol...\n'); // eslint-disable-line no-console
 
@@ -447,6 +453,7 @@ async function main() {
   await seedPlansAndTopics();
   await seedSettings();
   await seedRoutineNudges();
+  await seedEtiquetteItems();
 
   const admins = await prisma.user.count({ where: { role: { slug: { not: 'user' } } } });
 

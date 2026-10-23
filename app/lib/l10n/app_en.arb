@@ -336,6 +336,25 @@
   "sadhanaAutoCountCounted": "Counted — listening for the next one",
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
   "sadhanaAutoCountUnavailable": "Auto count isn't available right now",
+  "sadhanaAutoCountTimed": "Counting by time — no microphone",
+  "chantAutoMicTitle": "Use the microphone",
+  "chantAutoMicOn": "Listens to your chanting",
+  "chantAutoMicOff": "Counts by time instead — saves battery",
+  "chantPaceTitle": "Time for one chant",
+  "chantPaceSummary": "{seconds}s each · about {round} a round",
+  "@chantPaceSummary": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      },
+      "round": {
+        "type": "String"
+      }
+    }
+  },
+  "chantPaceShorter": "Shorter chant time",
+  "chantPaceLonger": "Longer chant time",
+  "chantPrayerFallbackName": "Offering to Krishna",
   "chantModelTitle": "Sharper listening",
   "chantModelOffer": "Understands Sanskrit far better. One download of {megabytes} MB — use Wi-Fi.",
   "@chantModelOffer": {
@@ -723,6 +742,9 @@
   "routineDailyAdd": "Add to daily routine",
   "routineDailySaveAction": "Add to every day",
   "routineDailyBadge": "Daily",
+  "routineAlertChannelName": "Task reminders",
+  "routineAlertBody": "It's time for this task.",
+  "routineAlertDone": "Mark as done",
   "routineDailyRemove": "Remove from daily routine",
   "routineDailyRemoved": "Removed from your daily routine",
   "reelsEmpty": "No reels yet",
@@ -1785,5 +1807,127 @@
   "developerChatHint": "Write a message",
   "developerChatSend": "Send",
   "developerChatSending": "Sending…",
-  "developerChatNotSent": "Not sent. Tap to try again."
+  "developerChatNotSent": "Not sent. Tap to try again.",
+  "chatGreeting": "Hari Bol, how is your heart today?",
+  "@chatGreeting": {
+    "description": "The first line of an empty Ask Sakha chat when the reader's name is not known: a new chat, or one that was cleared. Shown in the reader's reading language and never sent to Sakha. It opens with Hari Bol."
+  },
+  "chatGreetingNamed": "Hari Bol {name}, how is your heart today?",
+  "@chatGreetingNamed": {
+    "description": "The same greeting with the reader's first name, which follows Hari Bol directly. Shown in the reader's reading language and never sent to Sakha.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatProfileTitle": "What Sakha has noticed",
+  "@chatProfileTitle": {
+    "description": "Title of the page where the reader sees, switches off and deletes what Sakha has noticed about them from their chats."
+  },
+  "chatProfileIntro": "Sakha picks up a few things about you from your chats, so its replies fit you better. This is yours to control: switch it off or delete it whenever you like.",
+  "chatProfileLearning": "Keep learning about me",
+  "chatProfileLearningHint": "When this is off, Sakha notices nothing new and does not use what is saved here.",
+  "chatProfileEmpty": "Nothing noted yet. As you chat, Sakha will note things like how you like to be answered.",
+  "chatProfileGender": "Gender",
+  "chatProfileAge": "Age",
+  "chatProfileBehaviour": "How you come across",
+  "@chatProfileBehaviour": {
+    "description": "Label for a short description of the reader's temperament, such as calm or reflective, as Sakha noticed it."
+  },
+  "chatProfileLifeStage": "Life stage",
+  "chatProfileSpiritualStage": "On the path",
+  "@chatProfileSpiritualStage": {
+    "description": "Label for how far along the spiritual path the reader seems to be, such as new to the path or a regular practitioner."
+  },
+  "chatProfileCommunication": "How you like to be answered",
+  "@chatProfileCommunication": {
+    "description": "Label for how the reader likes to be answered: the language, the length and the formality."
+  },
+  "chatProfileNotes": "Also remembered",
+  "chatProfileKeywords": "What your chats were about",
+  "@chatProfileKeywords": {
+    "description": "Heading above the words that say what the reader's chats were about. Sakha never reads these when it writes a reply."
+  },
+  "chatProfileKeywordsNote": "Only you see these words. Sakha never reads them when it writes a reply.",
+  "chatProfileIssuesNote": "If you say what you are struggling with today, Sakha is told for that day only. It is not kept here.",
+  "chatProfileDelete": "Delete what Sakha has noted",
+  "chatProfileDeleteBody": "This removes everything saved on this page. Your chat is not cleared.",
+  "etiquetteTitle": "Devotee etiquette",
+  "etiquetteTodayEyebrow": "Etiquette for today",
+  "etiquetteHomeSubtitle": "One gentle practice for devotees, every day",
+  "etiquetteEmpty": "No etiquette to show yet. Please check again soon.",
+  "etiquetteAll": "All",
+  "etiquetteSourceLabel": "Source",
+  "etiquetteAuthorLabel": "Author",
+  "etiquetteReferenceLabel": "Reference",
+  "etiquetteCategoryTemple": "In the temple",
+  "etiquetteCategoryDeity": "Serving the Deity",
+  "etiquetteCategoryPrasad": "Prasāda and food",
+  "etiquetteCategoryHolyName": "The holy name",
+  "etiquetteCategoryGuruVaishnava": "Guru and devotees",
+  "etiquetteCategorySpeechMind": "Speech and mind",
+  "etiquetteCategoryDailyLife": "Daily life",
+  "etiquetteCategoryScripture": "Scripture",
+  "etiquetteCategoryHolyPlaces": "Holy places and days",
+  "ownMantraAddTitle": "Add your own mantra",
+  "ownMantraAddBody": "Chant a mantra that is not in our list? Tell us which one and we will find it.",
+  "ownMantraInputHint": "Type or say a mantra, or the name of a deity",
+  "ownMantraWellKnownNote": "We add mantras of well-known deities and saints only.",
+  "ownMantraMic": "Say it instead",
+  "ownMantraMicDenied": "Allow the microphone and speech recognition in your phone's Settings to say a mantra.",
+  "ownMantraFind": "Find mantras",
+  "ownMantraNoneFound": "We could not find a mantra of a well-known deity or saint for that. Try another name.",
+  "ownMantraChosenCount": "{chosen} of {max} chosen",
+  "@ownMantraChosenCount": {
+    "placeholders": {
+      "chosen": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "ownMantraAddChosen": "Add chosen mantras",
+  "ownMantraForDeity": "Mantra for {name}",
+  "@ownMantraForDeity": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ownMantraForSaint": "Mantra of {name}",
+  "@ownMantraForSaint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ownMantraStatusShared": "Added by other readers",
+  "ownMantraStatusYours": "Already on your list",
+  "ownMantraStatusCatalog": "Already in our list",
+  "ownMantraResultCreated": "Added to your list",
+  "ownMantraResultShared": "Added — other readers have it too",
+  "ownMantraResultFailed": "Could not be added. Please try again.",
+  "ownMantraOpen": "Open",
+  "ownMantraChangePicture": "Change picture",
+  "ownMantraPictureNote": "Choose a clear, respectful picture. Readers who share this mantra will see it.",
+  "ownMantraPictureSaved": "Picture changed",
+  "ownMantraPictureTooLarge": "That picture is too large. Please choose a smaller one.",
+  "ownMantraPictureNotUsable": "That picture could not be used. Please choose a JPEG, PNG or WebP photo.",
+  "ownMantraPictureForbidden": "Only the reader who added this mantra can change its picture.",
+  "ownMantraRemove": "Remove from my list",
+  "ownMantraRemoveTitle": "Remove this mantra?",
+  "ownMantraRemoveBody": "It will be taken off your list.",
+  "ownMantraRemoveConfirm": "Remove",
+  "ownMantraRemoved": "Removed from your list",
+  "ownMantraPrivate": "Private",
+  "ownMantraErrorNotUsable": "We could not understand that. Please type or say the name of a mantra or a deity.",
+  "ownMantraErrorLimitReached": "You have reached the limit for now. Please try again later.",
+  "ownMantraErrorUnavailable": "Adding mantras is not available right now. Please try again later.",
+  "ownMantraErrorLimit": "Your list of own mantras is full. Remove one to add another.",
+  "ownMantraErrorExpired": "These suggestions have expired. Please search again."
 }

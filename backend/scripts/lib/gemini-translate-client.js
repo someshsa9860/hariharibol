@@ -21,6 +21,9 @@ const PRICING = {
   'gemini-2.5-pro': { input: 1.25, output: 10, cacheRead: 0.31 },
 };
 
+/** The models priced above, for the admin panel's model lists. Others still run when typed in. */
+export const KNOWN_MODELS = Object.entries(PRICING).map(([id, p]) => ({ id, inputPerMillion: p.input, outputPerMillion: p.output }));
+
 export function costUsd(model, usage) {
   const p = PRICING[model];
   if (!p) return null;

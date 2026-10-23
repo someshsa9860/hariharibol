@@ -188,6 +188,7 @@ async function deliver() {
         verseId: true,
         user: {
           select: {
+            name: true,
             timezone: true,
             readingLanguage: true,
             appLanguage: true,

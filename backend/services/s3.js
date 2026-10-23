@@ -105,6 +105,7 @@ const PREFIXES = {
   chatImage: 'chat/images',
   pushImage: 'push/images',
   supportImage: 'support/images',
+  mantraImage: 'mantras/images',
 };
 
 // DD-MM-YY, UTC — the same clock the scheduled jobs run on.

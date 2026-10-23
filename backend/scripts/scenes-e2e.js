@@ -304,7 +304,7 @@ async function main() {
 
       api = spawn(process.execPath, ['server.js'], {
         cwd: join(import.meta.dirname, '..'),
-        env: { ...process.env, PORT: String(PORT), SOURCE_LOCAL_DIR: dir, GEMINI_API_KEY: 'e2e-not-a-real-key', SCENES_GEMINI_MODEL: MODEL, SCENES_RPM: '7', SCENES_TPM: '123456', AWS_ACCESS_KEY_ID: '', AWS_SECRET_ACCESS_KEY: '' },
+        env: { ...process.env, PORT: String(PORT), SOURCE_LOCAL_DIR: dir, GEMINI_API_KEY: 'e2e-not-a-real-key', OPENAI_API_KEY: 'e2e-not-a-real-key', ANTHROPIC_API_KEY: '', SCENES_GEMINI_MODEL: MODEL, SCENES_RPM: '7', SCENES_TPM: '123456', AWS_ACCESS_KEY_ID: '', AWS_SECRET_ACCESS_KEY: '' },
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       api.stdout.on('data', (c) => apiLog.push(String(c)));
@@ -362,6 +362,28 @@ async function main() {
       check('Cancel on a waiting run ends it at once', cancelled.status === 200 && cancelled.data.status === 'CANCELLED');
       const list = await call('GET', '/api/admin/scenes/runs?status=CANCELLED', { token: reader });
       check('the list shows it', list.status === 200 && list.data.some((r) => r.id === started.data.id));
+
+      section('Choosing the provider and model for a run');
+      const runs = '/api/admin/scenes/runs';
+      const before = await prisma.sceneRun.count();
+      const picked = await call('POST', runs, { token: runner, body: { chapters: [103], provider: 'openai', model: 'gpt-4.1-mini' } });
+      if (picked.data?.id) made.runs.push(picked.data.id);
+      check('a run can name another provider and one of its models', picked.status === 201 && picked.data.provider === 'openai' && picked.data.model === 'gpt-4.1-mini' && picked.data.status === 'QUEUED', JSON.stringify(picked.data));
+      check('and the audit log records which', (await prisma.auditLog.count({ where: { action: 'scenes.start', entityId: picked.data?.id } })) === 1);
+      check('the feed says which provider and model it was queued for', (await call('GET', `${runs}/${picked.data.id}`, { token: reader })).data?.feed?.some((l) => /with openai gpt-4\.1-mini/.test(l.text)));
+      const noKey = await call('POST', runs, { token: runner, body: { chapters: [103], provider: 'anthropic' } });
+      check('a provider the server has no key for is refused, naming the setting', noKey.status === 422 && noKey.error?.message.includes('ANTHROPIC_API_KEY'), JSON.stringify(noKey.error));
+      const unusable = await call('POST', runs, { token: runner, body: { chapters: [103], provider: 'gemini', model: 'gemini-2.5-pro' } });
+      check('a model that cannot be switched off thinking is refused before anything is queued', unusable.status === 422 && /thinks/.test(unusable.error?.message ?? ''), JSON.stringify(unusable.error));
+      check('a provider that does not exist is a 400', (await call('POST', runs, { token: runner, body: { chapters: [103], provider: 'nope' } })).status === 400);
+      check('the refused starts left no run behind', (await prisma.sceneRun.count()) === before + 1);
+      const est = await call('GET', '/api/admin/scenes/estimate?chapters=103&provider=openai&model=gpt-4.1-mini', { token: reader });
+      const estGemini = await call('GET', '/api/admin/scenes/estimate?chapters=103', { token: reader });
+      check('the estimate follows the choice: its provider and model, with no request or token limit of our own', est.status === 200 && est.data.provider === 'openai' && est.data.model === 'gpt-4.1-mini' && est.data.unusable === null && est.data.limits.rpm === null && est.data.limits.tpm === null, JSON.stringify(est.data));
+      check('while Gemini’s free-tier limits still apply to a Gemini run', estGemini.data?.provider === 'gemini' && estGemini.data.limits.rpm === 7 && estGemini.data.limits.tpm === 123456, JSON.stringify(estGemini.data?.limits));
+      const estBad = await call('GET', '/api/admin/scenes/estimate?chapters=103&provider=gemini&model=gemini-2.5-pro', { token: reader });
+      check('the estimate says when a model cannot be used', typeof estBad.data?.unusable === 'string');
+      await call('POST', `${runs}/${picked.data.id}/cancel`, { token: runner });
     }
   } finally {
     scenes.heartbeatMs = saved.heartbeatMs;

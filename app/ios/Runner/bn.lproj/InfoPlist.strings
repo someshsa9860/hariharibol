@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "HariHariBol আপনার জপ গণনা করতে জপের সময় শোনে, এবং যখন আপনি Sakha-কে বার্তা বলতে মাইক্রোফোনে চাপ দেন।";
+"NSSpeechRecognitionUsageDescription" = "আপনি যখন Sakha-কে বার্তা বলেন, HariHariBol আপনার ফোনের কণ্ঠস্বর শনাক্তকরণ দিয়ে আপনার কথাকে লেখায় রূপ দেয়।";
+"NSPhotoLibraryUsageDescription" = "HariHariBol আপনার ছবিগুলি খোলে, যাতে আপনি Sakha-র সাথে ভাগ করার জন্য একটি ছবি বেছে নিতে পারেন।";
+"NSCameraUsageDescription" = "HariHariBol ক্যামেরা খোলে, যাতে আপনি Sakha-র সাথে ভাগ করার জন্য একটি ছবি তুলতে পারেন।";

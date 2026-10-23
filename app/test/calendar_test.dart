@@ -38,6 +38,12 @@ void main() {
     expect(FestivalKind.fromApi('SOMETHING_NEW'), FestivalKind.festival);
   });
 
+  test('a parana is its own kind, drawn on the tile like an Ekadashi', () {
+    expect(FestivalKind.fromApi('PARANA'), FestivalKind.parana);
+    expect(FestivalKind.parana.glyph, 'parana');
+    expect(FestivalKind.parana.isQuiet, isFalse);
+  });
+
   test('the festival push opens the calendar', () {
     expect(pushRoute({'deeplink': 'hariharibol://calendar'}), AppRoutes.calendar);
   });

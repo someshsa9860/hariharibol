@@ -10,6 +10,7 @@ import * as s3 from '../../services/s3.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound } from '../../utils/errors.js';
+import { greetedTitle, notice } from '../../utils/messages.js';
 
 export const SORT_COLUMNS = { lastMessageAt: 'lastMessageAt', createdAt: 'createdAt', status: 'status', rating: 'rating' };
 
@@ -126,15 +127,19 @@ export const reply = async (req, res) => {
   await audit.record(req, { action: 'support.reply', entityType: 'SupportTicket', entityId: ticket.id });
 
   // The reply is saved either way; a push that fails must not turn it into an error.
+  // The title greets the reader in their language; the body is the staff member's own words.
   await notify
-    .toUser(ticket.userId, {
-      type: 'SUPPORT',
-      title: 'Reply from HariHariBol support',
-      body: body.length > 140 ? `${body.slice(0, 137)}…` : body,
-      data: { deeplink: `hariharibol://ticket?id=${ticket.id}`, ticketId: ticket.id },
-      campaign: 'support:reply',
-      source: 'support',
-    })
+    .recipient(ticket.userId)
+    .then(({ name, chain }) =>
+      notify.toUser(ticket.userId, {
+        type: 'SUPPORT',
+        title: greetedTitle(name, chain, notice('supportReplyTitle', chain)),
+        body: body.length > 140 ? `${body.slice(0, 137)}…` : body,
+        data: { deeplink: `hariharibol://ticket?id=${ticket.id}`, ticketId: ticket.id },
+        campaign: 'support:reply',
+        source: 'support',
+      })
+    )
     .catch(() => null);
 
   return created(res, message);

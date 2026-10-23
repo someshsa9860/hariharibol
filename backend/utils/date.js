@@ -90,8 +90,38 @@ function dateRange(fromDateString, toDateString) {
   return out;
 }
 
+// A date the way the reader's language writes it ("22 अक्टूबर 2026"), in India's calendar day. `chain`
+// is a language chain (utils/language.js); India's English when the runtime has no data for it.
+function longDate(date, chain = []) {
+  const options = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' };
+  for (const locale of [chain[0], 'en-IN']) {
+    try {
+      return new Date(date).toLocaleDateString(locale, options);
+    } catch {
+      // a language code the runtime does not know: try the next one
+    }
+  }
+  return '';
+}
+
+// A time of day the way the reader's language writes it ("6:26 am", "६:२६ AM"), in the given zone.
+// Same fallback as `longDate`.
+function clockTime(date, chain = [], timezone = 'Asia/Kolkata') {
+  const options = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: timezone };
+  for (const locale of [chain[0], 'en-IN']) {
+    try {
+      return new Date(date).toLocaleTimeString(locale, options);
+    } catch {
+      // a language code the runtime does not know: try the next one
+    }
+  }
+  return '';
+}
+
 export {
   DAY_MS,
+  clockTime,
+  longDate,
   localDateString,
   localHour,
   localMinutes,

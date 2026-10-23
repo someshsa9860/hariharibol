@@ -124,6 +124,18 @@ describe('staying under the limits', () => {
     await limiter.acquire(5000);
     assert.equal(limiter.usage().requests, 1);
   });
+  it('never waits when there is no limit of our own (a provider other than Gemini’s free tier)', async () => {
+    const c = clock();
+    const limiter = createLimiter({ rpm: Infinity, tpm: Infinity, now: c.now, sleep: c.sleep });
+    const waits = [];
+    const before = c.at();
+    for (let i = 0; i < 50; i += 1) await limiter.acquire(500_000, { onWait: (ms) => waits.push(ms) });
+    assert.equal(waits.length, 0);
+    assert.equal(c.at(), before);
+    assert.equal(limiter.usage().requests, 50);
+    // Infinity is what JSON turns into null, which the admin page reads as "no limit".
+    assert.equal(JSON.parse(JSON.stringify(limiter.usage())).rpm, null);
+  });
   it('estimates Devanagari at about two characters a token', () => {
     assert.equal(estimateTokens('abcd', 'ef'), 3);
   });

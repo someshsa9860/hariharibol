@@ -9,9 +9,11 @@
 import { prisma } from '../../config/database.js';
 import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
-import { ok, paginated } from '../../utils/respond.js';
+import { ok, created, noContent, paginated } from '../../utils/respond.js';
 import { paginate } from '../../utils/pagination.js';
 import { notFound } from '../../utils/errors.js';
+import { visibleTo } from '../../utils/mantra-visibility.js';
+import * as userMantra from '../../services/user-mantra.js';
 
 /** GET /api/app/mantras */
 export const list = async (req, res) => {
@@ -19,8 +21,9 @@ export const list = async (req, res) => {
   const user = req.auth.user;
   const readingChain = language.readingChain(user);
 
+  // The catalogue, plus the private mantras this reader added (put first by their display order).
   const where = {
-    isPublished: true,
+    AND: [visibleTo(user)],
     ...(category ? { category } : {}),
     ...(deity ? { deity: { slug: deity } } : {}),
     ...(guru ? { guru: { slug: guru } } : {}),
@@ -43,7 +46,8 @@ export const get = async (req, res) => {
   const user = req.auth.user;
 
   const mantra = await prisma.mantra.findFirst({
-    where: { slug: req.valid.params.slug, isPublished: true },
+    // Another reader's private mantra is no more found than one that does not exist.
+    where: { slug: req.valid.params.slug, AND: [visibleTo(user)] },
     include: present.includes.mantra(language.mantraTextChain(user), language.readingChain(user)),
   });
   if (!mantra) throw notFound('Mantra');
@@ -83,7 +87,7 @@ export const get = async (req, res) => {
 export const categories = async (req, res) => {
   const grouped = await prisma.mantra.groupBy({
     by: ['category'],
-    where: { isPublished: true },
+    where: visibleTo(req.auth.user),
     _count: { _all: true },
     orderBy: { category: 'asc' },
   });
@@ -92,4 +96,49 @@ export const categories = async (req, res) => {
     res,
     grouped.map((row) => ({ category: row.category, count: row._count._all }))
   );
+};
+
+// ── Mantras the reader adds themselves (services/user-mantra.js) ───────────
+
+/** The mantras with these ids, presented for `user`, by id. */
+async function presentedById(ids, user) {
+  const rows = ids.length
+    ? await prisma.mantra.findMany({
+        where: { id: { in: ids } },
+        include: present.includes.mantra(language.mantraTextChain(user), language.readingChain(user)),
+      })
+    : [];
+  const shaped = await present.mantras(rows, user);
+  return new Map(shaped.map((mantra) => [mantra.id, mantra]));
+}
+
+/** POST /api/app/mantras/own/suggest — what the reader typed or said → mantras to choose from. */
+export const suggestOwn = async (req, res) => {
+  return ok(res, await userMantra.suggest(req.auth.user, req.valid.body.text));
+};
+
+/** POST /api/app/mantras/own — the chosen suggestions → saved (or shared), each with the mantra as the app shows it. */
+export const createOwn = async (req, res) => {
+  const user = req.auth.user;
+  const { items } = await userMantra.create(user, req.valid.body);
+
+  const byId = await presentedById(items.map((item) => item.mantraId).filter(Boolean), user);
+  return created(res, {
+    items: items.map(({ index, status, mantraId }) => ({ index, status, mantra: byId.get(mantraId) ?? null })),
+  });
+};
+
+/** PUT /api/app/mantras/own/:slug/image — the body is the picture. */
+export const changeOwnImage = async (req, res) => {
+  const user = req.auth.user;
+  const mantraId = await userMantra.changeImage(user, req.valid.params.slug, req.body);
+
+  const byId = await presentedById([mantraId], user);
+  return ok(res, byId.get(mantraId));
+};
+
+/** DELETE /api/app/mantras/own/:slug — take a private mantra off the reader's list. */
+export const leaveOwn = async (req, res) => {
+  await userMantra.leave(req.auth.user, req.valid.params.slug);
+  return noContent(res);
 };

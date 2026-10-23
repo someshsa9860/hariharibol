@@ -81,3 +81,77 @@ test('one day, read whole', () => {
   assert.equal(d.sunrise.toISOString().slice(0, 13), '2026-01-14T01'); // about 07:15 IST
   assert.equal(addDays('2026-12-31', 1), '2027-01-01');
 });
+
+// ── Parana: when the Ekadashi fast may be broken ────────────────────────────
+
+// Parana windows from the individual Ekadashi pages of Drik Panchang for New Delhi
+// (checked 2026-10-23), IST. Its times are to the minute and its sunrise is up to a
+// minute later than the library's, so a minute or two either way is the same answer.
+const PUBLISHED_PARANA = {
+  '2026-10-23': ['06:27', '08:42'], // Papankusha
+  '2026-06-26': ['05:25', '08:13'], // Nirjala
+  '2026-07-26': ['05:39', '08:22'], // Devshayani
+  '2026-07-11': ['13:50', '16:36'], // Yogini, first date: Hari Vasara outlasts the morning
+  '2026-07-12': ['05:32', '08:18'], // Yogini, second date: Dwadashi over before sunrise
+  '2026-08-24': ['13:41', '16:16'], // Shravana Putrada, first date
+  '2026-11-21': ['13:11', '15:18'], // Prabodhini, first date
+  '2026-11-22': ['06:49', '08:56'], // Prabodhini, second date
+};
+const paranas = year.festivals.filter((f) => f.kind === 'PARANA');
+const minutesIst = (iso) => {
+  const [h, m] = new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).split(':').map(Number);
+  return h * 60 + m;
+};
+const minutesOf = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
+
+test('parana windows match the published New Delhi times', () => {
+  for (const [date, [from, to]] of Object.entries(PUBLISHED_PARANA)) {
+    const row = paranas.find((p) => p.date === date);
+    assert.ok(row, `no parana on ${date}`);
+    assert.ok(Math.abs(minutesIst(row.details.startsAt) - minutesOf(from)) <= 2, `${row.name} ${date} starts ${minutesIst(row.details.startsAt)}`);
+    assert.ok(Math.abs(minutesIst(row.details.endsAt) - minutesOf(to)) <= 2, `${row.name} ${date} ends ${minutesIst(row.details.endsAt)}`);
+  }
+});
+
+test('every Ekadashi has a parana the morning after its fast, pushed that day only', () => {
+  for (const eka of year.festivals.filter((f) => f.kind === 'EKADASHI')) {
+    const name = eka.name.replace(' Ekadashi', '');
+    const fasts = [...new Set([eka.date, eka.details.vaishnavaDate])];
+    for (const fast of fasts) {
+      const parana = paranas.find((p) => p.details.ekadashi === eka.name && p.details.fastDate === fast);
+      if (!parana) {
+        // only a fast kept at the very end of the previous year has its parana in the year before
+        assert.ok(fast < '2026-01-01' || fast >= '2026-12-31', `${name} has no parana after ${fast}`);
+        continue;
+      }
+      assert.equal(parana.date, addDays(fast, 1), name);
+      assert.equal(parana.details.twoDates, fasts.length > 1, name);
+      assert.equal(parana.notify, true);
+      assert.deepEqual(parana.notifyDaysBefore, []);
+    }
+  }
+});
+
+test('a parana window is never inside Hari Vasara, never before sunrise, and ends within Dwadashi', () => {
+  for (const p of paranas) {
+    const d = p.details;
+    const day = year.days.find((x) => x.date === p.date);
+    const starts = new Date(d.startsAt).getTime();
+    const ends = new Date(d.endsAt).getTime();
+    assert.ok(starts < ends, `${p.name} ${p.date}: window is empty`);
+    assert.ok(starts >= day.sunrise.getTime(), `${p.name} ${p.date}: opens before sunrise`);
+    if (d.hariVasaraEndsAt) assert.ok(starts >= new Date(d.hariVasaraEndsAt).getTime(), `${p.name} ${p.date}: inside Hari Vasara`);
+    // Dwadashi over before sunrise: the rule is simply "after sunrise", so there is no end to keep within.
+    if (new Date(d.dwadashiEndsAt).getTime() > day.sunrise.getTime()) {
+      assert.ok(ends <= new Date(d.dwadashiEndsAt).getTime(), `${p.name} ${p.date}: past Dwadashi`);
+    }
+    assert.ok(ends <= day.sunset.getTime(), `${p.name} ${p.date}: after sunset`);
+  }
+});
+
+test('when the Smarta parana day is the Vaishnava fast day, the row says so', () => {
+  const padmini = paranas.filter((p) => p.details.ekadashi === 'Padmini Ekadashi');
+  assert.deepEqual(padmini.map((p) => [p.date, p.details.alsoFastToday]), [['2026-05-27', true], ['2026-05-28', false]]);
+  assert.match(padmini[0].description, /^If you kept the fast the day before/);
+  assert.match(paranas.find((p) => p.date === '2026-10-23').description, /^Break the fast between 6:2\d AM and 8:4\d AM \(New Delhi\)\.$/);
+});

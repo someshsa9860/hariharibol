@@ -28,20 +28,37 @@ Toolchain: Flutter **3.44.2** (`.flutter-version`), same as `app/`. `flutter pub
 
 ## Setup the owner has to do
 
-Nothing secret is in the repository (`google-services.json`, `GoogleService-Info.plist` are gitignored).
+Nothing secret is in the repository (`google-services.json`, `GoogleService-Info.plist`, `key.properties`, `*.jks` are gitignored).
 
-1. **Firebase**: add an Android app `com.sss.hariharibol.dev` and an iOS app `com.sss.hariharibol.dev` to the
-   existing Firebase project; put `google-services.json` in `android/app/` and `GoogleService-Info.plist` in
-   `ios/Runner/`. Upload the APNs key (already there for the reader app) — it covers both iOS apps. Register the
-   app with **App Check** (Play Integrity / App Attest) — the sign-in endpoint refuses clients it does not
-   know in production. Add the debug token for debug builds.
-2. **Google sign-in**: add the Android SHA-1 of the dev app's keystore, and an iOS client id. Build with
-   `--dart-define=GOOGLE_SERVER_CLIENT_ID=<the web client id>` (the same one the reader app uses) and, on iOS,
-   `GOOGLE_IOS_CLIENT_ID`.
-3. **Release signing**: Android signing config and the iOS team are not set (debug signing, no team). Do them the way
-   `app/` does ("Firebase and signing").
+1. **Firebase** — project **`ramkrishnahari-e6e48`**, the one the production API sends push and checks App Check with
+   (this app talks to production by default, so it has to be registered where production looks; the local backend's
+   `hari-hari-bol` is a different project). Sign the Firebase CLI in as the project's owner (`firebase login:add`;
+   `firebase login:list` must show them and `firebase projects:list` must list the project), then run
+   **`tool/setup_firebase.sh`**. It registers an Android and an iOS app for `com.sss.hariharibol.dev`, registers the
+   debug and release SHA-1/SHA-256 for Android, writes `android/app/google-services.json` and
+   `ios/Runner/GoogleService-Info.plist`, and adds the Google sign-in URL scheme to `ios/Runner/Info.plist`. Safe to
+   run again (`FIREBASE_PROJECT=<id>` for another project). What no CLI can do, in the consoles:
+   - **App Check → Apps**: register both apps (Play Integrity, App Attest) — the sign-in endpoint refuses clients it
+     does not know in production — and add the debug token a debug build prints.
+   - **Cloud Messaging → Apple app configuration**: the APNs key the reader app uses covers this app too.
+   - **Apple Developer → Identifiers → `com.sss.hariharibol.dev`**: Push Notifications and App Attest.
+2. **Google sign-in**: the API accepts an ID token only when its audience is in `GOOGLE_CLIENT_IDS`. Build with
+   `--dart-define=GOOGLE_SERVER_CLIENT_ID=<the web client id>` (the same one the reader app uses, in the setup script's
+   output) on **both** platforms and the audience is that web client, which production already lists. Without it,
+   iOS signs with its own client id (the plist's `CLIENT_ID`), which is new for this bundle id and must be added to the
+   server's list first (a missing id fails as `UNAUTHENTICATED`, and the API logs `google id token rejected` with the
+   audience it saw).
+3. **Release signing**: Android is done — `android/app/key.jks` and `android/key.properties` (alias `hariharibol-dev`,
+   valid to 2056), backed up in `../hariharibol-local-secrets/hariharibol-dev/`; without them a release build falls
+   back to the debug key. Nothing has been uploaded to Play, so this key is replaceable until it is. **The iOS team is
+   not set** (`DEVELOPMENT_TEAM` empty): choose one in Xcode locally, or set the same one as `app/` once confirmed.
 4. **Backend**: run `prisma migrate deploy` (grants `dev.access` to `super_admin`); to let another person in, add
    `dev.access` to their role in the admin panel → Roles. Restart API, worker and websocket.
+
+**Push channels (Android).** The API names a channel in every push — `default` for criticals, `updates` for the rest
+(`backend/utils/push-message.js`). `MainActivity` creates both at launch (Alerts: high, Updates: low); without them
+Android 8+ shows every push on a generic fallback channel and the loud/quiet split is lost. The small icon
+(`ic_stat_bell.xml`) is a single-colour bell tinted `notification_accent`, which must equal `AppColors.seed`.
 
 Run against a laptop:
 `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000 --dart-define=WS_URL=ws://10.0.2.2:4001/ws`.
