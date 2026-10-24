@@ -476,6 +476,20 @@ class AppLocalizationsTa extends AppLocalizations {
       'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு எண்ணத் தொடங்க வளையத்தைத் தட்டுங்கள்.';
 
   @override
+  String get chantPrayerHintAlong =>
+      'ஒலிப்பதிவு இந்தப் பிரார்த்தனையுடன் தொடங்குகிறது. ஒலிப்பதிவை இயக்கி, அதனுடன் சேர்ந்து இதைச் சொல்லுங்கள்.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு ஒலிப்பதிவை இயக்குங்கள் — ஒலிப்பதிவு மந்திரத்துடன் தொடங்குகிறது.';
+
+  @override
+  String get chantAutoCountResting => 'ஒலிப்பதிவு இயங்கும்போது ஓய்வில்';
+
+  @override
+  String get chantFinishRound => 'மாலாவை முடிக்கவும்';
+
+  @override
   String get sadhanaAutoCountListening => 'கேட்கிறது…';
 
   @override

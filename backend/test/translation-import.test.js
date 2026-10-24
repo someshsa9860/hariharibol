@@ -6,7 +6,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildEntry } from '../scripts/lib/claude-translate-run.js';
-import { changedColumns, cleanWordMeanings, emptyChapter, placeProblem, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
+import {
+  LIVE_IMPORT_STATUSES, changedColumns, cleanWordMeanings, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, summaryOf, totalsOf,
+} from '../utils/translation-import.js';
 
 // A verse as the pipeline saves it, so the importer is held to the real file format and not to a guess at it.
 const unit = { verseId: '1.2.47', globalVerseNumber: 70, bookNumber: 1, chapterNumber: 2, verseNumber: 47, verseNumberEnd: null, cantoNumber: null };
@@ -210,7 +212,7 @@ describe('reasonOf — why a chapter stopped, as a sentence', () => {
 
 describe('totalsOf', () => {
   it('adds the chapters up and counts what was found, missing and in conflict', () => {
-    const a = { ...emptyChapter(1), inStorage: 3, created: 2, updated: 1, replacedVisible: 1, missing: ['1.1.9'] };
+    const a = { ...emptyChapter(1), inStorage: 3, created: 2, updated: 1, replacedVisible: 1, issueLinksCreated: 2, issueVersesSkipped: 1, missing: ['1.1.9'] };
     const b = { ...emptyChapter(2), inStorage: 2, unchanged: 2, conflicts: [{ verseId: '1.2.1', reason: 'x' }], noTranslation: 1 };
     const c = { ...emptyChapter(3), found: false };
     const d = { ...emptyChapter(4), error: 'boom' };
@@ -221,11 +223,104 @@ describe('totalsOf', () => {
       updated: 1,
       unchanged: 2,
       replacedVisible: 1,
+      issueLinksCreated: 2,
+      issueVersesSkipped: 1,
       noTranslation: 1,
       missing: 1,
       conflicts: 1,
       failedChapters: 1,
       versions: { '1.0': 5 },
     });
+  });
+});
+
+describe('summaryOf — the one line a finished import is reported with', () => {
+  const totals = { chapters: 3, created: 6, updated: 2, unchanged: 4, missing: 0, conflicts: 0, failedChapters: 0 };
+
+  it('says how many chapters and what happened to their verses', () => {
+    assert.equal(summaryOf(totals), '3 chapter(s): 6 created, 2 updated, 4 unchanged.');
+  });
+
+  it('adds only the problems there were', () => {
+    assert.equal(summaryOf({ ...totals, missing: 1 }), '3 chapter(s): 6 created, 2 updated, 4 unchanged, 1 missing.');
+    assert.equal(
+      summaryOf({ ...totals, missing: 2, conflicts: 1, failedChapters: 1 }),
+      '3 chapter(s): 6 created, 2 updated, 4 unchanged, 2 missing, 1 conflicting, 1 chapter(s) failed.'
+    );
+  });
+
+  it('reports imported issue links and verses whose existing links were preserved', () => {
+    assert.equal(
+      summaryOf({ ...totals, issueLinksCreated: 4, issueVersesSkipped: 2 }),
+      '3 chapter(s): 6 created, 2 updated, 4 unchanged, 4 issue link(s) added, 2 verse(s) already linked.'
+    );
+  });
+
+  it('reads the totals totalsOf makes — a chapter that failed to write was still found, so it is counted', () => {
+    const chapters = [{ ...emptyChapter(1), created: 2 }, { ...emptyChapter(2), error: 'boom' }, { ...emptyChapter(3), found: false }];
+    assert.equal(summaryOf(totalsOf(chapters)), '2 chapter(s): 2 created, 0 updated, 0 unchanged, 1 chapter(s) failed.');
+  });
+});
+
+describe('LIVE_IMPORT_STATUSES', () => {
+  it('is the two states with work left — an import is never paused', () => {
+    assert.deepEqual(LIVE_IMPORT_STATUSES, ['QUEUED', 'RUNNING']);
+  });
+});
+
+describe('presentImportRun — an import run as the admin panel receives it', () => {
+  const now = new Date('2026-10-24T10:00:00.000Z');
+  const row = {
+    id: 'run1', language: 'mr', book: 'bhagavat-gita', publish: false, chapters: [1, 2, 3, 4],
+    status: 'RUNNING', statusMessage: null, cancelRequested: false,
+    totalChapters: 4, doneChapters: 1, currentChapter: 1, result: null,
+    requestedById: 'u1', requestedByName: 'Anna',
+    createdAt: new Date('2026-10-24T09:59:00.000Z'), startedAt: new Date('2026-10-24T09:59:05.000Z'), finishedAt: null,
+    heartbeatAt: new Date('2026-10-24T09:59:58.000Z'),
+  };
+
+  it('puts the counts under progress and works out the percentage', () => {
+    const run = presentImportRun(row, now);
+    assert.deepEqual(run.progress, { total: 4, done: 1, percent: 25, currentChapter: 1 });
+    assert.equal(run.id, 'run1');
+    assert.equal(run.language, 'mr');
+    assert.deepEqual(run.chapters, [1, 2, 3, 4]);
+    assert.equal(run.publish, false);
+  });
+
+  it('has no percentage before the worker has counted the chapters, and never goes over 100', () => {
+    assert.equal(presentImportRun({ ...row, totalChapters: 0, doneChapters: 0, currentChapter: null }, now).progress.percent, 0);
+    assert.equal(presentImportRun({ ...row, doneChapters: 9 }, now).progress.percent, 100);
+  });
+
+  it('names who asked, or nobody when that admin has since been deleted', () => {
+    assert.deepEqual(presentImportRun(row, now).requestedBy, { id: 'u1', name: 'Anna' });
+    assert.equal(presentImportRun({ ...row, requestedById: null, requestedByName: 'Anna' }, now).requestedBy, null);
+  });
+
+  it('gives back the result of a finished import, and null while there is none', () => {
+    assert.equal(presentImportRun(row, now).result, null);
+    assert.equal(presentImportRun({ ...row, result: undefined }, now).result, null);
+    const result = { language: 'mr', totals: { chapters: 4 }, chapters: [] };
+    assert.equal(presentImportRun({ ...row, status: 'COMPLETED', result }, now).result, result);
+  });
+
+  it('is stalled only while RUNNING and quiet for longer than the heartbeat allows', () => {
+    assert.equal(presentImportRun(row, now).stalled, false);
+    assert.equal(presentImportRun({ ...row, heartbeatAt: new Date('2026-10-24T09:58:20.000Z') }, now).stalled, true);
+    assert.equal(presentImportRun({ ...row, heartbeatAt: null }, now).stalled, true);
+  });
+
+  it('is never stalled when it is not running — a queued import has simply not been picked up, a finished one is over', () => {
+    const quiet = new Date('2026-10-24T08:00:00.000Z');
+    for (const status of ['QUEUED', 'COMPLETED', 'FAILED', 'CANCELLED']) {
+      assert.equal(presentImportRun({ ...row, status, heartbeatAt: quiet }, now).stalled, false, status);
+    }
+  });
+
+  it('passes the cancel request and the message through', () => {
+    const run = presentImportRun({ ...row, cancelRequested: true, statusMessage: 'Cancelling after the chapter in progress…' }, now);
+    assert.equal(run.cancelRequested, true);
+    assert.equal(run.statusMessage, 'Cancelling after the chapter in progress…');
   });
 });

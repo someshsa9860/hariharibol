@@ -11,8 +11,10 @@ const router = createRouter({
     'language, watch it live (websocket events `translation.run` and `translation.activity`), read ' +
     'what it saved, and import the result from storage into the database. A run is a database row ' +
     'worked by the worker; it survives a page refresh, a restart and a failure, and pauses rather ' +
-    'than fails when credit runs out. Text is stamped with a version (`TRANSLATION_VERSION`): a ' +
-    'language already translated under the current version is not translated again.',
+    'than fails when credit runs out. An import is the same kind of row (`/imports/runs`, websocket events ' +
+    '`translation-import.run` and `translation-import.activity`), also worked by the worker. Text is stamped ' +
+    'with a version (`TRANSLATION_VERSION`): a language already translated under the current version is not ' +
+    'translated again.',
 });
 
 const language = z.enum(LANGUAGE_CODES);
@@ -45,6 +47,8 @@ const planText = z.string().max(2000).transform((text, ctx) => {
 });
 
 const statuses = z.enum(['QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED']);
+// An import never waits on a person, so it is never PAUSED.
+const importStatuses = z.enum(['QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED']);
 
 // Static paths first, so none of them is read as a run id.
 
@@ -223,8 +227,11 @@ router.post(
       'does not change) and one that does not is created. A verse the database lacks, or whose ' +
       'numbers disagree with the file, is reported and left alone. New rows are hidden from readers ' +
       'unless `publish` is true, which also needs `verse.publish`; an existing row’s visibility is ' +
-      'never lowered. `dryRun` returns the same report and writes nothing. Importing again changes ' +
-      'only what differs.',
+      'never lowered. Importing again changes only what differs. An import is queued, not done in the ' +
+      'request: the answer is the new run (201), which the worker works a chapter at a time while the ' +
+      'page follows it over the websocket or `GET /imports/runs/:id`. Only one import per language and ' +
+      'book may be live. `dryRun` is the exception: it only reads, so it is answered at once (200) with ' +
+      'the same report and writes nothing — for a book as long as the Bhagavatam it can take a while.',
     permission: 'translation.import',
     limit: 'write',
     body: z.object({
@@ -235,13 +242,60 @@ router.post(
       dryRun: z.boolean().default(false),
     }),
     responds: {
-      200: 'Counts per chapter and in total: created, updated, unchanged, missing, conflicts',
+      200: '`dryRun` only: counts per chapter and in total — created, updated, unchanged, missing, conflicts',
+      201: 'The queued import run',
+      400: 'A chapter that is not in the book',
       403: '`publish` without the `verse.publish` permission',
-      409: 'An import of this language is already running',
-      422: 'The book or translator is not in the database, or storage cannot be read',
+      409: 'An import of this language and book is already queued or running (`details.runId`), or one is being started',
+      422: 'The book or translator is not in the database or storage cannot be read (`dryRun`), or the queue is unreachable',
     },
   },
   controller.importTranslations
+);
+
+router.get(
+  '/imports/runs',
+  {
+    summary: 'List imports',
+    description: 'Newest first, filtered by status, language and book.',
+    permission: 'translation.read',
+    limit: 'read',
+    query: schemas.page.extend({ status: importStatuses.optional(), language: language.optional(), book: book.optional() }),
+    responds: { 200: 'Import runs' },
+  },
+  controller.importRuns
+);
+
+router.get(
+  '/imports/runs/:id',
+  {
+    summary: 'Get one import with its activity feed',
+    description:
+      'Progress (`progress.done` of `progress.total` chapters; `currentChapter` is the last one finished), and ' +
+      'once it is over the report that `dryRun` gives, in `run.result`. A cancelled import keeps the report of ' +
+      'the chapters it did.',
+    permission: 'translation.read',
+    limit: 'read',
+    params: schemas.id,
+    responds: { 200: 'The import and the latest activity, newest first', 404: 'No such import' },
+  },
+  controller.importRun
+);
+
+router.post(
+  '/imports/runs/:id/cancel',
+  {
+    summary: 'Cancel an import',
+    description:
+      'An import that is working stops after the chapter in progress (within a few seconds); a waiting one is ' +
+      'cancelled at once. Chapters already imported stay imported — each one is written in one transaction.',
+    permission: 'translation.import',
+    limit: 'write',
+    params: schemas.id,
+    body: z.object({}).optional(),
+    responds: { 200: 'The import', 404: 'No such import', 409: 'The import has already finished' },
+  },
+  controller.cancelImportRun
 );
 
 router.get(

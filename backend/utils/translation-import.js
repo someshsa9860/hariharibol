@@ -4,6 +4,7 @@
 // this decides. test/translation-import.test.js holds the cases.
 
 import { translation } from '../config/translation.js';
+import { ISSUES_LANG, VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
 import { TRANSLATOR } from '../scripts/lib/claude-translate-source.js';
 import { normalizeWordMeanings } from '../scripts/lib/word-meanings.js';
 
@@ -102,6 +103,8 @@ export const emptyChapter = (chapter) => ({
   updated: 0,
   unchanged: 0,
   replacedVisible: 0, // of `updated`, rows readers can already see
+  issueLinksCreated: 0,
+  issueVersesSkipped: 0,
   noTranslation: 0, // verses in the file with no translation in this language
   missing: [], // verse ids the file has that the database does not
   conflicts: [], // { verseId, reason } — the file and the database disagree about the verse
@@ -118,12 +121,34 @@ export function totalsOf(chapters, versions = {}) {
     updated: sum('updated'),
     unchanged: sum('unchanged'),
     replacedVisible: sum('replacedVisible'),
+    issueLinksCreated: sum('issueLinksCreated'),
+    issueVersesSkipped: sum('issueVersesSkipped'),
     noTranslation: sum('noTranslation'),
     missing: chapters.reduce((n, c) => n + c.missing.length, 0),
     conflicts: chapters.reduce((n, c) => n + c.conflicts.length, 0),
     failedChapters: chapters.filter((c) => c.error).length,
     versions,
   };
+}
+
+/**
+ * The states in which an import still has work to do. An import is never PAUSED (nothing in it waits on a
+ * person), so this is shorter than the translation runs' ACTIVE_STATUSES.
+ */
+export const LIVE_IMPORT_STATUSES = ['QUEUED', 'RUNNING'];
+
+/** One line for a finished import's totals — what the run's `statusMessage` and the page both say. */
+export function summaryOf(totals) {
+  const extra = [
+    totals.issueLinksCreated && `${totals.issueLinksCreated} issue link(s) added`,
+    totals.issueVersesSkipped && `${totals.issueVersesSkipped} verse(s) already linked`,
+    totals.missing && `${totals.missing} missing`,
+    totals.conflicts && `${totals.conflicts} conflicting`,
+    totals.failedChapters && `${totals.failedChapters} chapter(s) failed`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  return `${totals.chapters} chapter(s): ${totals.created} created, ${totals.updated} updated, ${totals.unchanged} unchanged${extra ? `, ${extra}` : ''}.`;
 }
 
 /** A TranslationImportRun, as the admin panel receives it. */

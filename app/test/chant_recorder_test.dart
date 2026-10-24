@@ -299,6 +299,132 @@ void main() {
     });
   });
 
+  group('finishing a round early', () {
+    test('the beads still missing are counted, and the round is complete', () {
+      chant(1);
+
+      expect(recorder.finishRound(), 3);
+
+      expect(recorder.tapCount, 4);
+      expect(recorder.taps.map((tap) => tap.seq), [1, 2, 3, 4]);
+      expect(recorder.completedMalas, 1);
+      expect(recorder.currentMala, 2);
+      expect(recorder.beadsInMala, 0);
+
+      final mala = recorder.malas.single;
+      expect(mala.complete, isTrue);
+      expect(mala.beads, 4);
+    });
+
+    test('only the beads it added are fillers, and they take no time', () {
+      chant(2, gapMs: 1500);
+      clock.advance(800);
+      recorder.finishRound();
+
+      expect(recorder.taps.map((tap) => tap.filler), [false, false, true, true]);
+      expect(recorder.taps.skip(2).map((tap) => tap.gapMs), [0, 0]);
+      expect(recorder.taps.skip(2).map((tap) => tap.auto), [false, false]);
+    });
+
+    test('the next tap begins a new round', () {
+      chant(1);
+      recorder.finishRound();
+
+      clock.advance(5000);
+      final next = recorder.tap();
+
+      expect(next.seq, 5);
+      expect(recorder.malaOf(next.seq), 2);
+      expect(recorder.currentMala, 2);
+      expect(recorder.beadsInMala, 1);
+      expect(recorder.malas.map((mala) => mala.complete), [true, false]);
+      expect(recorder.malas.map((mala) => mala.beads), [4, 1]);
+    });
+
+    test('a round with no bead has nothing to finish, nor has one that just finished', () {
+      expect(recorder.finishRound(), 0);
+      expect(recorder.tapCount, 0);
+      expect(recorder.hasUnsent, isFalse);
+
+      chant(4);
+      recorder.takeDirtyMalas();
+      expect(recorder.finishRound(), 0);
+      expect(recorder.tapCount, 4);
+      expect(recorder.hasUnsent, isFalse);
+    });
+
+    test('a round that was carried over can be finished too', () {
+      recorder.carry(2);
+
+      expect(recorder.finishRound(), 2);
+
+      expect(recorder.completedMalas, 1);
+      expect(recorder.beadsInMala, 0);
+      final mala = recorder.malas.single;
+      expect(mala.complete, isTrue);
+      expect(mala.beads, 4);
+      expect(mala.carried, 2);
+      expect(mala.durationMs, 0, reason: 'the start of it was never timed');
+    });
+
+    test('the beads it added are not chants, so no pace is worked out from them', () {
+      chant(2, gapMs: 3000);
+      recorder.finishRound();
+
+      final stats = recorder.stats;
+      expect(stats.totalChants, 4);
+      expect(stats.malasDone, 1);
+      expect(stats.avgChantSeconds, 3, reason: 'one real gap of 3 s; the fillers have none');
+      expect(recorder.malas.single.avgGapMs, 3000);
+    });
+
+    test('the round lasts from its first tap until it was finished', () {
+      chant(2, gapMs: 3000);
+      clock.advance(2000);
+      recorder.finishRound();
+
+      expect(recorder.malas.single.durationMs, 5000);
+    });
+
+    test('it goes to the server like any other complete round', () {
+      chant(1);
+      recorder.takeDirtyMalas();
+      expect(recorder.hasUnsent, isFalse);
+
+      recorder.finishRound();
+
+      final sent = recorder.takeDirtyMalas().single;
+      expect(sent.index, 1);
+      expect(sent.complete, isTrue);
+      expect(sent.beads, 4);
+      expect(sent.toJson()['complete'], isTrue);
+      expect(sent.toJson()['beads'], 4);
+    });
+
+    test('taking a bead back does not reopen it', () {
+      chant(1);
+      recorder.finishRound();
+
+      expect(recorder.undo(), isFalse);
+      expect(recorder.tapCount, 4);
+      expect(recorder.malas.single.complete, isTrue);
+    });
+
+    test('and every round after it can be finished the same way', () {
+      chant(3);
+      expect(recorder.finishRound(), 1);
+      chant(2, first: false);
+      expect(recorder.finishRound(), 2);
+      chant(4, first: false);
+
+      expect(recorder.completedMalas, 3);
+      expect(recorder.malas.map((mala) => mala.complete), [true, true, true]);
+      expect(recorder.malas.map((mala) => mala.beads), [4, 4, 4]);
+      expect(recorder.stats.totalChants, 12);
+      expect(recorder.taps.where((tap) => tap.filler), hasLength(3));
+    });
+  });
+
   group('rounds that come back from the server', () {
     test('their figures are the ones stored, not worked out from taps', () {
       final stored = ChantMalaLog.stored(

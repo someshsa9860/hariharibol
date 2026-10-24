@@ -15,10 +15,13 @@ import { DelayedError } from 'bullmq';
 
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
+import { chapterLabel } from '../../scripts/lib/claude-translate-source.js';
 import * as service from '../../services/translation-import.js';
+import { summaryOf } from '../../utils/translation-import.js';
 import { FINISHED_STATUSES } from '../../utils/translation-run.js';
 
-// runId → { controller, reason }: the runs this process is working, so a shutdown or a Cancel can stop them.
+// runId → { controller, reason, done, total }: the runs this process is working, so a shutdown or a Cancel can
+// stop them. `done` and `total` are the chapter counts as of the last chapter finished.
 const active = new Map();
 const runs = prisma.translationImportRun;
 
@@ -60,7 +63,7 @@ export async function processRun(job, token, deps) {
   service.publishImportRun(row);
   service.pushImportFeed(runId, { kind: 'status', level: 'info', text: 'Started.' });
 
-  const entry = { controller: new AbortController(), reason: null };
+  const entry = { controller: new AbortController(), reason: null, done: 0, total: 0 };
   active.set(runId, entry);
 
   let outcome;
@@ -84,6 +87,8 @@ export async function processRun(job, token, deps) {
 
 /** After each chapter: write progress, say what happened, and notice a cancel or a takeover. */
 async function onChapter({ row, job, entry }, line, done, total) {
+  entry.done = done;
+  entry.total = total;
   const next = await runs
     .update({ where: { id: row.id }, data: { totalChapters: total, doneChapters: done, currentChapter: line.chapter, heartbeatAt: new Date() } })
     .catch((err) => {
@@ -91,19 +96,27 @@ async function onChapter({ row, job, entry }, line, done, total) {
       return null;
     });
   if (next) service.publishImportRun(next);
-  service.pushImportFeed(row.id, describeChapter(line));
+  service.pushImportFeed(row.id, describeChapter(line, row.book));
   if (!entry.reason && next) {
-    if (next.jobId !== job.id) entry.reason = 'lost';
+    // A row already finished (an admin cancelled a run that only looked stalled) is not this worker's to write any more.
+    if (next.jobId !== job.id || FINISHED_STATUSES.includes(next.status)) entry.reason = 'lost';
     else if (next.cancelRequested) entry.reason = 'cancel';
     if (entry.reason) entry.controller.abort();
   }
 }
 
-function describeChapter(line) {
-  if (line.error) return { kind: 'status', level: 'error', text: `Chapter ${line.chapter}: ${line.error}` };
-  if (line.found === false) return { kind: 'status', level: 'warn', text: `Chapter ${line.chapter}: no file for this language yet.` };
-  const extra = [line.missing.length && `${line.missing.length} missing`, line.conflicts.length && `${line.conflicts.length} conflicting`].filter(Boolean).join(', ');
-  return { kind: 'status', level: 'info', text: `Chapter ${line.chapter}: ${line.created} created, ${line.updated} updated, ${line.unchanged} unchanged${extra ? `, ${extra}` : ''}.` };
+// A Bhagavatam chapter is stored as canto × 100 + chapter; people write it "10.5".
+function describeChapter(line, book) {
+  const name = `Chapter ${chapterLabel(line.chapter, book)}`;
+  if (line.error) return { kind: 'status', level: 'error', text: `${name}: ${line.error}` };
+  if (line.found === false) return { kind: 'status', level: 'warn', text: `${name}: no file for this language yet.` };
+  const extra = [
+    line.issueLinksCreated && `${line.issueLinksCreated} issue link(s) added`,
+    line.issueVersesSkipped && `${line.issueVersesSkipped} verse(s) already linked`,
+    line.missing.length && `${line.missing.length} missing`,
+    line.conflicts.length && `${line.conflicts.length} conflicting`,
+  ].filter(Boolean).join(', ');
+  return { kind: 'status', level: 'info', text: `${name}: ${line.created} created, ${line.updated} updated, ${line.unchanged} unchanged${extra ? `, ${extra}` : ''}.` };
 }
 
 /* ---------- what the attempt came to ---------- */
@@ -111,7 +124,12 @@ function describeChapter(line) {
 async function conclude(row, entry, outcome, job, token) {
   if (entry.reason === 'lost') return { skipped: 'the run was taken over' };
   if (entry.reason === 'cancel') {
-    await finish(row, 'CANCELLED', { statusMessage: 'Cancelled.' });
+    // A chapter is its own transaction, so the ones done before the cancel stay imported; their lines are kept.
+    const partial = outcome.kind === 'finished' ? outcome.result : null;
+    await finish(row, 'CANCELLED', {
+      statusMessage: `Cancelled after ${entry.done} of ${entry.total} chapter(s); what was imported stays.`,
+      ...(partial && { result: partial }),
+    });
     return { cancelled: true };
   }
   if (entry.reason === 'shutdown') {
@@ -120,11 +138,7 @@ async function conclude(row, entry, outcome, job, token) {
 
   if (outcome.kind === 'finished') {
     const t = outcome.result.totals;
-    const extra = [t.missing && `${t.missing} missing`, t.conflicts && `${t.conflicts} conflicting`, t.failedChapters && `${t.failedChapters} chapter(s) failed`].filter(Boolean).join(', ');
-    await finish(row, 'COMPLETED', {
-      statusMessage: `${t.chapters} chapter(s): ${t.created} created, ${t.updated} updated, ${t.unchanged} unchanged${extra ? `, ${extra}` : ''}.`,
-      result: outcome.result,
-    });
+    await finish(row, 'COMPLETED', { statusMessage: summaryOf(t), result: outcome.result });
     return { completed: true, totals: t };
   }
 

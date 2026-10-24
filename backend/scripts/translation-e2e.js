@@ -16,7 +16,10 @@
 // one translates what Claude made under the old one, and a translator's own text is never replaced.
 //
 // The Import route is walked here only as far as it can be without writing: who may call it, what it
-// refuses, its lock, and a preview. Its fake Gita is book number 1 — the real Gita in a dev database — so
+// refuses, its lock, a preview, and the run it queues (one live import per language, the list, Cancel). The
+// queued run is worked by a real BullMQ worker on Malayalam, which has nothing in storage, and by the
+// processor with a stand-in for the importer for what needs a chapter to take time — Cancel part-way, a
+// failure, a takeover, a shutdown. The fake Gita is book number 1 — the real Gita in a dev database — so
 // the real writes are `npm run test:translation-import`'s, on throwaway books.
 
 import { spawn } from 'node:child_process';
@@ -36,10 +39,14 @@ import env from '../config/env.js';
 import * as authService from '../services/auth.js';
 import * as settings from '../services/setting.js';
 import * as service from '../services/translation.js';
+import * as importService from '../services/translation-import.js';
 import * as tally from '../services/ai/token-tally.js';
 import { JOBS, queues } from '../jobs/index.js';
 import { abortActiveRuns, processRun, realDeps } from '../jobs/processors/translation.js';
+import importProcessor, { abortActiveRuns as abortImportRuns, processRun as processImportRun } from '../jobs/processors/translation-import.js';
 import { poolOf } from '../utils/ai-free-tier.js';
+import { unprocessable } from '../utils/errors.js';
+import { emptyChapter, summaryOf, totalsOf } from '../utils/translation-import.js';
 import { FatalApiError, RefusalError } from './lib/claude-translate-client.js';
 import { chapterKey, saChapterKey } from './lib/claude-translate-source.js';
 import { checkpointKey, langChapterKey } from './lib/claude-translate-store.js';
@@ -50,7 +57,9 @@ const DEVICE = 'translation-e2e-device';
 const STAMP = Date.now();
 const VERSION = `e2e-${STAMP}`;
 const queue = queues.translation;
-const IMPORT_LOCK = 'translation:import:bhagavat-gita:ml'; // what the Import route holds while it runs, for the one language these checks name
+const importQueue = queues['translation-import'];
+const IMPORT_LOCK = 'translation:import:bhagavat-gita:ml'; // what the Import route holds while it makes the run, for the one language these checks name
+const EVERY_CHAPTER = Array.from({ length: 18 }, (_, i) => i + 1);
 
 let passed = 0;
 let failed = 0;
@@ -209,7 +218,7 @@ async function counted(model, provider = 'openai') {
 
 /* ---------- runs and jobs, the way the API makes them ---------- */
 
-const made = { runs: [], users: [], jobs: [], roles: [] };
+const made = { runs: [], users: [], jobs: [], roles: [], importRuns: [] };
 let jobCount = 0;
 
 /** A signed-in user whose role holds exactly `slugs`, for finding where one permission ends and the next begins. → their access token */
@@ -271,6 +280,13 @@ async function settle() {
   for (const id of [...made.jobs.splice(0), ...rows.map((r) => r.jobId).filter(Boolean)]) await queue.getJob(id).then((job) => job?.remove()).catch(() => {});
 }
 
+/** The same for the import runs: ends whatever is still waiting and takes its job off the queue, so no worker could ever pick one up. */
+async function settleImports() {
+  await prisma.translationImportRun.updateMany({ where: { id: { in: made.importRuns }, status: { in: ['QUEUED', 'RUNNING'] } }, data: { status: 'CANCELLED', finishedAt: new Date() } });
+  const rows = await prisma.translationImportRun.findMany({ where: { id: { in: made.importRuns } }, select: { jobId: true } });
+  for (const { jobId } of rows) if (jobId) await importQueue.getJob(jobId).then((job) => job?.remove()).catch(() => {});
+}
+
 /* ---------- HTTP ---------- */
 
 // Recount runs in the background now: start it, then ask until it has finished.
@@ -315,14 +331,19 @@ async function main() {
     console.error('\nThis script writes rows; it does not run against production.\n');
     process.exit(1);
   }
-  const workers = await queue.getWorkers();
+  const workers = [...(await queue.getWorkers()), ...(await importQueue.getWorkers())];
   if (workers.length) {
-    console.error('\nA worker is connected to the translation queue. Stop it first — it would work the runs this script makes.\n');
+    console.error('\nA worker is connected to the translation or the translation-import queue. Stop it first — it would work the runs this script makes.\n');
     process.exit(1);
   }
   const busy = await prisma.translationRun.count({ where: { status: { in: ['QUEUED', 'RUNNING', 'PAUSED'] } } });
   if (busy) {
     console.error(`\n${busy} translation run(s) are active in this database. Finish or cancel them first; this script must start from none.\n`);
+    process.exit(1);
+  }
+  const busyImports = await prisma.translationImportRun.count({ where: { status: { in: ['QUEUED', 'RUNNING'] } } });
+  if (busyImports) {
+    console.error(`\n${busyImports} translation import(s) are active in this database. Finish or cancel them first; this script must start from none.\n`);
     process.exit(1);
   }
   const admin = await prisma.user.findFirst({ where: { role: { slug: 'super_admin' } } });
@@ -342,6 +363,7 @@ async function main() {
 
   let api = null;
   let realWorker = null;
+  let importWorker = null;
   let importsStartedAt = null;
   const apiLog = [];
   const saved = { heartbeatMs: translation.heartbeatMs, unknownRetryMs: translation.unknownRetryMs, retryBaseMs: translation.retryBaseMs };
@@ -783,7 +805,7 @@ async function main() {
       const overview = await call('GET', '/api/admin/translations/overview', { token });
       check('overview: the checklist is green', overview.status === 200 && overview.data.settings.apiKeyConfigured && overview.data.settings.storage.ok && overview.data.settings.version === VERSION, JSON.stringify(overview.data?.settings));
       check('overview: no worker is connected, and it says so', overview.data.settings.workerOnline === false);
-      check('overview: seven languages, eighteen chapters, nothing active', overview.data.languages.length === 7 && overview.data.chapters.length === 18 && overview.data.active.length === 0);
+      check('overview: seven languages, eighteen chapters, no run and no import active', overview.data.languages.length === 7 && overview.data.chapters.length === 18 && overview.data.active.length === 0 && overview.data.activeImports.length === 0);
 
       const estimate = await call('GET', '/api/admin/translations/estimate?language=te&chapters=2,3', { token });
       check('estimate: four verses to do, none saved or outdated', estimate.status === 200 && estimate.data.todo === 4 && estimate.data.willTranslate === 4 && estimate.data.saved === 0 && estimate.data.outdated === 0, JSON.stringify(estimate.data));
@@ -946,27 +968,255 @@ async function main() {
         check('import: making translations visible needs verse.publish as well', unpublishable.status === 403 && /verse\.publish/.test(unpublishable.json.error.message), `${unpublishable.status} ${unpublishable.json?.error?.message}`);
         check('import: and so does previewing that', (await post(importer, { language: 'ml', publish: true, dryRun: true })).status === 403);
 
-        // what it does for someone who may
-        const nothing = await post(importer, { language: 'ml' });
-        check('import: a language with nothing in storage reports every chapter as not found and writes nothing', nothing.status === 200 && nothing.data.language === 'ml' && nothing.data.dryRun === false && nothing.data.publish === false && nothing.data.chapters.length === 18 && nothing.data.chapters.every((c) => c.found === false) && nothing.data.totals.chapters === 0 && nothing.data.totals.created === 0 && nothing.data.totals.updated === 0, `${nothing.status} ${JSON.stringify(nothing.data?.totals)}`);
-        const some = await post(token, { language: 'ml', chapters: [2, 1, 2], publish: true });
-        check('import: an admin with verse.publish may publish, and a repeated chapter is read once', some.status === 200 && some.data.publish === true && same(some.data.chapters.map((c) => c.chapter), [1, 2]), `${some.status} ${JSON.stringify(some.data?.chapters?.map((c) => c.chapter))}`);
-        check('import: the lock is let go afterwards', (await redis.exists(IMPORT_LOCK)) === 0);
+        // what it does for someone who may: it queues a run and answers at once, and the worker does the importing
+        const book = await prisma.book.findUnique({ where: { bookNumber: 1 }, select: { id: true } });
+        const importRow = (id) => prisma.translationImportRun.findUnique({ where: { id } });
+        const importEvents = (id) => heard.filter((m) => m.event === 'translation-import.run' && m.payload.id === id);
+        const importActivity = (id) => heard.filter((m) => m.event === 'translation-import.activity' && m.payload.runId === id);
+        const isOver = (row) => ['COMPLETED', 'FAILED', 'CANCELLED'].includes(row.status);
+        const untilImport = async (id, test, ms = 20_000) => {
+          const stop = Date.now() + ms;
+          let row = await importRow(id);
+          while (!test(row) && Date.now() < stop) {
+            await sleep(150);
+            row = await importRow(id);
+          }
+          return row;
+        };
+        const queueImport = async (as, body) => {
+          const res = await post(as, body);
+          if (res.status === 201) made.importRuns.push(res.data.id);
+          return res;
+        };
+        const cancelImport = (as, id) => call('POST', `/api/admin/translations/imports/runs/${id}/cancel`, { token: as });
+        const oneImport = (as, id) => call('GET', `/api/admin/translations/imports/runs/${id}`, { token: as });
 
-        // the lock
+        const queued = await queueImport(importer, { language: 'ml' });
+        const first = queued.data;
+        const firstRow = first && (await importRow(first.id));
+        const firstJob = firstRow?.jobId ? await importQueue.getJob(firstRow.jobId) : null;
+        check('import: it queues a run and answers at once, importing nothing itself', queued.status === 201 && first.status === 'QUEUED' && first.language === 'ml' && first.publish === false && same(first.chapters, EVERY_CHAPTER) && first.progress.total === 18 && first.progress.done === 0 && first.result === null && first.requestedBy?.name === 'E2E importer', `${queued.status} ${JSON.stringify(queued.json?.error ?? first)}`);
+        if (!first) throw new Error(`The first import was not queued: ${queued.status} ${JSON.stringify(queued.json?.error)}`);
+        check('import: the run names the one job that may work it, and that job is waiting for a worker', Boolean(firstRow.jobId) && firstJob?.data?.runId === first.id && (await firstJob.getState()) === 'waiting', String(firstRow.jobId));
+        check('import: the lock was only for making the run, and is let go', (await redis.exists(IMPORT_LOCK)) === 0);
+        await sleep(200);
+        const queuedEvent = importEvents(first.id).find((m) => m.payload.status === 'QUEUED');
+        check('import: whoever may read translations was told, on the live channel', queuedEvent?.permission === 'translation.read', JSON.stringify(queuedEvent));
+
+        const twice = await queueImport(importer, { language: 'ml' });
+        check('import: a second import of the same language and book is refused, naming the first', twice.status === 409 && twice.json.error.details?.runId === first.id && /already a queued import/.test(twice.json.error.message), `${twice.status} ${JSON.stringify(twice.json?.error)}`);
+        check('import: and it made no second run', (await prisma.translationImportRun.count({ where: { language: 'ml', status: { in: ['QUEUED', 'RUNNING'] } } })) === 1);
+        const tamil = await queueImport(importer, { language: 'ta', chapters: [14] });
+        check('import: another language is not held up by it', tamil.status === 201 && tamil.data.status === 'QUEUED' && same(tamil.data.chapters, [14]) && tamil.data.progress.total === 1, `${tamil.status} ${JSON.stringify(tamil.json?.error ?? tamil.data)}`);
+        if (!tamil.data) throw new Error(`The Tamil import was not queued: ${tamil.status} ${JSON.stringify(tamil.json?.error)}`);
+
+        // looking at them
+        const listed = await call('GET', '/api/admin/translations/imports/runs?status=QUEUED', { token: reader });
+        check('runs: whoever may read translations sees the live imports, newest first', listed.status === 200 && same(listed.data.map((r) => r.id), [tamil.data.id, first.id]) && listed.json.meta.total === 2, `${listed.status} ${JSON.stringify(listed.data?.map((r) => r.language))}`);
+        const byLanguage = await call('GET', '/api/admin/translations/imports/runs?language=ta', { token: reader });
+        check('runs: filtered by language', byLanguage.data.length > 0 && byLanguage.data.every((r) => r.language === 'ta') && byLanguage.data.some((r) => r.id === tamil.data.id));
+        check('runs: an import is never paused, so that is not a status to ask for', (await call('GET', '/api/admin/translations/imports/runs?status=PAUSED', { token: reader })).status === 400);
+        check('runs: a signed-out caller is refused', (await call('GET', '/api/admin/translations/imports/runs')).status === 403);
+        check('runs: so is a reader of the app', (await call('GET', '/api/admin/translations/imports/runs', { token: plainToken })).status === 403);
+        const looking = await oneImport(reader, first.id);
+        check('one import: comes with its activity feed, the oldest line being who queued it', looking.status === 200 && looking.data.run.id === first.id && looking.data.run.status === 'QUEUED' && looking.data.feed.at(-1)?.text === 'Queued by E2E importer.', JSON.stringify(looking.data?.feed));
+        check('one import: an unknown id is a 404', (await oneImport(reader, 'nope')).status === 404);
+        const overviewNow = await call('GET', '/api/admin/translations/overview', { token });
+        check('overview: the live imports are listed, so the page can show them', overviewNow.status === 200 && ['ml', 'ta'].every((code) => overviewNow.data.activeImports.some((r) => r.language === code && r.status === 'QUEUED')), JSON.stringify(overviewNow.data?.activeImports?.map((r) => r.language)));
+
+        // Cancel: a waiting import is cancelled on the spot
+        const tamilJobId = (await importRow(tamil.data.id)).jobId;
+        check('cancel: a reader of translations may look but not cancel', (await cancelImport(reader, tamil.data.id)).status === 403);
+        check('cancel: a signed-out caller is refused', (await cancelImport(undefined, tamil.data.id)).status === 403);
+        const cancelled = await cancelImport(importer, tamil.data.id);
+        const cancelledRow = await importRow(tamil.data.id);
+        check('cancel: a waiting import is cancelled at once, saying by whom', cancelled.status === 200 && cancelled.data.status === 'CANCELLED' && cancelled.data.statusMessage === 'Cancelled by E2E importer.' && cancelledRow.finishedAt !== null && cancelledRow.cancelRequested === false, `${cancelled.status} ${JSON.stringify(cancelled.json?.error ?? cancelled.data?.statusMessage)}`);
+        check('cancel: and its job is taken off the queue', !(await importQueue.getJob(tamilJobId)));
+        const cancelledAgain = await cancelImport(importer, tamil.data.id);
+        check('cancel: a second time is a conflict', cancelledAgain.status === 409 && /already cancelled/.test(cancelledAgain.json.error.message), `${cancelledAgain.status} ${cancelledAgain.json?.error?.message}`);
+        check('cancel: an unknown import is a 404', (await cancelImport(importer, 'nope')).status === 404);
+        check('cancel: the other language’s import was not touched', (await importRow(first.id)).status === 'QUEUED');
+        await sleep(200);
+        check('cancel: the page is told over the live channel', importEvents(tamil.data.id).some((m) => m.payload.status === 'CANCELLED'));
+
+        // the lock only guards making the run
         await redis.set(IMPORT_LOCK, VERSION, 'EX', 60);
         const locked = await post(importer, { language: 'ml' });
-        check('import: while another import of the language is running, this one is refused', locked.status === 409 && /already running/.test(locked.json.error.message), `${locked.status} ${locked.json?.error?.message}`);
+        check('import: while another import of the language is being started, this one is refused', locked.status === 409 && /being started/.test(locked.json.error.message), `${locked.status} ${locked.json?.error?.message}`);
         const previewed = await post(importer, { language: 'ml', dryRun: true });
-        check('import: a preview neither waits for it nor takes the lock', previewed.status === 200 && previewed.data.dryRun === true && (await redis.get(IMPORT_LOCK)) === VERSION, String(previewed.status));
+        check('import: a preview neither waits for it nor takes the lock', (book ? previewed.status === 200 && previewed.data.dryRun === true : previewed.status === 422) && (await redis.get(IMPORT_LOCK)) === VERSION, String(previewed.status));
         await redis.del(IMPORT_LOCK);
-        check('import: once it is let go, the same request goes through', (await post(importer, { language: 'ml' })).status === 200);
 
-        const trail = await prisma.auditLog.findMany({ where: { action: 'translation.import', createdAt: { gte: importsStartedAt }, entityId: 'ml' }, orderBy: { createdAt: 'asc' } });
-        check('every import that ran is in the audit log, and nothing that was refused or only previewed', trail.length === 3 && trail.every((r) => r.entityType === 'TranslationImport' && r.after?.language === 'ml') && trail[1].after.publish === true && trail[0].after.publish === false, `${trail.length} rows`);
+        // The queue itself: a real BullMQ worker, in this process, works the Malayalam run. Malayalam has nothing in storage,
+        // so every chapter is reported as not found and nothing is written. It is the only language a worker is let near.
+        importWorker = new Worker('translation-import', importProcessor, { connection: bullConnection, concurrency: 1 });
+        importWorker.on('error', (err) => console.log('    [import worker] error', err.message));
+        await importWorker.waitUntilReady();
+        const worked = await untilImport(first.id, isOver);
+        await sleep(300);
+        if (book) {
+          const lines = worked.result?.chapters ?? [];
+          check('worker: it picks the run up by itself and finishes it', worked.status === 'COMPLETED' && worked.startedAt !== null && worked.finishedAt !== null && worked.currentChapter === null && worked.cancelRequested === false, `${worked.status} ${worked.statusMessage}`);
+          check('worker: Malayalam has nothing in storage, so every chapter is reported as not found and nothing is written', lines.length === 18 && lines.every((c) => c.found === false) && worked.result.totals.chapters === 0 && worked.result.totals.created === 0 && worked.result.totals.updated === 0 && worked.result.publish === false && worked.result.dryRun === false, JSON.stringify(worked.result?.totals));
+          check('worker: its progress is the chapters done, and its message the totals', worked.doneChapters === 18 && worked.totalChapters === 18 && worked.statusMessage === summaryOf(worked.result.totals), `${worked.doneChapters}/${worked.totalChapters} ${worked.statusMessage}`);
+          const states = importEvents(first.id).map((m) => m.payload.status);
+          check('worker: the page was told QUEUED, RUNNING and then COMPLETED, only people who may read translations', states[0] === 'QUEUED' && states.includes('RUNNING') && states.at(-1) === 'COMPLETED' && importEvents(first.id).every((m) => m.permission === 'translation.read'), states.join('>'));
+          check('worker: and every chapter reached the activity channel', importActivity(first.id).filter((m) => /^Chapter \d+: no file for this language yet\.$/.test(m.payload.text)).length === 18);
+          const afterwards = await oneImport(reader, first.id);
+          check('worker: the feed tells it start to finish', afterwards.data.run.status === 'COMPLETED' && afterwards.data.feed.at(-1).text === 'Queued by E2E importer.' && afterwards.data.feed.some((l) => l.text === 'Started.') && afterwards.data.feed[0].text === worked.statusMessage && afterwards.data.feed[0].level === 'success', JSON.stringify(afterwards.data?.feed?.slice(0, 2)));
+          check('worker: and the finished run carries the report, as the preview gives it', afterwards.data.run.result?.chapters?.length === 18 && afterwards.data.run.progress.percent === 100, JSON.stringify(afterwards.data?.run?.progress));
+        } else {
+          check('worker: without the book in the database the run fails, saying to import the book first', worked.status === 'FAILED' && /not in the database yet/.test(worked.statusMessage), `${worked.status} ${worked.statusMessage}`);
+        }
+        check('worker: the language is free again for another import', (await prisma.translationImportRun.count({ where: { language: 'ml', status: { in: ['QUEUED', 'RUNNING'] } } })) === 0);
+
+        // An admin with verse.publish may ask for the new rows to be visible; a chapter named twice is read once
+        const published = await queueImport(token, { language: 'ml', chapters: [2, 1, 2], publish: true });
+        check('import: an admin with verse.publish may queue one that publishes, and a repeated chapter is counted once', published.status === 201 && published.data.publish === true && same(published.data.chapters, [1, 2]) && published.data.progress.total === 2, `${published.status} ${JSON.stringify(published.json?.error ?? published.data?.chapters)}`);
+        if (!published.data) throw new Error(`The publishing import was not queued: ${published.status} ${JSON.stringify(published.json?.error)}`);
+        const publishedRow = await untilImport(published.data.id, isOver);
+        if (book) {
+          check('worker: it works that one too, reporting the two chapters', publishedRow.status === 'COMPLETED' && publishedRow.result?.publish === true && same(publishedRow.result.chapters.map((c) => c.chapter), [1, 2]) && publishedRow.doneChapters === 2, `${publishedRow.status} ${JSON.stringify(publishedRow.result?.chapters?.map((c) => c.chapter))}`);
+        } else {
+          check('worker: and that one fails the same way', publishedRow.status === 'FAILED' && /not in the database yet/.test(publishedRow.statusMessage), `${publishedRow.status} ${publishedRow.statusMessage}`);
+        }
+        await importWorker.close();
+        importWorker = null;
+
+        // The processor, with a stand-in for the importer, for what needs a chapter to take time or to go wrong. These
+        // runs are made straight in the table and never put on the queue, and the worker above is closed, so nothing
+        // can reach the real importer or storage.
+        const newImport = async (extra = {}) => {
+          const row = await prisma.translationImportRun.create({
+            data: {
+              language: 'mr', chapters: [1, 2, 3], totalChapters: 3, status: 'QUEUED', statusMessage: 'Waiting for the worker.',
+              jobId: `e2e-${STAMP}-${(jobCount += 1)}`, requestedById: null, requestedByName: 'e2e', ...extra,
+            },
+          });
+          made.importRuns.push(row.id);
+          return row;
+        };
+        // Reports each chapter as two verses created, as the real one would. `script(number)` runs before each is reported.
+        const standIn = (script = async () => {}) => async ({ chapters, publish, onChapter, shouldStop }) => {
+          const lines = [];
+          for (const number of chapters) {
+            if (shouldStop?.()) break;
+            const line = { ...emptyChapter(number), inStorage: 2, created: 2 };
+            lines.push(line);
+            await script(number);
+            await onChapter?.(line, lines.length, chapters.length);
+          }
+          return { language: 'mr', publish, dryRun: false, totals: totalsOf(lines), chapters: lines };
+        };
+        const workImport = async (row, importLanguage) => {
+          const job = fakeJob(row);
+          try {
+            const result = await processImportRun(job, 'token', { importLanguage });
+            return { result, job, delayed: false, row: await importRow(row.id) };
+          } catch (err) {
+            if (!(err instanceof DelayedError)) throw err;
+            return { result: null, job, delayed: true, row: await importRow(row.id) };
+          }
+        };
+        const gate = () => {
+          let open;
+          const opened = new Promise((ok) => { open = ok; });
+          return { open, opened };
+        };
+
+        // Cancel while it works: it is asked, and stops after the chapter in progress, keeping what it did
+        const slowRow = await newImport();
+        const inChapterOne = gate();
+        const carryOn = gate();
+        const slow = workImport(slowRow, standIn(async (number) => {
+          if (number !== 1) return;
+          inChapterOne.open();
+          await carryOn.opened;
+        }));
+        await inChapterOne.opened;
+        const midway = await importRow(slowRow.id);
+        check('a worker that has taken a run says so, with a heartbeat', midway.status === 'RUNNING' && midway.startedAt !== null && midway.heartbeatAt !== null && midway.statusMessage === null, `${midway.status} ${midway.statusMessage}`);
+        const blocked = await post(importer, { language: 'mr' });
+        check('import: a running import blocks a new one for its language too', blocked.status === 409 && blocked.json.error.details?.runId === slowRow.id && /already a running import/.test(blocked.json.error.message), `${blocked.status} ${JSON.stringify(blocked.json?.error)}`);
+        const asked = await cancelImport(importer, slowRow.id);
+        check('cancel: a working import is asked to stop, not stopped on the spot', asked.status === 200 && asked.data.status === 'RUNNING' && asked.data.cancelRequested === true && /Cancelling after the chapter/.test(asked.data.statusMessage), `${asked.status} ${JSON.stringify(asked.json?.error ?? asked.data)}`);
+        carryOn.open();
+        const stopped = await slow;
+        check('cancel: it stops after the chapter in progress and keeps the report of what it did', stopped.result?.cancelled === true && stopped.row.status === 'CANCELLED' && stopped.row.doneChapters === 1 && stopped.row.result?.chapters?.length === 1 && stopped.row.cancelRequested === false && stopped.row.finishedAt !== null, `${stopped.row.status} ${stopped.row.doneChapters}`);
+        check('cancel: and says so, and that what was imported stays', stopped.row.statusMessage === 'Cancelled after 1 of 3 chapter(s); what was imported stays.', stopped.row.statusMessage);
+        await sleep(200);
+        const stoppedFeed = (await oneImport(reader, slowRow.id)).data.feed.map((l) => l.text);
+        check('cancel: the feed has the chapter, who asked, and the end', stoppedFeed.includes('Chapter 1: 2 created, 0 updated, 0 unchanged.') && stoppedFeed.includes('Cancel requested by E2E importer.') && stoppedFeed[0] === stopped.row.statusMessage, JSON.stringify(stoppedFeed));
+
+        // A run asked to stop before its job began never starts
+        let startedAnyway = false;
+        const early = await workImport(await newImport({ cancelRequested: true }), async () => { startedAnyway = true; });
+        check('cancel: a run asked to stop before its job began is cancelled without starting', early.result?.cancelled === true && early.row.status === 'CANCELLED' && early.row.statusMessage === 'Cancelled before it started.' && !startedAnyway, `${early.row.status} ${early.row.statusMessage}`);
+
+        // A worker that died leaves a run "running" with no heartbeat: shown as stalled, and cancelled at once
+        const silentRow = await newImport({ status: 'RUNNING', startedAt: new Date(Date.now() - 3_600_000), heartbeatAt: new Date(Date.now() - 3_600_000), statusMessage: null });
+        const silent = await oneImport(reader, silentRow.id);
+        check('a working import that has gone quiet is shown as stalled', silent.data.run.status === 'RUNNING' && silent.data.run.stalled === true, JSON.stringify(silent.data?.run?.stalled));
+        const unstuck = await cancelImport(importer, silentRow.id);
+        check('cancel: a stalled import has nobody to ask, so it is cancelled at once', unstuck.status === 200 && unstuck.data.status === 'CANCELLED' && unstuck.data.statusMessage === 'Cancelled by E2E importer.', `${unstuck.status} ${JSON.stringify(unstuck.json?.error ?? unstuck.data?.statusMessage)}`);
+
+        // A failure: the importer's own words when it explains itself, "unexpected" when it does not
+        const refusedRow = await newImport();
+        const refused = await workImport(refusedRow, async () => { throw unprocessable('The book (number 1) is not in the database yet.'); });
+        check('a failure the importer explains is shown as it explained it', refused.result?.failed === 'The book (number 1) is not in the database yet.' && refused.row.status === 'FAILED' && refused.row.statusMessage === 'The book (number 1) is not in the database yet.' && refused.row.finishedAt !== null && refused.row.result === null, `${refused.row.status} ${refused.row.statusMessage}`);
+        const crashed = await workImport(await newImport(), async () => { throw new Error('connection reset'); });
+        check('and one it does not is shown as unexpected, with the reason', crashed.row.status === 'FAILED' && crashed.row.statusMessage === 'Unexpected error: connection reset', `${crashed.row.status} ${crashed.row.statusMessage}`);
+
+        // A job that is not the one the run names, one for a run that is over, one for a run that is gone
+        let touched = false;
+        const meddling = await newImport();
+        const superseded = await processImportRun({ ...fakeJob(meddling), id: 'a-job-the-run-does-not-name' }, 'token', { importLanguage: async () => { touched = true; } });
+        check('a superseded job is skipped without touching the run', superseded.skipped === 'superseded by another job' && !touched && (await importRow(meddling.id)).status === 'QUEUED', JSON.stringify(superseded));
+        const overRow = await newImport({ status: 'COMPLETED' });
+        const overResult = await processImportRun(fakeJob(overRow), 'token', { importLanguage: async () => { touched = true; } });
+        check('a job for a run that is over is skipped', overResult.skipped === 'completed' && !touched, JSON.stringify(overResult));
+        const goneResult = await processImportRun({ id: 'x', data: { runId: 'no-such-run' }, moveToDelayed: async () => {} }, 'token', { importLanguage: async () => { touched = true; } });
+        check('a job for a deleted run is skipped', Boolean(goneResult.skipped) && !touched);
+
+        // An admin finished a run that only looked stalled while its worker was still going: the worker leaves it as it was left
+        const takenRow = await newImport();
+        const taken = await workImport(takenRow, standIn(async (number) => {
+          if (number === 1) await prisma.translationImportRun.update({ where: { id: takenRow.id }, data: { status: 'CANCELLED', finishedAt: new Date(), statusMessage: 'Cancelled by an admin.' } });
+        }));
+        check('a run an admin finished while it was working is left as the admin left it', taken.result?.skipped === 'the run was taken over' && taken.row.status === 'CANCELLED' && taken.row.statusMessage === 'Cancelled by an admin.' && taken.row.result === null, `${taken.row.status} ${taken.row.statusMessage}`);
+
+        // The worker shuts down part-way: the run goes back to the queue, and the job comes back later and finishes it
+        const restartRow = await newImport();
+        const inChapterTwo = gate();
+        const holdOn = gate();
+        const restarting = workImport(restartRow, standIn(async (number) => {
+          if (number !== 2) return;
+          inChapterTwo.open();
+          await holdOn.opened;
+        }));
+        await inChapterTwo.opened;
+        check('shutdown: the processor knows which runs it is working', abortImportRuns('shutdown') === 1);
+        holdOn.open();
+        const handedBack = await restarting;
+        check('shutdown: the run goes back to QUEUED and the job is handed back as delayed', handedBack.delayed && handedBack.job.delayedTo > Date.now() && handedBack.row.status === 'QUEUED' && handedBack.row.currentChapter === null && handedBack.row.finishedAt === null, `${handedBack.row.status} delayed ${handedBack.delayed}`);
+        check('shutdown: saying so, and keeping the count of what was done', handedBack.row.statusMessage === 'The worker restarted; continuing.' && handedBack.row.doneChapters === 2, `${handedBack.row.statusMessage} ${handedBack.row.doneChapters}`);
+        const finishedOff = await workImport(handedBack.row, standIn());
+        check('shutdown: the job that comes back finishes the run from the beginning', finishedOff.row.status === 'COMPLETED' && finishedOff.row.doneChapters === 3 && finishedOff.row.result?.chapters?.length === 3 && finishedOff.row.statusMessage === '3 chapter(s): 6 created, 0 updated, 0 unchanged.' && finishedOff.row.startedAt !== null, `${finishedOff.row.status} ${finishedOff.row.statusMessage}`);
+
+        // Redis lost the job: the safety net puts the run back on the queue
+        await settleImports();
+        const lostRow = await newImport();
+        const youngRow = await newImport();
+        await prisma.translationImportRun.update({ where: { id: lostRow.id }, data: { updatedAt: new Date(Date.now() - 5 * 60_000) } });
+        const requeued = await importService.reconcileImportRuns();
+        const lostAfter = await importRow(lostRow.id);
+        check('reconcile re-queues an import whose job is missing', requeued.includes(lostRow.id) && lostAfter.jobId !== lostRow.jobId && lostAfter.status === 'QUEUED' && lostAfter.statusMessage === 'Picked up again after its background job was lost.', `${lostAfter.status} ${lostAfter.statusMessage}`);
+        const newJob = await importQueue.getJob(lostAfter.jobId);
+        check('the new job is really on the queue, for that run', Boolean(newJob) && newJob.data.runId === lostRow.id);
+        check('an import younger than half a minute is left alone', !requeued.includes(youngRow.id) && (await importRow(youngRow.id)).jobId === youngRow.jobId);
+        await settleImports();
 
         // a preview of Marathi, which has files — read only, whatever the database holds
-        const book = await prisma.book.findUnique({ where: { bookNumber: 1 }, select: { id: true } });
         const rowsOf = () => prisma.verseTranslation.aggregate({ where: { languageCode: 'mr', verse: { bookNumber: 1 } }, _count: { _all: true }, _max: { updatedAt: true } });
         const before = await rowsOf();
         const preview = await post(importer, { language: 'mr', chapters: [2], dryRun: true });
@@ -978,8 +1228,23 @@ async function main() {
           check('preview: it counts the verses by the version that made them', preview.data.totals.versions[VERSION] === 2, JSON.stringify(preview.data.totals.versions));
           const after = await rowsOf();
           check('preview: nothing was written, whatever it found', before._count._all === after._count._all && String(before._max.updatedAt) === String(after._max.updatedAt), `${before._count._all} → ${after._count._all}`);
-          check('preview: and it left no mark in the audit log', (await prisma.auditLog.count({ where: { action: 'translation.import', entityId: 'mr', createdAt: { gte: importsStartedAt } } })) === 0);
         }
+
+        // the audit log: the imports that were queued and the cancels that took effect, and nothing that was only previewed or refused
+        const actors = [...made.users, admin.id];
+        const trail = (action) => prisma.auditLog.findMany({ where: { action, createdAt: { gte: importsStartedAt }, actorId: { in: actors } } });
+        const queuedAudit = await trail('translation.import');
+        check('audit: every import that was queued is in the audit log, and a preview, a refusal or a lost race is not', same(queuedAudit.map((a) => a.entityId).sort(), [first.id, tamil.data.id, published.data.id].sort()) && queuedAudit.every((a) => a.entityType === 'TranslationImportRun' && a.before === null), JSON.stringify(queuedAudit.map((a) => [a.entityType, a.entityId])));
+        const wasAsked = (id, language, publish, chapters) => {
+          const a = queuedAudit.find((r) => r.entityId === id)?.after;
+          return a?.language === language && a?.book === 'bhagavat-gita' && a?.publish === publish && same(a?.chapters, chapters);
+        };
+        check('audit: with what was asked for, "all" when no chapter was named', wasAsked(first.id, 'ml', false, 'all') && wasAsked(tamil.data.id, 'ta', false, [14]) && wasAsked(published.data.id, 'ml', true, [2, 1, 2]), JSON.stringify(queuedAudit.map((a) => a.after)));
+        const cancelAudit = await trail('translation.import.cancel');
+        const cancelOf = (id) => cancelAudit.find((r) => r.entityId === id);
+        check('audit: every cancel that took effect is in the audit log, and a refused one is not', same(cancelAudit.map((a) => a.entityId).sort(), [tamil.data.id, slowRow.id, silentRow.id].sort()) && cancelAudit.every((a) => a.entityType === 'TranslationImportRun'), JSON.stringify(cancelAudit.map((a) => a.entityId)));
+        check('audit: a cancel records the state the import was in and the one it came to', cancelOf(tamil.data.id)?.before?.status === 'QUEUED' && cancelOf(tamil.data.id)?.after?.status === 'CANCELLED' && cancelOf(silentRow.id)?.before?.status === 'RUNNING' && cancelOf(silentRow.id)?.after?.status === 'CANCELLED', JSON.stringify([cancelOf(tamil.data.id), cancelOf(silentRow.id)].map((a) => [a?.before, a?.after])));
+        check('audit: and a request to stop a working import records that it was asked, not stopped', cancelOf(slowRow.id)?.before?.language === 'mr' && cancelOf(slowRow.id)?.after?.cancelRequested === true && cancelOf(slowRow.id)?.after?.status !== 'CANCELLED', JSON.stringify([cancelOf(slowRow.id)?.before, cancelOf(slowRow.id)?.after]));
       }
 
       /* -- 13. a new version, and text a person wrote -------------------------------------------------- */
@@ -1046,6 +1311,7 @@ async function main() {
     translation.unknownRetryMs = saved.unknownRetryMs;
     translation.retryBaseMs = saved.retryBaseMs;
     await realWorker?.close().catch(() => {});
+    await importWorker?.close().catch(() => {}); // before the rows it works are deleted below
     api?.kill('SIGTERM');
     await subscriber.quit().catch(() => {});
 
@@ -1061,10 +1327,14 @@ async function main() {
     await prisma.deviceSession?.deleteMany?.({ where: { userId: { in: made.users } } }).catch(() => {});
     await prisma.user.deleteMany({ where: { id: { in: made.users } } }).catch(() => {});
     await prisma.role.deleteMany({ where: { id: { in: made.roles } } }).catch(() => {}); // after their users; their permission rows go with them
-    if (importsStartedAt) {
-      await prisma.auditLog.deleteMany({ where: { action: 'translation.import', entityType: 'TranslationImport', entityId: 'ml', createdAt: { gte: importsStartedAt } } }).catch(() => {});
-      if ((await redis.get(IMPORT_LOCK).catch(() => null)) === VERSION) await redis.del(IMPORT_LOCK).catch(() => {}); // only a lock this script took
+    for (const id of made.importRuns) {
+      const row = await prisma.translationImportRun.findUnique({ where: { id } }).catch(() => null);
+      if (row?.jobId) await importQueue.getJob(row.jobId).then((job) => job?.remove()).catch(() => {});
+      await redis.del(`translation-import:feed:${id}`).catch(() => {});
     }
+    await prisma.auditLog.deleteMany({ where: { entityId: { in: made.importRuns } } }).catch(() => {});
+    await prisma.translationImportRun.deleteMany({ where: { id: { in: made.importRuns } } }).catch(() => {});
+    if ((await redis.get(IMPORT_LOCK).catch(() => null)) === VERSION) await redis.del(IMPORT_LOCK).catch(() => {}); // only a lock this script took
     await redis.del(translation.coverageCacheKey).catch(() => {});
     await restoreSettings(settingsBefore).catch((err) => console.log(`    (the free-tier settings could not be put back: ${err.message})`));
     await restoreTally(tallyBefore).catch((err) => console.log(`    (today's token count could not be put back: ${err.message})`));
@@ -1075,6 +1345,7 @@ async function main() {
   if (failed) console.log(apiLog.join('').split('\n').filter((l) => /error|warn/i.test(l)).slice(-15).join('\n'));
   await prisma.$disconnect();
   await queue.close();
+  await importQueue.close();
   process.exit(failed ? 1 : 0);
 }
 

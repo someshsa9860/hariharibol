@@ -124,11 +124,12 @@ export function TranslationsPage() {
 
       {data && book && (
         <div className="space-y-6">
-          <Health settings={data.settings} hasActive={data.active.length > 0} />
+          <Health settings={data.settings} hasActive={data.active.length + data.activeImports.length > 0} />
 
           <div className="grid gap-2 sm:grid-cols-2" role="tablist" aria-label="Book">
             {data.books.map((item) => {
-              const running = data.active.filter((run) => run.book === item.id);
+              // Translation runs and imports into the database are both work the worker is doing for this book.
+              const running = [...data.active.filter((run) => run.book === item.id), ...data.activeImports.filter((job) => job.book === item.id)];
               const selected = item.id === book.id;
               return (
                 <button
@@ -291,8 +292,8 @@ function Health({ settings, hasActive }: { settings: Overview['settings']; hasAc
     !settings.workerOnline && {
       fatal: false,
       text: hasActive
-        ? 'No worker is connected, so nothing is progressing. The run waits and carries on by itself as soon as a worker starts.'
-        : 'No worker is connected right now. A run you start will wait in the queue until one is.',
+        ? 'No worker is connected, so nothing is progressing. What is queued waits and carries on by itself as soon as a worker starts.'
+        : 'No worker is connected right now. A run or an import you start will wait in the queue until one is.',
     },
   ].filter(Boolean) as { fatal: boolean; text: string }[];
 
@@ -364,6 +365,8 @@ function LanguageGrid({
       {overview.languages.map((language) => {
         const stats = coverage?.languages.find((item) => item.code === language.code);
         const run = overview.active.find((item) => item.language === language.code && item.book === book.id);
+        // The copy into the database, which the worker does apart from the translating.
+        const importing = overview.activeImports.find((item) => item.language === language.code && item.book === book.id);
         const total = coverage?.total ?? 0;
         const percent = total && stats ? (stats.saved / total) * 100 : 0;
         const firstChapter = stats?.chapters.find((item) => item.saved > 0)?.chapter ?? book.chapters[0].id;
@@ -373,7 +376,7 @@ function LanguageGrid({
         const inDatabase = imports?.languages.find((item) => item.code === language.code);
 
         return (
-          <Card key={language.code} className={cn('h-full', run && 'ring-1 ring-primary/40')}>
+          <Card key={language.code} className={cn('h-full', (run || importing) && 'ring-1 ring-primary/40')}>
             <CardContent className="flex h-full flex-col gap-3 pt-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -435,6 +438,19 @@ function LanguageGrid({
                       {run.status === 'PAUSED' && ' · paused'}
                     </p>
                   )}
+
+                  {importing && (
+                    <div className="space-y-1" role="status">
+                      <p className={cn('text-xs', importing.stalled ? 'text-destructive' : 'text-muted-foreground')}>
+                        {importing.status === 'QUEUED'
+                          ? 'Import into the database: waiting for the worker'
+                          : `Importing into the database: ${importing.progress.done}/${importing.progress.total || importing.chapters.length} chapters (${importing.progress.percent}%)`}
+                        {importing.cancelRequested && ' · stopping'}
+                        {importing.stalled && ' · the worker has not reported for a while'}
+                      </p>
+                      {importing.status === 'RUNNING' && <ProgressBar percent={importing.progress.percent} className="h-1.5" />}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -455,7 +471,13 @@ function LanguageGrid({
                     </Button>
                   )
                 )}
-                {canImport && !run && (
+                {canImport && importing && (
+                  // The same dialog: opened for a language that is being imported, it follows that import.
+                  <Button size="sm" variant="outline" onClick={() => onImport(language.code)} title="Follow the import into the database, or cancel it">
+                    <Database /> Open import
+                  </Button>
+                )}
+                {canImport && !importing && !run && (
                   <Button size="sm" variant="outline" disabled={!stats?.saved} onClick={() => onImport(language.code)} title="Copy the translated chapters from storage into the database">
                     <Database /> Import
                   </Button>

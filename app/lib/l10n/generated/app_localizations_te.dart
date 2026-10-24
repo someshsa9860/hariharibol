@@ -475,6 +475,21 @@ class AppLocalizationsTe extends AppLocalizations {
       'ముందు ఈ ప్రార్థనను చేయండి, ఆపై లెక్కింపు ప్రారంభించడానికి వలయాన్ని తట్టండి.';
 
   @override
+  String get chantPrayerHintAlong =>
+      'రికార్డింగ్ ఈ ప్రార్థనతోనే మొదలవుతుంది. రికార్డింగ్ ప్లే చేసి, దానితో పాటు ఈ ప్రార్థన చేయండి.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్లే చేయండి — రికార్డింగ్ మంత్రంతో మొదలవుతుంది.';
+
+  @override
+  String get chantAutoCountResting =>
+      'రికార్డింగ్ ప్లే అవుతున్నప్పుడు విశ్రాంతిలో';
+
+  @override
+  String get chantFinishRound => 'మాలను ముగించండి';
+
+  @override
   String get sadhanaAutoCountListening => 'వింటోంది…';
 
   @override

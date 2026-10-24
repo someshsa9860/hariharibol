@@ -2,8 +2,11 @@
 //
 //   npm run test:translation-import
 //
-// It needs the database and the seeded `prabhupada` translator, nothing else — no API, no worker, no Redis and
-// no AWS. It builds its own little book (three chapters, twelve verses, one of them a compound 3–4) with a decoy
+// It needs the database and the seeded `prabhupada` translator, nothing else — no API, no worker and no AWS.
+// (The service module opens its Redis connections when it is imported, for the queue and the live events of a
+// queued run; this script only calls `importLanguage`, which uses none of it. The queued run itself — the
+// row, the job, the worker, cancel — is walked in `npm run test:translation`, section 12.)
+// It builds its own little book (three chapters, twelve verses, one of them a compound 3–4) with a decoy
 // book beside it, and a throwaway folder of chapter files laid out like the bucket
 // (json/<book>/<language>/ch-N.json), so it does not depend on what has been imported, never touches the
 // real Gita or the real bucket, and deletes all of it again.
@@ -117,6 +120,12 @@ async function main() {
     console.error('\nNeed the translator "prabhupada". Run `npm run seed` first.\n');
     process.exit(1);
   }
+  const seededIssues = await prisma.issue.findMany({
+    where: { slug: { in: ['kama', 'krodha', 'lobha', 'mada'] } },
+    select: { id: true, slug: true },
+  });
+  const issueBySlug = new Map(seededIssues.map((issue) => [issue.slug, issue]));
+  if (issueBySlug.size !== 4) throw new Error('Need the seeded issues kama, krodha, lobha and mada. Run `npm run seed` first.');
 
   /** Prabhupāda's TRANSLATION rows in `language` for the book, by verse id. */
   const rowsOf = async (language = 'hi', translatorId = prabhupada.id) => {
@@ -125,6 +134,15 @@ async function main() {
       include: { verse: { select: { verseId: true } } },
     });
     return new Map(rows.map((r) => [r.verse.verseId, r]));
+  };
+  const issueSlugsOf = async (verseId) => {
+    const verse = await prisma.verse.findUnique({ where: { verseId }, select: { id: true } });
+    if (!verse) return [];
+    const links = await prisma.verseIssue.findMany({
+      where: { verseId: verse.id },
+      include: { issue: { select: { slug: true } } },
+    });
+    return links.map((link) => link.issue.slug).sort();
   };
 
   let book = null;
@@ -389,6 +407,43 @@ async function main() {
     rows = await rowsOf();
     check('every row born in step 1 still has the id and createdAt it was born with', sameRows(born, rows));
     check('and the book still holds one row per verse that was ever imported: eight', rows.size === 8, `${rows.size}`);
+
+    /* -- issues -------------------------------------------------------------------------------- */
+    section('12. Marathi Bhagavatam issue links are imported only when a verse has none');
+    const prelinkedVerse = await prisma.verse.findUnique({ where: { verseId: vid(1, 1) }, select: { id: true } });
+    await prisma.verseIssue.create({
+      data: { verseId: prelinkedVerse.id, issueId: issueBySlug.get('krodha').id, weight: 17 },
+    });
+    writeChapter('mr', 1, [
+      entry(1, 1, 'mr1', { language: 'mr', over: { issues: ['kama', 'krodha'] } }),
+      entry(1, 2, 'mr2', { language: 'mr', over: { issues: ['lobha', 'unknown'] } }),
+      entry(1, 3, 'mr3', { language: 'mr', over: { issues: ['unknown'] } }),
+    ]);
+    const marathiBhagavatam = await run({ language: 'mr', book: 'srimad-bhagavatam', chapters: [1] });
+    check('the Marathi Bhagavatam file imports without a chapter error', !lineOf(marathiBhagavatam, 1).error, lineOf(marathiBhagavatam, 1).error);
+    check('the report counts one new issue link and one verse skipped', marathiBhagavatam.totals.issueLinksCreated === 1 && marathiBhagavatam.totals.issueVersesSkipped === 1, show(marathiBhagavatam.totals));
+    check('a verse that already had any issue link is left exactly as it was', show(await issueSlugsOf(vid(1, 1))) === show(['krodha']), show(await issueSlugsOf(vid(1, 1))));
+    check('a previously unlinked verse receives its known issue and ignores an unknown slug', show(await issueSlugsOf(vid(1, 2))) === show(['lobha']), show(await issueSlugsOf(vid(1, 2))));
+    check('unknown issue slugs alone do not create links', (await issueSlugsOf(vid(1, 3))).length === 0);
+
+    writeChapter('hi', 1, [entry(1, 3, 'hi3', { over: { issues: ['mada'] } })]);
+    await run({ language: 'hi', book: 'srimad-bhagavatam', chapters: [1] });
+    check('Hindi imports never create issue links', (await issueSlugsOf(vid(1, 3))).length === 0);
+
+    writeChapter('mr', 1, [entry(1, 3, 'gita-mr3', { language: 'mr', over: { issues: ['mada'] } })]);
+    await run({ language: 'mr', chapters: [1] });
+    check('Marathi Gita imports never create issue links', (await issueSlugsOf(vid(1, 3))).length === 0);
+
+    writeChapter('mr', 3, [
+      entry(3, 1, 'mr-good', { language: 'mr', over: { issues: ['mada'] } }),
+      entry(3, 2, 'mr-bad', { language: 'mr', over: { issues: ['kama'], translation: 'अनुवाद \u0000 NUL' } }),
+    ]);
+    const failedMarathiChapter = await run({ language: 'mr', book: 'srimad-bhagavatam', chapters: [3] });
+    check('a failed Marathi chapter reports its database error', /^The database refused it:/.test(lineOf(failedMarathiChapter, 3).error ?? ''));
+    check('a failed Marathi chapter rolls back every new issue link', (await issueSlugsOf(vid(3, 1))).length === 0 && (await issueSlugsOf(vid(3, 2))).length === 0);
+    check('the failed chapter reports no links written or skips', failedMarathiChapter.totals.issueLinksCreated === 0 && failedMarathiChapter.totals.issueVersesSkipped === 0);
+    const marathiRowsAfterFailure = await rowsOf('mr');
+    check('the same failure also rolls back its translation rows', !marathiRowsAfterFailure.has(vid(3, 1)) && !marathiRowsAfterFailure.has(vid(3, 2)));
   } finally {
     // Cascades take the chapters, verses and their translations with them.
     if (book) await prisma.book.delete({ where: { id: book.id } });

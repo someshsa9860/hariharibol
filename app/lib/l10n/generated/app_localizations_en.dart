@@ -472,6 +472,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Chant this prayer first, then tap the ring to begin counting.';
 
   @override
+  String get chantPrayerHintAlong =>
+      'The recording begins with this prayer. Press play and chant it with the recording.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'Chant this prayer, then press play — the recording starts with the mantra.';
+
+  @override
+  String get chantAutoCountResting => 'Resting while the recording plays';
+
+  @override
+  String get chantFinishRound => 'Finish round';
+
+  @override
   String get sadhanaAutoCountListening => 'Listening…';
 
   @override

@@ -45,7 +45,7 @@ const EVENTS = {
   // Admin panel, to `translation.read`: a run's whole state, and one line of its activity feed.
   TRANSLATION_RUN: 'translation.run',
   TRANSLATION_ACTIVITY: 'translation.activity',
-  // Admin panel, to `translation.import`: the same two for a translation import run.
+  // Admin panel, to `translation.read`: the same two for a translation import run.
   TRANSLATION_IMPORT_RUN: 'translation-import.run',
   TRANSLATION_IMPORT_ACTIVITY: 'translation-import.activity',
   // Admin panel, to `scenes.read`: the same two for the scene prompt runs.

@@ -99,7 +99,7 @@ export async function translateVerse({ unit, langs, ask, maxTokens, groupBudget,
       result = await ask({
         system: systemPromptFor(book, parts),
         user: userPrompt(unit, group, problems, book, parts),
-        schema: answerSchema(group, parts),
+        schema: answerSchema(group, parts, book),
         maxTokens,
       });
     } catch (err) {
@@ -247,6 +247,7 @@ export function buildEntry(unit, t, lang, { provider = 'anthropic', model, effor
     cantoNumber: unit.cantoNumber,
     ...(content.transliteration ? { transliteration: t.transliteration.join('\n') } : {}),
     ...(content.wordMeanings ? { wordMeanings: t.wordMeanings } : {}),
+    ...(t.issues ? { issues: t.issues } : {}),
     commentaries,
     aiTranslation: summarise(partStamps, sourceHash(unit)),
   };

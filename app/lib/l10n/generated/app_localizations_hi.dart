@@ -473,6 +473,20 @@ class AppLocalizationsHi extends AppLocalizations {
       'पहले यह प्रार्थना करें, फिर गिनती शुरू करने के लिए घेरे पर टैप करें।';
 
   @override
+  String get chantPrayerHintAlong =>
+      'रिकॉर्डिंग इसी प्रार्थना से शुरू होती है। रिकॉर्डिंग चलाएँ और उसके साथ यह प्रार्थना करें।';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'पहले यह प्रार्थना करें, फिर रिकॉर्डिंग चलाएँ — रिकॉर्डिंग मंत्र से शुरू होती है।';
+
+  @override
+  String get chantAutoCountResting => 'रिकॉर्डिंग चलते समय विश्राम में';
+
+  @override
+  String get chantFinishRound => 'माला पूरी करें';
+
+  @override
   String get sadhanaAutoCountListening => 'सुन रहा है…';
 
   @override

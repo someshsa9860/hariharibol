@@ -460,7 +460,7 @@ describe('source and prompt', () => {
 
 describe('the instructions and the answer schema', () => {
   test('the instructions ask for Prabhupāda\'s words as they are, in native grammar and respect, and a 1-3 rating', () => {
-    assert.equal(PROMPT_VERSION, '7');
+    assert.equal(PROMPT_VERSION, '8');
     assert.match(SYSTEM_PROMPT, /PRABHUPĀDA'S WORDS, AS THEY ARE/);
     assert.match(SYSTEM_PROMPT, /NATIVE GRAMMAR, CLARITY AND RESPECT/);
     assert.match(SYSTEM_PROMPT, /CORRECTNESS RATING/);

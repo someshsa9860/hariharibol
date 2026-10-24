@@ -323,12 +323,12 @@ nothing that matters itself.
 
 | File | Job |
 |---|---|
-| `lib/translation.ts` | Types, the queries and mutations, and `useTranslationLive()`, which patches the query cache from socket events |
+| `lib/translation.ts` | Types, the queries and mutations (the import's are `useImportPreview`, `useImportTranslations`, `useImportRun`, `useCancelImportRun`), and `useTranslationLive()`, which patches the query cache from socket events: `translation.run` / `.activity` and the import's `translation-import.run` / `.activity` |
 | `lib/socket.ts` | The one shared websocket: `useSocketEvent`, `useSocketStatus`, `useOnReconnect` |
 | `routes/translations.tsx` | The page: health strip, **Runs** / **Output** tabs, in-progress cards, the language grid, history |
 | `components/translation-run-panel.tsx` | One run in full: progress, spend, activity feed, Resume / Cancel (`PAUSE` maps a pause reason to what to tell the admin) |
 | `components/translation-start-dialog.tsx` | New translation: language, chapters, verse limit, spending limit, a live estimate, and what blocks a start |
-| `components/translation-import-dialog.tsx` | Import into the database: language, a live preview of what it would do (nothing is written until the button), chapters to tick, whether to make the result visible, then what was done |
+| `components/translation-import-dialog.tsx` | Import into the database: language, a live preview of what it would do (nothing is written until the button), chapters to tick, whether to make the result visible; then it follows the queued import live (status, progress bar, activity feed, **Cancel import**) and shows what was done |
 | `components/translation-output.tsx` | The reader: language pills, an 18-chapter strip, a verse list with scores, and English beside the translation |
 | `components/translation-bits.tsx` | Small shared pieces: status and score badges, progress bar, durations, money |
 
@@ -336,8 +336,9 @@ nothing that matters itself.
   URL (`?tab=runs|output`, `?run=`, `?lang=`, `?chapter=`, `?verse=`), the rest on the server, so a refresh or a pasted
   link lands on the same view. The only local preference is side-by-side vs. translation only
   (`hhb_admin_translation_view`).
-- **The socket makes it live; polling makes it correct.** `translation.run` and `translation.activity` events patch the
-  query cache directly, and a reconnect invalidates it. Polling is every 30 s while the socket is live, otherwise every
+- **The socket makes it live; polling makes it correct.** `translation.run` and `translation.activity` events, and the
+  import's `translation-import.run` and `translation-import.activity`, patch the query cache directly, and a reconnect
+  invalidates it. Polling is every 30 s while the socket is live, otherwise every
   4 s with a run in progress and 15 s without — so a dead websocket (a proxy that does not forward `/ws`) costs
   latency, not correctness. The header says **Live**, **Connecting…** or **Updating every few seconds**.
 - **`lib/socket.ts` connects to `VITE_WS_URL`**, or when that is blank works the address out from `VITE_API_URL`:
@@ -354,15 +355,27 @@ nothing that matters itself.
   only those and the missing ones (the server decides — the page just shows `outdated` and `upToDate`). Everything current
   gives "already translated under version X. To translate it again, set a new TRANSLATION_VERSION", and Start is off.
 - **Import** (`translation.import`; the box to make translations visible also needs `verse.publish`) is on every card with
-  something saved, and not while a run for that language is live. The dialog is mounted only while open and starts from the
-  clicked language, so it never previews the wrong one. Changing the language or the visibility box previews again
-  (`POST /imports` with `dryRun`, never cached); chapters that have something to do arrive ticked. The button imports the ticked
-  chapters, the result replaces the preview, and the cards refresh to say what the database holds ("N in the database, M visible
-  to readers · K from an older version"). **A verse already there is replaced in place, its id kept**; new ones are hidden unless
-  the box is ticked. The dialog warns when the translations it replaces are visible to readers now, and that a verse edited
-  by hand on the Verses page is replaced by what is in storage.
-- Both were driven in a real headless Chrome against a copy of the API reading a fake Gita folder (cards, start dialog, preview,
-  import, import again, make visible, a read-only account). That script is not kept in the repo.
+  something saved, and not while a run or an import for that language is live. The dialog is mounted only while open and starts
+  from the clicked language, so it never previews the wrong one. Changing the language or the visibility box previews again
+  (`POST /imports` with `dryRun`, answered at once and never cached; it is the one part of an import that still runs in the
+  request); chapters that have something to do arrive ticked. **The button queues the import and the worker does it**: the
+  dialog switches to following that run (`useImportRun`: a status badge, a progress bar, the activity feed, the totals when it
+  ends), and **Cancel import** (after a `confirm()`) asks the worker to stop after the chapter in progress, so what was
+  imported stays. Closing the dialog does not stop it: the card shows "Importing into the database: n/m chapters" with a
+  progress bar and an **Open import** button, the Health strip and the book tab count it, and Import is not offered on that
+  card until it ends. A second import of the same language and book (another admin, another tab) gets a 409, and the dialog
+  offers "Open that import"; while another is live it also disables its own button with a note. When a run ends the cards
+  refresh to say what the database holds ("N in the database, M visible to readers · K from an older version"). **A verse
+  already there is replaced in place, its id kept**; new ones are hidden unless the box is ticked. The dialog warns when the
+  translations it replaces are visible to readers now, and that a verse edited by hand on the Verses page is replaced by what
+  is in storage.
+- **Only live imports are shown.** The page lists imports that are queued or running (`overview.activeImports`) and the one its
+  dialog is following; finished ones are not listed anywhere yet (`GET /imports/runs` is there for a history view).
+- The cards, the start dialog, the preview and the earlier, in-request import were driven in a real headless Chrome against a
+  copy of the API reading a fake Gita folder (preview, import, import again, make visible, a read-only account); that script
+  is not kept in the repo. **The queued import (following a run in the dialog, the progress block on the card, Cancel import,
+  "Open that import") type-checks (`tsc -b`) and builds (`vite build`) but was not driven in a browser**, and the panel has not
+  run against a live worker. The API side is walked by `npm run test:translation` (section 12).
 
 Two shared changes were made for this page and apply everywhere:
 

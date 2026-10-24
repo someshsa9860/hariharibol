@@ -15,6 +15,8 @@
 //     transliteration and the word-by-word meanings — the last two on the translation row, because in this
 //     language they are not the Roman text and English meanings that live on `Verse`. `translatedBy` and
 //     `version` record which run made the text.
+//   - **Marathi Bhagavatam files also link the six vikaras.** Unknown slugs are ignored; if a verse already
+//     has any `VerseIssue` links, all issue links from the file are skipped for that verse.
 //   - **Importing twice is harmless.** A row that already matches the file is counted `unchanged` and not
 //     written. `dryRun` does the same work and writes nothing, so the page can say what an import would do.
 //   - **Visibility is a decision, not a side effect.** A new row is hidden (`isPublished: false`) unless
@@ -33,12 +35,14 @@ import { translation } from '../config/translation.js';
 import { JOBS, queues } from '../jobs/index.js';
 import { EVENTS, toPermission } from './websocket.js';
 import { unprocessable } from '../utils/errors.js';
-import { changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
+import { LIVE_IMPORT_STATUSES, changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
+import { VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 
 const queue = queues['translation-import'];
+const IMPORTABLE_VIKARAS = new Set(VIKARA_SLUGS);
 
 /** The Gita's `Book.bookNumber`, as scripts/import-bg.js has it. Its storage folder (`BOOK`) has another spelling than its slug. */
 export const GITA_BOOK_NUMBER = 1;
@@ -70,11 +74,11 @@ async function workspaceStore() {
  *
  * → { language, publish, dryRun, totals, chapters: [one `emptyChapter` line each] }
  */
-export async function importLanguage({ language, book: bookId = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null, onChapter = null, shouldStop = null }) {
+export async function importLanguage({ language, book: bookSlug = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null, onChapter = null, shouldStop = null }) {
   // `folder` and `bookNumber` are for a test's throwaway book; a real one is named by `book`.
-  const named = folder == null && BOOKS[bookId] ? bookOf(bookId) : null;
+  const named = folder == null && BOOKS[bookSlug] ? bookOf(bookSlug) : null;
   chapters ??= named?.chapters ?? CHAPTERS;
-  folder ??= bookId;
+  folder ??= bookSlug;
   bookNumber ??= named?.bookNumber ?? GITA_BOOK_NUMBER;
   const [book, translator] = await Promise.all([
     prisma.book.findUnique({ where: { bookNumber }, select: { id: true } }),
@@ -101,7 +105,18 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
         line.found = false;
         continue;
       }
-      await importChapter({ file, line, versions, language, publish, dryRun, bookId: book.id, translatorId: translator.id, parts: chapterParts(number, named ? bookId : BOOK) });
+      await importChapter({
+        file,
+        line,
+        versions,
+        language,
+        publish,
+        dryRun,
+        bookId: book.id,
+        translatorId: translator.id,
+        parts: chapterParts(number, named ? bookSlug : BOOK),
+        importIssues: bookSlug === 'srimad-bhagavatam' && language === 'mr',
+      });
     } catch (err) {
       line.error = reasonOf(err);
     } finally {
@@ -113,7 +128,7 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
 }
 
 /** One chapter file → `line` (its counts), and the database unless `dryRun`. Throws if the database does. */
-async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId, parts }) {
+async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId, parts, importIssues }) {
   const entries = Array.isArray(file.verses) ? file.verses : [];
   const verses = await prisma.verse.findMany({
     where: { bookId, verseId: { in: entries.map((e) => e.verseId).filter(Boolean) } },
@@ -165,25 +180,92 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
     if (changed && row.isPublished) line.replacedVisible++;
   }
 
+  const issueCandidates = new Map();
+  if (importIssues) {
+    const issueSeen = new Set();
+    for (const entry of entries) {
+      if (!entry || typeof entry !== 'object' || !Array.isArray(entry.issues)) continue;
+      const verse = verseById.get(entry.verseId);
+      if (!verse || issueSeen.has(verse.id) || placeProblem(entry, verse, parts.chapter, parts.canto)) continue;
+      issueSeen.add(verse.id);
+      const slugs = [...new Set(entry.issues.filter((slug) => IMPORTABLE_VIKARAS.has(slug)))];
+      if (slugs.length) issueCandidates.set(verse.id, slugs);
+    }
+  }
+
+  const slugs = [...new Set([...issueCandidates.values()].flat())];
+  const issues = slugs.length
+    ? await prisma.issue.findMany({ where: { slug: { in: slugs } }, select: { id: true, slug: true } })
+    : [];
+  const issueIdBySlug = new Map(issues.map((issue) => [issue.slug, issue.id]));
+  const importableIssueCandidates = new Map(
+    [...issueCandidates]
+      .map(([verseId, candidateSlugs]) => [verseId, candidateSlugs.filter((slug) => issueIdBySlug.has(slug))])
+      .filter(([, candidateSlugs]) => candidateSlugs.length)
+  );
+
   line.updated = toUpdate.length;
   line.created = toCreate.length;
-  if (dryRun || (!toCreate.length && !toUpdate.length)) return;
+  if (dryRun && importableIssueCandidates.size) {
+    const existingLinks = await prisma.verseIssue.findMany({
+      where: { verseId: { in: [...importableIssueCandidates.keys()] } },
+      select: { verseId: true },
+    });
+    const alreadyLinked = new Set(existingLinks.map((link) => link.verseId));
+    line.issueVersesSkipped = [...importableIssueCandidates.keys()].filter((verseId) => alreadyLinked.has(verseId)).length;
+    line.issueLinksCreated = [...importableIssueCandidates]
+      .filter(([verseId]) => !alreadyLinked.has(verseId))
+      .reduce((count, [, candidateSlugs]) => count + candidateSlugs.length, 0);
+  }
+  if (dryRun || (!toCreate.length && !toUpdate.length && !importableIssueCandidates.size)) return;
 
-  let results;
+  let created;
   try {
-    results = await prisma.$transaction([
-      ...toUpdate.map((u) => prisma.verseTranslation.update({ where: { id: u.id }, data: u.data })),
-      ...(toCreate.length ? [prisma.verseTranslation.createMany({ data: toCreate, skipDuplicates: true })] : []),
-    ]);
+    created = await prisma.$transaction(async (tx) => {
+      if (importableIssueCandidates.size) {
+        const candidateVerseIds = [...importableIssueCandidates.keys()].sort();
+        await tx.$queryRaw`
+          SELECT "id"
+          FROM "Verse"
+          WHERE "id" IN (${Prisma.join(candidateVerseIds)})
+          ORDER BY "id"
+          FOR UPDATE
+        `;
+        const existingLinks = await tx.verseIssue.findMany({
+          where: { verseId: { in: candidateVerseIds } },
+          select: { verseId: true },
+        });
+        const alreadyLinked = new Set(existingLinks.map((link) => link.verseId));
+        line.issueVersesSkipped = candidateVerseIds.filter((verseId) => alreadyLinked.has(verseId)).length;
+        const linksToCreate = candidateVerseIds
+          .filter((verseId) => !alreadyLinked.has(verseId))
+          .flatMap((verseId) =>
+            importableIssueCandidates
+              .get(verseId)
+              .map((slug) => ({ verseId, issueId: issueIdBySlug.get(slug) }))
+          );
+        if (linksToCreate.length) {
+          const result = await tx.verseIssue.createMany({ data: linksToCreate, skipDuplicates: true });
+          line.issueLinksCreated = result.count;
+        }
+      }
+
+      await Promise.all(toUpdate.map((u) => tx.verseTranslation.update({ where: { id: u.id }, data: u.data })));
+      if (!toCreate.length) return 0;
+      const result = await tx.verseTranslation.createMany({ data: toCreate, skipDuplicates: true });
+      return result.count;
+    });
   } catch (err) {
     // The transaction rolled back, so none of this chapter was written and its line must not say it was.
     line.created = 0;
     line.updated = 0;
     line.replacedVisible = 0;
+    line.issueLinksCreated = 0;
+    line.issueVersesSkipped = 0;
     throw err;
   }
   // createMany says how many it really made; a row that appeared since the lookup is skipped, not doubled.
-  if (toCreate.length) line.created = results[results.length - 1].count;
+  if (toCreate.length) line.created = created;
 }
 
 /**
@@ -221,7 +303,7 @@ const feedKey = (runId) => `translation-import:feed:${runId}`;
 
 /** Sends an import run's whole state to every admin who may watch translations. */
 export function publishImportRun(row) {
-  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_RUN, presentImportRun(row));
+  toPermission('translation.read', EVENTS.TRANSLATION_IMPORT_RUN, presentImportRun(row));
 }
 
 /**
@@ -230,7 +312,7 @@ export function publishImportRun(row) {
  */
 export async function pushImportFeed(runId, line) {
   const entry = { at: new Date().toISOString(), ...line };
-  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_ACTIVITY, { runId, ...entry });
+  toPermission('translation.read', EVENTS.TRANSLATION_IMPORT_ACTIVITY, { runId, ...entry });
   try {
     await redis.multi().lpush(feedKey(runId), JSON.stringify(entry)).ltrim(feedKey(runId), 0, translation.feedLines - 1).expire(feedKey(runId), translation.feedDays * 86400).exec();
   } catch (err) {
@@ -269,7 +351,7 @@ export async function dropImportRunJob(run) {
 export async function reconcileImportRuns() {
   const youngerThan = new Date(Date.now() - 30_000);
   const rows = await prisma.translationImportRun.findMany({
-    where: { updatedAt: { lt: youngerThan }, status: { in: ['QUEUED', 'RUNNING'] } },
+    where: { updatedAt: { lt: youngerThan }, status: { in: LIVE_IMPORT_STATUSES } },
   });
   const requeued = [];
   for (const row of rows) {

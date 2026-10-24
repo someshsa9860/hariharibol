@@ -13,7 +13,25 @@ import { language } from './claude-translate-languages.js';
 import { PARTS, PART_LABELS } from './claude-translate-parts.js';
 import { BOOK, bookOf } from './claude-translate-source.js';
 
-export const PROMPT_VERSION = '7';
+export const PROMPT_VERSION = '8';
+
+// The Bhagavatam's vikara tags: asked for Marathi only, and read from the English meaning and purport, so
+// the answer does not depend on which language is being written.
+const ISSUES_BOOK = 'srimad-bhagavatam';
+export const ISSUES_LANG = 'mr';
+export const VIKARA_SLUGS = ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'];
+const ISSUES_INSTRUCTION = `Also return "issues": the names of the six vikaras (inner enemies) that this verse, through its meaning and purport above, helps the reader overcome — kama (lust, craving), krodha (anger), lobha (greed), moha (attachment, delusion), mada (pride), matsarya (envy). Use only these names, in lowercase exactly as written. Return an empty array when none applies; a verse may help with more than one.`;
+
+/** Whether this call asks the model for the vikara tags: Bhagavatam, Marathi among the languages, and the meaning or purport in the call. */
+export function issuesAsked(bookId, langCodes, parts) {
+  return bookId === ISSUES_BOOK && langCodes.includes(ISSUES_LANG) && has(parts, 'translation', 'purport');
+}
+
+/** One language's answer shape with the vikara tags added: an array of the six names, possibly empty. */
+function withIssues(perLanguage) {
+  const issues = { type: 'array', items: { type: 'string', enum: VIKARA_SLUGS }, uniqueItems: true };
+  return { ...perLanguage, properties: { ...perLanguage.properties, issues }, required: [...perLanguage.required, 'issues'] };
+}
 
 const has = (parts, ...names) => names.some((n) => parts.includes(n));
 const orderOf = (parts) => PARTS.filter((p) => parts.includes(p));
@@ -137,7 +155,7 @@ export function systemPromptFor(bookId = BOOK, parts = PARTS) {
 }
 
 /** JSON Schema for the answer: one object per requested language, holding only the requested parts. */
-export function answerSchema(langCodes, parts = PARTS) {
+export function answerSchema(langCodes, parts = PARTS, bookId = BOOK) {
   const wanted = orderOf(parts);
   const rating = { type: 'integer', enum: [1, 2, 3] };
   const shapes = {
@@ -172,7 +190,7 @@ export function answerSchema(langCodes, parts = PARTS) {
   };
   return {
     type: 'object',
-    properties: Object.fromEntries(langCodes.map((c) => [c, perLanguage])),
+    properties: Object.fromEntries(langCodes.map((c) => [c, issuesAsked(bookId, [c], parts) ? withIssues(perLanguage) : perLanguage])),
     required: [...langCodes],
     additionalProperties: false,
   };
@@ -191,6 +209,7 @@ export function userPrompt(unit, langCodes, problems = {}, bookId = BOOK, parts 
   const langs = langCodes.map((c) => `${c} (${language(c).name})`).join(', ');
   const wanted = orderOf(parts);
   const lines = [`${bookOf(bookId).title} ${unit.ref}`, '', `Write, for: ${langs}.`, `Parts: ${wanted.map((p) => PART_LABELS[p].toLowerCase()).join(', ')}.`];
+  if (issuesAsked(bookId, langCodes, parts)) lines.push('', ISSUES_INSTRUCTION);
 
   if (wanted.includes('translation')) lines.push('', '<translation>', unit.translation, '</translation>');
   if (wanted.includes('purport')) {
