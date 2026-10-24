@@ -1,7 +1,9 @@
 // The "Chant along" card on its own, and the counter screen around it: that the
 // card plays, seeks and recovers from a dead link; that it fits a narrow phone at
 // a large text size in both themes; and that a recording on the screen counts
-// the ring, rests the microphone features, and stops with the app.
+// the ring, rests the microphone features, and stops with the app. What playing
+// does to the prayer, and the early finish of a round, are in
+// chant_along_prayer_test.dart.
 
 import 'dart:async';
 
@@ -360,17 +362,36 @@ void main() {
       expect(find.byIcon(Icons.insights_rounded), findsOneWidget);
 
       // That was the round's last chant, and the mantra has no prayer of its own: the
-      // prayer that ends every round takes the card's place, and the recording is
-      // paused so that it does not count the prayer.
+      // prayer that ends every round takes the mantra's place. The recording stays on
+      // the screen, paused and back at 0:00, so that it does not count the prayer and
+      // playing it again is the next round.
       expect(find.text('Offering to Krishna'), findsOneWidget);
-      expect(find.byType(ChantAlongCard), findsNothing);
+      expect(find.byType(ChantAlongCard), findsOneWidget);
       expect(fake.pauses, greaterThan(0));
+      expect(fake.seeks.last, Duration.zero);
+      expect(tester.widget<Slider>(find.byType(Slider)).value, 0);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
       expect(wakelock.held, isFalse);
 
-      // The rest of the recording is silence: it plays on unheard and counts nothing.
-      fake.playTo(const Duration(seconds: 59, milliseconds: 900));
+      // Playing it again hands the prayer to the recording: it says it itself, up to
+      // 0:10, where the chanting starts, so no tap is needed and none is waited for.
+      await tapPlay(tester);
+      expect(fake.plays, 2);
+      expect(find.text('Offering to Krishna'), findsOneWidget);
+      fake.playTo(const Duration(seconds: 9, milliseconds: 900));
       await tester.pump();
-      expect(find.text('#5'), findsNothing);
+      expect(find.text('Offering to Krishna'), findsOneWidget);
+
+      fake.playTo(const Duration(seconds: 10));
+      await tester.pump();
+      expect(find.text('Offering to Krishna'), findsNothing);
+      expect(find.text('0/4'), findsOneWidget);
+
+      // And the next round is counted from there, the same way.
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      expect(find.text('1/4'), findsOneWidget);
+      expect(find.text('#5'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await leave(tester);

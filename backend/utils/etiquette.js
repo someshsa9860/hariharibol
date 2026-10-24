@@ -134,10 +134,12 @@ export const TRANSLATE_SCHEMA = {
           body: { type: 'string' },
         },
         required: ['slug', 'title', 'summary', 'body'],
+        additionalProperties: false,
       },
     },
   },
   required: ['items'],
+  additionalProperties: false,
 };
 
 export const estimateTokens = (...texts) => Math.ceil(texts.reduce((n, t) => n + String(t).length, 0) / 2);

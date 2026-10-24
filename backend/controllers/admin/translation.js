@@ -13,8 +13,14 @@
 //   - A run is for one version (TRANSLATION_VERSION, copied onto the row when it starts). A verse already
 //     translated under that version is never translated again, so `start` refuses a run that would have
 //     nothing to do; a verse Claude made under another version is outdated and is translated again.
-//   - Import copies what is in storage into the database (services/translation-import.js). It is
-//     quick enough to answer the request, so it is not a job; a lock keeps two of them from overlapping.
+//   - Import copies what is in storage into the database (services/translation-import.js). A real import
+//     reads and writes a chapter at a time for as long as the book is long, so it is a job like a run: a
+//     `TranslationImportRun` row that the worker works (jobs/processors/translation-import.js), never the
+//     request. As with a run, one live import per language and book: a short Redis lock guards the
+//     creation of the row and the database answers "is there one already?". Only a `dryRun` preview, which
+//     writes nothing, still answers the request.
+//   - Cancel on a RUNNING import sets `cancelRequested` and the worker stops after the chapter in progress;
+//     chapters already imported stay imported (each is its own transaction).
 
 import { prisma } from '../../config/database.js';
 import { redis } from '../../config/redis.js';
@@ -23,11 +29,14 @@ import { translation } from '../../config/translation.js';
 import * as audit from '../../services/audit.js';
 import * as service from '../../services/translation.js';
 import * as importer from '../../services/translation-import.js';
+import * as vikaras from '../../services/vikara-import.js';
 import { ACTIVE_STATUSES, microsOf, presentRun } from '../../utils/translation-run.js';
+import { IMPORT_KINDS, LIVE_IMPORT_STATUSES, presentImportRun } from '../../utils/translation-import.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
 import { badRequest, conflict, forbidden, notFound, unprocessable } from '../../utils/errors.js';
 import { BOOK, bookOf } from '../../scripts/lib/claude-translate-source.js';
+import { ISSUES_BOOK } from '../../scripts/lib/claude-translate-prompt.js';
 
 const chaptersOf = (book) => bookOf(book).chapters;
 
@@ -43,15 +52,17 @@ function pickChapters(book, asked) {
 const START_LOCK_SECONDS = 20;
 const lockKey = (book, language) => `translation:start:${book}:${language}`;
 const importLockKey = (book, language) => `translation:import:${book}:${language}`;
+const vikaraLockKey = `translation:import-vikara:${ISSUES_BOOK}`;
 
 const forget = (entity) => ({ id: entity.id, status: entity.status, language: entity.language, book: entity.book });
 
 /** GET /api/admin/translations/overview — what the page needs before anything is chosen. */
 export const overview = async (req, res) => {
-  const [storage, workerOnline, active] = await Promise.all([
+  const [storage, workerOnline, active, activeImports] = await Promise.all([
     service.storageStatus(),
     service.workerOnline(),
     prisma.translationRun.findMany({ where: { status: { in: ACTIVE_STATUSES } }, orderBy: { createdAt: 'asc' } }),
+    prisma.translationImportRun.findMany({ where: { status: { in: LIVE_IMPORT_STATUSES } }, orderBy: { createdAt: 'asc' } }),
   ]);
 
   let version = null;
@@ -78,6 +89,7 @@ export const overview = async (req, res) => {
     books: service.books(),
     chapters: chaptersOf(BOOK),
     active: active.map((row) => presentRun(row)),
+    activeImports: activeImports.map((row) => presentImportRun(row)),
   });
 };
 
@@ -363,36 +375,185 @@ export const imports = async (req, res) => {
   return ok(res, await importer.importStatus({ version, book: req.valid.query?.book ?? BOOK }));
 };
 
-/** POST /api/admin/translations/imports — copy a language's translated chapters from storage into the database. */
+/**
+ * POST /api/admin/translations/imports — copy a language's translated chapters from storage into the database.
+ * A `dryRun` is answered here (it only reads); a real import is queued as a `TranslationImportRun` and the
+ * worker does it.
+ */
 export const importTranslations = async (req, res) => {
   const { language, chapters, publish, dryRun } = req.valid.body;
   const book = req.valid.body.book ?? BOOK;
   if (publish && !req.auth.permissions.has('verse.publish')) {
     throw forbidden('Making translations visible to readers needs the permission: verse.publish');
   }
+  // A chapter that is not in the book is a 400 before anything is taken or written.
+  const picked = pickChapters(book, chapters);
 
-  const work = () =>
-    importer.importLanguage({ language, book, chapters: pickChapters(book, chapters), publish, dryRun }).catch((err) => {
-      throw err.expected ? err : unprocessable(`Could not import the translations: ${err.message}`);
+  if (dryRun) {
+    const preview = await importer.importLanguage({ language, book, chapters: picked, publish, dryRun }).catch((err) => {
+      throw err.expected ? err : unprocessable(`Could not preview the import: ${err.message}`);
     });
+    return ok(res, preview);
+  }
 
-  // A preview only reads, so it neither waits for an import nor holds one up.
-  if (dryRun) return ok(res, await work());
+  return queueImport(req, res, {
+    lock: importLockKey(book, language),
+    kind: IMPORT_KINDS.TRANSLATION,
+    what: 'An import of this language and book',
+    data: { language, book, publish, chapters: picked },
+    audit: { action: 'translation.import', after: { language, book, publish, chapters: chapters ?? 'all' } },
+  });
+};
 
-  const gotLock = await redis.set(importLockKey(book, language), req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
-  if (!gotLock) throw conflict('An import of this language and book is already running. Wait for it to finish.');
+/**
+ * Puts one import on the queue: the short lock, the one-live-import rule, the run row, its job and the audit line.
+ * Shared by the translation import and the vikara import, which differ in `kind` and in what the row says it covers.
+ */
+async function queueImport(req, res, { lock, kind, what, data, audit: auditLine }) {
+  const gotLock = await redis.set(lock, req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
+  if (!gotLock) throw conflict(`${what} is being started. Try again in a moment.`);
 
   try {
-    const result = await work();
-    const { versions, ...counts } = result.totals;
-    await audit.record(req, {
-      action: 'translation.import',
-      entityType: 'TranslationImport',
-      entityId: language,
-      after: { language, book, publish, chapters: chapters ?? 'all', versions, ...counts },
+    const existing = await prisma.translationImportRun.findFirst({
+      where: { kind, status: { in: LIVE_IMPORT_STATUSES }, ...(kind === IMPORT_KINDS.TRANSLATION ? { language: data.language, book: data.book } : {}) },
+      select: { id: true, status: true },
     });
-    return ok(res, result);
+    if (existing) {
+      throw conflict(`There is already a ${existing.status.toLowerCase()} ${what.replace(/^An? /, '')}. Wait for it to finish or cancel it.`, { runId: existing.id });
+    }
+
+    const row = await prisma.translationImportRun.create({
+      data: {
+        kind,
+        ...data,
+        totalChapters: data.chapters.length,
+        status: 'QUEUED',
+        statusMessage: 'Waiting for the worker.',
+        requestedById: req.auth.user.id,
+        requestedByName: req.auth.user.name || req.auth.user.email || null,
+      },
+    });
+
+    // The row names the job that may work it; a job it does not name does nothing.
+    let current = row;
+    try {
+      const jobId = importer.newImportJobId(row.id);
+      current = await prisma.translationImportRun.update({ where: { id: row.id }, data: { jobId } });
+      // Before the job exists, so a worker that picks it up at once cannot write "Started." or announce RUNNING ahead of them.
+      await importer.pushImportFeed(row.id, { kind: 'status', level: 'info', text: `Queued by ${row.requestedByName || 'an admin'}.` });
+      importer.publishImportRun(current);
+      await importer.addImportRunJob(row.id, jobId);
+    } catch (err) {
+      logger.error({ err: err.message, runId: row.id, kind }, 'could not queue an import');
+      current = await prisma.translationImportRun.update({
+        where: { id: row.id },
+        data: { status: 'FAILED', finishedAt: new Date(), statusMessage: `Could not be queued: ${err.message}` },
+      });
+      importer.publishImportRun(current);
+      throw unprocessable('The import could not be put on the queue. Is Redis reachable?');
+    }
+
+    // What was asked for; what it came to is in the run's own result once the worker has finished.
+    await audit.record(req, { action: auditLine.action, entityType: 'TranslationImportRun', entityId: row.id, after: auditLine.after });
+
+    return created(res, presentImportRun(current));
   } finally {
-    await redis.del(importLockKey(book, language)).catch(() => {});
+    await redis.del(lock).catch(() => {});
   }
+}
+
+/** GET /api/admin/translations/imports/vikaras — what the database holds of the Bhagavatam's vikara tags. */
+export const vikaraStatus = async (req, res) => ok(res, await vikaras.vikaraStatus());
+
+/**
+ * POST /api/admin/translations/imports/vikaras — link the Bhagavatam's verses to the vikaras in their tag files
+ * (issues/json/srimad-bhagavatam/…). A `dryRun` is answered here (it only reads); a real import is queued as a
+ * `TranslationImportRun` of kind VIKARA and the worker does it. It has nothing to do with importing Marathi.
+ */
+export const importVikaras = async (req, res) => {
+  const { chapters, dryRun } = req.valid.body;
+  const picked = pickChapters(ISSUES_BOOK, chapters);
+
+  if (dryRun) {
+    const preview = await vikaras.importVikaras({ chapters: picked, dryRun }).catch((err) => {
+      throw err.expected ? err : unprocessable(`Could not preview the import: ${err.message}`);
+    });
+    return ok(res, preview);
+  }
+
+  return queueImport(req, res, {
+    lock: vikaraLockKey,
+    kind: IMPORT_KINDS.VIKARA,
+    what: 'A vikara import',
+    // A tag file is in one language, English; the row's `language` says so.
+    data: { language: 'en', book: ISSUES_BOOK, publish: false, chapters: picked },
+    audit: { action: 'translation.vikara-import', after: { book: ISSUES_BOOK, chapters: chapters ?? 'all' } },
+  });
+};
+
+/** GET /api/admin/translations/imports/runs */
+export const importRuns = async (req, res) => {
+  const { status, language, book, kind } = req.valid.query;
+  const { skip, take, page, pageSize } = readPage(req.valid.query, 20);
+
+  const where = { ...(status && { status }), ...(language && { language }), ...(book && { book }), ...(kind && { kind }) };
+  const [rows, total] = await Promise.all([
+    prisma.translationImportRun.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
+    prisma.translationImportRun.count({ where }),
+  ]);
+
+  const now = new Date();
+  return paginated(res, rows.map((row) => presentImportRun(row, now)), { page, pageSize, total });
+};
+
+/** GET /api/admin/translations/imports/runs/:id — one import and its activity feed. */
+export const importRun = async (req, res) => {
+  const row = await prisma.translationImportRun.findUnique({ where: { id: req.valid.params.id } });
+  if (!row) throw notFound('Translation import');
+
+  const feed = await importer.readImportFeed(row.id, 100);
+  return ok(res, { run: presentImportRun(row), feed });
+};
+
+/** POST /api/admin/translations/imports/runs/:id/cancel */
+export const cancelImportRun = async (req, res) => {
+  const row = await prisma.translationImportRun.findUnique({ where: { id: req.valid.params.id } });
+  if (!row) throw notFound('Translation import');
+  if (!LIVE_IMPORT_STATUSES.includes(row.status)) {
+    throw conflict(`This import is already ${row.status.toLowerCase()}.`);
+  }
+
+  const who = req.auth.user.name || req.auth.user.email || 'an admin';
+  // Same as cancelling a run: a working import is asked to stop and does so after its chapter; one that is
+  // queued, or RUNNING with no heartbeat because its worker is gone, has nobody to ask.
+  const askOnly = row.status === 'RUNNING' && !presentImportRun(row).stalled;
+
+  let next;
+  if (askOnly) {
+    next = await prisma.translationImportRun.update({
+      where: { id: row.id },
+      data: { cancelRequested: true, statusMessage: 'Cancelling after the chapter in progress…' },
+    });
+  } else {
+    // Only while it is still in the state seen above, so a worker that just claimed it is not overruled.
+    const done = await prisma.translationImportRun.updateMany({
+      where: { id: row.id, status: row.status, jobId: row.jobId },
+      data: { status: 'CANCELLED', cancelRequested: false, finishedAt: new Date(), currentChapter: null, statusMessage: `Cancelled by ${who}.` },
+    });
+    if (done.count === 0) throw conflict('The import changed while it was being cancelled. Look again.');
+    await importer.dropImportRunJob(row);
+    next = await prisma.translationImportRun.findUnique({ where: { id: row.id } });
+  }
+
+  await audit.record(req, {
+    action: 'translation.import.cancel',
+    entityType: 'TranslationImportRun',
+    entityId: row.id,
+    before: forget(row),
+    after: { status: next.status, cancelRequested: next.cancelRequested },
+  });
+  importer.pushImportFeed(row.id, { kind: 'status', level: 'warn', text: `Cancel requested by ${who}.` });
+  importer.publishImportRun(next);
+
+  return ok(res, presentImportRun(next));
 };

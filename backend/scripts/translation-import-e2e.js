@@ -2,8 +2,11 @@
 //
 //   npm run test:translation-import
 //
-// It needs the database and the seeded `prabhupada` translator, nothing else — no API, no worker, no Redis and
-// no AWS. It builds its own little book (three chapters, twelve verses, one of them a compound 3–4) with a decoy
+// It needs the database and the seeded `prabhupada` translator, nothing else — no API, no worker and no AWS.
+// (The service module opens its Redis connections when it is imported, for the queue and the live events of a
+// queued run; this script only calls `importLanguage`, which uses none of it. The queued run itself — the
+// row, the job, the worker, cancel — is walked in `npm run test:translation`, section 12.)
+// It builds its own little book (three chapters, twelve verses, one of them a compound 3–4) with a decoy
 // book beside it, and a throwaway folder of chapter files laid out like the bucket
 // (json/<book>/<language>/ch-N.json), so it does not depend on what has been imported, never touches the
 // real Gita or the real bucket, and deletes all of it again.
@@ -16,7 +19,9 @@
 //     is reported instead of overwriting another verse, and a verse of another book is never reached;
 //   - nothing else moves: other translators, other languages, the English, the verse's own columns;
 //   - visibility is a decision (hidden unless `publish`, never lowered), a dry run writes nothing, importing
-//     twice changes nothing, and a chapter that cannot be written changes nothing while the others carry on.
+//     twice changes nothing, and a chapter that cannot be written changes nothing while the others carry on;
+//   - a language import never touches the vikara links (`VerseIssue`), even for an old Marathi file that still has
+//     `issues` in it; those come only from the separate tag files, through `importVikaras` (sections 12 and 13).
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -25,8 +30,9 @@ import { dirname, join } from 'node:path';
 import { prisma } from '../config/database.js';
 import env from '../config/env.js';
 import { importLanguage, importStatus } from '../services/translation-import.js';
-import { buildEntry } from './lib/claude-translate-run.js';
-import { dirStore, langChapterKey } from './lib/claude-translate-store.js';
+import { importVikaras } from '../services/vikara-import.js';
+import { buildEntry, issuesEntry } from './lib/claude-translate-run.js';
+import { dirStore, issuesChapterKey, langChapterKey } from './lib/claude-translate-store.js';
 
 const STAMP = Date.now();
 const BOOK_NUMBER = 9_000_000 + (STAMP % 900_000);
@@ -82,9 +88,19 @@ function writeChapter(language, chapter, verses) {
   mkdirSync(dirname(pathOf(language, chapter)), { recursive: true });
   writeFileSync(pathOf(language, chapter), JSON.stringify({ meta: { language, chapterNumber: chapter }, verses }, null, 2));
 }
+const tagPathOf = (chapter) => join(dir, issuesChapterKey(chapter, FOLDER));
+// A tag file as a Marathi run writes it: one language ("en"), each verse's place and Sanskrit, and its vikaras.
+function writeTags(chapter, tags) {
+  mkdirSync(dirname(tagPathOf(chapter)), { recursive: true });
+  const verses = Object.entries(tags).map(([verse, issues]) =>
+    issuesEntry({ verseId: vid(chapter, Number(verse)), bookNumber: BOOK_NUMBER, cantoNumber: null, chapterNumber: chapter, verseNumber: Number(verse), verseNumberEnd: null, sanskrit: `संस्कृत ${vid(chapter, Number(verse))}` }, issues)
+  );
+  writeFileSync(tagPathOf(chapter), JSON.stringify({ meta: { bookNumber: BOOK_NUMBER, chapterNumber: chapter, language: 'en' }, verses }, null, 2));
+}
 const readChapter = (language, chapter) => JSON.parse(readFileSync(pathOf(language, chapter), 'utf8')).verses;
 const swap = (language, chapter, verse, next) => writeChapter(language, chapter, readChapter(language, chapter).map((e) => (e.verseNumber === verse ? next : e)));
 
+const runTags = (over = {}) => importVikaras({ chapters: [1, 2, 3, 4], folder: FOLDER, bookNumber: BOOK_NUMBER, store, ...over });
 const run = (over = {}) => importLanguage({ language: 'hi', chapters: [1, 2, 3, 4], folder: FOLDER, bookNumber: BOOK_NUMBER, store, ...over });
 const lineOf = (result, chapter) => result.chapters.find((c) => c.chapter === chapter);
 const show = (value) => JSON.stringify(value);
@@ -117,6 +133,12 @@ async function main() {
     console.error('\nNeed the translator "prabhupada". Run `npm run seed` first.\n');
     process.exit(1);
   }
+  const seededIssues = await prisma.issue.findMany({
+    where: { slug: { in: ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'] } },
+    select: { id: true, slug: true },
+  });
+  const issueBySlug = new Map(seededIssues.map((issue) => [issue.slug, issue]));
+  if (issueBySlug.size !== 6) throw new Error('Need the six seeded vikaras (kama, krodha, lobha, moha, mada, matsarya). Run `npm run seed` first.');
 
   /** Prabhupāda's TRANSLATION rows in `language` for the book, by verse id. */
   const rowsOf = async (language = 'hi', translatorId = prabhupada.id) => {
@@ -125,6 +147,15 @@ async function main() {
       include: { verse: { select: { verseId: true } } },
     });
     return new Map(rows.map((r) => [r.verse.verseId, r]));
+  };
+  const issueSlugsOf = async (verseId) => {
+    const verse = await prisma.verse.findUnique({ where: { verseId }, select: { id: true } });
+    if (!verse) return [];
+    const links = await prisma.verseIssue.findMany({
+      where: { verseId: verse.id },
+      include: { issue: { select: { slug: true } } },
+    });
+    return links.map((link) => link.issue.slug).sort();
   };
 
   let book = null;
@@ -389,6 +420,73 @@ async function main() {
     rows = await rowsOf();
     check('every row born in step 1 still has the id and createdAt it was born with', sameRows(born, rows));
     check('and the book still holds one row per verse that was ever imported: eight', rows.size === 8, `${rows.size}`);
+
+    /* -- issues -------------------------------------------------------------------------------- */
+    section('12. A language import never makes vikara links, even from an old Marathi file that has "issues" in it');
+    const prelinkedVerse = await prisma.verse.findUnique({ where: { verseId: vid(1, 1) }, select: { id: true } });
+    await prisma.verseIssue.create({ data: { verseId: prelinkedVerse.id, issueId: issueBySlug.get('krodha').id, weight: 17 } });
+    // An entry as the pipeline wrote it before the tags moved to their own file: `issues` beside the translation.
+    const withIssues = (verse, mark, issues, language = 'mr') => ({ ...entry(1, verse, mark, { language }), issues });
+    writeChapter('mr', 1, [withIssues(1, 'mr1', ['kama', 'krodha']), withIssues(2, 'mr2', ['lobha']), withIssues(3, 'mr3', ['unknown'])]);
+    const oldMarathi = await run({ language: 'mr', chapters: [1] });
+    check('the old-shaped Marathi file imports without a chapter error', !lineOf(oldMarathi, 1).error && oldMarathi.totals.inStorage === 3 && oldMarathi.totals.failedChapters === 0, lineOf(oldMarathi, 1).error ?? show(oldMarathi.totals));
+    check('and the report has no issue counters at all', !('issueLinksCreated' in oldMarathi.totals) && !('issueVersesSkipped' in oldMarathi.totals), show(oldMarathi.totals));
+    check('the verse that already had a link keeps exactly that link; the others got none', show(await issueSlugsOf(vid(1, 1))) === show(['krodha']) && (await issueSlugsOf(vid(1, 2))).length === 0 && (await issueSlugsOf(vid(1, 3))).length === 0);
+    writeChapter('hi', 1, [withIssues(3, 'hi3', ['mada'], 'hi')]);
+    await run({ language: 'hi', chapters: [1] });
+    check('a Hindi import makes none either', (await issueSlugsOf(vid(1, 3))).length === 0);
+
+    writeChapter('mr', 3, [withIssues(1, 'mr-good', ['mada']), { ...entry(3, 2, 'mr-bad', { language: 'mr', over: { translation: 'अनुवाद \u0000 NUL' } }), issues: ['kama'] }]);
+    const failedMarathi = await run({ language: 'mr', chapters: [3] });
+    check('a Marathi chapter the database refuses still reports its error', /^The database refused it:/.test(lineOf(failedMarathi, 3).error ?? ''), lineOf(failedMarathi, 3).error ?? '');
+    check('and made no link and no row', (await issueSlugsOf(vid(3, 1))).length === 0 && (await issueSlugsOf(vid(3, 2))).length === 0 && !(await rowsOf('mr')).has(vid(3, 1)));
+
+    /* -- 13 ------------------------------------------------------------------------------------ */
+    section('13. The vikara import — tags come only from the separate tag files, and only onto verses with none');
+    const linksOf = async () => ({ 1: await issueSlugsOf(vid(1, 1)), 2: await issueSlugsOf(vid(1, 2)), 3: await issueSlugsOf(vid(1, 3)), 4: await issueSlugsOf(vid(1, 4)), 5: await issueSlugsOf(vid(1, 5)) });
+    const linkRows = () => prisma.verseIssue.count({ where: { verse: { bookNumber: BOOK_NUMBER } } });
+    // Verse 1 already has krodha (step 12); 2 gets two, 3 has none to give, 4 names a made-up vikara and a real one, 5 only a made-up one.
+    writeTags(1, { 1: ['kama', 'moha'], 2: ['lobha', 'matsarya'], 3: [], 4: ['unknown', 'mada'], 5: ['unknown'] });
+    const noLinks = await linkRows();
+
+    const preview = await runTags({ dryRun: true });
+    check('a preview reads the one tag file and the other chapters have none', preview.dryRun === true && preview.totals.chapters === 1 && lineOf(preview, 2).found === false, show(preview.totals));
+    check('and counts what it would do: 2 verses linked (3 links), 1 already linked, 2 with no usable tag (an empty list, a made-up name), 2 unknown names', preview.totals.verses === 2 && preview.totals.links === 3 && preview.totals.tagged === 3 && preview.totals.alreadyLinked === 1 && preview.totals.noTags === 2 && preview.totals.ignored === 2, show(preview.totals));
+    check('and writes nothing', (await linkRows()) === noLinks);
+
+    const imported = await runTags();
+    check('the import links the verses that had none: lobha + matsarya on verse 2, mada on verse 4', show((await linksOf())[2]) === show(['lobha', 'matsarya']) && show((await linksOf())[4]) === show(['mada']), show(await linksOf()));
+    check('the verse that already had a link keeps exactly that one', show((await linksOf())[1]) === show(['krodha']));
+    check('a verse with an empty list and one with only a made-up vikara get nothing', (await linksOf())[3].length === 0 && (await linksOf())[5].length === 0);
+    check('the report agrees with the preview', imported.totals.verses === 2 && imported.totals.links === 3 && imported.totals.alreadyLinked === 1 && imported.totals.failedChapters === 0, show(imported.totals));
+    const afterFirst = await linkRows();
+
+    const again = await runTags();
+    check('a second import changes nothing', (await linkRows()) === afterFirst && again.totals.links === 0 && again.totals.verses === 0, show(again.totals));
+
+    // A tag file that disagrees with the database is reported and leaves the verse alone.
+    const tagFile = JSON.parse(readFileSync(tagPathOf(1), 'utf8'));
+    tagFile.verses.push({ ...tagFile.verses[0], verseId: vid(1, 6), verseNumber: 7, issues: ['kama'] }); // verse 6's id with verse 7's number
+    tagFile.verses.push({ ...tagFile.verses[0], verseId: vid(1, 99), verseNumber: 99, issues: ['kama'] }); // a verse the book does not have
+    writeFileSync(tagPathOf(1), JSON.stringify(tagFile));
+    const odd = await runTags();
+    check('a verse whose number disagrees is a conflict and one the book lacks is missing; neither is linked', lineOf(odd, 1).conflicts.length === 1 && lineOf(odd, 1).missing.length === 1 && (await issueSlugsOf(vid(1, 6))).length === 0, show(lineOf(odd, 1)));
+
+    // A chapter with a bad file does not stop the others.
+    writeTags(2, { 1: ['mada'], 2: ['kama'] });
+    mkdirSync(dirname(tagPathOf(3)), { recursive: true });
+    writeFileSync(tagPathOf(3), '{ not json');
+    const mixed = await runTags();
+    check('chapter 3’s broken file is reported as its error; chapter 2 still arrives', Boolean(lineOf(mixed, 3).error) && !lineOf(mixed, 2).error && show(await issueSlugsOf(vid(2, 1))) === show(['mada']), lineOf(mixed, 3).error ?? '');
+    check('and the run says one chapter failed', mixed.totals.failedChapters === 1, show(mixed.totals));
+
+    // The worker's two hooks: a cancelled run reads nothing more, and each chapter is announced as it is done.
+    const stopped = await runTags({ chapters: [1, 2], shouldStop: () => true });
+    check('a run told to stop before the first chapter reads none', stopped.chapters.length === 0);
+    const heard = [];
+    await runTags({ chapters: [1, 2], onChapter: (line, done, total) => heard.push([line.chapter, done, total]) });
+    check('the worker hears about each chapter with its place in the run', show(heard) === show([[1, 1, 2], [2, 2, 2]]), show(heard));
+    check('the translation rows and the verses were never touched by the vikara import', show(await readVerses()) === show(versesBefore));
   } finally {
     // Cascades take the chapters, verses and their translations with them.
     if (book) await prisma.book.delete({ where: { id: book.id } });

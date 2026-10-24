@@ -64,6 +64,7 @@ export const SCENES_SCHEMA = {
         type: 'object',
         properties: { name: { type: 'string' }, look: { type: 'string', description: 'English: age, build, clothes, ornaments, colour' } },
         required: ['name', 'look'],
+        additionalProperties: false,
       },
     },
     scenes: {
@@ -84,16 +85,19 @@ export const SCENES_SCHEMA = {
               type: 'object',
               properties: { speaker: { type: 'string' }, line: { type: 'string', description: 'Hindi' } },
               required: ['speaker', 'line'],
+              additionalProperties: false,
             },
           },
           sound: { type: 'string', description: 'English: music and ambient sound' },
           durationSec: { type: 'integer' },
         },
         required: ['title', 'verseRefs', 'setting', 'visualPrompt', 'camera', 'mood', 'narration', 'dialogues', 'sound', 'durationSec'],
+        additionalProperties: false,
       },
     },
   },
   required: ['chapterTitle', 'summary', 'style', 'characters', 'scenes'],
+  additionalProperties: false,
 };
 
 const text = (value) => (typeof value === 'string' ? value.trim() : '');

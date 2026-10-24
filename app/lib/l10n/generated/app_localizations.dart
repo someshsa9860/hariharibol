@@ -838,6 +838,30 @@ abstract class AppLocalizations {
   /// **'Chant this prayer first, then tap the ring to begin counting.'**
   String get chantPrayerHint;
 
+  /// Hint under the opening prayer on the chant counter when the mantra's recording begins with that prayer: the reader presses play and chants it with the recording, so there is no need to tap the ring for the prayer. The play button is an icon.
+  ///
+  /// In en, this message translates to:
+  /// **'The recording begins with this prayer. Press play and chant it with the recording.'**
+  String get chantPrayerHintAlong;
+
+  /// Hint under the opening prayer on the chant counter when the mantra's recording starts at the mantra itself (start time 0): the reader says the prayer, then presses play. The play button is an icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant this prayer, then press play — the recording starts with the mantra.'**
+  String get chantPrayerHintAlongNoPrayer;
+
+  /// Status line under the auto-count switch while the mantra's recording is playing. The switch is off and cannot be changed until the recording is paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting while the recording plays'**
+  String get chantAutoCountResting;
+
+  /// Button under the chant ring that appears once most of a round is counted (past 90 of 108 beads). It ends the round now, for a reader who chanted a little ahead of the ring, and starts a new one. A round is a Mala.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish round'**
+  String get chantFinishRound;
+
   /// No description provided for @sadhanaAutoCountListening.
   ///
   /// In en, this message translates to:
@@ -3844,7 +3868,7 @@ abstract class AppLocalizations {
   /// **'Translations and commentaries'**
   String get sourcesTextsHeading;
 
-  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin.
+  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Always shown on this page, even while AppConfig.showAuthorName keeps his name off the verse and other surfaces. Keep the copyright holder's name in Latin.
   ///
   /// In en, this message translates to:
   /// **'The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.'**

@@ -476,6 +476,20 @@ class AppLocalizationsAs extends AppLocalizations {
       'প্ৰথমে এই প্ৰাৰ্থনাটো কৰক, তাৰ পিছত গণনা আৰম্ভ কৰিবলৈ বৃত্তটোত টেপ কৰক।';
 
   @override
+  String get chantPrayerHintAlong =>
+      'ৰেকৰ্ডিং এই প্ৰাৰ্থনাৰ পৰাই আৰম্ভ হয়। ৰেকৰ্ডিং প্লে কৰক আৰু ইয়াৰ সৈতে এই প্ৰাৰ্থনা কৰক।';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'প্ৰথমে এই প্ৰাৰ্থনা কৰক, তাৰ পিছত ৰেকৰ্ডিং প্লে কৰক — ৰেকৰ্ডিং মন্ত্ৰৰ পৰা আৰম্ভ হয়।';
+
+  @override
+  String get chantAutoCountResting => 'ৰেকৰ্ডিং চলি থকাৰ সময়ত বিশ্ৰামত';
+
+  @override
+  String get chantFinishRound => 'মালা শেষ কৰক';
+
+  @override
   String get sadhanaAutoCountListening => 'শুনি আছে…';
 
   @override

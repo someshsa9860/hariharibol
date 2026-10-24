@@ -9,6 +9,11 @@
 
 import { language } from './claude-translate-languages.js';
 
+// Defined here, not in claude-translate-prompt.js, for the same reason as PARTS below: prompt.js imports
+// parts.js, which imports this file, so importing prompt.js from here is a cycle — whoever loads parts.js
+// first crashes at load with "Cannot access 'PARTS' before initialization". prompt.js re-exports it.
+export const VIKARA_SLUGS = ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'];
+
 const MIN_SCRIPT_RATIO = 0.85;
 const MIN_WORDS_MEASURED = 15;
 const LONG_TEXT_WORDS = 150;
@@ -317,6 +322,9 @@ export function assessLanguage(source, answer, langCode, parts = PARTS) {
     add('wordMeanings', r.findings);
     if (r.list?.length) value.wordMeanings = r.list;
   }
+
+  // The vikara tags, when the call asked for them: only the six names, each once.
+  if (Array.isArray(answer.issues)) value.issues = [...new Set(answer.issues.filter((s) => VIKARA_SLUGS.includes(s)))];
 
   const missing = [];
   if (has.transliteration && isAbsent(answer.transliteration)) missing.push('transliteration');

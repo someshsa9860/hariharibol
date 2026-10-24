@@ -15,6 +15,15 @@ final ChantMalaTiming timing = ChantMalaTiming(
   chants: 108,
 );
 
+/// A file of 438 s whose prayer takes 5 s and whose chanting is over at 430 s:
+/// the 425 s between them are shared by 108 chants, 425/108 s each, and the last
+/// 8 s of the file count nothing.
+final ChantMalaTiming trimmed = ChantMalaTiming(
+  start: const Duration(seconds: 5),
+  end: const Duration(seconds: 430),
+  chants: 108,
+);
+
 const Duration step = Duration(seconds: 2);
 const Duration tick = Duration(milliseconds: 100);
 
@@ -52,6 +61,19 @@ void main() {
       expect(timing.chantsDoneAt(const Duration(minutes: 20)), 108);
     });
 
+    test('a chant is the stretch between start and end over the chants, not the whole file', () {
+      expect(trimmed.perChant.inMicroseconds, closeTo(425 / 108 * 1e6, 1));
+      // The first chant ends 425/108 s (about 3.94 s) after the prayer, at about 8.94 s.
+      expect(trimmed.chantsDoneAt(const Duration(seconds: 5)), 0);
+      expect(trimmed.chantsDoneAt(const Duration(milliseconds: 8934)), 0);
+      expect(trimmed.chantsDoneAt(const Duration(milliseconds: 8936)), 1);
+      // Halfway through the stretch is halfway through the count.
+      expect(trimmed.chantsDoneAt(const Duration(milliseconds: 217500)), 54);
+      expect(trimmed.chantsDoneAt(const Duration(milliseconds: 429999)), 107);
+      expect(trimmed.chantsDoneAt(const Duration(seconds: 430)), 108);
+      expect(trimmed.chantsDoneAt(const Duration(seconds: 438)), 108);
+    });
+
     test('a stretch that does not divide evenly never rounds a chant short', () {
       final thirds = ChantMalaTiming(
         start: Duration.zero,
@@ -70,6 +92,15 @@ void main() {
     test('playing the whole recording counts every chant once', () {
       final f = follower();
       expect(play(f, Duration.zero, const Duration(seconds: 442)), 108);
+      expect(f.counted, 108);
+    });
+
+    test('a file that runs on past its chanting still counts 108 and no more', () {
+      final f = ChantMalaFollower(trimmed, continuousStep: step);
+      // The prayer at the front counts nothing, and neither do the last 8 s.
+      expect(play(f, Duration.zero, const Duration(seconds: 5)), 0);
+      expect(play(f, const Duration(seconds: 5), const Duration(seconds: 430)), 108);
+      expect(play(f, const Duration(seconds: 430), const Duration(seconds: 438)), 0);
       expect(f.counted, 108);
     });
 

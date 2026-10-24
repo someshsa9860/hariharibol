@@ -2,6 +2,7 @@
 // No network, no S3, no API key.
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -12,10 +13,12 @@ import { LANGUAGE_CODES } from '../scripts/lib/claude-translate-languages.js';
 import { PROMPT_VERSION, SYSTEM_PROMPT, answerSchema, userPrompt } from '../scripts/lib/claude-translate-prompt.js';
 import { MADE_BY_LABELS, lanesOf, mainStampOf, normalizePlan, translatedByOf } from '../scripts/lib/claude-translate-parts.js';
 import { PROVIDER_IDS } from '../scripts/lib/translate-providers.js';
-import { dryRun, hasTranslation, isCurrent, mergeEntry, run, status, verifyEntry, VerseFailedError } from '../scripts/lib/claude-translate-run.js';
+import {
+  dryRun, hasTranslation, isCurrent, issuesEntry, mergeEntry, mergeIssues, newIssuesFile, run, status, verifyEntry, VerseFailedError,
+} from '../scripts/lib/claude-translate-run.js';
 import { DEFAULT_GROUP_BUDGET, chapterKey, saChapterKey, sourceHash, unitsFromChapter } from '../scripts/lib/claude-translate-source.js';
 import {
-  ConflictError, DEFAULT_VERSION, backupKey, checkpointKey, dirStore, langChapterKey, testStore, versionFrom,
+  ConflictError, DEFAULT_VERSION, backupKey, checkpointKey, dirStore, issuesChapterKey, langChapterKey, testStore, versionFrom,
 } from '../scripts/lib/claude-translate-store.js';
 import { assessLanguage, checkText, unassignedChars, validateLanguage } from '../scripts/lib/claude-translate-validate.js';
 // The importer's own helpers: what the saved files must satisfy for a database import to take them as they are.
@@ -460,7 +463,7 @@ describe('source and prompt', () => {
 
 describe('the instructions and the answer schema', () => {
   test('the instructions ask for Prabhupāda\'s words as they are, in native grammar and respect, and a 1-3 rating', () => {
-    assert.equal(PROMPT_VERSION, '7');
+    assert.equal(PROMPT_VERSION, '9');
     assert.match(SYSTEM_PROMPT, /PRABHUPĀDA'S WORDS, AS THEY ARE/);
     assert.match(SYSTEM_PROMPT, /NATIVE GRAMMAR, CLARITY AND RESPECT/);
     assert.match(SYSTEM_PROMPT, /CORRECTNESS RATING/);
@@ -478,6 +481,24 @@ describe('the instructions and the answer schema', () => {
       for (const part of o.properties.correctness.required) assert.deepEqual(o.properties.correctness.properties[part], { type: 'integer', enum: [1, 2, 3] });
       assert.equal(o.properties.note.type, 'string');
     }
+  });
+
+  test('the Marathi Bhagavatam schema asks for vikara tags with no keyword OpenAI\'s strict mode refuses', () => {
+    const schema = answerSchema(['mr', 'hi'], undefined, 'srimad-bhagavatam');
+    assert.deepEqual(schema.properties.mr.properties.issues.type, 'array');
+    assert.ok(schema.properties.mr.required.includes('issues'));
+    assert.equal(schema.properties.hi.properties.issues, undefined, 'only Marathi is asked for the tags');
+    const refused = [];
+    const walk = (node, path) => {
+      if (Array.isArray(node)) return node.forEach((n, i) => walk(n, `${path}[${i}]`));
+      if (!node || typeof node !== 'object') return;
+      for (const [key, value] of Object.entries(node)) {
+        if (key === 'uniqueItems') refused.push(`${path}.${key}`);
+        walk(value, `${path}.${key}`);
+      }
+    };
+    walk(schema, 'schema');
+    assert.deepEqual(refused, [], 'OpenAI answers 400 "uniqueItems is not permitted"');
   });
 
   test('a retry names the languages that could not be used and why', () => {
@@ -1588,4 +1609,168 @@ describe('a plan: different models for different parts', () => {
     assert.ok(r.lanes[0].inTokens !== r.lanes[1].inTokens, 'each lane counts only its parts\' source');
     assert.equal(r.totals.calls, r.lanes[0].calls + r.lanes[1].calls);
   });
+});
+
+describe('the Bhagavatam\'s vikara tag file', () => {
+  const SB = 'srimad-bhagavatam';
+  const SB_ID = 1001;
+  const SB_VERSE_1 = 'Śukadeva said: hearing of the Lord is the medicine for the disease of the heart.';
+  const SB_PURPORT_1 = ['Lust, anger and greed are the three gates of hell, and hearing of Kṛṣṇa closes them.'];
+  const SB_VERSE_2 = 'Parīkṣit said: O sage, please narrate the pastimes of the Lord in the Yadu dynasty.';
+  const SANSKRIT_1 = 'श्रीशुक उवाच श्रुतं हरेः';
+  const SANSKRIT_2 = 'श्रीराजोवाच कथयस्व मुने';
+  const sbChapter = () => {
+    const verse = (n, translation, purport, sanskrit) => ({
+      verseId: `2.10.1.${n}`, chapterNumber: 1, verseNumber: n, verseNumberEnd: null, cantoNumber: 10, bookNumber: 2, globalVerseNumber: 1000 + n,
+      sanskrit, transliteration: `śrī-śuka uvāca ${n}`, wordMeanings: [{ word: 'śrī-śukaḥ uvāca', meaning: 'Śukadeva said' }],
+      commentaries: [
+        { translatorSlug: 'prabhupada', type: 'translation', language: 'en', displayOrder: 1, text: translation },
+        ...(purport ? [{ translatorSlug: 'prabhupada', type: 'purport', language: 'en', displayOrder: 2, text: purport.join('\n') }] : []),
+      ],
+    });
+    return {
+      meta: { bookNumber: 2, bookSlug: SB, language: 'en', chapterNumber: 1, cantoNumber: 10, chapterName: 'The Advent of Lord Kṛṣṇa', totalVerses: 2 },
+      verses: [verse(4, SB_VERSE_1, SB_PURPORT_1, SANSKRIT_1), verse(5, SB_VERSE_2, null, SANSKRIT_2)],
+    };
+  };
+  const sbSource = async (key) => {
+    assert.equal(key, chapterKey(SB_ID, SB), 'the Bhagavatam has no Sanskrit file, only its English chapter');
+    return sbChapter();
+  };
+  const sbCfg = (extra = {}) => cfg({ book: SB, chapters: [SB_ID], langs: ['mr'], ...extra });
+
+  /** A model that answers every verse in Marathi, with `tags[ref]` as the vikaras of a verse (none by default). */
+  function sbStub(tags = {}) {
+    const calls = [];
+    const ask = async ({ user, schema }) => {
+      calls.push(user);
+      const ref = user.match(/Śrīmad-Bhāgavatam (\S+)/)[1];
+      const unit = unitsFromChapter(sbChapter(), null, SB).units.find((u) => u.ref === ref);
+      const data = {};
+      for (const lang of Object.keys(schema.properties)) {
+        data[lang] = answerFor(unit, lang);
+        if (schema.properties[lang].properties.issues) data[lang].issues = tags[ref] ?? [];
+      }
+      return { data, usage, costUsd: 0.5, stopReason: 'end_turn' };
+    };
+    return { ask, calls };
+  }
+
+  const readIssues = (dir) => JSON.parse(readFileSync(join(dir, issuesChapterKey(SB_ID, SB)), 'utf8'));
+
+  test('the tags have a file of their own, beside neither the languages nor the Gita', () => {
+    assert.equal(issuesChapterKey(SB_ID, SB), 'issues/json/srimad-bhagavatam/c10-ch-1.json');
+    assert.equal(issuesChapterKey(2), 'issues/json/bhagavat-gita/ch-2.json');
+    assert.ok(!issuesChapterKey(SB_ID, SB).startsWith(langChapterKey('mr', SB_ID, SB).split('/mr/')[0] + '/mr'));
+  });
+
+  test('a tag file starts with only where the chapter is, in English, and keeps its verses in order', () => {
+    const file = newIssuesFile(sbChapter().meta, SB);
+    assert.deepEqual(file, {
+      meta: { bookNumber: 2, bookSlug: SB, bookName: 'Śrīmad-Bhāgavatam', cantoNumber: 10, chapterNumber: 1, chapterName: 'The Advent of Lord Kṛṣṇa', language: 'en' },
+      verses: [],
+    });
+    const [one, two] = unitsFromChapter(sbChapter(), null, SB).units;
+    const both = mergeIssues(mergeIssues(file, issuesEntry(two, [])), issuesEntry(one, ['kama']));
+    assert.deepEqual(both.verses.map((v) => v.verseNumber), [4, 5], 'a verse goes where its number puts it');
+    assert.deepEqual(issuesEntry(one, ['kama', 'lobha']), {
+      verseId: '2.10.1.4', bookNumber: 2, cantoNumber: 10, chapterNumber: 1, verseNumber: 4, verseNumberEnd: null, sanskrit: SANSKRIT_1, issues: ['kama', 'lobha'],
+    });
+    const again = mergeIssues(both, issuesEntry(one, []));
+    assert.equal(again.verses.length, 2, 'a verse already there is replaced, not added');
+    assert.deepEqual(again.verses[0].issues, []);
+    assert.deepEqual(both.verses[0].issues, ['kama'], 'the file given is not changed');
+  });
+
+  test('the instruction says none is the usual answer and tells the model to judge from the text', () => {
+    const user = userPrompt(unitsFromChapter(sbChapter(), null, SB).units[0], ['mr'], {}, SB);
+    assert.match(user, /Most verses have no tag, so return \[\]/);
+    assert.match(user, /When unsure, return \[\]/);
+    assert.match(user, /only when the text itself names it/);
+    assert.equal(PROMPT_VERSION, '9');
+    assert.ok(!/helps? the reader overcome/i.test(user), 'the loose test that tagged every verse is gone');
+  });
+
+  test('a Marathi Bhagavatam run writes the tags to their own file and leaves them out of the Marathi one', async () => {
+    const { dir, store } = freshStore();
+    const model = sbStub({ '10.1.4': ['kama', 'krodha', 'lobha'] });
+    await run({ store, getSource: sbSource, ask: model.ask, cfg: sbCfg(), log: quiet() });
+
+    const tags = readIssues(dir);
+    assert.deepEqual(tags.meta, { bookNumber: 2, bookSlug: SB, bookName: 'Śrīmad-Bhāgavatam', cantoNumber: 10, chapterNumber: 1, chapterName: 'The Advent of Lord Kṛṣṇa', language: 'en' });
+    assert.deepEqual(tags.verses.map((v) => [v.verseId, v.verseNumber, v.sanskrit, v.issues]), [
+      ['2.10.1.4', 4, SANSKRIT_1, ['kama', 'krodha', 'lobha']],
+      ['2.10.1.5', 5, SANSKRIT_2, []],
+    ]);
+
+    const mr = JSON.parse(readFileSync(join(dir, langChapterKey('mr', SB_ID, SB)), 'utf8'));
+    assert.equal(mr.verses.length, 2);
+    assert.ok(!JSON.stringify(mr).includes('"issues"'), 'the language file holds no vikara tags');
+    assert.ok(!listFiles(dir).some((f) => f.startsWith('issues/') && f !== issuesChapterKey(SB_ID, SB)), 'one tag file per chapter');
+  });
+
+  test('the model\'s unknown or repeated names are dropped before the file is written', async () => {
+    const { dir, store } = freshStore();
+    const model = sbStub({ '10.1.4': ['moha', 'moha', 'sloth'] });
+    await run({ store, getSource: sbSource, ask: model.ask, cfg: sbCfg({ only: '2.10.1.4' }), log: quiet() });
+    assert.deepEqual(readIssues(dir).verses.map((v) => v.issues), [['moha']]);
+  });
+
+  test('a run for other languages, or for the Gita, writes no tag file', async () => {
+    const hindi = freshStore();
+    await run({ store: hindi.store, getSource: sbSource, ask: sbStub().ask, cfg: sbCfg({ langs: ['hi'] }), log: quiet() });
+    assert.ok(!listFiles(hindi.dir).some((f) => f.startsWith('issues/')), 'only Marathi is tagged');
+
+    const gita = freshStore();
+    await run({ store: gita.store, getSource, ask: stub().ask, cfg: cfg({ langs: ['mr'] }), log: quiet() });
+    assert.ok(!listFiles(gita.dir).some((f) => f.startsWith('issues/')), 'the Gita is not tagged');
+  });
+
+  test('a rerun of finished verses leaves the tag file as it was, and a new verse is added to it', async () => {
+    const { dir, store } = freshStore();
+    await run({ store, getSource: sbSource, ask: sbStub({ '10.1.4': ['lobha'] }).ask, cfg: sbCfg({ only: '2.10.1.4' }), log: quiet() });
+    const before = readFileSync(join(dir, issuesChapterKey(SB_ID, SB)), 'utf8');
+
+    const rerun = sbStub();
+    await run({ store, getSource: sbSource, ask: rerun.ask, cfg: sbCfg({ only: '2.10.1.4' }), log: quiet() });
+    assert.equal(rerun.calls.length, 0, 'a finished verse is not asked again');
+    assert.equal(readFileSync(join(dir, issuesChapterKey(SB_ID, SB)), 'utf8'), before);
+
+    await run({ store, getSource: sbSource, ask: sbStub().ask, cfg: sbCfg(), log: quiet() });
+    assert.deepEqual(readIssues(dir).verses.map((v) => [v.verseNumber, v.issues]), [[4, ['lobha']], [5, []]], 'verse 4 keeps its tag; verse 5 is added');
+  });
+
+  test('a tag file someone else made under the run is read and added to, not overwritten', async () => {
+    const { dir, store } = freshStore();
+    const model = sbStub({ '10.1.5': ['mada'] });
+    let touched = false;
+    const ask = async (req) => {
+      const out = await model.ask(req);
+      if (!touched && /10\.1\.5/.test(req.user)) {
+        touched = true;
+        // Another process makes the file, with verse 4 in it, while this one is waiting on the model.
+        const [one] = unitsFromChapter(sbChapter(), null, SB).units;
+        seed(dir, issuesChapterKey(SB_ID, SB), mergeIssues(newIssuesFile(sbChapter().meta, SB), issuesEntry(one, ['moha'])));
+      }
+      return out;
+    };
+    await run({ store, getSource: sbSource, ask, cfg: sbCfg({ only: '2.10.1.5' }), log: quiet() });
+    assert.deepEqual(readIssues(dir).verses.map((v) => [v.verseNumber, v.issues]), [[4, ['moha']], [5, ['mada']]]);
+  });
+});
+
+describe('loading the pipeline', () => {
+  // This file imports prompt.js before parts.js, which is the one order an import cycle between them survives; the API
+  // reaches parts.js first, so a cycle crashed it at boot ("Cannot access 'PARTS' before initialization") while every
+  // test here passed. Each module gets a process of its own, so it is the first one loaded.
+  const LIB = join(import.meta.dirname, '..', 'scripts', 'lib');
+  const modules = readdirSync(LIB).filter((f) => /^claude-translate-.*\.js$/.test(f));
+
+  for (const file of modules) {
+    test(`${file} loads on its own`, () => {
+      const url = new URL(`file://${join(LIB, file)}`).href;
+      const r = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(url)}); process.exit(0);`], { encoding: 'utf8' });
+      assert.equal(r.status, 0, r.stderr);
+    });
+  }
 });

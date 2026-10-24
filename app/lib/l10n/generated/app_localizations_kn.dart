@@ -475,6 +475,21 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆಯನ್ನು ಮಾಡಿ, ನಂತರ ಎಣಿಕೆ ಆರಂಭಿಸಲು ವೃತ್ತವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.';
 
   @override
+  String get chantPrayerHintAlong =>
+      'ರೆಕಾರ್ಡಿಂಗ್ ಈ ಪ್ರಾರ್ಥನೆಯಿಂದಲೇ ಆರಂಭವಾಗುತ್ತದೆ. ರೆಕಾರ್ಡಿಂಗ್ ಪ್ಲೇ ಮಾಡಿ ಮತ್ತು ಅದರೊಂದಿಗೆ ಈ ಪ್ರಾರ್ಥನೆಯನ್ನು ಮಾಡಿ.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer =>
+      'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆಯನ್ನು ಮಾಡಿ, ನಂತರ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ಲೇ ಮಾಡಿ — ರೆಕಾರ್ಡಿಂಗ್ ಮಂತ್ರದಿಂದ ಆರಂಭವಾಗುತ್ತದೆ.';
+
+  @override
+  String get chantAutoCountResting =>
+      'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ಲೇ ಆಗುತ್ತಿರುವಾಗ ವಿಶ್ರಾಂತಿಯಲ್ಲಿ';
+
+  @override
+  String get chantFinishRound => 'ಮಾಲೆಯನ್ನು ಮುಗಿಸಿ';
+
+  @override
   String get sadhanaAutoCountListening => 'ಆಲಿಸುತ್ತಿದೆ…';
 
   @override

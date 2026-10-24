@@ -332,6 +332,22 @@
   "chantAutoCountLoading": "Getting auto count ready…",
   "chantFullPicture": "Full-screen picture",
   "chantPrayerHint": "Chant this prayer first, then tap the ring to begin counting.",
+  "chantPrayerHintAlong": "The recording begins with this prayer. Press play and chant it with the recording.",
+  "@chantPrayerHintAlong": {
+    "description": "Hint under the opening prayer on the chant counter when the mantra's recording begins with that prayer: the reader presses play and chants it with the recording, so there is no need to tap the ring for the prayer. The play button is an icon."
+  },
+  "chantPrayerHintAlongNoPrayer": "Chant this prayer, then press play — the recording starts with the mantra.",
+  "@chantPrayerHintAlongNoPrayer": {
+    "description": "Hint under the opening prayer on the chant counter when the mantra's recording starts at the mantra itself (start time 0): the reader says the prayer, then presses play. The play button is an icon."
+  },
+  "chantAutoCountResting": "Resting while the recording plays",
+  "@chantAutoCountResting": {
+    "description": "Status line under the auto-count switch while the mantra's recording is playing. The switch is off and cannot be changed until the recording is paused."
+  },
+  "chantFinishRound": "Finish round",
+  "@chantFinishRound": {
+    "description": "Button under the chant ring that appears once most of a round is counted (past 90 of 108 beads). It ends the round now, for a reader who chanted a little ahead of the ring, and starts a new one. A round is a Mala."
+  },
   "sadhanaAutoCountListening": "Listening…",
   "sadhanaAutoCountCounted": "Counted — listening for the next one",
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
