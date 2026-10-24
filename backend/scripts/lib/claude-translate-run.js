@@ -35,12 +35,12 @@
 //   * A verse that gets no usable answer after --max-rounds stops the run. It is never skipped.
 
 import { TruncatedError, addUsage, emptyUsage, costUsd } from './claude-translate-client.js';
-import { PROMPT_VERSION, answerSchema, systemPromptFor, userPrompt } from './claude-translate-prompt.js';
+import { PROMPT_VERSION, answerSchema, issuesAsked, systemPromptFor, userPrompt } from './claude-translate-prompt.js';
 import { PARTS, lanesOf, mainStampOf, normalizePlan, partHash, partsOf, translatedByOf, unitHasPart } from './claude-translate-parts.js';
 import {
-  BOOK, CHAPTERS, TRANSLATOR, chapterLabel, estimateInputTokens, estimateOutputTokens, groupLanguages, loadChapter, sourceHash, unitWords,
+  BOOK, CHAPTERS, TRANSLATOR, bookOf, chapterLabel, estimateInputTokens, estimateOutputTokens, groupLanguages, loadChapter, sourceHash, unitWords,
 } from './claude-translate-source.js';
-import { ConflictError, checkpointKey, langChapterKey } from './claude-translate-store.js';
+import { ConflictError, checkpointKey, issuesChapterKey, langChapterKey } from './claude-translate-store.js';
 import { LANGUAGE_CODES } from './claude-translate-languages.js';
 import { assessLanguage, validateLanguage } from './claude-translate-validate.js';
 
@@ -247,7 +247,6 @@ export function buildEntry(unit, t, lang, { provider = 'anthropic', model, effor
     cantoNumber: unit.cantoNumber,
     ...(content.transliteration ? { transliteration: t.transliteration.join('\n') } : {}),
     ...(content.wordMeanings ? { wordMeanings: t.wordMeanings } : {}),
-    ...(t.issues ? { issues: t.issues } : {}),
     commentaries,
     aiTranslation: summarise(partStamps, sourceHash(unit)),
   };
@@ -286,6 +285,42 @@ function legacyParts(verse, lang) {
 export function newFile(meta, lang) {
   const { chapterTitleEn, ...rest } = meta; // the English title of the chapter does not belong to another language
   return { meta: { ...rest, language: lang }, verses: [] };
+}
+
+/**
+ * A chapter's vikara tag file before its first verse: the shape of a language's chapter file, in the one
+ * language the Sanskrit is in (`en`), with only where the chapter is. The tags are not in the language files.
+ */
+export function newIssuesFile(meta, bookId) {
+  return {
+    meta: {
+      bookNumber: meta.bookNumber, bookSlug: meta.bookSlug, bookName: bookOf(bookId).title,
+      cantoNumber: meta.cantoNumber ?? null, chapterNumber: meta.chapterNumber, chapterName: meta.chapterName ?? null, language: 'en',
+    },
+    verses: [],
+  };
+}
+
+/** One verse of the tag file: where it is, its Sanskrit, and the vikaras it speaks to (`[]` for none). */
+export function issuesEntry(unit, issues) {
+  return {
+    verseId: unit.verseId,
+    bookNumber: unit.bookNumber,
+    cantoNumber: unit.cantoNumber,
+    chapterNumber: unit.chapterNumber,
+    verseNumber: unit.verseNumber,
+    verseNumberEnd: unit.verseNumberEnd,
+    sanskrit: unit.sanskrit,
+    issues,
+  };
+}
+
+/** `file` with the verse's entry put in (a verse already there is replaced), in verse order, as a new object. */
+export function mergeIssues(file, entry) {
+  const verses = file.verses.filter((v) => v.verseId !== entry.verseId);
+  const after = verses.findIndex((v) => v.verseNumber > entry.verseNumber);
+  verses.splice(after < 0 ? verses.length : after, 0, entry);
+  return { ...file, verses };
 }
 
 /** Does this language's chapter file already hold Prabhupāda's translation of the verse, whoever made it? */
@@ -473,6 +508,43 @@ async function saveNow({ store, key, meta, lang, entry, state, log, retryDelayMs
   }
 }
 
+/**
+ * Puts a verse's tags into the chapter's tag file and confirms it, the way `saveNow` does for a language
+ * file: conditional on the tag it was read with, merged into what is there when someone else changed it,
+ * one save at a time per file. `state` is { file, tag, queue }. Throws when it cannot be saved, so the
+ * verse is done again rather than left without its tags.
+ */
+function saveIssues({ store, key, meta, bookId, entry, state, log, retryDelayMs }) {
+  const turn = (state.queue || Promise.resolve()).then(async () => {
+    let failures = 0;
+    for (let attempt = 1; ; attempt++) {
+      const next = mergeIssues(state.file || newIssuesFile(meta, bookId), entry);
+      if (state.file && JSON.stringify(state.file) === JSON.stringify(next)) return;
+      try {
+        await store.write(key, JSON.stringify(next, null, 2), state.tag);
+        const back = await store.read(key);
+        if (!back || JSON.stringify(back.json) !== JSON.stringify(next)) throw new Error(`${key} does not read back as what was saved`);
+        Object.assign(state, { file: back.json, tag: back.tag });
+        return;
+      } catch (err) {
+        if (err instanceof ConflictError) {
+          if (attempt >= 5) throw new Error(`${key} keeps changing under the run — is another process writing it?`);
+          log.event('save-conflict', { key, attempt });
+          const now = await store.read(key);
+          Object.assign(state, { file: now?.json ?? null, tag: now?.tag ?? null });
+          continue;
+        }
+        if (/does not read back/.test(err.message)) throw err;
+        if (++failures >= 4) throw new Error(`S3 save of ${key} failed: ${err.message}`);
+        log.event('save-retry', { key, attempt, error: err.message });
+        await sleep(retryDelayMs * failures);
+      }
+    }
+  });
+  state.queue = turn.catch(() => {});
+  return turn;
+}
+
 /* ---------- checkpoint ---------- */
 
 async function loadCheckpoint(store, version, book = BOOK) {
@@ -566,7 +638,9 @@ export async function run({ store, getSource, ask, askFor, cfg, log, signal }) {
       chapters.set(n, (async () => {
         const loaded = await loadChapter(getSource, n, book);
         for (const sk of loaded.skipped) log.say(`ch ${chapterLabel(n, book)}  ${sk.verseId} skipped: ${sk.reason}`);
-        return { ...loaded, states: await readChapterFiles(store, cfg.langs, n, book) };
+        // The vikara tags have a file of their own, read only for a run that asks for them.
+        const found = issuesAsked(book, cfg.langs, PARTS) ? await store.read(issuesChapterKey(n, book)) : null;
+        return { ...loaded, states: await readChapterFiles(store, cfg.langs, n, book), issuesState: issuesAsked(book, cfg.langs, PARTS) ? { file: found?.json ?? null, tag: found?.tag ?? null } : null };
       })());
     }
     return chapters.get(n);
@@ -579,7 +653,7 @@ export async function run({ store, getSource, ask, askFor, cfg, log, signal }) {
     const mine = session.lanes[lane.key];
     const tag = lanes.length > 1 ? `[${lane.provider}/${lane.model} ${lane.parts.join('+')}] ` : '';
     for (const n of cfg.chapters) {
-      const { units, meta, states } = await chapter(n);
+      const { units, meta, states, issuesState } = await chapter(n);
       let chapterDone = 0;
       for (const unit of units) {
         if (cfg.only && unit.verseId !== cfg.only) continue;
@@ -616,6 +690,11 @@ export async function run({ store, getSource, ask, askFor, cfg, log, signal }) {
           const generatedAt = new Date().toISOString();
           let bytes = 0;
           for (const lang of group.langs) {
+            // The tags first: were they saved after the verse, a failure here would leave a verse that counts as done without them.
+            if (issuesState && issuesAsked(book, [lang], group.parts) && Array.isArray(result.byLang[lang].issues)) {
+              await saveIssues({ store, key: issuesChapterKey(n, book), meta, bookId: book, entry: issuesEntry(unit, result.byLang[lang].issues), state: issuesState, log, retryDelayMs });
+              log.event('issues-saved', { verseId: unit.verseId, issues: result.byLang[lang].issues });
+            }
             const entry = buildEntry(unit, result.byLang[lang], lang, {
               provider: lane.provider, model: lane.model, effort: lane.effort, version: cfg.version, warnings: result.warningsByLang[lang], generatedAt, quality: result.qualityByLang[lang], parts: group.parts,
             });

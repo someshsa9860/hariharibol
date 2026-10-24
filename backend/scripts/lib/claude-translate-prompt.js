@@ -14,14 +14,20 @@ import { PARTS, PART_LABELS } from './claude-translate-parts.js';
 import { BOOK, bookOf } from './claude-translate-source.js';
 import { VIKARA_SLUGS } from './claude-translate-validate.js';
 
-export const PROMPT_VERSION = '8';
+export const PROMPT_VERSION = '9';
 
 // The Bhagavatam's vikara tags: asked for Marathi only, and read from the English meaning and purport, so
 // the answer does not depend on which language is being written.
 export const ISSUES_BOOK = 'srimad-bhagavatam';
 export const ISSUES_LANG = 'mr';
 export { VIKARA_SLUGS };
-const ISSUES_INSTRUCTION = `Also return "issues": the names of the six vikaras (inner enemies) that this verse, through its meaning and purport above, helps the reader overcome — kama (lust, craving), krodha (anger), lobha (greed), moha (attachment, delusion), mada (pride), matsarya (envy). Use only these names, in lowercase exactly as written. Return an empty array when none applies; a verse may help with more than one.`;
+// The tags feed the app's "what are you struggling with" picker, so a tag is a promise that someone struggling with
+// that vikara will find it spoken to here. A loose question ("helps the reader overcome") tags every verse about
+// Kṛṣṇa with moha, so the test is what the text itself says, and none is the usual answer. The same bar as
+// scripts/seed-verse-issues.js: no passing mentions, no righteous anger, no Lord's wrath.
+const ISSUES_INSTRUCTION = `Also return "issues": the vikaras (inner enemies) that a reader struggling with one would find spoken to in this verse, judged from its translation and purport below. Use only these names, in lowercase exactly as written: kama (lust, craving, wanting what will not satisfy), krodha (anger, irritation), lobha (greed, holding on, never having enough), moha (attachment to body, family and possessions, and mistaking what is temporary for what lasts), mada (pride, arrogance), matsarya (envy).
+Tag a vikara only when the text itself names it, explains how it arises or what it does, shows it at work in someone, or teaches how to be free of it. That hearing about Kṛṣṇa benefits everyone in general is not a reason to tag, and neither is a passing mention or a vice that appears only in a list.
+Most verses have no tag, so return [] for them: narration, questions put to a sage, genealogies, descriptions of the Lord, His body and His pastimes, and general praise of hearing or devotion. The Lord's own anger, or His killing of a demon, is not krodha for the reader to overcome. The usual answer is none or one; give two only when the text clearly speaks to both, and never fill the list. When unsure, return [].`;
 
 /** Whether this call asks the model for the vikara tags: Bhagavatam, Marathi among the languages, and the meaning or purport in the call. */
 export function issuesAsked(bookId, langCodes, parts) {

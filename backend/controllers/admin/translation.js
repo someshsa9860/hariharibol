@@ -29,12 +29,14 @@ import { translation } from '../../config/translation.js';
 import * as audit from '../../services/audit.js';
 import * as service from '../../services/translation.js';
 import * as importer from '../../services/translation-import.js';
+import * as vikaras from '../../services/vikara-import.js';
 import { ACTIVE_STATUSES, microsOf, presentRun } from '../../utils/translation-run.js';
-import { LIVE_IMPORT_STATUSES, presentImportRun } from '../../utils/translation-import.js';
+import { IMPORT_KINDS, LIVE_IMPORT_STATUSES, presentImportRun } from '../../utils/translation-import.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { readPage } from '../../utils/pagination.js';
 import { badRequest, conflict, forbidden, notFound, unprocessable } from '../../utils/errors.js';
 import { BOOK, bookOf } from '../../scripts/lib/claude-translate-source.js';
+import { ISSUES_BOOK } from '../../scripts/lib/claude-translate-prompt.js';
 
 const chaptersOf = (book) => bookOf(book).chapters;
 
@@ -50,6 +52,7 @@ function pickChapters(book, asked) {
 const START_LOCK_SECONDS = 20;
 const lockKey = (book, language) => `translation:start:${book}:${language}`;
 const importLockKey = (book, language) => `translation:import:${book}:${language}`;
+const vikaraLockKey = `translation:import-vikara:${ISSUES_BOOK}`;
 
 const forget = (entity) => ({ id: entity.id, status: entity.status, language: entity.language, book: entity.book });
 
@@ -393,27 +396,37 @@ export const importTranslations = async (req, res) => {
     return ok(res, preview);
   }
 
-  const gotLock = await redis.set(importLockKey(book, language), req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
-  if (!gotLock) throw conflict('An import of this language and book is being started. Try again in a moment.');
+  return queueImport(req, res, {
+    lock: importLockKey(book, language),
+    kind: IMPORT_KINDS.TRANSLATION,
+    what: 'An import of this language and book',
+    data: { language, book, publish, chapters: picked },
+    audit: { action: 'translation.import', after: { language, book, publish, chapters: chapters ?? 'all' } },
+  });
+};
+
+/**
+ * Puts one import on the queue: the short lock, the one-live-import rule, the run row, its job and the audit line.
+ * Shared by the translation import and the vikara import, which differ in `kind` and in what the row says it covers.
+ */
+async function queueImport(req, res, { lock, kind, what, data, audit: auditLine }) {
+  const gotLock = await redis.set(lock, req.auth.user.id, 'EX', translation.importLockSeconds, 'NX');
+  if (!gotLock) throw conflict(`${what} is being started. Try again in a moment.`);
 
   try {
     const existing = await prisma.translationImportRun.findFirst({
-      where: { language, book, status: { in: LIVE_IMPORT_STATUSES } },
+      where: { kind, status: { in: LIVE_IMPORT_STATUSES }, ...(kind === IMPORT_KINDS.TRANSLATION ? { language: data.language, book: data.book } : {}) },
       select: { id: true, status: true },
     });
     if (existing) {
-      throw conflict(`There is already a ${existing.status.toLowerCase()} import of this language and book. Wait for it to finish or cancel it.`, {
-        runId: existing.id,
-      });
+      throw conflict(`There is already a ${existing.status.toLowerCase()} ${what.replace(/^An? /, '')}. Wait for it to finish or cancel it.`, { runId: existing.id });
     }
 
     const row = await prisma.translationImportRun.create({
       data: {
-        language,
-        book,
-        publish,
-        chapters: picked,
-        totalChapters: picked.length,
+        kind,
+        ...data,
+        totalChapters: data.chapters.length,
         status: 'QUEUED',
         statusMessage: 'Waiting for the worker.',
         requestedById: req.auth.user.id,
@@ -431,7 +444,7 @@ export const importTranslations = async (req, res) => {
       importer.publishImportRun(current);
       await importer.addImportRunJob(row.id, jobId);
     } catch (err) {
-      logger.error({ err: err.message, runId: row.id }, 'could not queue a translation import');
+      logger.error({ err: err.message, runId: row.id, kind }, 'could not queue an import');
       current = await prisma.translationImportRun.update({
         where: { id: row.id },
         data: { status: 'FAILED', finishedAt: new Date(), statusMessage: `Could not be queued: ${err.message}` },
@@ -441,25 +454,49 @@ export const importTranslations = async (req, res) => {
     }
 
     // What was asked for; what it came to is in the run's own result once the worker has finished.
-    await audit.record(req, {
-      action: 'translation.import',
-      entityType: 'TranslationImportRun',
-      entityId: row.id,
-      after: { language, book, publish, chapters: chapters ?? 'all' },
-    });
+    await audit.record(req, { action: auditLine.action, entityType: 'TranslationImportRun', entityId: row.id, after: auditLine.after });
 
     return created(res, presentImportRun(current));
   } finally {
-    await redis.del(importLockKey(book, language)).catch(() => {});
+    await redis.del(lock).catch(() => {});
   }
+}
+
+/** GET /api/admin/translations/imports/vikaras — what the database holds of the Bhagavatam's vikara tags. */
+export const vikaraStatus = async (req, res) => ok(res, await vikaras.vikaraStatus());
+
+/**
+ * POST /api/admin/translations/imports/vikaras — link the Bhagavatam's verses to the vikaras in their tag files
+ * (issues/json/srimad-bhagavatam/…). A `dryRun` is answered here (it only reads); a real import is queued as a
+ * `TranslationImportRun` of kind VIKARA and the worker does it. It has nothing to do with importing Marathi.
+ */
+export const importVikaras = async (req, res) => {
+  const { chapters, dryRun } = req.valid.body;
+  const picked = pickChapters(ISSUES_BOOK, chapters);
+
+  if (dryRun) {
+    const preview = await vikaras.importVikaras({ chapters: picked, dryRun }).catch((err) => {
+      throw err.expected ? err : unprocessable(`Could not preview the import: ${err.message}`);
+    });
+    return ok(res, preview);
+  }
+
+  return queueImport(req, res, {
+    lock: vikaraLockKey,
+    kind: IMPORT_KINDS.VIKARA,
+    what: 'A vikara import',
+    // A tag file is in one language, English; the row's `language` says so.
+    data: { language: 'en', book: ISSUES_BOOK, publish: false, chapters: picked },
+    audit: { action: 'translation.vikara-import', after: { book: ISSUES_BOOK, chapters: chapters ?? 'all' } },
+  });
 };
 
 /** GET /api/admin/translations/imports/runs */
 export const importRuns = async (req, res) => {
-  const { status, language, book } = req.valid.query;
+  const { status, language, book, kind } = req.valid.query;
   const { skip, take, page, pageSize } = readPage(req.valid.query, 20);
 
-  const where = { ...(status && { status }), ...(language && { language }), ...(book && { book }) };
+  const where = { ...(status && { status }), ...(language && { language }), ...(book && { book }), ...(kind && { kind }) };
   const [rows, total] = await Promise.all([
     prisma.translationImportRun.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
     prisma.translationImportRun.count({ where }),

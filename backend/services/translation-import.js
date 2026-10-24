@@ -15,8 +15,8 @@
 //     transliteration and the word-by-word meanings — the last two on the translation row, because in this
 //     language they are not the Roman text and English meanings that live on `Verse`. `translatedBy` and
 //     `version` record which run made the text.
-//   - **Marathi Bhagavatam files also link the six vikaras.** Unknown slugs are ignored; if a verse already
-//     has any `VerseIssue` links, all issue links from the file are skipped for that verse.
+//   - **Vikara tags are not part of this.** A Marathi Bhagavatam run keeps them in a file of their own
+//     (issues/json/srimad-bhagavatam/…), and services/vikara-import.js puts them in the database.
 //   - **Importing twice is harmless.** A row that already matches the file is counted `unchanged` and not
 //     written. `dryRun` does the same work and writes nothing, so the page can say what an import would do.
 //   - **Visibility is a decision, not a side effect.** A new row is hidden (`isPublished: false`) unless
@@ -38,11 +38,9 @@ import { unprocessable } from '../utils/errors.js';
 import { LIVE_IMPORT_STATUSES, changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
-import { ISSUES_BOOK, ISSUES_LANG, VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 
 const queue = queues['translation-import'];
-const IMPORTABLE_VIKARAS = new Set(VIKARA_SLUGS);
 
 /** The Gita's `Book.bookNumber`, as scripts/import-bg.js has it. Its storage folder (`BOOK`) has another spelling than its slug. */
 export const GITA_BOOK_NUMBER = 1;
@@ -96,7 +94,7 @@ export async function importLanguage({ language, book: bookSlug = BOOK, chapters
     if (shouldStop?.()) break;
     const line = emptyChapter(number);
     lines.push(line);
-    const key = langChapterKey(language, number, named ? bookId : folder);
+    const key = langChapterKey(language, number, named ? bookSlug : folder);
     try {
       const file = await files.getJson(key).catch((err) => {
         throw new Error(`Could not read ${key}: ${reasonOf(err)}`);
@@ -115,7 +113,6 @@ export async function importLanguage({ language, book: bookSlug = BOOK, chapters
         bookId: book.id,
         translatorId: translator.id,
         parts: chapterParts(number, named ? bookSlug : BOOK),
-        importIssues: bookSlug === ISSUES_BOOK && language === ISSUES_LANG,
       });
     } catch (err) {
       line.error = reasonOf(err);
@@ -128,7 +125,7 @@ export async function importLanguage({ language, book: bookSlug = BOOK, chapters
 }
 
 /** One chapter file → `line` (its counts), and the database unless `dryRun`. Throws if the database does. */
-async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId, parts, importIssues }) {
+async function importChapter({ file, line, versions, language, publish, dryRun, bookId, translatorId, parts }) {
   const entries = Array.isArray(file.verses) ? file.verses : [];
   const verses = await prisma.verse.findMany({
     where: { bookId, verseId: { in: entries.map((e) => e.verseId).filter(Boolean) } },
@@ -180,77 +177,14 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
     if (changed && row.isPublished) line.replacedVisible++;
   }
 
-  const issueCandidates = new Map();
-  if (importIssues) {
-    const issueSeen = new Set();
-    for (const entry of entries) {
-      if (!entry || typeof entry !== 'object' || !Array.isArray(entry.issues)) continue;
-      const verse = verseById.get(entry.verseId);
-      if (!verse || issueSeen.has(verse.id) || placeProblem(entry, verse, parts.chapter, parts.canto)) continue;
-      issueSeen.add(verse.id);
-      const slugs = [...new Set(entry.issues.filter((slug) => IMPORTABLE_VIKARAS.has(slug)))];
-      if (slugs.length) issueCandidates.set(verse.id, slugs);
-    }
-  }
-
-  const slugs = [...new Set([...issueCandidates.values()].flat())];
-  const issues = slugs.length
-    ? await prisma.issue.findMany({ where: { slug: { in: slugs } }, select: { id: true, slug: true } })
-    : [];
-  const issueIdBySlug = new Map(issues.map((issue) => [issue.slug, issue.id]));
-  const importableIssueCandidates = new Map(
-    [...issueCandidates]
-      .map(([verseId, candidateSlugs]) => [verseId, candidateSlugs.filter((slug) => issueIdBySlug.has(slug))])
-      .filter(([, candidateSlugs]) => candidateSlugs.length)
-  );
-
   line.updated = toUpdate.length;
   line.created = toCreate.length;
-  if (dryRun && importableIssueCandidates.size) {
-    const existingLinks = await prisma.verseIssue.findMany({
-      where: { verseId: { in: [...importableIssueCandidates.keys()] } },
-      select: { verseId: true },
-    });
-    const alreadyLinked = new Set(existingLinks.map((link) => link.verseId));
-    line.issueVersesSkipped = [...importableIssueCandidates.keys()].filter((verseId) => alreadyLinked.has(verseId)).length;
-    line.issueLinksCreated = [...importableIssueCandidates]
-      .filter(([verseId]) => !alreadyLinked.has(verseId))
-      .reduce((count, [, candidateSlugs]) => count + candidateSlugs.length, 0);
-  }
-  if (dryRun || (!toCreate.length && !toUpdate.length && !importableIssueCandidates.size)) return;
+  if (dryRun || (!toCreate.length && !toUpdate.length)) return;
 
   let created;
   try {
     // Prisma ends an interactive transaction after 5 s by default, and a long chapter is one update per verse.
     created = await prisma.$transaction(async (tx) => {
-      if (importableIssueCandidates.size) {
-        const candidateVerseIds = [...importableIssueCandidates.keys()].sort();
-        await tx.$queryRaw`
-          SELECT "id"
-          FROM "Verse"
-          WHERE "id" IN (${Prisma.join(candidateVerseIds)})
-          ORDER BY "id"
-          FOR UPDATE
-        `;
-        const existingLinks = await tx.verseIssue.findMany({
-          where: { verseId: { in: candidateVerseIds } },
-          select: { verseId: true },
-        });
-        const alreadyLinked = new Set(existingLinks.map((link) => link.verseId));
-        line.issueVersesSkipped = candidateVerseIds.filter((verseId) => alreadyLinked.has(verseId)).length;
-        const linksToCreate = candidateVerseIds
-          .filter((verseId) => !alreadyLinked.has(verseId))
-          .flatMap((verseId) =>
-            importableIssueCandidates
-              .get(verseId)
-              .map((slug) => ({ verseId, issueId: issueIdBySlug.get(slug) }))
-          );
-        if (linksToCreate.length) {
-          const result = await tx.verseIssue.createMany({ data: linksToCreate, skipDuplicates: true });
-          line.issueLinksCreated = result.count;
-        }
-      }
-
       await Promise.all(toUpdate.map((u) => tx.verseTranslation.update({ where: { id: u.id }, data: u.data })));
       if (!toCreate.length) return 0;
       const result = await tx.verseTranslation.createMany({ data: toCreate, skipDuplicates: true });
@@ -261,8 +195,6 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
     line.created = 0;
     line.updated = 0;
     line.replacedVisible = 0;
-    line.issueLinksCreated = 0;
-    line.issueVersesSkipped = 0;
     throw err;
   }
   // createMany says how many it really made; a row that appeared since the lookup is skipped, not doubled.

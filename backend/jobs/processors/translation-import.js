@@ -8,6 +8,10 @@
 // per-chapter loop even started — the book or translator missing, storage unreachable) or CANCELLED. The
 // queue is `attempts: 1`; onJobFailed below covers BullMQ giving up on the job itself.
 //
+// One run row and one queue carry two kinds of import: a language's translations (`kind` TRANSLATION, the default)
+// and the Bhagavatam's vikara tags (`kind` VIKARA, services/vikara-import.js). They differ only in what is called
+// per chapter and how a chapter's line is worded; progress, cancel and the live events are the same.
+//
 // There is no heartbeat timer: a chapter is a handful of database queries, not a long call to wait out, so
 // progress, the heartbeat and the cancel check all happen together in `onChapter`, once per chapter.
 
@@ -17,7 +21,9 @@ import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import { chapterLabel } from '../../scripts/lib/claude-translate-source.js';
 import * as service from '../../services/translation-import.js';
-import { summaryOf } from '../../utils/translation-import.js';
+import * as vikaras from '../../services/vikara-import.js';
+import { IMPORT_KINDS, summaryOf } from '../../utils/translation-import.js';
+import { describeVikaraChapter, vikaraSummaryOf } from '../../utils/vikara-import.js';
 import { FINISHED_STATUSES } from '../../utils/translation-run.js';
 
 // runId → { controller, reason, done, total }: the runs this process is working, so a shutdown or a Cancel can
@@ -28,6 +34,7 @@ const runs = prisma.translationImportRun;
 /** Everything outside the database the processor reaches for; a test hands in a stand-in. */
 export const realDeps = {
   importLanguage: service.importLanguage,
+  importVikaras: vikaras.importVikaras,
 };
 
 export default function translationImportProcessor(job, token) {
@@ -68,14 +75,13 @@ export async function processRun(job, token, deps) {
 
   let outcome;
   try {
-    const result = await deps.importLanguage({
-      language: row.language,
-      book: row.book,
-      chapters: row.chapters,
-      publish: row.publish,
+    const hooks = {
       onChapter: (line, done, total) => onChapter({ row, job, entry }, line, done, total),
       shouldStop: () => entry.controller.signal.aborted,
-    });
+    };
+    const result = row.kind === IMPORT_KINDS.VIKARA
+      ? await deps.importVikaras({ chapters: row.chapters, ...hooks })
+      : await deps.importLanguage({ language: row.language, book: row.book, chapters: row.chapters, publish: row.publish, ...hooks });
     outcome = { kind: 'finished', result };
   } catch (err) {
     outcome = { kind: 'error', error: err };
@@ -96,7 +102,7 @@ async function onChapter({ row, job, entry }, line, done, total) {
       return null;
     });
   if (next) service.publishImportRun(next);
-  service.pushImportFeed(row.id, describeChapter(line, row.book));
+  service.pushImportFeed(row.id, row.kind === IMPORT_KINDS.VIKARA ? describeVikaraChapter(line, chapterLabel(line.chapter, row.book)) : describeChapter(line, row.book));
   if (!entry.reason && next) {
     // A row already finished (an admin cancelled a run that only looked stalled) is not this worker's to write any more.
     if (next.jobId !== job.id || FINISHED_STATUSES.includes(next.status)) entry.reason = 'lost';
@@ -111,8 +117,6 @@ function describeChapter(line, book) {
   if (line.error) return { kind: 'status', level: 'error', text: `${name}: ${line.error}` };
   if (line.found === false) return { kind: 'status', level: 'warn', text: `${name}: no file for this language yet.` };
   const extra = [
-    line.issueLinksCreated && `${line.issueLinksCreated} issue link(s) added`,
-    line.issueVersesSkipped && `${line.issueVersesSkipped} verse(s) already linked`,
     line.missing.length && `${line.missing.length} missing`,
     line.conflicts.length && `${line.conflicts.length} conflicting`,
   ].filter(Boolean).join(', ');
@@ -138,7 +142,7 @@ async function conclude(row, entry, outcome, job, token) {
 
   if (outcome.kind === 'finished') {
     const t = outcome.result.totals;
-    await finish(row, 'COMPLETED', { statusMessage: summaryOf(t), result: outcome.result });
+    await finish(row, 'COMPLETED', { statusMessage: row.kind === IMPORT_KINDS.VIKARA ? vikaraSummaryOf(t) : summaryOf(t), result: outcome.result });
     return { completed: true, totals: t };
   }
 

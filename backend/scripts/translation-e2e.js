@@ -47,6 +47,7 @@ import importProcessor, { abortActiveRuns as abortImportRuns, processRun as proc
 import { poolOf } from '../utils/ai-free-tier.js';
 import { unprocessable } from '../utils/errors.js';
 import { emptyChapter, summaryOf, totalsOf } from '../utils/translation-import.js';
+import { vikaraSummaryOf } from '../utils/vikara-import.js';
 import { FatalApiError, RefusalError } from './lib/claude-translate-client.js';
 import { chapterKey, saChapterKey } from './lib/claude-translate-source.js';
 import { checkpointKey, langChapterKey } from './lib/claude-translate-store.js';
@@ -1047,6 +1048,38 @@ async function main() {
         check('import: a preview neither waits for it nor takes the lock', (book ? previewed.status === 200 && previewed.data.dryRun === true : previewed.status === 422) && (await redis.get(IMPORT_LOCK)) === VERSION, String(previewed.status));
         await redis.del(IMPORT_LOCK);
 
+        // The Bhagavatam's vikara tags are a run of their own kind on the same queue, apart from any language. Queued here, before
+        // the worker exists, so that a second request meets the first; the worker below works it (nothing is in storage for it).
+        const vikaraPost = (as, body) => call('POST', '/api/admin/translations/imports/vikaras', { token: as, body });
+        const vikaraBook = await prisma.book.findUnique({ where: { bookNumber: 2 }, select: { id: true } });
+        const vikaraIssues = await prisma.issue.count({ where: { slug: { in: ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'] } } });
+        const vikaraReady = Boolean(vikaraBook) && vikaraIssues === 6;
+        check('vikaras: a signed-out caller and a reader of the app are refused', (await call('GET', '/api/admin/translations/imports/vikaras')).status === 403 && (await call('GET', '/api/admin/translations/imports/vikaras', { token: plainToken })).status === 403);
+        const standing = await call('GET', '/api/admin/translations/imports/vikaras', { token: reader });
+        check('vikaras: whoever may read translations sees what the database holds — a line for each of the six', standing.status === 200 && standing.data.book === 'srimad-bhagavatam' && standing.data.vikaras?.length === 6 && ['verses', 'links'].every((k) => Number.isInteger(standing.data[k])) && standing.data.vikaras.every((v) => ['slug', 'name', 'inDatabase', 'links'].every((k) => k in v)), `${standing.status} ${JSON.stringify(standing.data)}`);
+        check('vikaras: a signed-out caller is refused an import', (await vikaraPost(undefined, {})).status === 403);
+        check('vikaras: so is a reader of the app, and reading translations is not importing them', (await vikaraPost(plainToken, {})).status === 403 && (await vikaraPost(reader, {})).status === 403 && (await vikaraPost(reader, { dryRun: true })).status === 403);
+        check('vikaras: a chapter the Bhagavatam does not have, an empty list and a flag that is not true or false are refused', (await vikaraPost(importer, { chapters: [9999] })).status === 400 && (await vikaraPost(importer, { chapters: [] })).status === 400 && (await vikaraPost(importer, { dryRun: 'yes' })).status === 400);
+        const vikaraPreview = await vikaraPost(importer, { chapters: [101, 102], dryRun: true });
+        check('vikaras: a preview is answered at once and reports each chapter without writing a link', vikaraReady ? vikaraPreview.status === 200 && vikaraPreview.data.dryRun === true && vikaraPreview.data.chapters.length === 2 && vikaraPreview.data.totals.links === 0 : vikaraPreview.status === 422, `${vikaraPreview.status} ${JSON.stringify(vikaraPreview.json?.error ?? vikaraPreview.data?.totals)}`);
+        check('vikaras: a preview makes no run', (await prisma.translationImportRun.count({ where: { kind: 'VIKARA' } })) === 0);
+
+        const vikaraQueued = await vikaraPost(importer, { chapters: [102, 101, 102] });
+        const vikara = vikaraQueued.data;
+        if (vikaraQueued.status === 201) made.importRuns.push(vikara.id);
+        check('vikaras: it queues a run of kind VIKARA for the Bhagavatam, in the tag files’ one language, and answers at once', vikaraQueued.status === 201 && vikara.kind === 'VIKARA' && vikara.status === 'QUEUED' && vikara.book === 'srimad-bhagavatam' && vikara.language === 'en' && vikara.publish === false && same(vikara.chapters, [101, 102]) && vikara.progress.total === 2, `${vikaraQueued.status} ${JSON.stringify(vikaraQueued.json?.error ?? vikara)}`);
+        if (!vikara) throw new Error(`The vikara import was not queued: ${vikaraQueued.status} ${JSON.stringify(vikaraQueued.json?.error)}`);
+        const vikaraAgain = await vikaraPost(importer, {});
+        check('vikaras: a second one is refused while the first is live, naming it', vikaraAgain.status === 409 && vikaraAgain.json.error.details?.runId === vikara.id && /already a queued vikara import/.test(vikaraAgain.json.error.message), `${vikaraAgain.status} ${JSON.stringify(vikaraAgain.json?.error)}`);
+        check('vikaras: and its lock was only for making the run', (await redis.exists(`translation:import-vikara:srimad-bhagavatam`)) === 0);
+        const byKind = await call('GET', '/api/admin/translations/imports/runs?kind=VIKARA', { token: reader });
+        check('vikaras: the runs list can be asked for just this kind', byKind.status === 200 && byKind.data.length === 1 && byKind.data[0].id === vikara.id && byKind.data.every((r) => r.kind === 'VIKARA'), JSON.stringify(byKind.data?.map((r) => r.kind)));
+        const byOtherKind = await call('GET', '/api/admin/translations/imports/runs?kind=TRANSLATION', { token: reader });
+        check('vikaras: and for the translation imports without it', byOtherKind.status === 200 && byOtherKind.data.length > 0 && byOtherKind.data.every((r) => r.kind === 'TRANSLATION' && r.id !== vikara.id));
+        check('vikaras: a kind that does not exist is refused', (await call('GET', '/api/admin/translations/imports/runs?kind=NOPE', { token: reader })).status === 400);
+        const vikaraAudit = await prisma.auditLog.findMany({ where: { action: 'translation.vikara-import', entityId: vikara.id } });
+        check('vikaras: the request is in the audit log, with the chapters as named', vikaraAudit.length === 1 && vikaraAudit[0].after?.book === 'srimad-bhagavatam' && same(vikaraAudit[0].after?.chapters, [102, 101, 102]), JSON.stringify(vikaraAudit.map((a) => a.after)));
+
         // The queue itself: a real BullMQ worker, in this process, works the Malayalam run. Malayalam has nothing in storage,
         // so every chapter is reported as not found and nothing is written. It is the only language a worker is let near.
         importWorker = new Worker('translation-import', importProcessor, { connection: bullConnection, concurrency: 1 });
@@ -1080,6 +1113,24 @@ async function main() {
         } else {
           check('worker: and that one fails the same way', publishedRow.status === 'FAILED' && /not in the database yet/.test(publishedRow.statusMessage), `${publishedRow.status} ${publishedRow.statusMessage}`);
         }
+        // The vikara run, worked by that same worker. Nothing is in storage for it, so it reads two chapters and links nothing.
+        const vikaraDone = await untilImport(vikara.id, isOver);
+        await sleep(300);
+        if (vikaraReady) {
+          const totals = vikaraDone.result?.totals;
+          check('worker: it works the vikara run by itself and finishes it', vikaraDone.status === 'COMPLETED' && vikaraDone.kind === 'VIKARA' && vikaraDone.doneChapters === 2 && vikaraDone.totalChapters === 2, `${vikaraDone.status} ${vikaraDone.statusMessage}`);
+          check('worker: with no tag file in storage both chapters are reported so and no link is made', vikaraDone.result?.chapters?.length === 2 && vikaraDone.result.chapters.every((c) => c.found === false) && totals.notFound === 2 && totals.links === 0 && totals.verses === 0 && totals.failedChapters === 0, JSON.stringify(totals));
+          check('worker: its message is the vikara totals, not a language’s', vikaraDone.statusMessage === vikaraSummaryOf(totals), vikaraDone.statusMessage);
+          const vikaraStates = importEvents(vikara.id).map((m) => m.payload.status);
+          check('worker: the page was told QUEUED, RUNNING and COMPLETED, with the kind, on the translation channel', vikaraStates[0] === 'QUEUED' && vikaraStates.includes('RUNNING') && vikaraStates.at(-1) === 'COMPLETED' && importEvents(vikara.id).every((m) => m.permission === 'translation.read' && m.payload.kind === 'VIKARA'), vikaraStates.join('>'));
+          check('worker: each chapter reached the activity channel in the vikara words', importActivity(vikara.id).filter((m) => /^Chapter [\d.]+: no tag file yet\.$/.test(m.payload.text)).length === 2, JSON.stringify(importActivity(vikara.id).map((m) => m.payload.text)));
+          const vikaraFeed = await oneImport(reader, vikara.id);
+          check('worker: the feed tells it start to finish and the run says what it is', vikaraFeed.data.run.kind === 'VIKARA' && vikaraFeed.data.feed.at(-1).text === 'Queued by E2E importer.' && vikaraFeed.data.feed.some((l) => l.text === 'Started.') && vikaraFeed.data.feed[0].text === vikaraDone.statusMessage, JSON.stringify(vikaraFeed.data?.feed?.slice(0, 2)));
+        } else {
+          check('worker: without the Bhagavatam or the six vikaras in the database the run fails, saying so', vikaraDone.status === 'FAILED' && /not in the database/.test(vikaraDone.statusMessage), `${vikaraDone.status} ${vikaraDone.statusMessage}`);
+        }
+        check('worker: and the next vikara import may be started', (await prisma.translationImportRun.count({ where: { kind: 'VIKARA', status: { in: ['QUEUED', 'RUNNING'] } } })) === 0);
+
         await importWorker.close();
         importWorker = null;
 

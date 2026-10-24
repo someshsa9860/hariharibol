@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImportDialog } from '@/components/translation-import-dialog';
 import { StartDialog } from '@/components/translation-start-dialog';
 import { TranslationOutput } from '@/components/translation-output';
+import { VikaraSection } from '@/components/vikara-import-section';
 import { RunPanel } from '@/components/translation-run-panel';
 import { ProgressBar, ScoreMix, StatusBadge, describeChapters, formatCount, formatUsd, timeAgo } from '@/components/translation-bits';
 import { useAuth } from '@/lib/auth';
@@ -33,6 +34,7 @@ import {
   type BookId,
   type BookInfo,
   type Coverage,
+  type ImportRun,
   type ImportStatus,
   type Overview,
   type Run,
@@ -196,6 +198,9 @@ export function TranslationsPage() {
                   onOpenOutput={openOutput}
                 />
               </section>
+
+              {/* The Bhagavatam's vikara tags: the same worker queue as the imports above, but a different job and never a translation. */}
+              {book.id === 'srimad-bhagavatam' && <VikaraSection overview={data} canImport={canImport} />}
 
               <History overview={data} book={book} onOpen={openRun} />
             </TabsContent>
@@ -366,7 +371,7 @@ function LanguageGrid({
         const stats = coverage?.languages.find((item) => item.code === language.code);
         const run = overview.active.find((item) => item.language === language.code && item.book === book.id);
         // The copy into the database, which the worker does apart from the translating.
-        const importing = overview.activeImports.find((item) => item.language === language.code && item.book === book.id);
+        const importing = overview.activeImports.find((item): item is ImportRun => item.kind === 'TRANSLATION' && item.language === language.code && item.book === book.id);
         const total = coverage?.total ?? 0;
         const percent = total && stats ? (stats.saved / total) * 100 : 0;
         const firstChapter = stats?.chapters.find((item) => item.saved > 0)?.chapter ?? book.chapters[0].id;

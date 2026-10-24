@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 
 import { buildEntry } from '../scripts/lib/claude-translate-run.js';
 import {
-  LIVE_IMPORT_STATUSES, changedColumns, cleanWordMeanings, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, summaryOf, totalsOf,
+  IMPORT_KINDS, LIVE_IMPORT_STATUSES, changedColumns, cleanWordMeanings, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, summaryOf, totalsOf,
 } from '../utils/translation-import.js';
 
 // A verse as the pipeline saves it, so the importer is held to the real file format and not to a guess at it.
@@ -212,7 +212,7 @@ describe('reasonOf — why a chapter stopped, as a sentence', () => {
 
 describe('totalsOf', () => {
   it('adds the chapters up and counts what was found, missing and in conflict', () => {
-    const a = { ...emptyChapter(1), inStorage: 3, created: 2, updated: 1, replacedVisible: 1, issueLinksCreated: 2, issueVersesSkipped: 1, missing: ['1.1.9'] };
+    const a = { ...emptyChapter(1), inStorage: 3, created: 2, updated: 1, replacedVisible: 1, missing: ['1.1.9'] };
     const b = { ...emptyChapter(2), inStorage: 2, unchanged: 2, conflicts: [{ verseId: '1.2.1', reason: 'x' }], noTranslation: 1 };
     const c = { ...emptyChapter(3), found: false };
     const d = { ...emptyChapter(4), error: 'boom' };
@@ -223,8 +223,6 @@ describe('totalsOf', () => {
       updated: 1,
       unchanged: 2,
       replacedVisible: 1,
-      issueLinksCreated: 2,
-      issueVersesSkipped: 1,
       noTranslation: 1,
       missing: 1,
       conflicts: 1,
@@ -249,11 +247,10 @@ describe('summaryOf — the one line a finished import is reported with', () => 
     );
   });
 
-  it('reports imported issue links and verses whose existing links were preserved', () => {
-    assert.equal(
-      summaryOf({ ...totals, issueLinksCreated: 4, issueVersesSkipped: 2 }),
-      '3 chapter(s): 6 created, 2 updated, 4 unchanged, 4 issue link(s) added, 2 verse(s) already linked.'
-    );
+  it('says nothing about vikara links: a language import never makes them', () => {
+    assert.ok(!('issueLinksCreated' in totalsOf([emptyChapter(1)])));
+    assert.ok(!('issueLinksCreated' in emptyChapter(1)));
+    assert.ok(!/issue|already linked/.test(summaryOf({ ...totals, issueLinksCreated: 4, issueVersesSkipped: 2 })), 'the old counters are not read any more');
   });
 
   it('reads the totals totalsOf makes — a chapter that failed to write was still found, so it is counted', () => {
@@ -286,6 +283,11 @@ describe('presentImportRun — an import run as the admin panel receives it', ()
     assert.equal(run.language, 'mr');
     assert.deepEqual(run.chapters, [1, 2, 3, 4]);
     assert.equal(run.publish, false);
+  });
+
+  it('says what kind of import it is: a translation unless the row says it is the vikara tags', () => {
+    assert.equal(presentImportRun(row, now).kind, 'TRANSLATION');
+    assert.equal(presentImportRun({ ...row, kind: 'VIKARA' }, now).kind, IMPORT_KINDS.VIKARA);
   });
 
   it('has no percentage before the worker has counted the chapters, and never goes over 100', () => {

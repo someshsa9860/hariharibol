@@ -35,6 +35,14 @@ export function versionFrom(value) {
 export const langChapterKey = (lang, chapterId, book = BOOK) =>
   BOOKS[book] ? `json/${BOOKS[book].folder}/${lang}/${chapterFile(chapterId, book)}` : `json/${book}/${lang}/ch-${chapterId}.json`;
 
+/**
+ * `issues/json/srimad-bhagavatam/c10-ch-1.json` — the vikara tags of a chapter, apart from the language folders:
+ * the tags are one list for the verse, not text in a language, so they are not kept in (or counted with) a
+ * translation. Same file name as the chapter's other files.
+ */
+export const issuesChapterKey = (chapterId, book = BOOK) =>
+  BOOKS[book] ? `issues/json/${BOOKS[book].folder}/${chapterFile(chapterId, book)}` : `issues/json/${book}/ch-${chapterId}.json`;
+
 /** The run's bookkeeping (spend, last verse, the "a run is active" flag), one per translation version. */
 export const checkpointKey = (version, book = BOOK) => `json/reports/translate-${BOOKS[book]?.folder ?? book}-${version}.json`;
 

@@ -95,8 +95,9 @@ function transliterationOf(saVerse, enVerse) {
 /**
  * English chapter file (+ the Sanskrit chapter file, which carries the word-by-word list) → units.
  * A verse with no Prabhupāda translation is listed in `skipped`. From the Sanskrit file only the word
- * list and the Roman transliteration are read — its Devanagari verse never goes into a unit — and
- * only Prabhupāda's rows are taken from the commentaries (never Sivananda's or anyone else's).
+ * list, the Roman transliteration and the Devanagari verse are read — the Devanagari is kept in the unit for
+ * the vikara tag file and is never sent to a model — and only Prabhupāda's rows are taken from the
+ * commentaries (never Sivananda's or anyone else's).
  */
 export function unitsFromChapter(chapterFile, saChapterFile = null, bookId = BOOK) {
   const hasSanskritFile = bookOf(bookId).hasSanskritFile;
@@ -121,6 +122,7 @@ export function unitsFromChapter(chapterFile, saChapterFile = null, bookId = BOO
       cantoNumber: verse.cantoNumber ?? null,
       bookNumber: verse.bookNumber,
       globalVerseNumber: verse.globalVerseNumber ?? null,
+      sanskrit: (saById.get(verse.verseId) ?? verse).sanskrit ?? null,
       // Display reference: "2.47", "13.8-12" — the book number is left out; the Bhagavatam's starts with the canto.
       ref: `${verse.cantoNumber && !hasSanskritFile ? `${verse.cantoNumber}.` : ''}${verse.chapterNumber}.${verse.verseNumber}${verse.verseNumberEnd ? `-${verse.verseNumberEnd}` : ''}`,
       translation,

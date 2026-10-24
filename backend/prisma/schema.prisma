@@ -2813,6 +2813,7 @@ model TranslationRun {
 model TranslationImportRun {
   id String @id @default(cuid())
 
+  kind     String  @default("TRANSLATION") @db.VarChar(20) // TRANSLATION: a language's chapter files → VerseTranslation. VIKARA: the Bhagavatam's tag files → VerseIssue (`language` is then 'en', the language of the tag file)
   language String  @db.VarChar(10)
   book     String  @default("bhagavat-gita") @db.VarChar(40)
   publish  Boolean @default(false)

@@ -9,6 +9,9 @@
 // follows that run — progress, a line for each chapter, Cancel — through the same live cache the translation
 // runs use. Closing the window does not stop it, and opening the dialog for a language that is being imported
 // follows that run instead of offering a second one.
+//
+// The Bhagavatam's vikara tags are not part of this: they have their own import (components/vikara-import-section.tsx),
+// which shares the queue, the worker and `ImportRunView` below but is never started or followed from here.
 
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,6 +37,7 @@ import {
   type ImportChapter,
   type ImportResult,
   type ImportRun,
+  type AnyImportRun,
   type Overview,
 } from '@/lib/translation';
 import { cn, formatDate } from '@/lib/utils';
@@ -50,7 +54,8 @@ const failure = (err: unknown) => (err instanceof ApiRequestError ? err.message 
 export function ImportDialog({ onClose, overview, book, language: initial, canPublish }: { onClose: () => void; overview: Overview; book: BookId; language: string; canPublish: boolean }) {
   const { languages } = overview;
   const queryClient = useQueryClient();
-  const liveFor = (code: string) => overview.activeImports.find((item) => item.language === code && item.book === book);
+  // Only the translation imports: the vikara import is the same queue's other job and has its own section.
+  const liveFor = (code: string) => overview.activeImports.find((item): item is ImportRun => item.kind === 'TRANSLATION' && item.language === code && item.book === book);
 
   const [language, setLanguage] = useState(initial);
   const [publish, setPublish] = useState(false);
@@ -62,7 +67,8 @@ export function ImportDialog({ onClose, overview, book, language: initial, canPu
   const canceller = useCancelImportRun();
 
   const followed = useImportRun(runId);
-  const run = runId ? (followed.data?.run ?? overview.activeImports.find((item) => item.id === runId)) : undefined;
+  const found = runId ? (followed.data?.run ?? overview.activeImports.find((item) => item.id === runId)) : undefined;
+  const run = found?.kind === 'TRANSLATION' ? found : undefined;
   const live = !!run && IMPORT_ACTIVE.includes(run.status);
   const previewing = !runId;
 
@@ -376,7 +382,8 @@ export function ImportDialog({ onClose, overview, book, language: initial, canPu
 }
 
 // One import as the worker is doing it, or as it ended. The chapter table of a finished one is the dialog's.
-function ImportRunView({ run, feed }: { run: ImportRun; feed: FeedLine[] }) {
+// `reopen` finishes the sentence "Closing this window does not stop the import. …" with where to find it again.
+export function ImportRunView({ run, feed, reopen = 'Open it again from the language card to follow it.' }: { run: AnyImportRun; feed: FeedLine[]; reopen?: string }) {
   const live = IMPORT_ACTIVE.includes(run.status);
   const now = useNow(live);
   const { progress } = run;
@@ -418,7 +425,7 @@ function ImportRunView({ run, feed }: { run: ImportRun; feed: FeedLine[] }) {
             </div>
           </div>
           <ActivityFeed lines={feed} className="max-h-64" />
-          <p className="text-xs text-muted-foreground">Closing this window does not stop the import. Open it again from the language card to follow it.</p>
+          <p className="text-xs text-muted-foreground">Closing this window does not stop the import. {reopen}</p>
         </>
       )}
 
@@ -444,8 +451,6 @@ function Notes({ line }: { line: ImportChapter }) {
     line.missing.length > 0 && `${line.missing.length} not in database`,
     line.noTranslation > 0 && `${line.noTranslation} untranslated`,
     line.replacedVisible > 0 && `${line.replacedVisible} visible now`,
-    line.issueLinksCreated > 0 && `${line.issueLinksCreated} issue links to add`,
-    line.issueVersesSkipped > 0 && `${line.issueVersesSkipped} already linked`,
   ].filter(Boolean) as string[];
   return <span className={cn(line.error && 'font-medium text-destructive')}>{notes.join(' · ')}</span>;
 }
@@ -480,13 +485,6 @@ function Outcome({ result }: { result: ImportResult }) {
           {failed ? `${totals.failedChapters} chapter${totals.failedChapters === 1 ? '' : 's'} could not be imported and nothing of ${totals.failedChapters === 1 ? 'it was' : 'them was'} written. The rest went in: ` : 'Imported: '}
           <b>{formatCount(totals.created)}</b> new, <b>{formatCount(totals.updated)}</b> replaced, <b>{formatCount(totals.unchanged)}</b> already the same.
         </p>
-        {(totals.issueLinksCreated > 0 || totals.issueVersesSkipped > 0) && (
-          <p className="text-xs text-muted-foreground">
-            {totals.issueLinksCreated > 0 && `${formatCount(totals.issueLinksCreated)} issue links added`}
-            {totals.issueLinksCreated > 0 && totals.issueVersesSkipped > 0 && ' · '}
-            {totals.issueVersesSkipped > 0 && `${formatCount(totals.issueVersesSkipped)} verses already linked and left unchanged`}
-          </p>
-        )}
         {totals.created > 0 && !result.publish && <p className="text-xs text-muted-foreground">The new translations are saved hidden. Import again with visibility on to show them to readers.</p>}
       </div>
     </div>

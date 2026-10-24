@@ -96,8 +96,8 @@ export type Overview = {
   chapters: number[];
   books: BookInfo[];
   active: Run[];
-  /** Imports into the database that are queued or running, oldest first. */
-  activeImports: ImportRun[];
+  /** Imports into the database that are queued or running, oldest first — a language's translations and the Bhagavatam's vikara tags alike (`kind`). */
+  activeImports: AnyImportRun[];
 };
 
 export type Score = 1 | 2 | 3;
@@ -214,8 +214,6 @@ export type ImportChapter = {
   updated: number;
   unchanged: number;
   replacedVisible: number;
-  issueLinksCreated: number;
-  issueVersesSkipped: number;
   noTranslation: number;
   missing: string[];
   conflicts: { verseId: string; reason: string }[];
@@ -234,8 +232,6 @@ export type ImportResult = {
     updated: number;
     unchanged: number;
     replacedVisible: number;
-    issueLinksCreated: number;
-    issueVersesSkipped: number;
     noTranslation: number;
     missing: number;
     conflicts: number;
@@ -248,8 +244,48 @@ export type ImportResult = {
 export type ImportRunStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 export const IMPORT_ACTIVE: ImportRunStatus[] = ['QUEUED', 'RUNNING'];
 
-/** An import the worker is doing, or did: one language's chapters copied from storage into the database. */
-export type ImportRun = {
+/** One chapter of a vikara import, or of its preview. `found: false` means storage has no tag file for it. */
+export type VikaraChapter = {
+  chapter: number;
+  found: boolean;
+  /** Verses in the tag file that match a verse in the database. */
+  inStorage: number;
+  /** Of those, the ones with at least one vikara named. */
+  tagged: number;
+  /** The ones with none — the usual answer. */
+  noTags: number;
+  /** Verses that would be linked now, and the links they would get. */
+  verses: number;
+  links: number;
+  /** Verses with tags that already have vikara links, so are left alone. */
+  alreadyLinked: number;
+  /** Names in the file that are not one of the six. */
+  ignored: number;
+  missing: string[];
+  conflicts: { verseId: string; reason: string }[];
+  error: string | null;
+};
+
+export type VikaraResult = {
+  dryRun: boolean;
+  totals: {
+    chapters: number;
+    notFound: number;
+    inStorage: number;
+    tagged: number;
+    noTags: number;
+    verses: number;
+    links: number;
+    alreadyLinked: number;
+    ignored: number;
+    missing: number;
+    conflicts: number;
+    failedChapters: number;
+  };
+  chapters: VikaraChapter[];
+};
+
+type ImportRunBase = {
   id: string;
   language: string;
   book: BookId;
@@ -260,14 +296,36 @@ export type ImportRun = {
   cancelRequested: boolean;
   /** `currentChapter` is the last chapter finished, not the one being worked on. */
   progress: { total: number; done: number; percent: number; currentChapter: number | null };
-  /** Null until the import ends. A cancelled one keeps what the chapters it finished did. */
-  result: ImportResult | null;
   requestedBy: { id: string; name: string } | null;
   createdAt: string;
   startedAt: string | null;
   finishedAt: string | null;
   heartbeatAt: string | null;
   stalled: boolean;
+};
+
+/** An import the worker is doing, or did: one language's chapters copied from storage into the database. */
+export type ImportRun = ImportRunBase & {
+  kind: 'TRANSLATION';
+  /** Null until the import ends. A cancelled one keeps what the chapters it finished did. */
+  result: ImportResult | null;
+};
+
+/** The same queue's other job: the Bhagavatam's vikara tag files linked to its verses. Never a translation. */
+export type VikaraRun = ImportRunBase & {
+  kind: 'VIKARA';
+  result: VikaraResult | null;
+};
+
+export type AnyImportRun = ImportRun | VikaraRun;
+
+/** What the database holds from the vikara tags (GET /imports/vikaras). */
+export type VikaraStatus = {
+  book: BookId;
+  /** Verses of the book with a link to one of the six. */
+  verses: number;
+  links: number;
+  vikaras: { slug: string; name: string; inDatabase: boolean; links: number }[];
 };
 
 const ROOT = '/api/admin/translations';
@@ -277,6 +335,9 @@ export const keys = {
   coverage: (book: BookId) => ['translation', 'coverage', book] as const,
   imports: (book: BookId) => ['translation', 'imports', book] as const,
   importRun: (id: string) => ['translation', 'import-run', id] as const,
+  // Under 'imports' so that refreshAfterImport asks for it again when any import ends.
+  vikaras: ['translation', 'imports', 'vikaras'] as const,
+  vikaraRuns: ['translation', 'vikara-runs'] as const,
   runs: ['translation', 'runs'] as const,
   run: (id: string) => ['translation', 'run', id] as const,
   chapter: (book: BookId, language: string, chapter: number) => ['translation', 'chapter', book, language, chapter] as const,
@@ -331,6 +392,40 @@ export function useImportPreview(book: BookId, language: string | null, publish:
     queryKey: ['translation', 'import-preview', book, language, publish],
     queryFn: async () => (await api.post<ImportResult>(`${ROOT}/imports`, { book, language, publish, dryRun: true })).data,
     enabled: enabled && !!language,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** What the database holds from the vikara tags, one line per vikara. */
+export function useVikaraStatus() {
+  return useQuery({
+    queryKey: keys.vikaras,
+    queryFn: async () => (await api.get<VikaraStatus>(`${ROOT}/imports/vikaras`)).data,
+    staleTime: 30_000,
+  });
+}
+
+/** The latest vikara imports, newest first, so the section can say what the last one did. */
+export function useVikaraRuns() {
+  return useQuery({
+    queryKey: keys.vikaraRuns,
+    queryFn: async () => (await api.get<VikaraRun[]>(`${ROOT}/imports/runs`, { kind: 'VIKARA', pageSize: 5 })).data,
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * What a vikara import would do, worked out by the server without writing anything (`dryRun`). It reads every
+ * chapter's tag file from storage, so it is asked for only while the dialog that shows it is open.
+ */
+export function useVikaraPreview(enabled: boolean) {
+  return useQuery({
+    queryKey: ['translation', 'import-preview', 'vikaras'],
+    queryFn: async () => (await api.post<VikaraResult>(`${ROOT}/imports/vikaras`, { dryRun: true })).data,
+    enabled,
     staleTime: 0,
     gcTime: 0,
     retry: false,
@@ -404,7 +499,7 @@ export function useImportRun(id: string | null) {
   const socket = useSocketStatus();
   return useQuery({
     queryKey: keys.importRun(id ?? ''),
-    queryFn: async () => (await api.get<{ run: ImportRun; feed: FeedLine[] }>(`${ROOT}/imports/runs/${id}`)).data,
+    queryFn: async () => (await api.get<{ run: AnyImportRun; feed: FeedLine[] }>(`${ROOT}/imports/runs/${id}`)).data,
     enabled: !!id,
     refetchInterval: (query) => pollMs(socket, query.state.data ? IMPORT_ACTIVE.includes(query.state.data.run.status) : false),
   });
@@ -448,9 +543,10 @@ export function useStartRun() {
   });
 }
 
-function putImportRun(queryClient: QueryClient, run: ImportRun) {
+function putImportRun(queryClient: QueryClient, run: AnyImportRun) {
   applyImportRun(queryClient, run);
   void queryClient.invalidateQueries({ queryKey: keys.overview });
+  if (run.kind === 'VIKARA') void queryClient.invalidateQueries({ queryKey: keys.vikaraRuns });
 }
 
 export type ImportInput = { language: string; book: BookId; chapters?: number[]; publish: boolean };
@@ -468,10 +564,19 @@ export function useImportTranslations() {
   });
 }
 
+/** Queues the link of the Bhagavatam's vikara tag files to its verses; the same follow-and-cancel as a translation import. */
+export function useImportVikaras() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { chapters?: number[] }) => (await api.post<VikaraRun>(`${ROOT}/imports/vikaras`, { ...input, dryRun: false })).data,
+    onSuccess: (run) => putImportRun(queryClient, run),
+  });
+}
+
 export function useCancelImportRun() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => (await api.post<ImportRun>(`${ROOT}/imports/runs/${id}/cancel`, {})).data,
+    mutationFn: async (id: string) => (await api.post<AnyImportRun>(`${ROOT}/imports/runs/${id}/cancel`, {})).data,
     onSuccess: (run) => putImportRun(queryClient, run),
   });
 }
@@ -518,8 +623,8 @@ function applyRun(queryClient: QueryClient, run: Run) {
 }
 
 /** Puts an import run, as the server just described it, into every cache that shows it. */
-function applyImportRun(queryClient: QueryClient, run: ImportRun) {
-  queryClient.setQueryData<{ run: ImportRun; feed: FeedLine[] }>(keys.importRun(run.id), (prev) => (prev ? { ...prev, run } : prev));
+function applyImportRun(queryClient: QueryClient, run: AnyImportRun) {
+  queryClient.setQueryData<{ run: AnyImportRun; feed: FeedLine[] }>(keys.importRun(run.id), (prev) => (prev ? { ...prev, run } : prev));
 
   queryClient.setQueryData<Overview>(keys.overview, (prev) => {
     if (!prev) return prev;
@@ -579,10 +684,11 @@ export function useTranslationLive() {
     }
   });
 
-  useSocketEvent<ImportRun>('translation-import.run', (run) => {
+  useSocketEvent<AnyImportRun>('translation-import.run', (run) => {
     if (!run?.id) return;
     const previous = queryClient.getQueryData<Overview>(keys.overview)?.activeImports.find((item) => item.id === run.id);
     applyImportRun(queryClient, run);
+    if (run.kind === 'VIKARA' && (!previous || previous.status !== run.status)) void queryClient.invalidateQueries({ queryKey: keys.vikaraRuns });
 
     // An import that has just ended (or that we never saw run) may have changed what the database holds.
     if (!IMPORT_ACTIVE.includes(run.status) && (!previous || previous.status !== run.status)) refreshAfterImport(queryClient);
@@ -590,7 +696,7 @@ export function useTranslationLive() {
 
   useSocketEvent<ActivityEvent>('translation-import.activity', (event) => {
     if (!event?.runId) return;
-    queryClient.setQueryData<{ run: ImportRun; feed: FeedLine[] }>(keys.importRun(event.runId), (prev) => withFeedLine(prev, event));
+    queryClient.setQueryData<{ run: AnyImportRun; feed: FeedLine[] }>(keys.importRun(event.runId), (prev) => withFeedLine(prev, event));
   });
 
   // Anything that happened while the socket was down was missed; ask for all of it again.

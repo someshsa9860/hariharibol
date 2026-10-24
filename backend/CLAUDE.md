@@ -1104,17 +1104,19 @@ inside the API, worker and websocket containers.
 
 | File | Job |
 |---|---|
-| `routes/admin/translation.js`, `controllers/admin/translation.js` | Fifteen routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, `imports` (`GET` what the database holds per language, `POST` queue an import, or with `dryRun` preview one), and the import runs: `imports/runs` (list), `imports/runs/:id` (the run and its feed), `imports/runs/:id/cancel`. `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for queueing and cancelling an import |
+| `routes/admin/translation.js`, `controllers/admin/translation.js` | Seventeen routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, `imports` (`GET` what the database holds per language, `POST` queue an import, or with `dryRun` preview one), and the import runs: `imports/runs` (list, `?kind=TRANSLATION|VIKARA`), `imports/runs/:id` (the run and its feed), `imports/runs/:id/cancel`, and the vikara import's pair `imports/vikaras` (`GET` what the database holds from the tags, `POST` queue it, or with `dryRun` preview it). `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for queueing and cancelling an import |
 | `services/translation.js` | Opens the S3 workspace, per-language coverage read from the `TranslationProgress` table (one row per book × chapter × language; `syncProgress` counts S3 into it — the worker for a run's chapters when it stops, `startRecount` in the background for the whole book when the table is empty, was counted under another version, or Recount is pressed; Redis lock `translation:coverage:recount:<book>` carries its progress; `npm run backfill:translation-progress`, also on the Maintenance page, is the resumable one-off; migration `20261030000000_translation_progress`), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
 | `services/translation-import.js` | `importLanguage`: reads a language's chapter files from storage and writes them to `VerseTranslation`, or with `dryRun` only says what it would do. It calls `onChapter(line, done, total)` after each chapter and stops between chapters when `shouldStop()` says so, which is how the worker reports progress and honours Cancel. Also the import run's plumbing: `publishImportRun` (the websocket event), the activity feed in Redis (`pushImportFeed`, `readImportFeed`), `addImportRunJob` / `dropImportRunJob` and `reconcileImportRuns` |
 | `utils/translation-import.js` | Pure functions, no I/O: how a file's verse becomes a row's columns (`rowFromEntry`), whether it is the verse the database holds (`placeProblem`), what differs (`changedColumns`), `reasonOf`, and for the run row `presentImportRun`, `summaryOf` (the one-line result) and `LIVE_IMPORT_STATUSES`. `test/translation-import.test.js` holds them |
+| `services/vikara-import.js`, `utils/vikara-import.js` | The Bhagavatam's **vikara import**: `importVikaras` reads the tag files (`issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json`) and links verses to the six `Issue` rows (`VerseIssue`), or with `dryRun` only says what it would do; `vikaraStatus` is what the page shows (verses and links per vikara). The pure half is `slugsOf`, the per-chapter line and `vikaraSummaryOf`. `test/vikara-import.test.js` holds the pure half; sections 12–13 of `npm run test:translation-import` walk the rest |
 | `jobs/processors/translation.js` | The BullMQ processor: runs the pipeline verse by verse, heartbeats, and decides what a stop means |
-| `jobs/processors/translation-import.js` | The BullMQ processor for an import (`translation-import.run` with `{ runId }`, queue `translation-import`, `attempts: 1`): claims the `TranslationImportRun`, calls `importLanguage`, writes progress, the heartbeat and an activity line after every chapter, notices a Cancel between chapters, and ends the run COMPLETED, FAILED or CANCELLED. `onJobFailed` marks a run whose job BullMQ gave up on |
+| `jobs/processors/translation-import.js` | The BullMQ processor for an import (`translation-import.run` with `{ runId }`, queue `translation-import`, `attempts: 1`): claims the `TranslationImportRun`, calls `importLanguage` (or `importVikaras` when the row's `kind` is `VIKARA`), writes progress, the heartbeat and an activity line after every chapter, notices a Cancel between chapters, and ends the run COMPLETED, FAILED or CANCELLED. `onJobFailed` marks a run whose job BullMQ gave up on |
 | `utils/translation-run.js` | Pure functions, no I/O: `classifyError`, `retryDelayMs`, `presentRun`, how a pipeline event reads in the feed. `test/translation-run.test.js` holds them |
 | `config/translation.js` | Every timing and limit, with a comment each. Change a number here, not in the processor |
 | `prisma/migrations/20261013000000_translation_runs` | `TranslationRun` and the two permissions |
 | `prisma/migrations/20261018000000_verse_translation_version` | `VerseTranslation.transliteration`, `wordMeanings`, `translatedBy`, `version`, and the `translation.import` permission. Idempotent (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`) |
 | `prisma/migrations/20261111000000_translation_import_runs` | `TranslationImportRun`. No permission change: the three above already cover it |
+| `prisma/migrations/20261112000000_vikara_import_runs` | `TranslationImportRun.kind` (`TRANSLATION` default, or `VIKARA`). No permission change |
 
 Things to know before changing it:
 
@@ -1174,9 +1176,9 @@ Things to know before changing it:
     row keeps its `id` and `createdAt`. A part the file no longer has (a purport removed) is cleared, because storage is the
     truth. A row that already matches is counted `unchanged` and not written. Other translators, other languages and the
     English are never touched.
-  - **Marathi Bhagavatam imports also create verse-to-vikara links** from each file entry's `issues` array, for the six known
-    slugs only. If a verse already has any `VerseIssue` row, all incoming links for that verse are skipped; existing links are
-    never replaced. Hindi, the Gita and other books do not import issue links.
+  - **A language import never makes vikara links.** The vikara tags are not in the language files any more (below), and an
+    old-shaped entry that still carries an `issues` array is read for its translation only. The Bhagavatam's tags have their
+    own import.
   - **Hidden unless `publish`.** A new row has `isPublished: false`; an existing row's visibility is never lowered; `publish: true`
     raises it and needs `verse.publish` as well as `translation.import`. The readers' endpoints only serve published rows.
   - **One transaction per chapter.** A failed chapter is reported with its reason and rolled back (its counts are zeroed), the
@@ -1230,17 +1232,56 @@ Things to know before changing it:
 - **Do not run `npm run translate:claude` while the worker is working a run for the same language.** They write the
   same chapter files; each write is conditional on the object not having changed, so one of them stops, but neither
   knows about the other.
-- `npm run test:translation` (`scripts/translation-e2e.js`, 238 checks) walks it against the real database, Redis and a real
+- **Vikara tags: a separate file, and a separate import (Bhagavatam in Marathi only).** Which of the six vikaras (`kama`,
+  `krodha`, `lobha`, `moha`, `mada`, `matsarya`; `VIKARA_SLUGS`) a verse genuinely helps with is asked only for the
+  Śrīmad-Bhāgavatam when Marathi is among the languages (`issuesAsked` in `scripts/lib/claude-translate-run.js`), and is
+  saved **beside** the language files, never in them: `issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json` (for a test
+  folder, `issues/json/<folder>/ch-<n>.json`; `issuesChapterKey` in `claude-translate-store.js`). One file per chapter,
+  the language-file shape with a single language, `en`: `{ bookNumber, bookSlug, bookName, cantoNumber, chapterNumber,
+  chapterName, language: 'en', verses: [{ verseId, bookNumber, cantoNumber, chapterNumber, verseNumber, verseNumberEnd,
+  sanskrit, issues }] }`. **`issues: []` is the usual and correct answer** (most verses help with none), so the prompt
+  (`PROMPT_VERSION` 9, `ISSUES_INSTRUCTION`) names a vikara only when the verse itself speaks to it, and a name outside the
+  six is dropped on save. The tag file is written first within each verse's save, so a failed tag save leaves the verse
+  retryable. A translation run neither imports nor reads these files.
+- **The vikara import is a second kind of import run, not a second system.** `POST /imports/vikaras` `{ chapters?, dryRun? }`
+  (`translation.import`) queues a `TranslationImportRun` with `kind: 'VIKARA'` (`language` `en`, `book`
+  `srimad-bhagavatam`, never published) on the same `translation-import` queue, and the same processor works it
+  (`importVikaras`), with the same progress, heartbeat, activity feed, websocket events (`translation-import.run` /
+  `.activity`, now carrying `kind`), Cancel and reconcile. `GET /imports/runs?kind=` filters; `overview.activeImports` holds
+  both kinds. Only one vikara import may be live (409 with `error.details.runId`; Redis lock
+  `translation:import-vikara:srimad-bhagavatam`); a vikara import and a language import do not block each other. Audit
+  action `translation.vikara-import`. The rules:
+  - **A verse is found by its `verseId` and checked with the same `placeProblem`** as a translation import; a verse the
+    database lacks or that disagrees is reported and left alone. It never creates a `Verse`.
+  - **A verse that already has any `VerseIssue` link is left alone, and nothing is ever deleted**, so links put there by
+    the seed, by hand or by an earlier import are never replaced and a second import changes nothing. Re-tagging a verse that
+    is already linked is therefore not something this import does.
+  - **A verse with no tags writes nothing** (counted `noTags`); a name that is not one of the six is ignored and counted
+    (`ignored`). If any of the six has no `Issue` row the import is refused with 422 "Run the seed first" before anything
+    is written.
+  - **One transaction per chapter**, with the verses locked `FOR UPDATE` so two imports (or a seed) cannot both find a verse
+    unlinked and double its links. A chapter that fails is reported and rolled back, the others carry on; a chapter with
+    no tag file is `found: false`, not an error.
+  - The report is `{ dryRun, totals: { chapters, notFound, inStorage, tagged, noTags, verses, links, alreadyLinked, ignored,
+    missing, conflicts, failedChapters }, chapters: [{ chapter, found, inStorage, tagged, noTags, verses, links,
+    alreadyLinked, ignored, missing, conflicts, error }] }`. `GET /imports/vikaras` answers `{ book, verses, links, vikaras:
+    [{ slug, name, inDatabase, links }] }`.
+  - **Chapters translated before the tags were kept apart have no tag file.** The 13 verses of Bhagavatam 10.1 already in
+    `mr/c10-ch-1.json` carry old `issues` arrays that nothing reads; because a translation run skips a verse already done
+    under the current version, they get tags only if translated again (a new `TRANSLATION_VERSION`).
+- `npm run test:translation` (`scripts/translation-e2e.js`, 259 checks) walks it against the real database, Redis and a real
   BullMQ worker with Claude faked: start, progress, credit pause and Resume, a 529 retry, cancel, a killed
   worker, a flushed queue, permissions, the version rule, and the output endpoints. Its section 12 walks the queued import:
   who may, what it refuses, a 201 with a run that names its job, the live events, a second import refused with the first's
   id, the list / one / overview reads, a real `translation-import` worker taking a run (Malayalam has nothing in storage, so
   every chapter reads "no file" and nothing is written), a failure explained and one not, cancel of a waiting, a working
   and a stalled import, a superseded or finished job skipped, a shutdown handing the run back, `reconcileImportRuns`, the
-  preview and the audit rows.
-  `npm run test:translation-import` (`scripts/translation-import-e2e.js`, 78 checks) walks `importLanguage` against the real database
+  preview and the audit rows, and a vikara import queued, worked by the real worker (with no tag file in storage, so it reads two chapters and links nothing), listed by `?kind=` and refused twice.
+  `npm run test:translation-import` (`scripts/translation-import-e2e.js`, 98 checks) walks `importLanguage` against the real database
   with a throwaway book and a local folder: new, replaced in place with the id kept, unchanged, a part cleared, refused
-  verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once. `npm test` needs Node ≥ 21 for its
+  verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once (section 12: a language import never
+  makes vikara links; section 13: the vikara import — tagged, empty and unknown-name verses, a verse already linked, a verse
+  the database lacks, a chapter with no file, a rolled-back chapter, a second import changing nothing). `npm test` needs Node ≥ 21 for its
   test glob; under Node 20 run
   `node --test test/translation-run.test.js test/translation-import.test.js test/claude-translate.test.js`.
 - **Not exercised:** a real Claude call (the e2es fake the model). GPT-6 Luna and Gemini have been called live, and Luna has
@@ -1249,10 +1290,13 @@ Things to know before changing it:
   Gita's real S3 files either; do a `dryRun` from the page first. The queued import has been walked only by the two e2es
   above (a throwaway book and language, a worker started inside the script); it has not run against a live API, the
   production worker container, a browser or the real files.
-- **Production needs `prisma migrate deploy` for `20261111000000_translation_import_runs`, and a restart of the API and the
-  worker** (the worker registers the `translation-import` queue and its reconcile timer at boot). No seed, no permission
+- **Production needs `prisma migrate deploy` for `20261111000000_translation_import_runs` and `20261112000000_vikara_import_runs`
+  (adds `TranslationImportRun.kind`), and a restart of the API and the worker** (the worker registers the `translation-import` queue and its reconcile timer at boot). No seed, no permission
   change. Deploy the admin panel with the API: `POST /imports` now answers 201 with a queued run instead of 200 with the
-  result, and `GET /overview` carries `activeImports`, which an older panel does not read.
+  result, and `GET /overview` carries `activeImports`, which an older panel does not read. **The vikara import also needs the
+  six `Issue` rows (`npm run seed`)** and, to have anything to import, a Marathi Bhagavatam translation run made after the tag
+  files were introduced. Neither the tag writing nor the vikara import has run against a real model, the real bucket, a
+  browser or a phone; both e2es use a throwaway book and a local folder.
 
 ## Sharing, deep links and refer and earn
 
