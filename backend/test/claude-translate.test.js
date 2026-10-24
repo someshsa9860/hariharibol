@@ -481,6 +481,24 @@ describe('the instructions and the answer schema', () => {
     }
   });
 
+  test('the Marathi Bhagavatam schema asks for vikara tags with no keyword OpenAI\'s strict mode refuses', () => {
+    const schema = answerSchema(['mr', 'hi'], undefined, 'srimad-bhagavatam');
+    assert.deepEqual(schema.properties.mr.properties.issues.type, 'array');
+    assert.ok(schema.properties.mr.required.includes('issues'));
+    assert.equal(schema.properties.hi.properties.issues, undefined, 'only Marathi is asked for the tags');
+    const refused = [];
+    const walk = (node, path) => {
+      if (Array.isArray(node)) return node.forEach((n, i) => walk(n, `${path}[${i}]`));
+      if (!node || typeof node !== 'object') return;
+      for (const [key, value] of Object.entries(node)) {
+        if (key === 'uniqueItems') refused.push(`${path}.${key}`);
+        walk(value, `${path}.${key}`);
+      }
+    };
+    walk(schema, 'schema');
+    assert.deepEqual(refused, [], 'OpenAI answers 400 "uniqueItems is not permitted"');
+  });
+
   test('a retry names the languages that could not be used and why', () => {
     const { units } = unitsFromChapter(chapterFile(), saFile());
     const prompt = userPrompt(units[0], ['hi', 'ta'], { ta: ['translation is empty or not a string'] });

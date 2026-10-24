@@ -28,9 +28,9 @@ export function issuesAsked(bookId, langCodes, parts) {
   return bookId === ISSUES_BOOK && langCodes.includes(ISSUES_LANG) && has(parts, 'translation', 'purport');
 }
 
-/** One language's answer shape with the vikara tags added: an array of the six names, possibly empty. */
+/** One language's answer shape with the vikara tags added: an array of the six names, possibly empty. No `uniqueItems`: OpenAI's strict mode rejects it (400), and the validator drops repeats anyway. */
 function withIssues(perLanguage) {
-  const issues = { type: 'array', items: { type: 'string', enum: VIKARA_SLUGS }, uniqueItems: true };
+  const issues = { type: 'array', items: { type: 'string', enum: VIKARA_SLUGS } };
   return { ...perLanguage, properties: { ...perLanguage.properties, issues }, required: [...perLanguage.required, 'issues'] };
 }
 
