@@ -12,14 +12,15 @@
 import { language } from './claude-translate-languages.js';
 import { PARTS, PART_LABELS } from './claude-translate-parts.js';
 import { BOOK, bookOf } from './claude-translate-source.js';
+import { VIKARA_SLUGS } from './claude-translate-validate.js';
 
 export const PROMPT_VERSION = '8';
 
 // The Bhagavatam's vikara tags: asked for Marathi only, and read from the English meaning and purport, so
 // the answer does not depend on which language is being written.
-const ISSUES_BOOK = 'srimad-bhagavatam';
+export const ISSUES_BOOK = 'srimad-bhagavatam';
 export const ISSUES_LANG = 'mr';
-export const VIKARA_SLUGS = ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'];
+export { VIKARA_SLUGS };
 const ISSUES_INSTRUCTION = `Also return "issues": the names of the six vikaras (inner enemies) that this verse, through its meaning and purport above, helps the reader overcome — kama (lust, craving), krodha (anger), lobha (greed), moha (attachment, delusion), mada (pride), matsarya (envy). Use only these names, in lowercase exactly as written. Return an empty array when none applies; a verse may help with more than one.`;
 
 /** Whether this call asks the model for the vikara tags: Bhagavatam, Marathi among the languages, and the meaning or purport in the call. */

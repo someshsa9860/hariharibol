@@ -2,6 +2,7 @@
 // No network, no S3, no API key.
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -1588,4 +1589,20 @@ describe('a plan: different models for different parts', () => {
     assert.ok(r.lanes[0].inTokens !== r.lanes[1].inTokens, 'each lane counts only its parts\' source');
     assert.equal(r.totals.calls, r.lanes[0].calls + r.lanes[1].calls);
   });
+});
+
+describe('loading the pipeline', () => {
+  // This file imports prompt.js before parts.js, which is the one order an import cycle between them survives; the API
+  // reaches parts.js first, so a cycle crashed it at boot ("Cannot access 'PARTS' before initialization") while every
+  // test here passed. Each module gets a process of its own, so it is the first one loaded.
+  const LIB = join(import.meta.dirname, '..', 'scripts', 'lib');
+  const modules = readdirSync(LIB).filter((f) => /^claude-translate-.*\.js$/.test(f));
+
+  for (const file of modules) {
+    test(`${file} loads on its own`, () => {
+      const url = new URL(`file://${join(LIB, file)}`).href;
+      const r = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(url)}); process.exit(0);`], { encoding: 'utf8' });
+      assert.equal(r.status, 0, r.stderr);
+    });
+  }
 });

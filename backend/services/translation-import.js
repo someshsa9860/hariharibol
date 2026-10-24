@@ -38,7 +38,7 @@ import { unprocessable } from '../utils/errors.js';
 import { LIVE_IMPORT_STATUSES, changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
-import { VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
+import { ISSUES_BOOK, ISSUES_LANG, VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
 
 const queue = queues['translation-import'];
@@ -115,7 +115,7 @@ export async function importLanguage({ language, book: bookSlug = BOOK, chapters
         bookId: book.id,
         translatorId: translator.id,
         parts: chapterParts(number, named ? bookSlug : BOOK),
-        importIssues: bookSlug === 'srimad-bhagavatam' && language === 'mr',
+        importIssues: bookSlug === ISSUES_BOOK && language === ISSUES_LANG,
       });
     } catch (err) {
       line.error = reasonOf(err);
@@ -221,6 +221,7 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
 
   let created;
   try {
+    // Prisma ends an interactive transaction after 5 s by default, and a long chapter is one update per verse.
     created = await prisma.$transaction(async (tx) => {
       if (importableIssueCandidates.size) {
         const candidateVerseIds = [...importableIssueCandidates.keys()].sort();
@@ -254,7 +255,7 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
       if (!toCreate.length) return 0;
       const result = await tx.verseTranslation.createMany({ data: toCreate, skipDuplicates: true });
       return result.count;
-    });
+    }, { timeout: 60_000 });
   } catch (err) {
     // The transaction rolled back, so none of this chapter was written and its line must not say it was.
     line.created = 0;

@@ -294,7 +294,10 @@ export function useOverview() {
   const socket = useSocketStatus();
   return useQuery({
     queryKey: keys.overview,
-    queryFn: async () => (await api.get<Overview>(`${ROOT}/overview`)).data,
+    queryFn: async () => {
+      const data = (await api.get<Overview>(`${ROOT}/overview`)).data;
+      return { ...data, activeImports: data.activeImports ?? [] };
+    },
     refetchInterval: (query) => {
       const data = query.state.data;
       return pollMs(socket, (data?.active.length ?? 0) + (data?.activeImports.length ?? 0) > 0);

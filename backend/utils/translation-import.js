@@ -4,7 +4,6 @@
 // this decides. test/translation-import.test.js holds the cases.
 
 import { translation } from '../config/translation.js';
-import { ISSUES_LANG, VIKARA_SLUGS } from '../scripts/lib/claude-translate-prompt.js';
 import { TRANSLATOR } from '../scripts/lib/claude-translate-source.js';
 import { normalizeWordMeanings } from '../scripts/lib/word-meanings.js';
 

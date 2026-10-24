@@ -8,7 +8,11 @@
 // can judge (see scripts/README.md, "Translating the Gita with Claude").
 
 import { language } from './claude-translate-languages.js';
-import { VIKARA_SLUGS } from './claude-translate-prompt.js';
+
+// Defined here, not in claude-translate-prompt.js, for the same reason as PARTS below: prompt.js imports
+// parts.js, which imports this file, so importing prompt.js from here is a cycle — whoever loads parts.js
+// first crashes at load with "Cannot access 'PARTS' before initialization". prompt.js re-exports it.
+export const VIKARA_SLUGS = ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya'];
 
 const MIN_SCRIPT_RATIO = 0.85;
 const MIN_WORDS_MEASURED = 15;
