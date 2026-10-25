@@ -334,6 +334,74 @@ void main() {
 
       await leave(tester);
     });
+
+    testWidgets('the ring is not the count: a tap does nothing, playing or paused part-way', (
+      tester,
+    ) async {
+      final fake = await pumpView(tester, recordedFromStart, clock);
+      await tapPlay(tester);
+      expect(find.text('0/4'), findsOneWidget);
+
+      clock.advance(7000);
+      await tapRing(tester);
+      expect(find.text('0/4'), findsOneWidget);
+
+      // Paused before the first chant is over, the recording is not at its start,
+      // so a tap by hand would still be a second count of the same chanting.
+      fake.playTo(const Duration(seconds: 6));
+      await tester.pump();
+      await tapPause(tester);
+      clock.advance(7000);
+      await tapRing(tester);
+      await tapRing(tester);
+      expect(find.text('0/4'), findsOneWidget);
+
+      // Played on, only the recording counts: 12.5 s a chant.
+      await tapPlay(tester);
+      fake.playTo(const Duration(milliseconds: 12600));
+      await tester.pump();
+      expect(find.text('1/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('a round that ends sends the recording back to 0:00 and the hand is free again', (
+      tester,
+    ) async {
+      final fake = await pumpView(tester, recordedFromStart, clock);
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 50));
+      await tester.pump();
+      expect(find.text('Panchatattva'), findsOneWidget);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+
+      // The prayer's tap, then a bead, by hand: nothing is playing and the
+      // recording is at its start.
+      clock.advance(7000);
+      await tapRing(tester);
+      expect(find.text('Panchatattva'), findsNothing);
+      expect(find.text('0/4'), findsOneWidget);
+
+      clock.advance(2000);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('a recording that is not played leaves the ring to the hand', (tester) async {
+      await pumpView(tester, recordedFromStart, clock);
+
+      clock.advance(7000);
+      await tapRing(tester);
+      expect(find.text('Panchatattva'), findsNothing);
+
+      clock.advance(2000);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+
+      await leave(tester);
+    });
   });
 
   group('finishing a round early', () {

@@ -181,6 +181,12 @@ Future<void> tapPlay(WidgetTester tester) async {
   await tester.pump();
 }
 
+Future<void> tapRing(WidgetTester tester) async {
+  await tester.ensureVisible(find.byType(ChantDisc));
+  await tester.tap(find.byType(ChantDisc));
+  await tester.pump();
+}
+
 void main() {
   late FakeWakelock wakelock;
 
@@ -402,21 +408,51 @@ void main() {
       await leave(tester);
     });
 
-    testWidgets('a tap on the ring still counts while the recording plays', (tester) async {
+    testWidgets('a tap on the ring counts nothing while the recording plays', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
       await pumpView(tester, mantra: withRecording, fake: fake);
       await tapPlay(tester);
 
-      await tester.ensureVisible(find.byType(ChantDisc));
-      await tester.tap(find.byType(ChantDisc));
-      await tester.pump();
-
-      expect(find.text('1/4'), findsOneWidget);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsNothing);
       expect(fake.pauses, 0);
       expect(find.byTooltip('Pause recording'), findsOneWidget);
 
+      // The recording alone is the count: the same chants as without the taps.
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+
       await leave(tester);
     });
+
+    testWidgets('and not when it is paused part-way, either', (tester) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      await pumpView(tester, mantra: withRecording, fake: fake);
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      expect(find.text('1/4'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Pause recording'));
+      await tester.pump();
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+
+      await tapRing(tester);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+      expect(find.text('2/4'), findsNothing);
+
+      // Played on, the recording is still the only count.
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 30));
+      await tester.pump();
+      expect(find.text('2/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+
 
     testWidgets('the recording pauses when the app leaves the foreground', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));

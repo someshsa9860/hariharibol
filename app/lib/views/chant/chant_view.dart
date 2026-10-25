@@ -419,14 +419,31 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     super.dispose();
   }
 
-  /// A tap on the ring by hand. With auto count off nothing else says a chant
-  /// happened, so a tap that comes before half of one chant's time (at the
-  /// reader's pace) has passed since the last is ignored: otherwise the count
-  /// runs ahead of the chanting. (No mantra, no pace, no limit. With auto count
-  /// on, the sound or the clock is the count and a tap is only a correction.)
+  /// The recording is the count: it is playing, or paused somewhere inside the
+  /// chanting. It stops being so when a round ends (it goes back to its start),
+  /// when the bar is dragged back to the start, and once it has played to the end
+  /// of the chanting.
+  bool get _recordingInUse {
+    final mala = _mala;
+    if (mala == null) return false;
+    final state = mala.state.value;
+    if (state.phase != ChantMalaPhase.ready) return false;
+    return state.playing || (state.position > Duration.zero && state.position < mala.timing.end);
+  }
+
+  /// A tap on the ring by hand. While the recording is in use, or auto count is
+  /// running, something else says a chant happened and a hand tap beside it would
+  /// count the same chant twice, so it does nothing (the prayer's tap, which is
+  /// not a chant, is the exception for auto count: it is not running during the
+  /// prayer, and the tap is the only way out of it). With both off nothing else
+  /// says a chant happened, so a tap that comes before half of one chant's time
+  /// (at the reader's pace) has passed since the last is ignored: otherwise the
+  /// count runs ahead of the chanting. (No mantra, no pace, no limit.)
   void _tapRing() {
+    if (_recordingInUse) return;
     if (_inPrayer) return _tapPrayer();
-    if (widget.mantra != null && !_autoChantStatus.enabled) {
+    if (_autoChantStatus.enabled) return;
+    if (widget.mantra != null) {
       if (!_recorder.tapAllowed(MantraAutoChantSession.manualTapGapOf(_pace))) return;
     }
     _tapBead();
