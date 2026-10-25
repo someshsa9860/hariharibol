@@ -951,6 +951,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get readingContents => 'ഉള്ളടക്കം';
 
   @override
+  String get readingContentsNow => 'ഇപ്പോൾ വായിക്കുന്നു';
+
+  @override
+  String get readingContentsAboutBook => 'ഈ പുസ്തകത്തെക്കുറിച്ച്';
+
+  @override
   String get readingFontSizeLabel => 'അക്ഷര വലുപ്പം';
 
   @override
@@ -994,7 +1000,10 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ഒരു ശ്ലോകം അമർത്തിപ്പിടിക്കുക — അത് പ്ലേ ചെയ്യാനോ ബുക്ക്‌മാർക്ക് ചെയ്യാനോ ഹൈലൈറ്റ് ചെയ്യാനോ കുറിപ്പ് ചേർക്കാനോ.';
+      'ഒരു ശ്ലോകത്തിൽ തൊട്ടാൽ അത് പൂർണമായി കാണാം — സംസ്കൃതം, വാക്കുകളുടെ അർത്ഥം, ഭാവാർത്ഥം. അമർത്തിപ്പിടിച്ചാൽ അത് പ്ലേ ചെയ്യാം, ബുക്ക്‌മാർക്ക് ചെയ്യാം, ഹൈലൈറ്റ് ചെയ്യാം അല്ലെങ്കിൽ കുറിപ്പ് ചേർക്കാം.';
+
+  @override
+  String get readingStoryCollapse => 'കഥയിലേക്ക് മടങ്ങുക';
 
   @override
   String get readingStoryNothing =>

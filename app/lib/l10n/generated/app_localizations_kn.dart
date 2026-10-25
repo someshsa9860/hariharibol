@@ -946,6 +946,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get readingContents => 'ಪರಿವಿಡಿ';
 
   @override
+  String get readingContentsNow => 'ಈಗ ಓದುತ್ತಿದ್ದೀರಿ';
+
+  @override
+  String get readingContentsAboutBook => 'ಈ ಪುಸ್ತಕದ ಬಗ್ಗೆ';
+
+  @override
   String get readingFontSizeLabel => 'ಅಕ್ಷರದ ಗಾತ್ರ';
 
   @override
@@ -989,7 +995,10 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ಶ್ಲೋಕವನ್ನು ಒತ್ತಿ ಹಿಡಿಯಿರಿ — ಅದನ್ನು ಪ್ಲೇ ಮಾಡಲು, ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಲು, ಹೈಲೈಟ್ ಮಾಡಲು ಅಥವಾ ಟಿಪ್ಪಣಿ ಸೇರಿಸಲು.';
+      'ಶ್ಲೋಕವನ್ನು ಮುಟ್ಟಿದರೆ ಪೂರ್ತಿ ಕಾಣುತ್ತದೆ — ಸಂಸ್ಕೃತ, ಪದಾರ್ಥ, ತಾತ್ಪರ್ಯ. ಒತ್ತಿ ಹಿಡಿದರೆ ಅದನ್ನು ಪ್ಲೇ ಮಾಡಬಹುದು, ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಬಹುದು, ಹೈಲೈಟ್ ಮಾಡಬಹುದು ಅಥವಾ ಟಿಪ್ಪಣಿ ಸೇರಿಸಬಹುದು.';
+
+  @override
+  String get readingStoryCollapse => 'ಕಥೆಗೆ ಹಿಂತಿರುಗಿ';
 
   @override
   String get readingStoryNothing =>

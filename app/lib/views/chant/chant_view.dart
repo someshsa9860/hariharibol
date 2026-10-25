@@ -186,6 +186,11 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// for a mantra with no recording.
   bool _recordingFailed = false;
 
+  /// The recording is not on the phone and there is no connection to fetch it
+  /// over: the Chant along card is left off the screen until one returns, and the
+  /// prayer waits for a tap meanwhile.
+  bool _recordingUnavailable = false;
+
   /// Runs for the whole sitting, screen-open to screen-close — what "sitting
   /// time" on the counter means.
   final Stopwatch _stopwatch = Stopwatch();
@@ -289,6 +294,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
         end: Duration(milliseconds: mantra.malaAudioEndMs),
         chants: _beadsPerRoundInUse,
       ),
+      cache: ref.read(malaAudioCacheProvider),
+      connection: ref.read(malaConnectionProvider),
       player: ref.read(malaAudioPlayerProvider)(),
     );
     _mala = player;
@@ -320,10 +327,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       _endPrayerByRecording();
     }
     final failed = state.phase == ChantMalaPhase.failed;
-    if (state.playing != _recordingPlaying || failed != _recordingFailed) {
+    final unavailable = state.phase == ChantMalaPhase.unavailable;
+    if (state.playing != _recordingPlaying ||
+        failed != _recordingFailed ||
+        unavailable != _recordingUnavailable) {
       setState(() {
         _recordingPlaying = state.playing;
         _recordingFailed = failed;
+        _recordingUnavailable = unavailable;
       });
     }
     // The microphone would hear the recording from the speaker and count every
@@ -339,7 +350,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// load leaves the usual line.
   String? _prayerHint(AppLocalizations text) {
     final mala = _mala;
-    if (mala == null || _recordingFailed) return null;
+    if (mala == null || _recordingFailed || _recordingUnavailable) return null;
     return mala.timing.start > Duration.zero
         ? text.chantPrayerHintAlong
         : text.chantPrayerHintAlongNoPrayer;
@@ -509,6 +520,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   void _saveProgress() => ChantProgressStore.write(widget.mantra?.id, _recorder.beadsInMala);
 
   void _tapBead({bool auto = false}) {
+    // The screen is on its way out and the sitting's last sync is already taken.
+    if (_finishing) return;
     HapticFeedback.selectionClick();
     _recorder.tap(auto: auto);
     _afterCount();
@@ -640,24 +653,45 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
-  Future<void> _close() async {
+  /// Goes back at once. The sitting's last sync is the network's to take as long
+  /// as it likes — with no connection that is a long time — so it runs after the
+  /// screen has gone, and whatever fails is left, as every send here is.
+  void _close() {
     if (_finishing) return;
     setState(() => _finishing = true);
     // Nothing is counted after the sitting's last sync.
-    await _mala?.pause();
+    unawaited(_mala?.pause());
+    unawaited(_malaChantsSub?.cancel());
     _session.cancel();
-    await _session.send(finish: true);
-    // The day this screen started from is stale the moment a round lands —
-    // refreshed here rather than left for the tab's own pull to refresh.
-    unawaited(ref.read(sadhanaTodayProvider.notifier).refresh());
-    unawaited(ref.read(homeFeedProvider.notifier).refresh());
+    // Taken before the screen goes: a widget's `ref` is not for use after it.
+    final session = _session;
+    final today = ref.read(sadhanaTodayProvider.notifier);
+    final feed = ref.read(homeFeedProvider.notifier);
     final completedRound = _recorder.completedMalas > 0;
-    if (mounted) Navigator.of(context).pop();
+    Navigator.of(context).pop();
+    unawaited(_finishSitting(session, today, feed));
     // A round just finished is a happy moment; the prompter decides whether it
     // is a good one (a streak of days, nothing recent, never after a complaint).
     if (completedRound) {
       unawaited(ReviewPrompter.instance.maybeAsk(trigger: SupportConfig.triggerStreak));
     }
+  }
+
+  /// The end of the sitting, after the screen is gone: the last sync, then the
+  /// day this screen started from — stale the moment a round lands — refreshed
+  /// rather than left for the tab's own pull to refresh. Never throws: nobody is
+  /// waiting on it.
+  Future<void> _finishSitting(
+    ChantSessionSync session,
+    SadhanaTodayNotifier today,
+    HomeFeedNotifier feed,
+  ) async {
+    try {
+      await session.send(finish: true);
+    } catch (_) {}
+    try {
+      await Future.wait<Object?>([today.refresh(), feed.refresh()]);
+    } catch (_) {}
   }
 
   /// The picture in the ring: the list picture, or the 9:16 one when that is
@@ -765,7 +799,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   prayer: _inPrayer ? _prayer : null,
                   prayerHint: _prayerHint(text),
                 ),
-                if (_mala != null) ...[
+                if (_mala != null && !_recordingUnavailable) ...[
                   ChantAlongCard(player: _mala!),
                   const SizedBox(height: AppSpacing.lg),
                 ],

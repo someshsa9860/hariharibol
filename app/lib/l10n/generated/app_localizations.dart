@@ -1654,6 +1654,18 @@ abstract class AppLocalizations {
   /// **'Contents'**
   String get readingContents;
 
+  /// Marks the canto or chapter being read in the contents sheet over a chapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading now'**
+  String get readingContentsNow;
+
+  /// Tooltip of the button in the contents sheet that opens the book's own page.
+  ///
+  /// In en, this message translates to:
+  /// **'About this book'**
+  String get readingContentsAboutBook;
+
   /// No description provided for @readingFontSizeLabel.
   ///
   /// In en, this message translates to:
@@ -1741,8 +1753,14 @@ abstract class AppLocalizations {
   /// No description provided for @readingStoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Press and hold a verse to play it, bookmark it, highlight it or add a note.'**
+  /// **'Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.'**
   String get readingStoryHint;
+
+  /// No description provided for @readingStoryCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to story'**
+  String get readingStoryCollapse;
 
   /// No description provided for @readingStoryNothing.
   ///

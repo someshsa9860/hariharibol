@@ -941,6 +941,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get readingContents => 'ਵਿਸ਼ਾ-ਸੂਚੀ';
 
   @override
+  String get readingContentsNow => 'ਹੁਣ ਪੜ੍ਹ ਰਹੇ ਹੋ';
+
+  @override
+  String get readingContentsAboutBook => 'ਇਸ ਪੁਸਤਕ ਬਾਰੇ';
+
+  @override
   String get readingFontSizeLabel => 'ਅੱਖਰ ਦਾ ਆਕਾਰ';
 
   @override
@@ -984,7 +990,10 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ਕਿਸੇ ਸ਼ਲੋਕ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ — ਉਸਨੂੰ ਚਲਾਉਣ, ਬੁੱਕਮਾਰਕ ਕਰਨ, ਹਾਈਲਾਈਟ ਕਰਨ ਜਾਂ ਨੋਟ ਜੋੜਨ ਲਈ।';
+      'ਕਿਸੇ ਸ਼ਲੋਕ ਨੂੰ ਛੂਹ ਕੇ ਪੂਰਾ ਵੇਖੋ — ਸੰਸਕ੍ਰਿਤ, ਸ਼ਬਦਾਰਥ, ਤਾਤਪਰਯ। ਦਬਾ ਕੇ ਰੱਖਣ ਨਾਲ ਉਸਨੂੰ ਚਲਾਓ, ਬੁੱਕਮਾਰਕ ਕਰੋ, ਹਾਈਲਾਈਟ ਕਰੋ ਜਾਂ ਨੋਟ ਜੋੜੋ।';
+
+  @override
+  String get readingStoryCollapse => 'ਕਥਾ ਵੱਲ ਵਾਪਸ';
 
   @override
   String get readingStoryNothing =>

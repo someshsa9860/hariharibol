@@ -8,6 +8,7 @@ import '../models/routine_task.dart';
 import '../models/sadhana.dart';
 import 'api_client.dart';
 import 'local_store.dart';
+import 'response_cache.dart';
 
 /// Daily practice: the round target, chanting, and the day it all rolls up
 /// into. Everything here is the signed-in reader's own — there is no public
@@ -142,7 +143,7 @@ class SadhanaService {
   /// Past sittings of one mantra, newest first — or, with no [mantraId], of
   /// sittings that had none.
   Future<Paged<ChantSessionSummary>> chantSessions({String? mantraId, int page = 1}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.chantSessions,
       query: {'page': page, 'mantraId': mantraId ?? 'none'},
     );
@@ -151,7 +152,7 @@ class SadhanaService {
 
   /// One past sitting with its rounds.
   Future<ChantSessionDetail> chantSession(String id) async {
-    final response = await _api.get(ApiPaths.chantSessionById(id));
+    final response = await _api.getOrSaved(ApiPaths.chantSessionById(id));
     return ChantSessionDetail.fromJson(response.json);
   }
 }

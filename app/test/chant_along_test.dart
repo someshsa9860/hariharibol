@@ -22,12 +22,14 @@ import 'package:hariharibol/providers/language_chain_provider.dart';
 import 'package:hariharibol/providers/sadhana_provider.dart';
 import 'package:hariharibol/services/chant_mala_player.dart';
 import 'package:hariharibol/services/chant_mala_timing.dart';
+import 'package:hariharibol/services/connection_status.dart';
 import 'package:hariharibol/views/chant/chant_view.dart';
 import 'package:hariharibol/widgets/chant/chant_along_card.dart';
 import 'package:hariharibol/widgets/chant/chant_disc.dart';
 import 'package:hariharibol/widgets/chant/chant_tap_row.dart';
 
 import 'fake_audio_player.dart';
+import 'fake_connection_status.dart';
 
 const String link = 'https://media.test/mala.mp3';
 
@@ -135,6 +137,7 @@ Future<void> pumpView(
   required Mantra mantra,
   required FakeAudioPlayer fake,
   void Function()? onPlayerMade,
+  ConnectionStatus? connection,
 }) async {
   narrowPhone(tester);
   // The counter reads the day as it already is — it is opened from a tab that
@@ -149,6 +152,8 @@ Future<void> pumpView(
         onPlayerMade?.call();
         return fake;
       }),
+      malaAudioCacheProvider.overrideWithValue(null),
+      malaConnectionProvider.overrideWithValue(connection),
     ],
   );
   addTearDown(container.dispose);
@@ -433,9 +438,7 @@ void main() {
       await leave(tester);
     });
 
-    testWidgets('closing the screen stops the recording before the sitting is sent', (
-      tester,
-    ) async {
+    testWidgets('closing the screen stops the recording and goes back at once', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
       await pumpView(tester, mantra: withRecording, fake: fake);
       await tapPlay(tester);
@@ -444,12 +447,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pump();
 
-      // Stopped at once: nothing is counted after the sitting's last sync, which
-      // is still waiting on the network.
+      // Stopped at once: nothing is counted after the sitting's last sync.
       expect(fake.pauses, 1);
       expect(find.byTooltip('Play recording'), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 3));
+      // The screen does not wait for that sync, which with no connection can
+      // take as long as the network likes: a request never finishes in a test
+      // that only pumps frames, and the screen is gone all the same.
+      // The route's exit takes a few frames; nothing else is waited for.
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byType(ChantView), findsNothing);
       expect(tester.takeException(), isNull);
 
       await leave(tester);
@@ -467,6 +476,47 @@ void main() {
       expect(wakelock.held, isFalse);
     });
 
+    testWidgets('with no connection and the recording not kept the card is left off, until the connection returns', (
+      tester,
+    ) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      final connection = FakeConnectionStatus(isOnline: false);
+      await pumpView(tester, mantra: withRecording, fake: fake, connection: connection);
+
+      expect(find.byType(ChantAlongCard), findsNothing);
+      expect(find.text('Chant along'), findsNothing);
+      expect(find.text('Loading the recording…'), findsNothing);
+      expect(fake.opened, isEmpty);
+      expect(tester.takeException(), isNull);
+
+      connection.turn(on: true);
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+      expect(fake.opened, [link]);
+
+      // Open and on screen, it stays when the connection goes again.
+      connection.turn(on: false);
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('with a connection the card is on the screen from the start', (tester) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      await pumpView(tester, mantra: withRecording, fake: fake, connection: FakeConnectionStatus());
+
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+
+      await leave(tester);
+    });
+
     testWidgets('the screen fits a narrow phone with the card in both themes', (tester) async {
       for (final brightness in Brightness.values) {
         final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
@@ -475,6 +525,8 @@ void main() {
           overrides: [
             sadhanaTodayProvider.overrideWith(_FakeToday.new),
             malaAudioPlayerProvider.overrideWithValue(() => fake),
+            malaAudioCacheProvider.overrideWithValue(null),
+            malaConnectionProvider.overrideWithValue(null),
           ],
         );
         addTearDown(container.dispose);

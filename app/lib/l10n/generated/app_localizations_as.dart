@@ -944,6 +944,12 @@ class AppLocalizationsAs extends AppLocalizations {
   String get readingContents => 'সূচীপত্ৰ';
 
   @override
+  String get readingContentsNow => 'এতিয়া পঢ়ি আছে';
+
+  @override
+  String get readingContentsAboutBook => 'এই কিতাপখনৰ বিষয়ে';
+
+  @override
   String get readingFontSizeLabel => 'আখৰৰ আকাৰ';
 
   @override
@@ -987,7 +993,10 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'কোনো শ্লোকত হেঁচি ধৰি ৰাখক — সেয়া শুনিবলৈ, বুকমাৰ্ক কৰিবলৈ, হাইলাইট কৰিবলৈ বা টোকা যোগ কৰিবলৈ।';
+      'কোনো শ্লোকত টেপ কৰি সম্পূৰ্ণ চাওক — সংস্কৃত, শব্দাৰ্থ, তাৎপৰ্য। হেঁচি ধৰি ৰাখিলে সেয়া শুনক, বুকমাৰ্ক কৰক, হাইলাইট কৰক বা টোকা যোগ কৰক।';
+
+  @override
+  String get readingStoryCollapse => 'কাহিনীলৈ উভতি যাওক';
 
   @override
   String get readingStoryNothing =>

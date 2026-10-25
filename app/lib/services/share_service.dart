@@ -5,6 +5,7 @@ import '../core/share_links.dart';
 import '../models/api_failure.dart';
 import '../models/share.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// Share links, AI backgrounds for share cards, and referrals. Every rule
 /// (credit, refunds, who qualifies) lives on the server; this only asks.
@@ -37,7 +38,7 @@ class ShareService {
 
   /// What a shared link points at. Public: works before sign-in.
   Future<SharedContent> resolve(ContentLink link) async {
-    final response = await _api.get(ApiPaths.sharedContent(link.type.route, link.code));
+    final response = await _api.getOrSaved(ApiPaths.sharedContent(link.type.route, link.code));
     return SharedContent.fromJson(response.json);
   }
 
@@ -60,7 +61,7 @@ class ShareService {
   Future<Uint8List> backgroundImage(String jobId) => _api.getBytes(ApiPaths.shareBackgroundImage(jobId));
 
   Future<ReferralSummary> referral() async {
-    final response = await _api.get(ApiPaths.referralMe);
+    final response = await _api.getOrSaved(ApiPaths.referralMe);
     return ReferralSummary.fromJson(response.json);
   }
 

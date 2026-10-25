@@ -61,7 +61,14 @@ Widget _app(Widget child, {StoryPart part = StoryPart.translation}) => ProviderS
       ),
     );
 
-StoryVerse _story(Verse verse, StoryPart part, {bool numbers = true, bool favorite = false, VoidCallback? onLongPress}) =>
+StoryVerse _story(
+  Verse verse,
+  StoryPart part, {
+  bool numbers = true,
+  bool favorite = false,
+  VoidCallback? onTap,
+  VoidCallback? onLongPress,
+}) =>
     StoryVerse(
       verse: verse,
       part: part,
@@ -70,6 +77,7 @@ StoryVerse _story(Verse verse, StoryPart part, {bool numbers = true, bool favori
       isFavorite: favorite,
       isHighlighted: false,
       playing: false,
+      onTap: onTap,
       onLongPress: onLongPress,
     );
 
@@ -118,6 +126,18 @@ void main() {
       expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
       await tester.longPress(find.byType(StoryVerse));
       expect(held, 1);
+    });
+
+    testWidgets('a tap is its own gesture, apart from pressing and holding', (tester) async {
+      var tapped = 0;
+      var held = 0;
+      await tester.pumpWidget(
+        _app(_story(_verse(), StoryPart.translation, onTap: () => tapped++, onLongPress: () => held++)),
+      );
+      await tester.tap(find.byType(StoryVerse));
+      expect((tapped, held), (1, 0));
+      await tester.longPress(find.byType(StoryVerse));
+      expect((tapped, held), (1, 1));
     });
   });
 

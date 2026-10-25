@@ -43,8 +43,9 @@ double storyGapAfter(int index, int count) => index == 0
 /// number in front, and almost nothing between it and the next verse, so the
 /// chapter reads as one flowing text.
 ///
-/// Every action the verse-by-verse layout has sits behind a press and hold
-/// ([onLongPress]), so the page stays quiet while it is being read.
+/// A tap ([onTap]) opens the verse in full, in the verse-by-verse layout, and
+/// every action that layout has sits behind a press and hold ([onLongPress]),
+/// so the page stays quiet while it is being read.
 class StoryVerse extends StatelessWidget {
   const StoryVerse({
     super.key,
@@ -56,6 +57,7 @@ class StoryVerse extends StatelessWidget {
     required this.isHighlighted,
     required this.playing,
     this.translation,
+    this.onTap,
     this.onLongPress,
   });
 
@@ -67,6 +69,7 @@ class StoryVerse extends StatelessWidget {
   final bool isHighlighted;
   final bool playing;
   final VerseTranslation? translation;
+  final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
   TextStyle _style(BuildContext context) => switch (part) {
@@ -119,6 +122,7 @@ class StoryVerse extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        onTap: onTap,
         onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.symmetric(

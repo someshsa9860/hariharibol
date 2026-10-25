@@ -44,6 +44,7 @@ class VerseBlock extends StatelessWidget {
     this.onPlay,
     this.playing,
     this.hidden = const {},
+    this.onCollapse,
   });
 
   final Verse verse;
@@ -74,6 +75,10 @@ class VerseBlock extends StatelessWidget {
   /// Plays this verse (recitation, meaning, purport). Null when there is
   /// nothing to play, so the button is not shown rather than shown dead.
   final VoidCallback? onPlay;
+
+  /// Set when the verse was opened out of a story: puts a button first in the
+  /// header that closes it back into the story's running text.
+  final VoidCallback? onCollapse;
 
   /// This verse is the one being read aloud, and which part of it is heard.
   final bool? playing;
@@ -141,6 +146,12 @@ class VerseBlock extends StatelessWidget {
             // In the order they are given up when the row is too narrow: the
             // last ones go into the "more" menu first.
             actions: [
+              if (onCollapse != null)
+                _Action(
+                  icon: Icons.unfold_less_rounded,
+                  tooltip: text.readingStoryCollapse,
+                  onPressed: onCollapse!,
+                ),
               _Action(
                 icon: isFavorite
                     ? Icons.bookmark_rounded

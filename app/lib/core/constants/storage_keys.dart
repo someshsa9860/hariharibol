@@ -22,6 +22,10 @@ abstract final class LegacyKeys {
 
 abstract final class BoxNames {
   static const String app = 'app';
+
+  /// The API's answers kept for when there is no connection (`ResponseCache`).
+  /// A box of its own so the small settings box stays small.
+  static const String responses = 'responses';
 }
 
 abstract final class BoxKeys {
@@ -110,6 +114,10 @@ abstract final class BoxKeys {
   /// The languages the saved Home payload was asked for in (`hi,en`), so a copy
   /// in a language the reader has since left is not shown in place of their own.
   static const String lastHomeLanguages = 'cache.home_languages';
+
+  /// When the app last fetched ahead what a reader might open offline
+  /// (`OfflineWarmer`), in milliseconds since the epoch.
+  static const String offlineWarmedAt = 'cache.offline_warmed_at';
 
   /// Everything the Jap tab keeps so it can draw with no connection: today's
   /// practice screen and the mantras, as the API last sent them. Personal (a

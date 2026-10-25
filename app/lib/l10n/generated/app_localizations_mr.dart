@@ -942,6 +942,12 @@ class AppLocalizationsMr extends AppLocalizations {
   String get readingContents => 'अनुक्रमणिका';
 
   @override
+  String get readingContentsNow => 'आता वाचत आहात';
+
+  @override
+  String get readingContentsAboutBook => 'या ग्रंथाविषयी';
+
+  @override
   String get readingFontSizeLabel => 'अक्षरांचा आकार';
 
   @override
@@ -985,7 +991,10 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'एखाद्या श्लोकावर दाबून धरा — तो ऐकण्यासाठी, बुकमार्क करण्यासाठी, हायलाइट करण्यासाठी किंवा नोंद जोडण्यासाठी.';
+      'एखाद्या श्लोकाला स्पर्श करून तो पूर्ण पाहा — संस्कृत, शब्दार्थ, तात्पर्य. दाबून धरल्यास तो ऐका, बुकमार्क करा, हायलाइट करा किंवा नोंद जोडा.';
+
+  @override
+  String get readingStoryCollapse => 'कथेकडे परत';
 
   @override
   String get readingStoryNothing =>

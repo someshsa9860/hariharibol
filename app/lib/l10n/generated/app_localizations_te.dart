@@ -948,6 +948,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingContents => 'విషయసూచిక';
 
   @override
+  String get readingContentsNow => 'ఇప్పుడు చదువుతున్నారు';
+
+  @override
+  String get readingContentsAboutBook => 'ఈ పుస్తకం గురించి';
+
+  @override
   String get readingFontSizeLabel => 'అక్షరాల పరిమాణం';
 
   @override
@@ -991,7 +997,10 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'శ్లోకాన్ని నొక్కి పట్టుకోండి — దాన్ని ప్లే చేయడానికి, బుక్‌మార్క్ చేయడానికి, హైలైట్ చేయడానికి లేదా గమనిక జోడించడానికి.';
+      'శ్లోకాన్ని తాకితే పూర్తిగా కనిపిస్తుంది — సంస్కృతం, పదార్థాలు, భాష్యం. నొక్కి పట్టుకుంటే దాన్ని ప్లే చేయవచ్చు, బుక్‌మార్క్ చేయవచ్చు, హైలైట్ చేయవచ్చు లేదా గమనిక జోడించవచ్చు.';
+
+  @override
+  String get readingStoryCollapse => 'కథకు తిరిగి';
 
   @override
   String get readingStoryNothing =>

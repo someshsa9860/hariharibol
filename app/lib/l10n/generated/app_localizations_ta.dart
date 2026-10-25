@@ -949,6 +949,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get readingContents => 'உள்ளடக்கம்';
 
   @override
+  String get readingContentsNow => 'இப்போது படிக்கிறீர்கள்';
+
+  @override
+  String get readingContentsAboutBook => 'இந்த நூலைப் பற்றி';
+
+  @override
   String get readingFontSizeLabel => 'எழுத்தின் அளவு';
 
   @override
@@ -992,7 +998,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ஒரு ஸ்லோகத்தை அழுத்திப் பிடித்தால் அதை இயக்கலாம், புக்மார்க் செய்யலாம், முன்னிலைப்படுத்தலாம் அல்லது குறிப்பு சேர்க்கலாம்.';
+      'ஒரு ஸ்லோகத்தைத் தொட்டால் முழுவதும் தெரியும் — சமஸ்கிருதம், சொற்பொருள், பொருளுரை. அழுத்திப் பிடித்தால் அதை இயக்கலாம், புக்மார்க் செய்யலாம், முன்னிலைப்படுத்தலாம் அல்லது குறிப்பு சேர்க்கலாம்.';
+
+  @override
+  String get readingStoryCollapse => 'கதைக்குத் திரும்பு';
 
   @override
   String get readingStoryNothing =>

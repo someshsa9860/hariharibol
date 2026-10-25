@@ -26,6 +26,7 @@ import '../../services/verse_highlight_service.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/library/chapter_header.dart';
+import '../../widgets/library/chapter_index_sheet.dart';
 import '../../widgets/library/chapter_nav.dart';
 import '../../widgets/library/reading_audio_controls.dart';
 import '../../widgets/library/reading_settings_sheet.dart';
@@ -74,6 +75,9 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
   final Map<String, String?> _highlightIdOverrides = {};
   final Map<String, int> _noteCountOverrides = {};
   final Map<String, VerseTranslation> _translationOverrides = {};
+
+  // Verses of a story the reader tapped open into the verse-by-verse layout.
+  final Set<String> _openVerses = {};
 
   // One key per verse, so a specific verse can be scrolled to by its own
   // context rather than by an offset guessed from its index.
@@ -390,7 +394,10 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
         setState(_translationOverrides.clear);
       }
     });
-    ref.listen(readingModeProvider, (_, _) => _keepPlace());
+    ref.listen(readingModeProvider, (_, _) {
+      if (_openVerses.isNotEmpty) setState(_openVerses.clear);
+      _keepPlace();
+    });
     ref.listen(storyPartProvider, (_, _) => _keepPlace());
     final story = ref.watch(readingModeProvider) == ReadingMode.story;
     final (storyPart, storyNumbers) = (ref.watch(storyPartProvider), ref.watch(storyNumbersProvider));
@@ -404,18 +411,16 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     final bookTitle = readingData != null && readingData.verses.isNotEmpty
         ? readingData.verses.first.book?.title
         : null;
+    void openContents() => openChapterIndex(context,
+        slug: widget.slug, bookTitle: bookTitle ?? '', chapter: widget.number, canto: widget.canto);
 
     return Scaffold(
       appBar: AppBar(
         title: readingData != null
-            ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '')
+            ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '', onTap: openContents)
             : null,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.format_list_bulleted_rounded),
-            tooltip: text.readingContents,
-            onPressed: () => AppNavigator.instance.push(AppRoutes.bookPath(widget.slug)),
-          ),
+          IconButton(icon: const Icon(Icons.format_list_bulleted_rounded), tooltip: text.readingContents, onPressed: openContents),
           const ReadingAudioAction(),
           IconButton(
             icon: const Icon(Icons.tune_rounded),
@@ -472,9 +477,12 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                 }
 
                 final verse = data.verses[index - 1];
+                // A verse tapped open in a story is the verse-by-verse layout in
+                // full (Sanskrit, word meanings, purport), whatever the reader hid.
+                final opened = story && _openVerses.contains(verse.id);
                 return KeyedSubtree(
                   key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
-                  child: story
+                  child: story && !opened
                       ? StoryVerse(
                           verse: verse,
                           part: storyPart,
@@ -484,12 +492,14 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
                           isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
                           playing: playback.isActive && playback.verseId == verse.id,
                           translation: _translationOverrides[verse.id],
+                          onTap: () => setState(() => _openVerses.add(verse.id)),
                           onLongPress: () => _openStoryActions(data, index - 1),
                         )
                       : VerseBlock(
                     verse: verse,
                     fontScale: fontScale,
-                    hidden: hiddenParts,
+                    hidden: opened ? const {} : hiddenParts,
+                    onCollapse: opened ? () => setState(() => _openVerses.remove(verse.id)) : null,
                     isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
                     isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
                     noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,

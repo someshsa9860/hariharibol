@@ -639,6 +639,14 @@
   "verseNoteDeleteConfirm": "Delete this note?",
   "readingSettingsTitle": "Reading settings",
   "readingContents": "Contents",
+  "readingContentsNow": "Reading now",
+  "@readingContentsNow": {
+    "description": "Marks the canto or chapter being read in the contents sheet over a chapter."
+  },
+  "readingContentsAboutBook": "About this book",
+  "@readingContentsAboutBook": {
+    "description": "Tooltip of the button in the contents sheet that opens the book's own page."
+  },
   "readingFontSizeLabel": "Text size",
   "readingFontSizeSmall": "Small",
   "readingFontSizeMedium": "Medium",
@@ -653,7 +661,8 @@
   "readingModeStory": "Story",
   "readingStoryShowLabel": "Story shows",
   "readingStoryNumbers": "Verse numbers",
-  "readingStoryHint": "Press and hold a verse to play it, bookmark it, highlight it or add a note.",
+  "readingStoryHint": "Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.",
+  "readingStoryCollapse": "Back to story",
   "readingStoryNothing": "This chapter has nothing for the part you chose. Try another one above.",
   "readingPartMeaning": "Meaning",
   "routineSubtitle": "Devotion, work and the ordinary in between.",

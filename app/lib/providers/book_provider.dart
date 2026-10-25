@@ -5,19 +5,24 @@ import '../models/book.dart';
 import '../models/verse.dart';
 import '../repositories/book_repository.dart';
 import '../services/book_service.dart';
+import '../services/response_cache.dart';
 import 'language_chain_provider.dart';
+import 'saved_then_fresh.dart';
 
-/// Every published book. Fetched once and kept — the library changes about as
-/// often as the content does, not on every tab visit.
-final booksProvider = FutureProvider<List<Book>>((ref) {
-  return BookService.instance.list();
+/// Every published book, the saved copy first and then the network's. Fetched
+/// once and kept — the library changes about as often as the content does, not
+/// on every tab visit.
+final booksProvider = StreamProvider<List<Book>>((ref) {
+  final service = BookService.instance;
+  return savedThenFresh(service.savedList, service.list);
 });
 
-/// One book, by slug — the book detail screen. Opening it starts the silent
-/// offline sync for the book.
-final bookDetailProvider = FutureProvider.family.autoDispose<Book, String>((ref, slug) {
+/// One book, by slug — the book detail screen, the saved copy first. Opening it
+/// starts the silent offline sync for the book.
+final bookDetailProvider = StreamProvider.family.autoDispose<Book, String>((ref, slug) {
   BookRepository.instance.bookOpened(slug);
-  return BookService.instance.get(slug);
+  final service = BookService.instance;
+  return savedThenFresh(() => service.savedBook(slug), () => service.get(slug));
 });
 
 /// The reading languages a book has text in. Empty when it cannot be fetched
@@ -30,21 +35,15 @@ final bookLanguagesProvider = FutureProvider.family.autoDispose<Set<String>, Str
   }
 });
 
-/// True if a failure is worth falling back to the offline copy for — no
-/// connection at all, or the connection timed out. Anything else (a 404, a
-/// validation error) is a real answer from the server and offline data would
-/// only hide it.
-bool _isOfflineFallbackWorthy(ApiFailure failure) =>
-    failure.kind == FailureKind.network || failure.kind == FailureKind.timeout;
-
-/// A book's cantos. Empty for a book with no canto level. The device's copy
-/// stands in when the network is the problem.
+/// A book's cantos. Empty for a book with no canto level. The saved answer
+/// stands in when the server cannot be reached, and the offline library's copy
+/// when nothing is saved. A real answer (a 404) is never covered up.
 final bookCantosProvider = FutureProvider.family.autoDispose<List<BookSection>, String>((ref, slug) async {
   final chain = ref.read(readingChainProvider);
   try {
     return await BookService.instance.cantos(slug);
   } on ApiFailure catch (failure) {
-    if (!_isOfflineFallbackWorthy(failure)) rethrow;
+    if (!serverUnreachable(failure)) rethrow;
     final local = await BookRepository.instance.cantosLocal(slug, chain: chain);
     if (local == null) rethrow;
     return local;
@@ -60,7 +59,7 @@ final bookChaptersProvider =
   try {
     return await BookService.instance.chapters(args.slug, canto: args.canto);
   } on ApiFailure catch (failure) {
-    if (!_isOfflineFallbackWorthy(failure)) rethrow;
+    if (!serverUnreachable(failure)) rethrow;
     final local = await BookRepository.instance.chaptersLocal(args.slug, canto: args.canto, chain: chain);
     if (local == null) rethrow;
     return local;

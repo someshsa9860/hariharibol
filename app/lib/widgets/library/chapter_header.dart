@@ -17,22 +17,24 @@ String chapterNumbering(AppLocalizations text, BookSection chapter) =>
 
 /// The app bar title while a chapter is loaded: the book name as an eyebrow
 /// over "Canto N · Chapter N", so the reader still knows where they are once
-/// the header card below has scrolled out of view.
+/// the header card below has scrolled out of view. With [onTap] it is also a
+/// button, with a small arrow, that opens the book's contents.
 class ChapterAppBarTitle extends StatelessWidget {
   const ChapterAppBarTitle({
     super.key,
     required this.chapter,
     required this.bookTitle,
+    this.onTap,
   });
 
   final BookSection chapter;
   final String bookTitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-
-    return Column(
+    final title = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -42,6 +44,27 @@ class ChapterAppBarTitle extends StatelessWidget {
         ],
         Text(chapterNumbering(text, chapter), style: context.texts.titleMedium),
       ],
+    );
+    if (onTap == null) return title;
+
+    return Semantics(
+      button: true,
+      hint: text.readingContents,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.smAll,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: title),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(Icons.expand_more_rounded, size: AppSizes.iconSm, color: context.colors.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

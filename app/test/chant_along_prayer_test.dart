@@ -138,6 +138,8 @@ Future<FakeAudioPlayer> pumpView(
       sadhanaTodayProvider.overrideWith(() => _FakeToday(beads)),
       readingChainProvider.overrideWithValue(const ['en']),
       malaAudioPlayerProvider.overrideWithValue(() => fake),
+      malaAudioCacheProvider.overrideWithValue(null),
+      malaConnectionProvider.overrideWithValue(null),
     ],
   );
   addTearDown(container.dispose);

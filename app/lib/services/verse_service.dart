@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/verse.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// One verse, and the things hung off it while reading: every acharya's
 /// rendering, and the curated links to other verses.
@@ -12,7 +13,7 @@ class VerseService {
   final ApiClient _api = ApiClient.instance;
 
   Future<Verse> get(String verseId) async {
-    final response = await _api.get(ApiPaths.verse(verseId));
+    final response = await _api.getOrSaved(ApiPaths.verse(verseId));
     return Verse.fromJson(response.json);
   }
 
@@ -23,7 +24,7 @@ class VerseService {
     String? translator,
     String? languageCode,
   }) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.verseTranslations(verseId),
       query: {'translator': ?translator, 'languageCode': ?languageCode},
     );
@@ -34,7 +35,7 @@ class VerseService {
   }
 
   Future<List<RelatedVerse>> related(String verseId) async {
-    final response = await _api.get(ApiPaths.verseRelated(verseId));
+    final response = await _api.getOrSaved(ApiPaths.verseRelated(verseId));
     return response.list
         .whereType<Map>()
         .map((item) => RelatedVerse.fromJson(Map<String, dynamic>.from(item)))

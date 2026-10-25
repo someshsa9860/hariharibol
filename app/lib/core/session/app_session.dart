@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../models/app_user.dart';
 import '../../models/auth_session.dart';
 import '../../services/local_store.dart';
+import '../../services/response_cache.dart';
 import '../constants/storage_keys.dart';
 import 'token_store.dart';
 
@@ -113,6 +114,13 @@ class AppSession extends ChangeNotifier {
     await LocalStore.instance.deleteWithPrefix(BoxKeys.sadhanaCachePrefix);
     // So is where they had got to in each book.
     await LocalStore.instance.delete(BoxKeys.readingPlaces);
+    // And Home as they last saw it, and every answer kept for offline use
+    // (their tickets, their summary, their chat among them).
+    await LocalStore.instance.delete(BoxKeys.lastHomePayload);
+    await LocalStore.instance.delete(BoxKeys.lastHomeFetchedAt);
+    await LocalStore.instance.delete(BoxKeys.lastHomeLanguages);
+    await LocalStore.instance.delete(BoxKeys.offlineWarmedAt);
+    await ResponseCache.instance.clear();
     _setSignedOut();
   }
 

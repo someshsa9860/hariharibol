@@ -943,6 +943,12 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingContents => 'ସୂଚୀପତ୍ର';
 
   @override
+  String get readingContentsNow => 'ବର୍ତ୍ତମାନ ପଢୁଛନ୍ତି';
+
+  @override
+  String get readingContentsAboutBook => 'ଏହି ପୁସ୍ତକ ବିଷୟରେ';
+
+  @override
   String get readingFontSizeLabel => 'ଅକ୍ଷର ଆକାର';
 
   @override
@@ -986,7 +992,10 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ଏକ ଶ୍ଳୋକକୁ ଦବାଇ ଧରନ୍ତୁ — ଏହାକୁ ପ୍ଲେ କରିବାକୁ, ବୁକ୍‌ମାର୍କ କରିବାକୁ, ହାଇଲାଇଟ୍ କରିବାକୁ କିମ୍ବା ଟିପ୍ପଣୀ ଯୋଡ଼ିବାକୁ।';
+      'ଏକ ଶ୍ଳୋକକୁ ଟ୍ୟାପ୍ କରି ସମ୍ପୂର୍ଣ୍ଣ ଦେଖନ୍ତୁ — ସଂସ୍କୃତ, ଶବ୍ଦାର୍ଥ, ତାତ୍ପର୍ଯ୍ୟ। ଦବାଇ ଧରିଲେ ଏହାକୁ ପ୍ଲେ କରନ୍ତୁ, ବୁକ୍‌ମାର୍କ କରନ୍ତୁ, ହାଇଲାଇଟ୍ କରନ୍ତୁ କିମ୍ବା ଟିପ୍ପଣୀ ଯୋଡ଼ନ୍ତୁ।';
+
+  @override
+  String get readingStoryCollapse => 'କାହାଣୀକୁ ଫେରନ୍ତୁ';
 
   @override
   String get readingStoryNothing =>

@@ -939,6 +939,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingContents => 'Contents';
 
   @override
+  String get readingContentsNow => 'Reading now';
+
+  @override
+  String get readingContentsAboutBook => 'About this book';
+
+  @override
   String get readingFontSizeLabel => 'Text size';
 
   @override
@@ -982,7 +988,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'Press and hold a verse to play it, bookmark it, highlight it or add a note.';
+      'Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.';
+
+  @override
+  String get readingStoryCollapse => 'Back to story';
 
   @override
   String get readingStoryNothing =>

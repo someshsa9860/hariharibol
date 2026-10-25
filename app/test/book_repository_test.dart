@@ -122,6 +122,43 @@ void main() {
     expect(first.verses.first.transliteration, 'ஶ்லோக 1.1', reason: 'the first language in the chain decides');
   });
 
+  test('the word meanings are in the reading language, else the English the verse carries', () async {
+    await store(1);
+    String words(Verse v) => v.wordMeaningsText;
+
+    final hindi = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['hi', 'en']);
+    expect(words(hindi.verses.first), 'om — हे मेरे प्रभु');
+
+    final english = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['en']);
+    expect(words(english.verses.first), 'om — O my Lord');
+
+    // Tamil has no list of its own: the next language in the chain that does.
+    final viaHindi = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'hi', 'en']);
+    expect(words(viaHindi.verses.first), 'om — हे मेरे प्रभु');
+
+    // A chain that reaches English stops there; Hindi after it is not looked at.
+    final stopsAtEnglish = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'en', 'hi']);
+    expect(words(stopsAtEnglish.verses.first), 'om — O my Lord');
+
+    final unknown = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['mr', 'en']);
+    expect(words(unknown.verses.first), 'om — O my Lord', reason: 'English rather than nothing');
+  });
+
+  test('a language\'s empty word meanings do not hide the English ones', () {
+    final rows = [
+      TranslationRecord(
+        id: 'a',
+        verseRowId: 'v',
+        languageCode: 'hi',
+        type: 'TRANSLATION',
+        wordMeanings: '[]',
+        displayOrder: 0,
+      ),
+    ];
+    final words = BookRepository.pickWordMeanings(rows, ['hi', 'en'], '[{"word":"om","meaning":"O my Lord"}]');
+    expect(words.map((w) => w.meaning), ['O my Lord']);
+  });
+
   test('a language with no rendering falls back along the chain', () async {
     await store(1);
     final reading = await repo.chapter('srimad-bhagavatam', 1, canto: 1, chain: ['ta', 'hi', 'en']);

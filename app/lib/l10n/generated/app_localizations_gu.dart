@@ -939,6 +939,12 @@ class AppLocalizationsGu extends AppLocalizations {
   String get readingContents => 'અનુક્રમણિકા';
 
   @override
+  String get readingContentsNow => 'હમણાં વાંચી રહ્યા છો';
+
+  @override
+  String get readingContentsAboutBook => 'આ ગ્રંથ વિશે';
+
+  @override
   String get readingFontSizeLabel => 'અક્ષરનું કદ';
 
   @override
@@ -982,7 +988,10 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'કોઈ શ્લોક પર દબાવી રાખો — તે સાંભળવા, બુકમાર્ક કરવા, હાઇલાઇટ કરવા અથવા નોંધ ઉમેરવા માટે.';
+      'કોઈ શ્લોક પર ટેપ કરીને તે પૂરો જુઓ — સંસ્કૃત, શબ્દાર્થ, તાત્પર્ય. દબાવી રાખવાથી તેને સાંભળો, બુકમાર્ક કરો, હાઇલાઇટ કરો અથવા નોંધ ઉમેરો.';
+
+  @override
+  String get readingStoryCollapse => 'કથા પર પાછા';
 
   @override
   String get readingStoryNothing =>
