@@ -64,6 +64,13 @@ abstract final class BoxKeys {
   /// Deleted when the round completes.
   static String chantProgress(String? mantraId) => 'chant.progress.${mantraId ?? 'any'}';
 
+  /// Every sitting counted on this phone that the server may not have yet, and
+  /// the id of the account it belongs to (`{owner, sittings}`). The chanting is
+  /// written here first and sent in a batch (see `ChantSyncer`). Not removed by
+  /// `AppSession.clear`: signing out must not lose rounds that were never sent,
+  /// and the owner stops them reaching anyone else's account.
+  static const String chantLedger = 'chant.ledger';
+
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
 

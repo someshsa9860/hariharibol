@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/routine_service.dart';
 import '../services/routine_syncer.dart';
 import 'routine_provider.dart';
 import 'session_provider.dart';
+import 'sync_triggers.dart';
 
 /// The routine's sync with the account.
 ///
@@ -23,7 +22,7 @@ final routineSyncerProvider = Provider<RoutineSyncer>((ref) {
     write: (data) => ref.read(routineProvider.notifier).adopt(data),
     userId: () => ref.read(currentUserProvider)?.id,
   );
-  final triggers = _SyncTriggers(syncer);
+  final triggers = SyncTriggers(() => unawaited(syncer.syncNow()));
 
   // Only while signed in: nothing is listened to, and no timer is set, for a
   // phone that has nobody to sync for.
@@ -42,43 +41,3 @@ final routineSyncerProvider = Provider<RoutineSyncer>((ref) {
   });
   return syncer;
 });
-
-/// The moments worth a sync that are not a change to the routine.
-class _SyncTriggers with WidgetsBindingObserver {
-  _SyncTriggers(this._syncer);
-
-  final RoutineSyncer _syncer;
-  StreamSubscription<List<ConnectivityResult>>? _connection;
-  bool _started = false;
-
-  void start() {
-    if (_started) return;
-    _started = true;
-    WidgetsBinding.instance.addObserver(this);
-    _connection = Connectivity().onConnectivityChanged.listen(
-      (results) {
-        if (results.any((result) => result != ConnectivityResult.none)) {
-          unawaited(_syncer.syncNow());
-        }
-      },
-      onError: (Object _) {},
-    );
-  }
-
-  void stop() {
-    if (!_started) return;
-    _started = false;
-    WidgetsBinding.instance.removeObserver(this);
-    unawaited(_connection?.cancel());
-    _connection = null;
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
-      unawaited(_syncer.syncNow());
-    }
-  }
-}

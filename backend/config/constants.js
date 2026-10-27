@@ -136,6 +136,15 @@ const DEFAULT_ROUND_TARGET = 16;
 // swept nightly (see jobs/processors/maintenance.js).
 const CHANT_TRANSCRIPT_TTL_DAYS = 7;
 
+// A phone keeps its chanting and sends it when it can, so a sitting may arrive
+// long after it happened. Older than this, or stamped in the future by a wrong
+// clock, and it is placed at the nearest day inside the window rather than
+// refused: refusing would leave it on the phone to be refused again every time.
+const CHANT_SYNC_MAX_AGE_DAYS = 400;
+
+// Sittings in one sync request. The phone sends a longer backlog in pieces.
+const CHANT_SYNC_MAX_SITTINGS = 25;
+
 // How many separate days someone must chant a tradition's mantras before we
 // call them a follower of it — and before a different tradition takes over from
 // the one they had. Days, not rounds: one long sitting is not a habit.
@@ -236,6 +245,8 @@ export {
   BEADS_PER_ROUND,
   DEFAULT_ROUND_TARGET,
   CHANT_TRANSCRIPT_TTL_DAYS,
+  CHANT_SYNC_MAX_AGE_DAYS,
+  CHANT_SYNC_MAX_SITTINGS,
   SAMPRADAYA_MIN_DAYS,
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,

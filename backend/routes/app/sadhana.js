@@ -1,5 +1,7 @@
 import { createRouter, z } from '../../utils/router.js';
 import * as controller from '../../controllers/app/sadhana.js';
+import * as chantSync from '../../controllers/app/chant-sync.js';
+import { CHANT_SYNC_MAX_SITTINGS } from '../../config/constants.js';
 
 const router = createRouter({
   tag: 'Sadhana',
@@ -99,6 +101,56 @@ router.patch(
     },
   },
   controller.updateSession
+);
+
+router.put(
+  '/chant/sync',
+  {
+    summary: 'Send the chanting kept on the phone',
+    description:
+      'The batch the app sends when it closes, opens, comes back online or every few minutes: ' +
+      'every sitting it has counted since the last answer, each under the `clientId` the phone ' +
+      'made when the sitting began. Sending a sitting again is harmless (it is the same row), ' +
+      'a sitting belongs to the day it *began* in the reader’s timezone however late it ' +
+      'arrives, and a sitting’s rounds only ever rise, so an older copy cannot undo a newer ' +
+      'one. A sitting with `finish` is closed, and one that arrives after it was closed is ' +
+      'still accepted. Rounds are summaries, never taps. Answers with each sitting as stored ' +
+      'and the recounted totals of every day it touched. The older start / patch / detail ' +
+      'routes remain for earlier app builds.',
+    limit: 'write',
+    body: z.object({
+      sittings: z
+        .array(
+          z.object({
+            clientId: z.string().min(8).max(64),
+            mantraId: z.string().min(1).nullish(),
+            startedAt: z.coerce.number().int().min(0),
+            endedAt: z.coerce.number().int().min(0).nullish(),
+            rounds: z.coerce.number().int().min(0).max(500),
+            beads: z.coerce.number().int().min(0).max(108),
+            finish: z.boolean().optional(),
+            malas: z
+              .array(
+                z.object({
+                  index: z.coerce.number().int().min(1).max(500),
+                  complete: z.boolean().optional(),
+                  beads: z.coerce.number().int().min(0).max(120).optional(),
+                  startedAt: z.coerce.number().int().min(0).optional(),
+                  endedAt: z.coerce.number().int().min(0).nullish(),
+                  durationMs: z.coerce.number().int().min(0).max(86400000).optional(),
+                  avgGapMs: z.coerce.number().int().min(0).max(86400000).optional(),
+                })
+              )
+              .max(200)
+              .optional(),
+          })
+        )
+        .min(1)
+        .max(CHANT_SYNC_MAX_SITTINGS),
+    }),
+    responds: { 200: 'Each sitting as stored and the recounted days' },
+  },
+  chantSync.syncChant
 );
 
 router.put(

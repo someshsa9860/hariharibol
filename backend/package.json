@@ -53,6 +53,7 @@
     "test:store-subscriptions": "node scripts/store-subscriptions-e2e.js",
     "test:reel-recipes": "node scripts/reel-recipes-e2e.js",
     "test:chant": "node scripts/chant-e2e.js",
+    "test:chant-sync": "node scripts/chant-sync-e2e.js",
     "test:routine": "node scripts/routine-e2e.js",
     "test:mantra-mala": "node scripts/mantra-mala-e2e.js",
     "test:mantra-prayer": "node scripts/mantra-prayer-e2e.js",

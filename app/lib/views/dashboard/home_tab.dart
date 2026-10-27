@@ -9,6 +9,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/home_feed.dart';
 import '../../models/verse.dart';
+import '../../providers/chant_ledger_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/sadhana_provider.dart';
@@ -71,6 +72,8 @@ class HomeTab extends ConsumerWidget {
           data: (data) => RefreshIndicator(
             onRefresh: () async {
               await ref.read(homeFeedProvider.notifier).refresh();
+              // The chanting laid over the feed is read from the Jap tab's day.
+              await ref.read(sadhanaTodayProvider.notifier).refresh();
               ref.invalidate(userSummaryProvider);
             },
             child: _HomeContent(feed: data),
@@ -120,6 +123,9 @@ class _HomeContent extends ConsumerWidget {
     // feed. Read as a value, not `.when`: a slow or failed load just leaves the
     // shortcut as a generic "Chant now" rather than holding the card back.
     final sadhanaToday = ref.watch(sadhanaTodayProvider).value;
+    // Chanting counted on this phone is the latest record; the feed's figures are
+    // the server's and can be a batch behind.
+    final phoneRounds = ref.watch(chantExtraProvider);
 
     // Built as a list so each section can be handed its position and brought
     // in a beat after the one above it.
@@ -136,7 +142,7 @@ class _HomeContent extends ConsumerWidget {
 
       if (feed.sadhana != null)
         SadhanaCard(
-          summary: feed.sadhana!,
+          summary: feed.sadhana!.withPhone(sadhanaToday, phoneRounds),
           onTap: () => AppNavigator.instance.go(AppRoutes.sadhana),
           mantraName: sadhanaToday?.chantMantraName,
           onChant: () => openChant(ref, mantraSlug: sadhanaToday?.chantMantraSlug),

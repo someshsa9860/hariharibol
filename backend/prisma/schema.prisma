@@ -2139,6 +2139,12 @@ model ChantSession {
   endedAt         DateTime?
   durationSeconds Int?
 
+  // The phone's own id for the sitting, minted when it began. The phone keeps its
+  // chanting on itself first and sends it later, perhaps days later and perhaps
+  // twice; this is what makes the second send the same sitting and not another.
+  // Null for sessions opened the older way (POST /chant/session) and manual ones.
+  clientId String? @db.VarChar(64)
+
   createdAt DateTime @default(now())
 
   user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2147,6 +2153,7 @@ model ChantSession {
   malas       ChantMala[]
   transcripts ChantTapTranscript[]
 
+  @@unique([userId, clientId])
   @@index([userId, startedAt])
   @@index([sadhanaDayId])
 }

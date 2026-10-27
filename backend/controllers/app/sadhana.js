@@ -586,4 +586,4 @@ export const report = async (req, res) => {
 
 // Shared with the task controller and the home screen — a helper between
 // two controllers, not a service layer around them.
-export { ensureDay, recountDay, currentStreak };
+export { ensureDay, recountDay, currentStreak, learnSampradaya };

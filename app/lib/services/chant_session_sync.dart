@@ -1,119 +1,68 @@
-import 'dart:async';
-
-import '../core/constants/chant_sync_config.dart';
+import '../models/chant_sitting.dart';
+import '../models/routine_task.dart';
 import 'chant_recorder.dart';
-import 'sadhana_service.dart';
+import 'chant_syncer.dart';
 
-/// Sends a sitting to the server as it goes: the session, its running totals, and
-/// the rounds and words the [ChantRecorder] has kept since the last send.
+/// Writes one sitting of the counter on the phone, and asks for it to go up.
 ///
-/// Taps are sent in batches. The first one after a send starts the clock, and the
-/// ones after it ride along without restarting it, so a steady chanter is saved
-/// every [ChantSyncConfig.batchInterval] and not once per chant. Nothing here
-/// ever interrupts chanting: a failed request is put back and the next one
-/// carries it.
+/// Every call writes what the [ChantRecorder] holds into the phone's record of
+/// chanting (`ChantLedger`) at once, so nothing waits on the network and nothing
+/// is lost to a lost signal or a closed app. Sending is the [ChantSyncer]'s: a
+/// batch every couple of minutes however fast it is chanted, and again when the
+/// app is opened, sent to the back or finds a connection.
+///
+/// The sitting gets its id at the first bead, so a counter opened and left with
+/// nothing counted leaves no row behind, and the same id is used for every write
+/// after, which is how the server knows it is one sitting and not many.
 class ChantSessionSync {
-  ChantSessionSync({required this.recorder, required this.mantraId});
+  ChantSessionSync({
+    required this.recorder,
+    required this.mantraId,
+    required this.syncer,
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   final ChantRecorder recorder;
   final String? mantraId;
+  final ChantSyncer syncer;
+  final DateTime Function() _now;
 
-  String? _sessionId;
+  String? _clientId;
 
-  /// Running while taps are waiting to be sent.
-  Timer? _timer;
+  /// Something was counted (or taken back): write the sitting down and ask for a
+  /// batch.
+  void schedule() => _record();
 
-  /// The sitting is over for the screen: a session still starting is not
-  /// scheduled for.
-  bool _closed = false;
-
-  /// Opens the session. Chanting does not wait on the network: a tap before the
-  /// session exists still counts locally, and the next send retries the start.
-  Future<void> start() async {
-    try {
-      final session = await SadhanaService.instance.startSession(mantraId: mantraId);
-      if (_closed) return;
-      _sessionId = session.id;
-      // Whatever was counted before the session existed goes up with it.
-      if (recorder.hasUnsent) schedule();
-    } catch (_) {
-      // The next send starts it again.
-    }
-  }
-
-  /// Marks that something is waiting to be sent.
-  void schedule() {
-    _timer ??= Timer(ChantSyncConfig.batchInterval, () {
-      _timer = null;
-      unawaited(send());
-    });
-  }
-
-  /// Sends what is waiting now, without waiting out the batch — for when the app
-  /// is about to go where a timer may not run.
-  void flush() {
-    final timer = _timer;
-    if (timer == null) return;
-    timer.cancel();
-    _timer = null;
-    unawaited(send());
-  }
-
-  /// Stops the batch clock; whatever is waiting is left for a final [send].
-  void cancel() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  /// The screen is gone: nothing more is scheduled.
-  void close() {
-    _closed = true;
-    cancel();
-  }
-
-  /// Sends the running totals, then the rounds and words that changed.
-  /// [finish] ends the session.
+  /// Writes the sitting down, ends it if [finish], and sends what is waiting now
+  /// — not only this sitting's, but any the phone still holds. Completes when the
+  /// send is over; a failed one is not an error here, the sitting stays on the
+  /// phone for the next batch.
   Future<void> send({bool finish = false}) async {
-    var id = _sessionId;
-    id ??= await _retryStart();
-    if (id == null) return;
-
-    try {
-      await SadhanaService.instance.updateSession(
-        id,
-        rounds: recorder.completedMalas,
-        beads: recorder.beadsInMala,
-        finish: finish,
-      );
-    } catch (_) {
-      // A background send failing is not something to interrupt chanting for.
-      // The next tap schedules another one with the same running totals.
-    }
-
-    await _sendRecord(id);
+    _record(finish: finish);
+    await syncer.syncNow();
   }
 
-  /// What fails is put back on the recorder, so the next send carries it.
-  Future<void> _sendRecord(String id) async {
-    final malas = recorder.takeDirtyMalas();
-    final heard = recorder.takeUnsentHeard();
-    if (malas.isEmpty && heard.isEmpty) return;
+  void _record({bool finish = false}) {
+    // Nothing was counted in this sitting: nothing to keep, nothing to end.
+    if (recorder.tapCount == 0 && _clientId == null) return;
 
-    try {
-      if (malas.isNotEmpty) await SadhanaService.instance.saveChantDetail(id, malas);
-      if (heard.isNotEmpty) await SadhanaService.instance.saveChantTranscripts(id, heard);
-    } catch (_) {
-      recorder.restoreUnsent(malas: malas, heard: heard);
-    }
-  }
+    final now = _now();
+    final id = _clientId ??= ChantSitting.newClientId();
+    final malas = [for (final mala in recorder.takeDirtyMalas()) mala.toJson()];
+    final rounds = recorder.completedMalas;
+    final beads = recorder.beadsInMala;
 
-  Future<String?> _retryStart() async {
-    try {
-      final session = await SadhanaService.instance.startSession(mantraId: mantraId);
-      _sessionId = session.id;
-      return session.id;
-    } catch (_) {
-      return null;
-    }
+    syncer.record(id, (current) {
+      var sitting =
+          current ??
+          ChantSitting(
+            clientId: id,
+            day: routineDayKey(now),
+            startedAt: now,
+            mantraId: mantraId,
+          );
+      sitting = sitting.counted(rounds: rounds, beads: beads, malas: malas);
+      return finish ? sitting.copyWith(finished: true, endedAt: now) : sitting;
+    });
   }
 }

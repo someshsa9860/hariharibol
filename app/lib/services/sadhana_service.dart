@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../core/constants/api_paths.dart';
 import '../core/constants/storage_keys.dart';
 import '../models/chant_log.dart';
+import '../models/json.dart';
 import '../models/paged.dart';
 import '../models/routine_task.dart';
 import '../models/sadhana.dart';
@@ -93,6 +94,16 @@ class SadhanaService {
       ApiPaths.chantManual,
       body: {'rounds': rounds, 'mantraId': ?mantraId},
     );
+  }
+
+  /// Sends sittings counted on the phone in one request (`ChantSitting.toRequest`
+  /// writes each). The server keeps each by its `clientId`, so sending one again
+  /// is harmless. Answers the `clientId`s it took, which is not always all of them.
+  Future<List<String>> syncChant(List<Json> sittings) async {
+    final response = await _api.put(ApiPaths.chantSync, body: {'sittings': sittings});
+    return [
+      for (final row in asList(response.json['sittings'], (json) => json)) asString(row['clientId']),
+    ].where((id) => id.isNotEmpty).toList();
   }
 
   /// Opens a session for bead-by-bead counting. [mantraId] is optional — a

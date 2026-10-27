@@ -1059,6 +1059,28 @@ the next sitting without the day counting it twice: the old sitting keeps its st
   for the plain counter; absent means all) and lists sessions with `rounds > 0`, so a sitting that was opened and left is not
   listed. The app always sends it.
 - `npm run test:chant` walks the session lifecycle, the summaries, and the filter.
+- **The phone sends its chanting in a batch: `PUT …/chant/sync`** (`controllers/app/chant-sync.js`). The app counts into its own
+  storage first and sends when it closes, opens, comes back online and every few minutes, so one request carries up to
+  `CHANT_SYNC_MAX_SITTINGS` (25) sittings, each under the `clientId` the phone made when the sitting began
+  (`ChantSession.clientId`, unique with `userId`; migration `20261113000000_chant_client_id`, nullable, so rows from the older
+  routes are untouched).
+  - **Sending a sitting twice is one sitting** — a lost answer, a retry or two sends racing all land on the same row (a unique
+    violation from the race is read back and updated, not failed). Rounds are upserted by `[sessionId, index]`.
+  - **A sitting belongs to the day it began**, in the user's timezone (`localDateString(timezone, startedAt)`), however late it
+    arrives; the older `start` route can only say "now". The start is held inside `[now − CHANT_SYNC_MAX_AGE_DAYS (400), now]`
+    so a wrong phone clock cannot write into the far past or future. Every day touched is recounted once (`recountDay`) and the
+    new totals come back in `days`.
+  - **Rounds only rise.** A copy with more rounds replaces rounds and beads; at equal rounds the larger beads win; fewer rounds
+    are ignored, so an older copy that arrives late cannot undo a newer one. `finish` closes the sitting once (the end is not
+    moved by a later finish), and an update after the end is accepted — the final sync has to land.
+  - **A mantra that cannot be opened** (unpublished since, someone else's private one, gone) does not fail the batch: the rounds
+    are kept under no mantra. The referral check and the tradition check run as for the older routes, and a failure of either
+    never changes the answer.
+  - The older `start` / `patch` / `detail` routes stay for builds from before this one.
+  - `npm run test:chant-sync` (`scripts/chant-sync-e2e.js`, 42 checks: replay, late arrival on its original day, rounds never
+    backwards, a late update after the end, two mantras keeping their own rounds, another account's identical client id, a
+    clamped start, refusals, a full batch). **Production needs `prisma migrate deploy` for `20261113000000_chant_client_id` and a
+    restart of the API; release the app with it, as an older app simply keeps using the old routes.**
 
 ## Sampradaya from chanting
 

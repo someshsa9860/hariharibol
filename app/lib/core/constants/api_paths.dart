@@ -136,6 +136,7 @@ abstract final class ApiPaths {
   static const String sadhanaToday = '$_app/sadhana/today';
   static const String chantManual = '$_app/sadhana/chant/manual';
   static const String chantSession = '$_app/sadhana/chant/session';
+  static const String chantSync = '$_app/sadhana/chant/sync';
   static String chantSessionById(String id) => '$_app/sadhana/chant/session/$id';
   static String chantSessionDetail(String id) => '$_app/sadhana/chant/session/$id/detail';
   static String chantSessionTranscripts(String id) =>
