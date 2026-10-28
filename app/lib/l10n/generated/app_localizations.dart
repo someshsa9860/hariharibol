@@ -4917,6 +4917,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These suggestions have expired. Please search again.'**
   String get ownMantraErrorExpired;
+
+  /// No description provided for @prayersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers'**
+  String get prayersTitle;
+
+  /// No description provided for @prayersHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stotras, aartis and prayers in the script you read'**
+  String get prayersHomeSubtitle;
+
+  /// No description provided for @prayersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers are being added. Please come back soon.'**
+  String get prayersEmpty;
+
+  /// No description provided for @prayersAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get prayersAll;
+
+  /// No description provided for @prayersVerseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 verse} other{{count} verses}}'**
+  String prayersVerseCount(int count);
+
+  /// No description provided for @prayersMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get prayersMeaning;
+
+  /// No description provided for @prayersShowMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Show meaning'**
+  String get prayersShowMeaning;
+
+  /// No description provided for @prayersHideMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide meaning'**
+  String get prayersHideMeaning;
+
+  /// No description provided for @prayersExpandAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all meanings'**
+  String get prayersExpandAll;
+
+  /// No description provided for @prayersCollapseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all meanings'**
+  String get prayersCollapseAll;
+
+  /// No description provided for @prayersScriptOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get prayersScriptOriginal;
+
+  /// No description provided for @prayersScriptRoman.
+  ///
+  /// In en, this message translates to:
+  /// **'Roman letters'**
+  String get prayersScriptRoman;
+
+  /// No description provided for @prayersShowOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Also show the original'**
+  String get prayersShowOriginal;
+
+  /// No description provided for @prayersMeaningsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open meanings by default'**
+  String get prayersMeaningsOpen;
+
+  /// No description provided for @prayersAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About this prayer'**
+  String get prayersAbout;
+
+  /// No description provided for @prayersComposedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Composed by'**
+  String get prayersComposedBy;
+
+  /// No description provided for @prayersReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get prayersReference;
+
+  /// No description provided for @prayersSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get prayersSource;
+
+  /// No description provided for @prayersVerseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {number}'**
+  String prayersVerseNumber(int number);
+
+  /// No description provided for @prayersCategoryMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning prayers'**
+  String get prayersCategoryMorning;
+
+  /// No description provided for @prayersCategoryEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening prayers'**
+  String get prayersCategoryEvening;
+
+  /// No description provided for @prayersCategoryMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Before and after meals'**
+  String get prayersCategoryMeals;
+
+  /// No description provided for @prayersCategoryGuru.
+  ///
+  /// In en, this message translates to:
+  /// **'Guru and the lineage'**
+  String get prayersCategoryGuru;
+
+  /// No description provided for @prayersCategoryDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers to a deity'**
+  String get prayersCategoryDeity;
+
+  /// No description provided for @prayersCategoryAarti.
+  ///
+  /// In en, this message translates to:
+  /// **'Aartis'**
+  String get prayersCategoryAarti;
+
+  /// No description provided for @prayersCategoryPeace.
+  ///
+  /// In en, this message translates to:
+  /// **'Peace and protection'**
+  String get prayersCategoryPeace;
+
+  /// No description provided for @prayersCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get prayersCategoryOther;
 }
 
 class _AppLocalizationsDelegate

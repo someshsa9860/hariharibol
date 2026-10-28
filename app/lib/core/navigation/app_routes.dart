@@ -33,6 +33,11 @@ abstract final class AppRoutes {
   static const String etiquettePattern = '/etiquette/:id';
   static String etiquettePath(String id) => '/etiquette/$id';
 
+  /// Prayers: the list by category, and one prayer to read. Pushed from Home.
+  static const String prayers = '/prayers';
+  static const String prayerPattern = '/prayers/:id';
+  static String prayerPath(String id) => '/prayers/$id';
+
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
 
@@ -155,6 +160,8 @@ abstract final class RouteNames {
   static const String calendar = 'calendar';
   static const String etiquette = 'etiquette';
   static const String etiquetteItem = 'etiquetteItem';
+  static const String prayers = 'prayers';
+  static const String prayer = 'prayer';
   static const String settings = 'settings';
   static const String support = 'support';
   static const String ticket = 'ticket';

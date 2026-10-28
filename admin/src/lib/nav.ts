@@ -26,6 +26,7 @@ import {
   MessageCircle,
   CalendarDays,
   Flower2,
+  HandHeart,
   Terminal,
   type LucideIcon,
 } from 'lucide-react';
@@ -63,6 +64,7 @@ export const NAV: NavSection[] = [
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
       { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
       { label: 'Devotee etiquette', path: '/etiquette', icon: Flower2, permission: 'etiquette.manage' },
+      { label: 'Prayers', path: '/prayers', icon: HandHeart, permission: 'prayer.manage' },
     ],
   },
   {

@@ -3730,3 +3730,159 @@ model EtiquetteRun {
   @@index([status, createdAt])
   @@index([language, createdAt])
 }
+
+
+// ============================================================================
+// Prayers — stotras, aartis and prayers a reader reads in their own script
+// ============================================================================
+//
+// Not a mantra's opening prayer: that is `Mantra.prayerMantraId` (and `enum PRAYER`). Everything here is `Prayer*`.
+
+enum PrayerStatus {
+  PUBLISHED // shown in the app and translated by runs
+  DRAFT // being written; not shown, not translated
+}
+
+// A stotra, aarti or prayer. The verses are written in the script of `originalLanguage`; a reader whose script differs
+// sees the same text transliterated (by rule at read time, or by an AI run where the rule cannot — see config/prayer.js
+// `howText`). The prose (title, summary, about, each verse's meaning) is English here and translated in
+// `PrayerTranslation` / `PrayerVerseTranslation`.
+model Prayer {
+  id String @id @default(cuid())
+
+  slug             String @unique @db.VarChar(80)
+  category         String @db.VarChar(30) // config/prayer.js `categories`
+  sortOrder        Int    @default(0)
+  originalLanguage String @default("sa") @db.VarChar(10) // the language (so the script) the verses are written in
+
+  title      String  @db.VarChar(200) // English
+  summary    String? @db.VarChar(400) // one or two plain sentences: the card on the list
+  about      String? @db.Text // when it is said, what it is
+  author     String? @db.VarChar(200) // who composed it; English only, like `reference`
+  reference  String? @db.VarChar(200)
+  sourceName String? @db.VarChar(200)
+  sourceUrl  String? @db.VarChar(500) // http(s) only, validated in the API
+
+  status PrayerStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verses       PrayerVerse[]
+  translations PrayerTranslation[]
+
+  @@index([status, category, sortOrder])
+}
+
+// A prayer's title, summary and about in one language. English is the Prayer row itself, so 'en' never has a row here.
+model PrayerTranslation {
+  id String @id @default(cuid())
+
+  prayerId     String
+  languageCode String @db.VarChar(10)
+
+  title   String  @db.VarChar(400)
+  summary String? @db.VarChar(800)
+  about   String? @db.Text
+
+  translatedBy String? @db.VarChar(60) // the provider's brand for a run ("GPT", "Gemini", "Claude"), or an admin's name
+  runId        String? // the PrayerRun that wrote it
+  isEdited     Boolean @default(false) // a person changed it; a run never writes over it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+
+  @@unique([prayerId, languageCode])
+  @@index([languageCode])
+}
+
+// One verse of a prayer. The verses are saved as one ordered list with stable ids (`PUT /items/:id/verses`): a verse is
+// never deleted and made again, because its translations hang off its id.
+model PrayerVerse {
+  id String @id @default(cuid())
+
+  prayerId String
+  position Int // order only; not unique, so a reorder saves in one go
+
+  text          String   @db.Text // the original in its own script; each line break is a line of the verse
+  meaning       String?  @db.Text // English
+  textChangedAt DateTime @default(now()) // when `text` last changed: a stored rendering older than this is out of date
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prayer       Prayer                   @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+  translations PrayerVerseTranslation[]
+
+  @@index([prayerId, position])
+}
+
+// A verse in one language: its text in that language's script ('en' = Roman letters), kept only where a rule cannot make
+// it or a person wrote it, and/or its meaning in that language (never for 'en': English is PrayerVerse.meaning).
+model PrayerVerseTranslation {
+  id String @id @default(cuid())
+
+  verseId      String
+  languageCode String @db.VarChar(10)
+
+  text       String?   @db.Text
+  renderedAt DateTime? // when `text` was last written (for a run, the time its request was sent)
+  meaning    String?   @db.Text
+
+  translatedBy String? @db.VarChar(60)
+  runId        String?
+  isEdited     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse PrayerVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@unique([verseId, languageCode])
+  @@index([languageCode])
+}
+
+// One admin-started run that transliterates and translates the prayers into one language (admin → Prayers →
+// Translations). The same shape as EtiquetteRun: the row is the truth, the BullMQ job only works it. `totalItems` and
+// `doneItems` count prayers; `currentSlug` is the prayer being worked.
+model PrayerRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  provider String  @default("openai") @db.VarChar(20)
+  model    String  @db.VarChar(100)
+  force    Boolean @default(false) // do the work again for rows that already have it (a hand-edited one is kept)
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30)
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | cancelled | error
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalItems  Int     @default(0)
+  doneItems   Int     @default(0)
+  currentSlug String?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
+}

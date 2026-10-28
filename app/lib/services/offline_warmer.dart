@@ -17,6 +17,7 @@ import 'issue_service.dart';
 import 'local_store.dart';
 import 'mala_audio_cache.dart';
 import 'mantra_service.dart';
+import 'prayer_service.dart';
 import 'reel_service.dart';
 import 'reference_service.dart';
 import 'response_cache.dart';
@@ -29,7 +30,7 @@ import 'user_service.dart';
 ///
 /// One pass asks for the library's shape (every book, its cantos and chapters),
 /// the calendar from last month to three months on, today's etiquette and every
-/// item of it, the reader's own mantra in full (what the counter opens on), and
+/// item of it, every prayer in full, the reader's own mantra in full (what the counter opens on), and
 /// the small things other screens start from (the mantras, the book-reel look,
 /// the issues, the languages, the reader's summary and favourites). Each answer
 /// is saved by the service that asked (`getOrSaved`), so nothing here stores
@@ -50,6 +51,7 @@ class OfflineWarmer {
     BookService? books,
     CalendarService? calendar,
     EtiquetteService? etiquette,
+    PrayerService? prayers,
     List<Future<void> Function()>? others,
     Future<bool> Function()? onWifi,
     Future<void> Function(String slug)? downloadBook,
@@ -59,6 +61,7 @@ class OfflineWarmer {
   })  : _books = books ?? BookService.instance,
         _calendar = calendar ?? CalendarService.instance,
         _etiquette = etiquette ?? EtiquetteService.instance,
+        _prayers = prayers ?? PrayerService.instance,
         _others = others ?? _everyScreenStart(),
         _onWifi = onWifi ?? _wifi,
         _downloadBook = downloadBook ?? ((slug) => BookSyncManager.instance.syncBook(slug)),
@@ -71,6 +74,7 @@ class OfflineWarmer {
   final BookService _books;
   final CalendarService _calendar;
   final EtiquetteService _etiquette;
+  final PrayerService _prayers;
   final List<Future<void> Function()> _others;
   final Future<bool> Function() _onWifi;
   final Future<void> Function(String slug) _downloadBook;
@@ -81,7 +85,7 @@ class OfflineWarmer {
   Future<void>? _running;
 
   /// One pass, in [appLanguage] (the calendar) and [readingChain] (etiquette,
-  /// short works). Unless [force], a pass within `OfflineConfig.warmInterval`
+  /// prayers, short works). Unless [force], a pass within `OfflineConfig.warmInterval`
   /// of the last one that reached the server does nothing. One runs at a time;
   /// a call made while one runs waits for it and is then judged the same way.
   Future<void> warm({required String appLanguage, required List<String> readingChain, bool force = false}) async {
@@ -118,6 +122,7 @@ class OfflineWarmer {
     await _warmBooks(books, chain, wifi: wifi);
     await _warmCalendar(appLanguage);
     await _warmEtiquette(chain);
+    await _warmPrayers(chain);
     await _quietly(() => _chantMantra(onWifi: wifi));
     await _inBatches(_others, (step) => step());
 
@@ -168,6 +173,22 @@ class OfflineWarmer {
           item.id,
     ];
     await _inBatches(due, (id) => _etiquette.item(id, chain));
+  }
+
+  Future<void> _warmPrayers(List<String> chain) async {
+    final list = await _quietly(() => _prayers.list(chain));
+    if (list == null) return;
+
+    // A prayer is opened for its verses, which the list does not carry: each
+    // one is fetched in full, once, and again when its copy is a week old.
+    final now = _clock();
+    final due = [
+      for (final prayer in list.items)
+        if (_prayers.prayerSavedAt(prayer.id, chain) case final at
+            when at == null || now.difference(at) >= OfflineConfig.itemRefreshAfter)
+          prayer.id,
+    ];
+    await _inBatches(due, (id) => _prayers.prayer(id, chain));
   }
 
   /// [step] for each of [items], `OfflineConfig.warmConcurrency` at a time.

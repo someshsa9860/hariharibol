@@ -2835,4 +2835,97 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get ownMantraErrorExpired =>
       'ഈ നിർദ്ദേശങ്ങളുടെ കാലാവധി കഴിഞ്ഞു. ദയവായി വീണ്ടും തിരയുക.';
+
+  @override
+  String get prayersTitle => 'പ്രാർത്ഥനകൾ';
+
+  @override
+  String get prayersHomeSubtitle =>
+      'നിങ്ങൾ വായിക്കുന്ന ലിപിയിൽ തന്നെ സ്തോത്രങ്ങളും ആരതികളും പ്രാർത്ഥനകളും';
+
+  @override
+  String get prayersEmpty =>
+      'പ്രാർത്ഥനകൾ ചേർത്തുകൊണ്ടിരിക്കുകയാണ്. ദയവായി ഉടൻ വീണ്ടും വരൂ.';
+
+  @override
+  String get prayersAll => 'എല്ലാം';
+
+  @override
+  String prayersVerseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ശ്ലോകങ്ങൾ',
+      one: '1 ശ്ലോകം',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prayersMeaning => 'അർത്ഥം';
+
+  @override
+  String get prayersShowMeaning => 'അർത്ഥം കാണിക്കുക';
+
+  @override
+  String get prayersHideMeaning => 'അർത്ഥം മറയ്ക്കുക';
+
+  @override
+  String get prayersExpandAll => 'എല്ലാ അർത്ഥങ്ങളും തുറക്കുക';
+
+  @override
+  String get prayersCollapseAll => 'എല്ലാ അർത്ഥങ്ങളും അടയ്ക്കുക';
+
+  @override
+  String get prayersScriptOriginal => 'മൂലപാഠം';
+
+  @override
+  String get prayersScriptRoman => 'റോമൻ അക്ഷരങ്ങൾ';
+
+  @override
+  String get prayersShowOriginal => 'മൂലപാഠവും കാണിക്കുക';
+
+  @override
+  String get prayersMeaningsOpen => 'അർത്ഥങ്ങൾ ആദ്യമേ തുറന്നുവയ്ക്കുക';
+
+  @override
+  String get prayersAbout => 'ഈ പ്രാർത്ഥനയെക്കുറിച്ച്';
+
+  @override
+  String get prayersComposedBy => 'രചിച്ചത്';
+
+  @override
+  String get prayersReference => 'പരാമർശം';
+
+  @override
+  String get prayersSource => 'ഉറവിടം';
+
+  @override
+  String prayersVerseNumber(int number) {
+    return 'ശ്ലോകം $number';
+  }
+
+  @override
+  String get prayersCategoryMorning => 'രാവിലത്തെ പ്രാർത്ഥനകൾ';
+
+  @override
+  String get prayersCategoryEvening => 'വൈകുന്നേരത്തെ പ്രാർത്ഥനകൾ';
+
+  @override
+  String get prayersCategoryMeals => 'ഭക്ഷണത്തിന് മുമ്പും ശേഷവും';
+
+  @override
+  String get prayersCategoryGuru => 'ഗുരുവും പരമ്പരയും';
+
+  @override
+  String get prayersCategoryDeity => 'ദേവതയോടുള്ള പ്രാർത്ഥനകൾ';
+
+  @override
+  String get prayersCategoryAarti => 'ആരതികൾ';
+
+  @override
+  String get prayersCategoryPeace => 'ശാന്തിയും സംരക്ഷണവും';
+
+  @override
+  String get prayersCategoryOther => 'മറ്റുള്ളവ';
 }

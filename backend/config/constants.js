@@ -51,6 +51,8 @@ const PERMISSIONS = {
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
   'etiquette.manage': { group: 'content', name: 'View and edit devotee etiquette, and set one aside' },
   'etiquette.translate': { group: 'content', name: 'Start, resume and cancel devotee etiquette translation runs' },
+  'prayer.manage': { group: 'content', name: 'View and edit prayers, and publish or hold them back' },
+  'prayer.translate': { group: 'content', name: 'Start, resume and cancel prayer transliteration and translation runs' },
 
   // users
   'user.read': { group: 'users', name: 'View users' },

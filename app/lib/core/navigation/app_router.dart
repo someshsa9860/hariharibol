@@ -9,6 +9,8 @@ import '../../views/auth/sign_in_view.dart';
 import '../../views/calendar/calendar_view.dart';
 import '../../views/etiquette/etiquette_item_view.dart';
 import '../../views/etiquette/etiquette_view.dart';
+import '../../views/prayers/prayer_view.dart';
+import '../../views/prayers/prayers_view.dart';
 import '../../views/support/support_ticket_view.dart';
 import '../../views/support/developer_chat_view.dart';
 import '../../views/support/support_view.dart';
@@ -391,6 +393,24 @@ GoRouter createRouter() {
         builder: (context, state) => ContentWidth(
           maxWidth: ContentWidths.regular,
           child: EtiquetteItemView(id: state.pathParameters['id']!),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.prayers,
+        name: RouteNames.prayers,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const PrayersView(),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.prayerPattern,
+        name: RouteNames.prayer,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: PrayerView(id: state.pathParameters['id']!),
         ),
       ),
 

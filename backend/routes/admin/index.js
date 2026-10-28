@@ -35,6 +35,7 @@ import jobRoutes from './job.js';
 import translationRoutes from './translation.js';
 import sceneRoutes from './scene.js';
 import etiquetteRoutes from './etiquette.js';
+import prayerRoutes from './prayer.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
@@ -70,6 +71,7 @@ const routers = [
   translationRoutes,
   sceneRoutes,
   etiquetteRoutes,
+  prayerRoutes,
   bookCacheRoutes,
   systemRoutes,
   chatRoutes,

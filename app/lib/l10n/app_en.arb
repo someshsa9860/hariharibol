@@ -1954,5 +1954,46 @@
   "ownMantraErrorLimitReached": "You have reached the limit for now. Please try again later.",
   "ownMantraErrorUnavailable": "Adding mantras is not available right now. Please try again later.",
   "ownMantraErrorLimit": "Your list of own mantras is full. Remove one to add another.",
-  "ownMantraErrorExpired": "These suggestions have expired. Please search again."
+  "ownMantraErrorExpired": "These suggestions have expired. Please search again.",
+  "prayersTitle": "Prayers",
+  "prayersHomeSubtitle": "Stotras, aartis and prayers in the script you read",
+  "prayersEmpty": "Prayers are being added. Please come back soon.",
+  "prayersAll": "All",
+  "prayersVerseCount": "{count, plural, =1{1 verse} other{{count} verses}}",
+  "@prayersVerseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prayersMeaning": "Meaning",
+  "prayersShowMeaning": "Show meaning",
+  "prayersHideMeaning": "Hide meaning",
+  "prayersExpandAll": "Expand all meanings",
+  "prayersCollapseAll": "Collapse all meanings",
+  "prayersScriptOriginal": "Original",
+  "prayersScriptRoman": "Roman letters",
+  "prayersShowOriginal": "Also show the original",
+  "prayersMeaningsOpen": "Open meanings by default",
+  "prayersAbout": "About this prayer",
+  "prayersComposedBy": "Composed by",
+  "prayersReference": "Reference",
+  "prayersSource": "Source",
+  "prayersVerseNumber": "Verse {number}",
+  "@prayersVerseNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "prayersCategoryMorning": "Morning prayers",
+  "prayersCategoryEvening": "Evening prayers",
+  "prayersCategoryMeals": "Before and after meals",
+  "prayersCategoryGuru": "Guru and the lineage",
+  "prayersCategoryDeity": "Prayers to a deity",
+  "prayersCategoryAarti": "Aartis",
+  "prayersCategoryPeace": "Peace and protection",
+  "prayersCategoryOther": "Other"
 }

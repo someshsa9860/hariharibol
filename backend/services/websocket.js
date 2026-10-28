@@ -58,6 +58,9 @@ const EVENTS = {
   // Admin panel, to `panchang.translate`: the same two for the Hindu calendar translation runs.
   CALENDAR_RUN: 'calendar.run',
   CALENDAR_ACTIVITY: 'calendar.activity',
+  // Admin panel, to `prayer.translate`: the same two for the prayer transliteration and translation runs.
+  PRAYER_RUN: 'prayer.run',
+  PRAYER_ACTIVITY: 'prayer.activity',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

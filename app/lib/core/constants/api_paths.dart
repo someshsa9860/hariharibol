@@ -30,6 +30,10 @@ abstract final class ApiPaths {
   static const String etiquetteToday = '$_app/etiquette/today';
   static String etiquetteItem(String id) => '$_app/etiquette/$id';
 
+  // Prayers
+  static const String prayers = '$_app/prayers';
+  static String prayer(String id) => '$_app/prayers/$id';
+
   // Support, feedback and the store-rating prompt
   static const String supportTickets = '$_app/support/tickets';
   static String supportTicket(String id) => '$_app/support/tickets/$id';

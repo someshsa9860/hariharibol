@@ -30,6 +30,7 @@ import '../../widgets/dashboard/home_stats_card.dart';
 import '../../widgets/dashboard/mantra_row.dart';
 import '../../widgets/dashboard/mood_chips.dart';
 import '../../widgets/dashboard/open_chant.dart';
+import '../../widgets/dashboard/prayers_entry_card.dart';
 import '../../widgets/dashboard/routine_entry_card.dart';
 import '../../widgets/dashboard/sadhana_card.dart';
 import '../../widgets/dashboard/verse_hero_card.dart';
@@ -153,6 +154,7 @@ class _HomeContent extends ConsumerWidget {
       const RoutineEntryCard(),
       const CalendarEntryCard(),
       const EtiquetteEntryCard(),
+      const PrayersEntryCard(),
 
       // Lifetime totals, right after today's practice — a separate request
       // from the rest of the feed, so it is signed out only when there is a

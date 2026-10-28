@@ -97,6 +97,17 @@ abstract final class BoxKeys {
   static const String storyPart = 'settings.story_part';
   static const String storyNumbers = 'settings.story_numbers';
 
+  /// How prayers are written and read. The script is the one the reader last
+  /// picked (`original`, or a language code) and is null until they pick: a
+  /// prayer then opens in the first script of their reading languages it
+  /// offers. The other two are one answer for every prayer, like the font
+  /// size: whether each verse's meaning is left open, and whether the original
+  /// is shown above a script that is not it. About the device, so
+  /// `AppSession.clear` leaves them.
+  static const String prayerScript = 'settings.prayer_script';
+  static const String prayerMeaningsOpen = 'settings.prayer_meanings_open';
+  static const String prayerShowOriginal = 'settings.prayer_show_original';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 

@@ -2811,4 +2811,97 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get ownMantraErrorExpired =>
       'এই প্রস্তাবগুলির মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার খুঁজুন।';
+
+  @override
+  String get prayersTitle => 'প্রার্থনা';
+
+  @override
+  String get prayersHomeSubtitle =>
+      'আপনি যে লিপিতে পড়েন, সেই লিপিতেই স্তোত্র, আরতি ও প্রার্থনা';
+
+  @override
+  String get prayersEmpty =>
+      'প্রার্থনা যোগ করা হচ্ছে। অনুগ্রহ করে শীঘ্রই আবার আসুন।';
+
+  @override
+  String get prayersAll => 'সব';
+
+  @override
+  String prayersVerseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি শ্লোক',
+      one: '1টি শ্লোক',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prayersMeaning => 'অর্থ';
+
+  @override
+  String get prayersShowMeaning => 'অর্থ দেখান';
+
+  @override
+  String get prayersHideMeaning => 'অর্থ লুকান';
+
+  @override
+  String get prayersExpandAll => 'সব অর্থ খুলুন';
+
+  @override
+  String get prayersCollapseAll => 'সব অর্থ বন্ধ করুন';
+
+  @override
+  String get prayersScriptOriginal => 'মূল পাঠ';
+
+  @override
+  String get prayersScriptRoman => 'রোমান অক্ষর';
+
+  @override
+  String get prayersShowOriginal => 'মূল পাঠও দেখান';
+
+  @override
+  String get prayersMeaningsOpen => 'অর্থ আগে থেকেই খোলা রাখুন';
+
+  @override
+  String get prayersAbout => 'এই প্রার্থনা সম্পর্কে';
+
+  @override
+  String get prayersComposedBy => 'রচয়িতা';
+
+  @override
+  String get prayersReference => 'সূত্র';
+
+  @override
+  String get prayersSource => 'উৎস';
+
+  @override
+  String prayersVerseNumber(int number) {
+    return 'শ্লোক $number';
+  }
+
+  @override
+  String get prayersCategoryMorning => 'সকালের প্রার্থনা';
+
+  @override
+  String get prayersCategoryEvening => 'সন্ধ্যার প্রার্থনা';
+
+  @override
+  String get prayersCategoryMeals => 'আহারের আগে ও পরে';
+
+  @override
+  String get prayersCategoryGuru => 'গুরু ও পরম্পরা';
+
+  @override
+  String get prayersCategoryDeity => 'দেবতার উদ্দেশে প্রার্থনা';
+
+  @override
+  String get prayersCategoryAarti => 'আরতি';
+
+  @override
+  String get prayersCategoryPeace => 'শান্তি ও রক্ষা';
+
+  @override
+  String get prayersCategoryOther => 'অন্যান্য';
 }
