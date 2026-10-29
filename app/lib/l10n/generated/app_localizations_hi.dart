@@ -478,6 +478,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chantFullPicture => 'पूरी स्क्रीन की तस्वीर';
 
   @override
+  String get chantPrayerHintAlong => 'रिकॉर्डिंग आपके साथ यह प्रार्थना करती है। शुरू करने के लिए प्ले दबाएँ।';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'पहले यह प्रार्थना करें, फिर रिकॉर्डिंग शुरू करने के लिए प्ले दबाएँ।';
+
+  @override
+  String get chantAutoCountResting => 'रिकॉर्डिंग चलने तक विश्राम में';
+
+  @override
+  String get chantFinishRound => 'माला पूरी करें';
+
+  @override
   String get chantViewDeity => 'श्रीविग्रह';
 
   @override

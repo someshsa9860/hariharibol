@@ -481,6 +481,18 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantFullPicture => 'முழுத்திரை படம்';
 
   @override
+  String get chantPrayerHintAlong => 'பதிவு உங்களுடன் இந்தப் பிரார்த்தனையைச் சொல்கிறது. தொடங்க இயக்கு என்பதை அழுத்தவும்.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'முதலில் இந்தப் பிரார்த்தனையைச் செய்யுங்கள், பிறகு பதிவைத் தொடங்க இயக்கு என்பதை அழுத்தவும்.';
+
+  @override
+  String get chantAutoCountResting => 'பதிவு ஓடும்போது ஓய்வில்';
+
+  @override
+  String get chantFinishRound => 'மாலையை முடிக்கவும்';
+
+  @override
   String get chantViewDeity => 'ஸ்ரீவிக்ரஹம்';
 
   @override

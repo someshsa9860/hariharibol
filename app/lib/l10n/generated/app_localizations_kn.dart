@@ -480,6 +480,18 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chantFullPicture => 'ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ';
 
   @override
+  String get chantPrayerHintAlong => 'ರೆಕಾರ್ಡಿಂಗ್ ನಿಮ್ಮೊಂದಿಗೆ ಈ ಪ್ರಾರ್ಥನೆ ಹೇಳುತ್ತದೆ. ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ, ನಂತರ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
+
+  @override
+  String get chantAutoCountResting => 'ರೆಕಾರ್ಡಿಂಗ್ ನಡೆಯುವವರೆಗೆ ವಿಶ್ರಾಂತಿಯಲ್ಲಿ';
+
+  @override
+  String get chantFinishRound => 'ಮಾಲೆ ಪೂರ್ಣಗೊಳಿಸಿ';
+
+  @override
   String get chantViewDeity => 'ಶ್ರೀವಿಗ್ರಹ';
 
   @override

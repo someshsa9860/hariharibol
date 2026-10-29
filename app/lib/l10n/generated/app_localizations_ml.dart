@@ -486,6 +486,18 @@ class AppLocalizationsMl extends AppLocalizations {
   String get chantFullPicture => 'പൂർണ്ണ സ്ക്രീൻ ചിത്രം';
 
   @override
+  String get chantPrayerHintAlong => 'റെക്കോർഡിംഗ് നിങ്ങളോടൊപ്പം ഈ പ്രാർത്ഥന ചൊല്ലുന്നു. തുടങ്ങാൻ പ്ലേ അമർത്തുക.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'ആദ്യം ഈ പ്രാർത്ഥന ചൊല്ലുക, പിന്നെ റെക്കോർഡിംഗ് തുടങ്ങാൻ പ്ലേ അമർത്തുക.';
+
+  @override
+  String get chantAutoCountResting => 'റെക്കോർഡിംഗ് ഓടുന്നതുവരെ വിശ്രമത്തിൽ';
+
+  @override
+  String get chantFinishRound => 'മാല പൂർത്തിയാക്കുക';
+
+  @override
   String get chantViewDeity => 'ശ്രീവിഗ്രഹം';
 
   @override

@@ -480,6 +480,18 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
 
   @override
+  String get chantPrayerHintAlong => 'రికార్డింగ్ మీతో కలిసి ఈ ప్రార్థన చెబుతుంది. ప్రారంభించడానికి ప్లే నొక్కండి.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్రారంభించడానికి ప్లే నొక్కండి.';
+
+  @override
+  String get chantAutoCountResting => 'రికార్డింగ్ నడిచే వరకు విశ్రాంతిలో';
+
+  @override
+  String get chantFinishRound => 'మాలను పూర్తి చేయండి';
+
+  @override
   String get chantViewDeity => 'శ్రీవిగ్రహం';
 
   @override

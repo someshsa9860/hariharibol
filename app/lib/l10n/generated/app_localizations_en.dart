@@ -477,6 +477,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantFullPicture => 'Full-screen picture';
 
   @override
+  String get chantPrayerHintAlong => 'The recording says this prayer with you. Press play to begin.';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'Chant this prayer first, then press play to begin the recording.';
+
+  @override
+  String get chantAutoCountResting => 'Resting while the recording plays';
+
+  @override
+  String get chantFinishRound => 'Finish round';
+
+  @override
   String get chantViewDeity => 'Deity';
 
   @override

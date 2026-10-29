@@ -850,6 +850,30 @@ abstract class AppLocalizations {
   /// **'Full-screen picture'**
   String get chantFullPicture;
 
+  /// No description provided for @chantPrayerHintAlong.
+  ///
+  /// In en, this message translates to:
+  /// **'The recording says this prayer with you. Press play to begin.'**
+  String get chantPrayerHintAlong;
+
+  /// No description provided for @chantPrayerHintAlongNoPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant this prayer first, then press play to begin the recording.'**
+  String get chantPrayerHintAlongNoPrayer;
+
+  /// No description provided for @chantAutoCountResting.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting while the recording plays'**
+  String get chantAutoCountResting;
+
+  /// No description provided for @chantFinishRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish round'**
+  String get chantFinishRound;
+
   /// No description provided for @chantViewDeity.
   ///
   /// In en, this message translates to:

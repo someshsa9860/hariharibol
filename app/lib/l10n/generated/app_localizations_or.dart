@@ -480,6 +480,18 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chantFullPicture => 'ପୂର୍ଣ୍ଣ ସ୍କ୍ରିନ ଚିତ୍ର';
 
   @override
+  String get chantPrayerHintAlong => 'ରେକର୍ଡିଂ ଆପଣଙ୍କ ସହ ଏହି ପ୍ରାର୍ଥନା କହେ। ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+
+  @override
+  String get chantPrayerHintAlongNoPrayer => 'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ରେକର୍ଡିଂ ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+
+  @override
+  String get chantAutoCountResting => 'ରେକର୍ଡିଂ ଚାଲିବା ପର୍ଯ୍ୟନ୍ତ ବିଶ୍ରାମରେ';
+
+  @override
+  String get chantFinishRound => 'ମାଳା ସମ୍ପୂର୍ଣ୍ଣ କରନ୍ତୁ';
+
+  @override
   String get chantViewDeity => 'ଶ୍ରୀବିଗ୍ରହ';
 
   @override
