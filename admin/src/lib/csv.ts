@@ -27,3 +27,30 @@ export function downloadCsv(name: string, csv: string) {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+/** Reads CSV text into rows of cells: quoted cells, doubled quotes, commas and line breaks inside quotes. */
+export function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cellText = '';
+  let quoted = false;
+  const input = text.replace(/^﻿/, '');
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (quoted) {
+      if (ch === '"' && input[i + 1] === '"') { cellText += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cellText += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { row.push(cellText); cellText = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && input[i + 1] === '\n') i++;
+      row.push(cellText); cellText = '';
+      if (row.some((c) => c.trim() !== '')) rows.push(row);
+      row = [];
+    } else cellText += ch;
+  }
+  row.push(cellText);
+  if (row.some((c) => c.trim() !== '')) rows.push(row);
+  return rows;
+}

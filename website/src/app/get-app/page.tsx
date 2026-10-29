@@ -19,12 +19,14 @@ export const metadata: Metadata = {
  * `?stay=1` shows the page on a phone too. The system is read from the User-Agent on the server: a hint, not proof,
  * which is why the page always offers both stores.
  */
-export default async function GetAppPage({ searchParams }: { searchParams: Promise<{ stay?: string }> }) {
-  const { stay } = await searchParams;
+export default async function GetAppPage({ searchParams }: { searchParams: Promise<{ stay?: string; mkt?: string }> }) {
+  const { stay, mkt } = await searchParams;
+  // A visit from a marketing email carries its delivery code; Google Play hands it to the app after install (the install referrer).
+  const playUrl = mkt && /^[A-Za-z0-9_-]{6,32}$/.test(mkt) ? `${PLAY_STORE_URL}${PLAY_STORE_URL.includes('?') ? '&' : '?'}referrer=${encodeURIComponent(`utm_source=mkt&utm_medium=email&utm_content=${mkt}`)}` : PLAY_STORE_URL;
   const appStore = appStoreUrl();
   if (!stay) {
     const ua = (await headers()).get('user-agent') ?? '';
-    if (/android/i.test(ua) && PLAY_STORE_URL) redirect(PLAY_STORE_URL);
+    if (/android/i.test(ua) && PLAY_STORE_URL) redirect(playUrl);
     if (/iphone|ipad|ipod/i.test(ua) && appStore) redirect(appStore);
   }
 
@@ -41,7 +43,7 @@ export default async function GetAppPage({ searchParams }: { searchParams: Promi
         <p className="muted" style={{ margin: 0 }}>Read the Gita and Bhagavatam with meaning, chant with a counter, watch devotional reels and talk with Sakha — free.</p>
 
         <div className="share-badges">
-          <a className="share-badge" href={PLAY_STORE_URL} rel="noopener">
+          <a className="share-badge" href={playUrl} rel="noopener">
             <span aria-hidden>▶</span><span><small>GET IT ON</small>Google Play</span>
           </a>
           {appStore && (

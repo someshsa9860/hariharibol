@@ -1491,3 +1491,40 @@ and `app: 'dev'`.
 worker and the websocket container (the worker owns the new `devops` queue and its three schedules).
 `npm run test:dev-companion` walks it (31 checks; needs the API, worker and websocket running, Postgres and Redis).
 Not run against Firebase: no push has left a machine.
+
+## Marketing (email campaigns)
+
+Bulk email to readers and invitees, run from the admin **Marketing** page. Design: `marketting-plan.md`. Permissions
+`marketing.read` / `.manage` / `.send` (`send` is the super admin only, so the admin role can prepare but not reach people).
+
+- **Run pattern = Etiquette's.** A `MarketingCampaign` row is the truth; the BullMQ `marketing` queue job only works it
+  (`jobs/processors/marketing.js`, concurrency 1, `attempts: 1`, heartbeat, `cancelRequested` / `pauseRequested`, reconcile
+  timer). Websocket `marketing.run` / `marketing.activity` go to `marketing.read`. `marketing.tick` (every minute) starts
+  scheduled campaigns. Totals are recounted from the delivery rows (`recount()` in `services/marketing-run.js`).
+- **No double sends.** One `MarketingDelivery` per campaign and reader/invitee (unique); a send claims PENDING→SENDING
+  before SMTP; a SENDING row left by a dead worker becomes FAILED "Interrupted" and is never retried blindly.
+- **Content** is blocks (`utils/marketing-blocks.js`), merge fields `{{name|fallback}}`, rendered to table HTML + text with
+  every value escaped (`services/marketing-render.js`). A reader gets the first APPROVED variant in their reading-language
+  chain, else English. AI drafts/translations (`services/marketing-ai.js`) are drafts until a person approves them.
+  Sakha profile keywords and chat text never enter marketing context.
+- **Consent.** Opt-out and the weekly cap are checked at send time; unsubscribe is `/unsubscribe/<code>` on the site and the
+  one-click header; suppression keeps an HMAC of the address (key from `JWT_SECRET`), not the address. Invitees need an
+  attestation on import (`MarketingConsentLog`).
+- **Tracking.** Links are `/l/<code>/<n>` on the website (`website/src/app/l`), which asks `GET /api/web/marketing/click/…`
+  and redirects; scanners are stored but flagged. The open pixel is approximate. Attribution (`MarketingAttribution`):
+  click, sign-up (invitees matched by address after sign-in), app open and Play install referrer (`/get-app?mkt=<code>`).
+- **Self-protection.** Hard-bounce > 2% or complaints > 0.1% over the last 500 sends (judged after 100) pauses the run;
+  daily cap (IST midnight), weekly cap per reader; `AI_PER_USER` has a cost cap and a 5-recipient sample to approve first.
+  Bounces/complaints come in through the SES SNS webhook (`/api/webhooks/marketing-email`, signature and own topic ARN
+  checked) or a shared secret.
+- Settings: `marketing.*` (rate, daily cap, weekly cap, from name, reply-to, **postal address — required to start**, AI max cost).
+- **Also changed:** `services/setting.js getNumber` returned 0 for a setting that was never set (it now returns the fallback);
+  `services/sadhana-stats.js` holds the streak and favourite-mantra logic moved out of `controllers/app/sadhana.js`.
+
+**Tested:** `node --test test/marketing-*.test.js` (33) and `npm run test:marketing` (37 checks over HTTP with a fake mail
+server; needs Postgres, Redis, migrations and `npm run seed`). **Not done / not run:** no real SES send, no real SNS message,
+no live AI call (provider faked), WhatsApp (Phase 3: tables exist, nothing sends) and the Flutter app (Phase 4: preferences
+screen, app-open / install attribution calls), `GET/PATCH /api/app/marketing/preferences`, `POST /open` and `/install` exist
+but no app calls them. **Production needs** `prisma migrate deploy` for `20261116000000_marketing`,
+`20261117000000_marketing_whatsapp`, `20261118000000_marketing_run_state`, a restart of the API and the worker, the
+`MARKETING_*` values above, SES verified-domain + configuration set + SNS topic, and the postal address setting.

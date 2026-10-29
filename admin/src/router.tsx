@@ -34,6 +34,7 @@ import { MaintenancePage } from '@/routes/maintenance';
 import { TranslationsPage } from '@/routes/translations';
 import { ScenesPage } from '@/routes/scenes';
 import { EtiquettePage } from '@/routes/etiquette';
+import { MarketingPage } from '@/routes/marketing';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
 import { CalendarPage } from '@/routes/calendar';
@@ -307,6 +308,14 @@ export function Router() {
         element={
           <Protected permission="scenes.read">
             <ScenesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/marketing"
+        element={
+          <Protected permission="marketing.read">
+            <MarketingPage />
           </Protected>
         }
       />

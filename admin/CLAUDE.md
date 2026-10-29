@@ -483,3 +483,14 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 - **Known limitation:** the route is gated on `panchang.manage`, so someone with `panchang.translate` alone cannot reach the page. Both built-in roles (admin, super admin) have both.
 - The pre-existing `lib/calendar-icons.ts` carries the Parana icon; keep it in step with the app's and the website's copies.
 - Type-checks (`tsc -b`) and builds (`vite build`); **not driven in a browser**.
+
+## Marketing page
+
+`routes/marketing.tsx` (tabs Campaigns / Templates / Audiences) with `components/marketing-campaign.tsx` (editor dialog and
+the detail dialog: live progress, controls, funnel, links, failures, feed), `marketing-template-editor.tsx` (a variant per
+language, block editor, sandboxed preview, test send to yourself, approve, AI draft/translate with `ModelPicker`),
+`marketing-audience-filter.tsx` (filter with a live count) and `marketing-audiences.tsx` (segments, lists, CSV import with
+the consent attestation, do-not-send lookup). `lib/marketing.ts` has the types and keeps queries current from the
+`marketing.run` / `marketing.activity` events. Permissions: `marketing.read` to see, `.manage` to prepare, `.send` to start /
+schedule / pause / resume / cancel. `tsc -b` and `vite build` pass; **the page was not driven in a browser.** See "Marketing"
+in backend/CLAUDE.md.
