@@ -1,4 +1,4 @@
-import { Moon, Sun, LogOut } from 'lucide-react';
+import { Menu, Moon, Sun, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
@@ -22,16 +22,21 @@ function initials(name: string | null, email: string) {
     .toUpperCase();
 }
 
-export function Topbar({ title }: { title: string }) {
+export function Topbar({ title, onMenu }: { title: string; onMenu: () => void }) {
   const { theme, toggle } = useTheme();
   const auth = useAuth();
   if (auth.status !== 'signed-in') return null;
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-5">
-      <h1 className="text-base font-semibold">{title}</h1>
+    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-3 sm:px-5">
+      <div className="flex min-w-0 items-center gap-1">
+        <Button variant="ghost" size="icon" onClick={onMenu} aria-label="Open menu" className="md:hidden">
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h1 className="truncate text-base font-semibold">{title}</h1>
+      </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
