@@ -481,6 +481,22 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chantFullPicture => 'পূর্ণ পর্দার ছবি';
 
   @override
+  String get chantViewDeity => 'শ্রীবিগ্রহ';
+
+  @override
+  String get chantViewQuotes => 'বাণী';
+
+  @override
+  String get chantViewLabel => 'জপের সময় কী দেখানো হবে';
+
+  @override
+  String get chantQuoteTapHint => 'একটি জপ গণনা করতে কার্ডে ট্যাপ করুন।';
+
+  @override
+  String get chantQuoteNone =>
+      'এখন কোনো বাণী পাওয়া যাচ্ছে না। আপনি গণনা চালিয়ে যেতে পারেন।';
+
+  @override
   String get chantPrayerHint =>
       'প্রথমে এই প্রার্থনাটি করুন, তারপর গণনা শুরু করতে বৃত্তে ট্যাপ করুন।';
 

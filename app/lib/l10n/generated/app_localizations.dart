@@ -850,6 +850,36 @@ abstract class AppLocalizations {
   /// **'Full-screen picture'**
   String get chantFullPicture;
 
+  /// No description provided for @chantViewDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Deity'**
+  String get chantViewDeity;
+
+  /// No description provided for @chantViewQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Quotes'**
+  String get chantViewQuotes;
+
+  /// No description provided for @chantViewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What to show while chanting'**
+  String get chantViewLabel;
+
+  /// No description provided for @chantQuoteTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the card to count a chant.'**
+  String get chantQuoteTapHint;
+
+  /// No description provided for @chantQuoteNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No quotes are available right now. You can keep counting.'**
+  String get chantQuoteNone;
+
   /// No description provided for @chantPrayerHint.
   ///
   /// In en, this message translates to:

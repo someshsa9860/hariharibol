@@ -25,6 +25,9 @@ abstract final class ApiPaths {
   static const String calendar = '$_app/calendar';
   static const String calendarUpcoming = '$_app/calendar/upcoming';
 
+  // Quotes on the chanting page
+  static const String quotes = '$_app/quotes';
+
   // Devotee etiquette
   static const String etiquette = '$_app/etiquette';
   static const String etiquetteToday = '$_app/etiquette/today';

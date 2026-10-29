@@ -480,6 +480,22 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chantFullPicture => 'ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ';
 
   @override
+  String get chantViewDeity => 'ಶ್ರೀವಿಗ್ರಹ';
+
+  @override
+  String get chantViewQuotes => 'ಸೂಕ್ತಿಗಳು';
+
+  @override
+  String get chantViewLabel => 'ಜಪ ಮಾಡುವಾಗ ಏನನ್ನು ತೋರಿಸಬೇಕು';
+
+  @override
+  String get chantQuoteTapHint => 'ಒಂದು ಜಪ ಎಣಿಸಲು ಕಾರ್ಡ್ ಅನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.';
+
+  @override
+  String get chantQuoteNone =>
+      'ಈಗ ಯಾವುದೇ ಸೂಕ್ತಿಗಳು ಲಭ್ಯವಿಲ್ಲ. ನೀವು ಎಣಿಕೆ ಮುಂದುವರಿಸಬಹುದು.';
+
+  @override
   String get chantPrayerHint =>
       'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆಯನ್ನು ಮಾಡಿ, ನಂತರ ಎಣಿಕೆ ಆರಂಭಿಸಲು ವೃತ್ತವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.';
 

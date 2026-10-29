@@ -480,6 +480,22 @@ class AppLocalizationsPa extends AppLocalizations {
   String get chantFullPicture => 'ਪੂਰੀ ਸਕ੍ਰੀਨ ਤਸਵੀਰ';
 
   @override
+  String get chantViewDeity => 'ਸ਼੍ਰੀ ਵਿਗ੍ਰਹ';
+
+  @override
+  String get chantViewQuotes => 'ਬਚਨ';
+
+  @override
+  String get chantViewLabel => 'ਜਪ ਕਰਦੇ ਸਮੇਂ ਕੀ ਦਿਖਾਉਣਾ ਹੈ';
+
+  @override
+  String get chantQuoteTapHint => 'ਇੱਕ ਜਪ ਗਿਣਨ ਲਈ ਕਾਰਡ ’ਤੇ ਟੈਪ ਕਰੋ।';
+
+  @override
+  String get chantQuoteNone =>
+      'ਇਸ ਵੇਲੇ ਕੋਈ ਬਚਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਤੁਸੀਂ ਗਿਣਤੀ ਜਾਰੀ ਰੱਖ ਸਕਦੇ ਹੋ।';
+
+  @override
   String get chantPrayerHint =>
       'ਪਹਿਲਾਂ ਇਹ ਪ੍ਰਾਰਥਨਾ ਕਰੋ, ਫਿਰ ਗਿਣਤੀ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਚੱਕਰ ਉੱਤੇ ਟੈਪ ਕਰੋ।';
 

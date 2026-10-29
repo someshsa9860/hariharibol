@@ -477,6 +477,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantFullPicture => 'Full-screen picture';
 
   @override
+  String get chantViewDeity => 'Deity';
+
+  @override
+  String get chantViewQuotes => 'Quotes';
+
+  @override
+  String get chantViewLabel => 'What to show while chanting';
+
+  @override
+  String get chantQuoteTapHint => 'Tap the card to count a chant.';
+
+  @override
+  String get chantQuoteNone =>
+      'No quotes are available right now. You can keep counting.';
+
+  @override
   String get chantPrayerHint =>
       'Chant this prayer first, then tap the ring to begin counting.';
 

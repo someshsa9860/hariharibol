@@ -479,6 +479,22 @@ class AppLocalizationsMr extends AppLocalizations {
   String get chantFullPicture => 'पूर्ण स्क्रीन चित्र';
 
   @override
+  String get chantViewDeity => 'श्रीविग्रह';
+
+  @override
+  String get chantViewQuotes => 'वचने';
+
+  @override
+  String get chantViewLabel => 'जप करताना काय दाखवायचे';
+
+  @override
+  String get chantQuoteTapHint => 'एक जप मोजण्यासाठी कार्डवर टॅप करा.';
+
+  @override
+  String get chantQuoteNone =>
+      'सध्या कोणतीही वचने उपलब्ध नाहीत. तुम्ही मोजणी सुरू ठेवू शकता.';
+
+  @override
   String get chantPrayerHint =>
       'आधी ही प्रार्थना करा, मग गणना सुरू करण्यासाठी वर्तुळावर टॅप करा.';
 

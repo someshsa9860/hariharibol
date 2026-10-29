@@ -480,6 +480,22 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
 
   @override
+  String get chantViewDeity => 'శ్రీవిగ్రహం';
+
+  @override
+  String get chantViewQuotes => 'సూక్తులు';
+
+  @override
+  String get chantViewLabel => 'జపం చేసేటప్పుడు ఏమి చూపాలి';
+
+  @override
+  String get chantQuoteTapHint => 'ఒక జపాన్ని లెక్కించడానికి కార్డ్‌పై తాకండి.';
+
+  @override
+  String get chantQuoteNone =>
+      'ప్రస్తుతం సూక్తులు అందుబాటులో లేవు. మీరు లెక్కింపును కొనసాగించవచ్చు.';
+
+  @override
   String get chantPrayerHint =>
       'ముందు ఈ ప్రార్థనను చేయండి, ఆపై లెక్కింపు ప్రారంభించడానికి వలయాన్ని తట్టండి.';
 

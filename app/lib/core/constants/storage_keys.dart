@@ -42,6 +42,14 @@ abstract final class BoxKeys {
   /// A stable per-install id sent as `X-Device-Id`. Generated once.
   static const String deviceId = 'device.id';
 
+  /// What the chanting page shows in the middle: the deity and the mala (the
+  /// default) or a quote. Remembered on the phone, like the auto-count switch.
+  static const String chantView = 'settings.chant_view';
+
+  /// The quotes as the API last sent them, one copy for each reading chain
+  /// (`cache.quotes.hi,en`), so the chanting page has quotes with no connection.
+  static const String quotesCachePrefix = 'cache.quotes.';
+
   /// Whether auto count was left on. The chant counter opens already listening
   /// when it was.
   static const String autoChantEnabled = 'settings.auto_chant_enabled';

@@ -481,6 +481,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantFullPicture => 'முழுத்திரை படம்';
 
   @override
+  String get chantViewDeity => 'ஸ்ரீவிக்ரஹம்';
+
+  @override
+  String get chantViewQuotes => 'மேற்கோள்கள்';
+
+  @override
+  String get chantViewLabel => 'ஜபம் செய்யும்போது எதைக் காட்டுவது';
+
+  @override
+  String get chantQuoteTapHint => 'ஒரு ஜபத்தை எண்ண அட்டையைத் தொடவும்.';
+
+  @override
+  String get chantQuoteNone =>
+      'இப்போது மேற்கோள்கள் எதுவும் இல்லை. நீங்கள் எண்ணிக்கையைத் தொடரலாம்.';
+
+  @override
   String get chantPrayerHint =>
       'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு எண்ணத் தொடங்க வளையத்தைத் தட்டுங்கள்.';
 

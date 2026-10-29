@@ -478,6 +478,22 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantFullPicture => 'પૂર્ણ સ્ક્રીન ચિત્ર';
 
   @override
+  String get chantViewDeity => 'શ્રીવિગ્રહ';
+
+  @override
+  String get chantViewQuotes => 'વચનો';
+
+  @override
+  String get chantViewLabel => 'જપ કરતી વખતે શું બતાવવું';
+
+  @override
+  String get chantQuoteTapHint => 'એક જપ ગણવા કાર્ડ પર ટેપ કરો.';
+
+  @override
+  String get chantQuoteNone =>
+      'હાલમાં કોઈ વચનો ઉપલબ્ધ નથી. તમે ગણતરી ચાલુ રાખી શકો છો.';
+
+  @override
   String get chantPrayerHint =>
       'પહેલા આ પ્રાર્થના કરો, પછી ગણતરી શરૂ કરવા માટે વર્તુળ પર ટેપ કરો.';
 

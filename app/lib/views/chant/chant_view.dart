@@ -32,6 +32,9 @@ import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/review_prompter.dart';
 import '../../widgets/chant/chant_along_card.dart';
+import '../../widgets/chant/chant_disc_count.dart';
+import '../../widgets/chant/chant_quote_card.dart';
+import '../../widgets/chant/chant_view_switch.dart';
 import '../../widgets/chant/chant_auto_loading_dialog.dart';
 import '../../widgets/chant/chant_mantra_text.dart';
 import '../../widgets/chant/chant_disc.dart';
@@ -123,6 +126,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
         ? Duration(milliseconds: MantraAutoChantSession.standardChantMsOf(own))
         : FallbackPrayer.standard;
   }
+
+  /// What the middle of the page shows — the deity inside the mala (the
+  /// default) or a quote. Remembered on the phone.
+  late ChantPageView _pageView = _savedPageView;
+
+  /// Fixes the order the quotes are shown in for this sitting, so it does not
+  /// open on the same quote as the last (`ChantQuoteRotation`).
+  late final int _quoteSeed = _now().millisecondsSinceEpoch;
 
   /// The mantra's standard time for one chant; null with no mantra.
   Duration? _standard;
@@ -549,6 +560,31 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _session.schedule();
   }
 
+  /// The view the page was left on. The store is not open in a test, and a
+  /// failed read is simply the deity.
+  ChantPageView get _savedPageView {
+    try {
+      return ChantPageView.fromStored(LocalStore.instance.read<String>(BoxKeys.chantView));
+    } catch (_) {
+      return ChantPageView.deity;
+    }
+  }
+
+  void _changePageView(ChantPageView view) {
+    if (view == _pageView) return;
+    setState(() => _pageView = view);
+    try {
+      unawaited(LocalStore.instance.write(BoxKeys.chantView, view.stored).catchError((_) {}));
+    } catch (_) {
+      // Not remembering is better than failing to switch.
+    }
+  }
+
+  /// Chants counted in this sitting, counting any part-round carried over from
+  /// before: what the quotes follow, so one changes after every 12 and a round
+  /// shows nine.
+  int get _sittingChants => _recorder.completedMalas * _beadsPerRoundInUse + _recorder.beadsInMala;
+
   /// Whether auto count was left on. The store is not open in a test, and a
   /// failed read is simply "off".
   bool get _savedAutoChant {
@@ -759,7 +795,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     stats: _recorder.stats,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
+                ChantViewSwitch(value: _pageView, onChanged: _changePageView),
+                const SizedBox(height: AppSpacing.lg),
                 ChantMantraText(
                   mantra: widget.mantra,
                   prayer: _inPrayer ? _prayer : null,
@@ -782,6 +820,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
+                if (_pageView == ChantPageView.quotes) ...[
+                  ChantQuoteCard(chants: _sittingChants, seed: _quoteSeed, onTap: _tapRing),
+                  const SizedBox(height: AppSpacing.md),
+                  ChantDiscCount(
+                    roundsCompleted: _totalRounds,
+                    roundsLabel: text.sadhanaRoundsCaption,
+                    beadsInRound: _recorder.beadsInMala,
+                    beadsPerRound: _beadsPerRoundInUse,
+                  ),
+                ] else
                 Center(
                   child: ChantDisc(
                     beadsInRound: _recorder.beadsInMala,

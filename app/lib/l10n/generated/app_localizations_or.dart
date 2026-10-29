@@ -480,6 +480,22 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chantFullPicture => 'ପୂର୍ଣ୍ଣ ସ୍କ୍ରିନ ଚିତ୍ର';
 
   @override
+  String get chantViewDeity => 'ଶ୍ରୀବିଗ୍ରହ';
+
+  @override
+  String get chantViewQuotes => 'ବାଣୀ';
+
+  @override
+  String get chantViewLabel => 'ଜପ ସମୟରେ କ’ଣ ଦେଖାଇବେ';
+
+  @override
+  String get chantQuoteTapHint => 'ଗୋଟିଏ ଜପ ଗଣିବାକୁ କାର୍ଡରେ ଟ୍ୟାପ୍ କରନ୍ତୁ।';
+
+  @override
+  String get chantQuoteNone =>
+      'ବର୍ତ୍ତମାନ କୌଣସି ବାଣୀ ଉପଲବ୍ଧ ନାହିଁ। ଆପଣ ଗଣତି ଜାରି ରଖିପାରିବେ।';
+
+  @override
   String get chantPrayerHint =>
       'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ଗଣନା ଆରମ୍ଭ କରିବା ପାଇଁ ବୃତ୍ତକୁ ଟ୍ୟାପ୍ କରନ୍ତୁ।';
 

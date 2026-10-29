@@ -486,6 +486,22 @@ class AppLocalizationsMl extends AppLocalizations {
   String get chantFullPicture => 'പൂർണ്ണ സ്ക്രീൻ ചിത്രം';
 
   @override
+  String get chantViewDeity => 'ശ്രീവിഗ്രഹം';
+
+  @override
+  String get chantViewQuotes => 'വചനങ്ങൾ';
+
+  @override
+  String get chantViewLabel => 'ജപിക്കുമ്പോൾ എന്ത് കാണിക്കണം';
+
+  @override
+  String get chantQuoteTapHint => 'ഒരു ജപം എണ്ണാൻ കാർഡിൽ ടാപ്പ് ചെയ്യുക.';
+
+  @override
+  String get chantQuoteNone =>
+      'ഇപ്പോൾ വചനങ്ങളൊന്നും ലഭ്യമല്ല. നിങ്ങൾക്ക് എണ്ണൽ തുടരാം.';
+
+  @override
   String get chantPrayerHint =>
       'ആദ്യം ഈ പ്രാർത്ഥന ചൊല്ലുക, തുടർന്ന് എണ്ണിത്തുടങ്ങാൻ വൃത്തത്തിൽ ടാപ്പ് ചെയ്യുക.';
 
