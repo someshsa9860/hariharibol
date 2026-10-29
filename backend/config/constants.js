@@ -51,6 +51,8 @@ const PERMISSIONS = {
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
   'etiquette.manage': { group: 'content', name: 'View and edit devotee etiquette, and set one aside' },
   'etiquette.translate': { group: 'content', name: 'Start, resume and cancel devotee etiquette translation runs' },
+  'quote.manage': { group: 'content', name: 'View and edit the quotes shown while chanting, and set one aside' },
+  'quote.translate': { group: 'content', name: 'Start, resume and cancel quote translation runs' },
 
   // marketing — `send` reaches real people and spends money, so the admin role does not carry it by default
   'marketing.read': { group: 'marketing', name: 'See campaigns, templates, lists and their results' },

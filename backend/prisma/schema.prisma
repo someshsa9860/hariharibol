@@ -3727,6 +3727,100 @@ model EtiquetteRun {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Quotes shown on the chanting page (admin → Quotes; plan in backend/CLAUDE.md "Quotes"). The same shape as devotee
+// etiquette without the days and pushes: English text with its source, translations written by runs or by hand, and a
+// run row that the worker works. `author` is stored always; whether the app shows it is a switch in the app.
+// ---------------------------------------------------------------------------------------------------------------------
+
+model Quote {
+  id String @id @default(cuid())
+
+  slug      String @unique @db.VarChar(80)
+  sortOrder Int    @default(0)
+
+  text String @db.VarChar(1000) // the quote, in English, in the speaker's own words
+
+  author     String? @db.VarChar(200) // who said or wrote it
+  reference  String? @db.VarChar(200) // where: "Bhagavad-gītā 9.14 purport", "Letter to Hayagriva, 1968"
+  sourceName String? @db.VarChar(200)
+  sourceUrl  String? @db.VarChar(500)
+
+  status         EtiquetteStatus @default(PUBLISHED) // the same three states as etiquette
+  excludedReason String?         @db.Text
+  isEdited       Boolean         @default(false) // an admin changed the English; the seed will not write over it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations QuoteTranslation[]
+
+  @@index([status, sortOrder])
+}
+
+model QuoteTranslation {
+  id String @id @default(cuid())
+
+  quoteId      String
+  languageCode String @db.VarChar(10)
+
+  text String @db.VarChar(2000)
+
+  translatedBy String? @db.VarChar(60)
+  runId        String?
+  isEdited     Boolean @default(false)
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, languageCode])
+  @@index([languageCode])
+}
+
+// One admin-started run that translates the quotes into one language; the same shape as EtiquetteRun.
+model QuoteRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  provider String  @default("openai") @db.VarChar(20)
+  model    String  @db.VarChar(100)
+  force    Boolean @default(false)
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30)
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30)
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalItems  Int     @default(0)
+  doneItems   Int     @default(0)
+  currentSlug String?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Marketing (admin → Marketing; plan in backend/CLAUDE.md "Marketing"). The campaign row is the run, the same shape as
 // EtiquetteRun: the row is the truth and the BullMQ job only works it. Each recipient gets one MarketingDelivery row when
 // the campaign starts, which is what makes a restart carry on instead of sending twice.

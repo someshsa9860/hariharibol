@@ -21,6 +21,7 @@
     "seed": "node prisma/seed/index.js",
     "seed:panchang": "node scripts/seed-panchang.js",
     "seed:etiquette": "node scripts/seed-etiquette.js",
+    "seed:quotes": "node scripts/seed-quotes.js",
     "seed:reels": "node scripts/seed-reels.js",
     "seed:verse-issues": "node scripts/seed-verse-issues.js",
     "promote-admin": "node scripts/promote-admin.js",

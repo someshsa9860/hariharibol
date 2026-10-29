@@ -17,6 +17,7 @@ export const maintenance = {
   commands: [
     { id: 'seed', script: 'seed', title: 'Seed reference data', description: 'Roles, permissions, books and other standard rows. Safe to run again; run it after a release that adds permissions.' },
     { id: 'seed-panchang', script: 'seed:panchang', title: 'Seed the Hindu calendar', description: 'Works out and saves 2026’s days and festivals.' },
+    { id: 'seed-quotes', script: 'seed:quotes', title: 'Seed the chanting-page quotes', description: 'Adds the English quotes that are missing; quotes an admin has edited are left as they are. Safe to run again.' },
     { id: 'seed-etiquette', script: 'seed:etiquette', title: 'Seed the devotee etiquette', description: 'Adds the English etiquette items that are missing; items an admin has edited are left as they are. Safe to run again.' },
     { id: 'recount-books', script: 'recount:books', title: 'Recount book verses', description: 'Rebuilds the verse counts on books, cantos and chapters from the rows.' },
     { id: 'translate-chapter-titles', script: 'translate:chapter-titles', title: 'Translate chapter titles', description: 'Has the translation provider write the Bhagavatam’s chapter titles in every reading language, only where a chapter has none. Needs the chapters imported and the provider key. A run is stopped after 15 minutes; run it again to carry on, then export the offline books.' },
