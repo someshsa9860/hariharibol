@@ -291,6 +291,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get homeMantras => 'ਮੰਤਰ';
 
   @override
+  String get homeForYourGrowth => 'ਜਿਨ੍ਹਾਂ ਗੱਲਾਂ \'ਤੇ ਤੁਸੀਂ ਕੰਮ ਕਰ ਰਹੇ ਹੋ';
+
+  @override
+  String get homeThisWeek => 'ਇਸ ਹਫ਼ਤੇ';
+
+  @override
   String get homeStartYourDay => 'ਅੱਜ ਦਾ ਟੀਚਾ ਤੈਅ ਕਰੋ';
 
   @override
@@ -1207,6 +1213,49 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'ਤੁਹਾਡੇ ਰੋਜ਼ਾਨਾ ਰੁਟੀਨ ਵਿੱਚੋਂ ਹਟਾਇਆ ਗਿਆ';
+
+  @override
+  String get routineEditTask => 'ਕੰਮ ਸੋਧੋ';
+
+  @override
+  String get routineSaveChanges => 'ਤਬਦੀਲੀਆਂ ਸੰਭਾਲੋ';
+
+  @override
+  String get routineDeleteTask => 'ਕੰਮ ਮਿਟਾਓ';
+
+  @override
+  String get routineDeleteDaily => 'ਇਸ ਦਿਨ ਤੋਂ ਅੱਗੇ ਹਟਾਓ';
+
+  @override
+  String get routineRepeatDaily => 'ਹਰ ਦਿਨ ਦੁਹਰਾਓ';
+
+  @override
+  String get routineRepeatFromDay => 'ਇਸ ਦਿਨ ਤੋਂ ਹਰ ਦਿਨ ਦਿਖਾਈ ਦੇਵੇਗਾ।';
+
+  @override
+  String get routineRepeatStops =>
+      'ਸਿਰਫ਼ ਇਸੇ ਦਿਨ ਰਹੇਗਾ ਅਤੇ ਇਸ ਤੋਂ ਬਾਅਦ ਨਹੀਂ ਦੁਹਰਾਇਆ ਜਾਵੇਗਾ।';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'ਤਬਦੀਲੀਆਂ ਇਸ ਦਿਨ ਤੋਂ ਲਾਗੂ ਹੋਣਗੀਆਂ। ਪਿਛਲੇ ਦਿਨਾਂ ਵਿੱਚ ਇਹ ਪਹਿਲਾਂ ਵਾਂਗ ਹੀ ਰਹੇਗਾ।';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'ਤਬਦੀਲੀਆਂ ਅੱਜ ਤੋਂ ਲਾਗੂ ਹੋਣਗੀਆਂ। ਪਿਛਲੇ ਦਿਨਾਂ ਵਿੱਚ ਇਹ ਪਹਿਲਾਂ ਵਾਂਗ ਹੀ ਰਹੇਗਾ।';
+
+  @override
+  String get routineExactAlarmTitle => 'ਠੀਕ ਸਮੇਂ \'ਤੇ ਸੂਚਨਾਵਾਂ';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android ਕਿਸੇ ਕੰਮ ਦੀ ਸੂਚਨਾ ਕੁਝ ਮਿੰਟ ਰੋਕ ਸਕਦਾ ਹੈ। ਇਸ ਐਪ ਨੂੰ ਅਲਾਰਮ ਅਤੇ ਯਾਦ-ਦਹਾਨੀਆਂ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ, ਤਾਂ ਜੋ ਹਰ ਸੂਚਨਾ ਉਸੇ ਮਿੰਟ ਆਵੇ ਜਦੋਂ ਉਸਦਾ ਸਮਾਂ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ।';
+
+  @override
+  String get routineExactAlarmAllow => 'ਇਜਾਜ਼ਤ ਦਿਓ';
+
+  @override
+  String get routineExactAlarmLater => 'ਹੁਣ ਨਹੀਂ';
 
   @override
   String get reelsEmpty => 'ਅਜੇ ਕੋਈ ਰੀਲ ਨਹੀਂ';

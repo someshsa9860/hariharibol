@@ -294,6 +294,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get homeMantras => 'മന്ത്രങ്ങൾ';
 
   @override
+  String get homeForYourGrowth => 'നിങ്ങൾ പ്രവർത്തിക്കുന്ന കാര്യങ്ങൾ';
+
+  @override
+  String get homeThisWeek => 'ഈ ആഴ്ച';
+
+  @override
   String get homeStartYourDay => 'ഇന്നത്തെ ലക്ഷ്യം നിശ്ചയിക്കുക';
 
   @override
@@ -1219,6 +1225,49 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get routineDailyRemoved =>
       'നിങ്ങളുടെ ദൈനംദിന ദിനചര്യയിൽ നിന്ന് നീക്കി';
+
+  @override
+  String get routineEditTask => 'ടാസ്ക് തിരുത്തുക';
+
+  @override
+  String get routineSaveChanges => 'മാറ്റങ്ങൾ സംരക്ഷിക്കുക';
+
+  @override
+  String get routineDeleteTask => 'ടാസ്ക് ഇല്ലാതാക്കുക';
+
+  @override
+  String get routineDeleteDaily => 'ഈ ദിവസം മുതൽ നീക്കുക';
+
+  @override
+  String get routineRepeatDaily => 'എല്ലാ ദിവസവും ആവർത്തിക്കുക';
+
+  @override
+  String get routineRepeatFromDay => 'ഈ ദിവസം മുതൽ എല്ലാ ദിവസവും കാണിക്കും.';
+
+  @override
+  String get routineRepeatStops =>
+      'ഈ ദിവസം മാത്രം ഉണ്ടാകും, അതിനുശേഷം ആവർത്തിക്കില്ല.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'മാറ്റങ്ങൾ ഈ ദിവസം മുതൽ ബാധകമാകും. മുൻ ദിവസങ്ങളിൽ ഇത് പഴയതുപോലെ തന്നെ തുടരും.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'മാറ്റങ്ങൾ ഇന്നു മുതൽ ബാധകമാകും. മുൻ ദിവസങ്ങളിൽ ഇത് പഴയതുപോലെ തന്നെ തുടരും.';
+
+  @override
+  String get routineExactAlarmTitle => 'കൃത്യസമയത്ത് അറിയിപ്പുകൾ';
+
+  @override
+  String get routineExactAlarmBody =>
+      'ഒരു ടാസ്കിന്റെ അറിയിപ്പ് Android ഏതാനും മിനിറ്റ് വൈകിപ്പിച്ചേക്കാം. ഈ ആപ്പിന് അലാറങ്ങൾക്കും ഓർമ്മപ്പെടുത്തലുകൾക്കും അനുമതി നൽകുക, അപ്പോൾ ഓരോ അറിയിപ്പും അതിന്റെ സമയം തുടങ്ങുന്ന മിനിറ്റിൽ തന്നെ വരും.';
+
+  @override
+  String get routineExactAlarmAllow => 'അനുമതി നൽകുക';
+
+  @override
+  String get routineExactAlarmLater => 'ഇപ്പോൾ വേണ്ട';
 
   @override
   String get reelsEmpty => 'ഇതുവരെ റീലുകളില്ല';

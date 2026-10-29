@@ -286,7 +286,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
     _autoChant = session;
     _autoChantStatusSub = session.statusStream.listen((status) {
-      if (!mounted) return;
+      if (!mounted || status == _autoChantStatus) return;
       setState(() => _autoChantStatus = status);
       _holdScreenForListening();
     });
@@ -311,14 +311,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     if (mantra == null || !mantra.hasMalaAudio) return;
 
     // A recording is one mala, so it is split into as many chants as a round has.
+    final timing = ChantMalaTiming(
+      start: Duration(milliseconds: mantra.malaAudioStartMs),
+      end: Duration(milliseconds: mantra.malaAudioEndMs),
+      chants: _beadsPerRoundInUse,
+    );
     final player = ChantMalaPlayer(
       url: mantra.malaAudioUrl!,
       refreshUrl: () async => (await MantraService.instance.get(mantra.slug)).malaAudioUrl,
-      timing: ChantMalaTiming(
-        start: Duration(milliseconds: mantra.malaAudioStartMs),
-        end: Duration(milliseconds: mantra.malaAudioEndMs),
-        chants: _beadsPerRoundInUse,
-      ),
+      timing: timing,
+      restAt: () => _malaRestAt(timing),
       cache: ref.read(malaAudioCacheProvider),
       connection: ref.read(malaConnectionProvider),
       player: ref.read(malaAudioPlayerProvider)(),
@@ -335,6 +337,19 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     });
     player.state.addListener(_onMalaState);
     unawaited(player.load());
+  }
+
+  /// Where the recording begins when it is played from rest: where the count
+  /// stands, so chants made by hand are not heard and counted a second time. With
+  /// beads counted that is the end of the last of them, after any prayer in the
+  /// recording. With none, the top while the prayer is on screen (the recording
+  /// says it), but the start of the chanting once the prayer has been said by
+  /// hand — it is never said twice. A mantra with no prayer at all, not yet
+  /// into a round, has nothing said, so it plays from the top.
+  Duration _malaRestAt(ChantMalaTiming timing) {
+    final counted = _recorder.beadsInMala;
+    if (counted > 0) return timing.positionAfter(counted);
+    return _inPrayer || _prayer == null ? Duration.zero : timing.start;
   }
 
   void _onMalaState() {

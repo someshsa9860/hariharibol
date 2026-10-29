@@ -292,6 +292,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get homeMantras => 'মন্ত্র';
 
   @override
+  String get homeForYourGrowth => 'আপনি যা নিয়ে কাজ করছেন';
+
+  @override
+  String get homeThisWeek => 'এই সপ্তাহ';
+
+  @override
   String get homeStartYourDay => 'আজকের লক্ষ্য ঠিক করুন';
 
   @override
@@ -1207,6 +1213,49 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'আপনার দৈনিক রুটিন থেকে সরানো হয়েছে';
+
+  @override
+  String get routineEditTask => 'কাজ সম্পাদনা করুন';
+
+  @override
+  String get routineSaveChanges => 'পরিবর্তন সংরক্ষণ করুন';
+
+  @override
+  String get routineDeleteTask => 'কাজ মুছুন';
+
+  @override
+  String get routineDeleteDaily => 'এই দিন থেকে সরান';
+
+  @override
+  String get routineRepeatDaily => 'প্রতিদিন পুনরাবৃত্তি করুন';
+
+  @override
+  String get routineRepeatFromDay => 'এই দিন থেকে প্রতিদিন দেখাবে।';
+
+  @override
+  String get routineRepeatStops =>
+      'শুধু এই দিনেই থাকবে, এর পরে আর পুনরাবৃত্তি হবে না।';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'পরিবর্তন এই দিন থেকে কার্যকর হবে। আগের দিনগুলিতে এটি আগের মতোই থাকবে।';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'পরিবর্তন আজ থেকে কার্যকর হবে। আগের দিনগুলিতে এটি আগের মতোই থাকবে।';
+
+  @override
+  String get routineExactAlarmTitle => 'ঠিক সময়ে সতর্কবার্তা';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android কোনো কাজের সতর্কবার্তা কয়েক মিনিট আটকে রাখতে পারে। এই অ্যাপের জন্য অ্যালার্ম ও রিমাইন্ডারের অনুমতি দিন, যাতে প্রতিটি সতর্কবার্তা তার সময় শুরু হওয়ার মিনিটেই আসে।';
+
+  @override
+  String get routineExactAlarmAllow => 'অনুমতি দিন';
+
+  @override
+  String get routineExactAlarmLater => 'এখন নয়';
 
   @override
   String get reelsEmpty => 'এখনও কোনো রিল নেই';

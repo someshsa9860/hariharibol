@@ -404,6 +404,99 @@ void main() {
     });
   });
 
+  group('playing after chanting by hand', () {
+    testWidgets('starts where the count stands, past the recording\'s prayer', (tester) async {
+      final fake = await pumpView(tester, recordedWithPrayer, clock);
+      await chantBeads(tester, clock, 2);
+      expect(find.text('2/4'), findsOneWidget);
+
+      await tapPlay(tester);
+
+      // The recording's 5 s of prayer and two chants of 11.25 s each, not 0:00.
+      expect(fake.seeks.last, const Duration(milliseconds: 27500));
+      expect(fake.plays, 1);
+      // Going there counts nothing, and says no prayer.
+      expect(find.text('2/4'), findsOneWidget);
+      expect(find.text('Panchatattva'), findsNothing);
+
+      // The next chant to end is the third, at 5 s + 3 × 11.25 s.
+      fake.playTo(const Duration(milliseconds: 38700));
+      await tester.pump();
+      expect(find.text('2/4'), findsOneWidget);
+      fake.playTo(const Duration(milliseconds: 38800));
+      await tester.pump();
+      expect(find.text('3/4'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await leave(tester);
+    });
+
+    testWidgets('a prayer said by hand is not said again by the recording', (tester) async {
+      final fake = await pumpView(tester, recordedWithPrayer, clock);
+      clock.advance(7000);
+      await tapRing(tester);
+      expect(find.text('Panchatattva'), findsNothing);
+      expect(find.text('0/4'), findsOneWidget);
+
+      await tapPlay(tester);
+
+      // Straight to where the chanting starts, 0:05, past the prayer on the file.
+      expect(fake.seeks.last, const Duration(seconds: 5));
+      expect(find.text('0/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('with the prayer still on the screen the recording says it, from 0:00', (
+      tester,
+    ) async {
+      final fake = await pumpView(tester, recordedWithPrayer, clock);
+
+      await tapPlay(tester);
+
+      expect(fake.seeks.last, Duration.zero);
+      expect(find.text('Panchatattva'), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('a recording that opens on the chanting is the chants alone', (tester) async {
+      final fake = await pumpView(tester, recordedFromStart, clock);
+      await chantBeads(tester, clock, 3);
+      expect(find.text('3/4'), findsOneWidget);
+
+      await tapPlay(tester);
+
+      // Three chants of 12.5 s from 0:00.
+      expect(fake.seeks.last, const Duration(milliseconds: 37500));
+
+      // The fourth chant is the last of the round, which ends it.
+      fake.playTo(const Duration(seconds: 50));
+      await tester.pump();
+      expect(find.text('Panchatattva'), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('paused part-way, play goes on from there and not from the count', (tester) async {
+      final fake = await pumpView(tester, recordedWithPrayer, clock);
+      await chantBeads(tester, clock, 2);
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 31));
+      await tester.pump();
+      await tapPause(tester);
+      final seeks = fake.seeks.length;
+
+      await tapPlay(tester);
+
+      expect(fake.seeks, hasLength(seeks));
+      expect(fake.plays, 2);
+      expect(find.text('2/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+  });
+
   group('finishing a round early', () {
     testWidgets('is offered once the round is past 90 of 108, here 11 of 12', (tester) async {
       await pumpView(tester, mahamantra, clock, beads: 12);

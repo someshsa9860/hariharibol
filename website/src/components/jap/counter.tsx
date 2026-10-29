@@ -32,9 +32,11 @@ export function Counter({ mantra }: { mantra: Mantra }) {
   const [ready, setReady] = useState(false);
   const state = useRef({ beads: 0, rounds: 0 });
 
-  const mala = mantra.malaAudioUrl && mantra.malaAudioStartMs != null && mantra.malaAudioEndMs != null
-    ? { url: mantra.malaAudioUrl, start: mantra.malaAudioStartMs, end: mantra.malaAudioEndMs }
-    : null;
+  // Memoised: a new object on every count would restart `ChantAlong`'s recording after each chant.
+  const { malaAudioUrl, malaAudioStartMs, malaAudioEndMs } = mantra;
+  const mala = useMemo(() => (malaAudioUrl && malaAudioStartMs != null && malaAudioEndMs != null
+    ? { url: malaAudioUrl, start: malaAudioStartMs, end: malaAudioEndMs }
+    : null), [malaAudioUrl, malaAudioStartMs, malaAudioEndMs]);
   const chantsInMala = mantra.standardCount && mantra.standardCount > 0 ? mantra.standardCount : BEADS_PER_ROUND;
 
   // The round in progress is kept per mantra, so a closed tab costs nothing.
@@ -200,37 +202,40 @@ function ChantAlong({ mala, chants, onBeads }: { mala: { url: string; start: num
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0); // 0..1 through the chanting
   const counted = useRef(0);
-  const span = mala.end - mala.start;
+  const { url, start, end } = mala;
+  const span = end - start;
   const countRef = useRef(onBeads);
   countRef.current = onBeads;
 
+  // Keyed on the values, not the object: each counted chant re-renders the counter, and a new `Audio` here would stop
+  // the recording and fetch it again.
   useEffect(() => {
-    const element = new Audio(mala.url);
+    const element = new Audio(url);
     audio.current = element;
     const onTime = () => {
-      const t = Math.min(Math.max(element.currentTime * 1000 - mala.start, 0), span);
+      const t = Math.min(Math.max(element.currentTime * 1000 - start, 0), span);
       setPosition(t / span);
       const done = Math.floor((t / span) * chants);
       if (done > counted.current) { countRef.current(done - counted.current); counted.current = done; }
-      if (element.currentTime * 1000 >= mala.end) { element.pause(); setPlaying(false); counted.current = 0; setPosition(0); element.currentTime = mala.start / 1000; }
+      if (element.currentTime * 1000 >= end) { element.pause(); setPlaying(false); counted.current = 0; setPosition(0); element.currentTime = start / 1000; }
     };
     element.addEventListener('timeupdate', onTime);
     element.addEventListener('pause', () => setPlaying(false));
     return () => { element.pause(); element.removeEventListener('timeupdate', onTime); releaseAudio(element); };
-  }, [mala, span, chants]);
+  }, [url, start, end, span, chants]);
 
   const toggle = async () => {
     const element = audio.current;
     if (!element) return;
     if (playing) return element.pause();
     claimAudio(element);
-    if (element.currentTime * 1000 < mala.start) element.currentTime = mala.start / 1000;
+    if (element.currentTime * 1000 < start) element.currentTime = start / 1000;
     try { await element.play(); setPlaying(true); } catch { setPlaying(false); }
   };
   const seek = (value: number) => {
     const element = audio.current;
     if (!element) return;
-    element.currentTime = (mala.start + value * span) / 1000;
+    element.currentTime = (start + value * span) / 1000;
     counted.current = Math.floor(value * chants);
     setPosition(value);
   };

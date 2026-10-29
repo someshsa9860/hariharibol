@@ -1,0 +1,628 @@
+{
+  "slug": "bhaja-govindam",
+  "title": "Bhaja Govindam",
+  "titleOriginal": "भज गोविन्दम्",
+  "category": "other",
+  "sortOrder": 30,
+  "originalLanguage": "sa",
+  "summary": "Worship Govinda, foolish mind: grammar will not save you at the time of death.",
+  "about": "A song against wasting life on learning and wealth alone, urging the mind to worship Govinda. The first twelve verses are Śaṅkara’s; tradition gives the later ones to the disciples who were with him.",
+  "author": "Śaṅkarācārya",
+  "reference": "Moha-mudgara",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A4%9C%E0%A4%97%E0%A5%8B%E0%A4%B5%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%AE%E0%A5%8D",
+  "tradition": "smarta",
+  "deity": "krishna",
+  "occasions": [
+    "any time"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "भज गोविन्दं भज गोविन्दं\nगोविन्दं भज मूढमते ।\nसंप्राप्ते सन्निहिते काले\nनहि नहि रक्षति डुकृञ्करणे ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "मूढ जहीहि धनागमतृष्णां\nकुरु सद्बुद्धिं मनसि वितृष्णाम् ।\nयल्लभसे निजकर्मोपात्तं\nवित्तं तेन विनोदय चित्तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "नारीस्तनभरनाभीदेशं\nदृष्ट्वा मा गा मोहावेशम् ।\nएतन्मांसावसादि विकारं\nमनसि विचिन्तय वारं वारम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "नलिनीदलगतजलमतितरलं\nतद्वज्जीवितमतिशयचपलम् ।\nविद्धि व्याध्यभिमानग्रस्तं\nलोकं शोकहतं च समस्तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "यावद्वित्तोपार्जनसक्तः\nतावन्निजपरिवारो रक्तः ।\nपश्चाज्जीवति जर्जरदेहे\nवार्तां कोऽपि न पृच्छति गेहे ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "यावत्पवनो निवसति देहे\nतावत्पृच्छति कुशलं गेहे ।\nगतवति वायौ देहापाये\nभार्या बिभ्यति तस्मिन्काये ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "बालस्तावत्क्रीडासक्तः\nतरुणस्तावत्तरुणीसक्तः ।\nवृद्धस्तावच्चिन्तासक्तः\nपरे ब्रह्मणि कोऽपि न सक्तः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "का ते कान्ता कस्ते पुत्रः\nसंसारोऽयमतीव विचित्रः ।\nकस्य त्वं कः कुत आयातः\nतत्त्वं चिन्तय तदिह भ्रातः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "सत्सङ्गत्वे निस्सङ्गत्वं\nनिस्सङ्गत्वे निर्मोहत्वम् ।\nनिर्मोहत्वे निश्चलतत्त्वं\nनिश्चलतत्त्वे जीवन्मुक्तिः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "वयसि गते कः कामविकारः\nशुष्के नीरे कः कासारः ।\nक्षीणे वित्ते कः परिवारः\nज्ञाते तत्त्वे कः संसारः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 11,
+      "text": "मा कुरु धनजनयौवनगर्वं\nहरति निमेषात्कालः सर्वम् ।\nमायामयमिदमखिलं हित्वा\nब्रह्मपदं त्वं प्रविश विदित्वा ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 12,
+      "text": "दिनयामिन्यौ सायं प्रातः\nशिशिरवसन्तौ पुनरायातः ।\nकालः क्रीडति गच्छत्यायुः\nतदपि न मुञ्चत्याशावायुः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 13,
+      "text": "द्वादशमञ्जरिकाभिरशेषः\nकथितो वैयाकरणस्यैषः ।\nउपदेशोऽभूद्विद्यानिपुणैः\nश्रीमच्छङ्करभगवच्छरणैः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 14,
+      "text": "का ते कान्ताधनगतचिन्ता\nवातुल किं तव नास्ति नियन्ता ।\nत्रिजगति सज्जनसङ्गतिरैका\nभवति भवार्णवतरणे नौका ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 15,
+      "text": "जटिलो मुण्डी लुञ्छितकेशः\nकाषायाम्बरबहुकृतवेषः ।\nपश्यन्नपि च न पश्यति मूढः\nउदरनिमित्तं बहुकृतवेषः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 16,
+      "text": "अङ्गं गलितं पलितं मुण्डं\nदशनविहीनं जातं तुण्डम् ।\nवृद्धो याति गृहीत्वा दण्डं\nतदपि न मुञ्चत्याशापिण्डम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 17,
+      "text": "अग्रे वह्निः पृष्ठे भानुः\nरात्रौ चुबुकसमर्पितजानुः ।\nकरतलभिक्षस्तरुतलवासः\nतदपि न मुञ्चत्याशापाशः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 18,
+      "text": "कुरुते गङ्गासागरगमनं\nव्रतपरिपालनमथवा दानम् ।\nज्ञानविहीनः सर्वमतेन\nमुक्तिं न भजति जन्मशतेन ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 19,
+      "text": "सुरमन्दिरतरुमूलनिवासः\nशय्या भूतलमजिनं वासः ।\nसर्वपरिग्रहभोगत्यागः\nकस्य सुखं न करोति विरागः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 20,
+      "text": "योगरतो वा भोगरतो वा\nसङ्गरतो वा सङ्गविहीनः ।\nयस्य ब्रह्मणि रमते चित्तं\nनन्दति नन्दति नन्दत्येव ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 21,
+      "text": "भगवद्गीता किञ्चिदधीता\nगङ्गाजललवकणिका पीता ।\nसकृदपि येन मुरारिसमर्चा\nक्रियते तस्य यमेन न चर्चा ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 22,
+      "text": "पुनरपि जननं पुनरपि मरणं\nपुनरपि जननी जठरे शयनम् ।\nइह संसारे बहुदुस्तारे\nकृपयाऽपारे पाहि मुरारे ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 23,
+      "text": "रथ्याचर्पटविरचितकन्थः\nपुण्यापुण्यविवर्जितपन्थः ।\nयोगी योगनियोजितचित्तो\nरमते बालोन्मत्तवदेव ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 24,
+      "text": "कस्त्वं कोऽहं कुत आयातः\nका मे जननी को मे तातः ।\nइति परिभावय सर्वमसारं\nविश्वं त्यक्त्वा स्वप्नविचारम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 25,
+      "text": "त्वयि मयि चान्यत्रैको विष्णुः\nव्यर्थं कुप्यसि मय्यसहिष्णुः ।\nभव समचित्तः सर्वत्र त्वं\nवाञ्छस्यचिराद्यदि विष्णुत्वम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 26,
+      "text": "शत्रौ मित्रे पुत्रे बन्धौ\nमा कुरु यत्नं विग्रहसन्धौ ।\nसर्वस्मिन्नपि पश्यात्मानं\nसर्वत्रोत्सृज भेदाज्ञानम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 27,
+      "text": "कामं क्रोधं लोभं मोहं\nत्यक्त्वाऽऽत्मानं भावय कोऽहम् ।\nआत्मज्ञानविहीना मूढाः\nते पच्यन्ते नरकनिगूढाः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 28,
+      "text": "गेयं गीतानामसहस्रं\nध्येयं श्रीपतिरूपमजस्रम् ।\nनेयं सज्जनसङ्गे चित्तं\nदेयं दीनजनाय च वित्तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 29,
+      "text": "सुखतः क्रियते रामाभोगः\nपश्चाद्धन्त शरीरे रोगः ।\nयद्यपि लोके मरणं शरणं\nतदपि न मुञ्चति पापाचरणम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 30,
+      "text": "अर्थमनर्थं भावय नित्यं\nनास्ति ततः सुखलेशः सत्यम् ।\nपुत्रादपि धनभाजां भीतिः\nसर्वत्रैषा विहिता रीतिः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 31,
+      "text": "प्राणायामं प्रत्याहारं\nनित्यानित्यविवेकविचारम् ।\nजाप्यसमेतसमाधिविधानं\nकुर्ववधानं महदवधानम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 32,
+      "text": "गुरुचरणाम्बुजनिर्भरभक्तः\nसंसारादचिराद्भव मुक्तः ।\nसेन्द्रियमानसनियमादेवं\nद्रक्ष्यसि निजहृदयस्थं देवम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 33,
+      "text": "मूढः कश्चन वैयाकरणो\nडुकृञ्करणाध्ययनधुरीणः ।\nश्रीमच्छङ्करभगवच्छिष्यैः\nबोधित आसिच्छोधितकरणः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 34,
+      "text": "भज गोविन्दं भज गोविन्दं\nगोविन्दं भज मूढमते ।\nनामस्मरणादन्यमुपायं\nनहि पश्यामो भवतरणे ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A4%9C%E0%A4%97%E0%A5%8B%E0%A4%B5%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%AD%E0%A4%9C%E0%A4%97%E0%A5%8B%E0%A4%B5%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "[https://allbhajanlyrics.com/bhaja-govindam-lyrics/ भजगोविन्दं]",
+    "author": "शङ्कराचार्यः",
+    "section": "विष्णुस्तोत्राणि"
+  },
+  "edits": [
+    {
+      "verse": null,
+      "field": "devanagari",
+      "from": "॥ १२अ ॥",
+      "to": "॥ १२ ॥",
+      "why": "The page numbers the closing verse of the first twelve 12a; numbered 12 so it is cut as its own verse."
+    },
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "भजगोविन्दं भजगोविन्दं\nगोविन्दं भजमूढमते",
+      "to": "भज गोविन्दं भज गोविन्दं\nगोविन्दं भज मूढमते",
+      "why": "Spaced as it is sung: bhaja govindaṁ … bhaja mūḍha-mate."
+    },
+    {
+      "verse": 3,
+      "field": "devanagari",
+      "from": "नारीस्तनभर नाभीदेशं",
+      "to": "नारीस्तनभरनाभीदेशं",
+      "why": "One compound."
+    },
+    {
+      "verse": 3,
+      "field": "devanagari",
+      "from": "दृष्ट्वा मागामोहावेशम्",
+      "to": "दृष्ट्वा मा गा मोहावेशम्",
+      "why": "Three words, mā gā moha-āveśam."
+    },
+    {
+      "verse": 4,
+      "field": "devanagari",
+      "from": "नलिनीदलगत जलमतितरलं",
+      "to": "नलिनीदलगतजलमतितरलं",
+      "why": "One compound."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "यावद्वित्तोपार्जन सक्तः",
+      "to": "यावद्वित्तोपार्जनसक्तः",
+      "why": "One compound."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "स्तावन्निज परिवारो",
+      "to": "तावन्निजपरिवारो",
+      "why": "Typo on the page: tāvat, then one compound."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "जर्जर देहे",
+      "to": "जर्जरदेहे",
+      "why": "One compound."
+    },
+    {
+      "verse": 8,
+      "field": "devanagari",
+      "from": "काते कान्ता",
+      "to": "का ते कान्ता",
+      "why": "Two words, kā te."
+    },
+    {
+      "verse": 9,
+      "field": "devanagari",
+      "from": "निस्स्ङ्गत्वं",
+      "to": "निस्सङ्गत्वं",
+      "why": "Typo on the page: nissaṅgatvam."
+    },
+    {
+      "verse": 10,
+      "field": "devanagari",
+      "from": "वयसिगते",
+      "to": "वयसि गते",
+      "why": "Two words."
+    },
+    {
+      "verse": 10,
+      "field": "devanagari",
+      "from": "क्षीणेवित्ते",
+      "to": "क्षीणे वित्ते",
+      "why": "Two words."
+    },
+    {
+      "verse": 11,
+      "field": "devanagari",
+      "from": "धन जन यौवन गर्वं",
+      "to": "धनजनयौवनगर्वं",
+      "why": "One compound."
+    },
+    {
+      "verse": 13,
+      "field": "devanagari",
+      "from": "उपदेशो भूद्विद्यानिपुणैः",
+      "to": "उपदेशोऽभूद्विद्यानिपुणैः",
+      "why": "Typo on the page: upadeśo 'bhūt."
+    },
+    {
+      "verse": 13,
+      "field": "devanagari",
+      "from": "श्रीमच्छन्करभगवच्छरणैः",
+      "to": "श्रीमच्छङ्करभगवच्छरणैः",
+      "why": "Typo on the page: Śaṅkara."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "काते कान्ता धन गतचिन्ता",
+      "to": "का ते कान्ताधनगतचिन्ता",
+      "why": "Typo on the page: kā te, then one compound."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "सज्जनसं गतिरैका",
+      "to": "सज्जनसङ्गतिरैका",
+      "why": "Typo on the page: one word, saj-jana-saṅgatiḥ."
+    },
+    {
+      "verse": 15,
+      "field": "devanagari",
+      "from": "पश्यन्नपि चन पश्यति",
+      "to": "पश्यन्नपि च न पश्यति",
+      "why": "Typo on the page: ca na."
+    },
+    {
+      "verse": 16,
+      "field": "devanagari",
+      "from": "जतं तुण्डम्",
+      "to": "जातं तुण्डम्",
+      "why": "Typo on the page: jātam."
+    },
+    {
+      "verse": 17,
+      "field": "devanagari",
+      "from": "पृष्ठेभानुः",
+      "to": "पृष्ठे भानुः",
+      "why": "Two words."
+    },
+    {
+      "verse": 18,
+      "field": "devanagari",
+      "from": "ज्ञानविहिनः",
+      "to": "ज्ञानविहीनः",
+      "why": "Typo on the page: vihīna has a long ī."
+    },
+    {
+      "verse": 19,
+      "field": "devanagari",
+      "from": "सुर मंदिर तरु मूल निवासः",
+      "to": "सुरमन्दिरतरुमूलनिवासः",
+      "why": "One compound."
+    },
+    {
+      "verse": 19,
+      "field": "devanagari",
+      "from": "भूतल मजिनं",
+      "to": "भूतलमजिनं",
+      "why": "Typo on the page: bhūtalam ajinam."
+    },
+    {
+      "verse": 19,
+      "field": "devanagari",
+      "from": "सर्व परिग्रह भोग त्यागः",
+      "to": "सर्वपरिग्रहभोगत्यागः",
+      "why": "One compound."
+    },
+    {
+      "verse": 20,
+      "field": "devanagari",
+      "from": "योगरतो वाभोगरतोवा",
+      "to": "योगरतो वा भोगरतो वा",
+      "why": "Typo on the page: vā bhoga-rato vā."
+    },
+    {
+      "verse": 20,
+      "field": "devanagari",
+      "from": "सङ्गवीहिनः",
+      "to": "सङ्गविहीनः",
+      "why": "Typo on the page: saṅga-vihīnaḥ."
+    },
+    {
+      "verse": 21,
+      "field": "devanagari",
+      "from": "भगवद् गीता",
+      "to": "भगवद्गीता",
+      "why": "One word."
+    },
+    {
+      "verse": 21,
+      "field": "devanagari",
+      "from": "गङ्गा जललव कणिकापीता",
+      "to": "गङ्गाजललवकणिका पीता",
+      "why": "Typo on the page: one compound, then pītā."
+    },
+    {
+      "verse": 21,
+      "field": "devanagari",
+      "from": "मुरारि समर्चा",
+      "to": "मुरारिसमर्चा",
+      "why": "One compound."
+    },
+    {
+      "verse": 23,
+      "field": "devanagari",
+      "from": "रथ्या चर्पट विरचित कन्थः",
+      "to": "रथ्याचर्पटविरचितकन्थः",
+      "why": "One compound."
+    },
+    {
+      "verse": 23,
+      "field": "devanagari",
+      "from": "पुण्यापुण्य विवर्जित पन्थः",
+      "to": "पुण्यापुण्यविवर्जितपन्थः",
+      "why": "One compound."
+    },
+    {
+      "verse": 23,
+      "field": "devanagari",
+      "from": "योगनियोजित चित्तो",
+      "to": "योगनियोजितचित्तो",
+      "why": "One compound."
+    },
+    {
+      "verse": 24,
+      "field": "devanagari",
+      "from": "सर्वमसारम्\n",
+      "to": "सर्वमसारं\n",
+      "why": "Final m before a consonant, as in the line after it."
+    },
+    {
+      "verse": 24,
+      "field": "devanagari",
+      "from": "स्वप्न विचारम्",
+      "to": "स्वप्नविचारम्",
+      "why": "One compound."
+    },
+    {
+      "verse": 27,
+      "field": "devanagari",
+      "from": "त्यक्त्वाऽत्मानं",
+      "to": "त्यक्त्वाऽऽत्मानं",
+      "why": "Typo on the page: tyaktvā ātmānam."
+    },
+    {
+      "verse": 27,
+      "field": "devanagari",
+      "from": "आत्मज्ञान विहीना",
+      "to": "आत्मज्ञानविहीना",
+      "why": "One compound."
+    },
+    {
+      "verse": 28,
+      "field": "devanagari",
+      "from": "गीता नाम सहस्रं",
+      "to": "गीतानामसहस्रं",
+      "why": "One compound, gītā-nāma-sahasram."
+    },
+    {
+      "verse": 28,
+      "field": "devanagari",
+      "from": "श्रीपति रूपमजस्रम्",
+      "to": "श्रीपतिरूपमजस्रम्",
+      "why": "One compound."
+    },
+    {
+      "verse": 28,
+      "field": "devanagari",
+      "from": "सज्जन सङ्गे",
+      "to": "सज्जनसङ्गे",
+      "why": "One compound."
+    },
+    {
+      "verse": 30,
+      "field": "devanagari",
+      "from": "नास्तिततः",
+      "to": "नास्ति ततः",
+      "why": "Two words."
+    },
+    {
+      "verse": 30,
+      "field": "devanagari",
+      "from": "धन भाजां",
+      "to": "धनभाजां",
+      "why": "One compound."
+    },
+    {
+      "verse": 30,
+      "field": "devanagari",
+      "from": "विहिआ रीतिः",
+      "to": "विहिता रीतिः",
+      "why": "Typo on the page: vihitā."
+    },
+    {
+      "verse": 31,
+      "field": "devanagari",
+      "from": "नित्यानित्य विवेकविचारम्",
+      "to": "नित्यानित्यविवेकविचारम्",
+      "why": "One compound."
+    },
+    {
+      "verse": 31,
+      "field": "devanagari",
+      "from": "जाप्यसमेत समाधिविधानं",
+      "to": "जाप्यसमेतसमाधिविधानं",
+      "why": "One compound."
+    },
+    {
+      "verse": 32,
+      "field": "devanagari",
+      "from": "गुरुचरणाम्बुज निर्भर भकतः",
+      "to": "गुरुचरणाम्बुजनिर्भरभक्तः",
+      "why": "Typo on the page: bhakta, and one compound."
+    },
+    {
+      "verse": 32,
+      "field": "devanagari",
+      "from": "सेन्द्रियमानस नियमादेवं",
+      "to": "सेन्द्रियमानसनियमादेवं",
+      "why": "One compound."
+    },
+    {
+      "verse": 32,
+      "field": "devanagari",
+      "from": "निज हृदयस्थं",
+      "to": "निजहृदयस्थं",
+      "why": "One compound."
+    },
+    {
+      "verse": 33,
+      "field": "devanagari",
+      "from": "डुकृञ्करणाध्ययन धुरिणः",
+      "to": "डुकृञ्करणाध्ययनधुरीणः",
+      "why": "Typo on the page: dhurīṇa, and one compound."
+    },
+    {
+      "verse": 33,
+      "field": "devanagari",
+      "from": "श्रीमच्छम्कर भगवच्छिष्यै",
+      "to": "श्रीमच्छङ्करभगवच्छिष्यैः",
+      "why": "Typo on the page: Śaṅkara, and the instrumental plural."
+    },
+    {
+      "verse": 34,
+      "field": "devanagari",
+      "from": "भजगोविन्दं भजगोविन्दं\nगोविन्दं भजमूढमते",
+      "to": "भज गोविन्दं भज गोविन्दं\nगोविन्दं भज मूढमते",
+      "why": "Spaced as it is sung."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 34
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "हरे कृष्ण हरे कृष्ण"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "कृष्ण कृष्ण हरे हरे"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "हरे राम हरे राम"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "राम राम हरे हरे ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "----"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": [
+      "the page numbers its verses 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33"
+    ]
+  },
+  "fetchedAt": "2026-10-28T07:44:49.918Z"
+}

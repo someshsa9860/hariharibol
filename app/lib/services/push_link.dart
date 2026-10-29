@@ -51,6 +51,7 @@ String? deeplinkRoute(String? deeplink) {
     PushConfig.deeplinkPremium => AppRoutes.plans,
     PushConfig.deeplinkCalendar => AppRoutes.calendar,
     PushConfig.deeplinkEtiquette => _etiquettePath(link),
+    PushConfig.deeplinkPrayer => _prayerPath(link),
     PushConfig.deeplinkHome => AppRoutes.home,
     PushConfig.deeplinkSakha => AppRoutes.chat,
     PushConfig.deeplinkChant => AppRoutes.chant,
@@ -73,6 +74,12 @@ String? deeplinkRoute(String? deeplink) {
 String _etiquettePath(Uri link) {
   final id = link.pathSegments.isEmpty ? '' : link.pathSegments.first.trim();
   return id.isEmpty ? AppRoutes.etiquette : AppRoutes.etiquettePath(id);
+}
+
+/// `hariharibol://prayer/<slug>` is one prayer; without a slug there is nothing to open.
+String? _prayerPath(Uri link) {
+  final slug = link.pathSegments.isEmpty ? '' : link.pathSegments.first.trim();
+  return slug.isEmpty ? null : AppRoutes.prayerPath(slug);
 }
 
 String? _versePath(String? Function(String name) query) {

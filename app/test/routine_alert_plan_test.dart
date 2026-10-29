@@ -152,6 +152,15 @@ void main() {
       expect(alerts, hasLength(RoutineConfig.alertMaxPending));
       expect(alerts.every((each) => each.day == dayKey(1)), isTrue);
     });
+
+    test('a smaller cap keeps the nearest that many (iOS holds fewer)', () {
+      final tasks = [task('later', ahead: 2), task('soonest'), task('next', ahead: 1)];
+
+      final alerts = planRoutineAlerts(RoutineData(tasks: tasks), now, max: 2);
+
+      expect(alerts.map((each) => each.taskId), ['soonest', 'next']);
+      expect(planRoutineAlerts(RoutineData(tasks: tasks), now, max: 1).single.taskId, 'soonest');
+    });
   });
 
   group('an alert', () {

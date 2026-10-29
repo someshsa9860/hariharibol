@@ -114,11 +114,12 @@ class RoutineNotifier extends Notifier<RoutineData> {
     await _persist();
   }
 
-  /// An item of the daily routine, from today on.
+  /// An item of the daily routine, from [from] on (today when not given).
   Future<void> addDaily({
     required String title,
     required RoutineCategory category,
     RoutineWindow? window,
+    DateTime? from,
   }) async {
     final item = DailyRoutineItem(
       id: _newId(),
@@ -126,7 +127,7 @@ class RoutineNotifier extends Notifier<RoutineData> {
       category: category,
       slot: window?.slot ?? RoutineSlot.anytime,
       window: window,
-      since: routineDayKey(DateTime.now()),
+      since: routineDayKey(from ?? DateTime.now()),
     );
     state = state.copyWith(daily: [...state.daily, item]);
     await _persist();
@@ -135,16 +136,232 @@ class RoutineNotifier extends Notifier<RoutineData> {
   /// Takes an item out of the daily routine from today on. The days already
   /// lived keep showing it.
   Future<void> removeDaily(String id) async {
-    final yesterday = routineDayKey(
-      routineDay(DateTime.now()).subtract(const Duration(days: 1)),
+    _endDaily(id, routineDayKey(DateTime.now()));
+    await _persist();
+  }
+
+  /// Deletes [task] from the day it is shown on: a task of that day goes, and a
+  /// daily item stops repeating from that day on — the days before it keep it,
+  /// ticks and all. What comes back puts it all back ([undoRemoval]).
+  Future<RoutineRemoval> removeFromDay(RoutineTask task) async {
+    final before = state;
+    if (task.isDaily) {
+      _endDaily(task.id, task.day);
+    } else {
+      state = state.copyWith(
+        tasks: state.tasks.where((each) => each.id != task.id).toList(),
+      );
+    }
+    await _persist();
+    return RoutineRemoval._(before, task);
+  }
+
+  /// Puts back what [removeFromDay] took — only that, so a tick made since the
+  /// removal is kept.
+  Future<void> undoRemoval(RoutineRemoval removal) async {
+    final task = removal.task;
+    if (!task.isDaily) return restore(task);
+
+    final item = removal.before.daily.where((each) => each.id == task.id).firstOrNull;
+    if (item == null) return;
+    final checks = {...state.checks};
+    removal.before.checks.forEach((day, marks) {
+      // Only the days the removal cleared: a tick before them was never taken,
+      // and one changed since stays as it was changed.
+      if (day.compareTo(task.day) >= 0 && marks.containsKey(task.id)) {
+        checks[day] = {...(checks[day] ?? const {}), task.id: marks[task.id]};
+      }
+    });
+    state = state.copyWith(
+      daily: [
+        for (final each in state.daily)
+          if (each.id == task.id) item else each,
+      ],
+      checks: checks,
     );
+    await _persist();
+  }
+
+  /// Changes [task] from the day it is shown on: its name, category and time
+  /// range, and whether it repeats every day.
+  ///
+  /// - A task of one day is changed on that day, ticked or not as it was.
+  /// - Made [daily], it becomes an item of the daily routine from its day on,
+  ///   that day's tick carried over.
+  /// - A daily item changed on a day changes **from that day on**: the days
+  ///   before it keep the name and time range they were ticked against, so an
+  ///   earlier tick never turns late after the fact. (When it began that very
+  ///   day it is simply changed.)
+  /// - A daily item made not [daily] stays on that day only, as a task of its
+  ///   own with that day's tick, and stops repeating after it.
+  ///
+  /// Every new thing gets a new id: the sync only ever adds and ends daily
+  /// items, never deletes one, so nothing here depends on the server
+  /// forgetting a row.
+  Future<void> editTask(
+    RoutineTask task, {
+    required String title,
+    required RoutineCategory category,
+    RoutineWindow? window,
+    required bool daily,
+  }) async {
+    final name = routineTitle(title);
+    final day = task.day;
+    // Saved as it was: a daily item is not split into two the same.
+    if (name == task.title &&
+        category == task.category &&
+        window == task.window &&
+        daily == task.isDaily) {
+      return;
+    }
+    // A task kept from before ranges keeps its part of the day until it is
+    // given a range.
+    final slot =
+        window?.slot ??
+        (task.window == null ? task.slot : RoutineSlot.anytime);
+
+    if (!task.isDaily && !daily) {
+      _replace(
+        task.id,
+        (each) => RoutineTask(
+          id: each.id,
+          title: name,
+          category: category,
+          slot: slot,
+          window: window,
+          isDone: each.isDone,
+          doneAt: each.doneAt,
+          day: each.day,
+        ),
+      );
+    } else if (!task.isDaily) {
+      final item = DailyRoutineItem(
+        id: _newId(),
+        title: name,
+        category: category,
+        slot: slot,
+        window: window,
+        since: day,
+      );
+      state = state.copyWith(
+        tasks: state.tasks.where((each) => each.id != task.id).toList(),
+        daily: [...state.daily, item],
+        checks: task.isDone ? _withCheck(day, item.id, task.doneAt) : null,
+      );
+    } else if (!daily) {
+      _endDaily(task.id, day);
+      state = state.copyWith(
+        tasks: [
+          ...state.tasks,
+          RoutineTask(
+            id: _newId(),
+            title: name,
+            category: category,
+            slot: slot,
+            window: window,
+            isDone: task.isDone,
+            doneAt: task.doneAt,
+            day: day,
+          ),
+        ],
+      );
+    } else {
+      final item = state.daily.where((each) => each.id == task.id).firstOrNull;
+      if (item == null) return;
+      if (item.since.compareTo(day) >= 0) {
+        state = state.copyWith(
+          daily: [
+            for (final each in state.daily)
+              if (each.id == item.id)
+                DailyRoutineItem(
+                  id: item.id,
+                  title: name,
+                  category: category,
+                  slot: slot,
+                  window: window,
+                  since: item.since,
+                  until: item.until,
+                )
+              else
+                each,
+          ],
+        );
+      } else {
+        final next = DailyRoutineItem(
+          id: _newId(),
+          title: name,
+          category: category,
+          slot: slot,
+          window: window,
+          since: day,
+          until: item.until,
+        );
+        // The ticks from that day on belong to the item as it is now.
+        final checks = <String, Map<String, int?>>{};
+        state.checks.forEach((each, marks) {
+          if (each.compareTo(day) < 0 || !marks.containsKey(item.id)) {
+            checks[each] = marks;
+          } else {
+            checks[each] = {...marks}
+              ..remove(item.id)
+              ..[next.id] = marks[item.id];
+          }
+        });
+        state = state.copyWith(
+          daily: [
+            for (final each in state.daily)
+              if (each.id == item.id) item.endedOn(_dayBefore(day)) else each,
+            next,
+          ],
+          checks: checks,
+        );
+      }
+    }
+    await _persist();
+  }
+
+  /// Changes an item of the daily routine from today on, as [editTask] does
+  /// for it on today's list.
+  Future<void> editDaily(
+    DailyRoutineItem item, {
+    required String title,
+    required RoutineCategory category,
+    RoutineWindow? window,
+  }) => editTask(
+    item.on(routineDayKey(DateTime.now()), isDone: false),
+    title: title,
+    category: category,
+    window: window,
+    daily: true,
+  );
+
+  /// Ends the daily item [id] the day before [day], and drops its ticks from
+  /// [day] on — they belonged to days it no longer applies to.
+  void _endDaily(String id, String day) {
     state = state.copyWith(
       daily: [
         for (final item in state.daily)
-          if (item.id == id) item.endedOn(yesterday) else item,
+          if (item.id == id) item.endedOn(_dayBefore(day)) else item,
       ],
+      checks: {
+        for (final entry in state.checks.entries)
+          entry.key: entry.key.compareTo(day) < 0 || !entry.value.containsKey(id)
+              ? entry.value
+              : ({...entry.value}..remove(id)),
+      },
     );
-    await _persist();
+  }
+
+  DailyChecks _withCheck(String day, String id, int? minute) => {
+    ...state.checks,
+    day: {...(state.checks[day] ?? const {}), id: minute},
+  };
+
+  /// The key of the day before [day], by the calendar — not 24 hours back,
+  /// which a change of clocks would land on the wrong day.
+  static String _dayBefore(String day) {
+    final date = DateTime.parse(day);
+    return routineDayKey(DateTime(date.year, date.month, date.day - 1));
   }
 
   /// Ticks [task] on the day it is shown on, done at [minute] (minutes after
@@ -156,12 +373,7 @@ class RoutineNotifier extends Notifier<RoutineData> {
 
   void _tick(RoutineTask task, int minute) {
     if (task.isDaily) {
-      state = state.copyWith(
-        checks: {
-          ...state.checks,
-          task.day: {...(state.checks[task.day] ?? const {}), task.id: minute},
-        },
-      );
+      state = state.copyWith(checks: _withCheck(task.day, task.id, minute));
     } else {
       _replace(task.id, (each) => each.doneAtMinute(minute));
     }
@@ -219,6 +431,17 @@ class RoutineNotifier extends Notifier<RoutineData> {
     state = state.copyWith(tasks: [...state.tasks, task]);
     await _persist();
   }
+}
+
+/// What [RoutineNotifier.removeFromDay] took, for its undo.
+class RoutineRemoval {
+  const RoutineRemoval._(this.before, this.task);
+
+  /// The routine as it was just before.
+  final RoutineData before;
+
+  /// The task as it was shown on its day.
+  final RoutineTask task;
 }
 
 final routineProvider = NotifierProvider<RoutineNotifier, RoutineData>(

@@ -11,6 +11,7 @@ import '../../models/verse.dart';
 import '../../models/verse_part.dart';
 import '../common/peacock_feather_icon.dart';
 import 'collapsible_section.dart';
+import 'sanskrit_text.dart';
 import 'word_meanings_section.dart';
 import '../../views/share/share_studio_view.dart';
 import '../share/share_target.dart';
@@ -208,11 +209,7 @@ class VerseBlock extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (showSanskrit)
-            Text(
-              sanskrit,
-              style: AppTypography.verse(context, scale: fontScale),
-            ),
+          if (showSanskrit) SanskritText(sanskrit, scale: fontScale),
           if (transliteration != null && transliteration.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(

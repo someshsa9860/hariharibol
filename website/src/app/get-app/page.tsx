@@ -32,7 +32,7 @@ export default async function GetAppPage({ searchParams }: { searchParams: Promi
     <div className="page-narrow share-page">
       <aside className="card share-get" aria-labelledby="get-app-title">
         <div className="share-brand">
-          <Image src="/img/logo.png" alt="" width={44} height={44} />
+          <Image src="/img/logo-128.png" alt="" width={44} height={44} />
           <div>
             <h1 id="get-app-title" style={{ fontSize: '1.5rem', margin: 0 }}>Get the app</h1>
             <small className="muted">HariHariBol — learn, chant, remember</small>

@@ -223,6 +223,11 @@ const SLOKA_DEFAULT_DELIVERY_TIME = '04:30';
 // worship has begun and before the day's work.
 const ETIQUETTE_DEFAULT_DELIVERY_TIME = '07:15';
 
+// ── Payments ───────────────────────────────────────────────────────────────
+// How long Google Play or Apple may take to answer one verification call. The person is waiting on the purchase
+// screen; past this the call fails as a lookup failure and the app's retry (or the store's notification) settles it.
+const STORE_TIMEOUT_MS = 15_000;
+
 // ── Cache keys and TTLs ────────────────────────────────────────────────────
 const CACHE = {
   userAuth: (userId) => `auth:user:${userId}`,
@@ -234,6 +239,7 @@ const CACHE = {
 };
 
 export {
+  STORE_TIMEOUT_MS,
   ROLES,
   PERMISSIONS,
   ALL_PERMISSIONS,

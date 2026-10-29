@@ -15,12 +15,23 @@ import * as websocket from '../../services/websocket.js';
 import * as slokaController from '../../controllers/app/sloka.js';
 import * as language from '../../utils/language.js';
 import { slokaPush } from '../../utils/sloka-push.js';
-import { deliveryMinutes, isDeliveryDue } from '../../utils/sloka-delivery.js';
-import { localDateString, localMinutes, toDateColumn, shiftDays } from '../../utils/date.js';
+import { eachLimited } from '../../utils/concurrency.js';
+import { deliveryMinutes, dueZones } from '../../utils/sloka-delivery.js';
+import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
 import { SETTING_KEYS } from '../../config/constants.js';
 import { SLOKA_DELIVERY_STEP_MINUTES } from '../../config/cron.js';
 
 const BATCH_SIZE = 500;
+
+// Pushes in flight at once during a delivery run. Each one is a few queries and a
+// call to FCM, so one at a time took most of a half-hour run for 50k readers; this
+// many keeps the run to minutes without taking every database connection the worker
+// has (the other queues share the same pool).
+const SEND_CONCURRENCY = 8;
+
+// Verses and card links remembered within one run. Most readers of a morning share
+// a handful of verses, so a small cap holds them all; it only bounds a strange day.
+const RUN_CACHE_CAP = 500;
 
 /**
  * Picks the global sloka for a date, if an editor has not already set one.
@@ -133,6 +144,7 @@ async function buildPersonal(job) {
  *
  * Read per push rather than with the pending rows — only the users whose hour
  * has come are sent anything, and which translations to fetch depends on who.
+ * `deliver` keeps one per verse and reading languages for the length of a run.
  */
 function loadVerseForPush(verseRowId, user) {
   return prisma.verse.findUnique({
@@ -155,6 +167,25 @@ function loadVerseForPush(verseRowId, user) {
 }
 
 /**
+ * A promise per key, kept for one run so readers who share a verse share its
+ * lookup — including two that ask at the same moment. A lookup that fails is
+ * forgotten, so the next reader asks again.
+ */
+function runCache() {
+  const entries = new Map();
+  return (key, load) => {
+    let found = entries.get(key);
+    if (!found) {
+      if (entries.size >= RUN_CACHE_CAP) entries.clear();
+      found = load();
+      entries.set(key, found);
+      found.catch(() => entries.delete(key));
+    }
+    return found;
+  };
+}
+
+/**
  * Pushes the day's sloka to the users whose local delivery time has arrived.
  *
  * Runs every half hour (`SLOKA_DELIVERY_STEP_MINUTES`). The time is one setting
@@ -168,71 +199,91 @@ async function deliver() {
   const targetMinutes = deliveryMinutes(await settings.get(SETTING_KEYS.SLOKA_DELIVERY_TIME));
   const now = new Date();
 
-  // A reader east of UTC is already on tomorrow's date for the first hours of
-  // their day (Kolkata until 05:30, so 04:30 is one of them), and nobody is
-  // more than a day ahead. Bounding at UTC's today would hide their row until
-  // after the delivery window had passed; the per-row check below is what
-  // keeps a stale one from going out.
-  const latestLocalDate = toDateColumn(shiftDays(localDateString('UTC'), 1));
+  // Which zones are due is worked out once from the zones readers are in, so a run
+  // reads only those readers' rows — most runs of the day have none, and skip the
+  // table entirely. Each due zone also says what date it is there: a row for any
+  // other date was never delivered and is stale, and sending yesterday's sloka
+  // today is worse than not sending it. A reader east of UTC is already on
+  // tomorrow's date for the first hours of their day (Kolkata until 05:30), which
+  // the zone's own date covers without a bound on UTC's.
+  const zones = await prisma.user.groupBy({ by: ['timezone'], where: { isBanned: false } });
+  const due = dueZones({
+    zones: zones.map((row) => row.timezone),
+    at: now,
+    targetMinutes,
+    windowMinutes: SLOKA_DELIVERY_STEP_MINUTES,
+  });
 
+  // One query per date (at most two at any instant), each bounded by that date and
+  // the zones on it, which the (date, notifiedAt) index can answer.
+  const zonesByDate = new Map();
+  for (const [zone, date] of due) zonesByDate.set(date, [...(zonesByDate.get(date) || []), zone]);
+
+  const verses = runCache();
+  const cards = runCache();
   let sent = 0;
-  let cursor = null;
+  let failed = 0;
 
-  for (;;) {
-    const pending = await prisma.userDailySloka.findMany({
-      where: { notifiedAt: null, date: { lte: latestLocalDate } },
-      select: {
-        id: true,
-        userId: true,
-        date: true,
-        verseId: true,
-        user: {
-          select: {
-            name: true,
-            timezone: true,
-            readingLanguage: true,
-            appLanguage: true,
+  const send = async (row) => {
+    // The verse itself is the notification. Why it was chosen stays in the
+    // app (`reason` on the sloka), where there is room to say it. Which
+    // translations it carries depends on who reads it, so that is the key.
+    const chain = language.readingChain(row.user);
+    const verse = await verses(`${row.verseId}|${chain.join(',')}`, () => loadVerseForPush(row.verseId, row.user));
+    const { title, body, data } = slokaPush({ verse, user: row.user });
+
+    // The picture is the same for everyone who is sent this verse, so it is
+    // drawn the first time and found after that. No picture, still a push.
+    const image = await cards(row.verseId, () => slokaCard.cardUrl(verse));
+
+    await notify.toUser(row.userId, { type: 'SLOKA', title, body, image, data });
+
+    await prisma.userDailySloka.update({
+      where: { id: row.id },
+      data: { notifiedAt: new Date() },
+    });
+
+    websocket.toUser(row.userId, websocket.EVENTS.SLOKA_READY, { verseId: verse.verseId });
+    sent += 1;
+  };
+
+  for (const [date, dateZones] of zonesByDate) {
+    let cursor = null;
+    for (;;) {
+      const pending = await prisma.userDailySloka.findMany({
+        where: {
+          notifiedAt: null,
+          date: toDateColumn(date),
+          user: { isBanned: false, timezone: { in: dateZones } },
+        },
+        select: {
+          id: true,
+          userId: true,
+          verseId: true,
+          user: {
+            select: {
+              name: true,
+              timezone: true,
+              readingLanguage: true,
+              appLanguage: true,
+            },
           },
         },
-      },
-      orderBy: { id: 'asc' },
-      take: BATCH_SIZE,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    });
-    if (!pending.length) break;
-    cursor = pending[pending.length - 1].id;
-
-    for (const row of pending) {
-      const due = isDeliveryDue({
-        localMinutes: localMinutes(row.user.timezone, now),
-        targetMinutes,
-        windowMinutes: SLOKA_DELIVERY_STEP_MINUTES,
+        orderBy: { id: 'asc' },
+        take: BATCH_SIZE,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       });
-      if (!due) continue;
+      if (!pending.length) break;
+      cursor = pending[pending.length - 1].id;
 
-      // Only the day it is for — a row from an earlier date that was never
-      // delivered is stale, and sending yesterday's sloka today is worse than
-      // not sending it.
-      if (row.date.toISOString().slice(0, 10) !== localDateString(row.user.timezone)) continue;
-
-      // The verse itself is the notification. Why it was chosen stays in the
-      // app (`reason` on the sloka), where there is room to say it.
-      const verse = await loadVerseForPush(row.verseId, row.user);
-      const { title, body, data } = slokaPush({ verse, user: row.user });
-
-      // The picture is the same for everyone who is sent this verse, so it is
-      // drawn the first time and found after that. No picture, still a push.
-      const image = await slokaCard.cardUrl(verse);
-
-      await notify.toUser(row.userId, { type: 'SLOKA', title, body, image, data });
-
-      await prisma.userDailySloka.update({
-        where: { id: row.id },
-        data: { notifiedAt: new Date() },
-      });
-
-      websocket.toUser(row.userId, websocket.EVENTS.SLOKA_READY, { verseId: verse.verseId });
-      sent += 1;
+      // One reader's failure does not stop the others. The row stays undelivered,
+      // and the error below has BullMQ run the job again for just those rows.
+      await eachLimited(pending, SEND_CONCURRENCY, (row) =>
+        send(row).catch((err) => {
+          failed += 1;
+          logger.error({ err: err.message, userDailySlokaId: row.id }, 'sloka push failed');
+        })
+      );
     }
   }
 
@@ -242,7 +293,8 @@ async function deliver() {
     data: { sentAt: new Date() },
   });
 
-  logger.info({ sent }, 'slokas delivered');
+  logger.info({ sent, failed, zones: due.size }, 'slokas delivered');
+  if (failed) throw new Error(`${failed} sloka pushes failed (${sent} sent); retrying those`);
   return { sent };
 }
 

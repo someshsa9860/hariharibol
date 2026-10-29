@@ -42,6 +42,16 @@ import {
 const PREVIEW_LIMIT = 6;
 const BOOKS_TTL_MS = 60 * 1000;
 
+// The verse scan reads every published verse in the reader's languages — a few hundred milliseconds of database time —
+// and the same query comes back again and again: the overview, then each page of the list as the reader scrolls, then
+// the next person to search "krishna". The best RANKED_CAP ids of a query and its total are kept in memory for
+// RANKED_TTL_MS, so those pages cost nothing; a page beyond them is read from the database. A verse published in the
+// meantime shows up when the entry runs out. Per process, so each API container keeps its own.
+const RANKED_CAP = 120;
+const RANKED_TTL_MS = 10 * 60 * 1000;
+const RANKED_MAX_ENTRIES = 300;
+const ranked = new Map();
+
 let booksCache = { at: 0, rows: [] };
 
 // The published books, for naming a book from the query. Cached for a minute: it is read
@@ -140,8 +150,7 @@ function verseMatch(terms, phrase, chain, bookNumber) {
   };
 }
 
-async function findVerseIds(terms, text, chain, bookNumber, { skip, take }) {
-  const phrase = words(text).map(escapeRegex).join('[^[:alnum:]]+');
+async function scanVerseIds(terms, phrase, chain, bookNumber, { skip, take }) {
   const { from, score } = verseMatch(terms, phrase, chain, bookNumber);
 
   const rows = await prisma.$queryRaw`
@@ -151,6 +160,26 @@ async function findVerseIds(terms, text, chain, bookNumber, { skip, take }) {
     LIMIT ${take} OFFSET ${skip}`;
 
   return { ids: rows.map((r) => r.id), total: rows.length ? Number(rows[0].total) : 0 };
+}
+
+// The ranked ids of a query (see RANKED_CAP). The entry holds the promise, so the same query asked twice at once — the
+// overview and the first page, or two readers — waits on one scan.
+async function findVerseIds(terms, text, chain, bookNumber, { skip, take }) {
+  const phrase = words(text).map(escapeRegex).join('[^[:alnum:]]+');
+  if (skip + take > RANKED_CAP) return scanVerseIds(terms, phrase, chain, bookNumber, { skip, take });
+
+  const key = JSON.stringify([terms.map((t) => t.variants), phrase, chain, bookNumber]);
+  let entry = ranked.get(key);
+  if (!entry || Date.now() - entry.at > RANKED_TTL_MS) {
+    entry = { at: Date.now(), result: scanVerseIds(terms, phrase, chain, bookNumber, { skip: 0, take: RANKED_CAP }) };
+    ranked.delete(key);
+    ranked.set(key, entry);
+    if (ranked.size > RANKED_MAX_ENTRIES) ranked.delete(ranked.keys().next().value);
+    entry.result.catch(() => ranked.get(key) === entry && ranked.delete(key));
+  }
+
+  const { ids, total } = await entry.result;
+  return { ids: ids.slice(skip, skip + take), total };
 }
 
 // Which text of the verse the words were found in, with the passage around them. The

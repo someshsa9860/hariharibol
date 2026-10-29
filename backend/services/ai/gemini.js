@@ -54,13 +54,15 @@ function costMicros(model, inputTokens, outputTokens) {
   return Math.round(inputTokens * price.input + outputTokens * price.output);
 }
 
-async function complete({ model, system, prompt, messages, json = false, maxTokens = 1024, temperature = 0.4 }) {
+async function complete({ model, system, prompt, messages, json = false, maxTokens = 1024, temperature = 0.4, signal }) {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini is not configured');
 
-  const response = await fetch(`${BASE}/models/${model}:generateContent?key=${apiKey}`, {
+  // The key goes in a header, not the URL, so it never lands in an access log.
+  const response = await fetch(`${BASE}/models/${model}:generateContent`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    signal,
     body: JSON.stringify({
       systemInstruction: system ? { parts: [{ text: system }] } : undefined,
       contents: messages ? toContents(messages) : [{ role: 'user', parts: [{ text: prompt }] }],

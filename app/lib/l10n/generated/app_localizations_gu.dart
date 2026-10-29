@@ -289,6 +289,12 @@ class AppLocalizationsGu extends AppLocalizations {
   String get homeMantras => 'મંત્રો';
 
   @override
+  String get homeForYourGrowth => 'તમે જેના પર કામ કરી રહ્યા છો';
+
+  @override
+  String get homeThisWeek => 'આ અઠવાડિયે';
+
+  @override
   String get homeStartYourDay => 'આજનું લક્ષ્ય નક્કી કરો';
 
   @override
@@ -1204,6 +1210,49 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'તમારી દૈનિક દિનચર્યામાંથી દૂર કર્યું';
+
+  @override
+  String get routineEditTask => 'કાર્ય સંપાદિત કરો';
+
+  @override
+  String get routineSaveChanges => 'ફેરફારો સાચવો';
+
+  @override
+  String get routineDeleteTask => 'કાર્ય કાઢી નાખો';
+
+  @override
+  String get routineDeleteDaily => 'આ દિવસથી આગળ કાઢી નાખો';
+
+  @override
+  String get routineRepeatDaily => 'દરરોજ પુનરાવર્તન કરો';
+
+  @override
+  String get routineRepeatFromDay => 'આ દિવસથી દરરોજ દેખાશે.';
+
+  @override
+  String get routineRepeatStops =>
+      'ફક્ત આ દિવસે જ રહેશે અને પછી પુનરાવર્તિત નહીં થાય.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'ફેરફારો આ દિવસથી લાગુ થશે. અગાઉના દિવસોમાં તે પહેલાં જેવું જ રહેશે.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'ફેરફારો આજથી લાગુ થશે. અગાઉના દિવસોમાં તે પહેલાં જેવું જ રહેશે.';
+
+  @override
+  String get routineExactAlarmTitle => 'બરાબર સમયે સૂચનાઓ';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android કોઈ કાર્યની સૂચના થોડી મિનિટ રોકી શકે છે. આ ઍપને એલાર્મ અને રિમાઇન્ડરની પરવાનગી આપો, જેથી દરેક સૂચના તેનો સમય શરૂ થાય એ જ મિનિટે આવે.';
+
+  @override
+  String get routineExactAlarmAllow => 'પરવાનગી આપો';
+
+  @override
+  String get routineExactAlarmLater => 'હમણાં નહીં';
 
   @override
   String get reelsEmpty => 'હજી કોઈ રીલ નથી';

@@ -78,6 +78,10 @@ class BookReelStyle {
   final Color colorBottom;
   final String? imageUrl;
 
+  /// The picture's link without its query: a signed link changes every hour,
+  /// the picture behind it does not, so the disk copy is found by this.
+  String? get imageCacheKey => imageUrl?.split('?').first;
+
   /// How much of the picture is covered by a dark wash, 0–90 percent.
   final double imageDim;
 

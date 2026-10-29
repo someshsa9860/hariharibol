@@ -177,6 +177,11 @@ abstract final class BoxKeys {
   /// measured against to find what this phone has changed since.
   static const String routineSynced = 'routine.synced';
 
+  /// When "Not now" was pressed on the card asking Android to let the routine's
+  /// alerts come right on time (milliseconds since the epoch). The phone's, not
+  /// the account's.
+  static const String routineOnTimeDismissed = 'routine.onTimeDismissed';
+
   /// Legacy. Before tasks carried their own day this held the one day the list
   /// belonged to; it is read once, to date tasks saved by that version.
   static const String routineDate = 'routine.date';

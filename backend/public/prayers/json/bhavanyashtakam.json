@@ -1,0 +1,102 @@
+{
+  "slug": "bhavanyashtakam",
+  "title": "Bhavānyaṣṭakam",
+  "titleOriginal": "भवान्यष्टकम्",
+  "category": "deity",
+  "sortOrder": 410,
+  "originalLanguage": "sa",
+  "summary": "“Gatis tvaṁ gatis tvaṁ tvam ekā bhavāni”: you alone are my refuge, Bhavānī.",
+  "about": "Eight verses of complete surrender: no father, mother, friend or learning is mine, I know no charity, yoga or mantra; in quarrel, sorrow, travel, water, fire or among enemies, you alone are my refuge.",
+  "author": "Śaṅkarācārya",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%AF%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+  "tradition": "shakta",
+  "deity": "durga",
+  "occasions": [
+    "Navarātri",
+    "in distress"
+  ],
+  "festivals": [
+    "navaratri-begins",
+    "durga-ashtami"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "न तातो न माता न बन्धुर्न दाता न पुत्रो न पुत्री न भृत्यो न भर्ता ।\nन जाया न विद्या न वृत्तिर्ममैव गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "भवाब्धावपारे महादुःखभीरु पपात प्रकामी प्रलोभी प्रमत्तः ।\nकुसंसारपाशप्रबद्धः सदाहं गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "न जानामि दानं न च ध्यानयोगं न जानामि तन्त्रं न च स्तोत्रमन्त्रम् ।\nन जानामि पूजां न च न्यासयोगम् गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "न जानामि पुण्यं न जानामि तीर्थं न जानामि मुक्तिं लयं वा कदाचित् ।\nन जानामि भक्तिं व्रतं वापि मातर्गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "कुकर्मी कुसङ्गी कुबुद्धिः कुदासः कुलाचारहीनः कदाचारलीनः ।\nकुदृष्टिः कुवाक्यप्रबन्धः सदाहम् गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "प्रजेशं रमेशं महेशं सुरेशं दिनेशं निशीथेश्वरं वा कदाचित् ।\nन जानामि चान्यत् सदाहं शरण्ये गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "विवादे विषादे प्रमादे प्रवासे जले चानले पर्वते शत्रुमध्ये ।\nअरण्ये शरण्ये सदा मां प्रपाहि गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "अनाथो दरिद्रो जरारोगयुक्तो महाक्षीणदीनः सदा जाड्यवक्त्रः ।\nविपत्तौ प्रविष्टः प्रनष्टः सदाहम् गतिस्त्वं गतिस्त्वं त्वमेका भवानि ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%AF%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%AD%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%AF%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "भवान्यष्टकम्",
+    "author": "श्रीशंकराचार्यः"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 8
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "इति श्रीमच्छड़्कराचार्यकृतं भवान्यष्टकं सम्पूर्णम् ।"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.936Z"
+}

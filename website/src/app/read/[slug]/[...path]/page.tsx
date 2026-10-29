@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cache } from 'react';
 import { ChapterReader } from '@/components/read/chapter-reader';
 import { Icon } from '@/components/ui/icon';
 import { serverGetOrNull } from '@/lib/api/server';
@@ -22,22 +23,27 @@ function parsePath(path: string[]): { canto: number | null; chapter: number } | 
   return numbers.length === 2 ? { canto: numbers[0], chapter: numbers[1] } : { canto: null, chapter: numbers[0] };
 }
 
-const loadBook = (slug: string, lang: string) => serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 });
-const loadChapter = (slug: string, where: { canto: number | null; chapter: number }, lang: string) =>
-  serverGetOrNull<ChapterData>(`/api/app/books/${slug}/chapters/${where.chapter}`, {
-    query: { canto: where.canto ?? undefined, languages: languagesQuery(lang) },
+// `cache` (per request, plain arguments) so the metadata and the page share one fetch of each. The book stays uncached
+// across requests: its answer carries signed cover and audio links, even though this page only reads the chapter list.
+const loadBook = cache((slug: string, lang: string) => serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 }));
+const loadChapter = cache((slug: string, canto: number | null, chapter: number, lang: string) =>
+  serverGetOrNull<ChapterData>(`/api/app/books/${slug}/chapters/${chapter}`, {
+    query: { canto: canto ?? undefined, languages: languagesQuery(lang) },
     revalidate: 0,
-  });
+  }));
 
+// In the reader's language like the page (a crawler has no cookie, so it still gets English).
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, path } = await params;
   const where = parsePath(path);
   if (!where) return { title: 'Chapter not found' };
-  const [book, data] = await Promise.all([loadBook(slug, 'en').catch(() => null), loadChapter(slug, where, 'en').catch(() => null)]);
+  const lang = await readingLanguage();
+  const chain = [lang, 'en'];
+  const [book, data] = await Promise.all([loadBook(slug, lang).catch(() => null), loadChapter(slug, where.canto, where.chapter, lang).catch(() => null)]);
   if (!book || !data) return { title: 'Chapter not found' };
-  const name = chapterTitle(data.chapter, ['en']);
-  const title = `${book.title} ${where.canto ? `${where.canto}.` : ''}${where.chapter}${name ? ` — ${name}` : ''}`;
-  const description = excerpt(chapterSummary(data.chapter, ['en']) || data.verses[0]?.translation?.meaning, 170) || `Read ${title} with the Sanskrit and meaning.`;
+  const name = chapterTitle(data.chapter, chain);
+  const title = `${pickTitle(book.titleI18n, chain, book.title)} ${where.canto ? `${where.canto}.` : ''}${where.chapter}${name ? ` — ${name}` : ''}`;
+  const description = excerpt(chapterSummary(data.chapter, chain) || data.verses[0]?.translation?.meaning, 170) || `Read ${title} with the Sanskrit and meaning.`;
   const url = `/read/${slug}/${path.join('/')}`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url: `${SITE_URL}${url}` } };
 }
@@ -49,7 +55,7 @@ export default async function ChapterPage({ params }: Props) {
   const lang = await readingLanguage();
   const chain = [lang, 'en'];
 
-  const [book, data] = await Promise.all([loadBook(slug, lang), loadChapter(slug, where, lang)]);
+  const [book, data] = await Promise.all([loadBook(slug, lang), loadChapter(slug, where.canto, where.chapter, lang)]);
   if (!book || !data) notFound();
 
   const cantoMode = book.totalCantos > 0;

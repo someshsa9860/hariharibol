@@ -1,0 +1,188 @@
+{
+  "slug": "rudrashtakam",
+  "title": "Śrī Rudrāṣṭakam",
+  "titleOriginal": "श्रीरुद्राष्टकम्",
+  "category": "deity",
+  "sortOrder": 230,
+  "originalLanguage": "sa",
+  "summary": "“Namāmīśam īśāna nirvāṇa-rūpam”: eight verses to Śiva from the Rāmacaritamānasa.",
+  "about": "Sanskrit verses Tulasīdāsa set in the Uttara-kāṇḍa of the Rāmacaritamānasa, said there by a brāhmaṇa to please Śiva. Bows to Śiva beyond qualities and form, the lord of Umā, and asks protection from old age, birth and sorrow.",
+  "author": "Gosvāmī Tulasīdāsa",
+  "reference": "Rāmacaritamānasa, Uttara-kāṇḍa",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B0%E0%A5%81%E0%A4%A6%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+  "tradition": "shaiva",
+  "deity": "shiva",
+  "occasions": [
+    "Monday",
+    "Mahā-śivarātri",
+    "Śrāvaṇa"
+  ],
+  "festivals": [
+    "maha-shivaratri",
+    "pradosh"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "नमामीशमीशान निर्वाण रूपं । विभुं व्यापकं ब्रह्म वेदस्वरूपं ।\nनिजं निर्गुणं निर्विकल्पं निरीहं । चिदाकाशमाकाशवासं भजेहं ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "निराकारमोंकारमूलं तुरीयं । गिरा ज्ञान गोतीतमीशं गिरीशं ।\nकरालं महाकाल कालं कृपालं । गुणागार संसारपारं नतोहं ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "तुषाराद्रि संकाश गौरं गंभीरं । मनोभूत कोटि प्रभा श्री शरीरं ।\nस्फुरन्मौलि कल्लोलिनी चारु गंगा । लसद्भालबालेंदु कंठे भुजंगा ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "चलत्कुंडलं भ्रू सुनेत्रं विशालं । प्रसन्नाननं नीलकंठ दयालं ।\nमृगाधीशचर्माम्बरं मुण्डमालं । प्रियं शंकरं सर्वनाथं भजामि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "प्रचंडं प्रकृष्टं प्रगल्भं परेशं । अखंडं अजं भानुकोटिप्रकाशं ।\nत्रयःशूल निर्मूलनं शूलपाणिं । भजेहं भवानीपतिं भावगम्यं ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "कलातीत कल्याण कल्पान्तकारी । सदा सज्जनानन्ददाता पुरारी ।\nचिदानंदसंदोह मोहापहारी । प्रसीद प्रसीद प्रभो मन्मथारी ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "न यावद् उमानाथ पादारविन्दं । भजंतीह लोके परे वा नराणां ।\nन तावत्सुखं शांति सन्तापनाशं । प्रसीद प्रभो सर्वभूताधिवासं ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "न जानामि योगं जपं नैव पूजां । नतोहं सदा सर्वदा शंभु तुभ्यं ।\nजरा जन्म दुःखौघ तातप्यमानं । प्रभो पाहि आपन्नमामीश शंभो ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "रुद्राष्टकमिदं प्रोक्तं विप्रेण हरतोषये ।\nये पठन्ति नरा भक्त्या तेषां शम्भुः प्रसीदति ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B0%E0%A5%81%E0%A4%A6%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B0%E0%A5%81%E0%A4%A6%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {},
+  "joined": [
+    {
+      "verses": [
+        1,
+        2
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        3,
+        4
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        5,
+        6
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        7,
+        8
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        9,
+        10
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        11,
+        12
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        13,
+        14
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    },
+    {
+      "verses": [
+        15,
+        16
+      ],
+      "mid": "।",
+      "why": "The page numbers each half-verse; a verse of the aṣṭaka is two of them."
+    }
+  ],
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "नमामिशमीशान",
+      "to": "नमामीशमीशान",
+      "why": "Typo on the page: namāmi + īśam is namāmīśam."
+    },
+    {
+      "verse": 6,
+      "field": "devanagari",
+      "from": "मोहपहारी",
+      "to": "मोहापहारी",
+      "why": "Typo on the page: moha + apahārī is mohāpahārī."
+    },
+    {
+      "verse": 8,
+      "field": "devanagari",
+      "from": "आपन्नमाशीश",
+      "to": "आपन्नमामीश",
+      "why": "Typo on the page: āpannam ām īśa, protect me, the afflicted, O Lord."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 9
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.928Z"
+}

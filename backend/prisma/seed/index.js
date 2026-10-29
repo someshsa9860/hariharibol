@@ -23,7 +23,7 @@ import { bookTitles, cantoTitles, chapterTitles, fillMissing } from './section-t
 import { bhagavatamChapterTitles } from './section-titles/bhagavatam/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
-import { routineKinds } from './routine-nudges.js';
+import { opensByKind, routineKinds } from './routine-nudges.js';
 import { seedEtiquette } from './etiquette/index.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
 import { ROLES, SYSTEM_CREATOR_EMAIL } from '../../config/constants.js';
@@ -416,8 +416,8 @@ async function seedRoutineNudges() {
     const existing = await prisma.routineKind.findUnique({ where: { key: kind }, select: { voiceScript: true } });
     await prisma.routineKind.upsert({
       where: { key: kind },
-      update: { sortOrder: index, ...(existing?.voiceScript ? {} : { voiceScript: voice }) },
-      create: { key: kind, sortOrder: index, voiceScript: voice },
+      update: { sortOrder: index, ...(opensByKind[kind] ?? { opensKind: null, prayerSlug: null }), ...(existing?.voiceScript ? {} : { voiceScript: voice }) },
+      create: { key: kind, sortOrder: index, voiceScript: voice, ...opensByKind[kind] },
     });
 
     for (const [position, verse] of verses.entries()) {

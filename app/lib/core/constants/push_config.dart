@@ -18,6 +18,8 @@ abstract final class PushConfig {
   // The 7:15 devotee etiquette push (`backend/jobs/processors/etiquette-deliver.js`):
   // `hariharibol://etiquette/<id>` opens that item, a bare `etiquette` the list.
   static const String deeplinkEtiquette = 'etiquette';
+  // `hariharibol://prayer/<slug>` opens that prayer, the routine's meal alerts' Read button (see push_link.dart).
+  static const String deeplinkPrayer = 'prayer';
   // Added with rich pushes (`backend/utils/push-rich.js` TARGETS). `sakha` is Ask
   // Sakha; the route inside the app is still /chat.
   static const String deeplinkHome = 'home';

@@ -28,4 +28,21 @@ router.get(
   controller.home
 );
 
+router.get(
+  '/issue-verses',
+  {
+    summary: 'Verses for the vikaras I have reported lately',
+    description:
+      'For the Home row "For what you are working on". The vikaras this reader reported in the last two weeks ' +
+      '(most reported first, at most three), each with up to two verses from the sloka mapping, skipping verses ' +
+      'already given recently. The pick is fixed for the day, so a refresh does not reshuffle it. Empty when nothing ' +
+      'was reported. Signed in only; no AI runs here. `languages` (`hi,en`) names the reading languages for this call, as ' +
+      'on `GET /home`.',
+    limit: 'read',
+    query: z.object({ languages: schemas.languages }),
+    responds: { 200: 'The verses, grouped by the issue they answer (possibly empty)' },
+  },
+  controller.issueVerses
+);
+
 export default router;

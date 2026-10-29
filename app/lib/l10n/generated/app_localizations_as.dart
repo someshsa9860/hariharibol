@@ -291,6 +291,12 @@ class AppLocalizationsAs extends AppLocalizations {
   String get homeMantras => 'মন্ত্ৰ';
 
   @override
+  String get homeForYourGrowth => 'আপুনি যি লৈ কাম কৰি আছে';
+
+  @override
+  String get homeThisWeek => 'এই সপ্তাহ';
+
+  @override
   String get homeStartYourDay => 'আজিৰ লক্ষ্য ঠিক কৰক';
 
   @override
@@ -1210,6 +1216,49 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'আপোনাৰ দৈনিক দিনচৰ্যাৰ পৰা আঁতৰোৱা হৈছে';
+
+  @override
+  String get routineEditTask => 'কাম সম্পাদনা কৰক';
+
+  @override
+  String get routineSaveChanges => 'সলনিবোৰ সংৰক্ষণ কৰক';
+
+  @override
+  String get routineDeleteTask => 'কাম মচক';
+
+  @override
+  String get routineDeleteDaily => 'এই দিনটোৰ পৰা আঁতৰাওক';
+
+  @override
+  String get routineRepeatDaily => 'প্ৰতিদিনে পুনৰাবৃত্তি কৰক';
+
+  @override
+  String get routineRepeatFromDay => 'এই দিনটোৰ পৰা প্ৰতিদিনে দেখুওৱা হ\'ব।';
+
+  @override
+  String get routineRepeatStops =>
+      'কেৱল এই দিনটোতে থাকিব আৰু ইয়াৰ পাছত পুনৰাবৃত্তি নহ\'ব।';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'সলনিবোৰ এই দিনটোৰ পৰা প্ৰযোজ্য হ\'ব। আগৰ দিনবোৰত ই আগৰ দৰেই থাকিব।';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'সলনিবোৰ আজিৰ পৰা প্ৰযোজ্য হ\'ব। আগৰ দিনবোৰত ই আগৰ দৰেই থাকিব।';
+
+  @override
+  String get routineExactAlarmTitle => 'ঠিক সময়ত সতৰ্কবাণী';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android-এ কোনো কামৰ সতৰ্কবাণী কেইমিনিটমান পলম কৰিব পাৰে। এই এপটোক এলাৰ্ম আৰু ৰিমাইণ্ডাৰৰ অনুমতি দিয়ক, যাতে প্ৰতিটো সতৰ্কবাণী তাৰ সময় আৰম্ভ হোৱা মিনিটতে আহে।';
+
+  @override
+  String get routineExactAlarmAllow => 'অনুমতি দিয়ক';
+
+  @override
+  String get routineExactAlarmLater => 'এতিয়া নহয়';
 
   @override
   String get reelsEmpty => 'এতিয়ালৈকে কোনো ৰীল নাই';

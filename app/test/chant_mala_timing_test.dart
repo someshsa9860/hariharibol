@@ -84,6 +84,58 @@ void main() {
       expect(thirds.chantsDoneAt(const Duration(milliseconds: 33334)), 1);
       expect(thirds.chantsDoneAt(const Duration(seconds: 100)), 3);
     });
+
+    test('no chants done is the start of the chanting, after the prayer', () {
+      expect(timing.positionAfter(0), const Duration(seconds: 10));
+      expect(trimmed.positionAfter(0), const Duration(seconds: 5));
+      // Below nothing is the same place; it is never in front of the prayer's end.
+      expect(timing.positionAfter(-3), const Duration(seconds: 10));
+    });
+
+    test('30 chants of a recording with a prayer lead-in are the prayer plus 30 chants', () {
+      // 10 s of prayer, then 30 chants of 4 s.
+      expect(timing.positionAfter(30), const Duration(seconds: 130));
+      expect(timing.positionAfter(1), const Duration(seconds: 14));
+      expect(timing.positionAfter(107), const Duration(seconds: 438));
+    });
+
+    test('all the chants, or more, is the end of the chanting', () {
+      expect(timing.positionAfter(108), const Duration(seconds: 442));
+      expect(timing.positionAfter(500), const Duration(seconds: 442));
+      expect(trimmed.positionAfter(108), const Duration(seconds: 430));
+    });
+
+    test('a position it gives is counted as exactly that many chants', () {
+      final thirds = ChantMalaTiming(
+        start: Duration.zero,
+        end: const Duration(seconds: 100),
+        chants: 3,
+      );
+      final awkward = ChantMalaTiming(
+        start: const Duration(milliseconds: 1234),
+        end: const Duration(milliseconds: 99999),
+        chants: 7,
+      );
+      for (final t in [timing, trimmed, thirds, awkward]) {
+        for (var n = 0; n <= t.chants; n++) {
+          expect(t.chantsDoneAt(t.positionAfter(n)), n, reason: '$n of ${t.chants} chants');
+        }
+      }
+    });
+
+    test('and it is the earliest such position: a microsecond sooner is a chant short', () {
+      final thirds = ChantMalaTiming(
+        start: Duration.zero,
+        end: const Duration(seconds: 100),
+        chants: 3,
+      );
+      for (final t in [timing, trimmed, thirds]) {
+        for (var n = 1; n < t.chants; n++) {
+          final before = t.positionAfter(n) - const Duration(microseconds: 1);
+          expect(t.chantsDoneAt(before), n - 1, reason: '$n of ${t.chants} chants');
+        }
+      }
+    });
   });
 
   group('ChantMalaFollower', () {

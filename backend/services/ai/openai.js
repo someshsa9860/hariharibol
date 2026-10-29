@@ -58,7 +58,7 @@ function costMicros(model, inputTokens, outputTokens) {
   return Math.round(inputTokens * price.input + outputTokens * price.output);
 }
 
-async function complete({ model, system, prompt, messages: history, json = false, maxTokens = 1024, temperature = 0.4 }) {
+async function complete({ model, system, prompt, messages: history, json = false, maxTokens = 1024, temperature = 0.4, signal }) {
   const apiKey = env.OPENAI_API_KEY;
   if (!apiKey) throw new AppError(503, 'AI_UNAVAILABLE', 'OpenAI is not configured');
 
@@ -70,6 +70,7 @@ async function complete({ model, system, prompt, messages: history, json = false
   const response = await fetch(`${BASE}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    signal,
     body: JSON.stringify({
       model,
       messages,

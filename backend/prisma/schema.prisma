@@ -2361,6 +2361,12 @@ model RoutineKind {
 
   isActive Boolean @default(true)
 
+  // What tapping this routine's alert opens: `prayer` (the prayer named by prayerSlug), `chant`
+  // (the counter on the reader's own mantra) or `read` (the book they read last). Null opens nothing.
+  // Served as `opens` by GET /api/app/routine/nudges; see utils/routine-open.js.
+  opensKind  String? @db.VarChar(20)
+  prayerSlug String? @db.VarChar(80)
+
   nudges RoutineNudge[]
 }
 

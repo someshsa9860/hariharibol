@@ -44,10 +44,11 @@ export const list = async (req, res) => {
   });
 };
 
-/** GET /api/app/prayers/:id — one published prayer in full: its source, the scripts it can be read in, and every verse. */
+/** GET /api/app/prayers/:id — one published prayer in full: its source, the scripts it can be read in, and every verse. The id may be the prayer's slug, which is what a routine alert carries. */
 export const get = async (req, res) => {
+  const key = req.valid.params.id;
   const row = await prisma.prayer.findFirst({
-    where: { id: req.valid.params.id, ...published },
+    where: { OR: [{ id: key }, { slug: key }], ...published },
     include: {
       translations: { select: { languageCode: true, title: true, summary: true, about: true } },
       verses: {

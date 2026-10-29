@@ -29,6 +29,16 @@ import * as tokens from './tokens.js';
 
 const providers = { GEMINI: gemini, OPENAI: openai };
 
+// How long a provider may take before the next engine in the chain is tried. Without a limit a provider that accepts
+// the connection and then goes quiet holds the call — and the reader's chat lock — until the operating system gives up.
+// A completion is timed as a whole (the longest, a mantra written out in full, is 4,000 tokens); a stream only has to
+// keep talking, so the limit is the silence before its first piece (reasoning models think first) or between two.
+const COMPLETE_TIMEOUT_MS = 120_000;
+const STREAM_IDLE_MS = 60_000;
+
+const timedOut = (provider) =>
+  new AppError(503, 'AI_BUSY', `${provider.name} did not answer in time`);
+
 // The engines (a provider and a model) that may answer a call, in the order they are tried. `purpose` picks the model:
 // the normal one, the stronger one for plans on the ADVANCED tier, or the cheap one that writes summaries.
 //
@@ -193,7 +203,12 @@ async function complete(request) {
 
     let result;
     try {
-      result = await provider.complete({ model, system, prompt, messages, json, maxTokens, temperature });
+      const signal = AbortSignal.timeout(COMPLETE_TIMEOUT_MS);
+      result = await provider
+        .complete({ model, system, prompt, messages, json, maxTokens, temperature, signal })
+        .catch((error) => {
+          throw signal.aborted ? timedOut(provider) : error;
+        });
     } catch (error) {
       await logUsage({ engine, ...log, error });
       firstError ??= error;
@@ -282,8 +297,13 @@ async function stream(request) {
 
       let reported = null;
       let failure = null;
+      // This engine's own clock, beside the caller's signal: aborted after STREAM_IDLE_MS without a piece.
+      const quiet = new AbortController();
+      const idle = setTimeout(() => quiet.abort(timedOut(provider)), STREAM_IDLE_MS);
+      const attempt = signal ? AbortSignal.any([signal, quiet.signal]) : quiet.signal;
       try {
-        for await (const piece of provider.stream({ model, system, messages, maxTokens, temperature, signal })) {
+        for await (const piece of provider.stream({ model, system, messages, maxTokens, temperature, signal: attempt })) {
+          idle.refresh();
           if (piece.done) {
             reported = piece;
             run.finishReason = piece.finishReason;
@@ -293,8 +313,9 @@ async function stream(request) {
           yield piece.text;
         }
       } catch (error) {
-        failure = error;
+        failure = quiet.signal.aborted && !signal?.aborted ? quiet.signal.reason : error;
       } finally {
+        clearTimeout(idle);
         // Runs on completion, on break (return()) and on failure alike.
         const complete = reported && (reported.inputTokens || reported.outputTokens);
         const inputTokens = complete ? reported.inputTokens : estimatedInput;

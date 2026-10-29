@@ -6,87 +6,9 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/book_reel.dart';
 import '../common/app_image.dart';
+import 'verse_reel_page_split.dart';
 
-/// What a page of a book reel holds.
-enum VersePageKind { verse, meaning, purport }
-
-class VersePage {
-  const VersePage(this.kind, {this.sanskrit, this.transliteration, this.text, this.part = 0, this.parts = 1});
-
-  final VersePageKind kind;
-  final String? sanskrit;
-  final String? transliteration;
-  final String? text;
-
-  /// For a purport split over several pages: which one this is, of how many.
-  final int part;
-  final int parts;
-
-  int get wordCount => '${sanskrit ?? ''} ${transliteration ?? ''} ${text ?? ''}'
-      .split(RegExp(r'\s+'))
-      .where((word) => word.isNotEmpty)
-      .length;
-}
-
-/// Splits a purport into pieces that each fit [maxHeight] at [width] in [style].
-///
-/// Measured with the real text style rather than guessed from a character
-/// count, because a Devanagari or Tamil purport sets far taller than the same
-/// number of Latin letters. A piece is cut at the end of a sentence when one
-/// falls in the last third of what fits, so a page does not stop mid-thought
-/// when it can stop at a full stop.
-List<String> splitPurport(
-  String text, {
-  required TextStyle style,
-  required double width,
-  required double maxHeight,
-  required TextDirection direction,
-  required TextScaler scaler,
-}) {
-  final words = text.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
-  if (words.isEmpty) return const [];
-
-  bool fits(int from, int count) {
-    final painter = TextPainter(
-      text: TextSpan(text: words.sublist(from, from + count).join(' '), style: style),
-      textDirection: direction,
-      textScaler: scaler,
-    )..layout(maxWidth: width);
-    final height = painter.height;
-    painter.dispose();
-    return height <= maxHeight;
-  }
-
-  final sentenceEnd = RegExp(r'[.!?।॥”’"]$');
-  final pieces = <String>[];
-  var from = 0;
-  while (from < words.length) {
-    var low = 1;
-    var high = words.length - from;
-    // Largest count that fits; at least one word, so a tiny screen still ends.
-    while (low < high) {
-      final mid = (low + high + 1) ~/ 2;
-      if (fits(from, mid)) {
-        low = mid;
-      } else {
-        high = mid - 1;
-      }
-    }
-    var count = low;
-    if (from + count < words.length) {
-      final earliest = (count * 2 / 3).floor();
-      for (var i = count; i > earliest; i--) {
-        if (sentenceEnd.hasMatch(words[from + i - 1])) {
-          count = i;
-          break;
-        }
-      }
-    }
-    pieces.add(words.sublist(from, from + count).join(' '));
-    from += count;
-  }
-  return pieces;
-}
+export 'verse_reel_page_split.dart';
 
 /// A book reel: one verse drawn by the app, page by page — Sanskrit with its
 /// transliteration, the meaning, then the purport over as many pages as it
@@ -126,6 +48,10 @@ class _VerseReelPagesState extends State<VerseReelPages> with SingleTickerProvid
   int _pageCount = 1;
   bool _held = false;
 
+  /// Moves on each time the reel leaves the screen, so the next visit starts
+  /// on a fresh first page rather than cross-fading back from where it was.
+  int _visit = 0;
+
   // Pagination is measured, so it is kept until the size or the words change.
   List<VersePage>? _pages;
   Object? _pagesKey;
@@ -146,6 +72,7 @@ class _VerseReelPagesState extends State<VerseReelPages> with SingleTickerProvid
         _timer.stop();
         _index = 0;
         _timer.value = 0;
+        _visit++;
       }
     }
   }
@@ -284,30 +211,36 @@ class _VerseReelPagesState extends State<VerseReelPages> with SingleTickerProvid
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      _chromeTop,
-                      AppSpacing.lg + widget.rightInset,
-                      _chromeBottom + widget.bottomInset,
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 520),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(animation),
-                          child: ScaleTransition(scale: Tween<double>(begin: 0.97, end: 1).animate(animation), child: child),
-                        ),
+                  // A reel built ahead of a swipe holds its page still and lets
+                  // it rise in when it comes on screen.
+                  TickerMode(
+                    enabled: widget.isActive,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        _chromeTop,
+                        AppSpacing.lg + widget.rightInset,
+                        _chromeBottom + widget.bottomInset,
                       ),
-                      child: _PageBody(
-                        key: ValueKey('$_index'),
-                        page: pages[_index],
-                        style: style,
-                        bodyStyle: _bodyStyle,
-                        content: widget.content,
+                      child: AnimatedSwitcher(
+                        key: ValueKey(_visit),
+                        duration: const Duration(milliseconds: 520),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(animation),
+                            child: ScaleTransition(scale: Tween<double>(begin: 0.97, end: 1).animate(animation), child: child),
+                          ),
+                        ),
+                        child: _PageBody(
+                          key: ValueKey('$_index'),
+                          page: pages[_index],
+                          style: style,
+                          bodyStyle: _bodyStyle,
+                          content: widget.content,
+                        ),
                       ),
                     ),
                   ),
@@ -319,7 +252,9 @@ class _VerseReelPagesState extends State<VerseReelPages> with SingleTickerProvid
                       bottom: false,
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
-                        child: _Segments(count: pages.length, index: _index, timer: _timer, color: style.accentColor),
+                        child: RepaintBoundary(
+                          child: _Segments(count: pages.length, index: _index, timer: _timer, color: style.accentColor),
+                        ),
                       ),
                     ),
                   ),
@@ -467,6 +402,14 @@ class _Segments extends StatelessWidget {
   final Animation<double> timer;
   final Color color;
 
+  Widget _bar(double value) => LinearProgressIndicator(
+        value: value,
+        minHeight: 3,
+        backgroundColor: color.withValues(alpha: 0.25),
+        valueColor: AlwaysStoppedAnimation(color),
+      );
+
+  /// Only the running segment follows the clock; the others are drawn once.
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -478,15 +421,9 @@ class _Segments extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
               child: SizedBox(
                 height: 3,
-                child: AnimatedBuilder(
-                  animation: timer,
-                  builder: (context, _) => LinearProgressIndicator(
-                    value: i < index ? 1 : (i == index ? timer.value : 0),
-                    minHeight: 3,
-                    backgroundColor: color.withValues(alpha: 0.25),
-                    valueColor: AlwaysStoppedAnimation(color),
-                  ),
-                ),
+                child: i == index
+                    ? AnimatedBuilder(animation: timer, builder: (context, _) => _bar(timer.value))
+                    : _bar(i < index ? 1 : 0),
               ),
             ),
           ),
@@ -513,7 +450,7 @@ class _Background extends StatelessWidget {
             ColoredBox(color: style.colorTop),
             AppImage(
               url: style.imageUrl,
-              cacheKey: 'book-reel-background',
+              cacheKey: style.imageCacheKey,
               borderRadius: BorderRadius.zero,
               fit: BoxFit.cover,
               width: double.infinity,

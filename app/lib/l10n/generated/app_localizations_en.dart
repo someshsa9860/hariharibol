@@ -287,6 +287,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMantras => 'Mantras';
 
   @override
+  String get homeForYourGrowth => 'For what you are working on';
+
+  @override
+  String get homeThisWeek => 'This week';
+
+  @override
   String get homeStartYourDay => 'Set today\'s target';
 
   @override
@@ -1204,6 +1210,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'Removed from your daily routine';
+
+  @override
+  String get routineEditTask => 'Edit task';
+
+  @override
+  String get routineSaveChanges => 'Save changes';
+
+  @override
+  String get routineDeleteTask => 'Delete task';
+
+  @override
+  String get routineDeleteDaily => 'Remove from this day on';
+
+  @override
+  String get routineRepeatDaily => 'Repeat every day';
+
+  @override
+  String get routineRepeatFromDay => 'Shows on every day from this day on.';
+
+  @override
+  String get routineRepeatStops =>
+      'Stays on this day only and stops repeating after it.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'Changes apply from this day on. Earlier days keep it as it was.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'Changes apply from today on. Earlier days keep it as it was.';
+
+  @override
+  String get routineExactAlarmTitle => 'Alerts right on time';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android can hold a task\'s alert back by a few minutes. Allow alarms and reminders for this app so each alert comes the minute its time begins.';
+
+  @override
+  String get routineExactAlarmAllow => 'Allow';
+
+  @override
+  String get routineExactAlarmLater => 'Not now';
 
   @override
   String get reelsEmpty => 'No reels yet';

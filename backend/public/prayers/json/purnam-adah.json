@@ -1,0 +1,67 @@
+{
+  "slug": "purnam-adah",
+  "title": "Pūrṇam Adaḥ",
+  "titleOriginal": "ॐ पूर्णमदः पूर्णमिदम्",
+  "category": "peace",
+  "sortOrder": 10,
+  "originalLanguage": "sa",
+  "summary": "The invocation of the Īśopaniṣad: the Complete Whole remains complete.",
+  "about": "That is complete, this is complete; from the complete the complete comes, and what remains is still complete. Closes with “oṁ śāntiḥ śāntiḥ śāntiḥ”.",
+  "author": "Vyasadeva",
+  "reference": "Īśopaniṣad, invocation",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/o/ompurnamadahpurnam.html",
+  "tradition": "smarta",
+  "deity": "the complete whole",
+  "occasions": [
+    "opening or closing any study or worship"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "ॐ पूर्णमदः पूर्णमिदं\nपूर्णात्पूर्णमुदच्यते\nपूर्णस्य पूर्णमादाय\nपूर्णमेवावशिष्यते",
+      "roman": "oṁ pūrṇam adaḥ pūrṇam idaṁ pūrṇāt pūrṇam udacyate\npūrṇasya pūrṇam ādāya pūrṇam evāvaśiṣyate",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/o/ompurnamadahpurnam.html",
+    "devanagari": "https://kksongs.org/unicode/o/ompurnamadahpurnam_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Om Purnam Adah Purnam Idam",
+    "official name": "Sri Isopanisad",
+    "author": "Vyasadeva",
+    "book name": "Isopanisad (Isa Upanisad)",
+    "language": "Sanskrit"
+  },
+  "selected": {
+    "verses": [
+      1
+    ],
+    "why": "The page holds the whole Īśopaniṣad; the prayer is its invocation."
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 19,
+      "devanagari": 19
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": 0,
+        "copy": "roman",
+        "line": "(Invocation)"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.923Z"
+}

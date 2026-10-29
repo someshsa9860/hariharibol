@@ -144,13 +144,15 @@ export async function saveVerses({ prayerId, language, items, provider, runId, s
  * forced, run, and it shares `stateOf` with it: a header is missing when there is no title; a rendering is missing when
  * the script is made by a model and a verse has no text, or its text is not a person's and is older than the verse; a
  * meaning is missing when the English one is not empty and the translation is. Change one, change the other.
+ * "Not empty" is `~ '[^[:space:]]'` and not `'\S'`: a backslash in a tagged template is cooked away, so `'\S'` reaches
+ * Postgres as `'S'` and matches the letter.
  */
 export async function coverage() {
   const [prayers, headers, aggregates] = await Promise.all([
     prisma.$queryRaw`
       SELECT p."id" AS "prayerId", p."originalLanguage" AS "originalLanguage",
              COUNT(v."id")::int AS "verses",
-             (COUNT(v."id") FILTER (WHERE COALESCE(v."meaning", '') ~ '\S'))::int AS "withMeaning"
+             (COUNT(v."id") FILTER (WHERE COALESCE(v."meaning", '') ~ '[^[:space:]]'))::int AS "withMeaning"
       FROM "Prayer" p JOIN "PrayerVerse" v ON v."prayerId" = p."id"
       WHERE p."status" = 'PUBLISHED'
       GROUP BY p."id", p."originalLanguage"`,
@@ -160,10 +162,10 @@ export async function coverage() {
     }),
     prisma.$queryRaw`
       SELECT v."prayerId" AS "prayerId", t."languageCode" AS "languageCode",
-             (COUNT(*) FILTER (WHERE COALESCE(t."text", '') ~ '\S'))::int AS "texts",
-             (COUNT(*) FILTER (WHERE COALESCE(t."text", '') ~ '\S' AND NOT t."isEdited" AND (t."renderedAt" IS NULL OR t."renderedAt" < v."textChangedAt")))::int AS "stale",
-             (COUNT(*) FILTER (WHERE COALESCE(t."meaning", '') ~ '\S' AND COALESCE(v."meaning", '') ~ '\S'))::int AS "meaningsDone",
-             (COUNT(*) FILTER (WHERE COALESCE(t."meaning", '') ~ '\S'))::int AS "meaningsAny",
+             (COUNT(*) FILTER (WHERE COALESCE(t."text", '') ~ '[^[:space:]]'))::int AS "texts",
+             (COUNT(*) FILTER (WHERE COALESCE(t."text", '') ~ '[^[:space:]]' AND NOT t."isEdited" AND (t."renderedAt" IS NULL OR t."renderedAt" < v."textChangedAt")))::int AS "stale",
+             (COUNT(*) FILTER (WHERE COALESCE(t."meaning", '') ~ '[^[:space:]]' AND COALESCE(v."meaning", '') ~ '[^[:space:]]'))::int AS "meaningsDone",
+             (COUNT(*) FILTER (WHERE COALESCE(t."meaning", '') ~ '[^[:space:]]'))::int AS "meaningsAny",
              (COUNT(*) FILTER (WHERE t."isEdited"))::int AS "edited"
       FROM "PrayerVerseTranslation" t
       JOIN "PrayerVerse" v ON v."id" = t."verseId"

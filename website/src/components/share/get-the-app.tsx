@@ -13,7 +13,7 @@ export function GetTheApp({ url, appPath, heading, note }: { url: string; appPat
   return (
     <aside className="card share-get" aria-labelledby="get-app-title">
       <div className="share-brand">
-        <Image src="/img/logo.png" alt="" width={44} height={44} />
+        <Image src="/img/logo-128.png" alt="" width={44} height={44} />
         <div>
           <h2 id="get-app-title" style={{ fontSize: '1.2rem', margin: 0 }}>{heading}</h2>
           <small className="muted">HariHariBol — learn, chant, remember</small>

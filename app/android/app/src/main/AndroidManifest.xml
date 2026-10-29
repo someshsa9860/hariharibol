@@ -14,6 +14,13 @@
     <!-- Routine alerts are set with the system's alarm clock, which forgets them
          when the phone restarts; this lets the plugin set them again. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Lets a routine alert come at the very minute its task's time range opens
+         (an exact alarm). On Android 14 and later the reader grants it in
+         settings, from a card on the routine screen; without it the alerts are
+         still set, inexact, and Android may hold one a few minutes. Deliberately
+         not USE_EXACT_ALARM: Google Play keeps that one for alarm-clock and
+         calendar apps and asks for a declaration (RoutineAlertService). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <!-- A phone is not required: on Android TV there is no touchscreen, and the
          leanback launcher needs the app to say it can run without one. -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>

@@ -10,12 +10,13 @@ import 'routine_style.dart';
 import 'routine_window_field.dart';
 
 /// What the sheet hands back — the provider decides the id, this only
-/// describes what to add.
+/// describes what to add or what the task becomes.
 class RoutineTaskDraft {
   const RoutineTaskDraft({
     required this.title,
     required this.category,
     this.window,
+    this.daily = false,
   });
 
   final String title;
@@ -23,6 +24,19 @@ class RoutineTaskDraft {
 
   /// When the task is meant to be done, or null for one with no set time.
   final RoutineWindow? window;
+
+  /// Whether it repeats every day (from the day it was added or changed on).
+  final bool daily;
+}
+
+/// What the edit sheet hands back: the task as it is to be, or that it is to
+/// be deleted.
+class RoutineTaskEdit {
+  const RoutineTaskEdit.save(RoutineTaskDraft this.draft) : delete = false;
+  const RoutineTaskEdit.delete() : draft = null, delete = true;
+
+  final RoutineTaskDraft? draft;
+  final bool delete;
 }
 
 /// One task: a name — picked from the standard routines or typed — a category
@@ -35,34 +49,92 @@ class RoutineTaskDraft {
 /// frosted `GlassNavBar` — a sheet opened on that navigator renders behind
 /// the bar instead of over it, with no way to dismiss it.
 ///
-/// [daily] words it for the daily routine ("Add to every day").
+/// [daily] words it for the daily routine ("Add to every day"); otherwise it
+/// adds to a day, with a switch to make the task repeat every day from it.
 Future<RoutineTaskDraft?> showAddRoutineTaskSheet(
   BuildContext context, {
   bool daily = false,
 }) {
-  return showModalBottomSheet<RoutineTaskDraft>(
+  return _showSheet<RoutineTaskDraft>(
+    context,
+    _RoutineTaskSheet(purpose: daily ? _Purpose.addDaily : _Purpose.addToDay),
+  );
+}
+
+/// The same form filled in with [task], to change it from the day it is shown
+/// on: its name, category and time range, whether it repeats every day, or
+/// to delete it from that day on.
+///
+/// [fromDailyList] is the daily routine's own list, where an item is changed
+/// from today on and is taken off with the list's own button: the sheet then
+/// has neither the switch nor a delete button.
+Future<RoutineTaskEdit?> showEditRoutineTaskSheet(
+  BuildContext context,
+  RoutineTask task, {
+  bool fromDailyList = false,
+}) {
+  return _showSheet<RoutineTaskEdit>(
+    context,
+    _RoutineTaskSheet(
+      purpose: fromDailyList ? _Purpose.editDaily : _Purpose.editOnDay,
+      task: task,
+    ),
+  );
+}
+
+Future<T?> _showSheet<T>(BuildContext context, Widget sheet) {
+  return showModalBottomSheet<T>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     useRootNavigator: true,
     backgroundColor: context.colors.surface,
-    builder: (context) => _AddRoutineTaskSheet(daily: daily),
+    builder: (context) => sheet,
   );
 }
 
-class _AddRoutineTaskSheet extends StatefulWidget {
-  const _AddRoutineTaskSheet({required this.daily});
+/// What the form is open for.
+enum _Purpose {
+  /// A new task on the day shown, which may be made to repeat.
+  addToDay,
 
-  final bool daily;
+  /// A new item of the daily routine, from its own list.
+  addDaily,
 
-  @override
-  State<_AddRoutineTaskSheet> createState() => _AddRoutineTaskSheetState();
+  /// A task on the day shown, daily or not.
+  editOnDay,
+
+  /// An item of the daily routine, from its own list.
+  editDaily;
+
+  bool get isEdit => this == editOnDay || this == editDaily;
+
+  /// Whether "Repeat every day" can be switched here.
+  bool get asksRepeat => this == addToDay || this == editOnDay;
 }
 
-class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
-  final _controller = TextEditingController();
-  RoutineCategory _category = RoutineCategory.devotion;
-  RoutineRange? _range;
+class _RoutineTaskSheet extends StatefulWidget {
+  const _RoutineTaskSheet({required this.purpose, this.task});
+
+  final _Purpose purpose;
+
+  /// The task being changed, or null when adding one.
+  final RoutineTask? task;
+
+  @override
+  State<_RoutineTaskSheet> createState() => _RoutineTaskSheetState();
+}
+
+class _RoutineTaskSheetState extends State<_RoutineTaskSheet> {
+  late final _controller = TextEditingController(text: widget.task?.title);
+  late RoutineCategory _category =
+      widget.task?.category ?? RoutineCategory.devotion;
+  late RoutineRange? _range = switch (widget.task?.window) {
+    final window? => (start: window.start, end: window.end),
+    null => null,
+  };
+  late bool _daily =
+      widget.task?.isDaily ?? widget.purpose == _Purpose.addDaily;
 
   @override
   void initState() {
@@ -94,15 +166,38 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
   void _submit() {
     if (!_canSave) return;
     final range = _range;
-    Navigator.of(context).pop(
-      RoutineTaskDraft(
-        title: _controller.text.trim(),
-        category: _category,
-        window: range == null
-            ? null
-            : RoutineWindow(start: range.start, end: range.end),
-      ),
+    final draft = RoutineTaskDraft(
+      title: _controller.text.trim(),
+      category: _category,
+      window: range == null
+          ? null
+          : RoutineWindow(start: range.start, end: range.end),
+      daily: _daily,
     );
+    Navigator.of(
+      context,
+    ).pop(widget.purpose.isEdit ? RoutineTaskEdit.save(draft) : draft);
+  }
+
+  void _delete() => Navigator.of(context).pop(const RoutineTaskEdit.delete());
+
+  /// What switching to repeat, or away from it, will do — said before it is
+  /// done, since a change to a daily item never reaches back before its day.
+  String? _note(AppLocalizations text) {
+    final wasDaily = widget.task?.isDaily ?? false;
+    return switch (widget.purpose) {
+      _Purpose.editDaily => text.routineEditDailyFromToday,
+      _Purpose.addDaily => null,
+      _ when wasDaily && _daily => text.routineEditDailyFromDay,
+      _ when wasDaily => text.routineRepeatStops,
+      _ when _daily => text.routineRepeatFromDay,
+      _ => null,
+    };
+  }
+
+  String _saveLabel(AppLocalizations text) {
+    if (widget.purpose.isEdit) return text.routineSaveChanges;
+    return _daily ? text.routineDailySaveAction : text.routineSaveAction;
   }
 
   @override
@@ -132,9 +227,11 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.daily
-                          ? text.routineDailyAdd
-                          : text.routineAddTask,
+                      switch (widget.purpose) {
+                        _Purpose.addToDay => text.routineAddTask,
+                        _Purpose.addDaily => text.routineDailyAdd,
+                        _ => text.routineEditTask,
+                      },
                       style: context.texts.titleLarge,
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -163,6 +260,25 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
                       range: _range,
                       onChanged: (range) => setState(() => _range = range),
                     ),
+                    if (widget.purpose.asksRepeat) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(Icons.repeat_rounded),
+                        title: Text(text.routineRepeatDaily),
+                        value: _daily,
+                        onChanged: (value) => setState(() => _daily = value),
+                      ),
+                    ],
+                    if (_note(text) case final note?) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        note,
+                        style: context.texts.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -174,16 +290,30 @@ class _AddRoutineTaskSheetState extends State<_AddRoutineTaskSheet> {
                 AppSpacing.lg,
                 AppSpacing.xl,
               ),
-              child: SizedBox(
-                height: AppSizes.buttonHeight,
-                child: FilledButton(
-                  onPressed: _canSave ? _submit : null,
-                  child: Text(
-                    widget.daily
-                        ? text.routineDailySaveAction
-                        : text.routineSaveAction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: AppSizes.buttonHeight,
+                    child: FilledButton(
+                      onPressed: _canSave ? _submit : null,
+                      child: Text(_saveLabel(text)),
+                    ),
                   ),
-                ),
+                  if (widget.purpose == _Purpose.editOnDay) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    TextButton.icon(
+                      onPressed: _delete,
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: Text(
+                        widget.task?.isDaily ?? false
+                            ? text.routineDeleteDaily
+                            : text.routineDeleteTask,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

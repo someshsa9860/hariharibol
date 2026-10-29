@@ -56,6 +56,7 @@ abstract final class ApiPaths {
 
   // Dashboard
   static const String home = '$_app/home';
+  static const String homeIssueVerses = '$home/issue-verses';
 
   // Plans and entitlement
   static const String subscriptionPlans = '$_app/subscription/plans';

@@ -1,0 +1,105 @@
+{
+  "slug": "udilo-aruna",
+  "title": "Udilo Aruṇa",
+  "titleOriginal": "উদিল অরুণ",
+  "category": "morning",
+  "sortOrder": 20,
+  "originalLanguage": "bn",
+  "summary": "A dawn song: Śrī Caitanya goes out at sunrise with His devotees, singing the holy name.",
+  "about": "Describes Mahāprabhu and His companions waking the town of Navadvīpa with kīrtana as the sun comes up.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Gītāvalī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/u/udiloaruna.html",
+  "tradition": "vaishnava",
+  "deity": "gaura",
+  "occasions": [
+    "dawn"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "উদিল অরুণ পূরব-ভাগে,\nদ্বিজ-মণি গোরা অমনি জাগে,\nভকত-সমূহ লৈয়া সাথে,\nগেলা নগর-ব্রাজে",
+      "roman": "udilo aruṇa pūraba-bhāge,\ndwija-maṇi gorā amani jāge,\nbhakata-samūha loiyā sāthe,\ngelā nagara-brāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "’তাথঈ তাথঈ' বাজল খোল,\nঘন ঘন তাহে ঝাজের রোল,\nপ্রেমে ঢল ঢল সোণার অঙ্গ,\nচরণে নূপুর বাজে",
+      "roman": "'tāthaī tāthaī bājalo khol,\nghana ghana tāhe jhājera rol,\npreme ḍhala ḍhala soṇāra aṅga,\ncaraṇe nūpura bāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "মুকুন্দ মাধব যাদব হরি,\nবলেন বল রে বদন ভরি’,\nমিছে নিদ-বশে গেল রে রাতি,\nদিবস শরীর-সাজে",
+      "roman": "mukunda mādhava yādava hari,\nbolena bolo re vadana bhori',\nmiche nida-baśe gelo re rāti,\ndivasa śarīra-sāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "এমন দুর্লভ মানব-দেহ,\nপাইয়া কি কর ভাব না কেহ,\nএবে না ভজিলে যশোদা-সুত,\nচরমে পড়িবে লাজে",
+      "roman": "emana durlabha mānava-deho,\npāiyā ki koro bhāva nā keho,\nebe nā bhajile yaśodā-suta,\ncarame poribe lāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "উদিত তপন হৈলে অস্ত,\nদিন গেল বলি’ হৈবে ব্য়স্ত,\nতবে ক্য়ানো এবে অলস হয়,\nনা ভজ হৃদয়-রাজে",
+      "roman": "udita tapana hoile asta,\ndina gelo boli' hoibe byasta,\ntabe keno ebe alasa hoy,\nnā bhaja hṛdoya-rāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "জীবন অনিত্য় জানহ সার,\nতাহে নানা-বিধ বিপদ-ভার,\nনামাশ্রয় করি’ জতনে তুমি,\nথাকহ আপন কাজে",
+      "roman": "jīvana anitya jānaha sār,\ntāhe nānā-vidha vipada-bhār,\nnāmāśraya kori' jatane tumi,\nthākaha āpana kāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "জীবের কল্য়ান-সাধন-কাম,\nজগতে আসি’ এ মধুর নাম,\nঅবিদ্য়া-তিমির-তপন-রূপে,\nহৃদ-গগনে বিরাজে",
+      "roman": "jīvera kalyāna-sādhana-kām,\njagate āsi' e madhura nām,\navidyā-timira-tapana-rūpe,\nhṛd-gagane birāje",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "কৃষ্ণ-নাম-সুধা করিয়া পান,\nজুড়াও ভকতিবিনোদ-প্রাণ,\nনাম বিনা কিছু নাহিক আর,\nচৌদ্দ-ভুবন-মাঝে",
+      "roman": "kṛṣṇa-nāma-sudhā koriyā pān,\njurāo bhakativinoda-prāṇ,\nnāma binā kichu nāhiko āro,\ncaudda-bhuvana-mājhe",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/u/udiloaruna.html",
+    "bengali": "https://kksongs.org/unicode/u/udiloaruna_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Udilo Aruna Puraba Bhage",
+    "official name": "Arunodaya Kirtana Song 1",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Gitavali",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 8,
+      "bengali": 8
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.854Z"
+}

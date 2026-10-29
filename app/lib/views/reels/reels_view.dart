@@ -25,6 +25,7 @@ import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
 import 'reel_actions.dart';
+import 'reels_on_screen.dart';
 import '../../core/share_links.dart';
 import '../../services/share_service.dart';
 
@@ -53,7 +54,7 @@ class ReelsView extends ConsumerStatefulWidget {
 }
 
 class _ReelsViewState extends ConsumerState<ReelsView>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ReelsOnScreen<ReelsView> {
   final PageController _pages = PageController();
 
   /// One key per reel id, so the view can reach the active player to report a
@@ -61,9 +62,6 @@ class _ReelsViewState extends ConsumerState<ReelsView>
   final Map<String, GlobalKey<ReelVideoPlayerState>> _playerKeys = {};
 
   int _index = 0;
-
-  /// Whether this tab was the one on screen at the last build.
-  bool _shown = true;
 
   /// The feed as of the last build. `dispose()` needs the current reel's id
   /// to report its watch, but `ref` is unsafe to read once the widget is
@@ -75,46 +73,22 @@ class _ReelsViewState extends ConsumerState<ReelsView>
   /// kind of screen, and the mute button says plainly which state it is in.
   bool _muted = true;
 
-  /// Paused because the app went to the background or something was pushed
-  /// over the feed. Separate from the per-reel pause so returning resumes the
-  /// reel rather than restarting the feed.
-  bool _suspended = false;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     TrackingService.instance.log('reels_open');
   }
 
+  /// Leaving the tab needs no report of its own: the reel going inactive
+  /// reports how far it got, as a swipe past does.
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final shown = TickerMode.valuesOf(context).enabled;
-    if (shown == _shown) return;
-    _shown = shown;
-    if (shown) {
-      TrackingService.instance.log('reels_open');
-    } else {
-      // Leaving the tab pauses the reel and reports how far it got — it may
-      // be a long time before it is swiped past, or never.
-      _playerKeys[_currentReelId]?.currentState?.reportProgress();
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final suspended = state != AppLifecycleState.resumed;
-    if (suspended == _suspended) return;
-    setState(() => _suspended = suspended);
-  }
+  void onReelsShown() => TrackingService.instance.log('reels_open');
 
   @override
   void dispose() {
     // The reel on screen when the feed closes has not been swiped past, so
     // this is its only chance to report what was watched.
     _playerKeys[_currentReelId]?.currentState?.reportProgress();
-    WidgetsBinding.instance.removeObserver(this);
     _pages.dispose();
     super.dispose();
   }
@@ -315,6 +289,9 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                     : PageView.builder(
                         controller: _pages,
                         scrollDirection: Axis.vertical,
+                        // The reels either side are built (not played) so a
+                        // swipe lands on a picture, not a spinner.
+                        allowImplicitScrolling: true,
                         onPageChanged: _onPageChanged,
                         itemCount: _pageCount(reels.length),
                         itemBuilder: (context, index) {
@@ -323,7 +300,7 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                             return ChantReelPage(
                               key: ValueKey('chant-$index'),
                               slug: _chantSlug!,
-                              isActive: index == _index && !_suspended && _shown,
+                              isActive: index == _index && reelsOnScreen,
                               onEnded: () => _advance(index),
                             );
                           }
@@ -332,7 +309,7 @@ class _ReelsViewState extends ConsumerState<ReelsView>
                             key: ValueKey(reel.id),
                             reel: reel,
                             playerKey: _keyFor(reel.id),
-                            isActive: index == _index && !_suspended && _shown,
+                            isActive: index == _index && reelsOnScreen,
                             isMuted: _muted,
                             onProgress: (watched, duration) =>
                                 _reportWatch(reel, watched, duration),

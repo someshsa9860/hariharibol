@@ -290,6 +290,12 @@ class AppLocalizationsMr extends AppLocalizations {
   String get homeMantras => 'मंत्र';
 
   @override
+  String get homeForYourGrowth => 'तुम्ही ज्यावर काम करत आहात ते';
+
+  @override
+  String get homeThisWeek => 'या आठवड्यात';
+
+  @override
   String get homeStartYourDay => 'आजचे लक्ष्य ठरवा';
 
   @override
@@ -1207,6 +1213,49 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'तुमच्या दैनंदिन दिनचर्येतून काढले';
+
+  @override
+  String get routineEditTask => 'काम संपादित करा';
+
+  @override
+  String get routineSaveChanges => 'बदल जतन करा';
+
+  @override
+  String get routineDeleteTask => 'काम हटवा';
+
+  @override
+  String get routineDeleteDaily => 'या दिवसापासून पुढे काढा';
+
+  @override
+  String get routineRepeatDaily => 'दररोज पुन्हा करा';
+
+  @override
+  String get routineRepeatFromDay => 'या दिवसापासून दररोज दिसेल.';
+
+  @override
+  String get routineRepeatStops =>
+      'फक्त याच दिवशी राहील आणि त्यानंतर पुन्हा येणार नाही.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'बदल या दिवसापासून लागू होतील. आधीच्या दिवसांत ते पूर्वीसारखेच राहील.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'बदल आजपासून लागू होतील. आधीच्या दिवसांत ते पूर्वीसारखेच राहील.';
+
+  @override
+  String get routineExactAlarmTitle => 'अगदी वेळेवर सूचना';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android एखाद्या कामाची सूचना काही मिनिटे उशिरा देऊ शकते. या ॲपला अलार्म आणि रिमाइंडरची परवानगी द्या, म्हणजे प्रत्येक सूचना त्याची वेळ सुरू होताच त्याच मिनिटाला येईल.';
+
+  @override
+  String get routineExactAlarmAllow => 'परवानगी द्या';
+
+  @override
+  String get routineExactAlarmLater => 'आत्ता नाही';
 
   @override
   String get reelsEmpty => 'अजून एकही रील नाही';

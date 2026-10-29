@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,12 +31,16 @@ class RoutineAlertTick {
 
 /// Where a press of an alert's "Mark as done" waits for the app.
 ///
-/// A button that does not open the app runs in an isolate of its own
+/// On Android a button that does not open the app runs in an isolate of its own
 /// ([routineAlertBackground]), which has no way into the routine: it lives in
 /// Hive, opened by the app's isolate only. So the press is written here — one key
 /// each, so two presses never overwrite one another and nothing is read before it
 /// is written — and the app takes them ([take]) when it opens, when it comes back
 /// to the front, and at once when it is already open ([ping] / [listen]).
+///
+/// On iOS `AppDelegate` writes the same key itself, in the same store, and tells
+/// an open app over [RoutineConfig.alertChannel] ("ticked"): no Dart has to start
+/// for a press.
 ///
 /// Taking is safe to repeat and the routine ignores a task that is already done,
 /// so a press can never be counted twice.
@@ -90,13 +95,23 @@ class RoutineAlertTicks {
   /// Tells the app's isolate, if it is running, that a press was written.
   static void ping() => IsolateNameServer.lookupPortByName(RoutineConfig.alertPortName)?.send(true);
 
-  /// Calls [onPress] whenever another isolate [ping]s. Close the returned port to
-  /// stop.
+  /// `AppDelegate`'s side, iOS only.
+  static const MethodChannel _ios = MethodChannel(RoutineConfig.alertChannel);
+
+  static bool get _onIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  /// Calls [onPress] whenever another isolate [ping]s, or on iOS `AppDelegate`
+  /// says a press was written. Pass the returned port to [stopListening] to stop.
   static ReceivePort listen(VoidCallback onPress) {
     // A port left by a previous run of this isolate (a hot restart) is replaced.
     IsolateNameServer.removePortNameMapping(RoutineConfig.alertPortName);
     final port = ReceivePort()..listen((_) => onPress());
     IsolateNameServer.registerPortWithName(port.sendPort, RoutineConfig.alertPortName);
+    if (_onIos) {
+      _ios.setMethodCallHandler((call) async {
+        if (call.method == 'ticked') onPress();
+      });
+    }
     return port;
   }
 
@@ -104,12 +119,14 @@ class RoutineAlertTicks {
   static void stopListening(ReceivePort port) {
     IsolateNameServer.removePortNameMapping(RoutineConfig.alertPortName);
     port.close();
+    if (_onIos) _ios.setMethodCallHandler(null);
   }
 }
 
 /// Runs when a button on an alert is pressed and the app is not asked to open — in
 /// its own isolate, so it starts what it needs itself. Registered with the plugin
-/// in `LocalPushService`.
+/// in `LocalPushService`. Android only: on iOS the press never reaches the plugin
+/// (`AppDelegate` answers it).
 @pragma('vm:entry-point')
 Future<void> routineAlertBackground(NotificationResponse response) async {
   if (response.actionId != RoutineConfig.alertDoneActionId) return;

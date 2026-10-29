@@ -291,6 +291,12 @@ class AppLocalizationsOr extends AppLocalizations {
   String get homeMantras => 'ମନ୍ତ୍ର';
 
   @override
+  String get homeForYourGrowth => 'ଆପଣ ଯାହା ଉପରେ କାମ କରୁଛନ୍ତି';
+
+  @override
+  String get homeThisWeek => 'ଏହି ସପ୍ତାହ';
+
+  @override
   String get homeStartYourDay => 'ଆଜିର ଲକ୍ଷ୍ୟ ସ୍ଥିର କରନ୍ତୁ';
 
   @override
@@ -1208,6 +1214,49 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'ଆପଣଙ୍କ ଦୈନିକ ଦିନଚର୍ଯ୍ୟାରୁ ହଟାଗଲା';
+
+  @override
+  String get routineEditTask => 'କାମ ସମ୍ପାଦନା କରନ୍ତୁ';
+
+  @override
+  String get routineSaveChanges => 'ପରିବର୍ତ୍ତନ ସଞ୍ଚୟ କରନ୍ତୁ';
+
+  @override
+  String get routineDeleteTask => 'କାମ ବିଲୋପ କରନ୍ତୁ';
+
+  @override
+  String get routineDeleteDaily => 'ଏହି ଦିନଠାରୁ ହଟାନ୍ତୁ';
+
+  @override
+  String get routineRepeatDaily => 'ପ୍ରତିଦିନ ଦୋହରାନ୍ତୁ';
+
+  @override
+  String get routineRepeatFromDay => 'ଏହି ଦିନଠାରୁ ପ୍ରତିଦିନ ଦେଖାଯିବ।';
+
+  @override
+  String get routineRepeatStops =>
+      'କେବଳ ଏହି ଦିନରେ ରହିବ ଏବଂ ଏହା ପରେ ଆଉ ଦୋହରାଯିବ ନାହିଁ।';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'ପରିବର୍ତ୍ତନ ଏହି ଦିନଠାରୁ ଲାଗୁ ହେବ। ପୂର୍ବ ଦିନଗୁଡ଼ିକରେ ଏହା ପୂର୍ବ ପରି ରହିବ।';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'ପରିବର୍ତ୍ତନ ଆଜିଠାରୁ ଲାଗୁ ହେବ। ପୂର୍ବ ଦିନଗୁଡ଼ିକରେ ଏହା ପୂର୍ବ ପରି ରହିବ।';
+
+  @override
+  String get routineExactAlarmTitle => 'ଠିକ୍ ସମୟରେ ସୂଚନା';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android କୌଣସି କାମର ସୂଚନାକୁ କିଛି ମିନିଟ୍ ଅଟକାଇ ରଖିପାରେ। ଏହି ଆପ୍‌କୁ ଆଲାର୍ମ ଓ ସ୍ମାରକର ଅନୁମତି ଦିଅନ୍ତୁ, ଯାହାଫଳରେ ପ୍ରତ୍ୟେକ ସୂଚନା ତାହାର ସମୟ ଆରମ୍ଭ ହେବା ମିନିଟରେ ହିଁ ଆସିବ।';
+
+  @override
+  String get routineExactAlarmAllow => 'ଅନୁମତି ଦିଅନ୍ତୁ';
+
+  @override
+  String get routineExactAlarmLater => 'ଏବେ ନୁହେଁ';
 
   @override
   String get reelsEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ରିଲ୍ସ ନାହିଁ';

@@ -290,6 +290,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get homeMantras => 'மந்திரங்கள்';
 
   @override
+  String get homeForYourGrowth => 'நீங்கள் எதில் பணியாற்றுகிறீர்களோ அது';
+
+  @override
+  String get homeThisWeek => 'இந்த வாரம்';
+
+  @override
   String get homeStartYourDay => 'இன்றைய இலக்கை அமைக்கவும்';
 
   @override
@@ -1217,6 +1223,50 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get routineDailyRemoved =>
       'உங்கள் தினசரி வழக்கத்திலிருந்து நீக்கப்பட்டது';
+
+  @override
+  String get routineEditTask => 'பணியைத் திருத்து';
+
+  @override
+  String get routineSaveChanges => 'மாற்றங்களைச் சேமி';
+
+  @override
+  String get routineDeleteTask => 'பணியை நீக்கு';
+
+  @override
+  String get routineDeleteDaily => 'இந்த நாளிலிருந்து நீக்கு';
+
+  @override
+  String get routineRepeatDaily => 'ஒவ்வொரு நாளும் மீண்டும் செய்';
+
+  @override
+  String get routineRepeatFromDay =>
+      'இந்த நாளிலிருந்து ஒவ்வொரு நாளும் காட்டப்படும்.';
+
+  @override
+  String get routineRepeatStops =>
+      'இந்த நாளில் மட்டும் இருக்கும், அதன் பிறகு மீண்டும் வராது.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'மாற்றங்கள் இந்த நாளிலிருந்து பொருந்தும். முந்தைய நாட்களில் இது முன்பு போலவே இருக்கும்.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'மாற்றங்கள் இன்றிலிருந்து பொருந்தும். முந்தைய நாட்களில் இது முன்பு போலவே இருக்கும்.';
+
+  @override
+  String get routineExactAlarmTitle => 'சரியான நேரத்தில் அறிவிப்புகள்';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android ஒரு பணியின் அறிவிப்பைச் சில நிமிடங்கள் தாமதப்படுத்தலாம். இந்தச் செயலிக்கு அலாரங்கள் மற்றும் நினைவூட்டல்களுக்கான அனுமதியை வழங்குங்கள், அப்போது ஒவ்வொரு அறிவிப்பும் அதன் நேரம் தொடங்கும் நிமிடத்திலேயே வரும்.';
+
+  @override
+  String get routineExactAlarmAllow => 'அனுமதி';
+
+  @override
+  String get routineExactAlarmLater => 'இப்போது வேண்டாம்';
 
   @override
   String get reelsEmpty => 'ரீல்ஸ் இன்னும் இல்லை';

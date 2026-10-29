@@ -291,6 +291,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get homeMantras => 'ಮಂತ್ರಗಳು';
 
   @override
+  String get homeForYourGrowth => 'ನೀವು ಯಾವುದರ ಮೇಲೆ ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದೀರೋ ಅದು';
+
+  @override
+  String get homeThisWeek => 'ಈ ವಾರ';
+
+  @override
   String get homeStartYourDay => 'ಇಂದಿನ ಗುರಿಯನ್ನು ಹೊಂದಿಸಿ';
 
   @override
@@ -1211,6 +1217,49 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'ನಿಮ್ಮ ದೈನಂದಿನ ದಿನಚರಿಯಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ';
+
+  @override
+  String get routineEditTask => 'ಕೆಲಸ ತಿದ್ದಿ';
+
+  @override
+  String get routineSaveChanges => 'ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ';
+
+  @override
+  String get routineDeleteTask => 'ಕೆಲಸ ಅಳಿಸಿ';
+
+  @override
+  String get routineDeleteDaily => 'ಈ ದಿನದಿಂದ ಮುಂದೆ ತೆಗೆದುಹಾಕಿ';
+
+  @override
+  String get routineRepeatDaily => 'ಪ್ರತಿದಿನ ಪುನರಾವರ್ತಿಸಿ';
+
+  @override
+  String get routineRepeatFromDay => 'ಈ ದಿನದಿಂದ ಪ್ರತಿದಿನ ಕಾಣಿಸುತ್ತದೆ.';
+
+  @override
+  String get routineRepeatStops =>
+      'ಈ ದಿನ ಮಾತ್ರ ಇರುತ್ತದೆ ಮತ್ತು ಅದರ ನಂತರ ಪುನರಾವರ್ತನೆಯಾಗುವುದಿಲ್ಲ.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'ಬದಲಾವಣೆಗಳು ಈ ದಿನದಿಂದ ಅನ್ವಯಿಸುತ್ತವೆ. ಹಿಂದಿನ ದಿನಗಳಲ್ಲಿ ಇದು ಹಿಂದಿನಂತೆಯೇ ಇರುತ್ತದೆ.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'ಬದಲಾವಣೆಗಳು ಇಂದಿನಿಂದ ಅನ್ವಯಿಸುತ್ತವೆ. ಹಿಂದಿನ ದಿನಗಳಲ್ಲಿ ಇದು ಹಿಂದಿನಂತೆಯೇ ಇರುತ್ತದೆ.';
+
+  @override
+  String get routineExactAlarmTitle => 'ಸರಿಯಾದ ಸಮಯಕ್ಕೆ ಎಚ್ಚರಿಕೆಗಳು';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android ಕೆಲಸದ ಎಚ್ಚರಿಕೆಯನ್ನು ಕೆಲವು ನಿಮಿಷ ತಡೆಹಿಡಿಯಬಹುದು. ಈ ಆ್ಯಪ್‌ಗೆ ಅಲಾರಾಂ ಮತ್ತು ಜ್ಞಾಪನೆಗಳ ಅನುಮತಿ ನೀಡಿ, ಆಗ ಪ್ರತಿಯೊಂದು ಎಚ್ಚರಿಕೆ ಅದರ ಸಮಯ ಆರಂಭವಾದ ನಿಮಿಷದಲ್ಲೇ ಬರುತ್ತದೆ.';
+
+  @override
+  String get routineExactAlarmAllow => 'ಅನುಮತಿ ನೀಡಿ';
+
+  @override
+  String get routineExactAlarmLater => 'ಈಗ ಬೇಡ';
 
   @override
   String get reelsEmpty => 'ಇನ್ನೂ ರೀಲ್ಸ್ ಇಲ್ಲ';

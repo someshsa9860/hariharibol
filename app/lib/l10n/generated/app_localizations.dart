@@ -586,6 +586,18 @@ abstract class AppLocalizations {
   /// **'Mantras'**
   String get homeMantras;
 
+  /// No description provided for @homeForYourGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'For what you are working on'**
+  String get homeForYourGrowth;
+
+  /// No description provided for @homeThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get homeThisWeek;
+
   /// No description provided for @homeStartYourDay.
   ///
   /// In en, this message translates to:
@@ -2139,6 +2151,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed from your daily routine'**
   String get routineDailyRemoved;
+
+  /// No description provided for @routineEditTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit task'**
+  String get routineEditTask;
+
+  /// No description provided for @routineSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get routineSaveChanges;
+
+  /// No description provided for @routineDeleteTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete task'**
+  String get routineDeleteTask;
+
+  /// No description provided for @routineDeleteDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from this day on'**
+  String get routineDeleteDaily;
+
+  /// No description provided for @routineRepeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat every day'**
+  String get routineRepeatDaily;
+
+  /// No description provided for @routineRepeatFromDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows on every day from this day on.'**
+  String get routineRepeatFromDay;
+
+  /// No description provided for @routineRepeatStops.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays on this day only and stops repeating after it.'**
+  String get routineRepeatStops;
+
+  /// No description provided for @routineEditDailyFromDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes apply from this day on. Earlier days keep it as it was.'**
+  String get routineEditDailyFromDay;
+
+  /// No description provided for @routineEditDailyFromToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes apply from today on. Earlier days keep it as it was.'**
+  String get routineEditDailyFromToday;
+
+  /// No description provided for @routineExactAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts right on time'**
+  String get routineExactAlarmTitle;
+
+  /// No description provided for @routineExactAlarmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android can hold a task\'s alert back by a few minutes. Allow alarms and reminders for this app so each alert comes the minute its time begins.'**
+  String get routineExactAlarmBody;
+
+  /// No description provided for @routineExactAlarmAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get routineExactAlarmAllow;
+
+  /// No description provided for @routineExactAlarmLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get routineExactAlarmLater;
 
   /// No description provided for @reelsEmpty.
   ///

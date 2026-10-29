@@ -5,8 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseTimeOfDay, deliveryMinutes, isDeliveryDue } from '../utils/sloka-delivery.js';
-import { localMinutes } from '../utils/date.js';
+import { parseTimeOfDay, deliveryMinutes, isDeliveryDue, dueZones } from '../utils/sloka-delivery.js';
+import { localDateString, localMinutes } from '../utils/date.js';
 import { SLOKA_DELIVERY_STEP_MINUTES } from '../config/cron.js';
 
 const STEP = SLOKA_DELIVERY_STEP_MINUTES;
@@ -60,4 +60,31 @@ test('local minutes follow the reader’s own clock, with midnight as 0', () => 
   assert.equal(localMinutes('Asia/Kolkata', at), 270);
   assert.equal(localMinutes('UTC', new Date(Date.UTC(2026, 9, 14, 0, 5))), 5);
   assert.equal(localMinutes('Not/AZone', new Date(Date.UTC(2026, 9, 14, 1, 2))), 62);
+});
+
+test('the zones due in a run, each with its own date', () => {
+  const zones = ['Asia/Kolkata', 'Asia/Calcutta', 'America/New_York', 'Pacific/Kiritimati', 'Asia/Kolkata', 'Not/AZone'];
+  const run = (iso) => dueZones({ zones, at: new Date(iso), targetMinutes: 270, windowMinutes: STEP });
+
+  // 23:00 UTC on the 17th is 04:30 on the 18th in Kolkata (and its old name), while UTC is still on the 17th.
+  const kolkata = run('2026-10-17T23:00:00Z');
+  assert.deepEqual([...kolkata], [['Asia/Kolkata', '2026-10-18'], ['Asia/Calcutta', '2026-10-18']]);
+
+  // Kiritimati's 04:30 on the 18th is 14:30 UTC on the 17th.
+  assert.deepEqual([...run('2026-10-17T14:30:00Z')], [['Pacific/Kiritimati', '2026-10-18']]);
+
+  // An unknown zone is judged on UTC.
+  assert.deepEqual([...run('2026-10-18T04:30:00Z')], [['Not/AZone', '2026-10-18']]);
+
+  assert.equal(run('2026-10-17T22:30:00Z').size, 0, 'no one at 04:00 in Kolkata');
+});
+
+test('a cached formatter answers like a new one, zone by zone', () => {
+  const at = new Date(Date.UTC(2026, 9, 14, 23, 0));
+  for (let i = 0; i < 3; i += 1) {
+    assert.equal(localDateString('Asia/Kolkata', at), '2026-10-15');
+    assert.equal(localDateString('America/New_York', at), '2026-10-14');
+    assert.equal(localMinutes('America/New_York', at), 19 * 60);
+  }
+  assert.equal(localDateString('Not/AZone', at), '2026-10-14', 'an unknown zone is UTC, and is not remembered as a zone');
 });

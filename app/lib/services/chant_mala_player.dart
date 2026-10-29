@@ -54,6 +54,7 @@ class ChantMalaPlayer {
     required this._url,
     required this.timing,
     this.refreshUrl,
+    this.restAt,
     this.cache,
     this.connection,
     AudioPlayer? player,
@@ -67,6 +68,12 @@ class ChantMalaPlayer {
   /// signed for an hour, and the mantra may have been fetched before that, so a
   /// recording that will not load is asked for once more under a fresh link.
   final Future<String?> Function()? refreshUrl;
+
+  /// Where play begins when the recording is at rest — at its top, or played to
+  /// its end — rather than paused part-way. The screen knows what has been
+  /// counted by hand, so the voice takes up from there and not from the top. Null
+  /// always begins at the top.
+  final Duration Function()? restAt;
 
   /// Where the recording is kept to play with no connection: a kept file is
   /// opened instead of the link, and one played from the link is saved. Null
@@ -248,8 +255,13 @@ class ChantMalaPlayer {
 
   Future<void> play() async {
     if (state.value.phase != ChantMalaPhase.ready) return;
-    // From the end, play means from the top: another time through.
-    if (_player.processingState == ProcessingState.completed) await seek(Duration.zero);
+    // From rest, play begins where the count stands: the top for a count of
+    // nothing, further in for chants made by hand. A recording paused part-way is
+    // left where the listener put it.
+    final atRest =
+        _player.processingState == ProcessingState.completed ||
+        state.value.position == Duration.zero;
+    if (atRest) await seek(restAt?.call() ?? Duration.zero);
     // `play` completes when playback stops, so it is not awaited.
     unawaited(_player.play());
   }

@@ -35,12 +35,13 @@ const Duration reading = FakeAudioPlayer.tick;
 
 /// The player under test, the fake beneath it, and every count it reported.
 class Rig {
-  Rig({ChantMalaTiming? timing, Future<String?> Function()? refreshUrl})
+  Rig({ChantMalaTiming? timing, Future<String?> Function()? refreshUrl, Duration Function()? restAt})
     : fake = FakeAudioPlayer(length: const Duration(minutes: 1)) {
     player = ChantMalaPlayer(
       url: link,
       timing: timing ?? afterAPrayer,
       refreshUrl: refreshUrl,
+      restAt: restAt,
       player: fake,
     );
     subscription = player.chantsCompleted.listen(counts.add);
@@ -80,9 +81,10 @@ class Rig {
 Future<Rig> opened({
   ChantMalaTiming? timing,
   Future<String?> Function()? refreshUrl,
+  Duration Function()? restAt,
   bool playing = true,
 }) async {
-  final rig = Rig(timing: timing, refreshUrl: refreshUrl);
+  final rig = Rig(timing: timing, refreshUrl: refreshUrl, restAt: restAt);
   addTearDown(rig.close);
   await rig.player.load();
   if (playing) {
@@ -300,6 +302,126 @@ void main() {
       await rig.player.toggle();
       await pumpEventQueue();
       expect(rig.player.isPlaying, isFalse);
+    });
+  });
+
+  group('play from where the count stands', () {
+    test('begins at the top when nothing has been counted', () async {
+      final rig = await opened(playing: false, restAt: () => Duration.zero);
+
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks.last, Duration.zero);
+      expect(rig.player.isPlaying, isTrue);
+    });
+
+    test('begins at the top when the screen says nothing', () async {
+      final rig = await opened(playing: false);
+
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks.last, Duration.zero);
+    });
+
+    test('begins after the chants made by hand, past the prayer on the recording', () async {
+      // 3 chants by hand: the prayer's 10 s and 3 chants of 4 s.
+      final rig = await opened(playing: false, restAt: () => afterAPrayer.positionAfter(3));
+
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks.last, const Duration(seconds: 22));
+      expect(rig.player.state.value.position, const Duration(seconds: 22));
+      expect(rig.player.isPlaying, isTrue);
+      // Going to the place counts none of the three chants it skips.
+      expect(rig.total, 0);
+    });
+
+    test('counts on from there: the next chant to end is the fourth', () async {
+      final rig = await opened(playing: false, restAt: () => afterAPrayer.positionAfter(3));
+      await rig.player.play();
+      await pumpEventQueue();
+
+      await rig.playTo(const Duration(seconds: 25, milliseconds: 900));
+      expect(rig.total, 0);
+
+      await rig.playTo(const Duration(seconds: 26));
+      expect(rig.total, 1);
+      expect(rig.player.state.value.position, const Duration(seconds: 26));
+    });
+
+    test('reads the count when play is pressed, not when the player was made', () async {
+      var counted = 0;
+      final rig = await opened(
+        playing: false,
+        restAt: () => afterAPrayer.positionAfter(counted),
+      );
+
+      counted = 5;
+      await rig.player.play();
+      await pumpEventQueue();
+
+      // The prayer's 10 s and 5 chants of 4 s.
+      expect(rig.fake.seeks.last, const Duration(seconds: 30));
+    });
+
+    test('a recording with no prayer in it is the chants alone', () async {
+      final rig = await opened(
+        timing: wholeRecording,
+        playing: false,
+        restAt: () => wholeRecording.positionAfter(3),
+      );
+
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks.last, const Duration(seconds: 18));
+    });
+
+    test('a recording paused part-way plays on from there, whatever the count', () async {
+      var counted = 0;
+      final rig = await opened(restAt: () => afterAPrayer.positionAfter(counted));
+      await rig.playTo(const Duration(seconds: 14));
+      await rig.player.pause();
+      await pumpEventQueue();
+      final seeksSoFar = rig.fake.seeks.length;
+
+      // The count has moved on while it was paused, which does not move the voice.
+      counted = 8;
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks, hasLength(seeksSoFar));
+      expect(rig.player.state.value.position, const Duration(seconds: 14));
+      expect(rig.player.isPlaying, isTrue);
+    });
+
+    test('a bar dragged before play is where it plays from, not the count', () async {
+      final rig = await opened(playing: false, restAt: () => afterAPrayer.positionAfter(3));
+      await rig.player.seek(const Duration(seconds: 40));
+      final seeksSoFar = rig.fake.seeks.length;
+
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks, hasLength(seeksSoFar));
+      expect(rig.player.state.value.position, const Duration(seconds: 40));
+    });
+
+    test('played to its end, it begins again from the count and not the top', () async {
+      var counted = 0;
+      final rig = await opened(restAt: () => afterAPrayer.positionAfter(counted));
+      await rig.playThrough();
+      expect(rig.total, 10);
+
+      counted = 2;
+      await rig.player.play();
+      await pumpEventQueue();
+
+      expect(rig.fake.seeks.last, const Duration(seconds: 18));
+      expect(rig.player.isPlaying, isTrue);
     });
   });
 

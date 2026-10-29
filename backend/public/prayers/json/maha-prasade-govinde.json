@@ -1,0 +1,55 @@
+{
+  "slug": "maha-prasade-govinde",
+  "title": "Mahā-prasāde Govinde",
+  "titleOriginal": "महाप्रसादे गोविन्दे",
+  "category": "meals",
+  "sortOrder": 20,
+  "originalLanguage": "sa",
+  "summary": "A short verse of faith in the Lord’s prasāda, His name and His devotees.",
+  "about": "Says that one with little piety cannot have faith in mahā-prasāda, Govinda, the holy name and the Vaiṣṇavas.",
+  "author": "Vyasadeva",
+  "reference": "Mahabharata, Skandha Purana",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/m/mahaprasadegovinda.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "before honouring prasāda"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "महाप्रसादे गोविन्दे\nनामब्रह्मणि वैष्णवे\nस्वल्पपुण्यवतां राजन्\nविश्वासो नैव जायते",
+      "roman": "mahā-prasāde govinde\nnāma-brahmaṇi vaiṣṇave\nsvalpa-puṇyavatāṁ rājan\nviśvāso naiva jāyate",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/m/mahaprasadegovinda.html",
+    "devanagari": "https://kksongs.org/unicode/m/mahaprasadegovinda_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Maha Prasade Govinde",
+    "official name": "None",
+    "author": "Vyasadeva",
+    "book name": "Mahabharata, Skandha Purana",
+    "language": "Sanskrit"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 1,
+      "devanagari": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.864Z"
+}

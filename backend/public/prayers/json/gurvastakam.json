@@ -1,0 +1,229 @@
+{
+  "slug": "gurvastakam",
+  "title": "Śrī Gurvaṣṭakam",
+  "titleOriginal": "श्रीगुर्वष्टकम्",
+  "category": "guru",
+  "sortOrder": 10,
+  "originalLanguage": "sa",
+  "summary": "Eight verses in praise of the spiritual master, sung at the dawn ārati.",
+  "about": "Each verse ends “vande guroḥ śrī-caraṇāravindam”, I bow to the lotus feet of my guru. The ninth verse says that one who recites it in the brahma-muhūrta attains direct service to the Lord of Vṛndāvana.",
+  "author": "Viśvanātha Cakravartī Ṭhākura",
+  "reference": "Stava-mṛta-laharī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/s/samsaradavanala.html",
+  "tradition": "vaishnava",
+  "deity": "guru",
+  "occasions": [
+    "mangala-arati before dawn",
+    "guru-pūrṇimā"
+  ],
+  "festivals": [
+    "guru-purnima"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "संसारदावानललीढलोक-\nत्राणाय कारुण्यघनाघनत्वम्\nप्राप्तस्य कल्याणगुणार्णवस्य\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "saṁsāra-dāvānala-līḍha-loka-\ntrāṇāya kāruṇya-ghanāghanatvam\nprāptasya kalyāṇa-guṇārṇavasya\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "महाप्रभोः कीर्तननृत्यगीत-\nवादित्रमाद्यन्मनसो रसेन\nरोमाञ्चकम्पाश्रुतरङ्गभाजो\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "mahāprabhoḥ kīrtana-nṛtya-gīta-\nvāditra-mādyan-manaso rasena\nromāñca-kampāśru-taraṅga-bhājo\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "श्रीविग्रहाराधननित्यनाना-\nशृङ्गारतन्मन्दिरमार्जनादौ\nयुक्तस्य भक्तांश्च नियुञ्जतोऽपि\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "śrī-vigrahārādhana-nitya-nānā-\nśṛṅgāra-tan-mandira-mārjanādau\nyuktasya bhaktāṁś ca niyuñjato 'pi\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "चतुर्विधश्रीभगवत्प्रसाद-\nस्वाद्वन्नतृप्तान्हरिभक्तसङ्घान्\nकृत्वैव तृप्तिं भजतः सदैव\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "catur-vidha-śrī-bhagavat-prasāda-\nsvādv-anna-tṛptān hari-bhakta-saṅghān\nkṛtvaiva tṛptiṁ bhajataḥ sadaiva\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "श्रीराधिकामाधवयोरपार-\nमाधुर्यलीलागुणरूपनाम्नाम्\nप्रतिक्षणास्वादनलोलुपस्य\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "śrī-rādhikā-mādhavayor apāra-\nmādhurya-līlā guṇa-rūpa-nāmnām\nprati-kṣaṇāsvādana-lolupasya\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "निकुञ्जयूनो रतिकेलिसिद्ध्यै\nया यालिभिर्युक्तिरपेक्षणीया\nतत्रातिदाक्ष्यादतिवल्लभस्य\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "nikuñja-yūno rati-keli-siddhyai\nyā yālibhir yuktir apekṣaṇīyā\ntatrāti-dākṣyād ati-vallabhasya\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "साक्षाद्धरित्वेन समस्तशास्त्रैर्\nउक्तस्तथा भाव्यत एव सद्भिः\nकिन्तु प्रभोर्यः प्रिय एव तस्य\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "sākṣād-dharitvena samasta-śāstrair\nuktas tathā bhāvyata eva sadbhiḥ\nkintu prabhor yaḥ priya eva tasya\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "यस्य प्रसादाद्भगवत्प्रसादो\nयस्याप्रसादान्न गतिः कुतोऽपि\nध्यायन्स्तुवंस्तस्य यशस्त्रिसन्ध्यं\nवन्दे गुरोः श्रीचरणारविन्दम्",
+      "roman": "yasya prasādād bhagavat-prasādo\nyasyāprasādān na gatiḥ kuto 'pi\ndhyāyan stuvaṁs tasya yaśas tri-sandhyaṁ\nvande guroḥ śrī-caraṇāravindam",
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "श्रीमद्गुरोरष्टकमेतदुच्चैर्\nब्राह्मे मुहूर्ते पठति प्रयत्नात्\nयस्तेन वृन्दावननाथ साक्षात्\nसेवैव लभ्या जनुषोऽन्त एव",
+      "roman": "śrīmad-guror aṣṭakam etad uccair\nbrāhme muhūrte paṭhati prayatnāt\nyas tena vṛndāvana-nātha sākṣāt\nsevaiva labhyā januṣo'nta eva",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/s/samsaradavanala.html",
+    "devanagari": "https://kksongs.org/unicode/s/samsaradavanala_deva.html",
+    "bengali": "https://kksongs.org/unicode/s/samsaradavanala_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Samsara Davanala Lidha Loka",
+    "official name": "Sri Guru Devastakam; Sri Gurvastakam",
+    "author": "Visvanatha Cakravarti Thakura",
+    "book name": "Stavamrta Lahari",
+    "language": "Sanskrit"
+  },
+  "edits": [
+    {
+      "verse": 2,
+      "field": "devanagari",
+      "from": "वादित्रमद्यन्",
+      "to": "वादित्रमाद्यन्",
+      "why": "Typo on the Devanagari page; the Roman and Bengali copies have mādyan."
+    },
+    {
+      "verse": 7,
+      "field": "devanagari",
+      "from": "किन्तो",
+      "to": "किन्तु",
+      "why": "Typo on the Devanagari page; the Roman and Bengali copies have kintu."
+    },
+    {
+      "verse": 9,
+      "field": "devanagari",
+      "from": "जनुशोऽन्त",
+      "to": "जनुषोऽन्त",
+      "why": "Typo on the Devanagari page (श for ष); the Roman copy has januṣo."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "roman": 9,
+      "devanagari": 9,
+      "bengali": 9
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1,
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": false,
+    "differences": [
+      {
+        "verse": 1,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "घनाघ[न]त्बं",
+            "b": "घनाघ[ण]त्बं",
+            "at": 34
+          }
+        ]
+      },
+      {
+        "verse": 3,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "ुक्त[]स्यभ",
+            "b": "ुक्त[ा]स्यभ",
+            "at": 51
+          }
+        ]
+      },
+      {
+        "verse": 4,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "्बाद[्ब]ंनतृ",
+            "b": "्बाद[]ंनतृ",
+            "at": 28
+          }
+        ]
+      },
+      {
+        "verse": 5,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "्बाद[]नलोल",
+            "b": "्बाद[ा]नलोल",
+            "at": 58
+          }
+        ]
+      },
+      {
+        "verse": 6,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "ुंजय[ू]नोरत",
+            "b": "ुंजय[ु]नोरत",
+            "at": 7
+          },
+          {
+            "a": "त्रा[त]िदाक",
+            "b": "त्रा[द]िदाक",
+            "at": 56
+          },
+          {
+            "a": "ाक्ष[्य]ादति",
+            "b": "ाक्ष[]ादति",
+            "at": 63
+          }
+        ]
+      },
+      {
+        "verse": 8,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "यस्य[ा]प्रस",
+            "b": "यस्य[]प्रस",
+            "at": 29
+          },
+          {
+            "a": "कुतो[]पिध्",
+            "b": "कुतो[ह]पिध्",
+            "at": 47
+          },
+          {
+            "a": "ंस्त[ु]बंस्",
+            "b": "ंस्त[]बंस्",
+            "at": 58
+          }
+        ]
+      },
+      {
+        "verse": 9,
+        "between": "devanagari/bengali",
+        "hunks": [
+          {
+            "a": "ाजनु[ष]ोंतए",
+            "b": "ाजनु[श]ोंतए",
+            "at": 94
+          }
+        ]
+      }
+    ],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.828Z"
+}

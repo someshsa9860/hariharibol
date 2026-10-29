@@ -290,6 +290,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get homeMantras => 'మంత్రాలు';
 
   @override
+  String get homeForYourGrowth => 'మీరు దేనిపై పని చేస్తున్నారో అది';
+
+  @override
+  String get homeThisWeek => 'ఈ వారం';
+
+  @override
   String get homeStartYourDay => 'ఈ రోజు లక్ష్యాన్ని నిర్ణయించండి';
 
   @override
@@ -1213,6 +1219,49 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'మీ దైనిక దినచర్య నుండి తొలగించబడింది';
+
+  @override
+  String get routineEditTask => 'పనిని సవరించు';
+
+  @override
+  String get routineSaveChanges => 'మార్పులను సేవ్ చేయి';
+
+  @override
+  String get routineDeleteTask => 'పనిని తొలగించు';
+
+  @override
+  String get routineDeleteDaily => 'ఈ రోజు నుండి తొలగించు';
+
+  @override
+  String get routineRepeatDaily => 'ప్రతిరోజు పునరావృతం చేయి';
+
+  @override
+  String get routineRepeatFromDay => 'ఈ రోజు నుండి ప్రతిరోజు కనిపిస్తుంది.';
+
+  @override
+  String get routineRepeatStops =>
+      'ఈ రోజు మాత్రమే ఉంటుంది, ఆ తర్వాత మళ్ళీ రాదు.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'మార్పులు ఈ రోజు నుండి వర్తిస్తాయి. ముందటి రోజుల్లో ఇది మునుపటిలాగే ఉంటుంది.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'మార్పులు నేటి నుండి వర్తిస్తాయి. ముందటి రోజుల్లో ఇది మునుపటిలాగే ఉంటుంది.';
+
+  @override
+  String get routineExactAlarmTitle => 'సరైన సమయానికి హెచ్చరికలు';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android ఒక పని హెచ్చరికను కొన్ని నిమిషాలు ఆలస్యం చేయవచ్చు. ఈ యాప్‌కు అలారాలు మరియు రిమైండర్‌ల అనుమతి ఇవ్వండి, అప్పుడు ప్రతి హెచ్చరిక దాని సమయం మొదలయ్యే నిమిషంలోనే వస్తుంది.';
+
+  @override
+  String get routineExactAlarmAllow => 'అనుమతించు';
+
+  @override
+  String get routineExactAlarmLater => 'ఇప్పుడు కాదు';
 
   @override
   String get reelsEmpty => 'రీల్స్ ఇంకా లేవు';

@@ -3,9 +3,12 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import '../core/constants/api_paths.dart';
 import '../core/constants/storage_keys.dart';
 import '../models/home_feed.dart';
+import '../models/home_issue_verse.dart';
+import '../models/json.dart';
 import 'api_client.dart';
 import 'languages_query.dart';
 import 'local_store.dart';
+import 'response_cache.dart';
 
 /// The dashboard, in one call.
 ///
@@ -40,6 +43,23 @@ class HomeService {
     );
     return HomeFeed.fromJson(json);
   }
+
+  /// Verses for the vikaras the reader reported lately, in [languages]. Kept for
+  /// offline use like the rest of the dashboard: the saved copy is per language.
+  Future<List<HomeIssueVerse>> issueVerses(List<String> languages) async {
+    final response = await _api.getOrSaved(ApiPaths.homeIssueVerses, query: languagesQuery(languages));
+    return _issueVerses(response.json);
+  }
+
+  List<HomeIssueVerse>? savedIssueVerses(List<String> languages) {
+    final copy = _api.saved(ApiPaths.homeIssueVerses, query: languagesQuery(languages));
+    return copy == null ? null : _issueVerses(copy.json);
+  }
+
+  static List<HomeIssueVerse> _issueVerses(Map<String, dynamic> json) =>
+      (json['items'] as List? ?? const [])
+          .map((item) => HomeIssueVerse.fromJson(asJson(item) ?? const {}))
+          .toList();
 
   /// The last response — only if it was made for [languages], when they are given.
   /// A copy in another language is not a stand-in for the reader's own.
