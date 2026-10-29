@@ -26,6 +26,7 @@ import {
   MessageCircle,
   CalendarDays,
   Flower2,
+  Quote,
   Mail,
   Terminal,
   type LucideIcon,
@@ -64,6 +65,7 @@ export const NAV: NavSection[] = [
       { label: 'Daily sloka', path: '/slokas', icon: Sun, permission: 'sloka.manage' },
       { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
       { label: 'Devotee etiquette', path: '/etiquette', icon: Flower2, permission: 'etiquette.manage' },
+      { label: 'Quotes', path: '/quotes', icon: Quote, permission: 'quote.manage' },
     ],
   },
   {
