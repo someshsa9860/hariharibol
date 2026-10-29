@@ -1,6 +1,6 @@
 /* ── Header ── */
 .site-header { position: sticky; top: 0; z-index: 90; background: var(--glass); backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.site-header-inner { width: min(1320px, 100% - 32px); height: var(--header-h); margin-inline: auto; display: flex; align-items: center; gap: 20px; }
+.site-header-inner { width: min(1320px, 100% - 2 * var(--gutter)); height: var(--header-h); margin-inline: auto; display: flex; align-items: center; gap: 20px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--serif); font-size: 1.28rem; letter-spacing: -.01em; }
 .brand img { border-radius: 10px; }
 .desktop-nav { display: none; gap: 4px; margin-inline: auto; }
