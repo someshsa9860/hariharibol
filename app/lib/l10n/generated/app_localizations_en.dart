@@ -24,6 +24,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionOk => 'OK';
 
   @override
+  String get exitAppTitle => 'Close the app?';
+
+  @override
+  String get exitAppMessage => 'Are you sure you want to close HariHariBol?';
+
+  @override
+  String get exitAppConfirm => 'Close';
+
+  @override
   String get actionDone => 'Done';
 
   @override

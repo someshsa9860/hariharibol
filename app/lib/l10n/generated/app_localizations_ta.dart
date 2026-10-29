@@ -24,6 +24,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get actionOk => 'சரி';
 
   @override
+  String get exitAppTitle => 'ஆப்ஸை மூடவா?';
+
+  @override
+  String get exitAppMessage => 'ஹரிஹரிபோலை மூட விரும்புகிறீர்களா?';
+
+  @override
+  String get exitAppConfirm => 'மூடு';
+
+  @override
   String get actionDone => 'முடிந்தது';
 
   @override

@@ -24,6 +24,15 @@ class AppLocalizationsOr extends AppLocalizations {
   String get actionOk => 'ଠିକ୍ ଅଛି';
 
   @override
+  String get exitAppTitle => 'ଆପ୍ ବନ୍ଦ କରିବେ?';
+
+  @override
+  String get exitAppMessage => 'ଆପଣ ହରିହରିବୋଲ୍ ବନ୍ଦ କରିବାକୁ ଚାହୁଁଛନ୍ତି କି?';
+
+  @override
+  String get exitAppConfirm => 'ବନ୍ଦ କରନ୍ତୁ';
+
+  @override
   String get actionDone => 'ହୋଇଗଲା';
 
   @override

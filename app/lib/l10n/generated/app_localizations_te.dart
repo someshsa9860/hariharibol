@@ -24,6 +24,15 @@ class AppLocalizationsTe extends AppLocalizations {
   String get actionOk => 'సరే';
 
   @override
+  String get exitAppTitle => 'యాప్ మూసివేయాలా?';
+
+  @override
+  String get exitAppMessage => 'హరిహరిబోల్ మూసివేయాలనుకుంటున్నారా?';
+
+  @override
+  String get exitAppConfirm => 'మూసివేయి';
+
+  @override
   String get actionDone => 'పూర్తయింది';
 
   @override

@@ -24,6 +24,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get actionOk => 'ठीक है';
 
   @override
+  String get exitAppTitle => 'ऐप बंद करें?';
+
+  @override
+  String get exitAppMessage => 'क्या आप हरिहरिबोल बंद करना चाहते हैं?';
+
+  @override
+  String get exitAppConfirm => 'बंद करें';
+
+  @override
   String get actionDone => 'हो गया';
 
   @override

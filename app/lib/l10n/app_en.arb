@@ -11,6 +11,18 @@
   "actionRetry": "Try again",
   "actionCancel": "Cancel",
   "actionOk": "OK",
+  "exitAppTitle": "Close the app?",
+  "@exitAppTitle": {
+    "description": "The title of the question asked when back is pressed on Home, before the app closes."
+  },
+  "exitAppMessage": "Are you sure you want to close HariHariBol?",
+  "@exitAppMessage": {
+    "description": "The line under the title of the question asked when back is pressed on Home."
+  },
+  "exitAppConfirm": "Close",
+  "@exitAppConfirm": {
+    "description": "The button that closes the app, in the question asked when back is pressed on Home."
+  },
   "actionDone": "Done",
   "actionSave": "Save",
   "actionViewAll": "View all",

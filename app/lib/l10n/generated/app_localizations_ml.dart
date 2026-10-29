@@ -24,6 +24,15 @@ class AppLocalizationsMl extends AppLocalizations {
   String get actionOk => 'ശരി';
 
   @override
+  String get exitAppTitle => 'ആപ്പ് അടയ്ക്കണോ?';
+
+  @override
+  String get exitAppMessage => 'ഹരിഹരിബോൾ അടയ്ക്കണമെന്ന് ഉറപ്പാണോ?';
+
+  @override
+  String get exitAppConfirm => 'അടയ്ക്കുക';
+
+  @override
   String get actionDone => 'പൂർത്തിയായി';
 
   @override

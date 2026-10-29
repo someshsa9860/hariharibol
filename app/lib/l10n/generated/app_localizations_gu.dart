@@ -24,6 +24,15 @@ class AppLocalizationsGu extends AppLocalizations {
   String get actionOk => 'બરાબર';
 
   @override
+  String get exitAppTitle => 'એપ બંધ કરીએ?';
+
+  @override
+  String get exitAppMessage => 'શું તમે હરિહરિબોલ બંધ કરવા માંગો છો?';
+
+  @override
+  String get exitAppConfirm => 'બંધ કરો';
+
+  @override
   String get actionDone => 'થઈ ગયું';
 
   @override

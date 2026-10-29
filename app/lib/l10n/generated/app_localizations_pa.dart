@@ -24,6 +24,15 @@ class AppLocalizationsPa extends AppLocalizations {
   String get actionOk => 'ਠੀਕ ਹੈ';
 
   @override
+  String get exitAppTitle => 'ਐਪ ਬੰਦ ਕਰਨੀ ਹੈ?';
+
+  @override
+  String get exitAppMessage => 'ਕੀ ਤੁਸੀਂ ਹਰੀਹਰੀਬੋਲ ਬੰਦ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?';
+
+  @override
+  String get exitAppConfirm => 'ਬੰਦ ਕਰੋ';
+
+  @override
   String get actionDone => 'ਹੋ ਗਿਆ';
 
   @override

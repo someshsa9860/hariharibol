@@ -148,6 +148,24 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get actionOk;
 
+  /// The title of the question asked when back is pressed on Home, before the app closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the app?'**
+  String get exitAppTitle;
+
+  /// The line under the title of the question asked when back is pressed on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to close HariHariBol?'**
+  String get exitAppMessage;
+
+  /// The button that closes the app, in the question asked when back is pressed on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get exitAppConfirm;
+
   /// No description provided for @actionDone.
   ///
   /// In en, this message translates to:
@@ -3844,7 +3862,7 @@ abstract class AppLocalizations {
   /// **'Translations and commentaries'**
   String get sourcesTextsHeading;
 
-  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Shown only while AppConfig.showAuthorName is on. Keep the copyright holder's name in Latin.
+  /// Sources & disclaimer: Śrīla Prabhupāda's credit and the BBT copyright line. Always shown on this page, even while AppConfig.showAuthorName keeps his name off the verse and other surfaces. Keep the copyright holder's name in Latin.
   ///
   /// In en, this message translates to:
   /// **'The English translations and purports of Bhagavad-gītā As It Is and Śrīmad-Bhāgavatam are the work of His Divine Grace A. C. Bhaktivedanta Swami Prabhupāda, Founder-Ācārya of the International Society for Krishna Consciousness. © The Bhaktivedanta Book Trust International, Inc.'**

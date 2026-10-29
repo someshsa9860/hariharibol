@@ -24,6 +24,15 @@ class AppLocalizationsKn extends AppLocalizations {
   String get actionOk => 'ಸರಿ';
 
   @override
+  String get exitAppTitle => 'ಆ್ಯಪ್ ಮುಚ್ಚಬೇಕೇ?';
+
+  @override
+  String get exitAppMessage => 'ಹರಿಹರಿಬೋಲ್ ಮುಚ್ಚಲು ಬಯಸುವಿರಾ?';
+
+  @override
+  String get exitAppConfirm => 'ಮುಚ್ಚಿ';
+
+  @override
   String get actionDone => 'ಮುಗಿಯಿತು';
 
   @override
