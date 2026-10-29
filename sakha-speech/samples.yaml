@@ -1,0 +1,10 @@
+# The voice test: the same lines in every voice of a language, so they can be compared by ear.
+# `sakha-speech sample` also adds the first two cached verse meanings of the book when it has them.
+en:
+  - "Hari Bol! Welcome to the Bhagavad Gita."
+  - "Arjuna said: O Krishna, seeing my friends and relatives present before me in such a fighting spirit, I feel the limbs of my body quivering and my mouth drying up."
+  - "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action."
+hi:
+  - "हरि बोल! भगवद्गीता में आपका स्वागत है।"
+  - "अर्जुन ने कहा: हे कृष्ण, इस प्रकार युद्ध की इच्छा रखने वाले अपने मित्रों तथा सम्बन्धियों को अपने समक्ष उपस्थित देखकर मेरे शरीर के अंग काँप रहे हैं और मेरा मुँह सूखा जा रहा है।"
+  - "तुम्हें अपना निर्धारित कर्तव्य करने का अधिकार है, किन्तु कर्म के फलों पर तुम्हारा अधिकार नहीं है।"

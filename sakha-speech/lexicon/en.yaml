@@ -1,0 +1,9 @@
+# How the English voices should say words they get wrong. Matched as whole words, any letter case,
+# after diacritics are turned into plain letters (Kṛṣṇa is already Krishna by then).
+# Add a line when you hear a mistake; the next run re-makes only the verses that contain it.
+Krsna: Krishna
+Gita: Geeta
+Kunti: Koontee
+Partha: Paartha
+Dhrtarastra: Dhritarashtra
+Kuruksetra: Kurukshetra

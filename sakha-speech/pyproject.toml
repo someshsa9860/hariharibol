@@ -1,0 +1,40 @@
+[project]
+name = "sakha-speech"
+version = "0.1.0"
+description = "Makes HariHariBol's narration audio (verse meanings) ahead of time and uploads it to S3."
+# The engines (kokoro, misaki) need Python 3.10-3.12; setup.sh uses 3.11.
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "soundfile",
+  "pyyaml",
+  "requests",
+  "boto3",
+  "python-dotenv",
+]
+
+[project.optional-dependencies]
+# The speech models. Kept apart so the tests run without torch.
+# parler-tts 0.2.3 pins transformers 4.46.1; torch 2.5.1 is a version that release was built against.
+engines = [
+  "torch==2.5.1",
+  "transformers==4.46.1",
+  "parler-tts==0.2.3",
+  "sentencepiece",
+  "kokoro==0.9.4",
+  "misaki[en]==0.9.4",
+]
+dev = ["pytest"]
+
+[project.scripts]
+sakha-speech = "sakha_speech.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["sakha_speech", "sakha_speech.engines"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

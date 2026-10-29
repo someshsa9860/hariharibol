@@ -1,0 +1,116 @@
+# Every voice Sakha Speech can speak with. Add a voice by adding an entry; no code changes.
+#
+#   language   app language code (en, hi, mr, ta, ...)
+#   gender     male | female
+#   engine     kokoro | parler   (sakha_speech/engines/)
+#   licence    of the model / voice, checked before audio is made for the app
+#   the rest   is handed to the engine as it is
+#
+# Kokoro (hexgrad/Kokoro-82M): `voice` is one of Kokoro's voice names, `lang_code` its language
+# letter (a = American English, b = British English, h = Hindi).
+#
+# Indic Parler-TTS (ai4bharat/indic-parler-tts, gated: accept the terms on Hugging Face and run
+# `hf auth login` once): the speaker is named at the start of `description`, which also sets the pace
+# and tone. `seed` keeps the same voice across every sentence of a book. Rohit / Divya (Hindi) and
+# Thoma / Mary (English) are the speakers the model card recommends.
+#
+# These are starting voices for the voice test, not the final choice: books.yaml picks the narrators.
+
+voices:
+  en-kokoro-heart:
+    language: en
+    gender: female
+    engine: kokoro
+    licence: Apache-2.0
+    voice: af_heart
+    lang_code: a
+    speed: 0.95
+
+  en-kokoro-michael:
+    language: en
+    gender: male
+    engine: kokoro
+    licence: Apache-2.0
+    voice: am_michael
+    lang_code: a
+    speed: 0.95
+
+  en-kokoro-george:
+    language: en
+    gender: male
+    engine: kokoro
+    licence: Apache-2.0
+    voice: bm_george
+    lang_code: b
+    speed: 0.95
+
+  en-kokoro-emma:
+    language: en
+    gender: female
+    engine: kokoro
+    licence: Apache-2.0
+    voice: bf_emma
+    lang_code: b
+    speed: 0.95
+
+  en-parler-thoma:
+    language: en
+    gender: male
+    engine: parler
+    licence: Apache-2.0
+    model: ai4bharat/indic-parler-tts
+    description: >-
+      Thoma speaks slowly and calmly in a warm, clear voice with a gentle devotional tone.
+      The recording is of very high quality, close up, with no background noise.
+    seed: 108
+
+  en-parler-mary:
+    language: en
+    gender: female
+    engine: parler
+    licence: Apache-2.0
+    model: ai4bharat/indic-parler-tts
+    description: >-
+      Mary speaks slowly and calmly in a warm, clear voice with a gentle devotional tone.
+      The recording is of very high quality, close up, with no background noise.
+    seed: 108
+
+  hi-parler-rohit:
+    language: hi
+    gender: male
+    engine: parler
+    licence: Apache-2.0
+    model: ai4bharat/indic-parler-tts
+    description: >-
+      Rohit speaks slowly and calmly in a warm, clear voice with a gentle devotional tone.
+      The recording is of very high quality, close up, with no background noise.
+    seed: 108
+
+  hi-parler-divya:
+    language: hi
+    gender: female
+    engine: parler
+    licence: Apache-2.0
+    model: ai4bharat/indic-parler-tts
+    description: >-
+      Divya speaks slowly and calmly in a warm, clear voice with a gentle devotional tone.
+      The recording is of very high quality, close up, with no background noise.
+    seed: 108
+
+  hi-kokoro-omega:
+    language: hi
+    gender: male
+    engine: kokoro
+    licence: Apache-2.0
+    voice: hm_omega
+    lang_code: h
+    speed: 0.95
+
+  hi-kokoro-alpha:
+    language: hi
+    gender: female
+    engine: kokoro
+    licence: Apache-2.0
+    voice: hf_alpha
+    lang_code: h
+    speed: 0.95
