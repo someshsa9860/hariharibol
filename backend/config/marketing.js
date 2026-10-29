@@ -33,6 +33,8 @@ const marketing = {
   // A failure that is probably temporary (the mail server busy or unreachable) is tried again this many
   // times, waiting from retryBaseMs, doubling, up to retryMaxMs between tries.
   maxSendAttempts: 3,
+  // The run itself, when the mail server cannot be reached, waits and tries again this many times before it asks for a person.
+  maxAutoRetries: 8,
   retryBaseMs: 30_000,
   retryMaxMs: 15 * 60_000,
 
@@ -47,12 +49,23 @@ const marketing = {
   // AI_PER_USER: the sample an admin approves before the rest of the audience is written.
   aiSampleSize: 5,
 
-  // A campaign run's activity feed lives in Redis: this many lines, for this many days.
+  // A campaign run's activity feed lives in Redis (key prefix, then the campaign id)
+  feedKey: 'marketing:feed',
+  // and how much of it is kept: this many lines, for this many days.
   feedLines: 200,
   feedDays: 30,
 
   // The wording the consent log records. Change it when the words shown to people change.
   consentWordingVersion: '2026-10-29',
+
+  // Defaults for the settings an admin can change (marketing.* in config/constants.js).
+  defaultRatePerMinute: 120,
+  defaultDailyCap: 50_000,
+  defaultWeeklyCap: 2,
+
+  // The model that writes marketing copy unless the admin picks another, and the most it may answer with.
+  provider: 'openai',
+  aiMaxTokens: 4000,
 
   // WhatsApp opt-in: how many verification codes one person may ask for.
   optInPerHour: 3,

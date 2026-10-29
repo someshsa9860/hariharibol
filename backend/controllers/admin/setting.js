@@ -60,6 +60,27 @@ const KNOWN = {
     label: 'Signups open',
     help: 'true or false. Existing accounts keep working when off.',
   },
+  [SETTING_KEYS.MARKETING_EMAIL_RATE_PER_MINUTE]: {
+    label: 'Marketing email: sends a minute',
+    help: 'A whole number, 1 or more. The pace of a campaign, which can only be lower. 120 is the default; keep it under what your email provider allows.',
+    integerMin: 1,
+  },
+  [SETTING_KEYS.MARKETING_EMAIL_DAILY_CAP]: {
+    label: 'Marketing email: most in a day',
+    help: 'A whole number, 1 or more. A run pauses for the day when it is reached and carries on after midnight (India). Keep it under the provider’s daily quota while the sender warms up. 50000 is the default.',
+    integerMin: 1,
+  },
+  [SETTING_KEYS.MARKETING_WEEKLY_CAP]: {
+    label: 'Marketing: most messages to one reader in 7 days',
+    help: 'A whole number, 1 or more, counted for each channel. 2 is the default. A reader over it is skipped, not delayed.',
+    integerMin: 1,
+  },
+  [SETTING_KEYS.MARKETING_FROM_NAME]: { label: 'Marketing email: sender name', help: 'The name before the address, e.g. HariHariBol. Blank uses the one in MARKETING_MAIL_FROM.' },
+  [SETTING_KEYS.MARKETING_REPLY_TO]: { label: 'Marketing email: reply-to address', help: 'A monitored mailbox; replies to a campaign go here. Blank sets none.' },
+  [SETTING_KEYS.MARKETING_POSTAL_ADDRESS]: { label: 'Marketing email: postal address', help: 'Shown in every email’s footer. Required by anti-spam law (CAN-SPAM) for readers overseas; a campaign cannot start without it.' },
+  [SETTING_KEYS.MARKETING_AI_MAX_COST_USD]: { label: 'Marketing: most an AI-written campaign may cost (USD)', help: 'A number. The most a campaign’s “written for each reader” mode may spend if the campaign sets no cap of its own. 5 is the default.' },
+  [SETTING_KEYS.MARKETING_WHATSAPP_RATE_PER_SECOND]: { label: 'Marketing WhatsApp: sends a second', help: 'A whole number, 1 or more. 20 is the default.', integerMin: 1 },
+  [SETTING_KEYS.MARKETING_WHATSAPP_COST_PER_MESSAGE]: { label: 'Marketing WhatsApp: cost of one message (USD)', help: 'A number, used only for the estimate before a send. Meta’s rate depends on the category and the country, so it is not built in.' },
   [SETTING_KEYS.BOOK_CACHE_VERSION]: {
     label: 'Offline book cache version',
     help:

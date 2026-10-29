@@ -123,4 +123,45 @@ async function build({ image, style = 'auto', importance = 'urgent', link, actio
   return { image: picture, data, importance, hasActions: buttons.length > 0 };
 }
 
-export { SCHEME, TARGETS, STYLES, IMPORTANCE, CHANNELS, linkToUri, resolveImage, build };
+/**
+ * The page on the website that stands for a tap target, for someone who follows the link without the app (a computer, or a
+ * phone the app is not on). A link from a marketing message uses it; null where the site has no equivalent.
+ */
+function webPathFor(link) {
+  if (!link?.target) return null;
+  const q = (name) => encodeURIComponent(String(link[name] ?? '').trim());
+  switch (link.target) {
+    case 'home': return '/';
+    case 'sakha': return '/sakha';
+    case 'jap':
+    case 'chant': return '/jap';
+    case 'read': return '/read';
+    case 'reels': return '/reels';
+    case 'reel': return link.id ? `/reels/${q('id')}` : '/reels';
+    case 'routine': return '/routine';
+    case 'calendar': return '/calendar';
+    case 'premium': return '/plans';
+    case 'refer': return '/refer';
+    case 'search': return '/search';
+    case 'mantra': return link.slug ? `/jap/${q('slug')}` : '/jap';
+    case 'verse': {
+      if (!link.book || !link.chapter) return '/read';
+      const path = [link.book, link.canto, link.chapter].filter((x) => String(x ?? '').trim()).map((x) => encodeURIComponent(String(x).trim()));
+      return `/read/${path.join('/')}`;
+    }
+    default: return null;
+  }
+}
+
+/** The inverse of linkToUri for the link the marketing tables keep as a string: `hariharibol://verse?book=gita` → `{ target, book }`. */
+function linkFromUri(uri) {
+  try {
+    const u = new URL(String(uri));
+    if (u.protocol !== `${SCHEME}:`) return null;
+    return { target: u.hostname, ...Object.fromEntries(u.searchParams) };
+  } catch {
+    return null;
+  }
+}
+
+export { webPathFor, linkFromUri, SCHEME, TARGETS, STYLES, IMPORTANCE, CHANNELS, linkToUri, resolveImage, build };

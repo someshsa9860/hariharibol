@@ -172,6 +172,24 @@ const schema = z.object({
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().default('HariHariBol <no-reply@hariharibol.com>'),
 
+  // Marketing email (services/marketing-mailer.js) has its own sender and, when set, its own SMTP account (Amazon SES
+  // in ap-south-1 through its SMTP interface), so a bad campaign cannot hurt the reputation of the sign-in codes.
+  // Each falls back to the transactional value when blank.
+  MARKETING_SMTP_HOST: z.string().optional(),
+  MARKETING_SMTP_PORT: z.coerce.number().optional(),
+  MARKETING_SMTP_USER: z.string().optional(),
+  MARKETING_SMTP_PASS: z.string().optional(),
+  MARKETING_MAIL_FROM: z.string().optional(),
+  // The SES configuration set named in the X-SES-CONFIGURATION-SET header, so bounces and complaints come back.
+  MARKETING_SES_CONFIGURATION_SET: z.string().optional(),
+  // The SNS topic the bounce / complaint webhook accepts (POST /api/webhooks/marketing-email). A subscription
+  // confirmation for any other topic is ignored.
+  MARKETING_SNS_TOPIC_ARN: z.string().optional(),
+  // For a provider other than SES: it posts { type, email } with this secret in X-Marketing-Secret.
+  MARKETING_WEBHOOK_SECRET: z.string().optional(),
+  // The mailbox in the List-Unsubscribe header's mailto: link. Blank leaves the mailto out.
+  MARKETING_UNSUBSCRIBE_MAILTO: z.string().optional(),
+
   // An AI model translating the Gita (scripts/translate-claude.js, and the admin panel's Translations page,
   // which runs it in the worker) — GPT-6 Luna unless a part is given to Claude or Gemini. Without a key the
   // page still opens and shows what is saved; a run pauses with a message saying the key is missing.

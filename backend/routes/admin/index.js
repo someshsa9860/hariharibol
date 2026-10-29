@@ -42,6 +42,9 @@ import panchangRoutes from './panchang.js';
 import calendarTranslationRoutes from './calendar-translation.js';
 import maintenanceRoutes from './maintenance.js';
 import devRoutes from './dev.js';
+import marketingRoutes from './marketing.js';
+import marketingTemplateRoutes from './marketing-template.js';
+import marketingAudienceRoutes from './marketing-audience.js';
 
 const routers = [
   dashboardRoutes,
@@ -77,6 +80,9 @@ const routers = [
   calendarTranslationRoutes,
   maintenanceRoutes,
   devRoutes,
+  marketingRoutes,
+  marketingTemplateRoutes,
+  marketingAudienceRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

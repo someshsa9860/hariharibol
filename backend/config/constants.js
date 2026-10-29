@@ -52,6 +52,11 @@ const PERMISSIONS = {
   'etiquette.manage': { group: 'content', name: 'View and edit devotee etiquette, and set one aside' },
   'etiquette.translate': { group: 'content', name: 'Start, resume and cancel devotee etiquette translation runs' },
 
+  // marketing — `send` reaches real people and spends money, so the admin role does not carry it by default
+  'marketing.read': { group: 'marketing', name: 'See campaigns, templates, lists and their results' },
+  'marketing.manage': { group: 'marketing', name: 'Write templates, build lists and segments, import contacts and draft campaigns' },
+  'marketing.send': { group: 'marketing', name: 'Start, pause and cancel campaigns that reach people, and send test messages (super admin only)' },
+
   // users
   'user.read': { group: 'users', name: 'View users' },
   'user.write': { group: 'users', name: 'Edit users' },
@@ -97,7 +102,7 @@ const ROLE_PERMISSIONS = {
     'media.upload',
   ],
   [ROLES.ADMIN]: ALL_PERMISSIONS.filter(
-    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', 'finance.manage', 'dev.access', ...AUDITOR_ONLY].includes(slug)
+    (slug) => !['user.delete', 'role.manage', 'setting.write', 'payment.refund', 'system.maintenance', 'finance.manage', 'dev.access', 'marketing.send', ...AUDITOR_ONLY].includes(slug)
   ),
   // Everything, including permissions added later — except the auditor-only ones: a book's
   // text is corrected by one named role so every correction has one accountable hand.
@@ -201,6 +206,16 @@ const SETTING_KEYS = {
   BOOK_REEL_STYLE: 'reels.book_style',
   // Rupees per US dollar, used to put AI spend (billed in dollars) into the books in INR — see services/finance.js.
   FINANCE_USD_INR_RATE: 'finance.usd_inr_rate',
+  // Marketing — see config/marketing.js for the limits that are not settings.
+  MARKETING_EMAIL_RATE_PER_MINUTE: 'marketing.email.rate_per_minute',
+  MARKETING_EMAIL_DAILY_CAP: 'marketing.email.daily_cap',
+  MARKETING_WEEKLY_CAP: 'marketing.weekly_cap',
+  MARKETING_FROM_NAME: 'marketing.from_name',
+  MARKETING_REPLY_TO: 'marketing.reply_to',
+  MARKETING_POSTAL_ADDRESS: 'marketing.postal_address',
+  MARKETING_AI_MAX_COST_USD: 'marketing.ai.max_cost_usd',
+  MARKETING_WHATSAPP_RATE_PER_SECOND: 'marketing.whatsapp.rate_per_second',
+  MARKETING_WHATSAPP_COST_PER_MESSAGE: 'marketing.whatsapp.cost_per_message',
 };
 
 // When the daily sloka is pushed, in each reader's own timezone, if the
