@@ -13,7 +13,7 @@ import { Queue } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { defaultJobOptions } from '../config/cron.js';
 
-const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'translation-import', 'scenes', 'etiquette', 'calendar', 'devops'];
+const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'translation-import', 'scenes', 'etiquette', 'calendar', 'marketing', 'devops'];
 
 // A queue that needs different job options than the default says so here. A translation run is hours
 // long and costs money, so BullMQ never retries it by itself: the processor decides what a failure
@@ -24,6 +24,7 @@ const QUEUE_JOB_OPTIONS = {
   scenes: { attempts: 1 }, // same reasoning: jobs/processors/scenes.js decides what a failure means
   etiquette: { attempts: 1 }, // and jobs/processors/etiquette.js
   calendar: { attempts: 1 }, // and jobs/processors/calendar.js
+  marketing: { attempts: 1 }, // and jobs/processors/marketing.js: a campaign is the row, a retry would be a second send
 };
 
 const queues = Object.fromEntries(
@@ -60,6 +61,8 @@ const JOBS = {
   ETIQUETTE_RUN: 'etiquette.run',
   ETIQUETTE_DELIVER: 'etiquette.deliver',
   CALENDAR_RUN: 'calendar.run',
+  MARKETING_RUN: 'marketing.run',
+  MARKETING_TICK: 'marketing.tick',
 };
 
 async function closeQueues() {

@@ -58,6 +58,9 @@ const EVENTS = {
   // Admin panel, to `panchang.translate`: the same two for the Hindu calendar translation runs.
   CALENDAR_RUN: 'calendar.run',
   CALENDAR_ACTIVITY: 'calendar.activity',
+  // Admin panel, to `marketing.read`: a campaign's whole state, and one line of its activity feed.
+  MARKETING_RUN: 'marketing.run',
+  MARKETING_ACTIVITY: 'marketing.activity',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

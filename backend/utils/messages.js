@@ -221,6 +221,9 @@ const NOTICES = {
   reelCommentTitle: '{0} commented on your reel',
   reelReplyTitle: '{0} replied to you',
   someone: 'Someone',
+  mktFooterReason: 'You are getting this because you have a HariHariBol account. You can stop these emails any time.',
+  mktFooterInvitee: 'You are getting this because your address was added to a HariHariBol invitation list. You can stop these emails any time.',
+  mktUnsubscribe: 'Unsubscribe',
 };
 
 /** The wording `id` in the first language of `chain` that has it; English when none does. */

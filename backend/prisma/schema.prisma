@@ -3973,9 +3973,12 @@ model MarketingCampaign {
   retriesInARow   Int       @default(0)
   heartbeatAt     DateTime?
   materialisedAt  DateTime? // set once the recipients are written; never done again
+  pauseRequested  Boolean   @default(false) // Pause was pressed on a running campaign; it stops after the page in hand
+  sampleApprovedAt DateTime? // AI_PER_USER: an admin read the sample copies and let the rest be written
 
   // Totals, moved as deliveries change state.
   recipients Int @default(0)
+  pending    Int @default(0) // recipients not yet attempted
   sent       Int @default(0) // accepted by the provider
   delivered  Int @default(0)
   read       Int @default(0) // WhatsApp

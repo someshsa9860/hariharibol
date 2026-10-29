@@ -26,6 +26,7 @@ import {
   MessageCircle,
   CalendarDays,
   Flower2,
+  Mail,
   Terminal,
   type LucideIcon,
 } from 'lucide-react';
@@ -71,6 +72,7 @@ export const NAV: NavSection[] = [
       { label: 'Users', path: '/users', icon: Users, permission: 'user.read' },
       { label: 'Admins', path: '/admins', icon: ShieldPlus, permission: 'role.manage' },
       { label: 'Creators', path: '/creators', icon: UserCheck, permission: 'creator.manage' },
+      { label: 'Marketing', path: '/marketing', icon: Mail, permission: 'marketing.read' },
       { label: 'Support', path: '/support', icon: LifeBuoy, permission: 'support.manage' },
       { label: 'Roles & permissions', path: '/roles', icon: ShieldCheck, permission: 'role.manage' },
     ],
