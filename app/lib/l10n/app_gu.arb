@@ -48,8 +48,8 @@
   "languageStepOf": "{total} માંથી પગલું {current}",
   "languageAppTitle": "કઈ ભાષા પોતીકી લાગે છે?",
   "languageAppSubtitle": "તમે આ ગમે ત્યારે સેટિંગ્સમાં બદલી શકો છો.",
-  "languageMantraTitle": "તમે કઈ લિપિમાં જપ કરો છો?",
-  "languageMantraSubtitle": "મંત્રો આ લિપિમાં દેખાશે. તેમનો અર્થ તમારી પોતાની ભાષામાં જ રહેશે.",
+  "languageReadingTitle": "તમે શ્લોક કઈ ભાષામાં વાંચો છો?",
+  "languageReadingSubtitle": "શ્લોક, અર્થ અને તાત્પર્ય આ ભાષામાં દેખાશે. મંત્રો પણ આ ભાષા પ્રમાણે દેખાશે. તમે તેને સેટિંગ્સમાં ગમે ત્યારે બદલી શકો છો.",
   "actionBack": "પાછળ",
   "tabHome": "હોમ",
   "tabSadhana": "જપ",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "વાંચતી વખતે સ્ક્રીન ચાલુ રાખો",
   "setupMantraTitle": "તમારો પ્રિય મંત્ર",
   "setupMantraSubtitle": "જેનો તમે સૌથી વધુ જપ કરો છો. તેને તમે ગમે ત્યારે બદલી શકો છો.",
+  "setupMantraNone": "પસંદ કરવા માટે હજી કોઈ મંત્ર નથી. તમે પછીથી જપ ટેબમાં એક પસંદ કરી શકો છો.",
   "setupRoundsTitle": "દરરોજ કેટલી માળા?",
   "setupRoundsSubtitle": "એક માળામાં 108 જપ હોય છે. રોજ જેટલી કરી શકો તેટલી પસંદ કરો — પછી સેટિંગ્સમાં બદલી શકાશે.",
   "setupRoundsCount": "{count, plural, =1{1 માળા} other{{count} માળા}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "વધુ માળા",
   "setupRoutineTitle": "તમારી દૈનિક દિનચર્યા",
   "setupRoutineSubtitle": "{mantra}ની {rounds} પ્રમાણે ગોઠવેલી.",
+  "setupRoutineSubtitleNoMantra": "{rounds} પ્રમાણે ગોઠવેલી.",
   "setupRoutineHint": "જાગવાનો અથવા સૂવાનો સમય બદલવા તેના પર ટૅપ કરો. બાકી બધું પછી દિનચર્યા ટૅબમાં બદલી શકાશે.",
   "setupChantLate": "જાગવાના આ સમયે તમારી માળા {time} પછી સુધી ચાલશે. વહેલા જાગો અથવા ઓછી માળા પસંદ કરો.",
   "setupFinish": "મારી દિનચર્યા બનાવો",
   "setupRoutineSkip": "હમણાં છોડો",
-  "routineWakeLatest": "જાગવાનો સમય {time} પછીનો ન હોઈ શકે.",
-  "routineSleepLatest": "સૂવાનો સમય {time} પછીનો ન હોઈ શકે."
+  "routineSleepNotBefore": "સૂવાનો સમય {time} પહેલાં ન હોઈ શકે."
 }

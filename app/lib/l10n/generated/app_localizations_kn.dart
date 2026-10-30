@@ -170,11 +170,12 @@ class AppLocalizationsKn extends AppLocalizations {
       'ನೀವು ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.';
 
   @override
-  String get languageMantraTitle => 'ನೀವು ಯಾವ ಲಿಪಿಯಲ್ಲಿ ಜಪಿಸುತ್ತೀರಿ?';
+  String get languageReadingTitle =>
+      'ನೀವು ಶ್ಲೋಕಗಳನ್ನು ಯಾವ ಭಾಷೆಯಲ್ಲಿ ಓದುತ್ತೀರಿ?';
 
   @override
-  String get languageMantraSubtitle =>
-      'ಮಂತ್ರಗಳು ಈ ಲಿಪಿಯಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ. ಅವುಗಳ ಅರ್ಥ ನಿಮ್ಮ ಸ್ವಂತ ಭಾಷೆಯಲ್ಲೇ ಇರುತ್ತದೆ.';
+  String get languageReadingSubtitle =>
+      'ಶ್ಲೋಕ, ಅರ್ಥ ಮತ್ತು ತಾತ್ಪರ್ಯಗಳು ಈ ಭಾಷೆಯಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ. ಮಂತ್ರಗಳೂ ಇದನ್ನೇ ಅನುಸರಿಸುತ್ತವೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.';
 
   @override
   String get actionBack => 'ಹಿಂದೆ';
@@ -3063,6 +3064,10 @@ class AppLocalizationsKn extends AppLocalizations {
       'ನೀವು ಹೆಚ್ಚು ಜಪಿಸುವ ಮಂತ್ರ. ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.';
 
   @override
+  String get setupMantraNone =>
+      'ಆಯ್ಕೆ ಮಾಡಲು ಇನ್ನೂ ಮಂತ್ರಗಳಿಲ್ಲ. ನಂತರ ಜಪ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಒಂದನ್ನು ಆರಿಸಬಹುದು.';
+
+  @override
   String get setupRoundsTitle => 'ದಿನಕ್ಕೆ ಎಷ್ಟು ಮಾಲೆಗಳು?';
 
   @override
@@ -3115,6 +3120,11 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return '$rounds ಆಧಾರದ ಮೇಲೆ ರೂಪಿಸಲಾಗಿದೆ.';
+  }
+
+  @override
   String get setupRoutineHint =>
       'ಏಳುವ ಅಥವಾ ಮಲಗುವ ಸಮಯವನ್ನು ಬದಲಾಯಿಸಲು ಅದನ್ನು ಒತ್ತಿ. ಉಳಿದೆಲ್ಲವನ್ನೂ ನಂತರ ದಿನಚರಿ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.';
 
@@ -3130,12 +3140,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get setupRoutineSkip => 'ಈಗ ಬೇಡ';
 
   @override
-  String routineWakeLatest(String time) {
-    return 'ಏಳುವ ಸಮಯ $timeಕ್ಕಿಂತ ತಡವಾಗಿರಬಾರದು.';
-  }
-
-  @override
-  String routineSleepLatest(String time) {
-    return 'ಮಲಗುವ ಸಮಯ $timeಕ್ಕಿಂತ ತಡವಾಗಿರಬಾರದು.';
+  String routineSleepNotBefore(String time) {
+    return 'ಮಲಗುವ ಸಮಯ $time ಕ್ಕಿಂತ ಮೊದಲು ಇರಲು ಸಾಧ್ಯವಿಲ್ಲ.';
   }
 }

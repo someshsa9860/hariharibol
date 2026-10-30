@@ -48,8 +48,8 @@
   "languageStepOf": "{total} में से चरण {current}",
   "languageAppTitle": "कौन-सी भाषा अपनी-सी लगती है?",
   "languageAppSubtitle": "आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
-  "languageMantraTitle": "आप किस लिपि में जप करते हैं?",
-  "languageMantraSubtitle": "मंत्र इसी लिपि में दिखेंगे। उनका अर्थ आपकी अपनी भाषा में ही रहेगा।",
+  "languageReadingTitle": "आप श्लोक किस भाषा में पढ़ते हैं?",
+  "languageReadingSubtitle": "श्लोक, अर्थ और तात्पर्य इसी भाषा में दिखेंगे। मंत्र भी इसी के अनुसार दिखेंगे। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
   "actionBack": "वापस",
   "tabHome": "होम",
   "tabSadhana": "जप",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "पढ़ते समय स्क्रीन चालू रखें",
   "setupMantraTitle": "आपका प्रिय मंत्र",
   "setupMantraSubtitle": "जिसका आप सबसे अधिक जप करते हैं। इसे आप कभी भी बदल सकते हैं।",
+  "setupMantraNone": "अभी चुनने के लिए कोई मंत्र नहीं है। आप बाद में जप टैब में एक चुन सकते हैं।",
   "setupRoundsTitle": "रोज़ कितनी माला?",
   "setupRoundsSubtitle": "एक माला में 108 जप होते हैं। उतनी चुनें जितनी आप हर दिन कर सकें — बाद में सेटिंग्स में बदल सकते हैं।",
   "setupRoundsCount": "{count, plural, =1{1 माला} other{{count} माला}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "अधिक माला",
   "setupRoutineTitle": "आपकी दैनिक दिनचर्या",
   "setupRoutineSubtitle": "{mantra} की {rounds} के अनुसार बनाई गई।",
+  "setupRoutineSubtitleNoMantra": "{rounds} के अनुसार बनाई गई।",
   "setupRoutineHint": "जागने या सोने का समय बदलने के लिए उस पर टैप करें। बाकी सब कुछ बाद में दिनचर्या टैब में बदल सकते हैं।",
   "setupChantLate": "जागने के इस समय पर आपकी माला {time} के बाद तक चलेगी। जल्दी जागें या कम माला चुनें।",
   "setupFinish": "मेरी दिनचर्या बनाएँ",
   "setupRoutineSkip": "अभी छोड़ें",
-  "routineWakeLatest": "जागने का समय {time} से देर का नहीं हो सकता।",
-  "routineSleepLatest": "सोने का समय {time} से देर का नहीं हो सकता।"
+  "routineSleepNotBefore": "सोने का समय {time} से पहले का नहीं हो सकता।"
 }

@@ -166,6 +166,16 @@ What a reader chants is **written to the phone first and sent later**: counting 
   - **Not done / unverified:** an in-app on/off switch, alerts for tasks with no range. **Never run on a phone; the Swift was never built.** The card's 4 strings, the edit sheet's 9 and the alert's 3 are AI-drafted in 11 languages.
 - **Ekadashi is computed on the phone** (`services/ekadashi_calendar.dart`, Meeus low-precision; 11th tithi judged at 06:00 local). Can differ from a temple's date by a day (no Vaishnava rules). A day with two sunrises of the tithi is marked on both. A date chip's initial follows the locale; its semantics label carries date, "Ekadashi" and "n of m done". Peacock feather = `PeacockFeatherIcon` (`assets/peacock_feather.svg`, own colours both themes).
 
+## First-run setup
+
+A signed-in account with no `BoxKeys.onboardingSeen` is sent to `/setup` (`views/onboarding/setup_view.dart`, `AppRoutes.setup`): five steps (`SetupConfig.stepCount`) — app language, reading language, favourite mantra, daily rounds, routine. Step pages are `widgets/setup/`.
+
+- **Nothing is saved until the last step, except the languages:** continuing from the reading step writes both (`UserService.updateLanguages`, then `LanguageSettingsNotifier.adopt`). Finishing saves the mantra and rounds (`SadhanaService.updateProfile`), adds the routine items locally (`RoutineNotifier.addDaily`, one call per item) and sets `onboardingSeen`. Skipping the routine saves the profile only.
+- **The limit is the same rule everywhere:** `RoutinePlanConfig` holds the numbers (a bedtime is never before noon; wake-up and bedtime have no upper cap); `RoutinePlanner` (`services/routine_planner.dart`) is pure and turns rounds and the mantra's standard chant time into a suggested wake-up (never before 4 AM) and bedtime; `widgets/routine/routine_limits.dart` judges a time for the setup and the task sheet alike. Do not copy the limit into a screen.
+- **Chant time** is `MantraAutoChantSession.standardChantMsOf(mantra)`; with no mantra chosen it is 0 and the planner's minimum chant window applies (`minChantWindowMinutes`).
+- **Wording:** a bedtime before noon is refused with "Bedtime can't be before {time}." (`routineSleepNotBefore`); there is no other limit to word.
+- **Not tested:** the setup pages themselves. Finishing reaches `SadhanaService.instance` and `UserService.instance`, which cannot be overridden, so only the limits and planner have tests (`test/routine_limits_test.dart`, `test/routine_planner_test.dart`).
+
 ## AI chat
 
 Shown to readers as **Ask Sakha** — a devotional friend for every tradition and faith; the server's `description` names no sampradaya and says plainly Sakha is a digital companion, not a person. **No string a reader sees says "AI", "assistant" or "bot"** (jargon actions are plain: "Answer again"). Code keeps the protocol's words (`ChatRole.assistant`, `/chat` routes). The one "AI" string left is `verseExplanationAiLabel` (a different feature). Entry: the raised nav button and a Home card (`widgets/chat/chat_entry_card.dart`, signed-in only); both push `/chat` full screen, no bar.

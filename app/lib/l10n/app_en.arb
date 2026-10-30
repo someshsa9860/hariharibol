@@ -87,8 +87,8 @@
   },
   "languageAppTitle": "Which language feels like home?",
   "languageAppSubtitle": "You can change this anytime in settings.",
-  "languageMantraTitle": "Which script do you chant in?",
-  "languageMantraSubtitle": "Mantras appear in this script. Their meaning stays in your own language.",
+  "languageReadingTitle": "Which language do you read the verses in?",
+  "languageReadingSubtitle": "Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.",
   "actionBack": "Back",
   "tabHome": "Home",
   "tabSadhana": "Jap",
@@ -2057,6 +2057,7 @@
   "readingKeepAwakeTitle": "Keep the screen on while reading",
   "setupMantraTitle": "Your favourite mantra",
   "setupMantraSubtitle": "The one you chant most. You can change it any time.",
+  "setupMantraNone": "There are no mantras to choose from yet. You can pick one later in the Jap tab.",
   "setupRoundsTitle": "How many rounds a day?",
   "setupRoundsSubtitle": "One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.",
   "setupRoundsCount": "{count, plural, =1{1 round} other{{count} rounds}}",
@@ -2116,6 +2117,14 @@
       }
     }
   },
+  "setupRoutineSubtitleNoMantra": "Planned around {rounds}.",
+  "@setupRoutineSubtitleNoMantra": {
+    "placeholders": {
+      "rounds": {
+        "type": "String"
+      }
+    }
+  },
   "setupRoutineHint": "Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.",
   "setupChantLate": "At this wake-up time your rounds run past {time}. Wake earlier or choose fewer rounds.",
   "@setupChantLate": {
@@ -2127,16 +2136,8 @@
   },
   "setupFinish": "Create my routine",
   "setupRoutineSkip": "Skip for now",
-  "routineWakeLatest": "Wake-up can't be later than {time}.",
-  "@routineWakeLatest": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "routineSleepLatest": "Bedtime can't be later than {time}.",
-  "@routineSleepLatest": {
+  "routineSleepNotBefore": "Bedtime can't be before {time}.",
+  "@routineSleepNotBefore": {
     "placeholders": {
       "time": {
         "type": "String"

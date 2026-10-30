@@ -48,8 +48,8 @@
   "languageStepOf": "পদক্ষেপ {current} / {total}",
   "languageAppTitle": "কোনটো ভাষা ঘৰৰ দৰে লাগে?",
   "languageAppSubtitle": "আপুনি ইয়াক যিকোনো সময়তে ছেটিংছত সলনি কৰিব পাৰে।",
-  "languageMantraTitle": "আপুনি কোনটো লিপিত জপ কৰে?",
-  "languageMantraSubtitle": "মন্ত্ৰবোৰ এই লিপিত দেখা যাব। সিহঁতৰ অৰ্থ আপোনাৰ নিজৰ ভাষাতে থাকিব।",
+  "languageReadingTitle": "আপুনি শ্লোক কোনটো ভাষাত পঢ়ে?",
+  "languageReadingSubtitle": "শ্লোক, অৰ্থ আৰু তাৎপৰ্য এই ভাষাত দেখা যাব। মন্ত্ৰবোৰেও এই ভাষা অনুসৰণ কৰিব। ছেটিঙত ইয়াক যিকোনো সময়তে সলনি কৰিব পাৰে।",
   "actionBack": "পিছলৈ",
   "tabHome": "হোম",
   "tabSadhana": "জপ",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "পঢ়াৰ সময়ত স্ক্ৰীন অন ৰাখক",
   "setupMantraTitle": "আপোনাৰ প্ৰিয় মন্ত্ৰ",
   "setupMantraSubtitle": "যিটো আপুনি আটাইতকৈ বেছি জপ কৰে। ইয়াক আপুনি যিকোনো সময়তে সলনি কৰিব পাৰে।",
+  "setupMantraNone": "বাছনি কৰিবলৈ এতিয়াও কোনো মন্ত্ৰ নাই। আপুনি পিছলৈ জপ টেবত এটা বাছনি কৰিব পাৰে।",
   "setupRoundsTitle": "দিনটোত কিমান মালা?",
   "setupRoundsSubtitle": "এটা মালাত 108 বাৰ জপ। প্ৰতিদিনে যিমান কৰিব পাৰে সিমান বাছক — পাছত ছেটিংছত সলনি কৰিব পাৰিব।",
   "setupRoundsCount": "{count, plural, =1{1 মালা} other{{count} মালা}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "বেছি মালা",
   "setupRoutineTitle": "আপোনাৰ দৈনিক ৰুটিন",
   "setupRoutineSubtitle": "{mantra}ৰ {rounds} অনুসৰি সজোৱা।",
+  "setupRoutineSubtitleNoMantra": "{rounds}ৰ অনুসৰি সজোৱা।",
   "setupRoutineHint": "সাৰ পোৱা বা শোৱাৰ সময় সলনি কৰিবলৈ ইয়াত টিপক। বাকী সকলো পাছত ৰুটিন টেবত সলনি কৰিব পাৰিব।",
   "setupChantLate": "সাৰ পোৱাৰ এই সময়ত আপোনাৰ মালা {time}ৰ পাছলৈকে চলিব। সোনকালে সাৰ পাওক বা কম মালা বাছক।",
   "setupFinish": "মোৰ ৰুটিন বনাওক",
   "setupRoutineSkip": "এতিয়া এৰি দিয়ক",
-  "routineWakeLatest": "সাৰ পোৱাৰ সময় {time}ৰ পাছত হ’ব নোৱাৰে।",
-  "routineSleepLatest": "শোৱাৰ সময় {time}ৰ পাছত হ’ব নোৱাৰে।"
+  "routineSleepNotBefore": "শোৱাৰ সময় {time}ৰ আগত হ'ব নোৱাৰে।"
 }

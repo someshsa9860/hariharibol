@@ -170,11 +170,11 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਤੁਸੀਂ ਇਸਨੂੰ ਕਦੇ ਵੀ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।';
 
   @override
-  String get languageMantraTitle => 'ਤੁਸੀਂ ਕਿਸ ਲਿਪੀ ਵਿੱਚ ਜਪ ਕਰਦੇ ਹੋ?';
+  String get languageReadingTitle => 'ਤੁਸੀਂ ਸ਼ਲੋਕ ਕਿਸ ਭਾਸ਼ਾ ਵਿੱਚ ਪੜ੍ਹਦੇ ਹੋ?';
 
   @override
-  String get languageMantraSubtitle =>
-      'ਮੰਤਰ ਇਸ ਲਿਪੀ ਵਿੱਚ ਦਿਖਾਈ ਦੇਣਗੇ। ਉਨ੍ਹਾਂ ਦਾ ਅਰਥ ਤੁਹਾਡੀ ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਰਹੇਗਾ।';
+  String get languageReadingSubtitle =>
+      'ਸ਼ਲੋਕ, ਅਰਥ ਅਤੇ ਤਾਤਪਰਯ ਇਸ ਭਾਸ਼ਾ ਵਿੱਚ ਦਿਖਾਈ ਦੇਣਗੇ। ਮੰਤਰ ਵੀ ਇਸੇ ਭਾਸ਼ਾ ਮੁਤਾਬਕ ਦਿਖਾਏ ਜਾਣਗੇ। ਤੁਸੀਂ ਇਸਨੂੰ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕਦੇ ਵੀ ਬਦਲ ਸਕਦੇ ਹੋ।';
 
   @override
   String get actionBack => 'ਪਿੱਛੇ';
@@ -3057,6 +3057,10 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਜਿਸਦਾ ਤੁਸੀਂ ਸਭ ਤੋਂ ਵੱਧ ਜਪ ਕਰਦੇ ਹੋ। ਇਸਨੂੰ ਤੁਸੀਂ ਕਦੇ ਵੀ ਬਦਲ ਸਕਦੇ ਹੋ।';
 
   @override
+  String get setupMantraNone =>
+      'ਚੁਣਨ ਲਈ ਅਜੇ ਕੋਈ ਮੰਤਰ ਨਹੀਂ ਹੈ। ਤੁਸੀਂ ਬਾਅਦ ਵਿੱਚ ਜਪ ਟੈਬ ਵਿੱਚੋਂ ਇੱਕ ਚੁਣ ਸਕਦੇ ਹੋ।';
+
+  @override
   String get setupRoundsTitle => 'ਰੋਜ਼ ਕਿੰਨੀਆਂ ਮਾਲਾਵਾਂ?';
 
   @override
@@ -3109,6 +3113,11 @@ class AppLocalizationsPa extends AppLocalizations {
   }
 
   @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return '$rounds ਮੁਤਾਬਕ ਬਣਾਈ ਗਈ।';
+  }
+
+  @override
   String get setupRoutineHint =>
       'ਜਾਗਣ ਜਾਂ ਸੌਣ ਦਾ ਸਮਾਂ ਬਦਲਣ ਲਈ ਉਸ ਉੱਤੇ ਟੈਪ ਕਰੋ। ਬਾਕੀ ਸਭ ਕੁਝ ਬਾਅਦ ਵਿੱਚ ਰੁਟੀਨ ਟੈਬ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।';
 
@@ -3124,12 +3133,7 @@ class AppLocalizationsPa extends AppLocalizations {
   String get setupRoutineSkip => 'ਹੁਣ ਛੱਡੋ';
 
   @override
-  String routineWakeLatest(String time) {
-    return 'ਜਾਗਣ ਦਾ ਸਮਾਂ $time ਤੋਂ ਬਾਅਦ ਦਾ ਨਹੀਂ ਹੋ ਸਕਦਾ।';
-  }
-
-  @override
-  String routineSleepLatest(String time) {
-    return 'ਸੌਣ ਦਾ ਸਮਾਂ $time ਤੋਂ ਬਾਅਦ ਦਾ ਨਹੀਂ ਹੋ ਸਕਦਾ।';
+  String routineSleepNotBefore(String time) {
+    return 'ਸੌਣ ਦਾ ਸਮਾਂ $time ਤੋਂ ਪਹਿਲਾਂ ਨਹੀਂ ਹੋ ਸਕਦਾ।';
   }
 }

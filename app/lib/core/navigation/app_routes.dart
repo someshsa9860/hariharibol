@@ -10,8 +10,9 @@ abstract final class AppRoutes {
   /// before sign-in.
   static const String intro = '/intro';
 
-  /// Asked once, on the first run of a new account.
-  static const String languageSetup = '/language';
+  /// Asked once, on the first run of a new account: the languages, a favourite
+  /// mantra, the daily rounds and a routine.
+  static const String setup = '/setup';
 
   // The four dashboard tabs. Each is a branch of the shell route, which is why
   // they are top-level paths rather than children of `/dashboard`.
@@ -152,7 +153,7 @@ abstract final class RouteNames {
   static const String splash = 'splash';
   static const String signIn = 'signIn';
   static const String intro = 'intro';
-  static const String languageSetup = 'languageSetup';
+  static const String setup = 'setup';
   static const String home = 'home';
   static const String sadhana = 'sadhana';
   static const String library = 'library';

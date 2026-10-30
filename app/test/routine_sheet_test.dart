@@ -406,12 +406,12 @@ void main() {
       await tester.pumpWidget(app());
       await tester.pumpAndSettle();
       await openSheet(tester);
-      // Wake up is 4:30 AM to 6:00 AM; start it at 7:00 AM.
-      await pickPreset(tester, 'Wake up');
+      // Exercise is 6:00 AM to 8:00 AM; start it at 9:00 AM, past its end.
+      await pickPreset(tester, 'Exercise');
 
       await tester.tap(find.bySemanticsLabel(RegExp('^From ')));
       await tester.pumpAndSettle();
-      await enterTime(tester, hour: 7, minute: 0);
+      await enterTime(tester, hour: 9, minute: 0);
 
       expect(find.text('The end must be after the start.'), findsNothing);
       expect(canSave(tester), isTrue);
@@ -419,8 +419,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final window = today(tester).single.window!;
-      expect(window.start, 7 * 60);
-      expect(window.end, 8 * 60);
+      expect(window.start, 9 * 60);
+      expect(window.end, 10 * 60);
       await settleSaves(tester);
     });
 

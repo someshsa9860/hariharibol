@@ -48,8 +48,8 @@
   "languageStepOf": "ಹಂತ {current} / {total}",
   "languageAppTitle": "ಯಾವ ಭಾಷೆ ನಿಮಗೆ ಮನೆಯಂತೆ ಅನಿಸುತ್ತದೆ?",
   "languageAppSubtitle": "ನೀವು ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
-  "languageMantraTitle": "ನೀವು ಯಾವ ಲಿಪಿಯಲ್ಲಿ ಜಪಿಸುತ್ತೀರಿ?",
-  "languageMantraSubtitle": "ಮಂತ್ರಗಳು ಈ ಲಿಪಿಯಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ. ಅವುಗಳ ಅರ್ಥ ನಿಮ್ಮ ಸ್ವಂತ ಭಾಷೆಯಲ್ಲೇ ಇರುತ್ತದೆ.",
+  "languageReadingTitle": "ನೀವು ಶ್ಲೋಕಗಳನ್ನು ಯಾವ ಭಾಷೆಯಲ್ಲಿ ಓದುತ್ತೀರಿ?",
+  "languageReadingSubtitle": "ಶ್ಲೋಕ, ಅರ್ಥ ಮತ್ತು ತಾತ್ಪರ್ಯಗಳು ಈ ಭಾಷೆಯಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ. ಮಂತ್ರಗಳೂ ಇದನ್ನೇ ಅನುಸರಿಸುತ್ತವೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",
   "actionBack": "ಹಿಂದೆ",
   "tabHome": "ಮುಖಪುಟ",
   "tabSadhana": "ಜಪ",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "ಓದುವಾಗ ಪರದೆ ಆನ್ ಇರಲಿ",
   "setupMantraTitle": "ನಿಮ್ಮ ಮೆಚ್ಚಿನ ಮಂತ್ರ",
   "setupMantraSubtitle": "ನೀವು ಹೆಚ್ಚು ಜಪಿಸುವ ಮಂತ್ರ. ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",
+  "setupMantraNone": "ಆಯ್ಕೆ ಮಾಡಲು ಇನ್ನೂ ಮಂತ್ರಗಳಿಲ್ಲ. ನಂತರ ಜಪ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಒಂದನ್ನು ಆರಿಸಬಹುದು.",
   "setupRoundsTitle": "ದಿನಕ್ಕೆ ಎಷ್ಟು ಮಾಲೆಗಳು?",
   "setupRoundsSubtitle": "ಒಂದು ಮಾಲೆಯಲ್ಲಿ 108 ಜಪಗಳು. ಪ್ರತಿದಿನ ನಿಮಗೆ ಮಾಡಲಾಗುವಷ್ಟು ಆರಿಸಿ — ನಂತರ ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
   "setupRoundsCount": "{count, plural, =1{1 ಮಾಲೆ} other{{count} ಮಾಲೆಗಳು}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "ಹೆಚ್ಚು ಮಾಲೆಗಳು",
   "setupRoutineTitle": "ನಿಮ್ಮ ದಿನಚರಿ",
   "setupRoutineSubtitle": "{mantra} ಮಂತ್ರದ {rounds} ಆಧಾರದ ಮೇಲೆ ರೂಪಿಸಲಾಗಿದೆ.",
+  "setupRoutineSubtitleNoMantra": "{rounds} ಆಧಾರದ ಮೇಲೆ ರೂಪಿಸಲಾಗಿದೆ.",
   "setupRoutineHint": "ಏಳುವ ಅಥವಾ ಮಲಗುವ ಸಮಯವನ್ನು ಬದಲಾಯಿಸಲು ಅದನ್ನು ಒತ್ತಿ. ಉಳಿದೆಲ್ಲವನ್ನೂ ನಂತರ ದಿನಚರಿ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
   "setupChantLate": "ಈ ಏಳುವ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ಮಾಲೆಗಳು {time} ಮೀರಿ ಮುಂದುವರಿಯುತ್ತವೆ. ಬೇಗ ಏಳಿ ಅಥವಾ ಕಡಿಮೆ ಮಾಲೆಗಳನ್ನು ಆರಿಸಿ.",
   "setupFinish": "ನನ್ನ ದಿನಚರಿ ರಚಿಸಿ",
   "setupRoutineSkip": "ಈಗ ಬೇಡ",
-  "routineWakeLatest": "ಏಳುವ ಸಮಯ {time}ಕ್ಕಿಂತ ತಡವಾಗಿರಬಾರದು.",
-  "routineSleepLatest": "ಮಲಗುವ ಸಮಯ {time}ಕ್ಕಿಂತ ತಡವಾಗಿರಬಾರದು."
+  "routineSleepNotBefore": "ಮಲಗುವ ಸಮಯ {time} ಕ್ಕಿಂತ ಮೊದಲು ಇರಲು ಸಾಧ್ಯವಿಲ್ಲ."
 }

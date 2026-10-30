@@ -72,11 +72,14 @@ class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
   Future<void> setSpeaking(String code) => _set(BoxKeys.languageSpeaking, state.copyWith(speaking: code), code);
 
   /// Takes the account's app and reading languages as the device's own — used
-  /// once, right after onboarding saved them to the account.
+  /// once, right after onboarding saved them to the account. The mantras are
+  /// asked for again: the setup's next question lists them, and they are worded
+  /// in the reading language the account has just been given.
   Future<void> adopt({required String app, required String reading}) async {
     await LocalStore.instance.write(BoxKeys.languageApp, app);
     await LocalStore.instance.write(BoxKeys.languageReading, reading);
     state = state.copyWith(app: app, reading: reading);
+    await _refetchServerShaped();
   }
 
   Future<void> _set(

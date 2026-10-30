@@ -48,8 +48,8 @@
   "languageStepOf": "ਕਦਮ {current} / {total}",
   "languageAppTitle": "ਕਿਹੜੀ ਭਾਸ਼ਾ ਘਰ ਵਰਗੀ ਲੱਗਦੀ ਹੈ?",
   "languageAppSubtitle": "ਤੁਸੀਂ ਇਸਨੂੰ ਕਦੇ ਵੀ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।",
-  "languageMantraTitle": "ਤੁਸੀਂ ਕਿਸ ਲਿਪੀ ਵਿੱਚ ਜਪ ਕਰਦੇ ਹੋ?",
-  "languageMantraSubtitle": "ਮੰਤਰ ਇਸ ਲਿਪੀ ਵਿੱਚ ਦਿਖਾਈ ਦੇਣਗੇ। ਉਨ੍ਹਾਂ ਦਾ ਅਰਥ ਤੁਹਾਡੀ ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਰਹੇਗਾ।",
+  "languageReadingTitle": "ਤੁਸੀਂ ਸ਼ਲੋਕ ਕਿਸ ਭਾਸ਼ਾ ਵਿੱਚ ਪੜ੍ਹਦੇ ਹੋ?",
+  "languageReadingSubtitle": "ਸ਼ਲੋਕ, ਅਰਥ ਅਤੇ ਤਾਤਪਰਯ ਇਸ ਭਾਸ਼ਾ ਵਿੱਚ ਦਿਖਾਈ ਦੇਣਗੇ। ਮੰਤਰ ਵੀ ਇਸੇ ਭਾਸ਼ਾ ਮੁਤਾਬਕ ਦਿਖਾਏ ਜਾਣਗੇ। ਤੁਸੀਂ ਇਸਨੂੰ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕਦੇ ਵੀ ਬਦਲ ਸਕਦੇ ਹੋ।",
   "actionBack": "ਪਿੱਛੇ",
   "tabHome": "ਹੋਮ",
   "tabSadhana": "ਜਪ",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਕਰੀਨ ਚਾਲੂ ਰੱਖੋ",
   "setupMantraTitle": "ਤੁਹਾਡਾ ਪਿਆਰਾ ਮੰਤਰ",
   "setupMantraSubtitle": "ਜਿਸਦਾ ਤੁਸੀਂ ਸਭ ਤੋਂ ਵੱਧ ਜਪ ਕਰਦੇ ਹੋ। ਇਸਨੂੰ ਤੁਸੀਂ ਕਦੇ ਵੀ ਬਦਲ ਸਕਦੇ ਹੋ।",
+  "setupMantraNone": "ਚੁਣਨ ਲਈ ਅਜੇ ਕੋਈ ਮੰਤਰ ਨਹੀਂ ਹੈ। ਤੁਸੀਂ ਬਾਅਦ ਵਿੱਚ ਜਪ ਟੈਬ ਵਿੱਚੋਂ ਇੱਕ ਚੁਣ ਸਕਦੇ ਹੋ।",
   "setupRoundsTitle": "ਰੋਜ਼ ਕਿੰਨੀਆਂ ਮਾਲਾਵਾਂ?",
   "setupRoundsSubtitle": "ਇੱਕ ਮਾਲਾ ਵਿੱਚ 108 ਜਪ ਹੁੰਦੇ ਹਨ। ਹਰ ਰੋਜ਼ ਜਿੰਨੀਆਂ ਕਰ ਸਕੋ ਓਨੀਆਂ ਚੁਣੋ — ਬਾਅਦ ਵਿੱਚ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।",
   "setupRoundsCount": "{count, plural, =1{1 ਮਾਲਾ} other{{count} ਮਾਲਾਵਾਂ}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "ਵੱਧ ਮਾਲਾਵਾਂ",
   "setupRoutineTitle": "ਤੁਹਾਡੀ ਰੋਜ਼ਾਨਾ ਰੁਟੀਨ",
   "setupRoutineSubtitle": "{mantra} ਦੀਆਂ {rounds} ਮੁਤਾਬਕ ਬਣਾਈ ਗਈ।",
+  "setupRoutineSubtitleNoMantra": "{rounds} ਮੁਤਾਬਕ ਬਣਾਈ ਗਈ।",
   "setupRoutineHint": "ਜਾਗਣ ਜਾਂ ਸੌਣ ਦਾ ਸਮਾਂ ਬਦਲਣ ਲਈ ਉਸ ਉੱਤੇ ਟੈਪ ਕਰੋ। ਬਾਕੀ ਸਭ ਕੁਝ ਬਾਅਦ ਵਿੱਚ ਰੁਟੀਨ ਟੈਬ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।",
   "setupChantLate": "ਜਾਗਣ ਦੇ ਇਸ ਸਮੇਂ ਤੁਹਾਡੀਆਂ ਮਾਲਾਵਾਂ {time} ਤੋਂ ਬਾਅਦ ਤੱਕ ਚੱਲਣਗੀਆਂ। ਜਲਦੀ ਜਾਗੋ ਜਾਂ ਘੱਟ ਮਾਲਾਵਾਂ ਚੁਣੋ।",
   "setupFinish": "ਮੇਰੀ ਰੁਟੀਨ ਬਣਾਓ",
   "setupRoutineSkip": "ਹੁਣ ਛੱਡੋ",
-  "routineWakeLatest": "ਜਾਗਣ ਦਾ ਸਮਾਂ {time} ਤੋਂ ਬਾਅਦ ਦਾ ਨਹੀਂ ਹੋ ਸਕਦਾ।",
-  "routineSleepLatest": "ਸੌਣ ਦਾ ਸਮਾਂ {time} ਤੋਂ ਬਾਅਦ ਦਾ ਨਹੀਂ ਹੋ ਸਕਦਾ।"
+  "routineSleepNotBefore": "ਸੌਣ ਦਾ ਸਮਾਂ {time} ਤੋਂ ਪਹਿਲਾਂ ਨਹੀਂ ਹੋ ਸਕਦਾ।"
 }

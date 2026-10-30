@@ -406,17 +406,17 @@ abstract class AppLocalizations {
   /// **'You can change this anytime in settings.'**
   String get languageAppSubtitle;
 
-  /// No description provided for @languageMantraTitle.
+  /// No description provided for @languageReadingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Which script do you chant in?'**
-  String get languageMantraTitle;
+  /// **'Which language do you read the verses in?'**
+  String get languageReadingTitle;
 
-  /// No description provided for @languageMantraSubtitle.
+  /// No description provided for @languageReadingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Mantras appear in this script. Their meaning stays in your own language.'**
-  String get languageMantraSubtitle;
+  /// **'Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.'**
+  String get languageReadingSubtitle;
 
   /// No description provided for @actionBack.
   ///
@@ -5368,6 +5368,12 @@ abstract class AppLocalizations {
   /// **'The one you chant most. You can change it any time.'**
   String get setupMantraSubtitle;
 
+  /// No description provided for @setupMantraNone.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no mantras to choose from yet. You can pick one later in the Jap tab.'**
+  String get setupMantraNone;
+
   /// No description provided for @setupRoundsTitle.
   ///
   /// In en, this message translates to:
@@ -5434,6 +5440,12 @@ abstract class AppLocalizations {
   /// **'Planned around {rounds} of {mantra}.'**
   String setupRoutineSubtitle(String rounds, String mantra);
 
+  /// No description provided for @setupRoutineSubtitleNoMantra.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned around {rounds}.'**
+  String setupRoutineSubtitleNoMantra(String rounds);
+
   /// No description provided for @setupRoutineHint.
   ///
   /// In en, this message translates to:
@@ -5458,17 +5470,11 @@ abstract class AppLocalizations {
   /// **'Skip for now'**
   String get setupRoutineSkip;
 
-  /// No description provided for @routineWakeLatest.
+  /// No description provided for @routineSleepNotBefore.
   ///
   /// In en, this message translates to:
-  /// **'Wake-up can\'t be later than {time}.'**
-  String routineWakeLatest(String time);
-
-  /// No description provided for @routineSleepLatest.
-  ///
-  /// In en, this message translates to:
-  /// **'Bedtime can\'t be later than {time}.'**
-  String routineSleepLatest(String time);
+  /// **'Bedtime can\'t be before {time}.'**
+  String routineSleepNotBefore(String time);
 }
 
 class _AppLocalizationsDelegate

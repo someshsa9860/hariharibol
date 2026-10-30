@@ -6,6 +6,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/routine_task.dart';
+import 'routine_limits.dart';
 import 'routine_style.dart';
 import 'routine_window_field.dart';
 
@@ -149,9 +150,15 @@ class _RoutineTaskSheetState extends State<_RoutineTaskSheet> {
     super.dispose();
   }
 
+  /// Why the range cannot be kept, when the task is a wake-up or a bedtime and
+  /// it starts too late — see `routine_limits.dart`.
+  String? get _limitMessage =>
+      routineLimitMessage(context, _controller.text, _range);
+
   bool get _canSave =>
       _controller.text.trim().isNotEmpty &&
-      (_range == null || isRoutineRangeValid(_range!));
+      (_range == null || isRoutineRangeValid(_range!)) &&
+      _limitMessage == null;
 
   /// A standard routine fills in its category and its usual time range; both
   /// can still be changed, and the name is the menu's own to write.
@@ -260,6 +267,15 @@ class _RoutineTaskSheetState extends State<_RoutineTaskSheet> {
                       range: _range,
                       onChanged: (range) => setState(() => _range = range),
                     ),
+                    if (_limitMessage case final message?) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        message,
+                        style: context.texts.bodySmall?.copyWith(
+                          color: context.colors.error,
+                        ),
+                      ),
+                    ],
                     if (widget.purpose.asksRepeat) ...[
                       const SizedBox(height: AppSpacing.md),
                       SwitchListTile(

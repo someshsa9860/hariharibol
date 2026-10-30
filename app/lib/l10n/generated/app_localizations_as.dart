@@ -170,11 +170,11 @@ class AppLocalizationsAs extends AppLocalizations {
       'আপুনি ইয়াক যিকোনো সময়তে ছেটিংছত সলনি কৰিব পাৰে।';
 
   @override
-  String get languageMantraTitle => 'আপুনি কোনটো লিপিত জপ কৰে?';
+  String get languageReadingTitle => 'আপুনি শ্লোক কোনটো ভাষাত পঢ়ে?';
 
   @override
-  String get languageMantraSubtitle =>
-      'মন্ত্ৰবোৰ এই লিপিত দেখা যাব। সিহঁতৰ অৰ্থ আপোনাৰ নিজৰ ভাষাতে থাকিব।';
+  String get languageReadingSubtitle =>
+      'শ্লোক, অৰ্থ আৰু তাৎপৰ্য এই ভাষাত দেখা যাব। মন্ত্ৰবোৰেও এই ভাষা অনুসৰণ কৰিব। ছেটিঙত ইয়াক যিকোনো সময়তে সলনি কৰিব পাৰে।';
 
   @override
   String get actionBack => 'পিছলৈ';
@@ -3060,6 +3060,10 @@ class AppLocalizationsAs extends AppLocalizations {
       'যিটো আপুনি আটাইতকৈ বেছি জপ কৰে। ইয়াক আপুনি যিকোনো সময়তে সলনি কৰিব পাৰে।';
 
   @override
+  String get setupMantraNone =>
+      'বাছনি কৰিবলৈ এতিয়াও কোনো মন্ত্ৰ নাই। আপুনি পিছলৈ জপ টেবত এটা বাছনি কৰিব পাৰে।';
+
+  @override
   String get setupRoundsTitle => 'দিনটোত কিমান মালা?';
 
   @override
@@ -3112,6 +3116,11 @@ class AppLocalizationsAs extends AppLocalizations {
   }
 
   @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return '$roundsৰ অনুসৰি সজোৱা।';
+  }
+
+  @override
   String get setupRoutineHint =>
       'সাৰ পোৱা বা শোৱাৰ সময় সলনি কৰিবলৈ ইয়াত টিপক। বাকী সকলো পাছত ৰুটিন টেবত সলনি কৰিব পাৰিব।';
 
@@ -3127,12 +3136,7 @@ class AppLocalizationsAs extends AppLocalizations {
   String get setupRoutineSkip => 'এতিয়া এৰি দিয়ক';
 
   @override
-  String routineWakeLatest(String time) {
-    return 'সাৰ পোৱাৰ সময় $timeৰ পাছত হ’ব নোৱাৰে।';
-  }
-
-  @override
-  String routineSleepLatest(String time) {
-    return 'শোৱাৰ সময় $timeৰ পাছত হ’ব নোৱাৰে।';
+  String routineSleepNotBefore(String time) {
+    return 'শোৱাৰ সময় $timeৰ আগত হ\'ব নোৱাৰে।';
   }
 }

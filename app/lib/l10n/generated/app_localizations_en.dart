@@ -166,11 +166,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageAppSubtitle => 'You can change this anytime in settings.';
 
   @override
-  String get languageMantraTitle => 'Which script do you chant in?';
+  String get languageReadingTitle =>
+      'Which language do you read the verses in?';
 
   @override
-  String get languageMantraSubtitle =>
-      'Mantras appear in this script. Their meaning stays in your own language.';
+  String get languageReadingSubtitle =>
+      'Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.';
 
   @override
   String get actionBack => 'Back';
@@ -3051,6 +3052,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The one you chant most. You can change it any time.';
 
   @override
+  String get setupMantraNone =>
+      'There are no mantras to choose from yet. You can pick one later in the Jap tab.';
+
+  @override
   String get setupRoundsTitle => 'How many rounds a day?';
 
   @override
@@ -3103,6 +3108,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return 'Planned around $rounds.';
+  }
+
+  @override
   String get setupRoutineHint =>
       'Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.';
 
@@ -3118,12 +3128,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupRoutineSkip => 'Skip for now';
 
   @override
-  String routineWakeLatest(String time) {
-    return 'Wake-up can\'t be later than $time.';
-  }
-
-  @override
-  String routineSleepLatest(String time) {
-    return 'Bedtime can\'t be later than $time.';
+  String routineSleepNotBefore(String time) {
+    return 'Bedtime can\'t be before $time.';
   }
 }

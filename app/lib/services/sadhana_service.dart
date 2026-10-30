@@ -86,6 +86,24 @@ class SadhanaService {
     return SadhanaProfile.fromJson(response.json);
   }
 
+  /// The standing daily goal and the mantra "Chant now" opens with, in one
+  /// request — the setup flow asks both together and should not leave one set
+  /// and the other not. A null [preferredMantraId] is sent as a literal JSON
+  /// null, which unsets the choice, as [setPreferredMantra] does.
+  Future<SadhanaProfile> updateProfile({
+    required int dailyRoundTarget,
+    required String? preferredMantraId,
+  }) async {
+    final response = await _api.patch(
+      ApiPaths.meSadhanaProfile,
+      body: {
+        'dailyRoundTarget': dailyRoundTarget,
+        'preferredMantraId': preferredMantraId,
+      },
+    );
+    return SadhanaProfile.fromJson(response.json);
+  }
+
   /// Rounds chanted away from the phone, entered afterwards. Lands in the same
   /// table as an in-app session, so a day's total is never split across two
   /// places.

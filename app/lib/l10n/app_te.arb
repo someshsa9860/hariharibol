@@ -48,8 +48,8 @@
   "languageStepOf": "దశ {current} / {total}",
   "languageAppTitle": "ఏ భాష మీకు ఇంటిలా అనిపిస్తుంది?",
   "languageAppSubtitle": "దీన్ని ఎప్పుడైనా సెట్టింగ్‌లలో మార్చుకోవచ్చు.",
-  "languageMantraTitle": "మీరు ఏ లిపిలో జపిస్తారు?",
-  "languageMantraSubtitle": "మంత్రాలు ఈ లిపిలో కనిపిస్తాయి. వాటి అర్థం మీ స్వంత భాషలోనే ఉంటుంది.",
+  "languageReadingTitle": "మీరు శ్లోకాలను ఏ భాషలో చదువుతారు?",
+  "languageReadingSubtitle": "శ్లోకాలు, అర్థం, భాష్యం ఈ భాషలో కనిపిస్తాయి. మంత్రాలు కూడా ఈ భాషనే అనుసరిస్తాయి. సెట్టింగ్స్‌లో దీన్ని ఎప్పుడైనా మార్చుకోవచ్చు.",
   "actionBack": "వెనుకకు",
   "tabHome": "హోమ్",
   "tabSadhana": "జపం",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "చదివేటప్పుడు స్క్రీన్ ఆన్‌లో ఉంచు",
   "setupMantraTitle": "మీకు ఇష్టమైన మంత్రం",
   "setupMantraSubtitle": "మీరు ఎక్కువగా జపించే మంత్రం. దీన్ని ఎప్పుడైనా మార్చుకోవచ్చు.",
+  "setupMantraNone": "ఇంకా ఎంచుకోవడానికి మంత్రాలు లేవు. తర్వాత జపం ట్యాబ్‌లో ఒకదాన్ని ఎంచుకోవచ్చు.",
   "setupRoundsTitle": "రోజుకు ఎన్ని మాలలు?",
   "setupRoundsSubtitle": "ఒక మాలలో 108 జపాలు. ప్రతిరోజూ మీరు చేయగలిగినన్ని ఎంచుకోండి — తర్వాత సెట్టింగ్స్‌లో మార్చుకోవచ్చు.",
   "setupRoundsCount": "{count, plural, =1{1 మాల} other{{count} మాలలు}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "ఎక్కువ మాలలు",
   "setupRoutineTitle": "మీ దినచర్య",
   "setupRoutineSubtitle": "{mantra} యొక్క {rounds} ఆధారంగా రూపొందించబడింది.",
+  "setupRoutineSubtitleNoMantra": "{rounds} ఆధారంగా రూపొందించబడింది.",
   "setupRoutineHint": "నిద్ర లేచే లేదా నిద్రపోయే సమయాన్ని మార్చడానికి దాన్ని నొక్కండి. మిగతావన్నీ తర్వాత దినచర్య ట్యాబ్‌లో మార్చుకోవచ్చు.",
   "setupChantLate": "ఈ నిద్ర లేచే సమయంలో మీ మాలలు {time} దాటి సాగుతాయి. ముందే లేవండి లేదా తక్కువ మాలలు ఎంచుకోండి.",
   "setupFinish": "నా దినచర్యను సృష్టించు",
   "setupRoutineSkip": "ఇప్పుడు వద్దు",
-  "routineWakeLatest": "నిద్ర లేచే సమయం {time} కంటే ఆలస్యం కాకూడదు.",
-  "routineSleepLatest": "నిద్రపోయే సమయం {time} కంటే ఆలస్యం కాకూడదు."
+  "routineSleepNotBefore": "నిద్రపోయే సమయం {time} కంటే ముందు ఉండకూడదు."
 }

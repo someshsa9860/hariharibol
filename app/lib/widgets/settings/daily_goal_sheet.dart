@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../common/round_count_picker.dart';
 
-/// The standing daily round target — what every new day starts at. Shares its
-/// stepper-plus-quick-picks shape with the log-rounds sheet, since both are
-/// "pick a round count" and a reader who has used one already knows the other.
+/// The standing daily round target — what every new day starts at. Its stepper
+/// and quick picks are the setup's rounds step's too, so a reader who has met
+/// one knows the other.
 Future<int?> showDailyGoalSheet(BuildContext context, {required int initial}) {
   return showModalBottomSheet<int>(
     context: context,
@@ -29,13 +29,7 @@ class _DailyGoalSheet extends StatefulWidget {
 }
 
 class _DailyGoalSheetState extends State<_DailyGoalSheet> {
-  static const List<int> _quickPicks = [4, 8, 16, 32, 64];
-
   late int _rounds = widget.initial;
-
-  void _adjust(int delta) {
-    setState(() => _rounds = (_rounds + delta).clamp(1, 200));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,39 +55,16 @@ class _DailyGoalSheetState extends State<_DailyGoalSheet> {
               style: context.texts.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton.filledTonal(
-                  onPressed: () => _adjust(-1),
-                  icon: const Icon(Icons.remove_rounded),
-                ),
-                SizedBox(
-                  width: 96,
-                  child: Text(
-                    '$_rounds',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.numeral(context, size: 48),
-                  ),
-                ),
-                IconButton.filledTonal(
-                  onPressed: () => _adjust(1),
-                  icon: const Icon(Icons.add_rounded),
-                ),
-              ],
+            RoundCountStepper(
+              value: _rounds,
+              onChanged: (value) => setState(() => _rounds = value),
+              decreaseTooltip: text.setupRoundsFewer,
+              increaseTooltip: text.setupRoundsMore,
             ),
             const SizedBox(height: AppSpacing.lg),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: AppSpacing.sm,
-              children: [
-                for (final pick in _quickPicks)
-                  ChoiceChip(
-                    label: Text('$pick'),
-                    selected: _rounds == pick,
-                    onSelected: (_) => setState(() => _rounds = pick),
-                  ),
-              ],
+            RoundQuickPicks(
+              selected: _rounds,
+              onPick: (pick) => setState(() => _rounds = pick),
             ),
             const SizedBox(height: AppSpacing.xl),
             SizedBox(

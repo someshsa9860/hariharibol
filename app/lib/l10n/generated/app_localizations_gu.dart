@@ -168,11 +168,11 @@ class AppLocalizationsGu extends AppLocalizations {
   String get languageAppSubtitle => 'તમે આ ગમે ત્યારે સેટિંગ્સમાં બદલી શકો છો.';
 
   @override
-  String get languageMantraTitle => 'તમે કઈ લિપિમાં જપ કરો છો?';
+  String get languageReadingTitle => 'તમે શ્લોક કઈ ભાષામાં વાંચો છો?';
 
   @override
-  String get languageMantraSubtitle =>
-      'મંત્રો આ લિપિમાં દેખાશે. તેમનો અર્થ તમારી પોતાની ભાષામાં જ રહેશે.';
+  String get languageReadingSubtitle =>
+      'શ્લોક, અર્થ અને તાત્પર્ય આ ભાષામાં દેખાશે. મંત્રો પણ આ ભાષા પ્રમાણે દેખાશે. તમે તેને સેટિંગ્સમાં ગમે ત્યારે બદલી શકો છો.';
 
   @override
   String get actionBack => 'પાછળ';
@@ -3049,6 +3049,10 @@ class AppLocalizationsGu extends AppLocalizations {
       'જેનો તમે સૌથી વધુ જપ કરો છો. તેને તમે ગમે ત્યારે બદલી શકો છો.';
 
   @override
+  String get setupMantraNone =>
+      'પસંદ કરવા માટે હજી કોઈ મંત્ર નથી. તમે પછીથી જપ ટેબમાં એક પસંદ કરી શકો છો.';
+
+  @override
   String get setupRoundsTitle => 'દરરોજ કેટલી માળા?';
 
   @override
@@ -3101,6 +3105,11 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return '$rounds પ્રમાણે ગોઠવેલી.';
+  }
+
+  @override
   String get setupRoutineHint =>
       'જાગવાનો અથવા સૂવાનો સમય બદલવા તેના પર ટૅપ કરો. બાકી બધું પછી દિનચર્યા ટૅબમાં બદલી શકાશે.';
 
@@ -3116,12 +3125,7 @@ class AppLocalizationsGu extends AppLocalizations {
   String get setupRoutineSkip => 'હમણાં છોડો';
 
   @override
-  String routineWakeLatest(String time) {
-    return 'જાગવાનો સમય $time પછીનો ન હોઈ શકે.';
-  }
-
-  @override
-  String routineSleepLatest(String time) {
-    return 'સૂવાનો સમય $time પછીનો ન હોઈ શકે.';
+  String routineSleepNotBefore(String time) {
+    return 'સૂવાનો સમય $time પહેલાં ન હોઈ શકે.';
   }
 }

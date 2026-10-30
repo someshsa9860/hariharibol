@@ -48,8 +48,8 @@
   "languageStepOf": "{total}-এর মধ্যে ধাপ {current}",
   "languageAppTitle": "কোন ভাষাটি আপন মনে হয়?",
   "languageAppSubtitle": "আপনি যেকোনো সময় সেটিংসে এটি বদলাতে পারবেন।",
-  "languageMantraTitle": "আপনি কোন লিপিতে জপ করেন?",
-  "languageMantraSubtitle": "মন্ত্র এই লিপিতে দেখানো হবে। তাদের অর্থ আপনার নিজের ভাষাতেই থাকবে।",
+  "languageReadingTitle": "আপনি শ্লোক কোন ভাষায় পড়েন?",
+  "languageReadingSubtitle": "শ্লোক, অর্থ ও তাৎপর্য এই ভাষায় দেখানো হবে। মন্ত্রও এই ভাষা অনুসারে দেখানো হবে। আপনি সেটিংসে যেকোনো সময় এটি বদলাতে পারবেন।",
   "actionBack": "পিছনে",
   "tabHome": "হোম",
   "tabSadhana": "জপ",
@@ -879,6 +879,7 @@
   "readingKeepAwakeTitle": "পড়ার সময় স্ক্রিন চালু রাখুন",
   "setupMantraTitle": "আপনার প্রিয় মন্ত্র",
   "setupMantraSubtitle": "যেটি আপনি সবচেয়ে বেশি জপ করেন। এটি আপনি যেকোনো সময় বদলাতে পারবেন।",
+  "setupMantraNone": "বেছে নেওয়ার মতো এখনও কোনো মন্ত্র নেই। আপনি পরে জপ ট্যাব থেকে একটি বেছে নিতে পারবেন।",
   "setupRoundsTitle": "প্রতিদিন কত মালা?",
   "setupRoundsSubtitle": "এক মালায় 108 বার জপ। প্রতিদিন যতটা রাখতে পারবেন ততটা বেছে নিন — পরে সেটিংসে বদলাতে পারবেন।",
   "setupRoundsCount": "{count, plural, =1{1 মালা} other{{count} মালা}}",
@@ -890,10 +891,10 @@
   "setupRoundsMore": "বেশি মালা",
   "setupRoutineTitle": "আপনার দৈনিক রুটিন",
   "setupRoutineSubtitle": "{mantra}-এর {rounds} অনুযায়ী সাজানো।",
+  "setupRoutineSubtitleNoMantra": "{rounds} অনুযায়ী সাজানো।",
   "setupRoutineHint": "ওঠা বা ঘুমানোর সময় বদলাতে সেটিতে ট্যাপ করুন। বাকি সবকিছু পরে রুটিন ট্যাবে বদলাতে পারবেন।",
   "setupChantLate": "ওঠার এই সময়ে আপনার মালা {time}-এর পরেও চলবে। আগে উঠুন অথবা কম মালা বেছে নিন।",
   "setupFinish": "আমার রুটিন তৈরি করুন",
   "setupRoutineSkip": "এখনকার মতো বাদ দিন",
-  "routineWakeLatest": "ওঠার সময় {time}-এর পরে হতে পারে না।",
-  "routineSleepLatest": "ঘুমানোর সময় {time}-এর পরে হতে পারে না।"
+  "routineSleepNotBefore": "ঘুমানোর সময় {time}-এর আগে হতে পারবে না।"
 }
