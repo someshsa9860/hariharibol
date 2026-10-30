@@ -2286,6 +2286,9 @@ class AppLocalizationsOr extends AppLocalizations {
   String get searchTipsTitle => 'ସନ୍ଧାନ ପାଇଁ ଟିପ୍ସ';
 
   @override
+  String get searchGoTo => 'ଯାଆନ୍ତୁ';
+
+  @override
   String get searchTipSpelling =>
       'ଯେପରି ଶୁଭୁଛି ସେପରି ଲେଖନ୍ତୁ। “krishna”, “krsna” ଓ “kṛṣṇa” ସମାନ ଶ୍ଳୋକ ଦେଖାଏ।';
 

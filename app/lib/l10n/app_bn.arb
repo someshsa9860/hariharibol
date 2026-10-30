@@ -626,6 +626,7 @@
   "searchShowingFor": "“{query}”-এর ফলাফল দেখানো হচ্ছে",
   "searchNoResultsInBook": "{book}-এ কিছু পাওয়া যায়নি। সব গ্রন্থে খুঁজুন, অথবা অন্য বানান চেষ্টা করুন।",
   "searchTipsTitle": "অনুসন্ধানের টিপস",
+  "searchGoTo": "যান",
   "searchTipSpelling": "যেমন শোনায় তেমন লিখুন। “krishna”, “krsna” ও “kṛṣṇa” একই শ্লোক খুঁজে দেয়।",
   "searchTipBook": "গ্রন্থের নাম দিয়ে শুরু করুন — “gita karma” বা “bhagavatam surrender” — তাহলে শুধু সেটিতেই খোঁজা হবে।",
   "searchTipPartial": "শ্লোক, তার অর্থ বা তাৎপর্যের কয়েকটি শব্দ লিখুন। ছোটখাটো ভুল চলবে।",

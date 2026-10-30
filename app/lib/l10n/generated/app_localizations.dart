@@ -3988,6 +3988,10 @@ abstract class AppLocalizations {
   /// **'Search tips'**
   String get searchTipsTitle;
 
+  /// In en, this message translates to:
+  /// **'Go to'**
+  String get searchGoTo;
+
   /// No description provided for @searchTipSpelling.
   ///
   /// In en, this message translates to:

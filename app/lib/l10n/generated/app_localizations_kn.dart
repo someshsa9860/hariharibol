@@ -2287,6 +2287,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get searchTipsTitle => 'ಹುಡುಕಾಟದ ಸಲಹೆಗಳು';
 
   @override
+  String get searchGoTo => 'ಹೋಗಿ';
+
+  @override
   String get searchTipSpelling =>
       'ಕೇಳಿಸುವಂತೆ ಬರೆಯಿರಿ. “krishna”, “krsna”, “kṛṣṇa” ಎಲ್ಲವೂ ಒಂದೇ ಶ್ಲೋಕಗಳನ್ನು ಹುಡುಕುತ್ತವೆ.';
 

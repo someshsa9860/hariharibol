@@ -2277,6 +2277,9 @@ class AppLocalizationsGu extends AppLocalizations {
   String get searchTipsTitle => 'શોધ માટે સૂચનો';
 
   @override
+  String get searchGoTo => 'પર જાઓ';
+
+  @override
   String get searchTipSpelling =>
       'જેવું સંભળાય તેવું લખો. “krishna”, “krsna” અને “kṛṣṇa” એ જ શ્લોકો શોધે છે.';
 

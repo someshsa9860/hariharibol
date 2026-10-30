@@ -2281,6 +2281,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get searchTipsTitle => 'खोज के सुझाव';
 
   @override
+  String get searchGoTo => 'वहाँ जाएँ';
+
+  @override
   String get searchTipSpelling =>
       'जैसा सुनाई दे वैसा लिखें। “krishna”, “krsna” और “kṛṣṇa” एक ही श्लोक खोजते हैं।';
 

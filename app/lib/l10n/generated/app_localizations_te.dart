@@ -2291,6 +2291,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get searchTipsTitle => 'శోధన చిట్కాలు';
 
   @override
+  String get searchGoTo => 'వెళ్లండి';
+
+  @override
   String get searchTipSpelling =>
       'ఎలా వినిపిస్తే అలా రాయండి. “krishna”, “krsna”, “kṛṣṇa” అన్నీ ఒకే శ్లోకాలను చూపిస్తాయి.';
 

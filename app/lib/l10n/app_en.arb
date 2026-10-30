@@ -1606,6 +1606,7 @@
     }
   },
   "searchTipsTitle": "Search tips",
+  "searchGoTo": "Go to",
   "searchTipSpelling": "Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.",
   "searchTipBook": "Start with a book — “gita karma” or “bhagavatam surrender” — to search only in it.",
   "searchTipPartial": "Type a few words of the verse, its meaning or the purport. Small slips are forgiven.",

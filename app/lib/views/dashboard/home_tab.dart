@@ -23,6 +23,7 @@ import '../../widgets/dashboard/book_card.dart';
 import '../../widgets/dashboard/continue_reading_card.dart';
 import '../../widgets/dashboard/growth_label.dart';
 import '../../widgets/dashboard/home_header.dart';
+import '../../widgets/search/home_search_bar.dart';
 import '../../widgets/dashboard/calendar_entry_card.dart';
 import '../../widgets/dashboard/etiquette_entry_card.dart';
 import '../../widgets/dashboard/home_stats_card.dart';
@@ -125,6 +126,10 @@ class _HomeContent extends ConsumerWidget {
     // in a beat after the one above it.
     final sections = <Widget>[
       HomeHeader(date: feed.date, user: user),
+
+      // The search bar sits under the greeting, above the verse, so it is the
+      // first thing a reader reaches for. It opens the full search screen.
+      const HomeSearchBar(),
 
       if (daily != null)
         VerseHeroCard(

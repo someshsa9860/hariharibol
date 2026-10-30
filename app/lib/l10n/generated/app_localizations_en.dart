@@ -2278,6 +2278,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchTipsTitle => 'Search tips';
 
   @override
+  String get searchGoTo => 'Go to';
+
+  @override
   String get searchTipSpelling =>
       'Spell it as it sounds. “krishna”, “krsna” and “kṛṣṇa” all find the same verses.';
 

@@ -2300,6 +2300,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get searchTipsTitle => 'തിരയാനുള്ള നുറുങ്ങുകൾ';
 
   @override
+  String get searchGoTo => 'പോകുക';
+
+  @override
   String get searchTipSpelling =>
       'കേൾക്കുന്നതുപോലെ എഴുതുക. “krishna”, “krsna”, “kṛṣṇa” എന്നിവ ഒരേ ശ്ലോകങ്ങൾ കണ്ടെത്തും.';
 

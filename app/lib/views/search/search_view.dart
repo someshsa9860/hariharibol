@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/search/search_destinations.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -156,6 +157,7 @@ class _SearchViewState extends ConsumerState<SearchView> {
               named: overview?.scope,
               onChoose: _chooseBook,
             ),
+            if (_query.isNotEmpty) _GoToPages(query: _query),
             if (_searching && overview != null)
               _KindTabs(overview: overview, selected: _tab, onSelect: (tab) => setState(() => _tab = tab)),
             if (overview?.corrected != null)
@@ -175,6 +177,42 @@ class _SearchViewState extends ConsumerState<SearchView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─── pages the query points at ─────────────────────────────────────────────
+
+/// "Go to": the pages whose name or keywords the query starts with, tapped to
+/// open the page itself. Shown above the verses and books, offline too, since
+/// it needs nothing from the server.
+class _GoToPages extends StatelessWidget {
+  const _GoToPages({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    final matches = matchDestinations(query, text).take(3).toList();
+    if (matches.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+          child: Text(text.searchGoTo, style: context.texts.titleSmall),
+        ),
+        for (final destination in matches)
+          ListTile(
+            leading: Icon(destination.icon, color: context.colors.primary),
+            title: Text(destination.title(text)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => AppNavigator.instance.push(destination.route),
+          ),
+        const Divider(height: AppSpacing.lg),
+      ],
     );
   }
 }
