@@ -55,4 +55,6 @@ class ParlerEngine(Engine):
                 prompt_input_ids=prompt.input_ids,
                 prompt_attention_mask=prompt.attention_mask,
             )
-        return audio.to(self.torch.float32).cpu().numpy().squeeze().astype(np.float32)
+        # A very short piece ("हरि बोल!") can come back as one sample; squeeze() would make that 0-dimensional.
+        # Kept 1-D, the silence check fails it and speak() retries it with another seed.
+        return np.atleast_1d(audio.to(self.torch.float32).cpu().numpy().squeeze().astype(np.float32))

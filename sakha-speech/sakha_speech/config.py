@@ -30,6 +30,16 @@ def work_dir() -> Path:
     return Path(os.environ.get("SAKHA_WORK_DIR") or ROOT / "work")
 
 
+def audio_dir() -> Path:
+    """The finished narration, laid out exactly as it will be in S3 under the prefix: <book>/<lang>/..."""
+    return Path(os.environ.get("SAKHA_AUDIO_DIR") or ROOT / "narration")
+
+
+def cast_dir() -> Path:
+    """Who speaks each verse, and the voice each character was given: <book>.json and <book>.voices.json."""
+    return Path(os.environ.get("SAKHA_CAST_DIR") or ROOT / "characters")
+
+
 def api_base() -> str:
     return (os.environ.get("SAKHA_API_BASE") or "https://api.hariharibol.com").rstrip("/")
 
@@ -84,7 +94,7 @@ def _read_yaml(path: Path) -> dict:
 
 
 def load_voices(path: Path | None = None) -> dict[str, Voice]:
-    data = _read_yaml(path or ROOT / "voices.yaml").get("voices") or {}
+    data = _read_yaml(path or Path(os.environ.get("SAKHA_VOICES_FILE") or ROOT / "voices.yaml")).get("voices") or {}
     voices = {}
     for vid, entry in data.items():
         entry = dict(entry or {})
@@ -101,7 +111,7 @@ def load_voices(path: Path | None = None) -> dict[str, Voice]:
 
 
 def load_books(voices: dict[str, Voice], path: Path | None = None) -> dict[str, Book]:
-    data = _read_yaml(path or ROOT / "books.yaml").get("books") or {}
+    data = _read_yaml(path or Path(os.environ.get("SAKHA_BOOKS_FILE") or ROOT / "books.yaml")).get("books") or {}
     books = {}
     for slug, entry in data.items():
         narrators = entry.get("narrators") or {}

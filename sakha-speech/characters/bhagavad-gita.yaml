@@ -1,0 +1,66 @@
+# Who speaks each verse of the Bhagavad-gītā, read from the Sanskrit files' `speaker` field.
+# One correction: verses 1.3–1.11 are Duryodhana's words to his teacher Droṇa (the files tag them Sañjaya).
+# A verse is listed under exactly one character. Ranges are inclusive.
+book: bhagavad-gita
+characters:
+  krishna: Kṛṣṇa
+  arjuna: Arjuna
+  sanjaya: Sañjaya
+  dhritarashtra: Dhṛtarāṣṭra
+  duryodhana: Duryodhana
+chapters:
+  1:
+    dhritarashtra: [1]
+    duryodhana: [3-11]
+    sanjaya: [2, 12-20, 24-27, 47]
+    arjuna: [21-23, 28-46]
+  2:
+    sanjaya: [1, 9-10]
+    arjuna: [4-8, 54]
+    krishna: [2-3, 11-53, 55-72]
+  3:
+    arjuna: [1-2, 36]
+    krishna: [3-35, 37-43]
+  4:
+    arjuna: [4]
+    krishna: [1-3, 5-42]
+  5:
+    arjuna: [1]
+    krishna: [2-29]
+  6:
+    arjuna: [33-34, 37-39]
+    krishna: [1-32, 35-36, 40-47]
+  7:
+    krishna: [1-30]
+  8:
+    arjuna: [1-2]
+    krishna: [3-28]
+  9:
+    krishna: [1-34]
+  10:
+    arjuna: [12-18]
+    krishna: [1-11, 19-42]
+  11:
+    sanjaya: [9-14, 35, 50]
+    arjuna: [1-4, 15-31, 36-46, 51]
+    krishna: [5-8, 32-34, 47-49, 52-55]
+  12:
+    arjuna: [1]
+    krishna: [2-20]
+  13:
+    arjuna: [1]
+    krishna: [2-35]
+  14:
+    arjuna: [21]
+    krishna: [1-20, 22-27]
+  15:
+    krishna: [1-20]
+  16:
+    krishna: [1-24]
+  17:
+    arjuna: [1]
+    krishna: [2-28]
+  18:
+    sanjaya: [74-78]
+    arjuna: [1, 73]
+    krishna: [2-72]

@@ -5,7 +5,7 @@ import {
   readExtraction, worthReading,
 } from '../utils/chat-profile.js';
 import { buildSystem } from '../utils/chat-context.js';
-import { DEFAULT_SYSTEM_PROMPT, PROFILE, TODAY_ISSUES } from '../config/chat.js';
+import { DEFAULT_SYSTEM_PROMPT, FRAMING_GUIDANCE, PROFILE, TODAY_ISSUES } from '../config/chat.js';
 
 test('a line is one clean, short line of text', () => {
   assert.equal(cleanLine('  calm,\n reflective  ', 60), 'calm, reflective');
@@ -146,8 +146,8 @@ test('the system prompt gets the profile and today’s struggles after the summa
   assert.ok(at('WHAT YOU HAVE NOTICED') > at('WHAT YOU REMEMBER'));
   assert.ok(at('WHAT THEY TOLD YOU TODAY') > at('WHAT YOU HAVE NOTICED'));
 
-  assert.equal(buildSystem({ persona: 'P', summary: null, traits: {}, issues: [] }), 'P');
-  assert.equal(buildSystem({ persona: 'P', summary: null, keywords: ['secret'] }), 'P');
+  assert.equal(buildSystem({ persona: 'P', summary: null, traits: {}, issues: [] }), `P\n\n${FRAMING_GUIDANCE}`);
+  assert.equal(buildSystem({ persona: 'P', summary: null, keywords: ['secret'] }), `P\n\n${FRAMING_GUIDANCE}`);
 });
 
 test('the extractor is told what never to record, and gets the message as data', () => {

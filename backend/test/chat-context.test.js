@@ -5,7 +5,7 @@ import {
   withPlaceholder,
 } from '../utils/chat-context.js';
 import {
-  DEFAULT_LIMITS, IMAGE_GUIDANCE, IMAGE_PLACEHOLDER, NAME_GUIDANCE, NAME_TOKEN,
+  DEFAULT_LIMITS, FRAMING_GUIDANCE, IMAGE_GUIDANCE, IMAGE_PLACEHOLDER, NAME_GUIDANCE, NAME_TOKEN,
 } from '../config/chat.js';
 import * as tokens from '../services/ai/tokens.js';
 
@@ -61,9 +61,9 @@ test('forcing compacts below the threshold; keeping nothing folds everything', (
 });
 
 test('the prompt is persona, then the summary, then recent messages, then the new one', () => {
-  assert.equal(buildSystem({ persona: 'P', summary: null }), 'P');
+  assert.equal(buildSystem({ persona: 'P', summary: null }), `P\n\n${FRAMING_GUIDANCE}`);
   const system = buildSystem({ persona: 'P', summary: '  PERSON — Asha  ' });
-  assert.ok(system.startsWith('P\n\n'));
+  assert.ok(system.startsWith(`P\n\n${FRAMING_GUIDANCE}`));
   assert.ok(system.endsWith('PERSON — Asha'));
 
   const messages = buildMessages({ live: convo(10), recentMessages: 4, userText: 'new' });
@@ -141,16 +141,27 @@ test('a note stands in for a picture that is not sent', () => {
 });
 
 test('the note on pictures is added to the persona only when there is one', () => {
-  assert.equal(buildSystem({ persona: 'P', summary: null }), 'P');
-  assert.equal(buildSystem({ persona: 'P', summary: null, withImage: true }), `P\n\n${IMAGE_GUIDANCE}`);
+  assert.equal(buildSystem({ persona: 'P', summary: null, withImage: true }), `P\n\n${FRAMING_GUIDANCE}\n\n${IMAGE_GUIDANCE}`);
   const both = buildSystem({ persona: 'P', summary: 'PERSON — Asha', withImage: true });
   assert.ok(both.includes(IMAGE_GUIDANCE) && both.endsWith('PERSON — Asha'));
   assert.ok(both.indexOf(IMAGE_GUIDANCE) < both.indexOf('PERSON — Asha'));
 });
 
+test('the note on how to speak of the tradition is in every prompt, whatever the persona says', () => {
+  // A persona saved on the admin page replaces the default one; the note must still be sent.
+  for (const persona of ['P', 'A custom persona with no rules at all.']) {
+    const system = buildSystem({ persona, summary: null });
+    assert.ok(system.startsWith(`${persona}\n\n${FRAMING_GUIDANCE}`));
+  }
+  assert.match(FRAMING_GUIDANCE, /never mythology/i);
+  assert.match(FRAMING_GUIDANCE, /beyond science/i);
+  assert.match(FRAMING_GUIDANCE, /never tell the person/i);
+  assert.match(FRAMING_GUIDANCE, /Vedas/);
+});
+
 test('the note on the name is added only for a reader who has one, and never holds the name itself', () => {
-  assert.equal(buildSystem({ persona: 'P', summary: null }), 'P');
-  assert.equal(buildSystem({ persona: 'P', summary: null, withName: true }), `P\n\n${NAME_GUIDANCE}`);
+  assert.equal(buildSystem({ persona: 'P', summary: null }), `P\n\n${FRAMING_GUIDANCE}`);
+  assert.equal(buildSystem({ persona: 'P', summary: null, withName: true }), `P\n\n${FRAMING_GUIDANCE}\n\n${NAME_GUIDANCE}`);
   const all = buildSystem({ persona: 'P', summary: 'PERSON — Asha', withImage: true, withName: true });
   assert.ok(all.indexOf(IMAGE_GUIDANCE) < all.indexOf(NAME_GUIDANCE));
   assert.ok(all.indexOf(NAME_GUIDANCE) < all.indexOf('PERSON — Asha'));

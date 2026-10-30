@@ -977,6 +977,9 @@ abstract class AppLocalizations {
   String get chantBatterySaverOff;
 
   /// No description provided for @chantAudioChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting audio'**
   String get chantAudioChannel;
 
   /// No description provided for @chantPaceTitle.
@@ -1746,120 +1749,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Large'**
   String get readingFontSizeLarge;
-
-  /// No description provided for @readingLineSpacingLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Line spacing'**
-  String get readingLineSpacingLabel;
-
-  /// No description provided for @readingLineSpacingCompact.
-  ///
-  /// In en, this message translates to:
-  /// **'Compact'**
-  String get readingLineSpacingCompact;
-
-  /// No description provided for @readingLineSpacingComfortable.
-  ///
-  /// In en, this message translates to:
-  /// **'Comfortable'**
-  String get readingLineSpacingComfortable;
-
-  /// No description provided for @readingLineSpacingRelaxed.
-  ///
-  /// In en, this message translates to:
-  /// **'Relaxed'**
-  String get readingLineSpacingRelaxed;
-
-  /// No description provided for @readingMarginsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Margins'**
-  String get readingMarginsLabel;
-
-  /// No description provided for @readingMarginsNarrow.
-  ///
-  /// In en, this message translates to:
-  /// **'Narrow'**
-  String get readingMarginsNarrow;
-
-  /// No description provided for @readingMarginsNormal.
-  ///
-  /// In en, this message translates to:
-  /// **'Normal'**
-  String get readingMarginsNormal;
-
-  /// No description provided for @readingMarginsWide.
-  ///
-  /// In en, this message translates to:
-  /// **'Wide'**
-  String get readingMarginsWide;
-
-  /// No description provided for @readingTintLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Warm tint'**
-  String get readingTintLabel;
-
-  /// No description provided for @readingDimLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Dim the page'**
-  String get readingDimLabel;
-
-  /// No description provided for @readingAutoNightTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Night look from 8 pm to 6 am'**
-  String get readingAutoNightTitle;
-
-  /// No description provided for @readingKeepAwakeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep the screen on while reading'**
-  String get readingKeepAwakeTitle;
-
-  /// No description provided for @readingLookLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Look'**
-  String get readingLookLabel;
-
-  /// No description provided for @readingLookMatchApp.
-  ///
-  /// In en, this message translates to:
-  /// **'Match app'**
-  String get readingLookMatchApp;
-
-  /// No description provided for @readingLookWarmPaper.
-  ///
-  /// In en, this message translates to:
-  /// **'Warm paper'**
-  String get readingLookWarmPaper;
-
-  /// No description provided for @readingLookSepia.
-  ///
-  /// In en, this message translates to:
-  /// **'Sepia'**
-  String get readingLookSepia;
-
-  /// No description provided for @readingLookMist.
-  ///
-  /// In en, this message translates to:
-  /// **'Mist'**
-  String get readingLookMist;
-
-  /// No description provided for @readingLookDusk.
-  ///
-  /// In en, this message translates to:
-  /// **'Dusk'**
-  String get readingLookDusk;
-
-  /// No description provided for @readingLookNight.
-  ///
-  /// In en, this message translates to:
-  /// **'Night'**
-  String get readingLookNight;
 
   /// No description provided for @readingFontSizeExtraLarge.
   ///
@@ -5082,6 +4971,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These suggestions have expired. Please search again.'**
   String get ownMantraErrorExpired;
+
+  /// No description provided for @readingLookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get readingLookLabel;
+
+  /// No description provided for @readingLookMatchApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Match app'**
+  String get readingLookMatchApp;
+
+  /// No description provided for @readingLookWarmPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm paper'**
+  String get readingLookWarmPaper;
+
+  /// No description provided for @readingLookSepia.
+  ///
+  /// In en, this message translates to:
+  /// **'Sepia'**
+  String get readingLookSepia;
+
+  /// No description provided for @readingLookMist.
+  ///
+  /// In en, this message translates to:
+  /// **'Mist'**
+  String get readingLookMist;
+
+  /// No description provided for @readingLookDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get readingLookDusk;
+
+  /// No description provided for @readingLookNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get readingLookNight;
+
+  /// No description provided for @readingLineSpacingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Line spacing'**
+  String get readingLineSpacingLabel;
+
+  /// No description provided for @readingLineSpacingCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get readingLineSpacingCompact;
+
+  /// No description provided for @readingLineSpacingComfortable.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable'**
+  String get readingLineSpacingComfortable;
+
+  /// No description provided for @readingLineSpacingRelaxed.
+  ///
+  /// In en, this message translates to:
+  /// **'Relaxed'**
+  String get readingLineSpacingRelaxed;
+
+  /// No description provided for @readingMarginsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Margins'**
+  String get readingMarginsLabel;
+
+  /// No description provided for @readingMarginsNarrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrow'**
+  String get readingMarginsNarrow;
+
+  /// No description provided for @readingMarginsNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get readingMarginsNormal;
+
+  /// No description provided for @readingMarginsWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide'**
+  String get readingMarginsWide;
+
+  /// No description provided for @readingTintLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm tint'**
+  String get readingTintLabel;
+
+  /// No description provided for @readingDimLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim the page'**
+  String get readingDimLabel;
+
+  /// No description provided for @readingAutoNightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Night look from 8 pm to 6 am'**
+  String get readingAutoNightTitle;
+
+  /// No description provided for @readingKeepAwakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the screen on while reading'**
+  String get readingKeepAwakeTitle;
 }
 
 class _AppLocalizationsDelegate

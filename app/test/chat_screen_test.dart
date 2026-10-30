@@ -158,14 +158,10 @@ void main() {
       expect(find.textContaining('asha42'), findsNothing);
     });
 
-    testWidgets('the button in the app bar opens what Sakha has noticed about the reader', (tester) async {
+    testWidgets('what Sakha has noticed is not shown on the chat page', (tester) async {
       await open(tester);
 
-      await tester.tap(find.byTooltip('What Sakha has noticed'));
-      await settle(tester);
-
-      expect(find.text('Keep learning about me'), findsOneWidget);
-      expect(fake.calls, contains('profile'));
+      expect(find.byTooltip('What Sakha has noticed'), findsNothing);
     });
 
     testWidgets('a failed load shows the error and Try again fetches the conversation', (tester) async {

@@ -991,63 +991,6 @@ class AppLocalizationsMr extends AppLocalizations {
   String get readingFontSizeLarge => 'मोठा';
 
   @override
-  String get readingLineSpacingLabel => 'ओळींमधील अंतर';
-
-  @override
-  String get readingLineSpacingCompact => 'कमी';
-
-  @override
-  String get readingLineSpacingComfortable => 'आरामदायक';
-
-  @override
-  String get readingLineSpacingRelaxed => 'मोकळे';
-
-  @override
-  String get readingMarginsLabel => 'किनारी';
-
-  @override
-  String get readingMarginsNarrow => 'अरुंद';
-
-  @override
-  String get readingMarginsNormal => 'सामान्य';
-
-  @override
-  String get readingMarginsWide => 'रुंद';
-
-  @override
-  String get readingTintLabel => 'उबदार छटा';
-
-  @override
-  String get readingDimLabel => 'पान मंद करा';
-
-  @override
-  String get readingAutoNightTitle => 'रात्री 8 ते सकाळी 6 रात्रीचे रूप';
-
-  @override
-  String get readingKeepAwakeTitle => 'वाचताना स्क्रीन चालू ठेवा';
-
-  @override
-  String get readingLookLabel => 'दिसणे';
-
-  @override
-  String get readingLookMatchApp => 'अॅपप्रमाणे';
-
-  @override
-  String get readingLookWarmPaper => 'उबदार कागद';
-
-  @override
-  String get readingLookSepia => 'सेपिया';
-
-  @override
-  String get readingLookMist => 'धुकं';
-
-  @override
-  String get readingLookDusk => 'संध्याकाळ';
-
-  @override
-  String get readingLookNight => 'रात्र';
-
-  @override
   String get readingFontSizeExtraLarge => 'खूप मोठा';
 
   @override
@@ -2893,4 +2836,61 @@ class AppLocalizationsMr extends AppLocalizations {
   @override
   String get ownMantraErrorExpired =>
       'या सूचना कालबाह्य झाल्या आहेत. कृपया पुन्हा शोधा.';
+
+  @override
+  String get readingLookLabel => 'दिसणे';
+
+  @override
+  String get readingLookMatchApp => 'अॅपप्रमाणे';
+
+  @override
+  String get readingLookWarmPaper => 'उबदार कागद';
+
+  @override
+  String get readingLookSepia => 'सेपिया';
+
+  @override
+  String get readingLookMist => 'धुकं';
+
+  @override
+  String get readingLookDusk => 'संध्याकाळ';
+
+  @override
+  String get readingLookNight => 'रात्र';
+
+  @override
+  String get readingLineSpacingLabel => 'ओळींमधील अंतर';
+
+  @override
+  String get readingLineSpacingCompact => 'कमी';
+
+  @override
+  String get readingLineSpacingComfortable => 'आरामदायक';
+
+  @override
+  String get readingLineSpacingRelaxed => 'मोकळे';
+
+  @override
+  String get readingMarginsLabel => 'किनारी';
+
+  @override
+  String get readingMarginsNarrow => 'अरुंद';
+
+  @override
+  String get readingMarginsNormal => 'सामान्य';
+
+  @override
+  String get readingMarginsWide => 'रुंद';
+
+  @override
+  String get readingTintLabel => 'उबदार छटा';
+
+  @override
+  String get readingDimLabel => 'पान मंद करा';
+
+  @override
+  String get readingAutoNightTitle => 'रात्री 8 ते सकाळी 6 रात्रीचे रूप';
+
+  @override
+  String get readingKeepAwakeTitle => 'वाचताना स्क्रीन चालू ठेवा';
 }

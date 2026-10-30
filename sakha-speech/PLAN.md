@@ -7,7 +7,7 @@ Decided so far (Somesh, 29 Oct 2026):
 - v1: **English and Hindi**, content **Bhagavad Gita verse meanings** (about 700 verses x 2 languages).
 - Runs on **Somesh's Mac** at the start; a rented GPU only if the Mac is too slow.
 - **Flexible voices**: any language, gender and model, set in config.
-- **One narrator per book**: the same voice for the whole book in a language and gender.
+- **A fixed voice per character** (first plan: one narrator per book, language and gender; the narrators are now the fallback): a book is never half one voice and half another by accident.
 - Written in this cloud session; must run on the Mac on its own, with no dependency on this session.
 
 ## 1. How it runs on the Mac
@@ -28,14 +28,14 @@ Decided so far (Somesh, 29 Oct 2026):
 | `en-kokoro-michael` | en | male | Kokoro | American |
 | `en-kokoro-heart` | en | female | Kokoro | American, Kokoro's best-rated voice |
 | `en-kokoro-george` | en | male | Kokoro | British |
-| `en-parler-thoma` / `en-parler-mary` | en | m / f | Indic Parler-TTS | Indian-English accent |
+| `en-parler-<name>` (21 speakers) | en | m / f | Indic Parler-TTS | every English speaker on the model card, Indian-English accent; the card recommends Thoma and Mary; genders from the names, to be checked by ear; narrators for now Dinesh / Swapna |
 
 - Both engines Apache-2.0 (each voice's licence is recorded in `voices.yaml`).
 - Parler voices are fixed by a speaker name, a written description ("speaks slowly and calmly, clear devotional tone, studio quality") and a seed, so every chunk of every verse sounds like the same person.
 - The voice test (Phase 0) picks the narrators; the table is a starting list, not a choice.
 - New engine later (IndicF5 voice cloning, AI4Bharat Indic-TTS for other languages) = one new file in `engines/` and lines in `voices.yaml`.
 
-## 3. One narrator per book
+## 3. Narrators (and, later, a cast)
 `books.yaml` pins the narrator per language and gender:
 ```yaml
 bhagavad-gita:
@@ -46,8 +46,7 @@ bhagavad-gita:
     en: { male: en-kokoro-michael, female: en-kokoro-heart }
     hi: { male: hi-parler-rohit,  female: hi-parler-divya }
 ```
-- A run asks for book + language + gender, never a voice, so a book cannot be half one voice and half another.
-- Changing a narrator means editing this file; the next run makes the whole book in the new voice (files are stored under the voice id, so the old set stays until deleted).
+- This was the first plan: one narrator per book, language and gender. It has since grown a cast (see "The studio" in README.md): a verse is spoken in the voice chosen for its character, and these narrators are the fallback. Files are no longer stored under the voice id (one chapter has several voices); the manifest records which voice spoke each verse, and a verse is remade when the voice that would speak it changes.
 
 ## 4. Where the text comes from
 - The public website API, no login: `GET /api/web/content/sitemap` for the Gita's verse ids (prefix `1.`), then `GET /api/web/content/verses/<id>` for each verse's translations. Paced at 2 requests a second (the API allows 180 a minute) and **cached on disk**, so it is fetched once.

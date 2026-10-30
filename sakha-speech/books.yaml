@@ -1,9 +1,11 @@
-# What to narrate, and who narrates it.
+# What to narrate, and the fallback narrators.
 #
-# One narrator per book, language and gender: a run asks for a book, a language and a gender and gets
-# the voice named here, so a book is never half one voice and half another. To change a narrator,
-# change it here; the next run makes the whole book again in the new voice (files are kept under the
-# voice id, so the old set stays until deleted).
+# A book with a cast (characters/<book>.json) is spoken character by character, in the voices chosen in the
+# studio (characters/<book>.voices.json). The narrators below are what a character with no voice chosen falls
+# back to, and what a book with no cast uses throughout: one per language and gender. Changing a narrator or
+# a character's voice makes only the verses it speaks again (a verse is remade when the voice that would
+# speak it changes); the files sit at <book>/<lang>/<chapter>/<verse>.mp3 whatever the voice, so a remade
+# verse replaces the old file.
 #
 #   bookNumber   first part of every verse id (1 = 1.2.47)
 #   kinds        what is narrated: meaning (the translation) and later purport
@@ -22,8 +24,8 @@ books:
     s3Text: json/bhagavat-gita
     narrators:
       en:
-        male: en-kokoro-michael
-        female: en-kokoro-heart
+        male: en-parler-dinesh
+        female: en-parler-swapna
       hi:
         male: hi-parler-rohit
         female: hi-parler-divya

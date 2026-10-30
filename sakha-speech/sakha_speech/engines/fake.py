@@ -1,4 +1,8 @@
-"""A stand-in engine for the tests: a soft tone as long as the text would take to say. No models."""
+"""A stand-in engine for the tests: a soft tone as long as the text would take to say. No models.
+
+A voice with `delay: 2` in its settings takes 2 seconds a piece, to test stopping a job that is in the middle of one."""
+
+import time
 
 import numpy as np
 
@@ -11,6 +15,8 @@ class FakeEngine(Engine):
     max_chars = 120
 
     def synth(self, text: str, voice, attempt: int = 0) -> np.ndarray:
+        if voice.settings.get("delay"):
+            time.sleep(float(voice.settings["delay"]))
         if voice.settings.get("silent"):
             return np.zeros(self.sample_rate, dtype=np.float32)
         seconds = max(0.3, len(text) * 0.06)

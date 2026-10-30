@@ -9,28 +9,28 @@ import mimetypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from .config import Book, Voice, load_lexicon, work_dir
+from .config import Book, Voice, audio_dir, load_lexicon, work_dir
 from .content import load_text
 from .keys import sort_key
 from .manifest import Manifest, audio_path
 from .text import normalise
 
 
-def _sets(books: dict[str, Book], voices: dict[str, Voice]):
+def _sets(books: dict[str, Book]):
+    """(book, language) for everything that has been made."""
     for book in books.values():
-        for language, by_gender in book.narrators.items():
-            for gender, vid in by_gender.items():
-                yield book, language, gender, voices[vid]
+        for path in sorted((work_dir() / "manifest" / book.slug).glob("*.json")):
+            yield book, path.stem
 
 
-def _page(books, voices, show_all: bool) -> str:
+def _page(books, show_all: bool) -> str:
     out = ["<!doctype html><meta charset=utf-8><title>Sakha Speech review</title>",
            "<style>body{font:15px system-ui;max-width:960px;margin:24px auto;padding:0 16px}"
            ".v{border-top:1px solid #ccc;padding:10px 0}.c{color:#b45309}.m{color:#666;font-size:13px}"
            "audio{width:100%}button{margin-right:8px}</style>",
            f"<h1>Review</h1><p><a href='/?all={0 if show_all else 1}'>{'only to check' if show_all else 'show all'}</a></p>"]
-    for book, language, gender, voice in _sets(books, voices):
-        manifest = Manifest(book.slug, language, voice)
+    for book, language in _sets(books):
+        manifest = Manifest(book.slug, language)
         for kind, entries in manifest.items.items():
             texts = load_text(book.slug, kind, language)
             lexicon = load_lexicon(language)
@@ -38,12 +38,12 @@ def _page(books, voices, show_all: bool) -> str:
                     if show_all or e["status"] == "check"]
             if not rows:
                 continue
-            out.append(f"<h2>{book.slug} · {language} · {gender} · {voice.id} · {kind} ({len(rows)})</h2>")
+            out.append(f"<h2>{book.slug} · {language} · {kind} ({len(rows)})</h2>")
             for vid, e in rows:
-                ref = json.dumps({"book": book.slug, "language": language, "voice": voice.id, "kind": kind, "verseId": vid})
+                ref = json.dumps({"book": book.slug, "language": language, "kind": kind, "verseId": vid})
                 spoken = normalise(texts.get(vid) or "", language, lexicon)
                 out.append(
-                    f"<div class=v><b>{vid}</b> <span class={'c' if e['status'] == 'check' else 'm'}>{e['status']}</span>"
+                    f"<div class=v><b>{vid}</b> {html.escape(str(e.get('character') or ''))} · {html.escape(str(e.get('voice') or ''))} <span class={'c' if e['status'] == 'check' else 'm'}>{e['status']}</span>"
                     f"{' · ' + html.escape(e['problem']) if e.get('problem') else ''}"
                     f"<p>{html.escape(spoken)}</p><audio controls preload=none src='/audio/{html.escape(e['key'])}'></audio>"
                     f"<p><button onclick='act(\"approve\",{html.escape(ref)},this)'>Keep</button>"
@@ -53,7 +53,7 @@ def _page(books, voices, show_all: bool) -> str:
     return "\n".join(out)
 
 
-def serve(books: dict[str, Book], voices: dict[str, Voice], port: int = 8765, log=print):
+def serve(books: dict[str, Book], port: int = 8765, log=print):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass
@@ -68,20 +68,19 @@ def serve(books: dict[str, Book], voices: dict[str, Voice], port: int = 8765, lo
         def do_GET(self):
             url = urlparse(self.path)
             if url.path.startswith("/audio/"):
-                path = (work_dir() / "audio" / url.path[len("/audio/"):]).resolve()
-                if not path.is_relative_to((work_dir() / "audio").resolve()) or not path.exists():
+                path = (audio_dir() / url.path[len("/audio/"):]).resolve()
+                if not path.is_relative_to(audio_dir().resolve()) or not path.exists():
                     return self._send(404, b"not found", "text/plain")
                 return self._send(200, path.read_bytes(), mimetypes.guess_type(path.name)[0] or "audio/mpeg")
             show_all = parse_qs(url.query).get("all", ["0"])[0] == "1"
-            return self._send(200, _page(books, voices, show_all).encode())
+            return self._send(200, _page(books, show_all).encode())
 
         def do_POST(self):
             action = urlparse(self.path).path.rsplit("/", 1)[-1]
             ref = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
-            voice = voices.get(ref.get("voice"))
-            if action not in ("approve", "redo") or voice is None:
+            if action not in ("approve", "redo") or ref.get("book") not in books:
                 return self._send(400, b"bad request", "text/plain")
-            manifest = Manifest(ref["book"], ref["language"], voice)
+            manifest = Manifest(ref["book"], ref["language"])
             entry = manifest.get(ref["kind"], ref["verseId"])
             if entry is None:
                 return self._send(404, b"not found", "text/plain")

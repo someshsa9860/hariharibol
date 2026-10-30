@@ -1,6 +1,7 @@
 """The voice test: the same lines in every voice of a language, and a page to compare them by ear.
 
-work/samples/<lang>/<voice>/<n>.mp3 and work/samples/index.html (open it in a browser)."""
+work/samples/<lang>/<voice>/<n>.mp3 and work/samples/index.html (open it in a browser). The studio shows the
+same files as each voice's demo."""
 
 import html
 import json
@@ -15,29 +16,45 @@ from .text import normalise
 
 def sample_lines(language: str, books: dict[str, Book], extra_verses: int = 2) -> list[str]:
     lines = list(load_samples().get(language) or [])
-    for book in books.values():
-        for kind in book.kinds:
-            texts = load_text(book.slug, kind, language)
-            lines += [texts[v] for v in sorted(texts, key=sort_key) if texts[v]][:extra_verses]
+    if extra_verses:
+        for book in books.values():
+            for kind in book.kinds:
+                texts = load_text(book.slug, kind, language)
+                lines += [texts[v] for v in sorted(texts, key=sort_key) if texts[v]][:extra_verses]
     return lines
+
+
+def sample_dir(language: str, voice_id: str):
+    return work_dir() / "samples" / language / voice_id
+
+
+def make_sample(language: str, voice: Voice, lines: list[str], stop=None, step=None) -> dict:
+    """Speaks `lines` in `voice` into work/samples and returns what was written to its info.json.
+    `step(n, characters, seconds)` is told after each line is done; `stop` is as for `speak`."""
+    lexicon = load_lexicon(language)
+    out = sample_dir(language, voice.id)
+    audio_s = compute_s = 0.0
+    for n, line in enumerate(lines, 1):
+        text = normalise(line, language, lexicon)
+        spoken = speak(text, voice, stop=stop)
+        audio_s += audio.write_mp3(spoken.samples, spoken.sample_rate, out / f"{n}.mp3") / 1000
+        compute_s += spoken.compute_seconds
+        if step:
+            step(n, len(text), spoken.compute_seconds)
+    info = {"voice": voice.id, "gender": voice.gender, "engine": voice.engine, "licence": voice.licence,
+            "fingerprint": voice.fingerprint(), "lines": lines,
+            "audioSeconds": round(audio_s, 1), "computeSeconds": round(compute_s, 1)}
+    (out / "info.json").write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+    return info
 
 
 def make_samples(language: str, voices: list[Voice], books: dict[str, Book], log=print) -> None:
     lines = sample_lines(language, books)
     if not lines:
         raise RuntimeError(f"samples.yaml has no lines for '{language}'")
-    lexicon = load_lexicon(language)
     for voice in voices:
-        out = work_dir() / "samples" / language / voice.id
-        audio_s = compute_s = 0.0
-        for n, line in enumerate(lines, 1):
-            spoken = speak(normalise(line, language, lexicon), voice)
-            audio_s += audio.write_mp3(spoken.samples, spoken.sample_rate, out / f"{n}.mp3") / 1000
-            compute_s += spoken.compute_seconds
-        info = {"voice": voice.id, "gender": voice.gender, "engine": voice.engine, "licence": voice.licence,
-                "lines": lines, "audioSeconds": round(audio_s, 1), "computeSeconds": round(compute_s, 1)}
-        (out / "info.json").write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
-        log(f"  {voice.id}: {audio_s:.0f}s of audio in {compute_s:.0f}s")
+        info = make_sample(language, voice, lines)
+        log(f"  {voice.id}: {info['audioSeconds']:.0f}s of audio in {info['computeSeconds']:.0f}s")
     page = write_index()
     log(f"open {page}")
 

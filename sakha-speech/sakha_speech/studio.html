@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Sakha Speech studio</title>
+<style>
+  :root {
+    --bg: #faf7f2; --panel: #ffffff; --ink: #241c15; --mute: #7a6c5d; --line: #e6ddd0; --track: #eadfce;
+    --accent: #d9661f; --accent-ink: #ffffff; --ok: #2f7d4f; --warn: #a96a0b; --bad: #b3261e; --soft: #fbf3e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171310; --panel: #211b16; --ink: #f1e9df; --mute: #a09282; --line: #3a3028; --track: #3a3028;
+      --accent: #f08a3c; --accent-ink: #1b1209; --ok: #6cc08b; --warn: #e0b25a; --bad: #f08a80; --soft: #2a2119;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header.top { padding: 14px 16px 6px; max-width: 1040px; margin: 0 auto; }
+  header.top h1 { margin: 0; font-size: 20px; }
+  header.top p { margin: 2px 0 0; color: var(--mute); font-size: 13px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 16px 80px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
+  section > h2 { margin: 0 0 10px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  h2 .n { background: var(--accent); color: var(--accent-ink); border-radius: 50%; width: 22px; height: 22px; font-size: 13px;
+          display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  h3 { margin: 14px 0 6px; font-size: 14px; }
+  .mute { color: var(--mute); }
+  .small { font-size: 13px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .grow { flex: 1; }
+  button, select { font: inherit; color: inherit; }
+  button { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 9px 20px; }
+  button.danger { color: var(--bad); border-color: var(--bad); }
+  button.link { border: 0; background: none; padding: 2px 4px; color: var(--accent); }
+  button.play { padding: 2px 9px; border-radius: 999px; }
+  select { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+  input[type=number] { width: 5em; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  label.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer; user-select: none; }
+  label.chip.on { border-color: var(--accent); background: var(--soft); }
+  label.chip input { margin-right: 6px; }
+  .ch { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-width: 76px; max-width: 190px;
+        background: var(--panel); text-align: left; }
+  .ch.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .ch .fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--ok) 20%, transparent); pointer-events: none; }
+  .ch .t { position: relative; display: block; }
+  .ch .t b { font-size: 15px; }
+  .ch .t span { display: block; font-size: 12px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ch.done .t b::after { content: " ✓"; color: var(--ok); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 12px; color: var(--mute); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .voices { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
+  .voice { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .voice h4 { margin: 0; font-size: 15px; }
+  .voice p { margin: 6px 0 2px; font-size: 13px; }
+  .voice audio { width: 100%; height: 32px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; border: 1px solid var(--line); color: var(--mute); }
+  .badge.ok { color: var(--ok); border-color: var(--ok); }
+  .badge.warn { color: var(--warn); border-color: var(--warn); }
+  .badge.bad { color: var(--bad); border-color: var(--bad); }
+  .badge.run { color: var(--accent); border-color: var(--accent); }
+  .bar { height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .4s; }
+  .bar.thin { height: 6px; }
+  .bar.ok > div { background: var(--ok); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 12px 0; }
+  .stat { background: var(--soft); border-radius: 8px; padding: 8px 10px; }
+  .stat b { display: block; font-size: 18px; }
+  .stat span { font-size: 12px; color: var(--mute); }
+  .note { background: var(--soft); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+  .note.warn { border-left: 3px solid var(--warn); }
+  .note.bad { border-left: 3px solid var(--bad); color: var(--bad); }
+  .note.ok { border-left: 3px solid var(--ok); }
+  pre.log { background: var(--soft); border-radius: 8px; padding: 10px; font-size: 12px; max-height: 260px; overflow: auto; white-space: pre-wrap; margin: 6px 0 0; }
+  #bar { position: sticky; top: 0; z-index: 10; background: var(--panel); border-bottom: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  #bar .in { max-width: 1040px; margin: 0 auto; padding: 8px 16px; display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; align-items: center; }
+  #bar[hidden] { display: none; }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px;
+           border-radius: 8px; max-width: 90vw; z-index: 20; }
+  #toast[hidden] { display: none; }
+  #toast.bad { background: var(--bad); color: #fff; }
+  #offline { background: var(--bad); color: #fff; padding: 8px 16px; text-align: center; }
+  #offline[hidden] { display: none; }
+  .empty { color: var(--mute); padding: 6px 0; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); display: inline-block; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  @media (max-width: 640px) {
+    #bar .in { grid-template-columns: 1fr auto; } #bar .in .wide { grid-column: 1 / -1; order: 3; }
+    /* the cast table becomes one card per character, each language under its own label */
+    table.cast, table.cast tbody, table.cast tr, table.cast td { display: block; }
+    table.cast thead { display: none; }
+    table.cast tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+    table.cast td { border: 0; padding: 3px 0; }
+    table.cast td[data-label]::before { content: attr(data-label); display: block; font-size: 12px; color: var(--mute); }
+    table.cast td.verses { font-size: 13px; color: var(--mute); }
+    table.cast td.verses::before { display: inline; content: attr(data-label) ": "; }
+    table.cast .row { flex-wrap: nowrap; }
+    table.cast select { flex: 1; min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="offline" hidden>The studio window was closed or the server stopped. A job that was running carries on by itself. Open it again with <b>sakha-speech studio</b>.</div>
+<div id="bar" hidden></div>
+<header class="top">
+  <h1>Sakha Speech studio</h1>
+  <p>Make narration here, on this computer. It needs no internet once the text is fetched. Everything finished is kept, so you can stop and carry on later.</p>
+</header>
+<main>
+  <section id="s-book"></section>
+  <section id="s-chapters"></section>
+  <section id="s-cast"></section>
+  <section id="s-voices"></section>
+  <section id="s-start"></section>
+  <section id="s-job" hidden></section>
+</main>
+<div id="toast" hidden></div>
+
+<script>
+"use strict";
+
+// ---- small helpers --------------------------------------------------------------------------------------
+// Everything shown is made with textContent (the helper below), never innerHTML: names and texts come from files.
+
+const $ = (selector) => document.querySelector(selector);
+const PROPS = new Set(["value", "checked", "disabled", "selected", "hidden", "title"]);
+
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (PROPS.has(k)) el[k] = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid);
+  return el;
+}
+
+const now = () => Date.now() / 1000;
+
+function dur(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return s + " s";
+  const m = Math.round(s / 60);
+  if (m < 60) return m + " min";
+  const hrs = Math.floor(m / 60), rest = m % 60;
+  if (hrs < 24) return hrs + " h" + (rest ? " " + rest + " min" : "");
+  const days = Math.floor(hrs / 24);
+  return days + " d" + (hrs % 24 ? " " + (hrs % 24) + " h" : "");
+}
+
+function clock(epoch) {
+  const d = new Date(epoch * 1000), today = new Date();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return d.toDateString() === today.toDateString() ? time : d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" }) + " " + time;
+}
+
+const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 1000) / 10) : 0);
+const bar = (a, b, cls = "") => h("div", { class: "bar " + cls }, h("div", { style: `width:${pct(a, b)}%` }));
+
+async function api(path, body) {
+  const res = await fetch(path, body === undefined
+    ? { cache: "no-store" }
+    : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* not JSON */ }
+  if (!res.ok) throw new Error((data && data.error) || res.statusText);
+  return data;
+}
+
+let toastTimer;
+function toast(message, bad = false) {
+  const el = $("#toast");
+  el.textContent = message;
+  el.className = bad ? "bad" : "";
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, bad ? 9000 : 4000);
+}
+
+async function attempt(fn) {
+  try { return await fn(); } catch (e) { toast(e.message || String(e), true); return undefined; }
+}
+
+// One shared player, so a click on another ▶ stops the first and the lists can be redrawn freely.
+const player = new Audio();
+let playing = null;
+function playUrl(url, button) {
+  if (playing) { playing.textContent = "▶"; }
+  if (playing === button && !player.paused) { player.pause(); playing = null; return; }
+  player.src = url;
+  playing = button;
+  button.textContent = "■";
+  player.play().catch(() => { button.textContent = "▶"; toast("Could not play that file.", true); });
+}
+player.addEventListener("ended", () => { if (playing) playing.textContent = "▶"; playing = null; });
+
+// ---- state ----------------------------------------------------------------------------------------------
+
+const S = { ov: null, slug: null, langs: [], chapters: new Set(), view: null, plan: null, job: null, limit: "", force: false };
+const STORE = "sakha-speech-studio";
+const ACTIVE = ["starting", "running", "stopping"];
+const active = (j) => !!j && ACTIVE.includes(j.state);
+
+function remember() {
+  try { localStorage.setItem(STORE, JSON.stringify({ slug: S.slug, langs: S.langs, chapters: [...S.chapters] })); } catch (e) { /* private window */ }
+}
+function recall() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; }
+}
+
+const voiceById = (id) => S.ov.voices.find((v) => v.id === id);
+const voicesOf = (lang) => S.ov.voices.filter((v) => v.language === lang);
+const langName = (code) => (S.ov.languages.find((l) => l.code === code) || {}).name || code;
+const voiceLabel = (v) => `${v.name} (${v.gender})`;
+
+// ---- 1. book and languages -----------------------------------------------------------------------------
+
+function renderBook() {
+  const box = $("#s-book");
+  const books = S.ov.books;
+  if (!books.length) { box.replaceChildren(h("p", { class: "empty" }, "books.yaml lists no book.")); return; }
+  const pick = h("select", { onchange: (e) => chooseBook(e.target.value) },
+    books.map((b) => h("option", { value: b.slug, selected: b.slug === S.slug }, b.slug)));
+  const chips = S.ov.languages.map((l) => {
+    const on = S.langs.includes(l.code);
+    return h("label", { class: "chip" + (on ? " on" : "") },
+      h("input", { type: "checkbox", checked: on, onchange: (e) => toggleLanguage(l.code, e.target.checked) }), l.name);
+  });
+  const book = books.find((b) => b.slug === S.slug);
+  const missing = S.view ? S.langs.filter((l) => !S.view.text[l]) : [];
+  box.replaceChildren(...[
+    h("h2", {}, h("span", { class: "n" }, "1"), "Book and languages"),
+    h("div", { class: "row" }, h("label", {}, "Book ", pick), h("span", { class: "chips" }, chips)),
+    book && !book.hasCast ? h("p", { class: "note small" }, "This book has no list of who speaks which verse yet, so every verse is read by one “Narrator” voice per language.") : null,
+    S.view && S.langs.length ? h("p", { class: "small mute" }, "Text on this computer: " + S.langs.map((l) => `${langName(l)} ${S.view.text[l] || 0} verses`).join(", ") + ".") : null,
+    missing.length ? h("div", { class: "note warn" },
+      `There is no ${missing.map(langName).join(" or ")} text on this computer yet. `,
+      h("button", { disabled: active(S.job), onclick: () => getText(missing) }, "Get the text (needs internet, once)")) : null,
+  ].filter(Boolean));
+}
+
+async function chooseBook(slug) {
+  S.slug = slug;
+  S.chapters = new Set();
+  S.view = null; S.plan = null;
+  await loadBook();
+}
+
+async function toggleLanguage(code, on) {
+  S.langs = S.ov.languages.map((l) => l.code).filter((c) => (c === code ? on : S.langs.includes(c)));
+  await loadBook();
+}
+
+async function getText(languages) {
+  const r = await attempt(() => api("/api/job/start", { type: "fetch", book: S.slug, languages }));
+  if (r) { S.job = r.job; renderBook(); renderJob(); renderBar(); toast("Getting the text…"); jumpTo("#s-job"); }
+}
+
+// ---- 2. chapters ----------------------------------------------------------------------------------------
+
+function chapterProgress(c) {
+  let wanted = 0, done = 0;
+  for (const l of S.langs) { const p = c.progress[l]; if (p) { wanted += p.wanted; done += p.done; } }
+  return { wanted, done };
+}
+
+function renderChapters() {
+  const box = $("#s-chapters");
+  const head = h("h2", {}, h("span", { class: "n" }, "2"), "Chapters");
+  if (!S.view) { box.replaceChildren(head, h("p", { class: "empty" }, S.langs.length ? "Loading…" : "Choose a language above.")); return; }
+  const chapters = S.view.chapters;
+  if (!chapters.length) { box.replaceChildren(head, h("p", { class: "empty" }, "No text for this book on this computer. Use “Get the text” above.")); return; }
+
+  const groups = new Map();
+  for (const c of chapters) { if (!groups.has(c.group)) groups.set(c.group, []); groups.get(c.group).push(c); }
+
+  const chip = (c) => {
+    const { wanted, done } = chapterProgress(c);
+    const on = S.chapters.has(c.id);
+    return h("button", { class: "ch" + (on ? " on" : "") + (wanted && done === wanted ? " done" : ""), onclick: () => toggleChapter(c.id),
+                         title: `${c.verses} verses; ${done} of ${wanted} made` },
+      h("span", { class: "fill", style: `width:${pct(done, wanted)}%` }),
+      h("span", { class: "t" }, h("b", {}, c.id.split(".").pop()), h("span", {}, c.name || `${c.verses} verses`), h("span", {}, wanted ? `${done}/${wanted} made` : "")));
+  };
+
+  const tools = (ids, label) => h("span", { class: "small" },
+    h("button", { class: "link", onclick: () => setChapters(ids, true) }, `All${label}`),
+    h("button", { class: "link", onclick: () => setChapters(ids, false) }, "None"),
+    h("button", { class: "link", onclick: () => setChapters(ids.filter((id) => { const c = chapters.find((x) => x.id === id); const p = chapterProgress(c); return p.done < p.wanted; }), true, true) }, "Unfinished only"));
+
+  const parts = [head];
+  const all = chapters.map((c) => c.id);
+  if (groups.size === 1) parts.push(h("div", { class: "row small" }, tools(all, ""), h("span", { class: "mute" }, `${S.chapters.size} of ${chapters.length} chosen`)));
+  for (const [group, list] of groups) {
+    if (group != null) parts.push(h("h3", {}, `Part ${group} `, tools(list.map((c) => c.id), "")));
+    parts.push(h("div", { class: "chips" }, list.map(chip)));
+  }
+  if (groups.size > 1) parts.push(h("div", { class: "row small", style: "margin-top:10px" }, tools(all, " chapters"), h("span", { class: "mute" }, `${S.chapters.size} of ${chapters.length} chosen`)));
+  box.replaceChildren(...parts);
+}
+
+function toggleChapter(id) {
+  if (S.chapters.has(id)) S.chapters.delete(id); else S.chapters.add(id);
+  selectionChanged();
+}
+
+function setChapters(ids, on, only = false) {
+  if (only) S.chapters = new Set();
+  for (const id of ids) { if (on) S.chapters.add(id); else S.chapters.delete(id); }
+  selectionChanged();
+}
+
+function selectionChanged() {
+  remember();
+  renderChapters(); renderCast(); renderStart();
+  loadPlan();
+}
+
+// ---- 3. voices for the characters -----------------------------------------------------------------------
+
+function castRows() {
+  const v = S.view;
+  const chosen = v.chapters.filter((c) => S.chapters.has(c.id));
+  const counts = {};
+  for (const c of chosen) for (const [who, n] of Object.entries(c.characters)) counts[who] = (counts[who] || 0) + n;
+  return v.characters.filter((c) => counts[c.id]).map((c) => ({ ...c, here: counts[c.id] }));
+}
+
+function renderCast() {
+  const box = $("#s-cast");
+  const head = h("h2", {}, h("span", { class: "n" }, "3"), "Who speaks, and in which voice");
+  if (!S.view || !S.chapters.size) {
+    box.replaceChildren(head, h("p", { class: "empty" }, "Choose one or more chapters to see who speaks in them."));
+    return;
+  }
+  const rows = castRows();
+  const done = (lang, id) => (S.plan ? S.plan.perCharacter.find((p) => p.language === lang && p.character === id) : null);
+  const only = rows.length === 1 && rows[0].id === "narrator";
+
+  const cell = (c, lang) => {
+    const current = c.choices[lang] || "";
+    const fallback = voiceById(c.defaults[lang]);
+    const resolved = voiceById(current || c.defaults[lang]);
+    const d = done(lang, c.id);
+    const demo = resolved && resolved.demos[0];
+    return h("td", { "data-label": "Voice: " + langName(lang) },
+      h("div", { class: "row" },
+        h("select", { onchange: (e) => chooseVoice(c.id, lang, e.target.value) },
+          h("option", { value: "", selected: !current }, `Narrator's voice: ${fallback ? fallback.name : "none"}`),
+          voicesOf(lang).map((v) => h("option", { value: v.id, selected: v.id === current }, voiceLabel(v)))),
+        h("button", { class: "play", disabled: !demo, title: demo ? "Hear this voice" : "No demo for this voice yet: make it below",
+                      onclick: (e) => playUrl(`/demo/${resolved.language}/${resolved.id}/${demo.n}.mp3`, e.currentTarget) }, "▶")),
+      d ? h("div", { class: "small mute" }, `${d.done} of ${d.wanted} made`) : null);
+  };
+
+  box.replaceChildren(head,
+    h("p", { class: "small mute" }, only
+      ? "This book has one reader, the Narrator. Pick a voice for each language."
+      : "Each character keeps the same voice all through the book. A character with no voice chosen is read by the narrator's voice. Changing a voice makes only that character's verses new."),
+    h("table", { class: "cast" },
+      h("thead", {}, h("tr", {}, h("th", {}, "Character"), h("th", {}, "Verses"), S.langs.map((l) => h("th", {}, "Voice: " + langName(l))))),
+      h("tbody", {}, rows.map((c) => h("tr", {},
+        h("td", {}, h("b", {}, c.names.en), S.langs.filter((l) => l !== "en" && c.names[l] && c.names[l] !== c.names.en).map((l) => h("div", { class: "small mute" }, c.names[l])),
+                    h("div", { class: "small mute" }, c.gender)),
+        h("td", { class: "verses", "data-label": "Verses" }, String(c.here)),
+        S.langs.map((l) => cell(c, l)))))));
+}
+
+async function chooseVoice(character, language, voice) {
+  const c = S.view.characters.find((x) => x.id === character);
+  const before = c.choices[language];
+  c.choices[language] = voice || null;
+  const ok = await attempt(() => api("/api/voice", { book: S.slug, language, character, voice: voice || null }));
+  if (!ok) { c.choices[language] = before; renderCast(); return; }
+  S.view = await attempt(() => api(bookUrl())) || S.view;   // what counts as made changes with the voice
+  renderChapters(); renderCast();
+  loadPlan();
+}
+
+// ---- voice gallery --------------------------------------------------------------------------------------
+
+function renderVoices() {
+  const box = $("#s-voices");
+  const head = h("h2", {}, h("span", { class: "n" }, "▶"), "Hear the voices");
+  if (!S.langs.length) { box.replaceChildren(head, h("p", { class: "empty" }, "Choose a language above.")); return; }
+  const parts = [head, h("p", { class: "small mute" }, "Each voice reads the same few lines. Making a demo takes a minute or two per voice and works without internet.")];
+  for (const lang of S.langs) {
+    const list = voicesOf(lang);
+    const needed = list.filter((v) => !v.demos.length || v.demoOutdated).map((v) => v.id);
+    parts.push(h("div", { class: "row" },
+      h("h3", { class: "grow" }, langName(lang)),
+      needed.length ? h("button", { disabled: active(S.job), title: active(S.job) ? "Wait for the running job" : "", onclick: () => makeDemos(needed) },
+        `Make ${needed.length === list.length ? "all" : "the missing"} demos`) : null));
+    parts.push(h("div", { class: "voices" }, list.map((v) => h("div", { class: "voice" },
+      h("h4", {}, voiceLabel(v), " ", v.demoOutdated ? h("span", { class: "badge warn" }, "voice changed since this demo") : null),
+      h("div", { class: "small mute" }, `${v.engine} · ${v.licence}`),
+      v.demos.length
+        ? v.demos.map((d) => h("div", {}, h("p", {}, d.line), h("audio", { controls: true, preload: "none", src: `/demo/${v.language}/${v.id}/${d.n}.mp3` })))
+        : h("p", { class: "empty" }, "No demo yet."),
+      !v.demos.length || v.demoOutdated ? h("button", { disabled: active(S.job), onclick: () => makeDemos([v.id]) }, "Make demo") : null))));
+  }
+  box.replaceChildren(...parts);
+}
+
+async function makeDemos(ids) {
+  const r = await attempt(() => api("/api/job/start", { type: "demo", voices: ids }));
+  if (r) { S.job = r.job; renderJob(); renderBar(); renderVoices(); jumpTo("#s-job"); }
+}
+
+// ---- 4. start --------------------------------------------------------------------------------------------
+
+let planSeq = 0, planTimer;
+function loadPlan() {
+  clearTimeout(planTimer);
+  planTimer = setTimeout(async () => {
+    const seq = ++planSeq;
+    if (!S.slug || !S.langs.length || !S.chapters.size) { S.plan = null; renderStart(); renderCast(); return; }
+    const plan = await attempt(() => api("/api/plan", planBody()));
+    if (seq !== planSeq) return;
+    S.plan = plan || null;
+    renderStart(); renderCast();
+  }, 200);
+}
+
+const planBody = () => ({ book: S.slug, languages: S.langs, chapters: [...S.chapters], limit: S.limit || null, force: S.force });
+
+function renderStart() {
+  const box = $("#s-start");
+  const head = h("h2", {}, h("span", { class: "n" }, "4"), "Start");
+  const busy = active(S.job);
+  const p = S.plan;
+  if (!p) {
+    box.replaceChildren(head, h("p", { class: "empty" }, S.chapters.size ? "Working out what is left…" : "Choose chapters first."));
+    return;
+  }
+  const eta = p.etaSeconds == null
+    ? h("p", { class: "mute" }, "Time: not known yet. It is learned from the first verses made on this computer.")
+    : h("p", {}, h("b", {}, "About " + dur(p.etaSeconds)), p.etaMeasured ? " at the speed measured on this computer." : " (a rough guess from the voice test; it gets exact after the first verses).");
+  const out = [head,
+    h("div", { class: "stats" },
+      stat(p.wanted, "verses in the selection"),
+      stat(p.done, "already made: skipped"),
+      stat(p.todo, "to make now"),
+      stat(p.chars.toLocaleString(), "characters to speak")),
+    p.todo ? eta : null,
+    p.etaSeconds > 6 * 3600 ? h("div", { class: "note warn small" }, "This is a long job. It runs in the background and can be stopped at any time; the next start carries on from the verse after the last finished one. Keep the Mac plugged in; it is kept awake while the job runs.") : null,
+    ...p.missing.map((l) => h("div", { class: "note bad small" }, `No ${langName(l)} text on this computer: it is left out until you press “Get the text” above.`)),
+    p.todo === 0 && p.wanted ? h("div", { class: "note ok" }, "Everything in this selection is already made.") : null,
+    h("details", {}, h("summary", { class: "small" }, "Which voice reads what"),
+      h("table", {}, h("thead", {}, h("tr", {}, ["Language", "Character", "Voice", "Made"].map((t) => h("th", {}, t)))),
+        h("tbody", {}, p.perCharacter.map((r) => h("tr", {},
+          h("td", {}, langName(r.language)),
+          h("td", {}, characterName(r.character)),
+          h("td", {}, (voiceById(r.voice) ? voiceLabel(voiceById(r.voice)) : r.voice), r.isDefault ? h("span", { class: "small mute" }, " (narrator's)") : ""),
+          h("td", {}, `${r.done} of ${r.wanted}`)))))),
+    h("div", { class: "row", style: "margin-top:12px" },
+      h("label", { class: "small" }, "Test run: only the first ",
+        h("input", { type: "number", min: "1", value: S.limit, placeholder: "all", oninput: (e) => { S.limit = e.target.value; loadPlan(); } }), " verses"),
+      h("label", { class: "small" }, h("input", { type: "checkbox", checked: S.force, onchange: (e) => { S.force = e.target.checked; loadPlan(); } }), " make again even the verses already done")),
+    h("div", { class: "row", style: "margin-top:12px" },
+      h("button", { class: "primary", disabled: busy || !p.todo, onclick: startJob },
+        busy ? "A job is running" : `Start: make ${p.todo} verse${p.todo === 1 ? "" : "s"}`),
+      h("span", { class: "small mute" }, "Files go to ", h("code", {}, S.ov.audioDir + "/" + S.slug + "/…"), " "),
+      h("button", { class: "link", onclick: () => attempt(() => api("/api/open", { what: "audio" })) }, "Show in Finder")),
+  ];
+  box.replaceChildren(...out.filter(Boolean));
+}
+
+const stat = (value, label) => h("div", { class: "stat" }, h("b", {}, String(value)), h("span", {}, label));
+const characterName = (id) => { const c = S.view && S.view.characters.find((x) => x.id === id); return c ? c.names.en : id; };
+
+async function startJob() {
+  const r = await attempt(() => api("/api/job/start", { type: "narration", ...planBody() }));
+  if (r) { S.job = r.job; renderJob(); renderBar(); renderStart(); jumpTo("#s-job"); }
+}
+
+// ---- the job ---------------------------------------------------------------------------------------------
+
+const STATE = {
+  starting: ["Starting", "run"], running: ["Running", "run"], stopping: ["Stopping…", "warn"], done: ["Finished", "ok"],
+  stopped: ["Stopped", "warn"], failed: ["Failed", "bad"], interrupted: ["Interrupted", "bad"],
+};
+const TITLE = { narration: "Making narration", demo: "Making voice demos", fetch: "Getting the text" };
+
+function stateBadge(j) { const [label, cls] = STATE[j.state] || [j.state, ""]; return h("span", { class: "badge " + cls }, label); }
+
+// Text that changes every second without redrawing the lists: the countdown, the time worked.
+const TICKS = {
+  eta: (j) => (j.finishAt ? "about " + dur(j.finishAt - now()) + " left" : j.eta == null && j.phase === "making" && j.made < 1 ? "working out the time…" : ""),
+  finish: (j) => (j.finishAt ? "finishes " + clock(j.finishAt) : ""),
+  elapsed: (j) => (j.startedAt ? dur((active(j) ? now() : j.finishedAt || j.updatedAt || now()) - j.startedAt) : ""),
+  working: (j) => (j.current && j.current.startedAt ? dur(now() - j.current.startedAt) : ""),
+};
+const tick = (key) => h("span", { "data-tick": key });
+function tickAll() {
+  const j = S.job;
+  if (!j) return;
+  document.querySelectorAll("[data-tick]").forEach((el) => { el.textContent = TICKS[el.dataset.tick](j); });
+}
+
+function renderBar() {
+  const el = $("#bar"), j = S.job;
+  if (!active(j)) { el.hidden = true; return; }
+  const total = j.total || 0, made = (j.made || 0) + (j.failed || 0);
+  el.hidden = false;
+  el.replaceChildren(h("div", { class: "in" },
+    h("span", {}, h("span", { class: "dot" }), " ", h("b", {}, TITLE[j.type] || j.type), " ", stateBadge(j)),
+    h("div", { class: "wide" }, bar(made, total), h("div", { class: "small mute" }, total ? `${made} of ${total} · ` : (j.message || ""), tick("eta"), " ", tick("finish"))),
+    h("button", { onclick: () => jumpTo("#s-job") }, "Details"),
+    stopButton(j)));
+  tickAll();
+}
+
+function stopButton(j) {
+  return j.state === "stopping"
+    ? h("button", { class: "danger", title: "End the job now. Only the verse being spoken is lost.", onclick: () => stopJob(true) }, "Stop now")
+    : h("button", { class: "danger", onclick: () => stopJob(false) }, "Stop");
+}
+
+async function stopJob(force) {
+  const r = await attempt(() => api("/api/job/stop", { force }));
+  if (r) { S.job = r.job; renderJob(); renderBar(); toast(force ? "Stopped." : "Stopping after the sentence being spoken. Everything finished is kept."); }
+}
+
+function renderJob() {
+  const box = $("#s-job"), j = S.job;
+  if (!j) { box.hidden = true; return; }
+  box.hidden = false;
+  const parts = [h("h2", {}, TITLE[j.type] || j.type, " ", stateBadge(j), active(j) ? h("span", { class: "grow" }) : null, active(j) ? stopButton(j) : null)];
+  if (j.error) parts.push(h("div", { class: "note bad" }, j.error));
+  if (j.state === "interrupted") parts.push(h("div", { class: "note warn" }, "The job stopped without finishing (the Mac may have restarted, or the program was closed). Nothing finished was lost. Press Start again to carry on."));
+  if (j.state === "stopped") parts.push(h("div", { class: "note small" }, "Stopped. Everything finished is kept; press Start again to carry on."));
+  if (j.message && !j.error) parts.push(h("p", { class: j.state === "done" ? "note ok" : "mute" }, j.message));
+  for (const w of j.warnings || []) parts.push(h("div", { class: "note warn small" }, w));
+
+  if (j.type === "narration" && j.total != null) parts.push(...narrationParts(j));
+  else if (j.total) parts.push(bar((j.made || 0), j.total), h("p", { class: "small mute" }, `${j.made || 0} of ${j.total}`, active(j) ? [" · ", tick("eta")] : ""));
+
+  if (j.log && j.log.length) {
+    const pre = h("pre", { class: "log" }, j.log.join("\n"));
+    parts.push(h("details", { open: active(j) }, h("summary", { class: "small" }, "Log"), pre));
+    queueMicrotask(() => { pre.scrollTop = pre.scrollHeight; });
+  }
+  box.replaceChildren(...parts);
+  tickAll();
+}
+
+function narrationParts(j) {
+  const total = j.total || 0, finished = (j.made || 0) + (j.failed || 0);
+  const out = [];
+  if (j.phase === "loading") out.push(h("p", { class: "mute" }, "Loading the voices… the first time this takes a minute or two."));
+  out.push(bar(finished, total), h("p", { class: "small mute" }, `${finished} of ${total} verses`, active(j) ? [" · ", tick("eta"), " · ", tick("finish")] : ""));
+  const speed = j.doneChars ? j.computeSeconds / j.doneChars : null;
+  out.push(h("div", { class: "stats" },
+    stat(j.made || 0, "made"),
+    stat(j.already || 0, "already made, skipped"),
+    stat(j.check || 0, "to check by ear"),
+    stat(j.failed || 0, "failed"),
+    h("div", { class: "stat" }, h("b", {}, tick("elapsed")), h("span", {}, active(j) ? "worked so far" : "total time")),
+    stat(dur(j.audioSeconds || 0), "of audio made"),
+    stat(speed ? speed.toFixed(2) + " s" : "—", "work per character")));
+  if (j.current && j.current.verseId) {
+    const c = j.current, v = voiceById(c.voice);
+    out.push(h("div", { class: "note" }, h("b", {}, "Now: "), `${langName(c.language)} verse ${c.verseId} · ${c.characterName} · ${v ? voiceLabel(v) : c.voice} · ${c.chars} characters · `, tick("working")));
+  }
+  const rows = (j.chapters || []).filter((r) => r.wanted);
+  if (rows.length) {
+    out.push(h("h3", {}, "Chapters"));
+    out.push(h("div", {}, rows.map((r) => h("div", { class: "row small", style: "margin:3px 0" },
+      h("span", { style: "width:170px" }, `${(S.langs.length > 1 || (j.languages || []).length > 1) ? r.language + " · " : ""}${r.chapter}${r.name ? " · " + r.name : ""}`),
+      h("div", { class: "grow", style: "min-width:120px" }, bar(r.done, r.wanted, "thin" + (r.done === r.wanted ? " ok" : ""))),
+      h("span", { class: "mute", style: "width:70px;text-align:right" }, `${r.done}/${r.wanted}`)))));
+  }
+  const recent = [...(j.recent || [])].reverse();
+  if (recent.length) {
+    out.push(h("h3", {}, "Just made"));
+    out.push(h("table", {}, h("tbody", {}, recent.map((r) => h("tr", {},
+      h("td", {}, h("button", { class: "play", onclick: (e) => playUrl("/audio/" + r.key.split("/").map(encodeURIComponent).join("/"), e.currentTarget) }, "▶")),
+      h("td", {}, `${r.language} ${r.verseId}`),
+      h("td", {}, r.characterName),
+      h("td", { class: "mute small" }, `${(r.durationMs / 1000).toFixed(1)} s of audio, ${r.seconds} s to make`),
+      h("td", {}, r.status === "check" ? h("span", { class: "badge warn" }, "check") : null))))));
+  }
+  return out;
+}
+
+// ---- keeping up with the job ------------------------------------------------------------------------------
+
+async function poll() {
+  let wait = 6000;
+  try {
+    const r = await api("/api/job");
+    $("#offline").hidden = true;
+    const before = S.job;
+    S.job = r.job;
+    if (active(before) && !active(S.job)) await afterJob();
+    else if (active(before) !== active(S.job)) { renderBook(); renderVoices(); renderStart(); }
+    renderBar(); renderJob();
+    if (active(S.job)) wait = 1500;
+  } catch (e) {
+    $("#offline").hidden = false;
+  }
+  setTimeout(poll, wait);
+}
+
+// A job that ends changes what is made, what text there is and which demos exist.
+async function afterJob() {
+  S.ov = await attempt(() => api("/api/overview")) || S.ov;
+  if (S.slug && S.langs.length) S.view = await attempt(() => api(bookUrl())) || S.view;
+  renderAll();
+  loadPlan();
+}
+
+function jumpTo(selector) { const el = $(selector); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+// ---- start up ----------------------------------------------------------------------------------------------
+
+const bookUrl = () => `/api/book/${encodeURIComponent(S.slug)}?languages=${S.langs.map(encodeURIComponent).join(",")}`;
+
+function renderAll() { renderBook(); renderChapters(); renderCast(); renderVoices(); renderStart(); renderBar(); renderJob(); }
+
+async function loadBook() {
+  S.view = null; S.plan = null;
+  renderAll();
+  if (S.slug && S.langs.length) {
+    S.view = await attempt(() => api(bookUrl())) || null;
+    if (S.view) {
+      const known = new Set(S.view.chapters.map((c) => c.id));
+      S.chapters = new Set([...S.chapters].filter((id) => known.has(id)));
+    }
+  }
+  remember();
+  renderAll();
+  loadPlan();
+}
+
+async function boot() {
+  try {
+    S.ov = await api("/api/overview");
+  } catch (e) {
+    $("#offline").hidden = false;
+    $("#offline").textContent = "Could not reach the studio: " + e.message;
+    return;
+  }
+  S.job = S.ov.job;
+  const saved = recall(), codes = S.ov.languages.map((l) => l.code);
+  S.slug = S.ov.books.some((b) => b.slug === saved.slug) ? saved.slug : (S.ov.books[0] || {}).slug || null;
+  S.langs = (saved.langs || []).filter((c) => codes.includes(c));
+  if (!S.langs.length) S.langs = codes.slice();
+  S.chapters = new Set(saved.slug === S.slug ? saved.chapters || [] : []);
+  await loadBook();
+  poll();
+  setInterval(tickAll, 1000);
+}
+
+boot();
+</script>
+</body>
+</html>

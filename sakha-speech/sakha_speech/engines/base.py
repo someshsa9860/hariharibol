@@ -4,6 +4,10 @@ import os
 
 import numpy as np
 
+# Read by torch when it loads, so it has to be set before the first `import torch`. Lets the few operations
+# the Apple GPU lacks run on the CPU instead of failing.
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
 
 class EngineMissing(RuntimeError):
     """The engine's Python packages are not installed (./setup.sh installs them)."""
@@ -32,7 +36,5 @@ def pick_device() -> str:
     if torch.cuda.is_available():
         return "cuda"
     if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
-        # Lets the few operations the Apple GPU lacks run on the CPU instead of failing.
-        os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
         return "mps"
     return "cpu"

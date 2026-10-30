@@ -11,6 +11,7 @@ import '../core/constants/storage_keys.dart';
 import '../core/session/app_session.dart';
 import '../core/session/legacy_token_store.dart';
 import '../models/api_failure.dart';
+import '../models/app_user.dart';
 import '../models/auth_session.dart';
 import 'api_client.dart';
 import 'device_service.dart';
@@ -167,12 +168,18 @@ class AuthService {
     // of empty tokens. Starting one would show the dashboard to nobody.
     if (session.tokens.isEmpty) throw const ApiFailure.signIn();
 
-    await AppSession.instance.start(session);
-
     // 201 means the backend just created the account, 200 that it already
     // existed. A new account has the default languages rather than chosen
     // ones, so it is sent through the picker; a returning one never is.
     final isNewAccount = response.statusCode == 201;
+
+    // A returning account chose its languages before — on this phone or on one
+    // it no longer has — so the account's choice becomes the device's. Written
+    // before the session starts: the language settings reload the moment the
+    // session names someone, and read what is stored.
+    if (!isNewAccount) await _keepAccountLanguages(session.user);
+
+    await AppSession.instance.start(session);
     await LocalStore.instance.write(BoxKeys.onboardingSeen, !isNewAccount);
 
     // A session started here is the end of the previous app's: its token must
@@ -185,6 +192,15 @@ class AuthService {
     unawaited(FcmService.instance.registerAfterSignIn());
 
     return session;
+  }
+
+  /// Saves the account's app and reading languages as this device's own — the
+  /// two the device keeps a copy of (the mantra language lives on the account,
+  /// and speaking has no account field). An empty value is not a choice.
+  Future<void> _keepAccountLanguages(AppUser user) async {
+    final store = LocalStore.instance;
+    if (user.appLanguage.isNotEmpty) await store.write(BoxKeys.languageApp, user.appLanguage);
+    if (user.readingLanguage.isNotEmpty) await store.write(BoxKeys.languageReading, user.readingLanguage);
   }
 
   /// Ends the session on this device.

@@ -16,8 +16,10 @@ dependencies = [
 [project.optional-dependencies]
 # The speech models. Kept apart so the tests run without torch.
 # parler-tts 0.2.3 pins transformers 4.46.1; torch 2.5.1 is a version that release was built against.
+# torchaudio is pinned to the same release as torch: left unpinned it resolves to a newer one that will not load.
 engines = [
   "torch==2.5.1",
+  "torchaudio==2.5.1",
   "transformers==4.46.1",
   "parler-tts==0.2.3",
   "sentencepiece",
@@ -35,6 +37,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["sakha_speech", "sakha_speech.engines"]
+
+[tool.setuptools.package-data]
+sakha_speech = ["studio.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

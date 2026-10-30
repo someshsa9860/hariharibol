@@ -1,16 +1,18 @@
-"""Uploads one narrator's finished book to S3, and an _index.json beside it for the backend to import.
+"""Uploads a book's finished narration in one language to S3, and an _index.json beside it for the backend.
 
-  s3://<bucket>/<prefix>/<book>/<lang>/<voice>/<canto>/<chapter>/<verse>-<kind>.mp3
-  s3://<bucket>/<prefix>/<book>/<lang>/<voice>/_index.json
+  s3://<bucket>/<prefix>/<book>/<lang>/<canto>/<chapter>/<verse>.mp3          (the meaning; other kinds: <verse>-<kind>.mp3)
+  s3://<bucket>/<prefix>/<book>/<lang>/_index.json
 
+That is the folder `narration/` in this project, copied as it is: `aws s3 sync narration s3://<bucket>/<prefix>`
+does the same thing without the index. The index lists, for every verse, which voice and character spoke it.
 Only files that changed since they were last uploaded go up. Verses marked `check` stay back until
 they are approved or made again (`review`), unless --include-check."""
 
 import json
 from datetime import datetime, timezone
 
-from .config import Voice, s3_settings
-from .keys import set_prefix, sort_key
+from .config import s3_settings
+from .keys import book_prefix, sort_key
 from .manifest import Manifest, audio_path
 
 
@@ -19,10 +21,10 @@ def client():
     return boto3.client("s3", region_name=s3_settings()["region"])
 
 
-def upload(book: str, language: str, voice: Voice, include_check: bool = False, dry_run: bool = False,
+def upload(book: str, language: str, include_check: bool = False, dry_run: bool = False,
            s3_client=None, log=print) -> int:
     settings = s3_settings()
-    manifest = Manifest(book, language, voice)
+    manifest = Manifest(book, language)
     s3_client = s3_client or (None if dry_run else client())
     sent = held = 0
     for kind, entries in manifest.items.items():
@@ -47,16 +49,17 @@ def upload(book: str, language: str, voice: Voice, include_check: bool = False, 
     index = {
         "book": book,
         "language": language,
-        "voice": manifest.voice_info(),
+        "voices": manifest.voice_ids(),
         "updatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "items": {
-            kind: {vid: {"key": f"{settings['prefix']}/{e['key']}", "durationMs": e["durationMs"], "hash": e["hash"]}
+            kind: {vid: {"key": f"{settings['prefix']}/{e['key']}", "voice": e.get("voice"), "character": e.get("character"),
+                            "durationMs": e["durationMs"], "hash": e["hash"]}
                    for vid, e in sorted(entries.items(), key=lambda kv: sort_key(kv[0]))
                    if e.get("uploadedHash") == e["hash"]}
             for kind, entries in manifest.items.items()
         },
     }
-    index_key = f"{settings['prefix']}/{set_prefix(book, language, voice.id)}/_index.json"
+    index_key = f"{settings['prefix']}/{book_prefix(book, language)}/_index.json"
     if not dry_run:
         s3_client.put_object(Bucket=settings["bucket"], Key=index_key, ContentType="application/json",
                              Body=json.dumps(index, ensure_ascii=False, indent=1).encode())

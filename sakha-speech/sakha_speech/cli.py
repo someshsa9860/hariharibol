@@ -67,45 +67,52 @@ def cmd_sample(args, voices, books):
 
 
 def cmd_generate(args, voices, books):
-    from .generate import generate
+    from .jobs import run_in_foreground
     book = _book(books, args.book)
-    kinds = [args.kind] if args.kind else list(book.kinds)
-    for lang in _langs(args.lang, book):
-        for gender in _genders(args.gender):
-            for kind in kinds:
-                generate(book, voices, lang, gender, kind, chapter=args.chapter, limit=args.limit, force=args.force)
+    for kind in ([args.kind] if args.kind else list(book.kinds)):
+        run_in_foreground({
+            "type": "narration", "book": book.slug, "languages": _langs(args.lang, book), "kind": kind,
+            "chapters": [c.strip() for c in args.chapter.split(",")] if args.chapter else None,
+            "limit": args.limit, "force": args.force})
+
+
+def cmd_studio(args, voices, books):
+    from .studio import serve
+    serve(port=args.port, open_browser=not args.no_browser)
+
+
+def cmd_job_run(args, voices, books):
+    from .jobs import run_job
+    sys.exit(run_job(args.spec))
 
 
 def cmd_review(args, voices, books):
     from .review import serve
-    serve(books, voices, port=args.port)
+    serve(books, port=args.port)
 
 
 def cmd_upload(args, voices, books):
     from .s3 import upload
     book = _book(books, args.book)
     for lang in _langs(args.lang, book):
-        for gender in _genders(args.gender):
-            voice = voices[book.narrator(lang, gender)]
-            print(f"{book.slug} {lang} {gender} ({voice.id})")
-            upload(book.slug, lang, voice, include_check=args.include_check, dry_run=args.dry_run)
+        print(f"{book.slug} {lang}")
+        upload(book.slug, lang, include_check=args.include_check, dry_run=args.dry_run)
 
 
 def cmd_status(args, voices, books):
     from .content import load_text
     from .manifest import Manifest
     for book in ([_book(books, args.book)] if args.book else books.values()):
-        for lang, by_gender in book.narrators.items():
-            for gender, vid in by_gender.items():
-                manifest = Manifest(book.slug, lang, voices[vid])
-                for kind in book.kinds:
-                    texts = load_text(book.slug, kind, lang)
-                    entries = manifest.items.get(kind, {})
-                    count = lambda *s: sum(1 for e in entries.values() if e["status"] in s)
-                    uploaded = sum(1 for e in entries.values() if e.get("hash") and e.get("uploadedHash") == e["hash"])
-                    print(f"{book.slug} {kind} {lang} {gender:6} {vid:20} text {sum(1 for t in texts.values() if t):4}  "
-                          f"made {count('ok', 'approved', 'check'):4}  check {count('check'):3}  "
-                          f"redo {count('redo'):3}  uploaded {uploaded:4}")
+        for lang in book.languages():
+            manifest = Manifest(book.slug, lang)
+            for kind in book.kinds:
+                texts = load_text(book.slug, kind, lang)
+                entries = manifest.items.get(kind, {})
+                count = lambda *s: sum(1 for e in entries.values() if e["status"] in s)
+                uploaded = sum(1 for e in entries.values() if e.get("hash") and e.get("uploadedHash") == e["hash"])
+                print(f"{book.slug} {kind} {lang}  text {sum(1 for t in texts.values() if t):4}  "
+                      f"made {count('ok', 'approved', 'check'):4}  check {count('check'):3}  "
+                      f"redo {count('redo'):3}  uploaded {uploaded:4}")
 
 
 def parser() -> argparse.ArgumentParser:
@@ -130,15 +137,25 @@ def parser() -> argparse.ArgumentParser:
     s.add_argument("--gender")
     s.set_defaults(run=cmd_sample)
 
-    s = sub.add_parser("generate", help="make a book's narration with its narrators")
+    s = sub.add_parser("generate", help="make a book's narration here in the terminal (the studio does the same in a window)")
     s.add_argument("--book", required=True)
     s.add_argument("--lang", help="comma separated; default every language the book has narrators for")
-    s.add_argument("--gender", help="male, female or male,female (default both)")
     s.add_argument("--kind")
-    s.add_argument("--chapter", help="2 for the Gita's chapter 2, 1.3 for canto 1 chapter 3")
-    s.add_argument("--limit", type=int, help="make at most this many verses (per language and gender)")
+    s.add_argument("--chapter", help="comma separated: 2 for the Gita's chapter 2, 1.3 for canto 1 chapter 3")
+    s.add_argument("--limit", type=int, help="make at most this many verses")
     s.add_argument("--force", action="store_true", help="make again even what is already made")
     s.set_defaults(run=cmd_generate)
+
+    s = sub.add_parser("studio", help="the window: choose a book and chapters, give each character a voice, start the job")
+    s.add_argument("--port", type=int, default=8766)
+    s.add_argument("--no-browser", action="store_true", help="do not open the browser")
+    s.set_defaults(run=cmd_studio)
+
+    s = sub.add_parser("job", help=argparse.SUPPRESS)
+    job_sub = s.add_subparsers(dest="job_command", required=True)
+    s = job_sub.add_parser("run")
+    s.add_argument("spec")
+    s.set_defaults(run=cmd_job_run)
 
     s = sub.add_parser("review", help="local page to listen, keep, or make again")
     s.add_argument("--port", type=int, default=8765)
@@ -147,7 +164,6 @@ def parser() -> argparse.ArgumentParser:
     s = sub.add_parser("upload", help="upload what is made to S3")
     s.add_argument("--book", required=True)
     s.add_argument("--lang")
-    s.add_argument("--gender")
     s.add_argument("--include-check", action="store_true", help="also upload verses marked check")
     s.add_argument("--dry-run", action="store_true", help="say what would be uploaded, upload nothing")
     s.set_defaults(run=cmd_upload)

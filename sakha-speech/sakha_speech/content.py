@@ -16,6 +16,7 @@ from pathlib import Path
 
 import requests
 
+from . import Stopped
 from .config import Book, work_dir
 from .keys import sort_key
 
@@ -100,8 +101,11 @@ class Api:
         return self.get(f"/api/web/content/verses/{verse_id}")
 
 
-def fetch_api(book: Book, languages: list[str], kind: str, api: Api, refresh: bool = False, log=print) -> dict:
-    """Fills the cache for every language at once (one request carries all of a verse's translations)."""
+def fetch_api(book: Book, languages: list[str], kind: str, api: Api, refresh: bool = False, log=print,
+              stop=None, step=None) -> dict:
+    """Fills the cache for every language at once (one request carries all of a verse's translations).
+    `stop()` is asked before each verse and, when True, what is fetched so far is saved and Stopped is
+    raised; `step(n, total)` is told after each verse."""
     texts = {lang: ({} if refresh else load_text(book.slug, kind, lang)) for lang in languages}
     ids = api.verse_ids(book.book_number)
     if not ids:
@@ -109,9 +113,15 @@ def fetch_api(book: Book, languages: list[str], kind: str, api: Api, refresh: bo
     todo = [vid for vid in ids if any(vid not in texts[lang] for lang in languages)]
     log(f"{book.slug}: {len(ids)} verses, {len(todo)} to fetch")
     for n, vid in enumerate(todo, 1):
+        if stop and stop():
+            for lang in languages:
+                save_text(book.slug, kind, lang, texts[lang])
+            raise Stopped()
         verse = api.verse(vid) or {}
         for lang in languages:
             texts[lang][vid] = pick_translation(verse.get("translations") or [], lang, kind, book.translator)
+        if step:
+            step(n, len(todo))
         if n % SAVE_EVERY == 0 or n == len(todo):
             for lang in languages:
                 save_text(book.slug, kind, lang, texts[lang])

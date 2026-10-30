@@ -32,8 +32,12 @@ if ! command -v uv >/dev/null 2>&1; then
   export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 fi
 
-say "Making the Python 3.11 environment in .venv"
-uv venv --python 3.11 .venv
+if [[ -d .venv ]]; then
+  say "Using the existing .venv"
+else
+  say "Making the Python 3.11 environment in .venv"
+  uv venv --python 3.11 .venv
+fi
 if [[ $ENGINES == 1 ]]; then
   uv pip install --python .venv -e ".[engines,dev]"
 else
