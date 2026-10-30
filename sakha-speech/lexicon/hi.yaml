@@ -1,0 +1,5 @@
+# How the Hindi voices should say words they get wrong (whole words). Add a line when you hear a
+# mistake; the next run re-makes only the verses that contain it.
+# Example:
+# श्रीकृष्ण: श्री कृष्ण
+{}

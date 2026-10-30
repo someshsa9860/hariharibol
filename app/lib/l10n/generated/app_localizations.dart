@@ -148,6 +148,24 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get actionOk;
 
+  /// The title of the question asked when back is pressed on Home, before the app closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the app?'**
+  String get exitAppTitle;
+
+  /// The line under the title of the question asked when back is pressed on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to close HariHariBol?'**
+  String get exitAppMessage;
+
+  /// The button that closes the app, in the question asked when back is pressed on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get exitAppConfirm;
+
   /// No description provided for @actionDone.
   ///
   /// In en, this message translates to:
@@ -844,12 +862,6 @@ abstract class AppLocalizations {
   /// **'Full-screen picture'**
   String get chantFullPicture;
 
-  /// No description provided for @chantPrayerHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Chant this prayer first, then tap the ring to begin counting.'**
-  String get chantPrayerHint;
-
   /// Hint under the opening prayer on the chant counter when the mantra's recording begins with that prayer: the reader presses play and chants it with the recording, so there is no need to tap the ring for the prayer. The play button is an icon.
   ///
   /// In en, this message translates to:
@@ -873,6 +885,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish round'**
   String get chantFinishRound;
+
+  /// No description provided for @chantViewDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Deity'**
+  String get chantViewDeity;
+
+  /// No description provided for @chantViewQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Quotes'**
+  String get chantViewQuotes;
+
+  /// No description provided for @chantViewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What to show while chanting'**
+  String get chantViewLabel;
+
+  /// No description provided for @chantQuoteTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the card to count a chant.'**
+  String get chantQuoteTapHint;
+
+  /// No description provided for @chantQuoteNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No quotes are available right now. You can keep counting.'**
+  String get chantQuoteNone;
+
+  /// No description provided for @chantPrayerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant this prayer first, then tap the ring to begin counting.'**
+  String get chantPrayerHint;
 
   /// No description provided for @sadhanaAutoCountListening.
   ///
@@ -921,6 +969,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Counts by time instead — saves battery'**
   String get chantAutoMicOff;
+
+  /// No description provided for @chantBatterySaverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saver'**
+  String get chantBatterySaverTitle;
+
+  /// No description provided for @chantBatterySaverOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer animations and screen updates'**
+  String get chantBatterySaverOn;
+
+  /// No description provided for @chantBatterySaverOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Animations and updates as usual'**
+  String get chantBatterySaverOff;
+
+  /// No description provided for @chantAudioChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chanting audio'**
+  String get chantAudioChannel;
 
   /// No description provided for @chantPaceTitle.
   ///
@@ -5169,6 +5241,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get prayersCategoryOther;
+
+  /// No description provided for @readingLookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get readingLookLabel;
+
+  /// No description provided for @readingLookMatchApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Match app'**
+  String get readingLookMatchApp;
+
+  /// No description provided for @readingLookWarmPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm paper'**
+  String get readingLookWarmPaper;
+
+  /// No description provided for @readingLookSepia.
+  ///
+  /// In en, this message translates to:
+  /// **'Sepia'**
+  String get readingLookSepia;
+
+  /// No description provided for @readingLookMist.
+  ///
+  /// In en, this message translates to:
+  /// **'Mist'**
+  String get readingLookMist;
+
+  /// No description provided for @readingLookDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get readingLookDusk;
+
+  /// No description provided for @readingLookNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get readingLookNight;
+
+  /// No description provided for @readingLineSpacingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Line spacing'**
+  String get readingLineSpacingLabel;
+
+  /// No description provided for @readingLineSpacingCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get readingLineSpacingCompact;
+
+  /// No description provided for @readingLineSpacingComfortable.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable'**
+  String get readingLineSpacingComfortable;
+
+  /// No description provided for @readingLineSpacingRelaxed.
+  ///
+  /// In en, this message translates to:
+  /// **'Relaxed'**
+  String get readingLineSpacingRelaxed;
+
+  /// No description provided for @readingMarginsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Margins'**
+  String get readingMarginsLabel;
+
+  /// No description provided for @readingMarginsNarrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrow'**
+  String get readingMarginsNarrow;
+
+  /// No description provided for @readingMarginsNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get readingMarginsNormal;
+
+  /// No description provided for @readingMarginsWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide'**
+  String get readingMarginsWide;
+
+  /// No description provided for @readingTintLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm tint'**
+  String get readingTintLabel;
+
+  /// No description provided for @readingDimLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim the page'**
+  String get readingDimLabel;
+
+  /// No description provided for @readingAutoNightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Night look from 8 pm to 6 am'**
+  String get readingAutoNightTitle;
+
+  /// No description provided for @readingKeepAwakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the screen on while reading'**
+  String get readingKeepAwakeTitle;
+
+  /// No description provided for @setupMantraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favourite mantra'**
+  String get setupMantraTitle;
+
+  /// No description provided for @setupMantraSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The one you chant most. You can change it any time.'**
+  String get setupMantraSubtitle;
+
+  /// No description provided for @setupRoundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many rounds a day?'**
+  String get setupRoundsTitle;
+
+  /// No description provided for @setupRoundsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.'**
+  String get setupRoundsSubtitle;
+
+  /// No description provided for @setupRoundsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 round} other{{count} rounds}}'**
+  String setupRoundsCount(int count);
+
+  /// No description provided for @setupChantTime.
+  ///
+  /// In en, this message translates to:
+  /// **'About {time} of chanting a day'**
+  String setupChantTime(String time);
+
+  /// No description provided for @setupDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String setupDurationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @setupDurationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String setupDurationHours(int hours);
+
+  /// No description provided for @setupDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String setupDurationMinutes(int minutes);
+
+  /// No description provided for @setupRoundsFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer rounds'**
+  String get setupRoundsFewer;
+
+  /// No description provided for @setupRoundsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More rounds'**
+  String get setupRoundsMore;
+
+  /// No description provided for @setupRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily routine'**
+  String get setupRoutineTitle;
+
+  /// No description provided for @setupRoutineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned around {rounds} of {mantra}.'**
+  String setupRoutineSubtitle(String rounds, String mantra);
+
+  /// No description provided for @setupRoutineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.'**
+  String get setupRoutineHint;
+
+  /// No description provided for @setupChantLate.
+  ///
+  /// In en, this message translates to:
+  /// **'At this wake-up time your rounds run past {time}. Wake earlier or choose fewer rounds.'**
+  String setupChantLate(String time);
+
+  /// No description provided for @setupFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Create my routine'**
+  String get setupFinish;
+
+  /// No description provided for @setupRoutineSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get setupRoutineSkip;
+
+  /// No description provided for @routineWakeLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake-up can\'t be later than {time}.'**
+  String routineWakeLatest(String time);
+
+  /// No description provided for @routineSleepLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Bedtime can\'t be later than {time}.'**
+  String routineSleepLatest(String time);
 }
 
 class _AppLocalizationsDelegate

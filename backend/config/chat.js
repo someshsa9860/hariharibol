@@ -55,6 +55,15 @@ STYLE
 - The closing thought comes last, after any list or quotation.
 - What you remember about the person (their name, interests, practices) is given to you as a summary of earlier conversation, and what you have noticed about them follows it; use it naturally and do not recite it.`;
 
+// ── How Sakha speaks of the tradition ──────────────────────────────────────
+// Added to every prompt after the persona, so a persona saved on the admin page cannot switch it off
+// (utils/chat-context.js). Sanatan Dharma is never called mythology, its teachings are not weighed on a scientific
+// scale, and Sakha never tells a reader what it has noticed about them.
+const FRAMING_GUIDANCE = `HOW YOU SPEAK OF THE TRADITION
+- Sanatan Dharma is never mythology. Never call it, its scriptures or its stories a myth, a legend or a fable, and never agree when someone else does. The Vedas, the Puranas, the Itihasas and the lila of the Lord are sacred history, scripture and teaching, as the tradition holds them. If someone calls them myth, do not argue: say simply how the tradition holds them, and carry on.
+- The teachings of Sanatan Dharma are beyond science. Do not weigh them on a scientific scale, do not say that science has proved or disproved any of them, and do not offer modern theories as grounds to doubt them. Answer questions about the teachings from scripture, the sages and direct realisation.
+- Never tell the person that you have noticed, kept, recorded or learned anything about them, and never mention a profile, notes or traits. Use what you know quietly, as a friend would.`;
+
 // Limits an admin can change as one JSON setting. Token numbers are measured
 // locally (services/ai/tokens.js), so they are estimates — see that file.
 const DEFAULT_LIMITS = {
@@ -132,7 +141,8 @@ const ACTION_GUIDANCE = `OPENING THINGS IN THE APP
 // ── What Sakha has noticed about the reader ─────────────────────────────────
 // After a reader's message, the cheap model reads it once and updates a short character profile (SakhaProfile): a few
 // fixed fields, a handful of notes, and a pile of keywords. The fields and notes go into the next prompts; the keywords
-// never do. The reader can see all of it, switch learning off and delete it (services/chat-profile.js).
+// never do. The app does not show it to the reader (no screen reads it); the API still lets them switch learning off and
+// delete it (services/chat-profile.js).
 const PROFILE = {
   // The only keys a trait can have, each a short plain phrase. `notes` (below) is the one list.
   fields: ['gender', 'age', 'behaviour', 'lifeStage', 'spiritualStage', 'communication'],
@@ -186,6 +196,7 @@ export {
   IMAGE_EDGE_RANGE,
   IMAGE_JPEG_QUALITY,
   IMAGE_PLACEHOLDER,
+  FRAMING_GUIDANCE,
   IMAGE_GUIDANCE,
   NAME_TOKEN,
   NAME_GUIDANCE,

@@ -24,6 +24,15 @@ class AppLocalizationsGu extends AppLocalizations {
   String get actionOk => 'બરાબર';
 
   @override
+  String get exitAppTitle => 'એપ બંધ કરીએ?';
+
+  @override
+  String get exitAppMessage => 'શું તમે હરિહરિબોલ બંધ કરવા માંગો છો?';
+
+  @override
+  String get exitAppConfirm => 'બંધ કરો';
+
+  @override
   String get actionDone => 'થઈ ગયું';
 
   @override
@@ -475,10 +484,6 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantFullPicture => 'પૂર્ણ સ્ક્રીન ચિત્ર';
 
   @override
-  String get chantPrayerHint =>
-      'પહેલા આ પ્રાર્થના કરો, પછી ગણતરી શરૂ કરવા માટે વર્તુળ પર ટેપ કરો.';
-
-  @override
   String get chantPrayerHintAlong =>
       'રેકોર્ડિંગ આ જ પ્રાર્થનાથી શરૂ થાય છે. રેકોર્ડિંગ ચલાવો અને તેની સાથે આ પ્રાર્થના કરો.';
 
@@ -491,6 +496,26 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get chantFinishRound => 'માળા પૂર્ણ કરો';
+
+  @override
+  String get chantViewDeity => 'શ્રીવિગ્રહ';
+
+  @override
+  String get chantViewQuotes => 'વચનો';
+
+  @override
+  String get chantViewLabel => 'જપ કરતી વખતે શું બતાવવું';
+
+  @override
+  String get chantQuoteTapHint => 'એક જપ ગણવા કાર્ડ પર ટેપ કરો.';
+
+  @override
+  String get chantQuoteNone =>
+      'હાલમાં કોઈ વચનો ઉપલબ્ધ નથી. તમે ગણતરી ચાલુ રાખી શકો છો.';
+
+  @override
+  String get chantPrayerHint =>
+      'પહેલા આ પ્રાર્થના કરો, પછી ગણતરી શરૂ કરવા માટે વર્તુળ પર ટેપ કરો.';
 
   @override
   String get sadhanaAutoCountListening => 'સાંભળી રહ્યું છે…';
@@ -516,6 +541,18 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'તેના બદલે સમય પ્રમાણે ગણે છે — બેટરી બચે છે';
+
+  @override
+  String get chantBatterySaverTitle => 'બેટરી બચત';
+
+  @override
+  String get chantBatterySaverOn => 'ઓછા એનિમેશન અને ઓછા સ્ક્રીન અપડેટ';
+
+  @override
+  String get chantBatterySaverOff => 'સામાન્ય એનિમેશન અને અપડેટ';
+
+  @override
+  String get chantAudioChannel => 'જાપ ઑડિયો';
 
   @override
   String get chantPaceTitle => 'એક જપનો સમય';
@@ -2946,4 +2983,145 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get prayersCategoryOther => 'અન્ય';
+
+  @override
+  String get readingLookLabel => 'દેખાવ';
+
+  @override
+  String get readingLookMatchApp => 'એપ પ્રમાણે';
+
+  @override
+  String get readingLookWarmPaper => 'ગરમ કાગળ';
+
+  @override
+  String get readingLookSepia => 'સેપિયા';
+
+  @override
+  String get readingLookMist => 'ઝાકળ';
+
+  @override
+  String get readingLookDusk => 'સંધ્યા';
+
+  @override
+  String get readingLookNight => 'રાત';
+
+  @override
+  String get readingLineSpacingLabel => 'લીટી વચ્ચેનું અંતર';
+
+  @override
+  String get readingLineSpacingCompact => 'નજીક';
+
+  @override
+  String get readingLineSpacingComfortable => 'આરામદાયક';
+
+  @override
+  String get readingLineSpacingRelaxed => 'પહોળું';
+
+  @override
+  String get readingMarginsLabel => 'હાંસિયા';
+
+  @override
+  String get readingMarginsNarrow => 'સાંકડા';
+
+  @override
+  String get readingMarginsNormal => 'સામાન્ય';
+
+  @override
+  String get readingMarginsWide => 'પહોળા';
+
+  @override
+  String get readingTintLabel => 'ગરમ રંગત';
+
+  @override
+  String get readingDimLabel => 'પાનું ઝાંખું કરો';
+
+  @override
+  String get readingAutoNightTitle => 'રાત્રે 8થી સવારે 6 સુધી રાત્રિ રૂપ';
+
+  @override
+  String get readingKeepAwakeTitle => 'વાંચતી વખતે સ્ક્રીન ચાલુ રાખો';
+
+  @override
+  String get setupMantraTitle => 'તમારો પ્રિય મંત્ર';
+
+  @override
+  String get setupMantraSubtitle =>
+      'જેનો તમે સૌથી વધુ જપ કરો છો. તેને તમે ગમે ત્યારે બદલી શકો છો.';
+
+  @override
+  String get setupRoundsTitle => 'દરરોજ કેટલી માળા?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'એક માળામાં 108 જપ હોય છે. રોજ જેટલી કરી શકો તેટલી પસંદ કરો — પછી સેટિંગ્સમાં બદલી શકાશે.';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count માળા',
+      one: '1 માળા',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'દરરોજ લગભગ $time જપ';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours કલાક $minutes મિનિટ';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours કલાક';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes મિનિટ';
+  }
+
+  @override
+  String get setupRoundsFewer => 'ઓછી માળા';
+
+  @override
+  String get setupRoundsMore => 'વધુ માળા';
+
+  @override
+  String get setupRoutineTitle => 'તમારી દૈનિક દિનચર્યા';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return '$mantraની $rounds પ્રમાણે ગોઠવેલી.';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'જાગવાનો અથવા સૂવાનો સમય બદલવા તેના પર ટૅપ કરો. બાકી બધું પછી દિનચર્યા ટૅબમાં બદલી શકાશે.';
+
+  @override
+  String setupChantLate(String time) {
+    return 'જાગવાના આ સમયે તમારી માળા $time પછી સુધી ચાલશે. વહેલા જાગો અથવા ઓછી માળા પસંદ કરો.';
+  }
+
+  @override
+  String get setupFinish => 'મારી દિનચર્યા બનાવો';
+
+  @override
+  String get setupRoutineSkip => 'હમણાં છોડો';
+
+  @override
+  String routineWakeLatest(String time) {
+    return 'જાગવાનો સમય $time પછીનો ન હોઈ શકે.';
+  }
+
+  @override
+  String routineSleepLatest(String time) {
+    return 'સૂવાનો સમય $time પછીનો ન હોઈ શકે.';
+  }
 }

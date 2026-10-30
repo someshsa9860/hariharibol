@@ -485,6 +485,7 @@ void main() {
       await tester.tap(find.byType(Switch).at(1));
       await tester.pump();
 
+      await tester.ensureVisible(find.byType(Switch).at(0));
       await tester.tap(find.byType(Switch).at(0));
       await tester.pump();
       await tester.pump();
@@ -501,11 +502,13 @@ void main() {
 
       await tester.tap(find.byType(Switch).at(1));
       await tester.pump();
+      await tester.ensureVisible(find.byType(Switch).at(0));
       await tester.tap(find.byType(Switch).at(0));
       await tester.pump();
       await tester.pump();
       expect(find.text('Counting by time — no microphone', skipOffstage: false), findsOneWidget);
 
+      await tester.ensureVisible(find.byType(Switch).at(0));
       await tester.tap(find.byType(Switch).at(0));
       await tester.pump();
       await tester.pump();
@@ -525,6 +528,7 @@ void main() {
       // Counting by time, so no microphone is needed.
       await tester.tap(find.byType(Switch).at(1));
       await tester.pump();
+      await tester.ensureVisible(find.byType(Switch).at(0));
       await tester.tap(find.byType(Switch).at(0));
       await tester.pump();
       await tester.pump();
@@ -535,6 +539,7 @@ void main() {
       await tapRing(tester);
       expect(find.text('0/4'), findsOneWidget);
 
+      await tester.ensureVisible(find.byType(Switch).at(0));
       await tester.tap(find.byType(Switch).at(0));
       await tester.pump();
       await tester.pump();

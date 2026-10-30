@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/storage_keys.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../models/app_user.dart';
 import '../models/language_settings.dart';
 import '../services/local_store.dart';
 import '../services/user_service.dart';
@@ -16,7 +17,9 @@ import 'session_provider.dart';
 /// Stored on the device, one key each. A setter changes exactly one slot. The
 /// first time (nothing stored) a slot takes the account's choice if there is
 /// one, else the phone's language, else English — and the app language only
-/// ever takes a language the app is translated into.
+/// ever takes a language the app is translated into. Signing in to an account
+/// that already exists (a reinstall, a new phone) writes its app and reading
+/// languages to the device, and they are read again here.
 ///
 /// App and reading languages are also sent to the account, best effort, because
 /// the server shapes some responses by them (search, notifications). Speaking
@@ -24,8 +27,21 @@ import 'session_provider.dart';
 class LanguageSettingsNotifier extends Notifier<LanguageSettings> {
   @override
   LanguageSettings build() {
+    // These are built at launch, before anyone has signed in. Someone who then
+    // signs in as a returning account has had their languages written to the
+    // device by `AuthService`, so they are read again when the session names a
+    // different person. Without the account's fallback: a brand-new account has
+    // only the defaults, and must not turn a Hindi phone's screens to English
+    // before it has chosen.
+    ref.listen(currentUserProvider.select((user) => user?.id), (previous, next) {
+      if (next != null && next != previous) state = _read(null);
+    });
+
+    return _read(ref.read(currentUserProvider));
+  }
+
+  LanguageSettings _read(AppUser? user) {
     final store = LocalStore.instance;
-    final user = ref.read(currentUserProvider);
     final device = LanguageDefaults.languageOf(PlatformDispatcher.instance.locale.toLanguageTag());
     final shipped = AppLocalizations.supportedLocales.map((l) => l.languageCode).toSet();
 

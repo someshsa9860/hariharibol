@@ -330,6 +330,9 @@ model User {
   verseHighlights     VerseHighlight[]
   notifications       Notification[]
   etiquetteDeliveries EtiquetteDelivery[]
+  marketingPreference   MarketingPreference?
+  marketingDeliveries   MarketingDelivery[]
+  marketingAttributions MarketingAttribution[]
 
   // A user becomes a creator by having this row, not by a different Role — role
   // governs admin-panel access levels (user/moderator/admin), which is orthogonal
@@ -3737,7 +3740,6 @@ model EtiquetteRun {
   @@index([language, createdAt])
 }
 
-
 // ============================================================================
 // Prayers — stotras, aartis and prayers a reader reads in their own script
 // ============================================================================
@@ -3891,4 +3893,598 @@ model PrayerRun {
 
   @@index([status, createdAt])
   @@index([language, createdAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Quotes shown on the chanting page (admin → Quotes; plan in backend/CLAUDE.md "Quotes"). The same shape as devotee
+// etiquette without the days and pushes: English text with its source, translations written by runs or by hand, and a
+// run row that the worker works. `author` is stored always; whether the app shows it is a switch in the app.
+// ---------------------------------------------------------------------------------------------------------------------
+
+model Quote {
+  id String @id @default(cuid())
+
+  slug      String @unique @db.VarChar(80)
+  sortOrder Int    @default(0)
+
+  text String @db.VarChar(1000) // the quote, in English, in the speaker's own words
+
+  author     String? @db.VarChar(200) // who said or wrote it
+  reference  String? @db.VarChar(200) // where: "Bhagavad-gītā 9.14 purport", "Letter to Hayagriva, 1968"
+  sourceName String? @db.VarChar(200)
+  sourceUrl  String? @db.VarChar(500)
+
+  status         EtiquetteStatus @default(PUBLISHED) // the same three states as etiquette
+  excludedReason String?         @db.Text
+  isEdited       Boolean         @default(false) // an admin changed the English; the seed will not write over it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations QuoteTranslation[]
+
+  @@index([status, sortOrder])
+}
+
+model QuoteTranslation {
+  id String @id @default(cuid())
+
+  quoteId      String
+  languageCode String @db.VarChar(10)
+
+  text String @db.VarChar(2000)
+
+  translatedBy String? @db.VarChar(60)
+  runId        String?
+  isEdited     Boolean @default(false)
+  isPublished  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, languageCode])
+  @@index([languageCode])
+}
+
+// One admin-started run that translates the quotes into one language; the same shape as EtiquetteRun.
+model QuoteRun {
+  id String @id @default(cuid())
+
+  language String  @db.VarChar(10)
+  provider String  @default("openai") @db.VarChar(20)
+  model    String  @db.VarChar(100)
+  force    Boolean @default(false)
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30)
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30)
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalItems  Int     @default(0)
+  doneItems   Int     @default(0)
+  currentSlug String?
+
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([language, createdAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Marketing (admin → Marketing; plan in backend/CLAUDE.md "Marketing"). The campaign row is the run, the same shape as
+// EtiquetteRun: the row is the truth and the BullMQ job only works it. Each recipient gets one MarketingDelivery row when
+// the campaign starts, which is what makes a restart carry on instead of sending twice.
+// ---------------------------------------------------------------------------------------------------------------------
+
+enum MarketingChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum MarketingCampaignStatus {
+  DRAFT
+  SCHEDULED // waiting for scheduledAt; the marketing.tick job starts it
+  QUEUED
+  RUNNING
+  PAUSED // stopped on something outside the campaign (SMTP, a bad key, the daily cap, reputation); see pauseReason
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MarketingVariantStatus {
+  DRAFT
+  APPROVED // the only status a send reads; a reader whose language has no approved variant gets English
+}
+
+enum MarketingVariantSource {
+  AI
+  HUMAN
+}
+
+enum MarketingAudienceMode {
+  MERGE // the template with merge fields, filled in at send time
+  AI_PER_USER // the template is a brief; the model writes each reader's copy from their context card
+}
+
+enum MarketingDeliveryStatus {
+  PENDING
+  SENDING // written before the provider is called, so a crash shows as interrupted and is never sent again
+  SENT
+  DELIVERED
+  READ // WhatsApp only
+  FAILED
+  BOUNCED
+  SKIPPED // never sent; skipReason says why (unsubscribed, suppressed, weekly cap, no address, …)
+}
+
+enum MarketingSuppressionReason {
+  UNSUBSCRIBE
+  HARD_BOUNCE
+  COMPLAINT
+  WHATSAPP_STOP
+  MANUAL
+}
+
+enum MarketingLinkKind {
+  WEB
+  APP
+}
+
+enum MarketingAttributionKind {
+  CLICK
+  APP_OPEN
+  INSTALL_REFERRER
+  SIGNUP_EMAIL_MATCH
+}
+
+enum WhatsAppDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model MarketingTemplate {
+  id String @id @default(cuid())
+
+  name  String  @db.VarChar(120)
+  brief String? @db.Text // what the admin asked the AI for; kept so a later draft or translation starts from the same brief
+
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  variants  MarketingTemplateVariant[]
+  campaigns MarketingCampaign[]
+}
+
+model MarketingTemplateVariant {
+  id String @id @default(cuid())
+
+  templateId String
+  language   String                 @db.VarChar(10)
+  subject    String                 @db.VarChar(200)
+  preheader  String?                @db.VarChar(200)
+  blocks     Json // the ordered content blocks, validated by utils/marketing-blocks.js
+  status     MarketingVariantStatus @default(DRAFT)
+  source     MarketingVariantSource @default(HUMAN)
+
+  // A person changed the words after they were written, so a re-draft asks before it replaces them.
+  editedByHuman Boolean @default(false)
+
+  approvedById   String?
+  approvedByName String?
+  approvedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  template MarketingTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, language])
+  @@index([language, status])
+}
+
+model MarketingSegment {
+  id String @id @default(cuid())
+
+  name        String    @db.VarChar(120)
+  filter      Json // what utils/marketing-audience.js reads; validated on save
+  lastCount   Int?
+  lastCountAt DateTime?
+
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaigns MarketingCampaign[]
+}
+
+// One CSV import of invitees. The attestation is what the person who ran it confirmed about where the addresses came
+// from, worded as it was that day (wordingVersion says which wording).
+model MarketingImport {
+  id String @id @default(cuid())
+
+  fileName       String? @db.VarChar(200)
+  attestation    String  @db.Text
+  wordingVersion String  @db.VarChar(20)
+  attestsEmail    Boolean @default(false)
+  attestsWhatsApp Boolean @default(false)
+
+  attestedById   String?
+  attestedByName String?
+
+  rows    Int   @default(0)
+  added   Int   @default(0)
+  skipped Int   @default(0)
+  summary Json? // counts by reason: invalid, duplicate in the file, already a reader, suppressed, …
+
+  createdAt DateTime @default(now())
+
+  contacts MarketingContact[]
+}
+
+model MarketingContact {
+  id String @id @default(cuid())
+
+  email    String? @db.VarChar(254)
+  emailKey String? @unique @db.VarChar(254) // inbox() form, for de-duplication and the suppression check
+  phone    String? @unique @db.VarChar(20) // E.164
+  name     String? @db.VarChar(120)
+  language String? @db.VarChar(10) // the language to write in, when the list says so; English otherwise
+
+  // Set when the import attested WhatsApp consent and the row has a number. Meta does not allow a WhatsApp message to a
+  // number with no recorded opt-in, so a contact without this is never messaged on WhatsApp.
+  whatsappOptInAt DateTime?
+
+  importId String?
+  import   MarketingImport? @relation(fields: [importId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lists      MarketingListMember[]
+  deliveries MarketingDelivery[]
+
+  @@index([importId])
+}
+
+model MarketingList {
+  id String @id @default(cuid())
+
+  name        String  @db.VarChar(120)
+  description String? @db.VarChar(400)
+  memberCount Int     @default(0) // kept in step by the import and by adding or removing members
+
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members MarketingListMember[]
+}
+
+model MarketingListMember {
+  id String @id @default(cuid())
+
+  listId    String
+  contactId String
+  addedAt   DateTime @default(now())
+
+  list    MarketingList    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  contact MarketingContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, contactId])
+  @@index([contactId])
+}
+
+model MarketingCampaign {
+  id String @id @default(cuid())
+
+  name    String                  @db.VarChar(160)
+  channel MarketingChannel        @default(EMAIL)
+  status  MarketingCampaignStatus @default(DRAFT)
+
+  // Email: the template whose approved variants are sent. WhatsApp: the approved WhatsApp template.
+  templateId         String?
+  template           MarketingTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  whatsappTemplateId String?
+  whatsappTemplate   WhatsAppTemplate?   @relation(fields: [whatsappTemplateId], references: [id], onDelete: SetNull)
+  segmentId          String?
+  segment            MarketingSegment?   @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  // Who it is for, as it was chosen: { users: <segment filter> | null, lists: [listId, …] }. Copied rather than linked,
+  // so editing a segment later does not change a campaign that is already running.
+  audience Json
+  mode     MarketingAudienceMode @default(MERGE)
+
+  // AI_PER_USER only: the provider and model that write each copy, and the most it may spend (millionths of a USD).
+  provider      String? @db.VarChar(20)
+  model         String? @db.VarChar(100)
+  maxCostMicros Int?
+
+  ratePerMinute Int? // email: this campaign's pace, never above the setting
+  scheduledAt   DateTime?
+
+  // Run state, with the same meaning as on EtiquetteRun.
+  jobId           String?
+  pauseReason     String?   @db.VarChar(30)
+  statusMessage   String?
+  resumeAt        DateTime?
+  cancelRequested Boolean   @default(false)
+  attempts        Int       @default(0)
+  retriesInARow   Int       @default(0)
+  heartbeatAt     DateTime?
+  materialisedAt  DateTime? // set once the recipients are written; never done again
+  pauseRequested  Boolean   @default(false) // Pause was pressed on a running campaign; it stops after the page in hand
+  sampleApprovedAt DateTime? // AI_PER_USER: an admin read the sample copies and let the rest be written
+
+  // Totals, moved as deliveries change state.
+  recipients Int @default(0)
+  pending    Int @default(0) // recipients not yet attempted
+  sent       Int @default(0) // accepted by the provider
+  delivered  Int @default(0)
+  read       Int @default(0) // WhatsApp
+  bounced    Int @default(0)
+  complained Int @default(0)
+  failed     Int @default(0)
+  skipped    Int @default(0)
+
+  // AI cost, when each reader's copy was written.
+  inputTokens   Int @default(0)
+  outputTokens  Int @default(0)
+  calls         Int @default(0)
+  costMicros    Int @default(0)
+  activeSeconds Int @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  links        MarketingLink[]
+  deliveries   MarketingDelivery[]
+  clicks       MarketingClick[]
+  attributions MarketingAttribution[]
+
+  @@index([status, scheduledAt])
+  @@index([status, createdAt])
+  @@index([channel, createdAt])
+}
+
+// One tracked destination of a campaign. A recipient's link is /l/<delivery code>/<position>, so a click needs no row
+// per link per reader.
+model MarketingLink {
+  id         String            @id @default(cuid())
+  campaignId String
+  position   Int
+  kind       MarketingLinkKind
+  target     String            @db.VarChar(500) // a URL for WEB; a push-style destination for APP (utils/push-rich.js)
+  label      String?           @db.VarChar(120)
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  clicks   MarketingClick[]
+
+  @@unique([campaignId, position])
+}
+
+model MarketingDelivery {
+  id         String                  @id @default(cuid())
+  code       String                  @unique @db.VarChar(16) // opaque; in every tracked link and the unsubscribe link
+  campaignId String
+  channel    MarketingChannel
+
+  // One of these is set: a registered reader, or an invitee on a list. Nulled when the account or contact is deleted,
+  // so the campaign's counts still add up.
+  userId    String?
+  contactId String?
+
+  status     MarketingDeliveryStatus @default(PENDING)
+  skipReason String?                 @db.VarChar(40)
+  language   String?                 @db.VarChar(10)
+  subject    String?                 @db.VarChar(200)
+  aiBlocks   Json? // the copy written for this reader in AI_PER_USER mode, kept so what was sent can be checked
+
+  providerMessageId String?   @db.VarChar(200) // SES message id from the SMTP reply, or the WhatsApp message id
+  error             String?   @db.VarChar(500)
+  attempts          Int       @default(0)
+
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  readAt       DateTime?
+  openedAt     DateTime? // approximate: mail privacy proxies open messages by themselves
+  clickedAt    DateTime?
+  bouncedAt    DateTime?
+  complainedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaign         MarketingCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user             User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contact          MarketingContact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  clicks           MarketingClick[]
+  attributions     MarketingAttribution[]
+  whatsappMessages WhatsAppMessage[]
+
+  @@unique([campaignId, userId])
+  @@unique([campaignId, contactId])
+  @@index([campaignId, status])
+  @@index([providerMessageId])
+  @@index([userId, createdAt])
+}
+
+model MarketingClick {
+  id         String   @id @default(cuid())
+  campaignId String
+  linkId     String
+  deliveryId String
+  isBot      Boolean  @default(false) // a scanner or a preview bot: recorded, but not counted as interest
+  createdAt  DateTime @default(now())
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  link     MarketingLink     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  delivery MarketingDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@index([deliveryId, createdAt])
+}
+
+// The first time a reader does each thing a campaign asked for. Unique per reader, campaign and kind.
+model MarketingAttribution {
+  id         String                   @id @default(cuid())
+  userId     String
+  campaignId String
+  deliveryId String?
+  kind       MarketingAttributionKind
+  createdAt  DateTime                 @default(now())
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign MarketingCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  delivery MarketingDelivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, campaignId, kind])
+  @@index([campaignId, kind])
+}
+
+// A reader's marketing choices. No row means email on and WhatsApp off. Deleted with the account.
+model MarketingPreference {
+  userId String @id
+
+  emailEnabled Boolean @default(true)
+
+  whatsappPhone      String?   @db.VarChar(20) // E.164
+  whatsappVerifiedAt DateTime?
+  whatsappOptInAt    DateTime?
+  whatsappOptOutAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([whatsappPhone])
+}
+
+// Addresses that must not be written to. Keeps only an HMAC of the normalised address, so it outlives the account
+// without keeping the address itself.
+model MarketingSuppression {
+  id        String                      @id @default(cuid())
+  channel   MarketingChannel
+  hash      String                      @db.VarChar(64)
+  reason    MarketingSuppressionReason
+  note      String?                     @db.VarChar(200)
+  createdAt DateTime                    @default(now())
+
+  @@unique([channel, hash])
+}
+
+// Every opt-in and opt-out, with where it came from and which wording was shown. No relation to User: a log outlives
+// the account it is about, because it is the proof of what was agreed and when.
+model MarketingConsentLog {
+  id        String           @id @default(cuid())
+  userId    String?
+  contactId String?
+  channel   MarketingChannel
+  action    String           @db.VarChar(40) // EMAIL_ON, EMAIL_OFF, WHATSAPP_CODE_SENT, WHATSAPP_VERIFIED, WHATSAPP_STOP, IMPORT_ATTESTED, …
+  source    String           @db.VarChar(40) // app, unsubscribe, sns, whatsapp, import, admin, sign_up
+  wordingVersion String?     @db.VarChar(20)
+  detail    Json?
+  createdAt DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([contactId, createdAt])
+}
+
+// A WhatsApp template as Meta knows it. A campaign sends one that Meta has approved.
+model WhatsAppTemplate {
+  id String @id @default(cuid())
+
+  name     String  @db.VarChar(512) // Meta: lower case, digits and underscores
+  language String  @db.VarChar(10)
+  category String  @db.VarChar(20) // MARKETING | UTILITY | AUTHENTICATION
+  status   String  @default("DRAFT") @db.VarChar(30) // DRAFT until submitted, then Meta's status (PENDING, APPROVED, REJECTED, PAUSED, …)
+
+  metaTemplateId  String?   @unique @db.VarChar(64)
+  components      Json // header, body, footer and buttons, in Meta's shape, with examples
+  variableMap     Json // { "1": "firstName" }: which merge field fills each body variable
+  rejectionReason String?   @db.VarChar(500)
+  quality         String?   @db.VarChar(20)
+  lastSyncedAt    DateTime?
+
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaigns MarketingCampaign[]
+  messages  WhatsAppMessage[]
+
+  @@unique([name, language])
+  @@index([status])
+}
+
+// Every WhatsApp message in or out. Outbound rows of a campaign point at its delivery; inbound rows feed the inbox.
+model WhatsAppMessage {
+  id        String           @id @default(cuid())
+  direction WhatsAppDirection
+  waId      String           @db.VarChar(20) // the number without the plus sign, as Meta sends it
+  messageId String?          @unique @db.VarChar(120) // Meta's wamid
+  kind      String           @db.VarChar(20) // template | text | interactive | media | other
+  body      String?          @db.Text // the text sent or received; a template is recorded by its name only
+  templateId String?
+  deliveryId String?
+
+  status       String? @db.VarChar(20) // outbound: sent | delivered | read | failed
+  errorCode    Int?
+  errorMessage String? @db.VarChar(300)
+
+  handled   Boolean  @default(false) // the inbox: dealt with
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  template WhatsAppTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  delivery MarketingDelivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+
+  @@index([waId, createdAt])
+  @@index([direction, handled, createdAt])
+  @@index([deliveryId])
+}
+
+// One row per number that has written to us, which holds the 24-hour customer service window.
+model WhatsAppChat {
+  waId String @id @db.VarChar(20)
+
+  userId         String? // the account whose verified number this is, when there is one
+  lastInboundAt  DateTime? // the 24-hour service window opens here and runs 24 hours
+  lastOutboundAt DateTime?
+  unhandled      Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastInboundAt])
 }

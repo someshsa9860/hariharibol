@@ -2,7 +2,10 @@
 // one verse becomes the verse-by-verse layout in full (Sanskrit, word meanings,
 // purport) until it is folded back.
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,7 +27,9 @@ import 'package:hariharibol/services/audio/interruption_policy.dart';
 import 'package:hariharibol/services/audio/reading_audio.dart';
 import 'package:hariharibol/services/audio/reading_memory.dart';
 import 'package:hariharibol/services/audio/reading_playback_controller.dart';
+import 'package:hariharibol/services/local_store.dart';
 import 'package:hariharibol/services/reading_place_store.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hariharibol/views/library/chapter_read_view.dart';
 import 'package:hariharibol/widgets/library/story_verse.dart';
 import 'package:hariharibol/widgets/library/verse_block.dart';
@@ -133,6 +138,20 @@ Future<void> _leave(WidgetTester tester) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // A reader asks the device's store whether to keep the screen awake, so the
+  // box must be open before any chapter is built.
+  setUpAll(() async {
+    final dir = await Directory.systemTemp.createTemp('hariharibol_story');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    );
+    await LocalStore.instance.init();
+  });
+  tearDownAll(() async {
+    await Hive.close();
+  });
 
   setUp(ReadingPlaceStore.keepInMemory);
   tearDown(ReadingPlaceStore.keepInStore);

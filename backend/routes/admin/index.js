@@ -36,6 +36,7 @@ import translationRoutes from './translation.js';
 import sceneRoutes from './scene.js';
 import etiquetteRoutes from './etiquette.js';
 import prayerRoutes from './prayer.js';
+import quoteRoutes from './quote.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
 import chatRoutes from './chat.js';
@@ -43,6 +44,9 @@ import panchangRoutes from './panchang.js';
 import calendarTranslationRoutes from './calendar-translation.js';
 import maintenanceRoutes from './maintenance.js';
 import devRoutes from './dev.js';
+import marketingRoutes from './marketing.js';
+import marketingTemplateRoutes from './marketing-template.js';
+import marketingAudienceRoutes from './marketing-audience.js';
 
 const routers = [
   dashboardRoutes,
@@ -72,6 +76,7 @@ const routers = [
   sceneRoutes,
   etiquetteRoutes,
   prayerRoutes,
+  quoteRoutes,
   bookCacheRoutes,
   systemRoutes,
   chatRoutes,
@@ -79,6 +84,9 @@ const routers = [
   calendarTranslationRoutes,
   maintenanceRoutes,
   devRoutes,
+  marketingRoutes,
+  marketingTemplateRoutes,
+  marketingAudienceRoutes,
 ];
 
 export default mount(express.Router(), '/api/admin', routers);

@@ -1,6 +1,7 @@
 import 'dart:ui' show DisplayFeature;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_navigator.dart';
@@ -70,6 +71,24 @@ class _DashboardViewState extends State<DashboardView> {
     shell.goBranch(index, initialLocation: index == shell.currentIndex);
   }
 
+  /// Back on a tab goes to Home first. Back on Home asks before the app closes,
+  /// and closes it only on a yes.
+  Future<void> _onBack(bool didPop, Object? result) async {
+    if (didPop) return;
+    final home = AppRoutes.tabs.indexOf(AppRoutes.home);
+    if (shell.currentIndex != home) {
+      shell.goBranch(home);
+      return;
+    }
+    final text = AppLocalizations.of(context);
+    final leave = await AppNavigator.instance.confirm(
+      title: text.exitAppTitle,
+      message: text.exitAppMessage,
+      confirmLabel: text.exitAppConfirm,
+    );
+    if (leave) await SystemNavigator.pop();
+  }
+
   /// The destinations, described once for the bar and the side column.
   List<NavItem> _items(AppLocalizations text) => [
     NavItem(
@@ -107,7 +126,13 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
     final layout = AdaptiveLayout.of(context);
-    return layout.size.usesRail ? _buildWide(context, layout) : _buildCompact(context);
+    // Back reaches this only when no screen pushed over the dashboard is left to
+    // pop, so a pushed screen still closes on its own.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _onBack,
+      child: layout.size.usesRail ? _buildWide(context, layout) : _buildCompact(context),
+    );
   }
 
   /// Windows from a large phone sideways up to a TV: the destinations in a

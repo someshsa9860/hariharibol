@@ -1585,6 +1585,15 @@ Stotras, aartis and prayers a reader reads **in their own script**, each verse w
 - **Texts to start from (not imported)**: `npm run fetch:prayers` (`scripts/fetch-prayers.js`, the list in `scripts/lib/prayer-catalogue.js`) fetches 53 originals — Vaiṣṇava songs from kksongs.org, the rest from Sanskrit Wikisource — into `public/prayers/json/<slug>.json` in the `Prayer` / `PrayerVerse` shape, and writes `public/prayers/PRAYERS.md` (the list, 10 still wanted with no free source, 1 excluded for copyright, every correction made to a page). Nothing reads them yet: there is no import, they are not in the database or on S3, every `meaning` is null, and no one who reads the scripts has checked them. A file's `roman` is kksongs' Roman (IAST but with ṁ for the anusvāra) and is null for the Wikisource ones; a Bengali song's `devanagari` copy has no column. See `scripts/README.md`.
 - **Not done / not checked**: no run has called a real provider and nothing has run on a phone, so the translations and transliterations are AI-drafted and not read by anyone who reads the script; **the Roman style (IAST) and the Tamil convention are the owner's to confirm** (the prompt names them: `utils/prayer.js`, `userPrompt`); the admin page has no tests of its own (it type-checks and builds).
 - See [admin/CLAUDE.md](../admin/CLAUDE.md) "Prayers page and its translations" and [app/CLAUDE.md](../app/CLAUDE.md) "Prayers".
+## Quotes (the chanting page)
+
+- **What it is**: short quotations shown on the chanting page in place of the deity picture and the mala (the app's *Deity | Quotes* switch, see "The quotes on the chanting page" in [app/CLAUDE.md](../app/CLAUDE.md)). One row per quote in `Quote` (slug, `text` ≤ 1000, `author`, `reference`, `sourceName`, `sourceUrl`, `status` PUBLISHED / DRAFT / EXCLUDED — the etiquette enum —, `excludedReason`, `isEdited`, `sortOrder`), its translations in `QuoteTranslation` (one `text` per language, `translatedBy`, `runId`, `isEdited`, `isPublished`), and the translation runs in `QuoteRun` (the `EtiquetteRun` columns). Built as a copy of devotee etiquette without the days and pushes: read that section for the run model.
+- **The author is always stored.** Whether the app draws it is `AppConfig.showQuoteAuthor` (false), the quote twin of `showAuthorName`; the data never decides.
+- **Seed**: `prisma/seed/quotes/` (`quotes.js`, `index.js`) — 54 quotes, 30 of them purport sentences and 24 verse translations, all from vedabase.io. **Every `text` was checked by machine to be a verbatim stretch of the page `sourceUrl` names** when the file was made; add a quote only the same way, from its page and never from memory. A translation's `author` reads "Śrī Kṛṣṇa, as translated by …" (the speaker), a purport's is the teacher. `checkQuotes` refuses a missing field, an over-long field (text ≤ 400 for a chanting screen), a duplicate and a non-https link. Idempotent and leaves an `isEdited` row alone. `npm run seed:quotes` (`scripts/seed-quotes.js`); `npm run seed` runs it; the admin Maintenance page has `seed-quotes`. **Not included: lecture and letter quotes** (their exact wording could not be checked against a page).
+- **Translation runs**: `jobs/processors/quote.js` on the `quote` queue (`attempts: 1`, concurrency 1, `reconcileRuns` every 2 minutes in the worker), websocket `quote.run` / `quote.activity` to `quote.translate`, `services/quote.js`, pure rules in `utils/quote.js` (prompt, schema, `checkAnswer`: every quote returned, non-empty, in the language's script). Twenty quotes go in a request (`config/quote.js`). A translation an editor wrote is never replaced.
+- **API**: admin `/api/admin/quotes` (overview, items CRUD, status, hand translations, estimate, runs) behind `quote.manage` and `quote.translate` (both granted to admin and super_admin by the migration); app `GET /api/app/quotes?languages=` returns **every published quote** in the reader's reading chain plus a `version` (count, newest update, chain) so the app can keep its copy.
+- **Tests**: `node --test test/quote.test.js` (7, no database). **No e2e walk was written and nothing was run against a database or a live provider.**
+- **Production needs `prisma migrate deploy` for `20261119000000_quotes`, a restart of the API and the worker, then `npm run seed:quotes`.**
 
 ## Rich pushes (admin Notifications page)
 
@@ -1648,3 +1657,40 @@ and `app: 'dev'`.
 worker and the websocket container (the worker owns the new `devops` queue and its three schedules).
 `npm run test:dev-companion` walks it (31 checks; needs the API, worker and websocket running, Postgres and Redis).
 Not run against Firebase: no push has left a machine.
+
+## Marketing (email campaigns)
+
+Bulk email to readers and invitees, run from the admin **Marketing** page. Design: `marketting-plan.md`. Permissions
+`marketing.read` / `.manage` / `.send` (`send` is the super admin only, so the admin role can prepare but not reach people).
+
+- **Run pattern = Etiquette's.** A `MarketingCampaign` row is the truth; the BullMQ `marketing` queue job only works it
+  (`jobs/processors/marketing.js`, concurrency 1, `attempts: 1`, heartbeat, `cancelRequested` / `pauseRequested`, reconcile
+  timer). Websocket `marketing.run` / `marketing.activity` go to `marketing.read`. `marketing.tick` (every minute) starts
+  scheduled campaigns. Totals are recounted from the delivery rows (`recount()` in `services/marketing-run.js`).
+- **No double sends.** One `MarketingDelivery` per campaign and reader/invitee (unique); a send claims PENDING→SENDING
+  before SMTP; a SENDING row left by a dead worker becomes FAILED "Interrupted" and is never retried blindly.
+- **Content** is blocks (`utils/marketing-blocks.js`), merge fields `{{name|fallback}}`, rendered to table HTML + text with
+  every value escaped (`services/marketing-render.js`). A reader gets the first APPROVED variant in their reading-language
+  chain, else English. AI drafts/translations (`services/marketing-ai.js`) are drafts until a person approves them.
+  Sakha profile keywords and chat text never enter marketing context.
+- **Consent.** Opt-out and the weekly cap are checked at send time; unsubscribe is `/unsubscribe/<code>` on the site and the
+  one-click header; suppression keeps an HMAC of the address (key from `JWT_SECRET`), not the address. Invitees need an
+  attestation on import (`MarketingConsentLog`).
+- **Tracking.** Links are `/l/<code>/<n>` on the website (`website/src/app/l`), which asks `GET /api/web/marketing/click/…`
+  and redirects; scanners are stored but flagged. The open pixel is approximate. Attribution (`MarketingAttribution`):
+  click, sign-up (invitees matched by address after sign-in), app open and Play install referrer (`/get-app?mkt=<code>`).
+- **Self-protection.** Hard-bounce > 2% or complaints > 0.1% over the last 500 sends (judged after 100) pauses the run;
+  daily cap (IST midnight), weekly cap per reader; `AI_PER_USER` has a cost cap and a 5-recipient sample to approve first.
+  Bounces/complaints come in through the SES SNS webhook (`/api/webhooks/marketing-email`, signature and own topic ARN
+  checked) or a shared secret.
+- Settings: `marketing.*` (rate, daily cap, weekly cap, from name, reply-to, **postal address — required to start**, AI max cost).
+- **Also changed:** `services/setting.js getNumber` returned 0 for a setting that was never set (it now returns the fallback);
+  `services/sadhana-stats.js` holds the streak and favourite-mantra logic moved out of `controllers/app/sadhana.js`.
+
+**Tested:** `node --test test/marketing-*.test.js` (33) and `npm run test:marketing` (37 checks over HTTP with a fake mail
+server; needs Postgres, Redis, migrations and `npm run seed`). **Not done / not run:** no real SES send, no real SNS message,
+no live AI call (provider faked), WhatsApp (Phase 3: tables exist, nothing sends) and the Flutter app (Phase 4: preferences
+screen, app-open / install attribution calls), `GET/PATCH /api/app/marketing/preferences`, `POST /open` and `/install` exist
+but no app calls them. **Production needs** `prisma migrate deploy` for `20261116000000_marketing`,
+`20261117000000_marketing_whatsapp`, `20261118000000_marketing_run_state`, a restart of the API and the worker, the
+`MARKETING_*` values above, SES verified-domain + configuration set + SNS topic, and the postal address setting.

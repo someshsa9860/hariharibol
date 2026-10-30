@@ -10,9 +10,11 @@ import express from 'express';
 import { mount } from '../../utils/router.js';
 
 import paymentRoutes from './payment.js';
+import marketingEmailRoutes from './marketing-email.js';
 
 const routers = [
   paymentRoutes,
+  marketingEmailRoutes,
 ];
 
 export default mount(express.Router(), '/api/webhooks', routers);

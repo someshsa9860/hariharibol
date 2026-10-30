@@ -53,6 +53,8 @@ Widget autoCard({required bool resting, List<bool>? paceSteps}) => ChantAutoCard
   onAutoChanged: (_) {},
   onMicrophoneChanged: (_) {},
   onPaceChange: ({required bool longer}) => paceSteps?.add(longer),
+  batterySaver: false,
+  onBatterySaverChanged: (_) {},
   resting: resting,
 );
 
@@ -320,11 +322,16 @@ void main() {
 
       await pump(tester, autoCard(resting: true, paceSteps: paceSteps));
       final switches = tester.widgetList<Switch>(find.byType(Switch)).toList();
-      expect(switches, hasLength(2));
-      expect(switches.map((toggle) => toggle.onChanged), everyElement(isNull));
+      // Three now: the battery saver row is third, and it does not count, so it stays live.
+      expect(switches, hasLength(3));
+      expect(switches.take(2).map((toggle) => toggle.onChanged), everyElement(isNull));
       expect(switches.first.value, isFalse, reason: 'auto count is shown off while it rests');
-      expect(switches.last.value, isTrue, reason: 'the microphone choice is not changed');
+      expect(switches[1].value, isTrue, reason: 'the microphone choice is not changed');
+      expect(switches.last.onChanged, isNotNull, reason: 'the battery saver is not rested');
 
+      // The battery saver row is above the pace row, so at this text size the
+      // pace row is below the 640-pixel test screen until it is scrolled to.
+      await tester.ensureVisible(find.byTooltip('Longer chant time'));
       await tester.tap(find.byTooltip('Longer chant time'));
       expect(paceSteps, [true]);
 

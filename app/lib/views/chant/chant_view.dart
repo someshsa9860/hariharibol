@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/constants/chant_audio_config.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/constants/sadhana_config.dart';
+import '../../core/constants/storage_keys.dart';
 import '../../core/constants/support_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
@@ -17,23 +19,30 @@ import '../../models/mantra.dart';
 import '../../models/reference_item.dart';
 import '../../models/sadhana.dart';
 import '../../providers/chant_audio_provider.dart';
+import '../../providers/chant_battery_saver_provider.dart';
 import '../../providers/chant_ledger_provider.dart';
 import '../../providers/chant_sync_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/language_chain_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/audio/media_session.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
+import '../../services/chant_media_source.dart';
 import '../../services/chant_pace.dart';
 import '../../services/chant_progress_store.dart';
 import '../../services/chant_recorder.dart';
 import '../../services/chant_session_sync.dart';
 import '../../services/chant_switch_store.dart';
 import '../../services/fallback_prayer.dart';
+import '../../services/local_store.dart';
 import '../../services/mantra_auto_chant_session.dart';
 import '../../services/mantra_service.dart';
 import '../../services/review_prompter.dart';
 import '../../widgets/chant/chant_along_card.dart';
+import '../../widgets/chant/chant_disc_count.dart';
+import '../../widgets/chant/chant_quote_card.dart';
+import '../../widgets/chant/chant_view_switch.dart';
 import '../../widgets/chant/chant_auto_loading_dialog.dart';
 import '../../widgets/chant/chant_mantra_text.dart';
 import '../../widgets/chant/chant_disc.dart';
@@ -102,6 +111,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// faster is repaint work nobody can see.
   static const Duration _clockTick = Duration(milliseconds: 500);
 
+  /// The header's clock with the battery saver on: it shows whole seconds, so a
+  /// half-second tick would only wake the phone for nothing.
+  static const Duration _clockTickBatterySaver = Duration(seconds: 1);
+
   /// What the day's own beads-per-round says, fixed for the sitting so a value
   /// changing under a ring mid-count never happens.
   late final int _beadsPerRoundInUse;
@@ -129,6 +142,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
         ? Duration(milliseconds: MantraAutoChantSession.standardChantMsOf(own))
         : FallbackPrayer.standard;
   }
+
+  /// What the middle of the page shows — the deity inside the mala (the
+  /// default) or a quote. Remembered on the phone.
+  late ChantPageView _pageView = _savedPageView;
+
+  /// Fixes the order the quotes are shown in for this sitting, so it does not
+  /// open on the same quote as the last (`ChantQuoteRotation`).
+  late final int _quoteSeed = _now().millisecondsSinceEpoch;
 
   /// The mantra's standard time for one chant; null with no mantra.
   Duration? _standard;
@@ -183,6 +204,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
   /// Null when the mantra has no recording of a mala to chant along to.
   ChantMalaPlayer? _mala;
+  ChantMediaSource? _chantMedia;
   StreamSubscription<int>? _malaChantsSub;
 
   /// The recording is playing: auto count rests and its switch cannot be turned.
@@ -267,7 +289,20 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _initMala();
 
     _stopwatch.start();
-    _clockTicker = Timer.periodic(_clockTick, (_) => _clock.value += 1);
+    _startClock();
+  }
+
+  void _startClock() {
+    _clockTicker?.cancel();
+    final tick = ref.read(chantBatterySaverProvider) ? _clockTickBatterySaver : _clockTick;
+    _clockTicker = Timer.periodic(tick, (_) => _clock.value += 1);
+  }
+
+  /// The battery saver switch. The clock is restarted at the new rate, and a
+  /// recording that opens after this one uses the new position rate.
+  void _toggleBatterySaver(bool on) {
+    unawaited(ref.read(chantBatterySaverProvider.notifier).set(on));
+    _startClock();
   }
 
   void _initPace() {
@@ -306,6 +341,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
+  /// Puts the recording on the lock screen and in the background, as its
+  /// play button starts it.
+  Future<void> _startChantMedia() async {
+    final source = _chantMedia;
+    if (!mounted || source == null) return;
+    await startChantMedia(source, channelName: AppLocalizations.of(context).chantAudioChannel);
+  }
+
   void _initMala() {
     final mantra = widget.mantra;
     if (mantra == null || !mantra.hasMalaAudio) return;
@@ -324,8 +367,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       cache: ref.read(malaAudioCacheProvider),
       connection: ref.read(malaConnectionProvider),
       player: ref.read(malaAudioPlayerProvider)(),
+      positionTick: ref.read(chantBatterySaverProvider)
+          ? ChantAudioConfig.batterySaverPositionTick
+          : ChantAudioConfig.positionTick,
+      // The saver lets the screen sleep while the recording plays; the media
+      // session keeps the audio going, and the lock-screen controls show.
+      keepScreenOn: !ref.read(chantBatterySaverProvider),
+      onStart: _startChantMedia,
     );
     _mala = player;
+    _chantMedia = ChantMediaSource(player, title: mantra.name);
     _malaChantsSub = player.chantsCompleted.listen((chants) {
       if (_inPrayer) return;
       // The recording sets the pace of these chants, not the reader.
@@ -448,6 +499,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantRepetitionSub?.cancel();
     _malaChantsSub?.cancel();
     _mala?.state.removeListener(_onMalaState);
+    final chantMedia = _chantMedia;
+    if (chantMedia != null) MediaSessionService.release(chantMedia);
+    chantMedia?.dispose();
     unawaited(_mala?.dispose());
     unawaited(_autoChant?.dispose());
     // Left without the close button: the sitting is ended on the phone's record
@@ -617,6 +671,31 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _session.schedule();
   }
 
+  /// The view the page was left on. The store is not open in a test, and a
+  /// failed read is simply the deity.
+  ChantPageView get _savedPageView {
+    try {
+      return ChantPageView.fromStored(LocalStore.instance.read<String>(BoxKeys.chantView));
+    } catch (_) {
+      return ChantPageView.deity;
+    }
+  }
+
+  void _changePageView(ChantPageView view) {
+    if (view == _pageView) return;
+    setState(() => _pageView = view);
+    try {
+      unawaited(LocalStore.instance.write(BoxKeys.chantView, view.stored).catchError((_) {}));
+    } catch (_) {
+      // Not remembering is better than failing to switch.
+    }
+  }
+
+  /// Chants counted in this sitting, counting any part-round carried over from
+  /// before: what the quotes follow, so one changes after every 12 and a round
+  /// shows nine.
+  int get _sittingChants => _recorder.completedMalas * _beadsPerRoundInUse + _recorder.beadsInMala;
+
   /// The microphone switch: off counts by time alone, which keeps the battery.
   /// Remembered like the auto-count switch, and takes effect at once if auto
   /// count is running.
@@ -745,6 +824,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
           beads: () => _recorder.beadsInMala,
           beadsPerRound: _beadsPerRoundInUse,
           onTap: _tapRing,
+          mala: _mala,
         ),
       ),
     );
@@ -766,6 +846,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    final batterySaver = ref.watch(chantBatterySaverProvider);
     final title = widget.mantra?.name ?? text.sadhanaGenericChant;
     final deity = widget.mantra?.deity;
     final picture = _ringPicture(deity);
@@ -813,7 +894,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     stats: _recorder.stats,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
+                ChantViewSwitch(value: _pageView, onChanged: _changePageView),
+                const SizedBox(height: AppSpacing.lg),
                 ChantMantraText(
                   mantra: widget.mantra,
                   prayer: _inPrayer ? _prayer : null,
@@ -833,8 +916,19 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
+                if (_pageView == ChantPageView.quotes) ...[
+                  ChantQuoteCard(chants: _sittingChants, seed: _quoteSeed, onTap: _tapRing),
+                  const SizedBox(height: AppSpacing.md),
+                  ChantDiscCount(
+                    roundsCompleted: _totalRounds,
+                    roundsLabel: text.sadhanaRoundsCaption,
+                    beadsInRound: _recorder.beadsInMala,
+                    beadsPerRound: _beadsPerRoundInUse,
+                  ),
+                ] else
                 Center(
                   child: ChantDisc(
+                    batterySaver: batterySaver,
                     beadsInRound: _recorder.beadsInMala,
                     roundsCompleted: _totalRounds,
                     roundsLabel: text.sadhanaRoundsCaption,
@@ -862,6 +956,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     beadsPerRound: _beadsPerRoundInUse,
                     onAutoChanged: _toggleAutoChant,
                     onMicrophoneChanged: _toggleMicrophone,
+                    batterySaver: batterySaver,
+                    onBatterySaverChanged: _toggleBatterySaver,
                     onPaceChange: _changePace,
                     resting: _recordingPlaying,
                   ),

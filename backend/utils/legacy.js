@@ -252,6 +252,7 @@ export {
   usableEmail,
   placeholderEmail,
   isPlaceholderEmail,
+  PLACEHOLDER_DOMAIN,
   emailForApp,
   cleanName,
   httpsUrl,

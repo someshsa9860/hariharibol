@@ -1,5 +1,5 @@
 /* ── Hero ── */
-.hero { isolation: isolate; display: grid; gap: 48px; padding-block: clamp(36px, 6vw, 84px) clamp(32px, 5vw, 64px); align-items: center; position: relative; }
+.hero { isolation: isolate; display: grid; gap: clamp(28px, 6vw, 48px); padding-block: clamp(36px, 6vw, 84px) clamp(32px, 5vw, 64px); align-items: center; position: relative; }
 @media (min-width: 960px) { .hero { grid-template-columns: 1.05fr .95fr; } }
 .hero-copy { display: grid; gap: 22px; justify-items: start; }
 .hero h1 { max-width: 15ch; }

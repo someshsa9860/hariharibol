@@ -24,6 +24,15 @@ class AppLocalizationsMl extends AppLocalizations {
   String get actionOk => 'ശരി';
 
   @override
+  String get exitAppTitle => 'ആപ്പ് അടയ്ക്കണോ?';
+
+  @override
+  String get exitAppMessage => 'ഹരിഹരിബോൾ അടയ്ക്കണമെന്ന് ഉറപ്പാണോ?';
+
+  @override
+  String get exitAppConfirm => 'അടയ്ക്കുക';
+
+  @override
   String get actionDone => 'പൂർത്തിയായി';
 
   @override
@@ -483,10 +492,6 @@ class AppLocalizationsMl extends AppLocalizations {
   String get chantFullPicture => 'പൂർണ്ണ സ്ക്രീൻ ചിത്രം';
 
   @override
-  String get chantPrayerHint =>
-      'ആദ്യം ഈ പ്രാർത്ഥന ചൊല്ലുക, തുടർന്ന് എണ്ണിത്തുടങ്ങാൻ വൃത്തത്തിൽ ടാപ്പ് ചെയ്യുക.';
-
-  @override
   String get chantPrayerHintAlong =>
       'റെക്കോർഡിംഗ് ഈ പ്രാർത്ഥനയോടെയാണ് തുടങ്ങുന്നത്. റെക്കോർഡിംഗ് പ്ലേ ചെയ്ത് അതിനൊപ്പം ഈ പ്രാർത്ഥന ചൊല്ലുക.';
 
@@ -499,6 +504,26 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get chantFinishRound => 'മാല പൂർത്തിയാക്കുക';
+
+  @override
+  String get chantViewDeity => 'ശ്രീവിഗ്രഹം';
+
+  @override
+  String get chantViewQuotes => 'വചനങ്ങൾ';
+
+  @override
+  String get chantViewLabel => 'ജപിക്കുമ്പോൾ എന്ത് കാണിക്കണം';
+
+  @override
+  String get chantQuoteTapHint => 'ഒരു ജപം എണ്ണാൻ കാർഡിൽ ടാപ്പ് ചെയ്യുക.';
+
+  @override
+  String get chantQuoteNone =>
+      'ഇപ്പോൾ വചനങ്ങളൊന്നും ലഭ്യമല്ല. നിങ്ങൾക്ക് എണ്ണൽ തുടരാം.';
+
+  @override
+  String get chantPrayerHint =>
+      'ആദ്യം ഈ പ്രാർത്ഥന ചൊല്ലുക, തുടർന്ന് എണ്ണിത്തുടങ്ങാൻ വൃത്തത്തിൽ ടാപ്പ് ചെയ്യുക.';
 
   @override
   String get sadhanaAutoCountListening => 'കേൾക്കുന്നു…';
@@ -525,6 +550,19 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get chantAutoMicOff =>
       'പകരം സമയം അനുസരിച്ച് എണ്ണുന്നു — ബാറ്ററി ലാഭിക്കാം';
+
+  @override
+  String get chantBatterySaverTitle => 'ബാറ്ററി ലാഭം';
+
+  @override
+  String get chantBatterySaverOn =>
+      'കുറഞ്ഞ ആനിമേഷനും കുറഞ്ഞ സ്ക്രീൻ അപ്‌ഡേറ്റും';
+
+  @override
+  String get chantBatterySaverOff => 'സാധാരണ ആനിമേഷനും അപ്‌ഡേറ്റും';
+
+  @override
+  String get chantAudioChannel => 'ജപ ശബ്ദം';
 
   @override
   String get chantPaceTitle => 'ഒരു ജപത്തിന്റെ സമയം';
@@ -2977,4 +3015,145 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get prayersCategoryOther => 'മറ്റുള്ളവ';
+
+  @override
+  String get readingLookLabel => 'രൂപം';
+
+  @override
+  String get readingLookMatchApp => 'ആപ്പുപോലെ';
+
+  @override
+  String get readingLookWarmPaper => 'ചൂടുള്ള കടലാസ്';
+
+  @override
+  String get readingLookSepia => 'സെപ്പിയ';
+
+  @override
+  String get readingLookMist => 'മൂടൽമഞ്ഞ്';
+
+  @override
+  String get readingLookDusk => 'സന്ധ്യ';
+
+  @override
+  String get readingLookNight => 'രാത്രി';
+
+  @override
+  String get readingLineSpacingLabel => 'വരികൾക്കിടയിലെ അകലം';
+
+  @override
+  String get readingLineSpacingCompact => 'ഒതുക്കം';
+
+  @override
+  String get readingLineSpacingComfortable => 'സൗകര്യപ്രദം';
+
+  @override
+  String get readingLineSpacingRelaxed => 'വിശാലം';
+
+  @override
+  String get readingMarginsLabel => 'മാർജിൻ';
+
+  @override
+  String get readingMarginsNarrow => 'ഇടുങ്ങിയ';
+
+  @override
+  String get readingMarginsNormal => 'സാധാരണം';
+
+  @override
+  String get readingMarginsWide => 'വീതിയുള്ള';
+
+  @override
+  String get readingTintLabel => 'ചൂടുള്ള നിറം';
+
+  @override
+  String get readingDimLabel => 'പേജ് മങ്ങിക്കുക';
+
+  @override
+  String get readingAutoNightTitle => 'രാത്രി 8 മുതൽ രാവിലെ 6 വരെ രാത്രി രൂപം';
+
+  @override
+  String get readingKeepAwakeTitle => 'വായിക്കുമ്പോൾ സ്ക്രീൻ ഓണായിരിക്കണം';
+
+  @override
+  String get setupMantraTitle => 'നിങ്ങളുടെ ഇഷ്ട മന്ത്രം';
+
+  @override
+  String get setupMantraSubtitle =>
+      'നിങ്ങൾ ഏറ്റവുമധികം ജപിക്കുന്ന മന്ത്രം. ഇത് എപ്പോൾ വേണമെങ്കിലും മാറ്റാം.';
+
+  @override
+  String get setupRoundsTitle => 'ദിവസം എത്ര മാലകൾ?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'ഒരു മാലയിൽ 108 ജപങ്ങളുണ്ട്. എല്ലാ ദിവസവും നിങ്ങൾക്ക് ചെയ്യാനാകുന്നത്ര തിരഞ്ഞെടുക്കുക — പിന്നീട് ക്രമീകരണങ്ങളിൽ മാറ്റാം.';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count മാലകൾ',
+      one: '1 മാല',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'ദിവസം ഏകദേശം $time ജപം';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours മണിക്കൂർ $minutes മിനിറ്റ്';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours മണിക്കൂർ';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes മിനിറ്റ്';
+  }
+
+  @override
+  String get setupRoundsFewer => 'കുറഞ്ഞ മാലകൾ';
+
+  @override
+  String get setupRoundsMore => 'കൂടുതൽ മാലകൾ';
+
+  @override
+  String get setupRoutineTitle => 'നിങ്ങളുടെ ദിനചര്യ';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return '$mantra മന്ത്രത്തിന്റെ $rounds അടിസ്ഥാനമാക്കി ഒരുക്കിയത്.';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'ഉണരുന്നതിന്റെയോ ഉറങ്ങുന്നതിന്റെയോ സമയം മാറ്റാൻ അതിൽ തൊടുക. ബാക്കിയെല്ലാം പിന്നീട് ദിനചര്യ ടാബിൽ മാറ്റാം.';
+
+  @override
+  String setupChantLate(String time) {
+    return 'ഈ ഉണരൽ സമയത്ത് നിങ്ങളുടെ മാലകൾ $time കഴിഞ്ഞും നീളും. നേരത്തെ ഉണരുക, അല്ലെങ്കിൽ കുറച്ച് മാലകൾ തിരഞ്ഞെടുക്കുക.';
+  }
+
+  @override
+  String get setupFinish => 'എന്റെ ദിനചര്യ ഉണ്ടാക്കുക';
+
+  @override
+  String get setupRoutineSkip => 'ഇപ്പോൾ വേണ്ട';
+
+  @override
+  String routineWakeLatest(String time) {
+    return 'ഉണരുന്ന സമയം $time-ന് ശേഷമാകാൻ പാടില്ല.';
+  }
+
+  @override
+  String routineSleepLatest(String time) {
+    return 'ഉറങ്ങുന്ന സമയം $time-ന് ശേഷമാകാൻ പാടില്ല.';
+  }
 }

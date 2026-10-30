@@ -11,6 +11,7 @@
 // The one other way in is for people who used the app before this system
 // existed: `legacy` below trades the sign-in the old app kept for a session here.
 
+import * as marketingTracking from '../../services/marketing-tracking.js';
 import { prisma } from '../../config/database.js';
 import logger from '../../config/logger.js';
 import * as authService from '../../services/auth.js';
@@ -217,6 +218,9 @@ export const social = async (req, res) => {
 
   await linkDevice(user.id, req, body);
   const session = await authService.issueSession(user, body.deviceId || req.deviceId);
+
+  // Someone we invited by email has joined: credit the campaign that reached them. Best effort; never delays sign-up.
+  marketingTracking.attributeSignup(user).catch((err) => logger.warn({ err: err.message, userId: user.id }, 'marketing sign-up attribution failed'));
 
   logger.info({ userId: user.id, provider: identity.provider }, 'account created');
   return created(res, sessionPayload(user, session));

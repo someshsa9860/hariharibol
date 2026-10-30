@@ -35,6 +35,8 @@ import { TranslationsPage } from '@/routes/translations';
 import { ScenesPage } from '@/routes/scenes';
 import { EtiquettePage } from '@/routes/etiquette';
 import { PrayersPage } from '@/routes/prayers';
+import { QuotesPage } from '@/routes/quotes';
+import { MarketingPage } from '@/routes/marketing';
 import { AnalyticsPage } from '@/routes/analytics';
 import { SystemPage } from '@/routes/system';
 import { CalendarPage } from '@/routes/calendar';
@@ -312,6 +314,14 @@ export function Router() {
         }
       />
       <Route
+        path="/marketing"
+        element={
+          <Protected permission="marketing.read">
+            <MarketingPage />
+          </Protected>
+        }
+      />
+      <Route
         path="/etiquette"
         element={
           <Protected permission="etiquette.manage">
@@ -324,6 +334,14 @@ export function Router() {
         element={
           <Protected permission="prayer.manage">
             <PrayersPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/quotes"
+        element={
+          <Protected permission="quote.manage">
+            <QuotesPage />
           </Protected>
         }
       />

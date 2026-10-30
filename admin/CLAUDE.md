@@ -490,6 +490,10 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 
 `routes/support.tsx` (**Users** group, permission `support.manage`): the list of tickets and feedback with filter chips (status, ticket or feedback, category, 2/3 stars or less) and search, a summary row (open, in progress, resolved, average rating), and a dialog per row with the sender, the device details the app attached, the screenshot, the conversation, a status select and a reply box. Replying pushes the reader (`/api/admin/support/...`, see "Support, feedback and the store-rating prompt" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The push composer's tap targets gained `support` and `ticket` (keep `lib/push-link.ts` in step with `backend/utils/push-rich.js`). Type-checks (`tsc --noEmit`); not driven in a browser.
 
+## Quotes page
+
+`routes/quotes.tsx` (**Content** group, `/quotes`, permission `quote.manage`, icon `Quote`; `router.tsx` wraps it in `<Protected permission="quote.manage">`). A copy of the Devotee etiquette page: counts, a table (search over the quote and its reference, status and "missing in…" filters), `components/quote-item-dialog.tsx` (the quote, author, reference, source name and link — **all required** — publish / hold back / exclude with a reason, and each language's translation by hand), and a **Translations** tab (`components/quote-run.tsx`, only with `quote.translate`: estimate, provider and model, live panel over `quote.run` / `quote.activity`, Resume, Cancel). Client and types are `lib/quote.ts`; the API is `/api/admin/quotes` — see "Quotes" in [backend/CLAUDE.md](../backend/CLAUDE.md). Type-checks (`tsc`) and builds (`vite build`); not driven in a browser.
+
 ## Devotee etiquette page
 
 `routes/etiquette.tsx` (**Content** group, `/etiquette`, permission `etiquette.manage`, icon `Flower2` in `lib/nav.ts`; `router.tsx` wraps it in `<Protected permission="etiquette.manage">`). Two tabs. **Etiquette**: overview cards (items by status, translated by language, the delivery time, today's item), filters (category, status, language, untranslated) and search over title, summary, body and slug, and a table; a dialog (`components/etiquette-item-dialog.tsx`) adds or edits an item (its limits mirror the columns: title 160, summary 300, body 4000, reference 200, author 200, source name 120; **every item needs an author** — the speaker of the verse, or the teacher or temple that published the page — so the dialog will not add an item, or save an old one that has none, until it is filled in; the table has an Author column), publishes, holds back or **excludes** it (an exclusion asks for a reason and the item stays in the database, never shown or pushed), and shows and edits each language's translation by hand (an edited translation is kept by every later run). **Translations** (`components/etiquette-run.tsx`, shown and used only with `etiquette.translate`): pick a language, see the estimate, optionally a provider and model, start a run, watch the live panel (progress, tokens, the activity feed over the websocket events `etiquette.run` / `etiquette.activity`), and Resume or Cancel. The client and types are `lib/etiquette.ts`. The API is `/api/admin/etiquette` — see "Devotee etiquette" in [backend/CLAUDE.md](../backend/CLAUDE.md). Type-checks (`tsc -b`) and builds (`vite build`); not driven in a browser. The push composer has no etiquette tap target (the daily push is the only one that sends it).
@@ -534,3 +538,14 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 - **Known limitation:** the route is gated on `panchang.manage`, so someone with `panchang.translate` alone cannot reach the page. Both built-in roles (admin, super admin) have both.
 - The pre-existing `lib/calendar-icons.ts` carries the Parana icon; keep it in step with the app's and the website's copies.
 - Type-checks (`tsc -b`) and builds (`vite build`); **not driven in a browser**.
+
+## Marketing page
+
+`routes/marketing.tsx` (tabs Campaigns / Templates / Audiences) with `components/marketing-campaign.tsx` (editor dialog and
+the detail dialog: live progress, controls, funnel, links, failures, feed), `marketing-template-editor.tsx` (a variant per
+language, block editor, sandboxed preview, test send to yourself, approve, AI draft/translate with `ModelPicker`),
+`marketing-audience-filter.tsx` (filter with a live count) and `marketing-audiences.tsx` (segments, lists, CSV import with
+the consent attestation, do-not-send lookup). `lib/marketing.ts` has the types and keeps queries current from the
+`marketing.run` / `marketing.activity` events. Permissions: `marketing.read` to see, `.manage` to prepare, `.send` to start /
+schedule / pause / resume / cancel. `tsc -b` and `vite build` pass; **the page was not driven in a browser.** See "Marketing"
+in backend/CLAUDE.md.

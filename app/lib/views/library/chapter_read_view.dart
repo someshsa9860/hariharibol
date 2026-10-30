@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/theme/reading_themes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
@@ -29,6 +31,7 @@ import '../../widgets/library/chapter_header.dart';
 import '../../widgets/library/chapter_index_sheet.dart';
 import '../../widgets/library/chapter_nav.dart';
 import '../../widgets/library/reading_audio_controls.dart';
+import '../../widgets/library/reading_look_scope.dart';
 import '../../widgets/library/reading_settings_sheet.dart';
 import '../../widgets/library/related_verses_sheet.dart';
 import '../../widgets/library/story_part_bar.dart';
@@ -66,6 +69,9 @@ class ChapterReadView extends ConsumerStatefulWidget {
 }
 
 class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
+  /// Whether this page is holding the screen awake, so it can let go.
+  bool _screenHeld = false;
+
   // Optimistic overlays: applied on top of what the last fetch returned, so a
   // tap on favourite/highlight/notes/compare reflects instantly rather than
   // waiting on (or forcing) a full chapter refetch.
@@ -103,11 +109,31 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
 
   String get _audioContext => '${widget.slug}:${widget.canto ?? 0}:${widget.number}';
 
+  /// Keeps the screen on while the reader has asked for it in the settings.
+  void _holdScreenAwake(bool on) {
+    if (on == _screenHeld) return;
+    _screenHeld = on;
+    unawaited(WakelockPlus.toggle(enable: on).catchError((_) {}));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // In initState, not build: listenManual applies the setting now as well as
+    // each change to it, and closes itself when the chapter is left.
+    ref.listenManual(
+      readingKeepAwakeProvider,
+      (_, on) => _holdScreenAwake(on),
+      fireImmediately: true,
+    );
+  }
+
   @override
   void dispose() {
     // Leaving the chapter ends its reading; the lock screen has nothing to show.
     if (_audio.controller.context == _audioContext) unawaited(_audio.stop());
     _saveLeavingProgress();
+    if (_screenHeld) unawaited(WakelockPlus.toggle(enable: false).catchError((_) {}));
     super.dispose();
   }
 
@@ -402,6 +428,18 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     final story = ref.watch(readingModeProvider) == ReadingMode.story;
     final (storyPart, storyNumbers) = (ref.watch(storyPartProvider), ref.watch(storyNumbersProvider));
     final fontScale = ref.watch(readingFontSizeProvider).scale;
+    final autoNight = ref.watch(readingAutoNightProvider);
+    // The clock is only watched while the night look is on, so nothing ticks otherwise.
+    final now = autoNight ? (ref.watch(readingClockProvider).value ?? DateTime.now()) : DateTime.now();
+    final look = effectiveReadingLook(
+      chosen: ref.watch(readingLookProvider),
+      autoNight: autoNight,
+      now: now,
+    );
+    final lineSpacing = ref.watch(readingLineSpacingProvider);
+    final margins = ref.watch(readingMarginsProvider);
+    final warmTint = ref.watch(readingTintProvider);
+    final dim = ref.watch(readingDimProvider);
     final hiddenParts = ref.watch(hiddenVersePartsProvider);
     final siblingChapters = ref.watch(bookChaptersProvider(_siblingArgs)).value ?? const <BookSection>[];
     final chapterNumbers = siblingChapters.map((c) => c.number).toSet();
@@ -414,114 +452,133 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
     void openContents() => openChapterIndex(context,
         slug: widget.slug, bookTitle: bookTitle ?? '', chapter: widget.number, canto: widget.canto);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: readingData != null
-            ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '', onTap: openContents)
-            : null,
-        actions: [
-          IconButton(icon: const Icon(Icons.format_list_bulleted_rounded), tooltip: text.readingContents, onPressed: openContents),
-          const ReadingAudioAction(),
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
-          ),
-        ],
-      ),
-      bottomNavigationBar: const ReadingPlayerBar(),
-      body: reading.when(
-        // A new reading language reloads the chapter; keep the verses on screen
-        // (and where the reader had scrolled to) until the new text is ready.
-        skipLoadingOnReload: true,
-        loading: () => const AppLoader(),
-        error: (error, _) => AppErrorView(
-          failure: error is ApiFailure
-              ? error
-              : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
-          onRetry: () async => ref.invalidate(chapterReadingProvider(_chapterArgs)),
-        ),
-        data: (data) {
-          _verses = data.verses;
-          _saveOpenProgress(data);
-          _rememberOpenedPlace(data);
-          _scrollToTarget(data);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _prepareAudio(data);
-          });
-
-          return NotificationListener<UserScrollNotification>(
-            onNotification: _onUserScroll,
-            child: ListView.separated(
-              padding: AppSpacing.page.copyWith(
-                bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
-              ),
-              itemCount: data.verses.length + 2,
-              separatorBuilder: (context, index) => story
-                  ? SizedBox(height: storyGapAfter(index, data.verses.length))
-                  : index == 0
-                      ? const SizedBox(height: AppSpacing.lg)
-                      : const Divider(height: AppSpacing.xl),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  final header = ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
-                  return story ? StoryPartBar(header: header, verses: data.verses, translations: _translationOverrides) : header;
-                }
-                if (index == data.verses.length + 1) {
-                  return ChapterNav(
-                    hasPrevious: hasPrevious,
-                    hasNext: hasNext,
-                    onPrevious: () => _goToChapter(data, widget.number - 1),
-                    onNext: () => _goToChapter(data, widget.number + 1),
-                  );
-                }
-
-                final verse = data.verses[index - 1];
-                // A verse tapped open in a story is the verse-by-verse layout in
-                // full (Sanskrit, word meanings, purport), whatever the reader hid.
-                final opened = story && _openVerses.contains(verse.id);
-                return KeyedSubtree(
-                  key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
-                  child: story && !opened
-                      ? StoryVerse(
-                          verse: verse,
-                          part: storyPart,
-                          fontScale: fontScale,
-                          showNumber: storyNumbers,
-                          isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
-                          isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
-                          playing: playback.isActive && playback.verseId == verse.id,
-                          translation: _translationOverrides[verse.id],
-                          onTap: () => setState(() => _openVerses.add(verse.id)),
-                          onLongPress: () => _openStoryActions(data, index - 1),
-                        )
-                      : VerseBlock(
-                    verse: verse,
-                    fontScale: fontScale,
-                    hidden: opened ? const {} : hiddenParts,
-                    onCollapse: opened ? () => setState(() => _openVerses.remove(verse.id)) : null,
-                    isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
-                    isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
-                    noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
-                    translation: _translationOverrides[verse.id],
-                    onToggleFavorite: () => _toggleFavorite(verse),
-                    onToggleHighlight: () => _toggleHighlight(verse),
-                    onOpenNotes: () => _openNotes(verse),
-                    onOpenRelated: () => _openRelated(verse),
-                    onAskSakha: () => _askSakha(verse, bookTitle),
-                    onStartReels: verse.bookNumber <= 2
-                        ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
-                        : null,
-                    onCompareTranslations:
-                        verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
-                    onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
-                    playing: playback.isActive && playback.verseId == verse.id,
-                  ),
-                );
-              },
+    // The reading page's own look, laid over the app theme for the whole screen:
+    // the app bar and the player bar take the page colour with it.
+    return ReadingLookScope(
+      look: look,
+      lineScale: lineSpacing.scale,
+      warmTint: warmTint,
+      dim: dim,
+      child: Scaffold(
+        appBar: AppBar(
+          title: readingData != null
+              ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '', onTap: openContents)
+              : null,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.format_list_bulleted_rounded),
+              tooltip: text.readingContents,
+              onPressed: openContents,
             ),
-          );
-        },
+            const ReadingAudioAction(),
+            IconButton(
+              icon: const Icon(Icons.tune_rounded),
+              tooltip: text.readingSettingsTitle,
+              onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
+            ),
+          ],
+        ),
+        bottomNavigationBar: const ReadingPlayerBar(),
+        body: reading.when(
+          // A new reading language reloads the chapter; keep the verses on screen
+          // (and where the reader had scrolled to) until the new text is ready.
+          skipLoadingOnReload: true,
+          loading: () => const AppLoader(),
+          error: (error, _) => AppErrorView(
+            failure: error is ApiFailure
+                ? error
+                : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
+            onRetry: () async => ref.invalidate(chapterReadingProvider(_chapterArgs)),
+          ),
+          data: (data) {
+            _verses = data.verses;
+            _saveOpenProgress(data);
+            _rememberOpenedPlace(data);
+            _scrollToTarget(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _prepareAudio(data);
+            });
+
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: readingColumnMaxWidth),
+                child: NotificationListener<UserScrollNotification>(
+                  onNotification: _onUserScroll,
+                  child: ListView.separated(
+                    padding: AppSpacing.page.copyWith(
+                      left: margins.inset,
+                      right: margins.inset,
+                      bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
+                    ),
+                    itemCount: data.verses.length + 2,
+                    separatorBuilder: (context, index) => story
+                        ? SizedBox(height: storyGapAfter(index, data.verses.length))
+                        : index == 0
+                            ? const SizedBox(height: AppSpacing.lg)
+                            : const Divider(height: AppSpacing.xl),
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        final header = ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
+                        return story ? StoryPartBar(header: header, verses: data.verses, translations: _translationOverrides) : header;
+                      }
+                      if (index == data.verses.length + 1) {
+                        return ChapterNav(
+                          hasPrevious: hasPrevious,
+                          hasNext: hasNext,
+                          onPrevious: () => _goToChapter(data, widget.number - 1),
+                          onNext: () => _goToChapter(data, widget.number + 1),
+                        );
+                      }
+
+                      final verse = data.verses[index - 1];
+                      // A verse tapped open in a story is the verse-by-verse layout in
+                      // full (Sanskrit, word meanings, purport), whatever the reader hid.
+                      final opened = story && _openVerses.contains(verse.id);
+                      return KeyedSubtree(
+                        key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
+                        child: story && !opened
+                            ? StoryVerse(
+                                verse: verse,
+                                part: storyPart,
+                                fontScale: fontScale,
+                                showNumber: storyNumbers,
+                                isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                                isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                                playing: playback.isActive && playback.verseId == verse.id,
+                                translation: _translationOverrides[verse.id],
+                                onTap: () => setState(() => _openVerses.add(verse.id)),
+                                onLongPress: () => _openStoryActions(data, index - 1),
+                            )
+                            : VerseBlock(
+                                verse: verse,
+                                fontScale: fontScale,
+                                hidden: opened ? const {} : hiddenParts,
+                                onCollapse: opened ? () => setState(() => _openVerses.remove(verse.id)) : null,
+                                isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                                isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                                noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
+                                translation: _translationOverrides[verse.id],
+                                onToggleFavorite: () => _toggleFavorite(verse),
+                                onToggleHighlight: () => _toggleHighlight(verse),
+                                onOpenNotes: () => _openNotes(verse),
+                                onOpenRelated: () => _openRelated(verse),
+                                onAskSakha: () => _askSakha(verse, bookTitle),
+                                onStartReels: verse.bookNumber <= 2
+                                    ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
+                                    : null,
+                                onCompareTranslations:
+                                    verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
+                                onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
+                                playing: playback.isActive && playback.verseId == verse.id,
+                            ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

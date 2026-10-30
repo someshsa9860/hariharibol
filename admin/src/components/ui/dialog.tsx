@@ -44,7 +44,7 @@ export const DialogContent = forwardRef<React.ElementRef<typeof DialogPrimitive.
             ref={ref}
             // Radix would otherwise treat a click outside the page as "close"; there is no outside here.
             onInteractOutside={(e) => e.preventDefault()}
-            className={cn('fixed inset-0 z-50 overflow-y-auto bg-background p-6 focus-visible:outline-none', className?.replace(/max-w-\S+|max-h-\S+/g, ''))}
+            className={cn('fixed inset-0 z-50 overflow-y-auto bg-background p-4 sm:p-6 focus-visible:outline-none', className?.replace(/max-w-\S+|max-h-\S+/g, ''))}
             {...props}
           >
             <PageHistory back={backRef} />
@@ -64,8 +64,8 @@ export const DialogContent = forwardRef<React.ElementRef<typeof DialogPrimitive.
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg',
-            'max-h-[85vh] overflow-y-auto',
+            'fixed left-1/2 top-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-4 shadow-lg sm:p-6',
+            'max-h-[90vh] overflow-y-auto',
             className
           )}
           {...props}
@@ -102,5 +102,5 @@ export const DialogDescription = forwardRef<
 DialogDescription.displayName = 'DialogDescription';
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('mt-6 flex justify-end gap-2', className)} {...props} />;
+  return <div className={cn('mt-6 flex flex-wrap justify-end gap-2', className)} {...props} />;
 }

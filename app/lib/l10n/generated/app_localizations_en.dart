@@ -24,6 +24,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionOk => 'OK';
 
   @override
+  String get exitAppTitle => 'Close the app?';
+
+  @override
+  String get exitAppMessage => 'Are you sure you want to close HariHariBol?';
+
+  @override
+  String get exitAppConfirm => 'Close';
+
+  @override
   String get actionDone => 'Done';
 
   @override
@@ -474,10 +483,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantFullPicture => 'Full-screen picture';
 
   @override
-  String get chantPrayerHint =>
-      'Chant this prayer first, then tap the ring to begin counting.';
-
-  @override
   String get chantPrayerHintAlong =>
       'The recording begins with this prayer. Press play and chant it with the recording.';
 
@@ -490,6 +495,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantFinishRound => 'Finish round';
+
+  @override
+  String get chantViewDeity => 'Deity';
+
+  @override
+  String get chantViewQuotes => 'Quotes';
+
+  @override
+  String get chantViewLabel => 'What to show while chanting';
+
+  @override
+  String get chantQuoteTapHint => 'Tap the card to count a chant.';
+
+  @override
+  String get chantQuoteNone =>
+      'No quotes are available right now. You can keep counting.';
+
+  @override
+  String get chantPrayerHint =>
+      'Chant this prayer first, then tap the ring to begin counting.';
 
   @override
   String get sadhanaAutoCountListening => 'Listening…';
@@ -516,6 +541,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'Counts by time instead — saves battery';
+
+  @override
+  String get chantBatterySaverTitle => 'Battery saver';
+
+  @override
+  String get chantBatterySaverOn => 'Fewer animations and screen updates';
+
+  @override
+  String get chantBatterySaverOff => 'Animations and updates as usual';
+
+  @override
+  String get chantAudioChannel => 'Chanting audio';
 
   @override
   String get chantPaceTitle => 'Time for one chant';
@@ -2948,4 +2985,145 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prayersCategoryOther => 'Other';
+
+  @override
+  String get readingLookLabel => 'Look';
+
+  @override
+  String get readingLookMatchApp => 'Match app';
+
+  @override
+  String get readingLookWarmPaper => 'Warm paper';
+
+  @override
+  String get readingLookSepia => 'Sepia';
+
+  @override
+  String get readingLookMist => 'Mist';
+
+  @override
+  String get readingLookDusk => 'Dusk';
+
+  @override
+  String get readingLookNight => 'Night';
+
+  @override
+  String get readingLineSpacingLabel => 'Line spacing';
+
+  @override
+  String get readingLineSpacingCompact => 'Compact';
+
+  @override
+  String get readingLineSpacingComfortable => 'Comfortable';
+
+  @override
+  String get readingLineSpacingRelaxed => 'Relaxed';
+
+  @override
+  String get readingMarginsLabel => 'Margins';
+
+  @override
+  String get readingMarginsNarrow => 'Narrow';
+
+  @override
+  String get readingMarginsNormal => 'Normal';
+
+  @override
+  String get readingMarginsWide => 'Wide';
+
+  @override
+  String get readingTintLabel => 'Warm tint';
+
+  @override
+  String get readingDimLabel => 'Dim the page';
+
+  @override
+  String get readingAutoNightTitle => 'Night look from 8 pm to 6 am';
+
+  @override
+  String get readingKeepAwakeTitle => 'Keep the screen on while reading';
+
+  @override
+  String get setupMantraTitle => 'Your favourite mantra';
+
+  @override
+  String get setupMantraSubtitle =>
+      'The one you chant most. You can change it any time.';
+
+  @override
+  String get setupRoundsTitle => 'How many rounds a day?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rounds',
+      one: '1 round',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'About $time of chanting a day';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get setupRoundsFewer => 'Fewer rounds';
+
+  @override
+  String get setupRoundsMore => 'More rounds';
+
+  @override
+  String get setupRoutineTitle => 'Your daily routine';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return 'Planned around $rounds of $mantra.';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.';
+
+  @override
+  String setupChantLate(String time) {
+    return 'At this wake-up time your rounds run past $time. Wake earlier or choose fewer rounds.';
+  }
+
+  @override
+  String get setupFinish => 'Create my routine';
+
+  @override
+  String get setupRoutineSkip => 'Skip for now';
+
+  @override
+  String routineWakeLatest(String time) {
+    return 'Wake-up can\'t be later than $time.';
+  }
+
+  @override
+  String routineSleepLatest(String time) {
+    return 'Bedtime can\'t be later than $time.';
+  }
 }

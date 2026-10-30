@@ -38,6 +38,13 @@ const schedules = [
     description: 'Push the day’s devotee etiquette to readers whose local delivery time has arrived.',
   },
   {
+    name: 'marketing.tick',
+    queue: 'marketing',
+    // Every minute: a campaign whose scheduled time has come is queued (jobs/processors/marketing.js).
+    cron: '* * * * *',
+    description: 'Start the marketing campaigns whose scheduled time has come.',
+  },
+  {
     name: 'sadhana.reminder',
     queue: 'notification',
     cron: '*/15 * * * *',

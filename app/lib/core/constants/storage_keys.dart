@@ -46,6 +46,14 @@ abstract final class BoxKeys {
   /// A stable per-install id sent as `X-Device-Id`. Generated once.
   static const String deviceId = 'device.id';
 
+  /// What the chanting page shows in the middle: the deity and the mala (the
+  /// default) or a quote. Remembered on the phone, like the auto-count switch.
+  static const String chantView = 'settings.chant_view';
+
+  /// The quotes as the API last sent them, one copy for each reading chain
+  /// (`cache.quotes.hi,en`), so the chanting page has quotes with no connection.
+  static const String quotesCachePrefix = 'cache.quotes.';
+
   /// Whether auto count was left on. The chant counter opens already listening
   /// when it was.
   static const String autoChantEnabled = 'settings.auto_chant_enabled';
@@ -53,6 +61,10 @@ abstract final class BoxKeys {
   /// Whether auto count listens with the microphone (the default) or counts by
   /// time alone, which saves the battery. Absent means the microphone.
   static const String autoChantMicrophone = 'settings.auto_chant_microphone';
+
+  /// Whether the chanting page moves less: no bead ripple, no quote fade, and the
+  /// counter and recording update less often. Absent means off.
+  static const String chantBatterySaver = 'settings.chant_battery_saver';
 
   /// How long one chant of a mantra takes this reader, in milliseconds — set with
   /// the shorter / longer buttons or learned from a finished round. One key per
@@ -80,6 +92,16 @@ abstract final class BoxKeys {
   static const String languageReading = 'settings.language.reading';
   static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
+
+  /// The reading page's look (`ReadingLook` name). One answer for every book,
+  /// on this device, like the font size.
+  static const String readingLook = 'settings.reading_look';
+  static const String readingLineSpacing = 'settings.reading_line_spacing';
+  static const String readingMargins = 'settings.reading_margins';
+  static const String readingTint = 'settings.reading_tint';
+  static const String readingDim = 'settings.reading_dim';
+  static const String readingAutoNight = 'settings.reading_auto_night';
+  static const String readingKeepAwake = 'settings.reading_keep_awake';
 
   /// Whether each verse's "Word meanings" is left open. One answer for every
   /// verse, the way the font size is: someone who studies word by word wants it

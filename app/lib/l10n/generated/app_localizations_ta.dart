@@ -24,6 +24,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get actionOk => 'சரி';
 
   @override
+  String get exitAppTitle => 'ஆப்ஸை மூடவா?';
+
+  @override
+  String get exitAppMessage => 'ஹரிஹரிபோலை மூட விரும்புகிறீர்களா?';
+
+  @override
+  String get exitAppConfirm => 'மூடு';
+
+  @override
   String get actionDone => 'முடிந்தது';
 
   @override
@@ -478,10 +487,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantFullPicture => 'முழுத்திரை படம்';
 
   @override
-  String get chantPrayerHint =>
-      'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு எண்ணத் தொடங்க வளையத்தைத் தட்டுங்கள்.';
-
-  @override
   String get chantPrayerHintAlong =>
       'ஒலிப்பதிவு இந்தப் பிரார்த்தனையுடன் தொடங்குகிறது. ஒலிப்பதிவை இயக்கி, அதனுடன் சேர்ந்து இதைச் சொல்லுங்கள்.';
 
@@ -494,6 +499,26 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chantFinishRound => 'மாலாவை முடிக்கவும்';
+
+  @override
+  String get chantViewDeity => 'ஸ்ரீவிக்ரஹம்';
+
+  @override
+  String get chantViewQuotes => 'மேற்கோள்கள்';
+
+  @override
+  String get chantViewLabel => 'ஜபம் செய்யும்போது எதைக் காட்டுவது';
+
+  @override
+  String get chantQuoteTapHint => 'ஒரு ஜபத்தை எண்ண அட்டையைத் தொடவும்.';
+
+  @override
+  String get chantQuoteNone =>
+      'இப்போது மேற்கோள்கள் எதுவும் இல்லை. நீங்கள் எண்ணிக்கையைத் தொடரலாம்.';
+
+  @override
+  String get chantPrayerHint =>
+      'முதலில் இந்தப் பிரார்த்தனையைச் சொல்லுங்கள், பிறகு எண்ணத் தொடங்க வளையத்தைத் தட்டுங்கள்.';
 
   @override
   String get sadhanaAutoCountListening => 'கேட்கிறது…';
@@ -523,6 +548,19 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get chantAutoMicOff =>
       'அதற்குப் பதிலாக நேரத்தால் எண்ணும் — பேட்டரி மிச்சமாகும்';
+
+  @override
+  String get chantBatterySaverTitle => 'பேட்டரி சேமிப்பு';
+
+  @override
+  String get chantBatterySaverOn =>
+      'குறைந்த அனிமேஷன், குறைந்த திரை புதுப்பிப்பு';
+
+  @override
+  String get chantBatterySaverOff => 'வழக்கமான அனிமேஷன் மற்றும் புதுப்பிப்பு';
+
+  @override
+  String get chantAudioChannel => 'ஜப ஒலி';
 
   @override
   String get chantPaceTitle => 'ஒரு ஜபத்தின் நேரம்';
@@ -2981,4 +3019,145 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get prayersCategoryOther => 'மற்றவை';
+
+  @override
+  String get readingLookLabel => 'தோற்றம்';
+
+  @override
+  String get readingLookMatchApp => 'ஆப் போல';
+
+  @override
+  String get readingLookWarmPaper => 'சூடான காகிதம்';
+
+  @override
+  String get readingLookSepia => 'செபியா';
+
+  @override
+  String get readingLookMist => 'மூடுபனி';
+
+  @override
+  String get readingLookDusk => 'அந்தி';
+
+  @override
+  String get readingLookNight => 'இரவு';
+
+  @override
+  String get readingLineSpacingLabel => 'வரி இடைவெளி';
+
+  @override
+  String get readingLineSpacingCompact => 'குறைவு';
+
+  @override
+  String get readingLineSpacingComfortable => 'வசதியான';
+
+  @override
+  String get readingLineSpacingRelaxed => 'விரிவு';
+
+  @override
+  String get readingMarginsLabel => 'ஓரங்கள்';
+
+  @override
+  String get readingMarginsNarrow => 'குறுகிய';
+
+  @override
+  String get readingMarginsNormal => 'இயல்பு';
+
+  @override
+  String get readingMarginsWide => 'அகலமான';
+
+  @override
+  String get readingTintLabel => 'சூடான சாயல்';
+
+  @override
+  String get readingDimLabel => 'பக்கத்தை மங்கலாக்கு';
+
+  @override
+  String get readingAutoNightTitle => 'இரவு 8 முதல் காலை 6 வரை இரவுத் தோற்றம்';
+
+  @override
+  String get readingKeepAwakeTitle => 'படிக்கும்போது திரை அணைந்துவிடாமல் வை';
+
+  @override
+  String get setupMantraTitle => 'உங்களுக்குப் பிடித்த மந்திரம்';
+
+  @override
+  String get setupMantraSubtitle =>
+      'நீங்கள் அதிகம் ஜபிக்கும் மந்திரம். இதை எப்போது வேண்டுமானாலும் மாற்றலாம்.';
+
+  @override
+  String get setupRoundsTitle => 'ஒரு நாளைக்கு எத்தனை மாலாக்கள்?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'ஒரு மாலாவில் 108 ஜபங்கள். தினமும் உங்களால் செய்ய முடிந்த அளவைத் தேர்ந்தெடுங்கள் — பின்னர் அமைப்புகளில் மாற்றலாம்.';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count மாலாக்கள்',
+      one: '1 மாலா',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'தினமும் சுமார் $time ஜபம்';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours மணி $minutes நிமிடம்';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours மணி';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes நிமிடம்';
+  }
+
+  @override
+  String get setupRoundsFewer => 'குறைவான மாலாக்கள்';
+
+  @override
+  String get setupRoundsMore => 'அதிக மாலாக்கள்';
+
+  @override
+  String get setupRoutineTitle => 'உங்கள் தினசரி நடைமுறை';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return '$mantra மந்திரத்தின் $rounds அடிப்படையில் அமைக்கப்பட்டது.';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'எழுந்திருக்கும் அல்லது உறங்கும் நேரத்தை மாற்ற அதைத் தட்டுங்கள். மற்றவை அனைத்தையும் பின்னர் நடைமுறை டேபில் மாற்றலாம்.';
+
+  @override
+  String setupChantLate(String time) {
+    return 'இந்த எழும் நேரத்தில் உங்கள் மாலாக்கள் $time-ஐத் தாண்டி நீளும். சீக்கிரம் எழுங்கள் அல்லது குறைவான மாலாக்களைத் தேர்ந்தெடுங்கள்.';
+  }
+
+  @override
+  String get setupFinish => 'என் நடைமுறையை உருவாக்கு';
+
+  @override
+  String get setupRoutineSkip => 'இப்போது தவிர்';
+
+  @override
+  String routineWakeLatest(String time) {
+    return 'எழும் நேரம் $time-க்குப் பிந்தையதாக இருக்கக் கூடாது.';
+  }
+
+  @override
+  String routineSleepLatest(String time) {
+    return 'உறங்கும் நேரம் $time-க்குப் பிந்தையதாக இருக்கக் கூடாது.';
+  }
 }

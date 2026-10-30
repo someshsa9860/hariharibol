@@ -55,12 +55,18 @@ const EVENTS = {
   // Admin panel, to `etiquette.translate`: the same two for the devotee etiquette translation runs.
   ETIQUETTE_RUN: 'etiquette.run',
   ETIQUETTE_ACTIVITY: 'etiquette.activity',
+  // Admin panel, to `quote.translate`: the same two for the quote translation runs.
+  QUOTE_RUN: 'quote.run',
+  QUOTE_ACTIVITY: 'quote.activity',
   // Admin panel, to `panchang.translate`: the same two for the Hindu calendar translation runs.
   CALENDAR_RUN: 'calendar.run',
   CALENDAR_ACTIVITY: 'calendar.activity',
   // Admin panel, to `prayer.translate`: the same two for the prayer transliteration and translation runs.
   PRAYER_RUN: 'prayer.run',
   PRAYER_ACTIVITY: 'prayer.activity',
+  // Admin panel, to `marketing.read`: a campaign's whole state, and one line of its activity feed.
+  MARKETING_RUN: 'marketing.run',
+  MARKETING_ACTIVITY: 'marketing.activity',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

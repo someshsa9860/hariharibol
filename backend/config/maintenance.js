@@ -17,6 +17,7 @@ export const maintenance = {
   commands: [
     { id: 'seed', script: 'seed', title: 'Seed reference data', description: 'Roles, permissions, books and other standard rows. Safe to run again; run it after a release that adds permissions.' },
     { id: 'seed-panchang', script: 'seed:panchang', title: 'Seed the Hindu calendar', description: 'Works out and saves 2026’s days and festivals.' },
+    { id: 'seed-quotes', script: 'seed:quotes', title: 'Seed the chanting-page quotes', description: 'Adds the English quotes that are missing; quotes an admin has edited are left as they are. Safe to run again.' },
     { id: 'seed-etiquette', script: 'seed:etiquette', title: 'Seed the devotee etiquette', description: 'Adds the English etiquette items that are missing; items an admin has edited are left as they are. Safe to run again.' },
     { id: 'seed-prayers', script: 'seed:prayers', title: 'Seed the prayers', description: 'Adds the prayers from the seed files that are not in the database yet, as drafts: nothing is published. A prayer already there is left as it is, verses and all. Safe to run again.' },
     { id: 'recount-books', script: 'recount:books', title: 'Recount book verses', description: 'Rebuilds the verse counts on books, cantos and chapters from the rows.' },

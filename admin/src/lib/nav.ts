@@ -27,6 +27,8 @@ import {
   CalendarDays,
   Flower2,
   HandHeart,
+  Quote,
+  Mail,
   Terminal,
   type LucideIcon,
 } from 'lucide-react';
@@ -65,6 +67,7 @@ export const NAV: NavSection[] = [
       { label: 'Hindu calendar', path: '/calendar', icon: CalendarDays, permission: 'panchang.manage' },
       { label: 'Devotee etiquette', path: '/etiquette', icon: Flower2, permission: 'etiquette.manage' },
       { label: 'Prayers', path: '/prayers', icon: HandHeart, permission: 'prayer.manage' },
+      { label: 'Quotes', path: '/quotes', icon: Quote, permission: 'quote.manage' },
     ],
   },
   {
@@ -73,6 +76,7 @@ export const NAV: NavSection[] = [
       { label: 'Users', path: '/users', icon: Users, permission: 'user.read' },
       { label: 'Admins', path: '/admins', icon: ShieldPlus, permission: 'role.manage' },
       { label: 'Creators', path: '/creators', icon: UserCheck, permission: 'creator.manage' },
+      { label: 'Marketing', path: '/marketing', icon: Mail, permission: 'marketing.read' },
       { label: 'Support', path: '/support', icon: LifeBuoy, permission: 'support.manage' },
       { label: 'Roles & permissions', path: '/roles', icon: ShieldCheck, permission: 'role.manage' },
     ],

@@ -24,6 +24,8 @@ class ChantAutoCard extends StatelessWidget {
     required this.onAutoChanged,
     required this.onMicrophoneChanged,
     required this.onPaceChange,
+    required this.batterySaver,
+    required this.onBatterySaverChanged,
     this.resting = false,
   });
 
@@ -35,6 +37,8 @@ class ChantAutoCard extends StatelessWidget {
   final ValueChanged<bool> onAutoChanged;
   final ValueChanged<bool> onMicrophoneChanged;
   final void Function({required bool longer}) onPaceChange;
+  final bool batterySaver;
+  final ValueChanged<bool> onBatterySaverChanged;
   final bool resting;
 
   @override
@@ -55,6 +59,14 @@ class ChantAutoCard extends StatelessWidget {
               value: useMicrophone,
               onChanged: onMicrophoneChanged,
               enabled: !resting,
+            ),
+            const Divider(height: 1),
+            ChantToggleRow(
+              icon: Icons.battery_saver_rounded,
+              title: text.chantBatterySaverTitle,
+              status: batterySaver ? text.chantBatterySaverOn : text.chantBatterySaverOff,
+              value: batterySaver,
+              onChanged: onBatterySaverChanged,
             ),
             const Divider(height: 1),
             ChantPaceRow(

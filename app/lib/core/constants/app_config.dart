@@ -61,6 +61,13 @@ abstract final class AppConfig {
   /// switch (`SHOW_AUTHOR_NAME` in `website/src/lib/config.ts`).
   static const bool showAuthorName = false;
 
+  /// The same switch for the quotes on the chanting page. The quotes carry
+  /// their author (Śrīla Prabhupāda's, or the speaker of a verse he
+  /// translated); while this is false the author is not drawn, only the book,
+  /// verse or letter each comes from. Set it to true when permission to name
+  /// him has been given.
+  static const bool showQuoteAuthor = false;
+
   /// The translator [showAuthorName] is about, by the slug both the API and the
   /// offline book copies carry.
   static const String authorSlug = 'prabhupada';

@@ -30,6 +30,7 @@ class ChantDisc extends StatelessWidget {
     required this.beadsPerRound,
     required this.pulse,
     required this.onTap,
+    this.batterySaver = false,
     this.pictureUrl,
     this.pictureKey,
     this.onOpenPicture,
@@ -42,6 +43,9 @@ class ChantDisc extends StatelessWidget {
   final int beadsPerRound;
   final int pulse;
   final VoidCallback onTap;
+
+  /// No ripple when a bead is counted: the battery saver's no-animation mode.
+  final bool batterySaver;
 
   /// The deity, in the middle of the ring.
   final String? pictureUrl;
@@ -128,7 +132,7 @@ class ChantDisc extends StatelessWidget {
               ),
             ),
             if (_hasPicture) _picture(context, size * _pictureShare),
-            if (pulse > 0)
+            if (pulse > 0 && !batterySaver)
               IgnorePointer(
                 child: TweenAnimationBuilder<double>(
                   key: ValueKey(pulse),
