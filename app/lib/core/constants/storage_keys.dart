@@ -82,6 +82,16 @@ abstract final class BoxKeys {
   static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
 
+  /// The reading page's look (`ReadingLook` name). One answer for every book,
+  /// on this device, like the font size.
+  static const String readingLook = 'settings.reading_look';
+  static const String readingLineSpacing = 'settings.reading_line_spacing';
+  static const String readingMargins = 'settings.reading_margins';
+  static const String readingTint = 'settings.reading_tint';
+  static const String readingDim = 'settings.reading_dim';
+  static const String readingAutoNight = 'settings.reading_auto_night';
+  static const String readingKeepAwake = 'settings.reading_keep_awake';
+
   /// Whether each verse's "Word meanings" is left open. One answer for every
   /// verse, the way the font size is: someone who studies word by word wants it
   /// open everywhere, and someone who does not wants it out of the way.

@@ -993,6 +993,63 @@ class AppLocalizationsAs extends AppLocalizations {
   String get readingFontSizeLarge => 'ডাঙৰ';
 
   @override
+  String get readingLineSpacingLabel => 'শাৰীৰ ব্যৱধান';
+
+  @override
+  String get readingLineSpacingCompact => 'ঘন';
+
+  @override
+  String get readingLineSpacingComfortable => 'আৰামদায়ক';
+
+  @override
+  String get readingLineSpacingRelaxed => 'বহল';
+
+  @override
+  String get readingMarginsLabel => 'মাৰ্জিন';
+
+  @override
+  String get readingMarginsNarrow => 'সৰু';
+
+  @override
+  String get readingMarginsNormal => 'সাধাৰণ';
+
+  @override
+  String get readingMarginsWide => 'চওড়া';
+
+  @override
+  String get readingTintLabel => 'উষ্ণ আভা';
+
+  @override
+  String get readingDimLabel => 'পৃষ্ঠা ম্লান কৰক';
+
+  @override
+  String get readingAutoNightTitle => 'ৰাতি ৮ বজাৰ পৰা ৰাতিপুৱা ৬ বজালৈ ৰাতিৰ ৰূপ';
+
+  @override
+  String get readingKeepAwakeTitle => 'পঢ়াৰ সময়ত স্ক্ৰীন অন ৰাখক';
+
+  @override
+  String get readingLookLabel => 'চেহেৰা';
+
+  @override
+  String get readingLookMatchApp => 'এপৰ দৰে';
+
+  @override
+  String get readingLookWarmPaper => 'উষ্ণ কাগজ';
+
+  @override
+  String get readingLookSepia => 'চেপিয়া';
+
+  @override
+  String get readingLookMist => 'কুঁৱাশা';
+
+  @override
+  String get readingLookDusk => 'গোধূলি';
+
+  @override
+  String get readingLookNight => 'ৰাতি';
+
+  @override
   String get readingFontSizeExtraLarge => 'অতি ডাঙৰ';
 
   @override

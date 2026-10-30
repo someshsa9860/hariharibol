@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/reading_themes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -56,6 +57,27 @@ class _ReadingSettingsSheet extends ConsumerWidget {
         ReadingFontSize.extraLarge => text.readingFontSizeExtraLarge,
       };
 
+  String _lookLabel(AppLocalizations text, ReadingLook look) => switch (look) {
+        ReadingLook.matchApp => text.readingLookMatchApp,
+        ReadingLook.warmPaper => text.readingLookWarmPaper,
+        ReadingLook.sepia => text.readingLookSepia,
+        ReadingLook.mist => text.readingLookMist,
+        ReadingLook.dusk => text.readingLookDusk,
+        ReadingLook.night => text.readingLookNight,
+      };
+
+  String _spacingLabel(AppLocalizations text, ReadingLineSpacing spacing) => switch (spacing) {
+        ReadingLineSpacing.compact => text.readingLineSpacingCompact,
+        ReadingLineSpacing.comfortable => text.readingLineSpacingComfortable,
+        ReadingLineSpacing.relaxed => text.readingLineSpacingRelaxed,
+      };
+
+  String _marginsLabel(AppLocalizations text, ReadingMargins margins) => switch (margins) {
+        ReadingMargins.narrow => text.readingMarginsNarrow,
+        ReadingMargins.normal => text.readingMarginsNormal,
+        ReadingMargins.wide => text.readingMarginsWide,
+      };
+
   String _partLabel(AppLocalizations text, VersePart part) => switch (part) {
     VersePart.sanskrit => text.readingHideSanskrit,
     VersePart.transliteration => text.readingHideTransliteration,
@@ -67,6 +89,13 @@ class _ReadingSettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
     final fontSize = ref.watch(readingFontSizeProvider);
+    final look = ref.watch(readingLookProvider);
+    final lineSpacing = ref.watch(readingLineSpacingProvider);
+    final margins = ref.watch(readingMarginsProvider);
+    final warmTint = ref.watch(readingTintProvider);
+    final dim = ref.watch(readingDimProvider);
+    final autoNight = ref.watch(readingAutoNightProvider);
+    final keepAwake = ref.watch(readingKeepAwakeProvider);
     final hidden = ref.watch(hiddenVersePartsProvider);
     final mode = ref.watch(readingModeProvider);
     final storyPart = ref.watch(storyPartProvider);
@@ -103,6 +132,97 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(text.readingSettingsTitle, style: context.texts.titleLarge),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                text.readingLookLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final option in ReadingLook.values)
+                    ChoiceChip(
+                      label: Text(_lookLabel(text, option)),
+                      selected: look == option,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          ref.read(readingLookProvider.notifier).set(option),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                text.readingLineSpacingLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final option in ReadingLineSpacing.values)
+                    ChoiceChip(
+                      label: Text(_spacingLabel(text, option)),
+                      selected: lineSpacing == option,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          ref.read(readingLineSpacingProvider.notifier).set(option),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                text.readingMarginsLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final option in ReadingMargins.values)
+                    ChoiceChip(
+                      label: Text(_marginsLabel(text, option)),
+                      selected: margins == option,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          ref.read(readingMarginsProvider.notifier).set(option),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                text.readingTintLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              Slider(
+                value: warmTint,
+                divisions: 10,
+                onChanged: (value) => ref.read(readingTintProvider.notifier).set(value),
+              ),
+              Text(
+                text.readingDimLabel,
+                style: AppTypography.section(context).copyWith(fontSize: 16),
+              ),
+              Slider(
+                value: dim,
+                divisions: 10,
+                onChanged: (value) => ref.read(readingDimProvider.notifier).set(value),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(text.readingAutoNightTitle),
+                value: autoNight,
+                onChanged: (value) => ref.read(readingAutoNightProvider.notifier).set(value),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(text.readingKeepAwakeTitle),
+                value: keepAwake,
+                onChanged: (value) => ref.read(readingKeepAwakeProvider.notifier).set(value),
+              ),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 text.readingModeLabel,

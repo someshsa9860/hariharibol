@@ -1001,6 +1001,63 @@ class AppLocalizationsMl extends AppLocalizations {
   String get readingFontSizeLarge => 'വലുത്';
 
   @override
+  String get readingLineSpacingLabel => 'വരികൾക്കിടയിലെ അകലം';
+
+  @override
+  String get readingLineSpacingCompact => 'ഒതുക്കം';
+
+  @override
+  String get readingLineSpacingComfortable => 'സൗകര്യപ്രദം';
+
+  @override
+  String get readingLineSpacingRelaxed => 'വിശാലം';
+
+  @override
+  String get readingMarginsLabel => 'മാർജിൻ';
+
+  @override
+  String get readingMarginsNarrow => 'ഇടുങ്ങിയ';
+
+  @override
+  String get readingMarginsNormal => 'സാധാരണം';
+
+  @override
+  String get readingMarginsWide => 'വീതിയുള്ള';
+
+  @override
+  String get readingTintLabel => 'ചൂടുള്ള നിറം';
+
+  @override
+  String get readingDimLabel => 'പേജ് മങ്ങിക്കുക';
+
+  @override
+  String get readingAutoNightTitle => 'രാത്രി 8 മുതൽ രാവിലെ 6 വരെ രാത്രി രൂപം';
+
+  @override
+  String get readingKeepAwakeTitle => 'വായിക്കുമ്പോൾ സ്ക്രീൻ ഓണായിരിക്കണം';
+
+  @override
+  String get readingLookLabel => 'രൂപം';
+
+  @override
+  String get readingLookMatchApp => 'ആപ്പുപോലെ';
+
+  @override
+  String get readingLookWarmPaper => 'ചൂടുള്ള കടലാസ്';
+
+  @override
+  String get readingLookSepia => 'സെപ്പിയ';
+
+  @override
+  String get readingLookMist => 'മൂടൽമഞ്ഞ്';
+
+  @override
+  String get readingLookDusk => 'സന്ധ്യ';
+
+  @override
+  String get readingLookNight => 'രാത്രി';
+
+  @override
   String get readingFontSizeExtraLarge => 'വളരെ വലുത്';
 
   @override

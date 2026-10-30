@@ -992,6 +992,63 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingFontSizeLarge => 'ବଡ଼';
 
   @override
+  String get readingLineSpacingLabel => 'ଧାଡ଼ି ବ୍ୟବଧାନ';
+
+  @override
+  String get readingLineSpacingCompact => 'ଘନ';
+
+  @override
+  String get readingLineSpacingComfortable => 'ଆରାମଦାୟକ';
+
+  @override
+  String get readingLineSpacingRelaxed => 'ପ୍ରଶସ୍ତ';
+
+  @override
+  String get readingMarginsLabel => 'ମାର୍ଜିନ';
+
+  @override
+  String get readingMarginsNarrow => 'ସଂକୀର୍ଣ୍ଣ';
+
+  @override
+  String get readingMarginsNormal => 'ସାଧାରଣ';
+
+  @override
+  String get readingMarginsWide => 'ଚଉଡ଼ା';
+
+  @override
+  String get readingTintLabel => 'ଉଷ୍ମ ଆଭା';
+
+  @override
+  String get readingDimLabel => 'ପୃଷ୍ଠା ମଳିନ କରନ୍ତୁ';
+
+  @override
+  String get readingAutoNightTitle => 'ରାତି ୮ଟାରୁ ସକାଳ ୬ଟା ପର୍ଯ୍ୟନ୍ତ ରାତି ରୂପ';
+
+  @override
+  String get readingKeepAwakeTitle => 'ପଢ଼ିବା ବେଳେ ସ୍କ୍ରିନ ଚାଲୁ ରଖନ୍ତୁ';
+
+  @override
+  String get readingLookLabel => 'ରୂପ';
+
+  @override
+  String get readingLookMatchApp => 'ଆପ ପରି';
+
+  @override
+  String get readingLookWarmPaper => 'ଉଷ୍ମ କାଗଜ';
+
+  @override
+  String get readingLookSepia => 'ସେପିଆ';
+
+  @override
+  String get readingLookMist => 'କୁହୁଡ଼ି';
+
+  @override
+  String get readingLookDusk => 'ସନ୍ଧ୍ୟା';
+
+  @override
+  String get readingLookNight => 'ରାତି';
+
+  @override
   String get readingFontSizeExtraLarge => 'ଅତି ବଡ଼';
 
   @override

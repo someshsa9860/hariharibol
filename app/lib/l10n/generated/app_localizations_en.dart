@@ -988,6 +988,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingFontSizeLarge => 'Large';
 
   @override
+  String get readingLineSpacingLabel => 'Line spacing';
+
+  @override
+  String get readingLineSpacingCompact => 'Compact';
+
+  @override
+  String get readingLineSpacingComfortable => 'Comfortable';
+
+  @override
+  String get readingLineSpacingRelaxed => 'Relaxed';
+
+  @override
+  String get readingMarginsLabel => 'Margins';
+
+  @override
+  String get readingMarginsNarrow => 'Narrow';
+
+  @override
+  String get readingMarginsNormal => 'Normal';
+
+  @override
+  String get readingMarginsWide => 'Wide';
+
+  @override
+  String get readingTintLabel => 'Warm tint';
+
+  @override
+  String get readingDimLabel => 'Dim the page';
+
+  @override
+  String get readingAutoNightTitle => 'Night look from 8 pm to 6 am';
+
+  @override
+  String get readingKeepAwakeTitle => 'Keep the screen on while reading';
+
+  @override
+  String get readingLookLabel => 'Look';
+
+  @override
+  String get readingLookMatchApp => 'Match app';
+
+  @override
+  String get readingLookWarmPaper => 'Warm paper';
+
+  @override
+  String get readingLookSepia => 'Sepia';
+
+  @override
+  String get readingLookMist => 'Mist';
+
+  @override
+  String get readingLookDusk => 'Dusk';
+
+  @override
+  String get readingLookNight => 'Night';
+
+  @override
   String get readingFontSizeExtraLarge => 'Extra large';
 
   @override

@@ -31,6 +31,7 @@
   --radius-sm: 10px;
   --radius: 16px;
   --radius-lg: 24px;
+  --gutter: 16px;
   --header-h: 72px;
   --tabbar-h: 64px;
   --page-w: 1180px;
@@ -96,3 +97,5 @@
 @media (max-width: 899px) {
   :root { --header-h: 60px; }
 }
+
+@media (min-width: 640px) { :root { --gutter: 24px; } }

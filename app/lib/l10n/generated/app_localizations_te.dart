@@ -997,6 +997,63 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingFontSizeLarge => 'పెద్దది';
 
   @override
+  String get readingLineSpacingLabel => 'లైన్ల మధ్య దూరం';
+
+  @override
+  String get readingLineSpacingCompact => 'దగ్గరగా';
+
+  @override
+  String get readingLineSpacingComfortable => 'సౌకర్యవంతం';
+
+  @override
+  String get readingLineSpacingRelaxed => 'విశాలం';
+
+  @override
+  String get readingMarginsLabel => 'అంచులు';
+
+  @override
+  String get readingMarginsNarrow => 'ఇరుకు';
+
+  @override
+  String get readingMarginsNormal => 'సాధారణం';
+
+  @override
+  String get readingMarginsWide => 'వెడల్పు';
+
+  @override
+  String get readingTintLabel => 'వెచ్చని రంగు';
+
+  @override
+  String get readingDimLabel => 'పేజీని మసకబార్చు';
+
+  @override
+  String get readingAutoNightTitle => 'రాత్రి 8 నుంచి ఉదయం 6 వరకు రాత్రి రూపం';
+
+  @override
+  String get readingKeepAwakeTitle => 'చదివేటప్పుడు స్క్రీన్ ఆన్‌లో ఉంచు';
+
+  @override
+  String get readingLookLabel => 'రూపం';
+
+  @override
+  String get readingLookMatchApp => 'యాప్ లాగా';
+
+  @override
+  String get readingLookWarmPaper => 'వెచ్చని కాగితం';
+
+  @override
+  String get readingLookSepia => 'సెపియా';
+
+  @override
+  String get readingLookMist => 'మంచు';
+
+  @override
+  String get readingLookDusk => 'సంధ్య';
+
+  @override
+  String get readingLookNight => 'రాత్రి';
+
+  @override
   String get readingFontSizeExtraLarge => 'చాలా పెద్దది';
 
   @override

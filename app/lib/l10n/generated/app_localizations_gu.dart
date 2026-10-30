@@ -988,6 +988,63 @@ class AppLocalizationsGu extends AppLocalizations {
   String get readingFontSizeLarge => 'મોટું';
 
   @override
+  String get readingLineSpacingLabel => 'લીટી વચ્ચેનું અંતર';
+
+  @override
+  String get readingLineSpacingCompact => 'નજીક';
+
+  @override
+  String get readingLineSpacingComfortable => 'આરામદાયક';
+
+  @override
+  String get readingLineSpacingRelaxed => 'પહોળું';
+
+  @override
+  String get readingMarginsLabel => 'હાંસિયા';
+
+  @override
+  String get readingMarginsNarrow => 'સાંકડા';
+
+  @override
+  String get readingMarginsNormal => 'સામાન્ય';
+
+  @override
+  String get readingMarginsWide => 'પહોળા';
+
+  @override
+  String get readingTintLabel => 'ગરમ રંગત';
+
+  @override
+  String get readingDimLabel => 'પાનું ઝાંખું કરો';
+
+  @override
+  String get readingAutoNightTitle => 'રાત્રે 8થી સવારે 6 સુધી રાત્રિ રૂપ';
+
+  @override
+  String get readingKeepAwakeTitle => 'વાંચતી વખતે સ્ક્રીન ચાલુ રાખો';
+
+  @override
+  String get readingLookLabel => 'દેખાવ';
+
+  @override
+  String get readingLookMatchApp => 'એપ પ્રમાણે';
+
+  @override
+  String get readingLookWarmPaper => 'ગરમ કાગળ';
+
+  @override
+  String get readingLookSepia => 'સેપિયા';
+
+  @override
+  String get readingLookMist => 'ઝાકળ';
+
+  @override
+  String get readingLookDusk => 'સંધ્યા';
+
+  @override
+  String get readingLookNight => 'રાત';
+
+  @override
   String get readingFontSizeExtraLarge => 'ખૂબ મોટું';
 
   @override

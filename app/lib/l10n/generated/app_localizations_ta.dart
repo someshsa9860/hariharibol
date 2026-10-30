@@ -999,6 +999,63 @@ class AppLocalizationsTa extends AppLocalizations {
   String get readingFontSizeLarge => 'பெரியது';
 
   @override
+  String get readingLineSpacingLabel => 'வரி இடைவெளி';
+
+  @override
+  String get readingLineSpacingCompact => 'குறைவு';
+
+  @override
+  String get readingLineSpacingComfortable => 'வசதியான';
+
+  @override
+  String get readingLineSpacingRelaxed => 'விரிவு';
+
+  @override
+  String get readingMarginsLabel => 'ஓரங்கள்';
+
+  @override
+  String get readingMarginsNarrow => 'குறுகிய';
+
+  @override
+  String get readingMarginsNormal => 'இயல்பு';
+
+  @override
+  String get readingMarginsWide => 'அகலமான';
+
+  @override
+  String get readingTintLabel => 'சூடான சாயல்';
+
+  @override
+  String get readingDimLabel => 'பக்கத்தை மங்கலாக்கு';
+
+  @override
+  String get readingAutoNightTitle => 'இரவு 8 முதல் காலை 6 வரை இரவுத் தோற்றம்';
+
+  @override
+  String get readingKeepAwakeTitle => 'படிக்கும்போது திரை அணைந்துவிடாமல் வை';
+
+  @override
+  String get readingLookLabel => 'தோற்றம்';
+
+  @override
+  String get readingLookMatchApp => 'ஆப் போல';
+
+  @override
+  String get readingLookWarmPaper => 'சூடான காகிதம்';
+
+  @override
+  String get readingLookSepia => 'செபியா';
+
+  @override
+  String get readingLookMist => 'மூடுபனி';
+
+  @override
+  String get readingLookDusk => 'அந்தி';
+
+  @override
+  String get readingLookNight => 'இரவு';
+
+  @override
   String get readingFontSizeExtraLarge => 'மிகப் பெரியது';
 
   @override
