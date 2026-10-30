@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../services/chant_mala_player.dart';
 import '../../widgets/common/app_image.dart';
 
 /// The deity's picture across the whole screen (9:16), with the counter still
@@ -20,6 +21,7 @@ class ChantFullscreenView extends StatefulWidget {
     required this.beads,
     required this.beadsPerRound,
     required this.onTap,
+    this.mala,
     this.fit = BoxFit.cover,
   });
 
@@ -34,6 +36,10 @@ class ChantFullscreenView extends StatefulWidget {
   final int Function() beads;
   final int beadsPerRound;
   final VoidCallback onTap;
+
+  /// The mantra's chant-along recording, when it has one. Once a round ends it
+  /// is back at the start and stopped, so a play button here starts the next.
+  final ChantMalaPlayer? mala;
 
   @override
   State<ChantFullscreenView> createState() => _ChantFullscreenViewState();
@@ -81,6 +87,23 @@ class _ChantFullscreenViewState extends State<ChantFullscreenView> {
                         tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
+                      if (widget.mala != null)
+                        ValueListenableBuilder<ChantMalaPlayerState>(
+                          valueListenable: widget.mala!.state,
+                          builder: (context, state, _) {
+                            if (state.playing || state.phase != ChantMalaPhase.ready) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(left: AppSpacing.sm),
+                              child: IconButton.filledTonal(
+                                icon: const Icon(Icons.play_arrow_rounded),
+                                tooltip: MaterialLocalizations.of(context).resumeButtonLabel,
+                                onPressed: () => widget.mala!.play(),
+                              ),
+                            );
+                          },
+                        ),
                       const Spacer(),
                       ListenableBuilder(
                         listenable: widget.counts,

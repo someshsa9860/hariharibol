@@ -727,6 +727,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
           beads: () => _recorder.beadsInMala,
           beadsPerRound: _beadsPerRoundInUse,
           onTap: _tapRing,
+          mala: _mala,
         ),
       ),
     );
