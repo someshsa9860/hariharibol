@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../services/chant_mala_player.dart';
 import '../../widgets/common/app_image.dart';
 
@@ -98,7 +99,7 @@ class _ChantFullscreenViewState extends State<ChantFullscreenView> {
                               padding: const EdgeInsets.only(left: AppSpacing.sm),
                               child: IconButton.filledTonal(
                                 icon: const Icon(Icons.play_arrow_rounded),
-                                tooltip: MaterialLocalizations.of(context).resumeButtonLabel,
+                                tooltip: AppLocalizations.of(context).chantAlongPlay,
                                 onPressed: () => widget.mala!.play(),
                               ),
                             );
