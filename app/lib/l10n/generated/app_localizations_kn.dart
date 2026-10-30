@@ -480,10 +480,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chantFullPicture => 'ಪೂರ್ಣ ಪರದೆಯ ಚಿತ್ರ';
 
   @override
-  String get chantPrayerHintAlong => 'ರೆಕಾರ್ಡಿಂಗ್ ನಿಮ್ಮೊಂದಿಗೆ ಈ ಪ್ರಾರ್ಥನೆ ಹೇಳುತ್ತದೆ. ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
+  String get chantPrayerHintAlong =>
+      'ರೆಕಾರ್ಡಿಂಗ್ ನಿಮ್ಮೊಂದಿಗೆ ಈ ಪ್ರಾರ್ಥನೆ ಹೇಳುತ್ತದೆ. ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ, ನಂತರ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'ಮೊದಲು ಈ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ, ನಂತರ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಪ್ಲೇ ಒತ್ತಿ.';
 
   @override
   String get chantAutoCountResting => 'ರೆಕಾರ್ಡಿಂಗ್ ನಡೆಯುವವರೆಗೆ ವಿಶ್ರಾಂತಿಯಲ್ಲಿ';
@@ -537,6 +539,18 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get chantAutoMicOff =>
       'ಬದಲಿಗೆ ಸಮಯದಿಂದ ಎಣಿಸುತ್ತದೆ — ಬ್ಯಾಟರಿ ಉಳಿಯುತ್ತದೆ';
+
+  @override
+  String get chantBatterySaverTitle => 'ಬ್ಯಾಟರಿ ಉಳಿತಾಯ';
+
+  @override
+  String get chantBatterySaverOn => 'ಕಡಿಮೆ ಅನಿಮೇಷನ್ ಮತ್ತು ಕಡಿಮೆ ಪರದೆ ನವೀಕರಣ';
+
+  @override
+  String get chantBatterySaverOff => 'ಸಾಮಾನ್ಯ ಅನಿಮೇಷನ್ ಮತ್ತು ನವೀಕರಣ';
+
+  @override
+  String get chantAudioChannel => 'ಜಪ ಆಡಿಯೊ';
 
   @override
   String get chantPaceTitle => 'ಒಂದು ಜಪದ ಸಮಯ';
@@ -978,6 +992,63 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get readingFontSizeLarge => 'ದೊಡ್ಡದು';
+
+  @override
+  String get readingLineSpacingLabel => 'ಸಾಲಿನ ಅಂತರ';
+
+  @override
+  String get readingLineSpacingCompact => 'ಹತ್ತಿರ';
+
+  @override
+  String get readingLineSpacingComfortable => 'ಆರಾಮದಾಯಕ';
+
+  @override
+  String get readingLineSpacingRelaxed => 'ವಿಶಾಲ';
+
+  @override
+  String get readingMarginsLabel => 'ಅಂಚುಗಳು';
+
+  @override
+  String get readingMarginsNarrow => 'ಕಿರಿದು';
+
+  @override
+  String get readingMarginsNormal => 'ಸಾಮಾನ್ಯ';
+
+  @override
+  String get readingMarginsWide => 'ಅಗಲ';
+
+  @override
+  String get readingTintLabel => 'ಬೆಚ್ಚಗಿನ ಛಾಯೆ';
+
+  @override
+  String get readingDimLabel => 'ಪುಟವನ್ನು ಮಬ್ಬಾಗಿಸಿ';
+
+  @override
+  String get readingAutoNightTitle => 'ರಾತ್ರಿ 8 ರಿಂದ ಬೆಳಿಗ್ಗೆ 6 ರವರೆಗೆ ರಾತ್ರಿ ನೋಟ';
+
+  @override
+  String get readingKeepAwakeTitle => 'ಓದುವಾಗ ಪರದೆ ಆನ್ ಇರಲಿ';
+
+  @override
+  String get readingLookLabel => 'ನೋಟ';
+
+  @override
+  String get readingLookMatchApp => 'ಆ್ಯಪ್‌ನಂತೆ';
+
+  @override
+  String get readingLookWarmPaper => 'ಬೆಚ್ಚಗಿನ ಕಾಗದ';
+
+  @override
+  String get readingLookSepia => 'ಸೆಪಿಯಾ';
+
+  @override
+  String get readingLookMist => 'ಮಂಜು';
+
+  @override
+  String get readingLookDusk => 'ಸಂಜೆ';
+
+  @override
+  String get readingLookNight => 'ರಾತ್ರಿ';
 
   @override
   String get readingFontSizeExtraLarge => 'ತುಂಬಾ ದೊಡ್ಡದು';

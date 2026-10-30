@@ -44,9 +44,27 @@ class ChantMalaPlayerState {
 /// this class is only the player around them. [chantsCompleted] emits how many
 /// chants just finished — one at a time while playing normally.
 class ChantMalaPlayer {
-  ChantMalaPlayer({required this._url, required this.timing, this.refreshUrl, AudioPlayer? player})
-    : _player = player ?? AudioPlayer(),
-      _follower = ChantMalaFollower(timing, continuousStep: ChantAudioConfig.continuousStep);
+  ChantMalaPlayer({
+    required this._url,
+    required this.timing,
+    this.refreshUrl,
+    AudioPlayer? player,
+    this.positionTick = ChantAudioConfig.positionTick,
+    this.keepScreenOn = true,
+    this.onStart,
+  }) : _player = player ?? AudioPlayer(),
+       _follower = ChantMalaFollower(timing, continuousStep: ChantAudioConfig.continuousStep);
+
+  /// How often the playback position is read (see [ChantAudioConfig]).
+  final Duration positionTick;
+
+  /// Whether the screen is held awake while the recording plays. The battery
+  /// saver turns this off: the system media session keeps the audio going with
+  /// the screen off, so the screen can sleep.
+  final bool keepScreenOn;
+
+  /// Runs before each play, to put the recording on the system's media controls.
+  final Future<void> Function()? onStart;
 
   final ChantMalaTiming timing;
 
@@ -104,8 +122,8 @@ class ChantMalaPlayer {
       ..add(
         _player
             .createPositionStream(
-              minPeriod: ChantAudioConfig.positionTick,
-              maxPeriod: ChantAudioConfig.positionTick,
+              minPeriod: positionTick,
+              maxPeriod: positionTick,
             )
             .listen(_onPosition),
       )
@@ -147,7 +165,7 @@ class ChantMalaPlayer {
     _emit(playing: playing);
     // Nothing is tapped while a recording counts, so nothing else would keep
     // the screen on — and a locked screen stops the app, the audio and the count.
-    unawaited(_keepScreenOn(playing));
+    unawaited(_keepScreenOn(playing && keepScreenOn));
   }
 
   /// A screen that cannot be held awake is no reason to stop the recording.
@@ -159,6 +177,9 @@ class ChantMalaPlayer {
 
   Future<void> play() async {
     if (state.value.phase != ChantMalaPhase.ready) return;
+    // Not awaited: the recording starts at once, and the media session comes
+    // up beside it.
+    unawaited(onStart?.call());
     // From the end, play means from the top: another time through.
     if (_player.processingState == ProcessingState.completed) await seek(Duration.zero);
     // `play` completes when playback stops, so it is not awaited.

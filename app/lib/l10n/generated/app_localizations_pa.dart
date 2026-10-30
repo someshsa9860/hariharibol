@@ -480,10 +480,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get chantFullPicture => 'ਪੂਰੀ ਸਕ੍ਰੀਨ ਤਸਵੀਰ';
 
   @override
-  String get chantPrayerHintAlong => 'ਰਿਕਾਰਡਿੰਗ ਤੁਹਾਡੇ ਨਾਲ ਇਹ ਅਰਦਾਸ ਕਰਦੀ ਹੈ। ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਪਲੇ ਦਬਾਓ।';
+  String get chantPrayerHintAlong =>
+      'ਰਿਕਾਰਡਿੰਗ ਤੁਹਾਡੇ ਨਾਲ ਇਹ ਅਰਦਾਸ ਕਰਦੀ ਹੈ। ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਪਲੇ ਦਬਾਓ।';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'ਪਹਿਲਾਂ ਇਹ ਪ੍ਰਾਰਥਨਾ ਕਰੋ, ਫਿਰ ਰਿਕਾਰਡਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਪਲੇ ਦਬਾਓ।';
+  String get chantPrayerHintAlongNoPrayer =>
+      'ਪਹਿਲਾਂ ਇਹ ਪ੍ਰਾਰਥਨਾ ਕਰੋ, ਫਿਰ ਰਿਕਾਰਡਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਪਲੇ ਦਬਾਓ।';
 
   @override
   String get chantAutoCountResting => 'ਰਿਕਾਰਡਿੰਗ ਚੱਲਣ ਤੱਕ ਆਰਾਮ ਵਿੱਚ';
@@ -535,6 +537,18 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'ਇਸ ਦੀ ਥਾਂ ਸਮੇਂ ਨਾਲ ਗਿਣਦਾ ਹੈ — ਬੈਟਰੀ ਬਚਦੀ ਹੈ';
+
+  @override
+  String get chantBatterySaverTitle => 'ਬੈਟਰੀ ਬਚਤ';
+
+  @override
+  String get chantBatterySaverOn => 'ਘੱਟ ਐਨੀਮੇਸ਼ਨ ਅਤੇ ਘੱਟ ਸਕਰੀਨ ਅੱਪਡੇਟ';
+
+  @override
+  String get chantBatterySaverOff => 'ਆਮ ਐਨੀਮੇਸ਼ਨ ਅਤੇ ਅੱਪਡੇਟ';
+
+  @override
+  String get chantAudioChannel => 'ਜਾਪ ਆਡੀਓ';
 
   @override
   String get chantPaceTitle => 'ਇੱਕ ਜਪ ਦਾ ਸਮਾਂ';
@@ -974,6 +988,63 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get readingFontSizeLarge => 'ਵੱਡਾ';
+
+  @override
+  String get readingLineSpacingLabel => 'ਲਾਈਨਾਂ ਵਿਚਕਾਰ ਫ਼ਾਸਲਾ';
+
+  @override
+  String get readingLineSpacingCompact => 'ਨੇੜੇ';
+
+  @override
+  String get readingLineSpacingComfortable => 'ਆਰਾਮਦਾਇਕ';
+
+  @override
+  String get readingLineSpacingRelaxed => 'ਖੁੱਲ੍ਹਾ';
+
+  @override
+  String get readingMarginsLabel => 'ਹਾਸ਼ੀਏ';
+
+  @override
+  String get readingMarginsNarrow => 'ਤੰਗ';
+
+  @override
+  String get readingMarginsNormal => 'ਆਮ';
+
+  @override
+  String get readingMarginsWide => 'ਚੌੜੇ';
+
+  @override
+  String get readingTintLabel => 'ਨਿੱਘੀ ਰੰਗਤ';
+
+  @override
+  String get readingDimLabel => 'ਸਫ਼ਾ ਧੁੰਦਲਾ ਕਰੋ';
+
+  @override
+  String get readingAutoNightTitle => 'ਰਾਤ 8 ਵਜੇ ਤੋਂ ਸਵੇਰੇ 6 ਵਜੇ ਤੱਕ ਰਾਤ ਵਾਲਾ ਰੂਪ';
+
+  @override
+  String get readingKeepAwakeTitle => 'ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਕਰੀਨ ਚਾਲੂ ਰੱਖੋ';
+
+  @override
+  String get readingLookLabel => 'ਦਿੱਖ';
+
+  @override
+  String get readingLookMatchApp => 'ਐਪ ਵਾਂਗ';
+
+  @override
+  String get readingLookWarmPaper => 'ਗਰਮ ਕਾਗਜ਼';
+
+  @override
+  String get readingLookSepia => 'ਸੇਪੀਆ';
+
+  @override
+  String get readingLookMist => 'ਧੁੰਦ';
+
+  @override
+  String get readingLookDusk => 'ਸੰਧਿਆ';
+
+  @override
+  String get readingLookNight => 'ਰਾਤ';
 
   @override
   String get readingFontSizeExtraLarge => 'ਬਹੁਤ ਵੱਡਾ';

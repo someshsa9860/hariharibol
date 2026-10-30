@@ -480,10 +480,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
 
   @override
-  String get chantPrayerHintAlong => 'రికార్డింగ్ మీతో కలిసి ఈ ప్రార్థన చెబుతుంది. ప్రారంభించడానికి ప్లే నొక్కండి.';
+  String get chantPrayerHintAlong =>
+      'రికార్డింగ్ మీతో కలిసి ఈ ప్రార్థన చెబుతుంది. ప్రారంభించడానికి ప్లే నొక్కండి.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్రారంభించడానికి ప్లే నొక్కండి.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్రారంభించడానికి ప్లే నొక్కండి.';
 
   @override
   String get chantAutoCountResting => 'రికార్డింగ్ నడిచే వరకు విశ్రాంతిలో';
@@ -539,6 +541,19 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get chantAutoMicOff =>
       'బదులుగా సమయం ప్రకారం లెక్కిస్తుంది — బ్యాటరీ ఆదా అవుతుంది';
+
+  @override
+  String get chantBatterySaverTitle => 'బ్యాటరీ ఆదా';
+
+  @override
+  String get chantBatterySaverOn =>
+      'తక్కువ యానిమేషన్లు, తక్కువ స్క్రీన్ అప్‌డేట్లు';
+
+  @override
+  String get chantBatterySaverOff => 'సాధారణ యానిమేషన్లు, అప్‌డేట్లు';
+
+  @override
+  String get chantAudioChannel => 'జప ఆడియో';
 
   @override
   String get chantPaceTitle => 'ఒక జపానికి పట్టే సమయం';
@@ -980,6 +995,63 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get readingFontSizeLarge => 'పెద్దది';
+
+  @override
+  String get readingLineSpacingLabel => 'లైన్ల మధ్య దూరం';
+
+  @override
+  String get readingLineSpacingCompact => 'దగ్గరగా';
+
+  @override
+  String get readingLineSpacingComfortable => 'సౌకర్యవంతం';
+
+  @override
+  String get readingLineSpacingRelaxed => 'విశాలం';
+
+  @override
+  String get readingMarginsLabel => 'అంచులు';
+
+  @override
+  String get readingMarginsNarrow => 'ఇరుకు';
+
+  @override
+  String get readingMarginsNormal => 'సాధారణం';
+
+  @override
+  String get readingMarginsWide => 'వెడల్పు';
+
+  @override
+  String get readingTintLabel => 'వెచ్చని రంగు';
+
+  @override
+  String get readingDimLabel => 'పేజీని మసకబార్చు';
+
+  @override
+  String get readingAutoNightTitle => 'రాత్రి 8 నుంచి ఉదయం 6 వరకు రాత్రి రూపం';
+
+  @override
+  String get readingKeepAwakeTitle => 'చదివేటప్పుడు స్క్రీన్ ఆన్‌లో ఉంచు';
+
+  @override
+  String get readingLookLabel => 'రూపం';
+
+  @override
+  String get readingLookMatchApp => 'యాప్ లాగా';
+
+  @override
+  String get readingLookWarmPaper => 'వెచ్చని కాగితం';
+
+  @override
+  String get readingLookSepia => 'సెపియా';
+
+  @override
+  String get readingLookMist => 'మంచు';
+
+  @override
+  String get readingLookDusk => 'సంధ్య';
+
+  @override
+  String get readingLookNight => 'రాత్రి';
 
   @override
   String get readingFontSizeExtraLarge => 'చాలా పెద్దది';

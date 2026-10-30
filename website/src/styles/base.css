@@ -31,12 +31,11 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .skip-link { position: fixed; left: 12px; top: -60px; z-index: 200; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; transition: top .2s; }
 .skip-link:focus { top: 12px; }
 
-.page { width: min(var(--page-w), 100% - 40px); margin-inline: auto; }
-.page-read { width: min(1560px, 100% - 48px); margin-inline: auto; }
-.page-narrow { width: min(var(--read-w), 100% - 32px); margin-inline: auto; }
+.page { width: min(var(--page-w), 100% - 2 * var(--gutter)); margin-inline: auto; }
+.page-read { width: min(1560px, 100% - 2 * var(--gutter)); margin-inline: auto; }
+.page-narrow { width: min(var(--read-w), 100% - 2 * var(--gutter)); margin-inline: auto; }
 .main { min-height: 70vh; padding-bottom: calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) { .main { padding-bottom: 0; } }
-@media (max-width: 480px) { .page, .page-narrow { width: calc(100% - 28px); } }
 
 .eyebrow { font-size: .74rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); }
 .deva { font-family: var(--deva); }

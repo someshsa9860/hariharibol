@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'reading_themes.dart';
+
 /// How large the reading screen sets its verse and translation text, on top
 /// of the base sizes below — a device preference, not a per-book setting; see
 /// `providers/reading_prefs_provider.dart`.
@@ -94,7 +96,7 @@ abstract final class AppTypography {
     return base.copyWith(
       fontFamily: null,
       fontSize: (size ?? base.fontSize ?? 16) * scale,
-      height: 1.9,
+      height: 1.9 * ReadingLayout.lineScaleOf(context),
       fontWeight: FontWeight.w500,
     );
   }
@@ -109,7 +111,7 @@ abstract final class AppTypography {
     return base.copyWith(
       fontFamily: null,
       fontSize: 17 * scale,
-      height: 1.7,
+      height: 1.7 * ReadingLayout.lineScaleOf(context),
       fontWeight: FontWeight.w400,
       fontStyle: FontStyle.normal,
       letterSpacing: 0.1,

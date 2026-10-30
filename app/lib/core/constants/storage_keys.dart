@@ -58,6 +58,10 @@ abstract final class BoxKeys {
   /// time alone, which saves the battery. Absent means the microphone.
   static const String autoChantMicrophone = 'settings.auto_chant_microphone';
 
+  /// Whether the chanting page moves less: no bead ripple, no quote fade, and the
+  /// counter and recording update less often. Absent means off.
+  static const String chantBatterySaver = 'settings.chant_battery_saver';
+
   /// How long one chant of a mantra takes this reader, in milliseconds — set with
   /// the shorter / longer buttons or learned from a finished round. One key per
   /// mantra; absent means the mantra's standard time.
@@ -77,6 +81,16 @@ abstract final class BoxKeys {
   static const String languageReading = 'settings.language.reading';
   static const String languageSpeaking = 'settings.language.speaking';
   static const String readingFontSize = 'settings.reading_font_size';
+
+  /// The reading page's look (`ReadingLook` name). One answer for every book,
+  /// on this device, like the font size.
+  static const String readingLook = 'settings.reading_look';
+  static const String readingLineSpacing = 'settings.reading_line_spacing';
+  static const String readingMargins = 'settings.reading_margins';
+  static const String readingTint = 'settings.reading_tint';
+  static const String readingDim = 'settings.reading_dim';
+  static const String readingAutoNight = 'settings.reading_auto_night';
+  static const String readingKeepAwake = 'settings.reading_keep_awake';
 
   /// Whether each verse's "Word meanings" is left open. One answer for every
   /// verse, the way the font size is: someone who studies word by word wants it
