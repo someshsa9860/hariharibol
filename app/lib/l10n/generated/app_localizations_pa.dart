@@ -548,6 +548,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get chantBatterySaverOff => 'ਆਮ ਐਨੀਮੇਸ਼ਨ ਅਤੇ ਅੱਪਡੇਟ';
 
   @override
+  String get chantAudioChannel => 'ਜਾਪ ਆਡੀਓ';
+
+  @override
   String get chantPaceTitle => 'ਇੱਕ ਜਪ ਦਾ ਸਮਾਂ';
 
   @override

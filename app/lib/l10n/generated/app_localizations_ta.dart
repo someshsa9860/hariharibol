@@ -554,6 +554,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantBatterySaverOff => 'வழக்கமான அனிமேஷன் மற்றும் புதுப்பிப்பு';
 
   @override
+  String get chantAudioChannel => 'ஜப ஒலி';
+
+  @override
   String get chantPaceTitle => 'ஒரு ஜபத்தின் நேரம்';
 
   @override

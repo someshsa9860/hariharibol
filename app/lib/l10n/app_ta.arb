@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "பேட்டரி சேமிப்பு",
   "chantBatterySaverOn": "குறைந்த அனிமேஷன், குறைந்த திரை புதுப்பிப்பு",
   "chantBatterySaverOff": "வழக்கமான அனிமேஷன் மற்றும் புதுப்பிப்பு",
+  "chantAudioChannel": "ஜப ஒலி",
   "chantPaceTitle": "ஒரு ஜபத்தின் நேரம்",
   "chantPaceSummary": "ஒன்றுக்கு {seconds} வி · ஒரு மாலைக்கு சுமார் {round}",
   "chantPaceShorter": "ஜப நேரத்தைக் குறைக்கவும்",

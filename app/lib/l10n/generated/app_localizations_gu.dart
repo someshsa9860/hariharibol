@@ -546,6 +546,9 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantBatterySaverOff => 'સામાન્ય એનિમેશન અને અપડેટ';
 
   @override
+  String get chantAudioChannel => 'જાપ ઑડિયો';
+
+  @override
   String get chantPaceTitle => 'એક જપનો સમય';
 
   @override

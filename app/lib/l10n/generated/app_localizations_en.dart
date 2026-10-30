@@ -546,6 +546,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantBatterySaverOff => 'Animations and updates as usual';
 
   @override
+  String get chantAudioChannel => 'Chanting audio';
+
+  @override
   String get chantPaceTitle => 'Time for one chant';
 
   @override

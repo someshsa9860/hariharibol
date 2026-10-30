@@ -364,6 +364,7 @@
   "chantBatterySaverTitle": "Battery saver",
   "chantBatterySaverOn": "Fewer animations and screen updates",
   "chantBatterySaverOff": "Animations and updates as usual",
+  "chantAudioChannel": "Chanting audio",
   "chantPaceTitle": "Time for one chant",
   "chantPaceSummary": "{seconds}s each · about {round} a round",
   "@chantPaceSummary": {

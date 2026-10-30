@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "ಬ್ಯಾಟರಿ ಉಳಿತಾಯ",
   "chantBatterySaverOn": "ಕಡಿಮೆ ಅನಿಮೇಷನ್ ಮತ್ತು ಕಡಿಮೆ ಪರದೆ ನವೀಕರಣ",
   "chantBatterySaverOff": "ಸಾಮಾನ್ಯ ಅನಿಮೇಷನ್ ಮತ್ತು ನವೀಕರಣ",
+  "chantAudioChannel": "ಜಪ ಆಡಿಯೊ",
   "chantPaceTitle": "ಒಂದು ಜಪದ ಸಮಯ",
   "chantPaceSummary": "ಒಂದಕ್ಕೆ {seconds} ಸೆ · ಒಂದು ಮಾಲೆಗೆ ಸುಮಾರು {round}",
   "chantPaceShorter": "ಜಪದ ಸಮಯ ಕಡಿಮೆ ಮಾಡಿ",

@@ -548,6 +548,9 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chantBatterySaverOff => 'ସାଧାରଣ ଆନିମେସନ୍ ଓ ଅପଡେଟ୍';
 
   @override
+  String get chantAudioChannel => 'ଜପ ଅଡିଓ';
+
+  @override
   String get chantPaceTitle => 'ଏକ ଜପର ସମୟ';
 
   @override

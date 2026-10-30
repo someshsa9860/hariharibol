@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "ബാറ്ററി ലാഭം",
   "chantBatterySaverOn": "കുറഞ്ഞ ആനിമേഷനും കുറഞ്ഞ സ്ക്രീൻ അപ്‌ഡേറ്റും",
   "chantBatterySaverOff": "സാധാരണ ആനിമേഷനും അപ്‌ഡേറ്റും",
+  "chantAudioChannel": "ജപ ശബ്ദം",
   "chantPaceTitle": "ഒരു ജപത്തിന്റെ സമയം",
   "chantPaceSummary": "ഓരോന്നിനും {seconds} സെക്കൻഡ് · ഒരു മാലയ്ക്ക് ഏകദേശം {round}",
   "chantPaceShorter": "ജപസമയം കുറയ്ക്കുക",

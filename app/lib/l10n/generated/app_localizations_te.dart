@@ -553,6 +553,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantBatterySaverOff => 'సాధారణ యానిమేషన్లు, అప్‌డేట్లు';
 
   @override
+  String get chantAudioChannel => 'జప ఆడియో';
+
+  @override
   String get chantPaceTitle => 'ఒక జపానికి పట్టే సమయం';
 
   @override

@@ -22,8 +22,10 @@ import '../../providers/chant_battery_saver_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/language_chain_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/audio/media_session.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
+import '../../services/chant_media_source.dart';
 import '../../services/chant_pace.dart';
 import '../../services/chant_progress_store.dart';
 import '../../services/chant_recorder.dart';
@@ -190,6 +192,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
   /// Null when the mantra has no recording of a mala to chant along to.
   ChantMalaPlayer? _mala;
+  ChantMediaSource? _chantMedia;
   StreamSubscription<int>? _malaChantsSub;
 
   /// The recording is playing: auto count rests and its switch cannot be turned.
@@ -306,6 +309,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
+  /// Puts the recording on the lock screen and in the background, as its
+  /// play button starts it.
+  Future<void> _startChantMedia() async {
+    final source = _chantMedia;
+    if (!mounted || source == null) return;
+    await startChantMedia(source, channelName: AppLocalizations.of(context).chantAudioChannel);
+  }
+
   void _initMala() {
     final mantra = widget.mantra;
     if (mantra == null || !mantra.hasMalaAudio) return;
@@ -323,8 +334,13 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
       positionTick: ref.read(chantBatterySaverProvider)
           ? ChantAudioConfig.batterySaverPositionTick
           : ChantAudioConfig.positionTick,
+      // The saver lets the screen sleep while the recording plays; the media
+      // session keeps the audio going, and the lock-screen controls show.
+      keepScreenOn: !ref.read(chantBatterySaverProvider),
+      onStart: _startChantMedia,
     );
     _mala = player;
+    _chantMedia = ChantMediaSource(player, title: mantra.name);
     _malaChantsSub = player.chantsCompleted.listen((chants) {
       if (_inPrayer) return;
       // The recording sets the pace of these chants, not the reader.
@@ -432,6 +448,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantRepetitionSub?.cancel();
     _malaChantsSub?.cancel();
     _mala?.state.removeListener(_onMalaState);
+    final chantMedia = _chantMedia;
+    if (chantMedia != null) MediaSessionService.release(chantMedia);
+    chantMedia?.dispose();
     unawaited(_mala?.dispose());
     unawaited(_autoChant?.dispose());
     // Best effort: dispose cannot be awaited, so a sync already in flight or

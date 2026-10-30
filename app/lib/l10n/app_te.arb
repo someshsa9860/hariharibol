@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "బ్యాటరీ ఆదా",
   "chantBatterySaverOn": "తక్కువ యానిమేషన్లు, తక్కువ స్క్రీన్ అప్‌డేట్లు",
   "chantBatterySaverOff": "సాధారణ యానిమేషన్లు, అప్‌డేట్లు",
+  "chantAudioChannel": "జప ఆడియో",
   "chantPaceTitle": "ఒక జపానికి పట్టే సమయం",
   "chantPaceSummary": "ఒక్కొక్కటికి {seconds} సె · ఒక మాలకు సుమారు {round}",
   "chantPaceShorter": "జప సమయం తగ్గించండి",

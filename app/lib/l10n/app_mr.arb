@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "बॅटरी बचत",
   "chantBatterySaverOn": "कमी अॅनिमेशन आणि कमी स्क्रीन अपडेट",
   "chantBatterySaverOff": "नेहमीप्रमाणे अॅनिमेशन आणि अपडेट",
+  "chantAudioChannel": "जप आवाज",
   "chantPaceTitle": "एका जपाचा वेळ",
   "chantPaceSummary": "प्रत्येकी {seconds} सेकंद · एका माळेला सुमारे {round}",
   "chantPaceShorter": "जपाचा वेळ कमी करा",

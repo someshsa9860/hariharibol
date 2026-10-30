@@ -550,6 +550,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get chantBatterySaverOff => 'ಸಾಮಾನ್ಯ ಅನಿಮೇಷನ್ ಮತ್ತು ನವೀಕರಣ';
 
   @override
+  String get chantAudioChannel => 'ಜಪ ಆಡಿಯೊ';
+
+  @override
   String get chantPaceTitle => 'ಒಂದು ಜಪದ ಸಮಯ';
 
   @override

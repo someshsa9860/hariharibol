@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "બેટરી બચત",
   "chantBatterySaverOn": "ઓછા એનિમેશન અને ઓછા સ્ક્રીન અપડેટ",
   "chantBatterySaverOff": "સામાન્ય એનિમેશન અને અપડેટ",
+  "chantAudioChannel": "જાપ ઑડિયો",
   "chantPaceTitle": "એક જપનો સમય",
   "chantPaceSummary": "દરેક {seconds} સેકન્ડ · એક માળા લગભગ {round}",
   "chantPaceShorter": "જપનો સમય ઘટાડો",

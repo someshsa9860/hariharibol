@@ -143,6 +143,7 @@
   "chantBatterySaverTitle": "বেটাৰী সঞ্চয়",
   "chantBatterySaverOn": "কম এনিমেশন আৰু কম স্ক্ৰীন আপডেট",
   "chantBatterySaverOff": "সাধাৰণ এনিমেশন আৰু আপডেট",
+  "chantAudioChannel": "জপৰ শব্দ",
   "chantPaceTitle": "এটা জপৰ সময়",
   "chantPaceSummary": "প্ৰতিটোৰ বাবে {seconds} ছেকেণ্ড · এটা মালাত প্ৰায় {round}",
   "chantPaceShorter": "জপৰ সময় কমাওক",

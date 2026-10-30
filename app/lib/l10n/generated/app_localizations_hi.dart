@@ -546,6 +546,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chantBatterySaverOff => 'सामान्य एनिमेशन और अपडेट';
 
   @override
+  String get chantAudioChannel => 'जप की आवाज़';
+
+  @override
   String get chantPaceTitle => 'एक जप का समय';
 
   @override

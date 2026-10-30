@@ -550,6 +550,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chantBatterySaverOff => 'স্বাভাবিক অ্যানিমেশন ও আপডেট';
 
   @override
+  String get chantAudioChannel => 'জপের অডিও';
+
+  @override
   String get chantPaceTitle => 'এক জপের সময়';
 
   @override

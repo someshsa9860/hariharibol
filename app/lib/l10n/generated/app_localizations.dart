@@ -976,6 +976,9 @@ abstract class AppLocalizations {
   /// **'Animations and updates as usual'**
   String get chantBatterySaverOff;
 
+  /// No description provided for @chantAudioChannel.
+  String get chantAudioChannel;
+
   /// No description provided for @chantPaceTitle.
   ///
   /// In en, this message translates to:
