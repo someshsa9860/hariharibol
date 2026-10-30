@@ -959,12 +959,21 @@ abstract class AppLocalizations {
   String get chantAutoMicOff;
 
   /// No description provided for @chantBatterySaverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saver'**
   String get chantBatterySaverTitle;
 
   /// No description provided for @chantBatterySaverOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer animations and screen updates'**
   String get chantBatterySaverOn;
 
   /// No description provided for @chantBatterySaverOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Animations and updates as usual'**
   String get chantBatterySaverOff;
 
   /// No description provided for @chantPaceTitle.

@@ -481,10 +481,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get chantFullPicture => 'পূর্ণ পর্দার ছবি';
 
   @override
-  String get chantPrayerHintAlong => 'রেকর্ডিং আপনার সঙ্গে এই প্রার্থনা করে। শুরু করতে প্লে চাপুন।';
+  String get chantPrayerHintAlong =>
+      'রেকর্ডিং আপনার সঙ্গে এই প্রার্থনা করে। শুরু করতে প্লে চাপুন।';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'আগে এই প্রার্থনা করুন, তারপর রেকর্ডিং শুরু করতে প্লে চাপুন।';
+  String get chantPrayerHintAlongNoPrayer =>
+      'আগে এই প্রার্থনা করুন, তারপর রেকর্ডিং শুরু করতে প্লে চাপুন।';
 
   @override
   String get chantAutoCountResting => 'রেকর্ডিং চলাকালীন বিশ্রামে';

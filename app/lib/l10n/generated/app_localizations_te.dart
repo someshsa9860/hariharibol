@@ -480,10 +480,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantFullPicture => 'పూర్తి స్క్రీన్ చిత్రం';
 
   @override
-  String get chantPrayerHintAlong => 'రికార్డింగ్ మీతో కలిసి ఈ ప్రార్థన చెబుతుంది. ప్రారంభించడానికి ప్లే నొక్కండి.';
+  String get chantPrayerHintAlong =>
+      'రికార్డింగ్ మీతో కలిసి ఈ ప్రార్థన చెబుతుంది. ప్రారంభించడానికి ప్లే నొక్కండి.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్రారంభించడానికి ప్లే నొక్కండి.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'ముందు ఈ ప్రార్థన చేయండి, ఆపై రికార్డింగ్ ప్రారంభించడానికి ప్లే నొక్కండి.';
 
   @override
   String get chantAutoCountResting => 'రికార్డింగ్ నడిచే వరకు విశ్రాంతిలో';
@@ -544,7 +546,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get chantBatterySaverTitle => 'బ్యాటరీ ఆదా';
 
   @override
-  String get chantBatterySaverOn => 'తక్కువ యానిమేషన్లు, తక్కువ స్క్రీన్ అప్‌డేట్లు';
+  String get chantBatterySaverOn =>
+      'తక్కువ యానిమేషన్లు, తక్కువ స్క్రీన్ అప్‌డేట్లు';
 
   @override
   String get chantBatterySaverOff => 'సాధారణ యానిమేషన్లు, అప్‌డేట్లు';
