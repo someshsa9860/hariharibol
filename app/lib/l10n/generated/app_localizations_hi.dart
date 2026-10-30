@@ -535,6 +535,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chantAutoMicOff => 'इसके बजाय समय से गिनता है — बैटरी बचती है';
 
   @override
+  String get chantBatterySaverTitle => 'बैटरी बचत';
+
+  @override
+  String get chantBatterySaverOn => 'कम एनिमेशन और कम स्क्रीन अपडेट';
+
+  @override
+  String get chantBatterySaverOff => 'सामान्य एनिमेशन और अपडेट';
+
+  @override
   String get chantPaceTitle => 'एक जप का समय';
 
   @override

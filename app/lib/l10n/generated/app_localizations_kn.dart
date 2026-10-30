@@ -539,6 +539,15 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಬದಲಿಗೆ ಸಮಯದಿಂದ ಎಣಿಸುತ್ತದೆ — ಬ್ಯಾಟರಿ ಉಳಿಯುತ್ತದೆ';
 
   @override
+  String get chantBatterySaverTitle => 'ಬ್ಯಾಟರಿ ಉಳಿತಾಯ';
+
+  @override
+  String get chantBatterySaverOn => 'ಕಡಿಮೆ ಅನಿಮೇಷನ್ ಮತ್ತು ಕಡಿಮೆ ಪರದೆ ನವೀಕರಣ';
+
+  @override
+  String get chantBatterySaverOff => 'ಸಾಮಾನ್ಯ ಅನಿಮೇಷನ್ ಮತ್ತು ನವೀಕರಣ';
+
+  @override
   String get chantPaceTitle => 'ಒಂದು ಜಪದ ಸಮಯ';
 
   @override

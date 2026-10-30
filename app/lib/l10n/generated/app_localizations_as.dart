@@ -541,6 +541,15 @@ class AppLocalizationsAs extends AppLocalizations {
       'ইয়াৰ সলনি সময় অনুসৰি গণনা কৰে — বেটাৰী ৰাহি হয়';
 
   @override
+  String get chantBatterySaverTitle => 'বেটাৰী সঞ্চয়';
+
+  @override
+  String get chantBatterySaverOn => 'কম এনিমেশন আৰু কম স্ক্ৰীন আপডেট';
+
+  @override
+  String get chantBatterySaverOff => 'সাধাৰণ এনিমেশন আৰু আপডেট';
+
+  @override
   String get chantPaceTitle => 'এটা জপৰ সময়';
 
   @override

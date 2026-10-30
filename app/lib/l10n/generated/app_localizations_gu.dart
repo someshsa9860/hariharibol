@@ -535,6 +535,15 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantAutoMicOff => 'તેના બદલે સમય પ્રમાણે ગણે છે — બેટરી બચે છે';
 
   @override
+  String get chantBatterySaverTitle => 'બેટરી બચત';
+
+  @override
+  String get chantBatterySaverOn => 'ઓછા એનિમેશન અને ઓછા સ્ક્રીન અપડેટ';
+
+  @override
+  String get chantBatterySaverOff => 'સામાન્ય એનિમેશન અને અપડેટ';
+
+  @override
   String get chantPaceTitle => 'એક જપનો સમય';
 
   @override

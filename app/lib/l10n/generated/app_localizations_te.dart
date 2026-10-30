@@ -541,6 +541,15 @@ class AppLocalizationsTe extends AppLocalizations {
       'బదులుగా సమయం ప్రకారం లెక్కిస్తుంది — బ్యాటరీ ఆదా అవుతుంది';
 
   @override
+  String get chantBatterySaverTitle => 'బ్యాటరీ ఆదా';
+
+  @override
+  String get chantBatterySaverOn => 'తక్కువ యానిమేషన్లు, తక్కువ స్క్రీన్ అప్‌డేట్లు';
+
+  @override
+  String get chantBatterySaverOff => 'సాధారణ యానిమేషన్లు, అప్‌డేట్లు';
+
+  @override
   String get chantPaceTitle => 'ఒక జపానికి పట్టే సమయం';
 
   @override

@@ -535,6 +535,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantAutoMicOff => 'Counts by time instead — saves battery';
 
   @override
+  String get chantBatterySaverTitle => 'Battery saver';
+
+  @override
+  String get chantBatterySaverOn => 'Fewer animations and screen updates';
+
+  @override
+  String get chantBatterySaverOff => 'Animations and updates as usual';
+
+  @override
   String get chantPaceTitle => 'Time for one chant';
 
   @override

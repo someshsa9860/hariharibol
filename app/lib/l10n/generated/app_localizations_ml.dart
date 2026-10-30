@@ -544,6 +544,15 @@ class AppLocalizationsMl extends AppLocalizations {
       'പകരം സമയം അനുസരിച്ച് എണ്ണുന്നു — ബാറ്ററി ലാഭിക്കാം';
 
   @override
+  String get chantBatterySaverTitle => 'ബാറ്ററി ലാഭം';
+
+  @override
+  String get chantBatterySaverOn => 'കുറഞ്ഞ ആനിമേഷനും കുറഞ്ഞ സ്ക്രീൻ അപ്‌ഡേറ്റും';
+
+  @override
+  String get chantBatterySaverOff => 'സാധാരണ ആനിമേഷനും അപ്‌ഡേറ്റും';
+
+  @override
   String get chantPaceTitle => 'ഒരു ജപത്തിന്റെ സമയം';
 
   @override

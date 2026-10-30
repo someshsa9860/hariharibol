@@ -958,6 +958,15 @@ abstract class AppLocalizations {
   /// **'Counts by time instead — saves battery'**
   String get chantAutoMicOff;
 
+  /// No description provided for @chantBatterySaverTitle.
+  String get chantBatterySaverTitle;
+
+  /// No description provided for @chantBatterySaverOn.
+  String get chantBatterySaverOn;
+
+  /// No description provided for @chantBatterySaverOff.
+  String get chantBatterySaverOff;
+
   /// No description provided for @chantPaceTitle.
   ///
   /// In en, this message translates to:

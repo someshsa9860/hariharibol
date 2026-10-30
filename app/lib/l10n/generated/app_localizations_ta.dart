@@ -542,6 +542,15 @@ class AppLocalizationsTa extends AppLocalizations {
       'அதற்குப் பதிலாக நேரத்தால் எண்ணும் — பேட்டரி மிச்சமாகும்';
 
   @override
+  String get chantBatterySaverTitle => 'பேட்டரி சேமிப்பு';
+
+  @override
+  String get chantBatterySaverOn => 'குறைந்த அனிமேஷன், குறைந்த திரை புதுப்பிப்பு';
+
+  @override
+  String get chantBatterySaverOff => 'வழக்கமான அனிமேஷன் மற்றும் புதுப்பிப்பு';
+
+  @override
   String get chantPaceTitle => 'ஒரு ஜபத்தின் நேரம்';
 
   @override

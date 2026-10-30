@@ -44,9 +44,17 @@ class ChantMalaPlayerState {
 /// this class is only the player around them. [chantsCompleted] emits how many
 /// chants just finished — one at a time while playing normally.
 class ChantMalaPlayer {
-  ChantMalaPlayer({required this._url, required this.timing, this.refreshUrl, AudioPlayer? player})
-    : _player = player ?? AudioPlayer(),
-      _follower = ChantMalaFollower(timing, continuousStep: ChantAudioConfig.continuousStep);
+  ChantMalaPlayer({
+    required this._url,
+    required this.timing,
+    this.refreshUrl,
+    AudioPlayer? player,
+    this.positionTick = ChantAudioConfig.positionTick,
+  }) : _player = player ?? AudioPlayer(),
+       _follower = ChantMalaFollower(timing, continuousStep: ChantAudioConfig.continuousStep);
+
+  /// How often the playback position is read (see [ChantAudioConfig]).
+  final Duration positionTick;
 
   final ChantMalaTiming timing;
 
@@ -104,8 +112,8 @@ class ChantMalaPlayer {
       ..add(
         _player
             .createPositionStream(
-              minPeriod: ChantAudioConfig.positionTick,
-              maxPeriod: ChantAudioConfig.positionTick,
+              minPeriod: positionTick,
+              maxPeriod: positionTick,
             )
             .listen(_onPosition),
       )

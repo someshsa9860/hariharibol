@@ -361,6 +361,9 @@
   "chantAutoMicTitle": "Use the microphone",
   "chantAutoMicOn": "Listens to your chanting",
   "chantAutoMicOff": "Counts by time instead — saves battery",
+  "chantBatterySaverTitle": "Battery saver",
+  "chantBatterySaverOn": "Fewer animations and screen updates",
+  "chantBatterySaverOff": "Animations and updates as usual",
   "chantPaceTitle": "Time for one chant",
   "chantPaceSummary": "{seconds}s each · about {round} a round",
   "@chantPaceSummary": {

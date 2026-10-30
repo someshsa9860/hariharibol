@@ -58,6 +58,10 @@ abstract final class BoxKeys {
   /// time alone, which saves the battery. Absent means the microphone.
   static const String autoChantMicrophone = 'settings.auto_chant_microphone';
 
+  /// Whether the chanting page moves less: no bead ripple, no quote fade, and the
+  /// counter and recording update less often. Absent means off.
+  static const String chantBatterySaver = 'settings.chant_battery_saver';
+
   /// How long one chant of a mantra takes this reader, in milliseconds — set with
   /// the shorter / longer buttons or learned from a finished round. One key per
   /// mantra; absent means the mantra's standard time.
