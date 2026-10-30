@@ -478,10 +478,12 @@ class AppLocalizationsGu extends AppLocalizations {
   String get chantFullPicture => 'પૂર્ણ સ્ક્રીન ચિત્ર';
 
   @override
-  String get chantPrayerHintAlong => 'રેકોર્ડિંગ તમારી સાથે આ પ્રાર્થના કરે છે. શરૂ કરવા પ્લે દબાવો.';
+  String get chantPrayerHintAlong =>
+      'રેકોર્ડિંગ તમારી સાથે આ પ્રાર્થના કરે છે. શરૂ કરવા પ્લે દબાવો.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'પહેલાં આ પ્રાર્થના કરો, પછી રેકોર્ડિંગ શરૂ કરવા પ્લે દબાવો.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'પહેલાં આ પ્રાર્થના કરો, પછી રેકોર્ડિંગ શરૂ કરવા પ્લે દબાવો.';
 
   @override
   String get chantAutoCountResting => 'રેકોર્ડિંગ ચાલે ત્યાં સુધી વિરામમાં';
@@ -533,6 +535,18 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'તેના બદલે સમય પ્રમાણે ગણે છે — બેટરી બચે છે';
+
+  @override
+  String get chantBatterySaverTitle => 'બેટરી બચત';
+
+  @override
+  String get chantBatterySaverOn => 'ઓછા એનિમેશન અને ઓછા સ્ક્રીન અપડેટ';
+
+  @override
+  String get chantBatterySaverOff => 'સામાન્ય એનિમેશન અને અપડેટ';
+
+  @override
+  String get chantAudioChannel => 'જાપ ઑડિયો';
 
   @override
   String get chantPaceTitle => 'એક જપનો સમય';

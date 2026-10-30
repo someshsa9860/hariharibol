@@ -481,10 +481,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chantFullPicture => 'முழுத்திரை படம்';
 
   @override
-  String get chantPrayerHintAlong => 'பதிவு உங்களுடன் இந்தப் பிரார்த்தனையைச் சொல்கிறது. தொடங்க இயக்கு என்பதை அழுத்தவும்.';
+  String get chantPrayerHintAlong =>
+      'பதிவு உங்களுடன் இந்தப் பிரார்த்தனையைச் சொல்கிறது. தொடங்க இயக்கு என்பதை அழுத்தவும்.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'முதலில் இந்தப் பிரார்த்தனையைச் செய்யுங்கள், பிறகு பதிவைத் தொடங்க இயக்கு என்பதை அழுத்தவும்.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'முதலில் இந்தப் பிரார்த்தனையைச் செய்யுங்கள், பிறகு பதிவைத் தொடங்க இயக்கு என்பதை அழுத்தவும்.';
 
   @override
   String get chantAutoCountResting => 'பதிவு ஓடும்போது ஓய்வில்';
@@ -540,6 +542,19 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get chantAutoMicOff =>
       'அதற்குப் பதிலாக நேரத்தால் எண்ணும் — பேட்டரி மிச்சமாகும்';
+
+  @override
+  String get chantBatterySaverTitle => 'பேட்டரி சேமிப்பு';
+
+  @override
+  String get chantBatterySaverOn =>
+      'குறைந்த அனிமேஷன், குறைந்த திரை புதுப்பிப்பு';
+
+  @override
+  String get chantBatterySaverOff => 'வழக்கமான அனிமேஷன் மற்றும் புதுப்பிப்பு';
+
+  @override
+  String get chantAudioChannel => 'ஜப ஒலி';
 
   @override
   String get chantPaceTitle => 'ஒரு ஜபத்தின் நேரம்';

@@ -479,10 +479,12 @@ class AppLocalizationsMr extends AppLocalizations {
   String get chantFullPicture => 'पूर्ण स्क्रीन चित्र';
 
   @override
-  String get chantPrayerHintAlong => 'रेकॉर्डिंग तुमच्यासोबत ही प्रार्थना म्हणते. सुरू करण्यासाठी प्ले दाबा.';
+  String get chantPrayerHintAlong =>
+      'रेकॉर्डिंग तुमच्यासोबत ही प्रार्थना म्हणते. सुरू करण्यासाठी प्ले दाबा.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'आधी ही प्रार्थना करा, मग रेकॉर्डिंग सुरू करण्यासाठी प्ले दाबा.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'आधी ही प्रार्थना करा, मग रेकॉर्डिंग सुरू करण्यासाठी प्ले दाबा.';
 
   @override
   String get chantAutoCountResting => 'रेकॉर्डिंग चालू असेपर्यंत विश्रांतीत';
@@ -534,6 +536,18 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'त्याऐवजी वेळेनुसार मोजते — बॅटरी वाचते';
+
+  @override
+  String get chantBatterySaverTitle => 'बॅटरी बचत';
+
+  @override
+  String get chantBatterySaverOn => 'कमी अॅनिमेशन आणि कमी स्क्रीन अपडेट';
+
+  @override
+  String get chantBatterySaverOff => 'नेहमीप्रमाणे अॅनिमेशन आणि अपडेट';
+
+  @override
+  String get chantAudioChannel => 'जप आवाज';
 
   @override
   String get chantPaceTitle => 'एका जपाचा वेळ';

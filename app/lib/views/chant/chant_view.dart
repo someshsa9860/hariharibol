@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/constants/chant_audio_config.dart';
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
 import '../../core/constants/sadhana_config.dart';
@@ -17,11 +18,14 @@ import '../../models/mantra.dart';
 import '../../models/reference_item.dart';
 import '../../models/sadhana.dart';
 import '../../providers/chant_audio_provider.dart';
+import '../../providers/chant_battery_saver_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/language_chain_provider.dart';
 import '../../providers/sadhana_provider.dart';
+import '../../services/audio/media_session.dart';
 import '../../services/chant_mala_player.dart';
 import '../../services/chant_mala_timing.dart';
+import '../../services/chant_media_source.dart';
 import '../../services/chant_pace.dart';
 import '../../services/chant_progress_store.dart';
 import '../../services/chant_recorder.dart';
@@ -98,6 +102,10 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   /// How often the two clocks redraw. They show whole seconds, so anything
   /// faster is repaint work nobody can see.
   static const Duration _clockTick = Duration(milliseconds: 500);
+
+  /// The header's clock with the battery saver on: it shows whole seconds, so a
+  /// half-second tick would only wake the phone for nothing.
+  static const Duration _clockTickBatterySaver = Duration(seconds: 1);
 
   /// What the day's own beads-per-round says, fixed for the sitting so a value
   /// changing under a ring mid-count never happens.
@@ -184,6 +192,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
 
   /// Null when the mantra has no recording of a mala to chant along to.
   ChantMalaPlayer? _mala;
+  ChantMediaSource? _chantMedia;
   StreamSubscription<int>? _malaChantsSub;
 
   /// The recording is playing: auto count rests and its switch cannot be turned.
@@ -248,7 +257,20 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _initMala();
 
     _stopwatch.start();
-    _clockTicker = Timer.periodic(_clockTick, (_) => _clock.value += 1);
+    _startClock();
+  }
+
+  void _startClock() {
+    _clockTicker?.cancel();
+    final tick = ref.read(chantBatterySaverProvider) ? _clockTickBatterySaver : _clockTick;
+    _clockTicker = Timer.periodic(tick, (_) => _clock.value += 1);
+  }
+
+  /// The battery saver switch. The clock is restarted at the new rate, and a
+  /// recording that opens after this one uses the new position rate.
+  void _toggleBatterySaver(bool on) {
+    unawaited(ref.read(chantBatterySaverProvider.notifier).set(on));
+    _startClock();
   }
 
   void _initPace() {
@@ -287,6 +309,14 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     }
   }
 
+  /// Puts the recording on the lock screen and in the background, as its
+  /// play button starts it.
+  Future<void> _startChantMedia() async {
+    final source = _chantMedia;
+    if (!mounted || source == null) return;
+    await startChantMedia(source, channelName: AppLocalizations.of(context).chantAudioChannel);
+  }
+
   void _initMala() {
     final mantra = widget.mantra;
     if (mantra == null || !mantra.hasMalaAudio) return;
@@ -301,8 +331,16 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
         chants: _beadsPerRoundInUse,
       ),
       player: ref.read(malaAudioPlayerProvider)(),
+      positionTick: ref.read(chantBatterySaverProvider)
+          ? ChantAudioConfig.batterySaverPositionTick
+          : ChantAudioConfig.positionTick,
+      // The saver lets the screen sleep while the recording plays; the media
+      // session keeps the audio going, and the lock-screen controls show.
+      keepScreenOn: !ref.read(chantBatterySaverProvider),
+      onStart: _startChantMedia,
     );
     _mala = player;
+    _chantMedia = ChantMediaSource(player, title: mantra.name);
     _malaChantsSub = player.chantsCompleted.listen((chants) {
       if (_inPrayer) return;
       // The recording sets the pace of these chants, not the reader.
@@ -410,6 +448,9 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
     _autoChantRepetitionSub?.cancel();
     _malaChantsSub?.cancel();
     _mala?.state.removeListener(_onMalaState);
+    final chantMedia = _chantMedia;
+    if (chantMedia != null) MediaSessionService.release(chantMedia);
+    chantMedia?.dispose();
     unawaited(_mala?.dispose());
     unawaited(_autoChant?.dispose());
     // Best effort: dispose cannot be awaited, so a sync already in flight or
@@ -749,6 +790,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    final batterySaver = ref.watch(chantBatterySaverProvider);
     final title = widget.mantra?.name ?? text.sadhanaGenericChant;
     final deity = widget.mantra?.deity;
     final picture = _ringPicture(deity);
@@ -833,6 +875,7 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                 ] else
                 Center(
                   child: ChantDisc(
+                    batterySaver: batterySaver,
                     beadsInRound: _recorder.beadsInMala,
                     roundsCompleted: _totalRounds,
                     roundsLabel: text.sadhanaRoundsCaption,
@@ -860,6 +903,8 @@ class _ChantViewState extends ConsumerState<ChantView> with WidgetsBindingObserv
                     beadsPerRound: _beadsPerRoundInUse,
                     onAutoChanged: _toggleAutoChant,
                     onMicrophoneChanged: _toggleMicrophone,
+                    batterySaver: batterySaver,
+                    onBatterySaverChanged: _toggleBatterySaver,
                     onPaceChange: _changePace,
                     resting: _recordingPlaying,
                   ),

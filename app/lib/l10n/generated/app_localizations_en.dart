@@ -477,10 +477,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chantFullPicture => 'Full-screen picture';
 
   @override
-  String get chantPrayerHintAlong => 'The recording says this prayer with you. Press play to begin.';
+  String get chantPrayerHintAlong =>
+      'The recording says this prayer with you. Press play to begin.';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'Chant this prayer first, then press play to begin the recording.';
+  String get chantPrayerHintAlongNoPrayer =>
+      'Chant this prayer first, then press play to begin the recording.';
 
   @override
   String get chantAutoCountResting => 'Resting while the recording plays';
@@ -533,6 +535,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'Counts by time instead — saves battery';
+
+  @override
+  String get chantBatterySaverTitle => 'Battery saver';
+
+  @override
+  String get chantBatterySaverOn => 'Fewer animations and screen updates';
+
+  @override
+  String get chantBatterySaverOff => 'Animations and updates as usual';
+
+  @override
+  String get chantAudioChannel => 'Chanting audio';
 
   @override
   String get chantPaceTitle => 'Time for one chant';

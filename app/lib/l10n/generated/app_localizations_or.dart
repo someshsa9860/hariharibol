@@ -480,10 +480,12 @@ class AppLocalizationsOr extends AppLocalizations {
   String get chantFullPicture => 'ପୂର୍ଣ୍ଣ ସ୍କ୍ରିନ ଚିତ୍ର';
 
   @override
-  String get chantPrayerHintAlong => 'ରେକର୍ଡିଂ ଆପଣଙ୍କ ସହ ଏହି ପ୍ରାର୍ଥନା କହେ। ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+  String get chantPrayerHintAlong =>
+      'ରେକର୍ଡିଂ ଆପଣଙ୍କ ସହ ଏହି ପ୍ରାର୍ଥନା କହେ। ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
 
   @override
-  String get chantPrayerHintAlongNoPrayer => 'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ରେକର୍ଡିଂ ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+  String get chantPrayerHintAlongNoPrayer =>
+      'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ରେକର୍ଡିଂ ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
 
   @override
   String get chantAutoCountResting => 'ରେକର୍ଡିଂ ଚାଲିବା ପର୍ଯ୍ୟନ୍ତ ବିଶ୍ରାମରେ';
@@ -535,6 +537,18 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get chantAutoMicOff => 'ଏହା ବଦଳରେ ସମୟ ଅନୁସାରେ ଗଣେ — ବ୍ୟାଟେରୀ ବଞ୍ଚେ';
+
+  @override
+  String get chantBatterySaverTitle => 'ବ୍ୟାଟେରି ସଞ୍ଚୟ';
+
+  @override
+  String get chantBatterySaverOn => 'କମ୍ ଆନିମେସନ୍ ଓ କମ୍ ସ୍କ୍ରିନ୍ ଅପଡେଟ୍';
+
+  @override
+  String get chantBatterySaverOff => 'ସାଧାରଣ ଆନିମେସନ୍ ଓ ଅପଡେଟ୍';
+
+  @override
+  String get chantAudioChannel => 'ଜପ ଅଡିଓ';
 
   @override
   String get chantPaceTitle => 'ଏକ ଜପର ସମୟ';

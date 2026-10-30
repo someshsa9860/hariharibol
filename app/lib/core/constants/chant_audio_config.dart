@@ -6,6 +6,11 @@ abstract final class ChantAudioConfig {
   /// cheap enough to read all sitting.
   static const Duration positionTick = Duration(milliseconds: 100);
 
+  /// The same reading with the battery saver on: a quarter of a second. Still
+  /// inside a chant, so the count stays right, and the phone wakes a quarter as
+  /// often to read it.
+  static const Duration batterySaverPositionTick = Duration(milliseconds: 250);
+
   /// The most the position may move between two readings and still be
   /// listening. Anything further is a seek, and a seek must re-find its place
   /// in the count rather than count every chant it skipped (or repeated).

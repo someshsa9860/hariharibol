@@ -7,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/quote.dart';
+import '../../providers/chant_battery_saver_provider.dart';
 import '../../providers/quote_provider.dart';
 import '../../services/chant_quote_rotation.dart';
 import '../common/animations.dart';
@@ -52,6 +53,7 @@ class _ChantQuoteCardState extends ConsumerState<ChantQuoteCard> {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
     final quotes = ref.watch(chantQuotesProvider);
+    final batterySaver = ref.watch(chantBatterySaverProvider);
     final list = quotes.value ?? const <Quote>[];
 
     final Widget content;
@@ -89,7 +91,10 @@ class _ChantQuoteCardState extends ConsumerState<ChantQuoteCard> {
               constraints: const BoxConstraints(minHeight: ChantQuoteCard.minHeight),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: AnimatedSwitcher(duration: AppDurations.slow, child: content),
+                child: AnimatedSwitcher(
+                  duration: batterySaver ? Duration.zero : AppDurations.slow,
+                  child: content,
+                ),
               ),
             ),
           ),
