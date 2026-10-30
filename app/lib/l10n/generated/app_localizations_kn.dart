@@ -980,6 +980,27 @@ class AppLocalizationsKn extends AppLocalizations {
   String get readingFontSizeLarge => 'ದೊಡ್ಡದು';
 
   @override
+  String get readingLookLabel => 'ನೋಟ';
+
+  @override
+  String get readingLookMatchApp => 'ಆ್ಯಪ್‌ನಂತೆ';
+
+  @override
+  String get readingLookWarmPaper => 'ಬೆಚ್ಚಗಿನ ಕಾಗದ';
+
+  @override
+  String get readingLookSepia => 'ಸೆಪಿಯಾ';
+
+  @override
+  String get readingLookMist => 'ಮಂಜು';
+
+  @override
+  String get readingLookDusk => 'ಸಂಜೆ';
+
+  @override
+  String get readingLookNight => 'ರಾತ್ರಿ';
+
+  @override
   String get readingFontSizeExtraLarge => 'ತುಂಬಾ ದೊಡ್ಡದು';
 
   @override

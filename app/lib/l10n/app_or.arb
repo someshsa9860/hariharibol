@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "ବର୍ତ୍ତମାନ ପାଇଁ ଆପଣ ସୀମାରେ ପହଞ୍ଚିଛନ୍ତି। ଦୟାକରି ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
   "ownMantraErrorUnavailable": "ମନ୍ତ୍ର ଯୋଡ଼ିବା ବର୍ତ୍ତମାନ ଉପଲବ୍ଧ ନାହିଁ। ଦୟାକରି ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
   "ownMantraErrorLimit": "ଆପଣଙ୍କ ନିଜ ମନ୍ତ୍ର ତାଲିକା ପୂର୍ଣ୍ଣ ହୋଇଛି। ନୂଆ ଯୋଡ଼ିବାକୁ ଗୋଟିଏ ହଟାନ୍ତୁ।",
-  "ownMantraErrorExpired": "ଏହି ପରାମର୍ଶଗୁଡ଼ିକର ମିଆଦ ଶେଷ ହୋଇଛି। ଦୟାକରି ପୁଣି ଖୋଜନ୍ତୁ।"
+  "ownMantraErrorExpired": "ଏହି ପରାମର୍ଶଗୁଡ଼ିକର ମିଆଦ ଶେଷ ହୋଇଛି। ଦୟାକରି ପୁଣି ଖୋଜନ୍ତୁ।",
+  "readingLookLabel": "ରୂପ",
+  "readingLookMatchApp": "ଆପ ପରି",
+  "readingLookWarmPaper": "ଉଷ୍ମ କାଗଜ",
+  "readingLookSepia": "ସେପିଆ",
+  "readingLookMist": "କୁହୁଡ଼ି",
+  "readingLookDusk": "ସନ୍ଧ୍ୟା",
+  "readingLookNight": "ରାତି"
 }

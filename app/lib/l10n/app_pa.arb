@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "ਫ਼ਿਲਹਾਲ ਤੁਸੀਂ ਸੀਮਾ ਤੱਕ ਪਹੁੰਚ ਗਏ ਹੋ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
   "ownMantraErrorUnavailable": "ਮੰਤਰ ਸ਼ਾਮਲ ਕਰਨਾ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
   "ownMantraErrorLimit": "ਤੁਹਾਡੇ ਆਪਣੇ ਮੰਤਰਾਂ ਦੀ ਸੂਚੀ ਭਰ ਗਈ ਹੈ। ਨਵਾਂ ਜੋੜਨ ਲਈ ਇੱਕ ਹਟਾਓ।",
-  "ownMantraErrorExpired": "ਇਹ ਸੁਝਾਅ ਪੁਰਾਣੇ ਹੋ ਗਏ ਹਨ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਲੱਭੋ।"
+  "ownMantraErrorExpired": "ਇਹ ਸੁਝਾਅ ਪੁਰਾਣੇ ਹੋ ਗਏ ਹਨ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਲੱਭੋ।",
+  "readingLookLabel": "ਦਿੱਖ",
+  "readingLookMatchApp": "ਐਪ ਵਾਂਗ",
+  "readingLookWarmPaper": "ਗਰਮ ਕਾਗਜ਼",
+  "readingLookSepia": "ਸੇਪੀਆ",
+  "readingLookMist": "ਧੁੰਦ",
+  "readingLookDusk": "ਸੰਧਿਆ",
+  "readingLookNight": "ਰਾਤ"
 }

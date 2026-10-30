@@ -976,6 +976,27 @@ class AppLocalizationsPa extends AppLocalizations {
   String get readingFontSizeLarge => 'ਵੱਡਾ';
 
   @override
+  String get readingLookLabel => 'ਦਿੱਖ';
+
+  @override
+  String get readingLookMatchApp => 'ਐਪ ਵਾਂਗ';
+
+  @override
+  String get readingLookWarmPaper => 'ਗਰਮ ਕਾਗਜ਼';
+
+  @override
+  String get readingLookSepia => 'ਸੇਪੀਆ';
+
+  @override
+  String get readingLookMist => 'ਧੁੰਦ';
+
+  @override
+  String get readingLookDusk => 'ਸੰਧਿਆ';
+
+  @override
+  String get readingLookNight => 'ਰਾਤ';
+
+  @override
   String get readingFontSizeExtraLarge => 'ਬਹੁਤ ਵੱਡਾ';
 
   @override

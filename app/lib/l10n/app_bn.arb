@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "আপাতত আপনি সীমায় পৌঁছে গেছেন। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
   "ownMantraErrorUnavailable": "মন্ত্র যোগ করা এখন উপলব্ধ নেই। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
   "ownMantraErrorLimit": "আপনার নিজের মন্ত্রের তালিকা পূর্ণ। নতুন যোগ করতে একটি সরান।",
-  "ownMantraErrorExpired": "এই প্রস্তাবগুলির মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার খুঁজুন।"
+  "ownMantraErrorExpired": "এই প্রস্তাবগুলির মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার খুঁজুন।",
+  "readingLookLabel": "চেহারা",
+  "readingLookMatchApp": "অ্যাপের মতো",
+  "readingLookWarmPaper": "উষ্ণ কাগজ",
+  "readingLookSepia": "সেপিয়া",
+  "readingLookMist": "কুয়াশা",
+  "readingLookDusk": "গোধূলি",
+  "readingLookNight": "রাত"
 }

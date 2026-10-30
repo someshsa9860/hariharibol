@@ -974,6 +974,27 @@ class AppLocalizationsGu extends AppLocalizations {
   String get readingFontSizeLarge => 'મોટું';
 
   @override
+  String get readingLookLabel => 'દેખાવ';
+
+  @override
+  String get readingLookMatchApp => 'એપ પ્રમાણે';
+
+  @override
+  String get readingLookWarmPaper => 'ગરમ કાગળ';
+
+  @override
+  String get readingLookSepia => 'સેપિયા';
+
+  @override
+  String get readingLookMist => 'ઝાકળ';
+
+  @override
+  String get readingLookDusk => 'સંધ્યા';
+
+  @override
+  String get readingLookNight => 'રાત';
+
+  @override
   String get readingFontSizeExtraLarge => 'ખૂબ મોટું';
 
   @override

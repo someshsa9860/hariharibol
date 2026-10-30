@@ -986,6 +986,27 @@ class AppLocalizationsMl extends AppLocalizations {
   String get readingFontSizeLarge => 'വലുത്';
 
   @override
+  String get readingLookLabel => 'രൂപം';
+
+  @override
+  String get readingLookMatchApp => 'ആപ്പുപോലെ';
+
+  @override
+  String get readingLookWarmPaper => 'ചൂടുള്ള കടലാസ്';
+
+  @override
+  String get readingLookSepia => 'സെപ്പിയ';
+
+  @override
+  String get readingLookMist => 'മൂടൽമഞ്ഞ്';
+
+  @override
+  String get readingLookDusk => 'സന്ധ്യ';
+
+  @override
+  String get readingLookNight => 'രാത്രി';
+
+  @override
   String get readingFontSizeExtraLarge => 'വളരെ വലുത്';
 
   @override

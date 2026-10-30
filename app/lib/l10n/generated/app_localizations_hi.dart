@@ -974,6 +974,27 @@ class AppLocalizationsHi extends AppLocalizations {
   String get readingFontSizeLarge => 'बड़ा';
 
   @override
+  String get readingLookLabel => 'दिखावट';
+
+  @override
+  String get readingLookMatchApp => 'ऐप जैसा';
+
+  @override
+  String get readingLookWarmPaper => 'गर्म कागज़';
+
+  @override
+  String get readingLookSepia => 'सेपिया';
+
+  @override
+  String get readingLookMist => 'धुंध';
+
+  @override
+  String get readingLookDusk => 'संध्या';
+
+  @override
+  String get readingLookNight => 'रात';
+
+  @override
   String get readingFontSizeExtraLarge => 'बहुत बड़ा';
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/storage_keys.dart';
 import '../core/theme/app_typography.dart';
+import '../core/theme/reading_themes.dart';
 import '../models/reading_mode.dart';
 import '../models/verse_part.dart';
 import '../services/local_store.dart';
@@ -32,6 +33,26 @@ class ReadingFontSizeNotifier extends Notifier<ReadingFontSize> {
 
 final readingFontSizeProvider =
     NotifierProvider<ReadingFontSizeNotifier, ReadingFontSize>(ReadingFontSizeNotifier.new);
+
+/// The reading page's look: the app's own theme, or one of the reading papers.
+/// Stored on the device, like the font size above.
+class ReadingLookNotifier extends Notifier<ReadingLook> {
+  @override
+  ReadingLook build() {
+    final stored = LocalStore.instance.read<String>(BoxKeys.readingLook);
+    return ReadingLook.values.firstWhere(
+      (look) => look.name == stored,
+      orElse: () => ReadingLook.matchApp,
+    );
+  }
+
+  Future<void> set(ReadingLook look) async {
+    state = look;
+    await LocalStore.instance.write(BoxKeys.readingLook, look.name);
+  }
+}
+
+final readingLookProvider = NotifierProvider<ReadingLookNotifier, ReadingLook>(ReadingLookNotifier.new);
 
 /// Whether a verse's "Word meanings" is open. Closed until somebody opens one,
 /// and from then on open in every verse until somebody closes one — stored on

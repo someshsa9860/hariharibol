@@ -1726,6 +1726,48 @@ abstract class AppLocalizations {
   /// **'Large'**
   String get readingFontSizeLarge;
 
+  /// No description provided for @readingLookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get readingLookLabel;
+
+  /// No description provided for @readingLookMatchApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Match app'**
+  String get readingLookMatchApp;
+
+  /// No description provided for @readingLookWarmPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm paper'**
+  String get readingLookWarmPaper;
+
+  /// No description provided for @readingLookSepia.
+  ///
+  /// In en, this message translates to:
+  /// **'Sepia'**
+  String get readingLookSepia;
+
+  /// No description provided for @readingLookMist.
+  ///
+  /// In en, this message translates to:
+  /// **'Mist'**
+  String get readingLookMist;
+
+  /// No description provided for @readingLookDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get readingLookDusk;
+
+  /// No description provided for @readingLookNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get readingLookNight;
+
   /// No description provided for @readingFontSizeExtraLarge.
   ///
   /// In en, this message translates to:

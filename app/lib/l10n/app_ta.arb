@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "தற்போதைக்கு வரம்பை எட்டிவிட்டீர்கள். பிறகு மீண்டும் முயற்சிக்கவும்.",
   "ownMantraErrorUnavailable": "மந்திரங்களைச் சேர்ப்பது இப்போது கிடைக்கவில்லை. பிறகு மீண்டும் முயற்சிக்கவும்.",
   "ownMantraErrorLimit": "உங்கள் சொந்த மந்திரங்களின் பட்டியல் நிரம்பிவிட்டது. புதியதைச் சேர்க்க ஒன்றை நீக்கவும்.",
-  "ownMantraErrorExpired": "இந்த பரிந்துரைகள் காலாவதியாகிவிட்டன. மீண்டும் தேடவும்."
+  "ownMantraErrorExpired": "இந்த பரிந்துரைகள் காலாவதியாகிவிட்டன. மீண்டும் தேடவும்.",
+  "readingLookLabel": "தோற்றம்",
+  "readingLookMatchApp": "ஆப் போல",
+  "readingLookWarmPaper": "சூடான காகிதம்",
+  "readingLookSepia": "செபியா",
+  "readingLookMist": "மூடுபனி",
+  "readingLookDusk": "அந்தி",
+  "readingLookNight": "இரவு"
 }

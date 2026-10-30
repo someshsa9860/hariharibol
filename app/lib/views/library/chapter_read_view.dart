@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../../core/navigation/app_routes.dart';
+import '../../core/theme/reading_themes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
@@ -405,113 +406,118 @@ class _ChapterReadViewState extends ConsumerState<ChapterReadView> {
         ? readingData.verses.first.book?.title
         : null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: readingData != null
-            ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '')
-            : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.format_list_bulleted_rounded),
-            tooltip: text.readingContents,
-            onPressed: () => AppNavigator.instance.push(AppRoutes.bookPath(widget.slug)),
-          ),
-          const ReadingAudioAction(),
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            tooltip: text.readingSettingsTitle,
-            onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
-          ),
-        ],
-      ),
-      bottomNavigationBar: const ReadingPlayerBar(),
-      body: reading.when(
-        // A new reading language reloads the chapter; keep the verses on screen
-        // (and where the reader had scrolled to) until the new text is ready.
-        skipLoadingOnReload: true,
-        loading: () => const AppLoader(),
-        error: (error, _) => AppErrorView(
-          failure: error is ApiFailure
-              ? error
-              : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
-          onRetry: () async => ref.invalidate(chapterReadingProvider(_chapterArgs)),
-        ),
-        data: (data) {
-          _verses = data.verses;
-          _saveOpenProgress(data);
-          _rememberOpenedPlace(data);
-          _scrollToTarget(data);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _prepareAudio(data);
-          });
-
-          return NotificationListener<UserScrollNotification>(
-            onNotification: _onUserScroll,
-            child: ListView.separated(
-              padding: AppSpacing.page.copyWith(
-                bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
-              ),
-              itemCount: data.verses.length + 2,
-              separatorBuilder: (context, index) => story
-                  ? SizedBox(height: storyGapAfter(index, data.verses.length))
-                  : index == 0
-                      ? const SizedBox(height: AppSpacing.lg)
-                      : const Divider(height: AppSpacing.xl),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  final header = ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
-                  return story ? StoryPartBar(header: header, verses: data.verses, translations: _translationOverrides) : header;
-                }
-                if (index == data.verses.length + 1) {
-                  return ChapterNav(
-                    hasPrevious: hasPrevious,
-                    hasNext: hasNext,
-                    onPrevious: () => _goToChapter(data, widget.number - 1),
-                    onNext: () => _goToChapter(data, widget.number + 1),
-                  );
-                }
-
-                final verse = data.verses[index - 1];
-                return KeyedSubtree(
-                  key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
-                  child: story
-                      ? StoryVerse(
-                          verse: verse,
-                          part: storyPart,
-                          fontScale: fontScale,
-                          showNumber: storyNumbers,
-                          isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
-                          isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
-                          playing: playback.isActive && playback.verseId == verse.id,
-                          translation: _translationOverrides[verse.id],
-                          onLongPress: () => _openStoryActions(data, index - 1),
-                        )
-                      : VerseBlock(
-                    verse: verse,
-                    fontScale: fontScale,
-                    hidden: hiddenParts,
-                    isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
-                    isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
-                    noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
-                    translation: _translationOverrides[verse.id],
-                    onToggleFavorite: () => _toggleFavorite(verse),
-                    onToggleHighlight: () => _toggleHighlight(verse),
-                    onOpenNotes: () => _openNotes(verse),
-                    onOpenRelated: () => _openRelated(verse),
-                    onAskSakha: () => _askSakha(verse, bookTitle),
-                    onStartReels: verse.bookNumber <= 2
-                        ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
-                        : null,
-                    onCompareTranslations:
-                        verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
-                    onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
-                    playing: playback.isActive && playback.verseId == verse.id,
-                  ),
-                );
-              },
+    // The reading page's own look, laid over the app theme for the whole screen:
+    // the app bar and the player bar take the page colour with it.
+    return Theme(
+      data: readingLookTheme(ref.watch(readingLookProvider), Theme.of(context)),
+      child: Scaffold(
+        appBar: AppBar(
+          title: readingData != null
+              ? ChapterAppBarTitle(chapter: readingData.chapter, bookTitle: bookTitle ?? '')
+              : null,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.format_list_bulleted_rounded),
+              tooltip: text.readingContents,
+              onPressed: () => AppNavigator.instance.push(AppRoutes.bookPath(widget.slug)),
             ),
-          );
-        },
+            const ReadingAudioAction(),
+            IconButton(
+              icon: const Icon(Icons.tune_rounded),
+              tooltip: text.readingSettingsTitle,
+              onPressed: () => showReadingSettingsSheet(context, bookSlug: widget.slug),
+            ),
+          ],
+        ),
+        bottomNavigationBar: const ReadingPlayerBar(),
+        body: reading.when(
+          // A new reading language reloads the chapter; keep the verses on screen
+          // (and where the reader had scrolled to) until the new text is ready.
+          skipLoadingOnReload: true,
+          loading: () => const AppLoader(),
+          error: (error, _) => AppErrorView(
+            failure: error is ApiFailure
+                ? error
+                : ApiFailure(kind: FailureKind.unknown, message: text.errorGeneric),
+            onRetry: () async => ref.invalidate(chapterReadingProvider(_chapterArgs)),
+          ),
+          data: (data) {
+            _verses = data.verses;
+            _saveOpenProgress(data);
+            _rememberOpenedPlace(data);
+            _scrollToTarget(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _prepareAudio(data);
+            });
+
+            return NotificationListener<UserScrollNotification>(
+              onNotification: _onUserScroll,
+              child: ListView.separated(
+                padding: AppSpacing.page.copyWith(
+                  bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.xxl,
+                ),
+                itemCount: data.verses.length + 2,
+                separatorBuilder: (context, index) => story
+                    ? SizedBox(height: storyGapAfter(index, data.verses.length))
+                    : index == 0
+                        ? const SizedBox(height: AppSpacing.lg)
+                        : const Divider(height: AppSpacing.xl),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    final header = ChapterHeader(chapter: data.chapter, bookTitle: bookTitle ?? '');
+                    return story ? StoryPartBar(header: header, verses: data.verses, translations: _translationOverrides) : header;
+                  }
+                  if (index == data.verses.length + 1) {
+                    return ChapterNav(
+                      hasPrevious: hasPrevious,
+                      hasNext: hasNext,
+                      onPrevious: () => _goToChapter(data, widget.number - 1),
+                      onNext: () => _goToChapter(data, widget.number + 1),
+                    );
+                  }
+
+                  final verse = data.verses[index - 1];
+                  return KeyedSubtree(
+                    key: _verseKeys.putIfAbsent(verse.id, () => GlobalKey()),
+                    child: story
+                        ? StoryVerse(
+                            verse: verse,
+                            part: storyPart,
+                            fontScale: fontScale,
+                            showNumber: storyNumbers,
+                            isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                            isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                            playing: playback.isActive && playback.verseId == verse.id,
+                            translation: _translationOverrides[verse.id],
+                            onLongPress: () => _openStoryActions(data, index - 1),
+                          )
+                        : VerseBlock(
+                      verse: verse,
+                      fontScale: fontScale,
+                      hidden: hiddenParts,
+                      isFavorite: _favoriteOverrides[verse.id] ?? verse.isFavorite,
+                      isHighlighted: _highlightOverrides[verse.id] ?? verse.isHighlighted,
+                      noteCount: _noteCountOverrides[verse.id] ?? verse.noteCount,
+                      translation: _translationOverrides[verse.id],
+                      onToggleFavorite: () => _toggleFavorite(verse),
+                      onToggleHighlight: () => _toggleHighlight(verse),
+                      onOpenNotes: () => _openNotes(verse),
+                      onOpenRelated: () => _openRelated(verse),
+                      onAskSakha: () => _askSakha(verse, bookTitle),
+                      onStartReels: verse.bookNumber <= 2
+                          ? () => AppNavigator.instance.push(AppRoutes.bookReelsPath(verse.verseId))
+                          : null,
+                      onCompareTranslations:
+                          verse.availableTranslations.length > 1 ? () => _compareTranslations(verse) : null,
+                      onPlay: _canPlay(verse) ? () => _playVerse(data, index - 1) : null,
+                      playing: playback.isActive && playback.verseId == verse.id,
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

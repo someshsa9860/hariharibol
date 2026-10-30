@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "এতিয়াৰ বাবে আপুনি সীমা পাইছে। অনুগ্ৰহ কৰি পিছত আকৌ চেষ্টা কৰক।",
   "ownMantraErrorUnavailable": "মন্ত্ৰ যোগ কৰা এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পিছত আকৌ চেষ্টা কৰক।",
   "ownMantraErrorLimit": "আপোনাৰ নিজৰ মন্ত্ৰৰ তালিকা পূৰ্ণ হৈছে। নতুন যোগ কৰিবলৈ এটা আঁতৰাওক।",
-  "ownMantraErrorExpired": "এই পৰামৰ্শবোৰৰ ম্যাদ শেষ হৈছে। অনুগ্ৰহ কৰি আকৌ বিচাৰক।"
+  "ownMantraErrorExpired": "এই পৰামৰ্শবোৰৰ ম্যাদ শেষ হৈছে। অনুগ্ৰহ কৰি আকৌ বিচাৰক।",
+  "readingLookLabel": "চেহেৰা",
+  "readingLookMatchApp": "এপৰ দৰে",
+  "readingLookWarmPaper": "উষ্ণ কাগজ",
+  "readingLookSepia": "চেপিয়া",
+  "readingLookMist": "কুঁৱাশা",
+  "readingLookDusk": "গোধূলি",
+  "readingLookNight": "ৰাতি"
 }

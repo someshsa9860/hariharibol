@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "सध्या तुम्ही मर्यादेपर्यंत पोहोचला आहात. कृपया नंतर पुन्हा प्रयत्न करा.",
   "ownMantraErrorUnavailable": "मंत्र जोडणे सध्या उपलब्ध नाही. कृपया नंतर पुन्हा प्रयत्न करा.",
   "ownMantraErrorLimit": "तुमच्या स्वतःच्या मंत्रांची यादी भरली आहे. नवीन जोडण्यासाठी एक काढा.",
-  "ownMantraErrorExpired": "या सूचना कालबाह्य झाल्या आहेत. कृपया पुन्हा शोधा."
+  "ownMantraErrorExpired": "या सूचना कालबाह्य झाल्या आहेत. कृपया पुन्हा शोधा.",
+  "readingLookLabel": "दिसणे",
+  "readingLookMatchApp": "अॅपप्रमाणे",
+  "readingLookWarmPaper": "उबदार कागद",
+  "readingLookSepia": "सेपिया",
+  "readingLookMist": "धुकं",
+  "readingLookDusk": "संध्याकाळ",
+  "readingLookNight": "रात्र"
 }

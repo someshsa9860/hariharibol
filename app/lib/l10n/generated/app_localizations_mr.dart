@@ -977,6 +977,27 @@ class AppLocalizationsMr extends AppLocalizations {
   String get readingFontSizeLarge => 'मोठा';
 
   @override
+  String get readingLookLabel => 'दिसणे';
+
+  @override
+  String get readingLookMatchApp => 'अॅपप्रमाणे';
+
+  @override
+  String get readingLookWarmPaper => 'उबदार कागद';
+
+  @override
+  String get readingLookSepia => 'सेपिया';
+
+  @override
+  String get readingLookMist => 'धुकं';
+
+  @override
+  String get readingLookDusk => 'संध्याकाळ';
+
+  @override
+  String get readingLookNight => 'रात्र';
+
+  @override
   String get readingFontSizeExtraLarge => 'खूप मोठा';
 
   @override

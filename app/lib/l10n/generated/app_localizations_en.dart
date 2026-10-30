@@ -974,6 +974,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingFontSizeLarge => 'Large';
 
   @override
+  String get readingLookLabel => 'Look';
+
+  @override
+  String get readingLookMatchApp => 'Match app';
+
+  @override
+  String get readingLookWarmPaper => 'Warm paper';
+
+  @override
+  String get readingLookSepia => 'Sepia';
+
+  @override
+  String get readingLookMist => 'Mist';
+
+  @override
+  String get readingLookDusk => 'Dusk';
+
+  @override
+  String get readingLookNight => 'Night';
+
+  @override
   String get readingFontSizeExtraLarge => 'Extra large';
 
   @override

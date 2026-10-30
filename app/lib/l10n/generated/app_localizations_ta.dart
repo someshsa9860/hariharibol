@@ -984,6 +984,27 @@ class AppLocalizationsTa extends AppLocalizations {
   String get readingFontSizeLarge => 'பெரியது';
 
   @override
+  String get readingLookLabel => 'தோற்றம்';
+
+  @override
+  String get readingLookMatchApp => 'ஆப் போல';
+
+  @override
+  String get readingLookWarmPaper => 'சூடான காகிதம்';
+
+  @override
+  String get readingLookSepia => 'செபியா';
+
+  @override
+  String get readingLookMist => 'மூடுபனி';
+
+  @override
+  String get readingLookDusk => 'அந்தி';
+
+  @override
+  String get readingLookNight => 'இரவு';
+
+  @override
   String get readingFontSizeExtraLarge => 'மிகப் பெரியது';
 
   @override

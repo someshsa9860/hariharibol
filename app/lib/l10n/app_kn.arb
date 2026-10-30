@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "ಸದ್ಯಕ್ಕೆ ನೀವು ಮಿತಿ ತಲುಪಿದ್ದೀರಿ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "ownMantraErrorUnavailable": "ಮಂತ್ರಗಳನ್ನು ಸೇರಿಸುವುದು ಈಗ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "ownMantraErrorLimit": "ನಿಮ್ಮ ಸ್ವಂತ ಮಂತ್ರಗಳ ಪಟ್ಟಿ ತುಂಬಿದೆ. ಹೊಸದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆದುಹಾಕಿ.",
-  "ownMantraErrorExpired": "ಈ ಸಲಹೆಗಳ ಅವಧಿ ಮುಗಿದಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಹುಡುಕಿ."
+  "ownMantraErrorExpired": "ಈ ಸಲಹೆಗಳ ಅವಧಿ ಮುಗಿದಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಹುಡುಕಿ.",
+  "readingLookLabel": "ನೋಟ",
+  "readingLookMatchApp": "ಆ್ಯಪ್‌ನಂತೆ",
+  "readingLookWarmPaper": "ಬೆಚ್ಚಗಿನ ಕಾಗದ",
+  "readingLookSepia": "ಸೆಪಿಯಾ",
+  "readingLookMist": "ಮಂಜು",
+  "readingLookDusk": "ಸಂಜೆ",
+  "readingLookNight": "ರಾತ್ರಿ"
 }

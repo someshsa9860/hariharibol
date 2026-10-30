@@ -982,6 +982,27 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingFontSizeLarge => 'పెద్దది';
 
   @override
+  String get readingLookLabel => 'రూపం';
+
+  @override
+  String get readingLookMatchApp => 'యాప్ లాగా';
+
+  @override
+  String get readingLookWarmPaper => 'వెచ్చని కాగితం';
+
+  @override
+  String get readingLookSepia => 'సెపియా';
+
+  @override
+  String get readingLookMist => 'మంచు';
+
+  @override
+  String get readingLookDusk => 'సంధ్య';
+
+  @override
+  String get readingLookNight => 'రాత్రి';
+
+  @override
   String get readingFontSizeExtraLarge => 'చాలా పెద్దది';
 
   @override

@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "ప్రస్తుతానికి మీరు పరిమితికి చేరుకున్నారు. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
   "ownMantraErrorUnavailable": "మంత్రాలను జోడించడం ప్రస్తుతం అందుబాటులో లేదు. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
   "ownMantraErrorLimit": "మీ సొంత మంత్రాల జాబితా నిండిపోయింది. కొత్తది జోడించడానికి ఒకదాన్ని తొలగించండి.",
-  "ownMantraErrorExpired": "ఈ సూచనలు గడువు ముగిశాయి. దయచేసి మళ్లీ వెతకండి."
+  "ownMantraErrorExpired": "ఈ సూచనలు గడువు ముగిశాయి. దయచేసి మళ్లీ వెతకండి.",
+  "readingLookLabel": "రూపం",
+  "readingLookMatchApp": "యాప్ లాగా",
+  "readingLookWarmPaper": "వెచ్చని కాగితం",
+  "readingLookSepia": "సెపియా",
+  "readingLookMist": "మంచు",
+  "readingLookDusk": "సంధ్య",
+  "readingLookNight": "రాత్రి"
 }

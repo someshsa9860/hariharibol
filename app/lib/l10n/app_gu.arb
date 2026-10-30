@@ -804,5 +804,12 @@
   "ownMantraErrorLimitReached": "હાલ માટે તમે મર્યાદાએ પહોંચી ગયા છો. કૃપા કરીને પછીથી ફરી પ્રયત્ન કરો.",
   "ownMantraErrorUnavailable": "મંત્ર ઉમેરવું હાલ ઉપલબ્ધ નથી. કૃપા કરીને પછીથી ફરી પ્રયત્ન કરો.",
   "ownMantraErrorLimit": "તમારા પોતાના મંત્રોની યાદી ભરાઈ ગઈ છે. નવો ઉમેરવા માટે એક કાઢી નાખો.",
-  "ownMantraErrorExpired": "આ સૂચનો સમાપ્ત થઈ ગયા છે. કૃપા કરીને ફરી શોધો."
+  "ownMantraErrorExpired": "આ સૂચનો સમાપ્ત થઈ ગયા છે. કૃપા કરીને ફરી શોધો.",
+  "readingLookLabel": "દેખાવ",
+  "readingLookMatchApp": "એપ પ્રમાણે",
+  "readingLookWarmPaper": "ગરમ કાગળ",
+  "readingLookSepia": "સેપિયા",
+  "readingLookMist": "ઝાકળ",
+  "readingLookDusk": "સંધ્યા",
+  "readingLookNight": "રાત"
 }

@@ -978,6 +978,27 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingFontSizeLarge => 'ବଡ଼';
 
   @override
+  String get readingLookLabel => 'ରୂପ';
+
+  @override
+  String get readingLookMatchApp => 'ଆପ ପରି';
+
+  @override
+  String get readingLookWarmPaper => 'ଉଷ୍ମ କାଗଜ';
+
+  @override
+  String get readingLookSepia => 'ସେପିଆ';
+
+  @override
+  String get readingLookMist => 'କୁହୁଡ଼ି';
+
+  @override
+  String get readingLookDusk => 'ସନ୍ଧ୍ୟା';
+
+  @override
+  String get readingLookNight => 'ରାତି';
+
+  @override
   String get readingFontSizeExtraLarge => 'ଅତି ବଡ଼';
 
   @override

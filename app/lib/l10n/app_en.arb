@@ -1950,5 +1950,12 @@
   "ownMantraErrorLimitReached": "You have reached the limit for now. Please try again later.",
   "ownMantraErrorUnavailable": "Adding mantras is not available right now. Please try again later.",
   "ownMantraErrorLimit": "Your list of own mantras is full. Remove one to add another.",
-  "ownMantraErrorExpired": "These suggestions have expired. Please search again."
+  "ownMantraErrorExpired": "These suggestions have expired. Please search again.",
+  "readingLookLabel": "Look",
+  "readingLookMatchApp": "Match app",
+  "readingLookWarmPaper": "Warm paper",
+  "readingLookSepia": "Sepia",
+  "readingLookMist": "Mist",
+  "readingLookDusk": "Dusk",
+  "readingLookNight": "Night"
 }

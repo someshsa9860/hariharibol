@@ -977,6 +977,27 @@ class AppLocalizationsBn extends AppLocalizations {
   String get readingFontSizeLarge => 'বড়';
 
   @override
+  String get readingLookLabel => 'চেহারা';
+
+  @override
+  String get readingLookMatchApp => 'অ্যাপের মতো';
+
+  @override
+  String get readingLookWarmPaper => 'উষ্ণ কাগজ';
+
+  @override
+  String get readingLookSepia => 'সেপিয়া';
+
+  @override
+  String get readingLookMist => 'কুয়াশা';
+
+  @override
+  String get readingLookDusk => 'গোধূলি';
+
+  @override
+  String get readingLookNight => 'রাত';
+
+  @override
   String get readingFontSizeExtraLarge => 'অনেক বড়';
 
   @override
