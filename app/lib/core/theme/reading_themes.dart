@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_spacing.dart';
+
 /// The look of the reading page: the paper and ink a chapter is read on.
 ///
 /// These are the reading page's own, kept apart from [AppColors] on purpose:
@@ -163,4 +165,71 @@ ThemeData readingLookTheme(ReadingLook look, ThemeData base) {
       secondaryLabelStyle: base.chipTheme.secondaryLabelStyle?.copyWith(color: p.card),
     ),
   );
+}
+
+/// The line spacing of the verse text, as a multiple of the base height.
+enum ReadingLineSpacing {
+  compact(0.9),
+  comfortable(1.0),
+  relaxed(1.12);
+
+  const ReadingLineSpacing(this.scale);
+
+  final double scale;
+}
+
+/// The space kept clear at each side of the text.
+enum ReadingMargins {
+  narrow(AppSpacing.sm),
+  normal(AppSpacing.lg),
+  wide(AppSpacing.xxl);
+
+  const ReadingMargins(this.inset);
+
+  final double inset;
+}
+
+/// The widest the reading column gets, so a tablet's line stays comfortable.
+const double readingColumnMaxWidth = 680;
+
+/// The warm wash laid over the page, and how far it reaches at full strength.
+/// Kept low so the text keeps its contrast at the top of the slider.
+const Color readingWarmWash = Color(0xFFFFB347);
+const double readingWarmWashMax = 0.35;
+
+/// The dim shade, and how far it reaches at full strength.
+const Color readingDimShade = Color(0xFF000000);
+const double readingDimMax = 0.5;
+
+/// The night look runs from [readingNightStartHour] until [readingNightEndHour],
+/// local time.
+const int readingNightStartHour = 20;
+const int readingNightEndHour = 6;
+
+/// The look a reader sees at [now]. With the night switch on, the Night look
+/// shows during the night hours whatever was chosen; otherwise the choice stands.
+ReadingLook effectiveReadingLook({
+  required ReadingLook chosen,
+  required bool autoNight,
+  required DateTime now,
+}) {
+  if (!autoNight) return chosen;
+  final hour = now.hour;
+  final isNight = hour >= readingNightStartHour || hour < readingNightEndHour;
+  return isNight ? ReadingLook.night : chosen;
+}
+
+/// The line spacing of the reading page, handed to the text styles below it so
+/// the verse, transliteration and meaning share one value without it being
+/// passed through every widget. Outside the reading page it is 1.0.
+class ReadingLayout extends InheritedWidget {
+  const ReadingLayout({super.key, required this.lineScale, required super.child});
+
+  final double lineScale;
+
+  static double lineScaleOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ReadingLayout>()?.lineScale ?? 1.0;
+
+  @override
+  bool updateShouldNotify(ReadingLayout oldWidget) => lineScale != oldWidget.lineScale;
 }

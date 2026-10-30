@@ -811,5 +811,17 @@
   "readingLookSepia": "ಸೆಪಿಯಾ",
   "readingLookMist": "ಮಂಜು",
   "readingLookDusk": "ಸಂಜೆ",
-  "readingLookNight": "ರಾತ್ರಿ"
+  "readingLookNight": "ರಾತ್ರಿ",
+  "readingLineSpacingLabel": "ಸಾಲಿನ ಅಂತರ",
+  "readingLineSpacingCompact": "ಹತ್ತಿರ",
+  "readingLineSpacingComfortable": "ಆರಾಮದಾಯಕ",
+  "readingLineSpacingRelaxed": "ವಿಶಾಲ",
+  "readingMarginsLabel": "ಅಂಚುಗಳು",
+  "readingMarginsNarrow": "ಕಿರಿದು",
+  "readingMarginsNormal": "ಸಾಮಾನ್ಯ",
+  "readingMarginsWide": "ಅಗಲ",
+  "readingTintLabel": "ಬೆಚ್ಚಗಿನ ಛಾಯೆ",
+  "readingDimLabel": "ಪುಟವನ್ನು ಮಬ್ಬಾಗಿಸಿ",
+  "readingAutoNightTitle": "ರಾತ್ರಿ 8 ರಿಂದ ಬೆಳಿಗ್ಗೆ 6 ರವರೆಗೆ ರಾತ್ರಿ ನೋಟ",
+  "readingKeepAwakeTitle": "ಓದುವಾಗ ಪರದೆ ಆನ್ ಇರಲಿ"
 }

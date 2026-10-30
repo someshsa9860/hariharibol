@@ -811,5 +811,17 @@
   "readingLookSepia": "সেপিয়া",
   "readingLookMist": "কুয়াশা",
   "readingLookDusk": "গোধূলি",
-  "readingLookNight": "রাত"
+  "readingLookNight": "রাত",
+  "readingLineSpacingLabel": "লাইনের ব্যবধান",
+  "readingLineSpacingCompact": "ঘন",
+  "readingLineSpacingComfortable": "আরামদায়ক",
+  "readingLineSpacingRelaxed": "প্রশস্ত",
+  "readingMarginsLabel": "মার্জিন",
+  "readingMarginsNarrow": "সরু",
+  "readingMarginsNormal": "স্বাভাবিক",
+  "readingMarginsWide": "চওড়া",
+  "readingTintLabel": "উষ্ণ আভা",
+  "readingDimLabel": "পাতা ঝাপসা করুন",
+  "readingAutoNightTitle": "রাত ৮টা থেকে ভোর ৬টা পর্যন্ত রাতের রূপ",
+  "readingKeepAwakeTitle": "পড়ার সময় স্ক্রিন চালু রাখুন"
 }

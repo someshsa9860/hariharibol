@@ -977,6 +977,42 @@ class AppLocalizationsBn extends AppLocalizations {
   String get readingFontSizeLarge => 'বড়';
 
   @override
+  String get readingLineSpacingLabel => 'লাইনের ব্যবধান';
+
+  @override
+  String get readingLineSpacingCompact => 'ঘন';
+
+  @override
+  String get readingLineSpacingComfortable => 'আরামদায়ক';
+
+  @override
+  String get readingLineSpacingRelaxed => 'প্রশস্ত';
+
+  @override
+  String get readingMarginsLabel => 'মার্জিন';
+
+  @override
+  String get readingMarginsNarrow => 'সরু';
+
+  @override
+  String get readingMarginsNormal => 'স্বাভাবিক';
+
+  @override
+  String get readingMarginsWide => 'চওড়া';
+
+  @override
+  String get readingTintLabel => 'উষ্ণ আভা';
+
+  @override
+  String get readingDimLabel => 'পাতা ঝাপসা করুন';
+
+  @override
+  String get readingAutoNightTitle => 'রাত ৮টা থেকে ভোর ৬টা পর্যন্ত রাতের রূপ';
+
+  @override
+  String get readingKeepAwakeTitle => 'পড়ার সময় স্ক্রিন চালু রাখুন';
+
+  @override
   String get readingLookLabel => 'চেহারা';
 
   @override

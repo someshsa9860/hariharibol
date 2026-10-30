@@ -811,5 +811,17 @@
   "readingLookSepia": "চেপিয়া",
   "readingLookMist": "কুঁৱাশা",
   "readingLookDusk": "গোধূলি",
-  "readingLookNight": "ৰাতি"
+  "readingLookNight": "ৰাতি",
+  "readingLineSpacingLabel": "শাৰীৰ ব্যৱধান",
+  "readingLineSpacingCompact": "ঘন",
+  "readingLineSpacingComfortable": "আৰামদায়ক",
+  "readingLineSpacingRelaxed": "বহল",
+  "readingMarginsLabel": "মাৰ্জিন",
+  "readingMarginsNarrow": "সৰু",
+  "readingMarginsNormal": "সাধাৰণ",
+  "readingMarginsWide": "চওড়া",
+  "readingTintLabel": "উষ্ণ আভা",
+  "readingDimLabel": "পৃষ্ঠা ম্লান কৰক",
+  "readingAutoNightTitle": "ৰাতি ৮ বজাৰ পৰা ৰাতিপুৱা ৬ বজালৈ ৰাতিৰ ৰূপ",
+  "readingKeepAwakeTitle": "পঢ়াৰ সময়ত স্ক্ৰীন অন ৰাখক"
 }

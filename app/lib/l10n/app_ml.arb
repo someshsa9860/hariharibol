@@ -811,5 +811,17 @@
   "readingLookSepia": "സെപ്പിയ",
   "readingLookMist": "മൂടൽമഞ്ഞ്",
   "readingLookDusk": "സന്ധ്യ",
-  "readingLookNight": "രാത്രി"
+  "readingLookNight": "രാത്രി",
+  "readingLineSpacingLabel": "വരികൾക്കിടയിലെ അകലം",
+  "readingLineSpacingCompact": "ഒതുക്കം",
+  "readingLineSpacingComfortable": "സൗകര്യപ്രദം",
+  "readingLineSpacingRelaxed": "വിശാലം",
+  "readingMarginsLabel": "മാർജിൻ",
+  "readingMarginsNarrow": "ഇടുങ്ങിയ",
+  "readingMarginsNormal": "സാധാരണം",
+  "readingMarginsWide": "വീതിയുള്ള",
+  "readingTintLabel": "ചൂടുള്ള നിറം",
+  "readingDimLabel": "പേജ് മങ്ങിക്കുക",
+  "readingAutoNightTitle": "രാത്രി 8 മുതൽ രാവിലെ 6 വരെ രാത്രി രൂപം",
+  "readingKeepAwakeTitle": "വായിക്കുമ്പോൾ സ്ക്രീൻ ഓണായിരിക്കണം"
 }

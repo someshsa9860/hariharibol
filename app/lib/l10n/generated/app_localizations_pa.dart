@@ -976,6 +976,42 @@ class AppLocalizationsPa extends AppLocalizations {
   String get readingFontSizeLarge => 'ਵੱਡਾ';
 
   @override
+  String get readingLineSpacingLabel => 'ਲਾਈਨਾਂ ਵਿਚਕਾਰ ਫ਼ਾਸਲਾ';
+
+  @override
+  String get readingLineSpacingCompact => 'ਨੇੜੇ';
+
+  @override
+  String get readingLineSpacingComfortable => 'ਆਰਾਮਦਾਇਕ';
+
+  @override
+  String get readingLineSpacingRelaxed => 'ਖੁੱਲ੍ਹਾ';
+
+  @override
+  String get readingMarginsLabel => 'ਹਾਸ਼ੀਏ';
+
+  @override
+  String get readingMarginsNarrow => 'ਤੰਗ';
+
+  @override
+  String get readingMarginsNormal => 'ਆਮ';
+
+  @override
+  String get readingMarginsWide => 'ਚੌੜੇ';
+
+  @override
+  String get readingTintLabel => 'ਨਿੱਘੀ ਰੰਗਤ';
+
+  @override
+  String get readingDimLabel => 'ਸਫ਼ਾ ਧੁੰਦਲਾ ਕਰੋ';
+
+  @override
+  String get readingAutoNightTitle => 'ਰਾਤ 8 ਵਜੇ ਤੋਂ ਸਵੇਰੇ 6 ਵਜੇ ਤੱਕ ਰਾਤ ਵਾਲਾ ਰੂਪ';
+
+  @override
+  String get readingKeepAwakeTitle => 'ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਕਰੀਨ ਚਾਲੂ ਰੱਖੋ';
+
+  @override
   String get readingLookLabel => 'ਦਿੱਖ';
 
   @override

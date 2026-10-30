@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/storage_keys.dart';
@@ -53,6 +55,115 @@ class ReadingLookNotifier extends Notifier<ReadingLook> {
 }
 
 final readingLookProvider = NotifierProvider<ReadingLookNotifier, ReadingLook>(ReadingLookNotifier.new);
+
+/// The space between the lines of the reading page. Stored on the device.
+class ReadingLineSpacingNotifier extends Notifier<ReadingLineSpacing> {
+  @override
+  ReadingLineSpacing build() {
+    final stored = LocalStore.instance.read<String>(BoxKeys.readingLineSpacing);
+    return ReadingLineSpacing.values.firstWhere(
+      (spacing) => spacing.name == stored,
+      orElse: () => ReadingLineSpacing.comfortable,
+    );
+  }
+
+  Future<void> set(ReadingLineSpacing spacing) async {
+    state = spacing;
+    await LocalStore.instance.write(BoxKeys.readingLineSpacing, spacing.name);
+  }
+}
+
+final readingLineSpacingProvider =
+    NotifierProvider<ReadingLineSpacingNotifier, ReadingLineSpacing>(ReadingLineSpacingNotifier.new);
+
+/// The clear space at each side of the reading page. Stored on the device.
+class ReadingMarginsNotifier extends Notifier<ReadingMargins> {
+  @override
+  ReadingMargins build() {
+    final stored = LocalStore.instance.read<String>(BoxKeys.readingMargins);
+    return ReadingMargins.values.firstWhere(
+      (margins) => margins.name == stored,
+      orElse: () => ReadingMargins.normal,
+    );
+  }
+
+  Future<void> set(ReadingMargins margins) async {
+    state = margins;
+    await LocalStore.instance.write(BoxKeys.readingMargins, margins.name);
+  }
+}
+
+final readingMarginsProvider =
+    NotifierProvider<ReadingMarginsNotifier, ReadingMargins>(ReadingMarginsNotifier.new);
+
+double _unitInterval(num? stored) {
+  final value = (stored ?? 0).toDouble();
+  return value < 0 ? 0 : (value > 1 ? 1 : value);
+}
+
+/// How far the warm wash is turned up, from 0 (off) to 1 (full). Stored on the device.
+class ReadingTintNotifier extends Notifier<double> {
+  @override
+  double build() => _unitInterval(LocalStore.instance.read<num>(BoxKeys.readingTint));
+
+  Future<void> set(double value) async {
+    state = value;
+    await LocalStore.instance.write(BoxKeys.readingTint, value);
+  }
+}
+
+final readingTintProvider = NotifierProvider<ReadingTintNotifier, double>(ReadingTintNotifier.new);
+
+/// How far the page is dimmed, from 0 (off) to 1 (full). Stored on the device.
+class ReadingDimNotifier extends Notifier<double> {
+  @override
+  double build() => _unitInterval(LocalStore.instance.read<num>(BoxKeys.readingDim));
+
+  Future<void> set(double value) async {
+    state = value;
+    await LocalStore.instance.write(BoxKeys.readingDim, value);
+  }
+}
+
+final readingDimProvider = NotifierProvider<ReadingDimNotifier, double>(ReadingDimNotifier.new);
+
+/// Whether the reading page switches to the Night look during the night hours.
+/// Stored on the device.
+class ReadingAutoNightNotifier extends Notifier<bool> {
+  @override
+  bool build() => LocalStore.instance.read<bool>(BoxKeys.readingAutoNight) ?? false;
+
+  Future<void> set(bool on) async {
+    state = on;
+    await LocalStore.instance.write(BoxKeys.readingAutoNight, on);
+  }
+}
+
+final readingAutoNightProvider =
+    NotifierProvider<ReadingAutoNightNotifier, bool>(ReadingAutoNightNotifier.new);
+
+/// Whether the screen stays on while a chapter is open. Stored on the device.
+class ReadingKeepAwakeNotifier extends Notifier<bool> {
+  @override
+  bool build() => LocalStore.instance.read<bool>(BoxKeys.readingKeepAwake) ?? false;
+
+  Future<void> set(bool on) async {
+    state = on;
+    await LocalStore.instance.write(BoxKeys.readingKeepAwake, on);
+  }
+}
+
+final readingKeepAwakeProvider =
+    NotifierProvider<ReadingKeepAwakeNotifier, bool>(ReadingKeepAwakeNotifier.new);
+
+/// The time, once a minute. Only watched while the night look is switched on,
+/// so nothing ticks otherwise.
+final readingClockProvider = StreamProvider<DateTime>((_) async* {
+  while (true) {
+    yield DateTime.now();
+    await Future<void>.delayed(const Duration(minutes: 1));
+  }
+});
 
 /// Whether a verse's "Word meanings" is open. Closed until somebody opens one,
 /// and from then on open in every verse until somebody closes one — stored on

@@ -982,6 +982,42 @@ class AppLocalizationsTe extends AppLocalizations {
   String get readingFontSizeLarge => 'పెద్దది';
 
   @override
+  String get readingLineSpacingLabel => 'లైన్ల మధ్య దూరం';
+
+  @override
+  String get readingLineSpacingCompact => 'దగ్గరగా';
+
+  @override
+  String get readingLineSpacingComfortable => 'సౌకర్యవంతం';
+
+  @override
+  String get readingLineSpacingRelaxed => 'విశాలం';
+
+  @override
+  String get readingMarginsLabel => 'అంచులు';
+
+  @override
+  String get readingMarginsNarrow => 'ఇరుకు';
+
+  @override
+  String get readingMarginsNormal => 'సాధారణం';
+
+  @override
+  String get readingMarginsWide => 'వెడల్పు';
+
+  @override
+  String get readingTintLabel => 'వెచ్చని రంగు';
+
+  @override
+  String get readingDimLabel => 'పేజీని మసకబార్చు';
+
+  @override
+  String get readingAutoNightTitle => 'రాత్రి 8 నుంచి ఉదయం 6 వరకు రాత్రి రూపం';
+
+  @override
+  String get readingKeepAwakeTitle => 'చదివేటప్పుడు స్క్రీన్ ఆన్‌లో ఉంచు';
+
+  @override
   String get readingLookLabel => 'రూపం';
 
   @override

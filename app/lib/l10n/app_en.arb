@@ -1957,5 +1957,17 @@
   "readingLookSepia": "Sepia",
   "readingLookMist": "Mist",
   "readingLookDusk": "Dusk",
-  "readingLookNight": "Night"
+  "readingLookNight": "Night",
+  "readingLineSpacingLabel": "Line spacing",
+  "readingLineSpacingCompact": "Compact",
+  "readingLineSpacingComfortable": "Comfortable",
+  "readingLineSpacingRelaxed": "Relaxed",
+  "readingMarginsLabel": "Margins",
+  "readingMarginsNarrow": "Narrow",
+  "readingMarginsNormal": "Normal",
+  "readingMarginsWide": "Wide",
+  "readingTintLabel": "Warm tint",
+  "readingDimLabel": "Dim the page",
+  "readingAutoNightTitle": "Night look from 8 pm to 6 am",
+  "readingKeepAwakeTitle": "Keep the screen on while reading"
 }

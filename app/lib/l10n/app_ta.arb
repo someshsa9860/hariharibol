@@ -811,5 +811,17 @@
   "readingLookSepia": "செபியா",
   "readingLookMist": "மூடுபனி",
   "readingLookDusk": "அந்தி",
-  "readingLookNight": "இரவு"
+  "readingLookNight": "இரவு",
+  "readingLineSpacingLabel": "வரி இடைவெளி",
+  "readingLineSpacingCompact": "குறைவு",
+  "readingLineSpacingComfortable": "வசதியான",
+  "readingLineSpacingRelaxed": "விரிவு",
+  "readingMarginsLabel": "ஓரங்கள்",
+  "readingMarginsNarrow": "குறுகிய",
+  "readingMarginsNormal": "இயல்பு",
+  "readingMarginsWide": "அகலமான",
+  "readingTintLabel": "சூடான சாயல்",
+  "readingDimLabel": "பக்கத்தை மங்கலாக்கு",
+  "readingAutoNightTitle": "இரவு 8 முதல் காலை 6 வரை இரவுத் தோற்றம்",
+  "readingKeepAwakeTitle": "படிக்கும்போது திரை அணைந்துவிடாமல் வை"
 }

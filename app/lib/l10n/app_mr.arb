@@ -811,5 +811,17 @@
   "readingLookSepia": "सेपिया",
   "readingLookMist": "धुकं",
   "readingLookDusk": "संध्याकाळ",
-  "readingLookNight": "रात्र"
+  "readingLookNight": "रात्र",
+  "readingLineSpacingLabel": "ओळींमधील अंतर",
+  "readingLineSpacingCompact": "कमी",
+  "readingLineSpacingComfortable": "आरामदायक",
+  "readingLineSpacingRelaxed": "मोकळे",
+  "readingMarginsLabel": "किनारी",
+  "readingMarginsNarrow": "अरुंद",
+  "readingMarginsNormal": "सामान्य",
+  "readingMarginsWide": "रुंद",
+  "readingTintLabel": "उबदार छटा",
+  "readingDimLabel": "पान मंद करा",
+  "readingAutoNightTitle": "रात्री 8 ते सकाळी 6 रात्रीचे रूप",
+  "readingKeepAwakeTitle": "वाचताना स्क्रीन चालू ठेवा"
 }

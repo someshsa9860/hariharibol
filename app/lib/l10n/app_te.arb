@@ -811,5 +811,17 @@
   "readingLookSepia": "సెపియా",
   "readingLookMist": "మంచు",
   "readingLookDusk": "సంధ్య",
-  "readingLookNight": "రాత్రి"
+  "readingLookNight": "రాత్రి",
+  "readingLineSpacingLabel": "లైన్ల మధ్య దూరం",
+  "readingLineSpacingCompact": "దగ్గరగా",
+  "readingLineSpacingComfortable": "సౌకర్యవంతం",
+  "readingLineSpacingRelaxed": "విశాలం",
+  "readingMarginsLabel": "అంచులు",
+  "readingMarginsNarrow": "ఇరుకు",
+  "readingMarginsNormal": "సాధారణం",
+  "readingMarginsWide": "వెడల్పు",
+  "readingTintLabel": "వెచ్చని రంగు",
+  "readingDimLabel": "పేజీని మసకబార్చు",
+  "readingAutoNightTitle": "రాత్రి 8 నుంచి ఉదయం 6 వరకు రాత్రి రూపం",
+  "readingKeepAwakeTitle": "చదివేటప్పుడు స్క్రీన్ ఆన్‌లో ఉంచు"
 }

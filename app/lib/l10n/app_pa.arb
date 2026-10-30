@@ -811,5 +811,17 @@
   "readingLookSepia": "ਸੇਪੀਆ",
   "readingLookMist": "ਧੁੰਦ",
   "readingLookDusk": "ਸੰਧਿਆ",
-  "readingLookNight": "ਰਾਤ"
+  "readingLookNight": "ਰਾਤ",
+  "readingLineSpacingLabel": "ਲਾਈਨਾਂ ਵਿਚਕਾਰ ਫ਼ਾਸਲਾ",
+  "readingLineSpacingCompact": "ਨੇੜੇ",
+  "readingLineSpacingComfortable": "ਆਰਾਮਦਾਇਕ",
+  "readingLineSpacingRelaxed": "ਖੁੱਲ੍ਹਾ",
+  "readingMarginsLabel": "ਹਾਸ਼ੀਏ",
+  "readingMarginsNarrow": "ਤੰਗ",
+  "readingMarginsNormal": "ਆਮ",
+  "readingMarginsWide": "ਚੌੜੇ",
+  "readingTintLabel": "ਨਿੱਘੀ ਰੰਗਤ",
+  "readingDimLabel": "ਸਫ਼ਾ ਧੁੰਦਲਾ ਕਰੋ",
+  "readingAutoNightTitle": "ਰਾਤ 8 ਵਜੇ ਤੋਂ ਸਵੇਰੇ 6 ਵਜੇ ਤੱਕ ਰਾਤ ਵਾਲਾ ਰੂਪ",
+  "readingKeepAwakeTitle": "ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਕਰੀਨ ਚਾਲੂ ਰੱਖੋ"
 }

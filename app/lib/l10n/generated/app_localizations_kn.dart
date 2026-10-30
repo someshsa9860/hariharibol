@@ -980,6 +980,42 @@ class AppLocalizationsKn extends AppLocalizations {
   String get readingFontSizeLarge => 'ದೊಡ್ಡದು';
 
   @override
+  String get readingLineSpacingLabel => 'ಸಾಲಿನ ಅಂತರ';
+
+  @override
+  String get readingLineSpacingCompact => 'ಹತ್ತಿರ';
+
+  @override
+  String get readingLineSpacingComfortable => 'ಆರಾಮದಾಯಕ';
+
+  @override
+  String get readingLineSpacingRelaxed => 'ವಿಶಾಲ';
+
+  @override
+  String get readingMarginsLabel => 'ಅಂಚುಗಳು';
+
+  @override
+  String get readingMarginsNarrow => 'ಕಿರಿದು';
+
+  @override
+  String get readingMarginsNormal => 'ಸಾಮಾನ್ಯ';
+
+  @override
+  String get readingMarginsWide => 'ಅಗಲ';
+
+  @override
+  String get readingTintLabel => 'ಬೆಚ್ಚಗಿನ ಛಾಯೆ';
+
+  @override
+  String get readingDimLabel => 'ಪುಟವನ್ನು ಮಬ್ಬಾಗಿಸಿ';
+
+  @override
+  String get readingAutoNightTitle => 'ರಾತ್ರಿ 8 ರಿಂದ ಬೆಳಿಗ್ಗೆ 6 ರವರೆಗೆ ರಾತ್ರಿ ನೋಟ';
+
+  @override
+  String get readingKeepAwakeTitle => 'ಓದುವಾಗ ಪರದೆ ಆನ್ ಇರಲಿ';
+
+  @override
   String get readingLookLabel => 'ನೋಟ';
 
   @override

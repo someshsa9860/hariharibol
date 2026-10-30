@@ -811,5 +811,17 @@
   "readingLookSepia": "ସେପିଆ",
   "readingLookMist": "କୁହୁଡ଼ି",
   "readingLookDusk": "ସନ୍ଧ୍ୟା",
-  "readingLookNight": "ରାତି"
+  "readingLookNight": "ରାତି",
+  "readingLineSpacingLabel": "ଧାଡ଼ି ବ୍ୟବଧାନ",
+  "readingLineSpacingCompact": "ଘନ",
+  "readingLineSpacingComfortable": "ଆରାମଦାୟକ",
+  "readingLineSpacingRelaxed": "ପ୍ରଶସ୍ତ",
+  "readingMarginsLabel": "ମାର୍ଜିନ",
+  "readingMarginsNarrow": "ସଂକୀର୍ଣ୍ଣ",
+  "readingMarginsNormal": "ସାଧାରଣ",
+  "readingMarginsWide": "ଚଉଡ଼ା",
+  "readingTintLabel": "ଉଷ୍ମ ଆଭା",
+  "readingDimLabel": "ପୃଷ୍ଠା ମଳିନ କରନ୍ତୁ",
+  "readingAutoNightTitle": "ରାତି ୮ଟାରୁ ସକାଳ ୬ଟା ପର୍ଯ୍ୟନ୍ତ ରାତି ରୂପ",
+  "readingKeepAwakeTitle": "ପଢ଼ିବା ବେଳେ ସ୍କ୍ରିନ ଚାଲୁ ରଖନ୍ତୁ"
 }
