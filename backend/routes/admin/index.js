@@ -34,6 +34,7 @@ import uploadRoutes from './upload.js';
 import jobRoutes from './job.js';
 import translationRoutes from './translation.js';
 import sceneRoutes from './scene.js';
+import narrationRoutes from './narration.js';
 import etiquetteRoutes from './etiquette.js';
 import prayerRoutes from './prayer.js';
 import quoteRoutes from './quote.js';
@@ -74,6 +75,7 @@ const routers = [
   jobRoutes,
   translationRoutes,
   sceneRoutes,
+  narrationRoutes,
   etiquetteRoutes,
   prayerRoutes,
   quoteRoutes,
