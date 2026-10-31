@@ -52,6 +52,10 @@ const EVENTS = {
   SCENES_RUN: 'scenes.run',
   SCENES_ACTIVITY: 'scenes.activity',
   SCENES_USAGE: 'scenes.usage',
+  // Admin panel, to `narration.read`: the narration and compare runs, their activity lines, and each clip as it is made.
+  NARRATION_RUN: 'narration.run',
+  NARRATION_ACTIVITY: 'narration.activity',
+  NARRATION_CLIP: 'narration.clip',
   // Admin panel, to `etiquette.translate`: the same two for the devotee etiquette translation runs.
   ETIQUETTE_RUN: 'etiquette.run',
   ETIQUETTE_ACTIVITY: 'etiquette.activity',

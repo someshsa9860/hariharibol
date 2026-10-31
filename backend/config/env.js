@@ -211,6 +211,11 @@ const schema = z.object({
   SCENES_TPM: z.coerce.number().int().min(1000).optional(),
   SCENES_RPD: z.coerce.number().int().min(0).optional(), // 0 = no daily cap of our own
 
+  // Text-to-speech narration (admin → Narration). Chirp 3 HD uses its own Cloud Text-to-Speech key; Gemini TTS uses
+  // GEMINI_API_KEY, above. The Gemini TTS default model is a setting so a model change is not a deploy.
+  GOOGLE_TTS_API_KEY: z.string().optional(),
+  NARRATION_GEMINI_TTS_MODEL: z.string().optional(),
+
   WS_PORT: z.coerce.number().default(4001),
   DEEPLINK_PORT: z.coerce.number().default(4002),
 

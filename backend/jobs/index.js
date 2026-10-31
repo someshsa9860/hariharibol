@@ -13,7 +13,7 @@ import { Queue } from 'bullmq';
 import { bullConnection } from '../config/redis.js';
 import { defaultJobOptions } from '../config/cron.js';
 
-const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'translation-import', 'scenes', 'etiquette', 'quote', 'calendar', 'marketing', 'devops'];
+const QUEUE_NAMES = ['sloka', 'notification', 'preferences', 'payment', 'ai', 'maintenance', 'content', 'translation', 'translation-import', 'scenes', 'etiquette', 'quote', 'calendar', 'marketing', 'narration', 'devops'];
 
 // A queue that needs different job options than the default says so here. A translation run is hours
 // long and costs money, so BullMQ never retries it by itself: the processor decides what a failure
@@ -22,6 +22,7 @@ const QUEUE_JOB_OPTIONS = {
   translation: { attempts: 1 },
   'translation-import': { attempts: 1 }, // same reasoning: jobs/processors/translation-import.js decides what a failure means
   scenes: { attempts: 1 }, // same reasoning: jobs/processors/scenes.js decides what a failure means
+  narration: { attempts: 1 }, // and jobs/processors/narration.js: a run is paid for per verse, a retry would pay twice
   etiquette: { attempts: 1 }, // and jobs/processors/etiquette.js
   quote: { attempts: 1 }, // and jobs/processors/quote.js
   calendar: { attempts: 1 }, // and jobs/processors/calendar.js
@@ -59,6 +60,7 @@ const JOBS = {
   TRANSLATION_RUN: 'translation.run',
   TRANSLATION_IMPORT_RUN: 'translation-import.run',
   SCENES_RUN: 'scenes.run',
+  NARRATION_RUN: 'narration.run',
   ETIQUETTE_RUN: 'etiquette.run',
   ETIQUETTE_DELIVER: 'etiquette.deliver',
   QUOTE_RUN: 'quote.run',
