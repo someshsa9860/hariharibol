@@ -143,6 +143,11 @@ abstract final class AppRoutes {
   /// tab: a composer and a keyboard cannot share the bottom with a bar.
   static const String chat = '/chat';
 
+  /// The chat with a text already in its box, not sent: what "Ask Sakha" on
+  /// text selected in another app opens. The text rides in [chatDraftQuery].
+  static const String chatDraftQuery = 'draft';
+  static String chatDraftPath(String text) => Uri(path: chat, queryParameters: {chatDraftQuery: text}).toString();
+
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
   static const List<String> tabs = [home, sadhana, library, reels];

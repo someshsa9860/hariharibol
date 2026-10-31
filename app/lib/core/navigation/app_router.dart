@@ -319,7 +319,10 @@ GoRouter createRouter() {
           key: state.pageKey,
           child: ContentWidth(
             maxWidth: ContentWidths.reading,
-            child: ChatView(initialPrompt: state.extra is String ? state.extra as String : null),
+            child: ChatView(
+              initialPrompt: state.extra is String ? state.extra as String : null,
+              draft: state.uri.queryParameters[AppRoutes.chatDraftQuery],
+            ),
           ),
           transitionDuration: AppDurations.slow,
           reverseTransitionDuration: AppDurations.normal,

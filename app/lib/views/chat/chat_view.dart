@@ -33,11 +33,15 @@ import '../../widgets/common/app_loader.dart';
 /// clear the chat. Opening it asks the server for the conversation; the first
 /// message creates it if there is none.
 class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key, this.initialPrompt});
+  const ChatView({super.key, this.initialPrompt, this.draft});
 
   /// A question to ask as soon as the chat has loaded — what "Ask Sakha" on a verse opens it with. Sent once; if the
   /// reader cannot send just now (no credits, a full chat) it waits in the box instead.
   final String? initialPrompt;
+
+  /// Text to put in the box and not send — what "Ask Sakha" on text selected in another app opens it with. The reader
+  /// adds a question if they want one, and sends it themselves.
+  final String? draft;
 
   @override
   ConsumerState<ChatView> createState() => _ChatViewState();
@@ -55,6 +59,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
   @override
   void initState() {
     super.initState();
+    final draft = widget.draft?.trim() ?? '';
+    if (draft.isNotEmpty) {
+      _composer.value = TextEditingValue(text: draft, selection: TextSelection.collapsed(offset: draft.length));
+    }
     final prompt = widget.initialPrompt?.trim();
     if (prompt == null || prompt.isEmpty) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {

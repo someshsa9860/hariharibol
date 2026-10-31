@@ -76,6 +76,20 @@
                 <data android:scheme="hariharibol"/>
             </intent-filter>
         </activity>
+        <!-- "Ask Sakha" in the menu that opens when text is selected in another app (Select all, Copy, …). An alias
+             of MainActivity, so the selected text reaches the same activity, warm or cold: see MainActivity.kt and
+             services/sakha_selection.dart. Android only: iOS does not let an app add to that menu. -->
+        <activity-alias
+            android:name=".AskSakhaSelection"
+            android:targetActivity=".MainActivity"
+            android:exported="true"
+            android:label="Ask Sakha">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity-alias>
         <!-- Lock-screen and notification controls for reading aloud. -->
         <service
             android:name="com.ryanheise.audioservice.AudioService"
