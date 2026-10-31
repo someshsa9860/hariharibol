@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { build, linkToUri } from '../utils/push-rich.js';
-import { buildMessage } from '../utils/push-message.js';
+import { buildMessage, isDeadToken } from '../utils/push-message.js';
 
 test('a tap target is written in the app\'s own words', () => {
   assert.equal(linkToUri({ target: 'sakha' }), 'hariharibol://sakha');
@@ -72,4 +72,18 @@ test('with buttons Android gets data only, iOS an alert the extension finishes',
   assert.equal(m.data.image, 'https://x/y.jpg');
   assert.deepEqual(m.apns.payload.aps.alert, { title: 't', body: 'b' });
   assert.equal(m.apns.payload.aps['mutable-content'], 1);
+});
+
+test('only a token FCM calls dead is dropped, never one refused over the message', () => {
+  assert.equal(isDeadToken({ code: 'messaging/registration-token-not-registered', message: 'Requested entity was not found.' }), true);
+  assert.equal(isDeadToken({ code: 'messaging/invalid-registration-token', message: 'Invalid registration token' }), true);
+  assert.equal(
+    isDeadToken({ code: 'messaging/invalid-argument', message: 'The registration token is not a valid FCM registration token' }),
+    true,
+    'a token that is not a token at all'
+  );
+  assert.equal(isDeadToken({ code: 'messaging/invalid-argument', message: 'Invalid value at message.android.notification.image' }), false);
+  assert.equal(isDeadToken({ code: 'messaging/invalid-argument' }), false);
+  assert.equal(isDeadToken({ code: 'messaging/internal-error', message: 'Internal error' }), false);
+  assert.equal(isDeadToken(undefined), false);
 });

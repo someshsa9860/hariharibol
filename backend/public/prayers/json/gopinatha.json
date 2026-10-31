@@ -1,0 +1,105 @@
+{
+  "slug": "gopinatha",
+  "title": "Gopīnātha",
+  "titleOriginal": "গোপীনাথ",
+  "category": "deity",
+  "sortOrder": 80,
+  "originalLanguage": "bn",
+  "summary": "A humble prayer to Gopīnātha, Lord of the gopīs.",
+  "about": "The singer admits he has no good qualities and that only the Lord’s mercy can save him.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Kalyāṇa-kalpataru",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/g/gopinatha1.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "prayer of surrender"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "গোপীনাথ, মম নিবেদন শুন\nবিষয়ী দুর্জ্জন, সদা কাম-রত,\nকিছু নাহি মোর গুণ",
+      "roman": "gopīnāth, mama nivedana śuno\nviṣayī durjana, sadā kāma-rata,\nkichu nāhi mora guṇa",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "গোপীনাথ, আমার ভরসা তুমি\nতোমার চরণে, লৈনু শরণ,\nতোমার কিঙ্কোর আমি",
+      "roman": "gopīnāth, āmāra bharasā tumi\ntomāra caraṇe, loinu śaraṇa,\ntomāra kiṅkora āmi",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "গোপীনাথ, ক্য়ামনে শোধিবে মোরে\nনা জানি ভকতি, কর্ম্মে জড-মতি,\nপড়েছি সংসার-ঘরে",
+      "roman": "gopīnāth, kemone śodhibe more\nnā jāni bhakati, karme jaḍa-mati,\nporechi soṁsāra-ghore",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "গোপীনাথ, সকলি তোমার মায়া\nনাহি মম বল, জ্ঞান সুনির্ম্মল,\nস্বাদীন নহে এ কায়া",
+      "roman": "gopīnāth, sakali tomāra māyā\nnāhi mama bala, jñāna sunirmala,\nswādīna nahe e kāyā",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "গোপীনাথ, নিয়ত চরণে স্থান\nমাগে এ পামর, কান্দিয়া কান্দিয়া,\nকরহে করুণা দান",
+      "roman": "gopīnāth, niyata caraṇe sthāna\nmāge e pāmara, kāndiyā kāndiyā,\nkorohe karuṇā dāna",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "গোপীনাথ, তুমি তো’ সকলি পার\nদুর্জ্জন তারিতে, তোমার শকতি,\nকে আছে পাপীর আর",
+      "roman": "gopīnāth, tumi to' sakali pāro\ndurjane tārite, tomāra śakati,\nke āche pāpīra āro",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "গোপীনাথ, তুমি কৃপা-পারাবার\nজীবের কারণে, আসিয়া প্রপঞ্চে,\nলীলা কৈলে সুবিস্তার",
+      "roman": "gopīnāth, tumi kṛpā-pārābāra\njīvera kāraṇe, āsiyā prapañce,\nlīlā koile subistāra",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "গোপীনাথ, আমি কি দোষে দোষী\nঅসুর সকল, পাইল চরণ,\nবিনোদ থাকিল বোসি’",
+      "roman": "gopīnāth, āmi ki doṣe doṣī\nasura sakala, pāilo caraṇa,\nvinodá thākilo bosi'",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/g/gopinatha1.html",
+    "bengali": "https://kksongs.org/unicode/g/gopinath1_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Gopinath Mama Nivedana Suno",
+    "official name": "Upalabdhi Vijnapti Song 1",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Kalyana Kalpataru",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 8,
+      "bengali": 8
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.883Z"
+}

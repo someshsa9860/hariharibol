@@ -1,0 +1,272 @@
+{
+  "slug": "gaura-arati",
+  "title": "Śrī Gaura Ārati",
+  "titleOriginal": "শ্রীগৌর-আরতি",
+  "category": "aarti",
+  "sortOrder": 10,
+  "originalLanguage": "bn",
+  "summary": "The evening ārati song of Śrī Caitanya Mahāprabhu.",
+  "about": "Describes the ārati offered to Gaurasundara on the bank of the Jāhnavī, with Nityānanda, Gadādhara and the devotees around Him.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Gītāvalī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/j/jayajayagoracander.html",
+  "tradition": "vaishnava",
+  "deity": "gaura",
+  "occasions": [
+    "sandhyā ārati at dusk"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "জয় জয় গোরাচাঁদের আরতিক শোভা\nজাহ্নবী-তট-বনে জগ-মন-লোভা",
+      "roman": "jaya jaya gorācāṅder āratiko śobhā\njāhnavī-taṭa-vane jaga-mana-lobhā",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "দক্ষিণে নিতাইচাঁদ, বামে গদাধর\nনিকটে অদ্বৈত, শ্রীনিবাস ছত্র-ধর",
+      "roman": "dakhiṇe nitāicāṅd, bāme gadādhara\nnikaṭe advaita, śrīnivāsa chatra-dhara",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "বসিয়াছে গোরাচাঁদ রত্ন-সিংহাসনে\nআরতি করেন ব্রহ্মা-আদি দেব-গণে",
+      "roman": "bosiyāche gorācāṅd ratna-siṁhāsane\nārati koren brahmā-ādi deva-gaṇe",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "নরহরি-আদি করি’ চামর ধুলায়\nসঞ্জয়-মুকুন্দ-বাসু-ঘোষ-আদি গায়",
+      "roman": "narahari-ādi kori' cāmara dhulāya\nsañjaya-mukunda-bāsu-ghoṣ-ādi gāya",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "শঙ্খ বাজে ঘণ্টা বাজে বাজে করতাল\nমধুর মৃদঙ্গ বাজে পরম রসাল",
+      "roman": "śaṅkha bāje ghaṇṭā bāje bāje karatāla\nmadhura mṛdaṅga bāje parama rasāla",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "বহু-কোটি চন্দ্র জিনি’ বদন উজ্জ্বল\nগল-দেশে বন-মালা করে ঝলমল",
+      "roman": "bahu-koṭi candra jini' vadana ujjvala\ngala-deśe bana-mālā kore jhalamala",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "শিব-শুক-নারদ প্রেমে গদ-গদ\nভকতিবিনোদ দেখে গৌরার সম্পদ",
+      "roman": "śiva-śuka-nārada preme gada-gada\nbhakativinoda dekhe gorāra sampada",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/j/jayajayagoracander.html",
+    "bengali": "https://kksongs.org/unicode/j/jayajayagoracander_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Jaya Jaya Goracander Arotik",
+    "official name": "Arati Kirtana Song 2 (Gaura Arotik)",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Gitavali",
+    "language": "Bengali"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "(কিব) ",
+      "to": "",
+      "why": "A word added when it is sung, bracketed on the page."
+    },
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "\nজগ-জন-মন-লোভা\n(গৌরাঙ্গের আরতিক শোভা\nজগ-জন-মন-লোভা)",
+      "to": "",
+      "why": "The refrain as it is sung, repeated after the verse; not part of the text."
+    },
+    {
+      "verse": 1,
+      "field": "roman",
+      "from": "(kiba) ",
+      "to": "",
+      "why": "A word added when it is sung, bracketed on the page."
+    },
+    {
+      "verse": 1,
+      "field": "roman",
+      "from": "\njaga-jana-mana-lobhā",
+      "to": "",
+      "why": "The refrain as it is sung, repeated after the verse; not part of the text."
+    },
+    {
+      "verse": 2,
+      "field": "bengali",
+      "from": "দক্শিণে",
+      "to": "দক্ষিণে",
+      "why": "Typo on the Bengali page (ক্শ for ক্ষ)."
+    },
+    {
+      "verse": 7,
+      "field": "bengali",
+      "from": "\n(ঠাকুর) ভকতিবিনোদ দেখে গৌরার সম্পদ",
+      "to": "",
+      "why": "The last line repeated as it is sung; the Roman page has it once."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "roman": 7,
+      "bengali": 7
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": 1,
+        "copy": "roman",
+        "line": "(Refrain 1)"
+      },
+      {
+        "pageVerse": 1,
+        "copy": "roman",
+        "line": "(gaurāńger ārotik śobhā jaga-janer-mana-lobhā)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "roman",
+        "line": "(Refrain 2)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "roman",
+        "line": "(śankha bāje ghaṇṭā bāje madhur madhur madhur bāje)"
+      },
+      {
+        "pageVerse": 1,
+        "copy": "bengali",
+        "line": "(অন্তরা ১)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(অন্তরা ২)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(গৌরাঙ্গের আরতি করে)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(ব্রহ্মা আদি-দেব গণে গৌরাঙ্গের আরতি করে)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(গৌর কৃপা পাব বলে গৌরাঙ্গের আরতি করে)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(গৌর কৃপ পাব বলে গৌরাঙ্গের আরতি করে)"
+      },
+      {
+        "pageVerse": 2,
+        "copy": "bengali",
+        "line": "(নিতাই গৌর হরি বোল)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "bengali",
+        "line": "(অন্তরা ৩)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "bengali",
+        "line": "(শন্খ বাজে ঘণ্টা বাজে মধুর মধুর মধুর বাজে)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "bengali",
+        "line": "(গৌরাঙ্গের আরতি কালে, মধুর মধুর মধুর বাজে)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "bengali",
+        "line": "(গৌরাঙ্গের আরতি কালে, মধুর মধুর মধুর বাজে)"
+      },
+      {
+        "pageVerse": 5,
+        "copy": "bengali",
+        "line": "(মধুর মৃদঙ্গ বাজে মধুর মধুর মধুর বাজে)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(অন্তরা ৪)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(ভজ গৌর প্রেমে গদ গদরে শিব-শুক-নারদ প্রেমে গদ-গদ)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(ভজ গৌর প্রেমে গদ গদরে শিব-শুক-নারদ প্রেমে গদ-গদ)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(অন্তরা ৫)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(এই বার আমায় দয়া কর)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(ঠাকুর শ্রী ভক্তিবিনোদ এই বার আমায় দয়া কর)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(ঠাকুর শ্রী সরস্বতী এই বার আমায় দয়া কর)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(পতিত-পাবন শ্রী গুরুদেব এই বার আমায় দয়া কর)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(সপার্শ্শদ গৌর হরি এই বার আমায় দয়া কর)"
+      },
+      {
+        "pageVerse": 7,
+        "copy": "bengali",
+        "line": "(নিতাই গৌর হরি বোল)"
+      }
+    ],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.858Z"
+}

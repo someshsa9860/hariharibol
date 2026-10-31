@@ -88,25 +88,28 @@ export function checkItems(items) {
   return problems;
 }
 
-// What a later run may bring up to date on a row nobody has edited. `status` is deliberately not here: whether an item
-// is shown is an admin's decision once the row exists, and a restored or excluded item must stay as they left it.
-const REFRESHED = ['category', 'sortOrder', 'title', 'summary', 'body', 'reference', 'author', 'sourceName', 'sourceUrl'];
+// What a run may fill in on an item that already exists, and only where that item has no value for it (a row made
+// before the author column existed has none). Nothing else on an existing row is written: an admin's edit stays, and so
+// does wording the seed has since changed. `status` is not here either: whether an item is shown is an admin's decision
+// once the row exists, and a restored or excluded item must stay as they left it.
+const FILLABLE = ['category', 'sortOrder', 'title', 'summary', 'body', 'reference', 'author', 'sourceName', 'sourceUrl'];
+
+const blank = (value) => value === null || value === undefined || value === '';
 
 /**
- * Puts the English etiquette into the database. Safe to run again: a missing item is created, a row an admin has
- * edited (`isEdited`) is kept as it is, and any other row is rewritten only where it differs from this file. The
- * one thing put into an edited row is an author where it has none: a row made before the column existed had no
- * author to edit, and the form requires one from then on.
- * @returns {{ created: number, updated: number, kept: number, unchanged: number }}
+ * Puts the English etiquette into the database. Safe to run again: a missing item is created, and an item already there
+ * is left as it is except that a blank field is filled from this file.
+ * @returns {{ created: number, filled: number, kept: number }} `filled` counts the items that had a blank field filled,
+ *   `kept` the items that needed nothing.
  */
 export async function seedEtiquette(prisma) {
   const problems = checkItems(etiquetteItems);
   if (problems.length) throw new Error(`The etiquette seed has ${problems.length} problem(s):\n  ${problems.join('\n  ')}`);
 
-  const rows = await prisma.etiquette.findMany({ select: { id: true, slug: true, isEdited: true, ...Object.fromEntries(REFRESHED.map((f) => [f, true])) } });
+  const rows = await prisma.etiquette.findMany({ select: { id: true, slug: true, ...Object.fromEntries(FILLABLE.map((f) => [f, true])) } });
   const bySlug = new Map(rows.map((row) => [row.slug, row]));
 
-  const result = { created: 0, updated: 0, kept: 0, unchanged: 0 };
+  const result = { created: 0, filled: 0, kept: 0 };
   const fresh = [];
 
   for (const item of etiquetteItems) {
@@ -128,25 +131,14 @@ export async function seedEtiquette(prisma) {
       });
       continue;
     }
-    if (row.isEdited) {
-      if (row.author) {
-        result.kept += 1;
-      } else {
-        await prisma.etiquette.update({ where: { id: row.id }, data: { author: item.author } });
-        result.updated += 1;
-      }
-      continue;
+
+    const blanks = Object.fromEntries(FILLABLE.filter((field) => blank(row[field]) && !blank(item[field])).map((field) => [field, item[field]]));
+    if (Object.keys(blanks).length) {
+      await prisma.etiquette.update({ where: { id: row.id }, data: blanks });
+      result.filled += 1;
+    } else {
+      result.kept += 1;
     }
-    const changes = {};
-    for (const field of REFRESHED) {
-      if ((item[field] ?? null) !== (row[field] ?? null)) changes[field] = item[field] ?? null;
-    }
-    if (Object.keys(changes).length === 0) {
-      result.unchanged += 1;
-      continue;
-    }
-    await prisma.etiquette.update({ where: { id: row.id }, data: changes });
-    result.updated += 1;
   }
 
   if (fresh.length > 0) {

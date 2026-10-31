@@ -1,0 +1,57 @@
+{
+  "slug": "gayatri-mantra",
+  "title": "Gāyatrī Mantra",
+  "titleOriginal": "गायत्रीमन्त्रः",
+  "category": "morning",
+  "sortOrder": 130,
+  "originalLanguage": "sa",
+  "summary": "The mantra of the Ṛg-veda (3.62.10) to the light of Savitṛ.",
+  "about": "We meditate on the adorable light of the divine Savitṛ; may he inspire our understanding. Said at the three junctions of the day.",
+  "author": "Viśvāmitra (the ṛṣi of the mantra)",
+  "reference": "Ṛg-veda 3.62.10",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%97%E0%A4%BE%E0%A4%AF%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83",
+  "tradition": "smarta",
+  "deity": "savitr",
+  "occasions": [
+    "sunrise, noon and sunset (sandhyā)"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "ॐ भूर्भुवः स्वः ।\nतत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि ।\nधियो यो नः प्रचोदयात् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%97%E0%A4%BE%E0%A4%AF%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%97%E0%A4%BE%E0%A4%AF%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "notes": "[[w:{{PAGENAME}}"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "ॐ भूर्भुवः स्वः\nतत्सवितुर्वरेण्यम्\nभर्गो",
+      "to": "ॐ भूर्भुवः स्वः ।\nतत्सवितुर्वरेण्यं भर्गो",
+      "why": "The page breaks the first pāda off its line; written as it is said, the vyāhṛtis on their own line."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.954Z"
+}

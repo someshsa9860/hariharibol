@@ -85,6 +85,24 @@ class FakeAudioPlayer extends Fake implements AudioPlayer {
   }) async {
     opened.add(url);
     if (brokenUrls.contains(url)) throw PlayerException(403, 'The link has expired.', null);
+    return _ready();
+  }
+
+  /// A kept recording opens as `file:<path>` in [opened]; a path in
+  /// [brokenUrls] will not play.
+  @override
+  Future<Duration?> setFilePath(
+    String filePath, {
+    Duration? initialPosition,
+    bool preload = true,
+    dynamic tag,
+  }) async {
+    opened.add('file:$filePath');
+    if (brokenUrls.contains(filePath)) throw PlayerException(0, 'The file will not play.', null);
+    return _ready();
+  }
+
+  Duration _ready() {
     _duration = length;
     _processing = ProcessingState.ready;
     _durations.add(length);

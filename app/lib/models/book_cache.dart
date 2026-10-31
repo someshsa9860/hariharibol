@@ -177,6 +177,7 @@ class PayloadTranslation {
     this.meaning,
     this.purport,
     this.transliteration,
+    this.wordMeaningsJson,
     this.sourceRef,
     this.audioPath,
     this.displayOrder = 0,
@@ -193,24 +194,32 @@ class PayloadTranslation {
 
   /// The verse in this language's own script, when the server has one.
   final String? transliteration;
+
+  /// The word-for-word meanings in this language, as re-encoded JSON text. Null
+  /// when the language has none, in which case the verse's English list stands.
+  final String? wordMeaningsJson;
   final String? sourceRef;
   final String? audioPath;
   final int displayOrder;
 
-  factory PayloadTranslation.fromJson(Json json) => PayloadTranslation(
-        id: asString(json['id']),
-        languageCode: asString(json['languageCode']),
-        type: asString(json['type'], 'TRANSLATION'),
-        translatorId: asStringOrNull(json['translatorId']),
-        translatorSlug: asStringOrNull(json['translatorSlug']),
-        translatorName: asStringOrNull(json['translatorName']),
-        meaning: asStringOrNull(json['meaning']),
-        purport: asStringOrNull(json['purport']),
-        transliteration: asStringOrNull(json['transliteration']),
-        sourceRef: asStringOrNull(json['sourceRef']),
-        audioPath: asStringOrNull(json['audioPath']),
-        displayOrder: asInt(json['displayOrder']),
-      );
+  factory PayloadTranslation.fromJson(Json json) {
+    final words = json['wordMeanings'];
+    return PayloadTranslation(
+      id: asString(json['id']),
+      languageCode: asString(json['languageCode']),
+      type: asString(json['type'], 'TRANSLATION'),
+      translatorId: asStringOrNull(json['translatorId']),
+      translatorSlug: asStringOrNull(json['translatorSlug']),
+      translatorName: asStringOrNull(json['translatorName']),
+      meaning: asStringOrNull(json['meaning']),
+      purport: asStringOrNull(json['purport']),
+      transliteration: asStringOrNull(json['transliteration']),
+      wordMeaningsJson: words is List && words.isNotEmpty ? jsonEncode(words) : null,
+      sourceRef: asStringOrNull(json['sourceRef']),
+      audioPath: asStringOrNull(json['audioPath']),
+      displayOrder: asInt(json['displayOrder']),
+    );
+  }
 }
 
 class PayloadVerse {

@@ -40,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase(driftDatabase(name: 'hariharibol'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,6 +67,14 @@ class AppDatabase extends _$AppDatabase {
             if (from < 3) await m.addColumn(downloadStates, downloadStates.cacheVersion);
             if (from < 4) await m.addColumn(verseTranslations, verseTranslations.transliteration);
             if (from < 5) await m.addColumn(books, books.contentVersion);
+            if (from < 6) {
+              await m.addColumn(verseTranslations, verseTranslations.wordMeanings);
+              // Units saved before the column cannot hold the per-language word
+              // meanings the server sends with them. Forgetting their hash makes
+              // the next sync fetch each again; the text already here stays
+              // readable until its replacement arrives.
+              await customStatement("UPDATE download_state SET hash = NULL WHERE status = 'done'");
+            }
           }
         },
         beforeOpen: (details) async {

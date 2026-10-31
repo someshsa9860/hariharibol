@@ -19,6 +19,7 @@ import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
 import 'reel_actions.dart';
+import 'reels_on_screen.dart';
 
 /// Reels like the one the reader was watching: the same chapter first, then the
 /// same canto, then the same book.
@@ -38,7 +39,7 @@ class SimilarReelsView extends ConsumerStatefulWidget {
 }
 
 class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
-    with WidgetsBindingObserver, ReelActions<SimilarReelsView> {
+    with WidgetsBindingObserver, ReelActions<SimilarReelsView>, ReelsOnScreen<SimilarReelsView> {
   final PageController _pages = PageController();
   final Map<String, GlobalKey<ReelVideoPlayerState>> _playerKeys = {};
 
@@ -47,20 +48,11 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
   List<Reel>? _reels;
   int _index = 0;
   bool _muted = true;
-  bool _suspended = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     TrackingService.instance.log('reels_similar_open', parameters: {'reel_id': widget.reelId});
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final suspended = state != AppLifecycleState.resumed;
-    if (suspended == _suspended) return;
-    setState(() => _suspended = suspended);
   }
 
   @override
@@ -69,7 +61,6 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
     if (reels != null && _index < reels.length) {
       _playerKeys[reels[_index].id]?.currentState?.reportProgress();
     }
-    WidgetsBinding.instance.removeObserver(this);
     _pages.dispose();
     super.dispose();
   }
@@ -151,6 +142,7 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
                 return PageView.builder(
                   controller: _pages,
                   scrollDirection: Axis.vertical,
+                  allowImplicitScrolling: true,
                   onPageChanged: _onPageChanged,
                   itemCount: reels.length,
                   itemBuilder: (context, index) {
@@ -159,7 +151,7 @@ class _SimilarReelsViewState extends ConsumerState<SimilarReelsView>
                       key: ValueKey(reel.id),
                       reel: reel,
                       playerKey: _keyFor(reel.id),
-                      isActive: index == _index && !_suspended,
+                      isActive: index == _index && reelsOnScreen,
                       isMuted: _muted,
                       onProgress: (watched, duration) => reportWatch(reel, watched, duration),
                       onEnded: () => _advance(index, reels.length),

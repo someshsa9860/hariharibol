@@ -10,8 +10,9 @@ abstract final class AppRoutes {
   /// before sign-in.
   static const String intro = '/intro';
 
-  /// Asked once, on the first run of a new account.
-  static const String languageSetup = '/language';
+  /// Asked once, on the first run of a new account: the languages, a favourite
+  /// mantra, the daily rounds and a routine.
+  static const String setup = '/setup';
 
   // The four dashboard tabs. Each is a branch of the shell route, which is why
   // they are top-level paths rather than children of `/dashboard`.
@@ -32,6 +33,11 @@ abstract final class AppRoutes {
   static const String etiquette = '/etiquette';
   static const String etiquettePattern = '/etiquette/:id';
   static String etiquettePath(String id) => '/etiquette/$id';
+
+  /// Prayers: the list by category, and one prayer to read. Pushed from Home.
+  static const String prayers = '/prayers';
+  static const String prayerPattern = '/prayers/:id';
+  static String prayerPath(String id) => '/prayers/$id';
 
   /// Pushed from Home's avatar, so it keeps the tab bar behind it.
   static const String settings = '/settings';
@@ -137,6 +143,11 @@ abstract final class AppRoutes {
   /// tab: a composer and a keyboard cannot share the bottom with a bar.
   static const String chat = '/chat';
 
+  /// The chat with a text already in its box, not sent: what "Ask Sakha" on
+  /// text selected in another app opens. The text rides in [chatDraftQuery].
+  static const String chatDraftQuery = 'draft';
+  static String chatDraftPath(String text) => Uri(path: chat, queryParameters: {chatDraftQuery: text}).toString();
+
   /// The shell's branches, left to right in the bar. Sakha's button stands
   /// between the second and the third.
   static const List<String> tabs = [home, sadhana, library, reels];
@@ -147,7 +158,7 @@ abstract final class RouteNames {
   static const String splash = 'splash';
   static const String signIn = 'signIn';
   static const String intro = 'intro';
-  static const String languageSetup = 'languageSetup';
+  static const String setup = 'setup';
   static const String home = 'home';
   static const String sadhana = 'sadhana';
   static const String library = 'library';
@@ -155,6 +166,8 @@ abstract final class RouteNames {
   static const String calendar = 'calendar';
   static const String etiquette = 'etiquette';
   static const String etiquetteItem = 'etiquetteItem';
+  static const String prayers = 'prayers';
+  static const String prayer = 'prayer';
   static const String settings = 'settings';
   static const String support = 'support';
   static const String ticket = 'ticket';

@@ -1,0 +1,57 @@
+{
+  "slug": "kara-darshanam",
+  "title": "Kara-darśanam (on waking)",
+  "titleOriginal": "करदर्शनम्",
+  "category": "morning",
+  "sortOrder": 100,
+  "originalLanguage": "sa",
+  "summary": "The first verse of the day, said looking at one’s open palms.",
+  "about": "At the tips of the fingers lives Lakṣmī, in the middle Sarasvatī, at the root Govinda: so one looks at one’s hands on waking.",
+  "author": "",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%95%E0%A4%B0%E0%A4%A6%E0%A4%B0%E0%A5%8D%E0%A4%B6%E0%A4%A8%E0%A4%AE%E0%A5%8D",
+  "tradition": "smarta",
+  "deity": "lakshmi, sarasvati, govinda",
+  "occasions": [
+    "on waking, looking at the palms"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "कराग्रे वसते लक्ष्मीः करमध्ये सरस्वती ।\nकरमूले तु गोविंदः प्रभाते करदर्शनम् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%95%E0%A4%B0%E0%A4%A6%E0%A4%B0%E0%A5%8D%E0%A4%B6%E0%A4%A8%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%95%E0%A4%B0%E0%A4%A6%E0%A4%B0%E0%A5%8D%E0%A4%B6%E0%A4%A8%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "notes": "[[w:{{PAGENAME}}"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "प्रभाते करदर्शनम् ।",
+      "to": "प्रभाते करदर्शनम् ॥",
+      "why": "The page closes the verse with a single danda."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.947Z"
+}

@@ -19,12 +19,18 @@ import env from '../../config/env.js';
 import logger from '../../config/logger.js';
 import { AppError, badRequest } from '../../utils/errors.js';
 import { unitsToMinor } from './money.js';
+import { STORE_TIMEOUT_MS } from '../../config/constants.js';
 
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const BASE = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
 
 let client = null;
-let fetcher = (...args) => fetch(...args);
+// Every call is given STORE_TIMEOUT_MS; one that runs out is a failed lookup, like any other error from Play.
+let fetcher = (url, options = {}) =>
+  fetch(url, { ...options, signal: AbortSignal.timeout(STORE_TIMEOUT_MS) }).catch((error) => {
+    if (error.name !== 'TimeoutError') throw error;
+    throw new AppError(502, 'PAYMENT_LOOKUP_FAILED', 'Google Play did not answer in time');
+  });
 const setFetch = (fn) => {
   fetcher = fn;
 };

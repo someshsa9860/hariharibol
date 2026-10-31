@@ -9,12 +9,15 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
+import '../../models/book.dart';
+import '../../models/language.dart';
 import '../../services/support_service.dart';
 import 'support_labels.dart';
+import 'translation_request_fields.dart';
 
-/// Raising a ticket: a topic, what happened, and an optional screenshot. The
-/// phone model and app version go with it without being asked. Pops with true
-/// once it is sent.
+/// Raising a ticket: a topic, what happened, and an optional screenshot. A translation request names a book and
+/// a language instead of needing a message. The phone model and app version go with it without being asked. Pops
+/// with true once it is sent.
 class TicketSheet extends StatefulWidget {
   const TicketSheet._();
 
@@ -35,8 +38,19 @@ class TicketSheet extends StatefulWidget {
 class _TicketSheetState extends State<TicketSheet> {
   final TextEditingController _message = TextEditingController();
   String _category = SupportConfig.categories.first;
+  Book? _book;
+  Language? _language;
   Uint8List? _screenshot;
   bool _sending = false;
+
+  bool get _translating => _category == SupportConfig.translationCategory;
+
+  /// A translation needs its book and language; the note is optional. Anything else needs a message.
+  bool get _canSend {
+    if (_sending) return false;
+    if (_translating) return _book != null && _language != null;
+    return _message.text.trim().isNotEmpty;
+  }
 
   @override
   void initState() {
@@ -63,19 +77,34 @@ class _TicketSheetState extends State<TicketSheet> {
   }
 
   Future<void> _send() async {
-    if (_message.text.trim().isEmpty || _sending) return;
+    if (!_canSend) return;
     final text = AppLocalizations.of(context);
+    final book = _book;
+    final language = _language;
     setState(() => _sending = true);
     try {
       final shot = _screenshot;
       final key = shot == null ? null : await SupportService.instance.uploadScreenshot(shot, 'image/jpeg');
-      await SupportService.instance.create(category: _category, message: _message.text.trim(), screenshotKey: key);
+      await SupportService.instance.create(
+        category: _category,
+        message: _message.text.trim(),
+        screenshotKey: key,
+        translation: _translating && book != null && language != null
+            ? (bookSlug: book.slug, languageCode: language.code)
+            : null,
+      );
       if (mounted) Navigator.of(context).pop(true);
       AppNavigator.instance.showMessage(text.supportSent);
     } on ApiFailure catch (failure) {
       AppNavigator.instance.showFailure(failure);
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  String _hintFor(AppLocalizations text) {
+    if (_translating) return text.supportTranslationHint;
+    if (_category == SupportConfig.featureCategory) return text.supportFeatureHint;
+    return text.supportMessageHint;
   }
 
   @override
@@ -104,12 +133,21 @@ class _TicketSheetState extends State<TicketSheet> {
                   onChanged: (value) => setState(() => _category = value ?? _category),
                 ),
                 const SizedBox(height: AppSpacing.md),
+                if (_translating) ...[
+                  TranslationRequestFields(
+                    book: _book,
+                    language: _language,
+                    onBook: (book) => setState(() => _book = book),
+                    onLanguage: (language) => setState(() => _language = language),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
                 TextField(
                   controller: _message,
                   minLines: 4,
                   maxLines: 8,
                   maxLength: SupportConfig.ticketMaxChars,
-                  decoration: InputDecoration(hintText: text.supportMessageHint, border: const OutlineInputBorder()),
+                  decoration: InputDecoration(hintText: _hintFor(text), border: const OutlineInputBorder()),
                 ),
                 if (shot != null) ...[
                   const SizedBox(height: AppSpacing.sm),
@@ -131,7 +169,7 @@ class _TicketSheetState extends State<TicketSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: _message.text.trim().isEmpty || _sending ? null : _send,
+                    onPressed: _canSend ? _send : null,
                     style: FilledButton.styleFrom(minimumSize: const Size(0, AppSizes.buttonHeight)),
                     child: Text(text.supportSend),
                   ),

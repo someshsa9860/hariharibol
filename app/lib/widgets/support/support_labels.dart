@@ -8,6 +8,8 @@ String supportCategoryLabel(AppLocalizations text, String category) => switch (c
       'payment' => text.supportCategoryPayment,
       'account' => text.supportCategoryAccount,
       'content' => text.supportCategoryContent,
+      'feature' => text.supportCategoryFeature,
+      'translation' => text.supportCategoryTranslation,
       'suggestion' => text.supportCategorySuggestion,
       _ => text.supportCategoryOther,
     };

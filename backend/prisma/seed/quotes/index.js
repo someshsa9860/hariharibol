@@ -39,22 +39,26 @@ export function checkQuotes(items) {
   return problems;
 }
 
-// What a later run may bring up to date on a row nobody has edited. `status` is deliberately not here: whether a quote
-// is shown is an admin's decision once the row exists.
-const REFRESHED = ['sortOrder', 'text', 'reference', 'author', 'sourceName', 'sourceUrl'];
+// What a run may fill in on a quote that already exists, and only where that quote has no value for it. Nothing else on an
+// existing row is written: an admin's edit stays, and so does wording the seed has since changed. `status` is not here
+// either: whether a quote is shown is an admin's decision once the row exists.
+const FILLABLE = ['sortOrder', 'text', 'reference', 'author', 'sourceName', 'sourceUrl'];
+
+const blank = (value) => value === null || value === undefined || value === '';
 
 /**
- * Puts the English quotes into the database. Safe to run again: a missing quote is created, a row an admin has edited
- * (`isEdited`) is kept as it is, and any other row is rewritten only where it differs from this file.
- * @returns {{ created: number, updated: number, kept: number, unchanged: number }}
+ * Puts the English quotes into the database. Safe to run again: a missing quote is created, and a quote already there is
+ * left as it is except that a blank field is filled from this file.
+ * @returns {{ created: number, filled: number, kept: number }} `filled` counts the quotes that had a blank field filled,
+ *   `kept` the quotes that needed nothing.
  */
 export async function seedQuotes(prisma) {
   const problems = checkQuotes(quoteItems);
   if (problems.length) throw new Error(`The quotes seed has ${problems.length} problem(s):\n  ${problems.join('\n  ')}`);
 
-  const rows = await prisma.quote.findMany({ select: { id: true, slug: true, isEdited: true, ...Object.fromEntries(REFRESHED.map((f) => [f, true])) } });
+  const rows = await prisma.quote.findMany({ select: { id: true, slug: true, ...Object.fromEntries(FILLABLE.map((f) => [f, true])) } });
   const bySlug = new Map(rows.map((row) => [row.slug, row]));
-  const result = { created: 0, updated: 0, kept: 0, unchanged: 0 };
+  const result = { created: 0, filled: 0, kept: 0 };
   const fresh = [];
 
   for (const item of quoteItems) {
@@ -62,16 +66,15 @@ export async function seedQuotes(prisma) {
     if (!row) {
       fresh.push({ slug: item.slug, sortOrder: item.sortOrder, text: item.text, reference: item.reference, author: item.author, sourceName: item.sourceName, sourceUrl: item.sourceUrl, status: item.status });
       result.created += 1;
-    } else if (row.isEdited) {
-      result.kept += 1;
+      continue;
+    }
+
+    const blanks = Object.fromEntries(FILLABLE.filter((field) => blank(row[field]) && !blank(item[field])).map((field) => [field, item[field]]));
+    if (Object.keys(blanks).length) {
+      await prisma.quote.update({ where: { id: row.id }, data: blanks });
+      result.filled += 1;
     } else {
-      const changes = Object.fromEntries(REFRESHED.filter((f) => row[f] !== item[f]).map((f) => [f, item[f]]));
-      if (Object.keys(changes).length === 0) {
-        result.unchanged += 1;
-      } else {
-        await prisma.quote.update({ where: { id: row.id }, data: changes });
-        result.updated += 1;
-      }
+      result.kept += 1;
     }
   }
   if (fresh.length) await prisma.quote.createMany({ data: fresh });

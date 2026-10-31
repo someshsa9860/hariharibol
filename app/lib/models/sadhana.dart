@@ -50,6 +50,13 @@ class SadhanaDay {
 
   bool get roundTargetMet => roundTarget > 0 && roundsCompleted >= roundTarget;
 
+  SadhanaDay copyWith({int? roundsCompleted}) => SadhanaDay(
+        roundTarget: roundTarget,
+        roundsCompleted: roundsCompleted ?? this.roundsCompleted,
+        tasksTotal: tasksTotal,
+        tasksDone: tasksDone,
+      );
+
   factory SadhanaDay.fromJson(Json json) => SadhanaDay(
         roundTarget: asInt(json['roundTarget']),
         roundsCompleted: asInt(json['roundsCompleted']),
@@ -66,6 +73,21 @@ class SadhanaSummary {
   final int streak;
 
   bool get dayStarted => today != null;
+
+  /// This summary with the chanting counted on the phone laid over it: [loaded] is
+  /// the Jap tab's day (it knows the sittings, so the extra can be told from what
+  /// the server already holds) and [extra] the rounds the server has not heard
+  /// of yet. The feed can be a few rounds behind the phone, which is the record
+  /// that is right.
+  ///
+  /// The feed's "day not started" stays as it is while nothing has been chanted,
+  /// so the invitation to begin is not replaced by an empty card.
+  SadhanaSummary withPhone(SadhanaToday? loaded, int extra) {
+    if (loaded == null) return this;
+    final merged = loaded.plusRounds(extra);
+    if (today == null && merged.day.roundsCompleted == 0) return this;
+    return SadhanaSummary(today: merged.day, streak: merged.streak);
+  }
 
   factory SadhanaSummary.fromJson(Json json) => SadhanaSummary(
         today: asJson(json['today']) == null ? null : SadhanaDay.fromJson(asJson(json['today'])!),
@@ -131,9 +153,15 @@ class ChantSession {
     this.durationSeconds,
     this.mantraId,
     this.mantraName,
+    this.clientId,
   });
 
   final String id;
+
+  /// What the phone called this sitting when it began it (`ChantSitting.clientId`):
+  /// how a sitting counted on the phone is told from the server's copy of it.
+  /// Null for a sitting made by an older build or logged by hand.
+  final String? clientId;
 
   /// The backend's `ChantSource` — IN_APP or MANUAL.
   final String source;
@@ -164,6 +192,7 @@ class ChantSession {
       durationSeconds: asIntOrNull(json['durationSeconds']),
       mantraId: asStringOrNull(json['mantraId']),
       mantraName: mantra == null ? null : asStringOrNull(mantra['name']),
+      clientId: asStringOrNull(json['clientId']),
     );
   }
 }
@@ -266,6 +295,32 @@ class SadhanaToday {
       tasks: const [],
       sessions: const [],
       streak: daysBetween == 1 ? streak : 0,
+      beadsPerRound: beadsPerRound,
+      profile: profile,
+      favoriteMantraSlug: favoriteMantraSlug,
+      favoriteMantraName: favoriteMantraName,
+    );
+  }
+
+  /// The rounds the server's sessions hold for [mantraId] today (null: the plain
+  /// counter's). A mantra's rounds are its own — chanting another does not add
+  /// to them.
+  int serverRoundsOf(String? mantraId) => sessions
+      .where((session) => session.mantraId == mantraId)
+      .fold(0, (total, session) => total + session.rounds);
+
+  /// This screen with [extra] more rounds on the day: chanting counted on this
+  /// phone that the server has not heard of yet. A day the server saw no rounds
+  /// in carries on the run of days, as it will once the server has heard.
+  SadhanaToday plusRounds(int extra) {
+    if (extra <= 0) return this;
+
+    return SadhanaToday(
+      date: date,
+      day: day.copyWith(roundsCompleted: day.roundsCompleted + extra),
+      tasks: tasks,
+      sessions: sessions,
+      streak: day.roundsCompleted == 0 ? streak + 1 : streak,
       beadsPerRound: beadsPerRound,
       profile: profile,
       favoriteMantraSlug: favoriteMantraSlug,

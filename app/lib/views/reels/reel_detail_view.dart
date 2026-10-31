@@ -18,6 +18,7 @@ import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import '../../widgets/reels/reel_video_player.dart';
 import 'reel_actions.dart';
+import 'reels_on_screen.dart';
 
 /// One reel on its own — what a share link, a deep link or a push notification
 /// opens.
@@ -38,7 +39,8 @@ class ReelDetailView extends ConsumerStatefulWidget {
   ConsumerState<ReelDetailView> createState() => _ReelDetailViewState();
 }
 
-class _ReelDetailViewState extends ConsumerState<ReelDetailView> with ReelActions<ReelDetailView> {
+class _ReelDetailViewState extends ConsumerState<ReelDetailView>
+    with WidgetsBindingObserver, ReelActions<ReelDetailView>, ReelsOnScreen<ReelDetailView> {
   final GlobalKey<ReelVideoPlayerState> _player = GlobalKey<ReelVideoPlayerState>();
 
   /// Null until the fetch lands; after that this is the copy the screen shows,
@@ -90,7 +92,9 @@ class _ReelDetailViewState extends ConsumerState<ReelDetailView> with ReelAction
                 return ReelPage(
                   reel: reel,
                   playerKey: _player,
-                  isActive: true,
+                  // Stops under a screen pushed over it (its creator, "more
+                  // like this") and in the background, like the feed.
+                  isActive: reelsOnScreen,
                   isMuted: _muted,
                   onProgress: (watched, duration) => reportWatch(reel, watched, duration),
                   onLike: () => toggleLike(reel),

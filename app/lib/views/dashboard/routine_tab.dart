@@ -15,6 +15,7 @@ import '../../widgets/common/vaishnava_tilak_icon.dart';
 import '../../widgets/routine/add_routine_task_sheet.dart';
 import '../../widgets/routine/daily_routine_sheet.dart';
 import '../../widgets/routine/routine_date_strip.dart';
+import '../../widgets/routine/routine_on_time_card.dart';
 import '../../widgets/routine/routine_style.dart';
 import '../../widgets/routine/routine_task_tile.dart';
 
@@ -37,16 +38,48 @@ class RoutineTab extends ConsumerWidget {
 
   final bool showBack;
 
+  /// Adds to the day shown — or, switched to repeat, to every day from it.
   Future<void> _addTask(BuildContext context, WidgetRef ref) async {
     final draft = await showAddRoutineTaskSheet(context);
     if (draft == null) return;
+    final notifier = ref.read(routineProvider.notifier);
+    final day = ref.read(selectedRoutineDayProvider);
+    if (draft.daily) {
+      await notifier.addDaily(
+        from: day,
+        title: draft.title,
+        category: draft.category,
+        window: draft.window,
+      );
+    } else {
+      await notifier.addTask(
+        day: day,
+        title: draft.title,
+        category: draft.category,
+        window: draft.window,
+      );
+    }
+  }
+
+  /// Opens [task] to change it from its day on, switch it between one day and
+  /// every day, or delete it.
+  Future<void> _edit(
+    BuildContext context,
+    WidgetRef ref,
+    RoutineTask task,
+  ) async {
+    final edit = await showEditRoutineTaskSheet(context, task);
+    if (edit == null || !context.mounted) return;
+    final draft = edit.draft;
+    if (draft == null) return _remove(context, ref, task);
     await ref
         .read(routineProvider.notifier)
-        .addTask(
-          day: ref.read(selectedRoutineDayProvider),
+        .editTask(
+          task,
           title: draft.title,
           category: draft.category,
           window: draft.window,
+          daily: draft.daily,
         );
   }
 
@@ -102,17 +135,20 @@ class RoutineTab extends ConsumerWidget {
     RoutineTask task,
   ) async {
     final text = AppLocalizations.of(context);
-    await ref.read(routineProvider.notifier).remove(task.id);
+    final notifier = ref.read(routineProvider.notifier);
+    final removal = await notifier.removeFromDay(task);
     if (!context.mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.showSnackBar(
       SnackBar(
-        content: Text(text.routineTaskRemoved),
+        content: Text(
+          task.isDaily ? text.routineDailyRemoved : text.routineTaskRemoved,
+        ),
         action: SnackBarAction(
           label: text.routineUndo,
-          onPressed: () => ref.read(routineProvider.notifier).restore(task),
+          onPressed: () => notifier.undoRemoval(removal),
         ),
       ),
     );
@@ -165,6 +201,7 @@ class RoutineTab extends ConsumerWidget {
                     .select(DateTime.now()),
               ),
             ),
+            const RoutineOnTimeCard(),
             Expanded(
               child: tasks.isEmpty
                   // Scrolls, so a short screen never overflows it.
@@ -218,6 +255,7 @@ class RoutineTab extends ConsumerWidget {
                               onToggle: (task) => _toggle(context, ref, task),
                               onEditTime: (task) =>
                                   _editTime(context, ref, task),
+                              onEdit: (task) => _edit(context, ref, task),
                               onDismissed: (task) =>
                                   _remove(context, ref, task),
                             ),
@@ -372,6 +410,7 @@ class _SlotSection extends StatelessWidget {
     required this.tasks,
     required this.onToggle,
     required this.onEditTime,
+    required this.onEdit,
     required this.onDismissed,
   });
 
@@ -379,6 +418,7 @@ class _SlotSection extends StatelessWidget {
   final List<RoutineTask> tasks;
   final ValueChanged<RoutineTask> onToggle;
   final ValueChanged<RoutineTask> onEditTime;
+  final ValueChanged<RoutineTask> onEdit;
   final ValueChanged<RoutineTask> onDismissed;
 
   @override
@@ -400,6 +440,7 @@ class _SlotSection extends StatelessWidget {
               task: task,
               onToggle: () => onToggle(task),
               onEditTime: () => onEditTime(task),
+              onEdit: () => onEdit(task),
               onDismissed: () => onDismissed(task),
             ),
         ],

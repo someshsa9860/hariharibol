@@ -5,6 +5,7 @@
 // Feedback is the same row with `kind = FEEDBACK` and a 1–5 rating, so one admin inbox covers both.
 
 import * as devEvents from '../../services/dev-events.js';
+import * as websocket from '../../services/websocket.js';
 import { prisma } from '../../config/database.js';
 import * as s3 from '../../services/s3.js';
 import * as support from '../../services/support.js';
@@ -24,11 +25,30 @@ const SELECT = {
   status: true,
   subject: true,
   rating: true,
+  details: true,
   userUnread: true,
   lastMessageAt: true,
   resolvedAt: true,
   createdAt: true,
 };
+
+/**
+ * A translation request names a book and a reading language that exist. The names are copied in beside the
+ * codes, so the desk shows what was asked for even after a book or language is renamed.
+ */
+export async function translationDetails(input) {
+  if (!input) throw badRequest('Choose the book and the language');
+  const [book, language] = await Promise.all([
+    prisma.book.findUnique({ where: { slug: input.bookSlug }, select: { slug: true, title: true } }),
+    prisma.language.findUnique({
+      where: { code: input.languageCode },
+      select: { code: true, englishName: true, isActive: true, isReadingLanguage: true },
+    }),
+  ]);
+  if (!book) throw badRequest('That book is not in the library');
+  if (!language || !language.isActive || !language.isReadingLanguage) throw badRequest('The app does not read in that language');
+  return { bookSlug: book.slug, languageCode: language.code, bookTitle: book.title, languageName: language.englishName };
+}
 
 /** POST /api/app/support/media — the body is a screenshot. Returns the key to name in `create`. */
 export const uploadMedia = async (req, res) => {
@@ -46,28 +66,33 @@ export const uploadMedia = async (req, res) => {
 /** POST /api/app/support/tickets */
 export const create = async (req, res) => {
   const user = req.auth.user;
-  const { kind, category, subject, message, rating, screenshotKey, deviceInfo } = req.valid.body;
+  const { kind, category, subject, message, rating, details, screenshotKey, deviceInfo } = req.valid.body;
 
   if (kind === 'FEEDBACK' && !rating) throw badRequest('Feedback needs a rating');
-  if (kind === 'TICKET' && !message.trim()) throw badRequest('Tell us what happened');
+  // A translation request is about a book in a language, so its note is optional; every other ticket needs words.
+  if (kind === 'TICKET' && category !== 'translation' && !message.trim()) throw badRequest('Tell us what happened');
   if (screenshotKey && !s3.isGeneratedKey(screenshotKey)) throw badRequest('That is not an uploaded picture');
+  const translation = category === 'translation' ? await translationDetails(details) : null;
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const today = await prisma.supportTicket.count({ where: { userId: user.id, createdAt: { gte: since } } });
   if (today >= DAILY_LIMIT) throw tooMany('You have written in a lot today — please try again tomorrow');
 
   const key = screenshotKey ? await s3.commitKey(screenshotKey) : null;
+  // The desk's list shows the subject; a translation request without one reads "Book · Language".
+  const subjectText = subject || (translation ? `${translation.bookTitle} · ${translation.languageName}`.slice(0, 120) : null);
 
   const ticket = await prisma.supportTicket.create({
     data: {
       userId: user.id,
       kind,
       category,
-      subject: subject || null,
+      subject: subjectText,
       rating: rating ?? null,
       screenshotKey: key,
       // The headers are the fallback if the app sent no details of its own.
       deviceInfo: { platform: req.platform, appVersion: req.appVersion, ...(deviceInfo || {}) },
+      ...(translation ? { details: translation } : {}),
       ...(message.trim() ? { messages: { create: { authorId: user.id, fromStaff: false, body: message.trim() } } } : {}),
     },
     select: SELECT,
@@ -77,10 +102,12 @@ export const create = async (req, res) => {
   const text = (message || '').trim();
   devEvents.emit(kind === 'FEEDBACK' ? 'feedback.new' : 'ticket.new', {
     severity: kind === 'FEEDBACK' && rating <= 2 ? 'warning' : 'info',
-    title: kind === 'FEEDBACK' ? `New feedback: ${rating}★` : `New ticket: ${subject || category}`,
+    title: kind === 'FEEDBACK' ? `New feedback: ${rating}★` : `New ticket: ${subjectText || category}`,
     body: text.slice(0, 200) || null,
     data: { ticketId: ticket.id, userId: user.id, category, rating: rating ?? null },
   });
+  // The open desk adds the new ticket at the top without a reload.
+  websocket.toPermission('support.manage', websocket.EVENTS.SUPPORT_INBOX, { ticketId: ticket.id, change: 'new' });
 
   return created(res, ticket);
 };
@@ -141,6 +168,7 @@ export const reply = async (req, res) => {
     body: req.valid.body.body.trim().slice(0, 200),
     data: { ticketId: ticket.id, userId: user.id },
   });
+  websocket.toPermission('support.manage', websocket.EVENTS.SUPPORT_INBOX, { ticketId: ticket.id, change: 'reader' });
   return created(res, message);
 };
 

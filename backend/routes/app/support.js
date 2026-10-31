@@ -39,8 +39,11 @@ router.post(
   {
     summary: 'Raise a ticket or send feedback',
     description:
-      '`kind: TICKET` needs a message; `kind: FEEDBACK` needs a 1–5 rating and may carry a note. `deviceInfo` ' +
-      'is what the app attaches (platform, OS, model, app version, locale). At most 10 a day.',
+      '`kind: TICKET` needs a message, except a translation request; `kind: FEEDBACK` needs a 1–5 rating and may ' +
+      'carry a note. `category: feature` is a new feature asked for (a message). `category: translation` asks for ' +
+      'a book in a language: it needs `details: { bookSlug, languageCode }`, both must exist and the language must be ' +
+      'one the app reads in; a note is optional. ' +
+      '`deviceInfo` is what the app attaches (platform, OS, model, app version, locale). At most 10 a day.',
     limit: 'write',
     body: z.object({
       kind: z.enum(['TICKET', 'FEEDBACK']).default('TICKET'),
@@ -48,10 +51,15 @@ router.post(
       subject: z.string().trim().max(120).optional(),
       message: z.string().trim().max(4000).default(''),
       rating: z.coerce.number().int().min(1).max(5).optional(),
+      details: z.object({ bookSlug: z.string().trim().min(1).max(200), languageCode: z.string().trim().min(2).max(10) }).optional(),
       screenshotKey: z.string().min(1).max(500).optional(),
       deviceInfo: z.record(z.string().max(100), z.union([z.string().max(200), z.number(), z.boolean()])).optional(),
     }),
-    responds: { 201: 'The ticket', 400: 'Missing message or rating', 429: 'Too many today' },
+    responds: {
+      201: 'The ticket',
+      400: 'Missing message or rating, or a translation request with no real book or language',
+      429: 'Too many today',
+    },
   },
   controller.create
 );

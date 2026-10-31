@@ -8,8 +8,12 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/home_feed.dart';
+import '../../models/home_issue_verse.dart';
 import '../../models/verse.dart';
+import '../../providers/chant_ledger_provider.dart';
+import '../../providers/home_issue_verses_provider.dart';
 import '../../providers/home_provider.dart';
+import '../../providers/home_week_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../providers/session_provider.dart';
@@ -26,13 +30,18 @@ import '../../widgets/dashboard/home_header.dart';
 import '../../widgets/dashboard/calendar_entry_card.dart';
 import '../../widgets/dashboard/etiquette_entry_card.dart';
 import '../../widgets/dashboard/home_stats_card.dart';
+import '../../widgets/dashboard/issue_verses_row.dart';
 import '../../widgets/dashboard/mantra_row.dart';
 import '../../widgets/dashboard/mood_chips.dart';
 import '../../widgets/dashboard/open_chant.dart';
+import '../../widgets/dashboard/prayers_entry_card.dart';
 import '../../widgets/dashboard/routine_entry_card.dart';
 import '../../widgets/dashboard/sadhana_card.dart';
+import '../../widgets/dashboard/time_of_day_prayers_row.dart';
+import '../../widgets/dashboard/week_festivals_row.dart';
 import '../../widgets/dashboard/verse_hero_card.dart';
 import '../../widgets/library/open_book.dart';
+import '../../widgets/prayers/prayer_category_label.dart';
 
 /// The dashboard.
 ///
@@ -71,7 +80,10 @@ class HomeTab extends ConsumerWidget {
           data: (data) => RefreshIndicator(
             onRefresh: () async {
               await ref.read(homeFeedProvider.notifier).refresh();
+              // The chanting laid over the feed is read from the Jap tab's day.
+              await ref.read(sadhanaTodayProvider.notifier).refresh();
               ref.invalidate(userSummaryProvider);
+              ref.invalidate(homeIssueVersesProvider);
             },
             child: _HomeContent(feed: data),
           ),
@@ -120,6 +132,17 @@ class _HomeContent extends ConsumerWidget {
     // feed. Read as a value, not `.when`: a slow or failed load just leaves the
     // shortcut as a generic "Chant now" rather than holding the card back.
     final sadhanaToday = ref.watch(sadhanaTodayProvider).value;
+    // Chanting counted on this phone is the latest record; the feed's figures are
+    // the server's and can be a batch behind.
+    final phoneRounds = ref.watch(chantExtraProvider);
+    // Below the mantras, each only when it has something to show. The verses are
+    // for someone signed in; the week and the prayers come from calendars every
+    // visitor sees.
+    final issueVerses = user == null
+        ? const <HomeIssueVerse>[]
+        : ref.watch(homeIssueVersesProvider).asData?.value ?? const <HomeIssueVerse>[];
+    final thisWeek = ref.watch(thisWeekFestivalsProvider);
+    final prayers = ref.watch(timeOfDayPrayersProvider);
 
     // Built as a list so each section can be handed its position and brought
     // in a beat after the one above it.
@@ -136,7 +159,7 @@ class _HomeContent extends ConsumerWidget {
 
       if (feed.sadhana != null)
         SadhanaCard(
-          summary: feed.sadhana!,
+          summary: feed.sadhana!.withPhone(sadhanaToday, phoneRounds),
           onTap: () => AppNavigator.instance.go(AppRoutes.sadhana),
           mantraName: sadhanaToday?.chantMantraName,
           onChant: () => openChant(ref, mantraSlug: sadhanaToday?.chantMantraSlug),
@@ -147,6 +170,7 @@ class _HomeContent extends ConsumerWidget {
       const RoutineEntryCard(),
       const CalendarEntryCard(),
       const EtiquetteEntryCard(),
+      const PrayersEntryCard(),
 
       // Lifetime totals, right after today's practice — a separate request
       // from the rest of the feed, so it is signed out only when there is a
@@ -202,6 +226,30 @@ class _HomeContent extends ConsumerWidget {
               AppRoutes.mantraPath(mantra.slug),
             ),
           ),
+        ),
+
+      if (issueVerses.isNotEmpty)
+        _TitledSection(
+          header: SectionHeader(title: text.homeForYourGrowth),
+          child: IssueVersesRow(items: issueVerses),
+        ),
+
+      if (thisWeek.isNotEmpty)
+        _TitledSection(
+          header: SectionHeader(
+            title: text.homeThisWeek,
+            onViewAll: () => AppNavigator.instance.go(AppRoutes.calendar),
+          ),
+          child: WeekFestivalsRow(festivals: thisWeek),
+        ),
+
+      if (prayers.isNotEmpty)
+        _TitledSection(
+          header: SectionHeader(
+            title: prayerCategoryLabel(text, prayers.first.category),
+            onViewAll: () => AppNavigator.instance.go(AppRoutes.prayers),
+          ),
+          child: TimeOfDayPrayersRow(prayers: prayers),
         ),
     ];
 

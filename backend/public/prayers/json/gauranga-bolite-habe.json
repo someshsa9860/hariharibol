@@ -1,0 +1,84 @@
+{
+  "slug": "gauranga-bolite-habe",
+  "title": "Gaurāṅga Bolite Habe",
+  "titleOriginal": "গৌরাঙ্গ বলিতে হবে",
+  "category": "deity",
+  "sortOrder": 150,
+  "originalLanguage": "bn",
+  "summary": "“When will that day be mine?”: longing to call out Gaurāṅga’s name with feeling.",
+  "about": "Longs for the day when saying “Gaurāṅga” will bring tears, the mind will be pure, and Vṛndāvana will be seen.",
+  "author": "Narottama Dāsa Ṭhākura",
+  "reference": "Prārthanā",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/g/gaurangabolite.html",
+  "tradition": "vaishnava",
+  "deity": "gaura",
+  "occasions": [
+    "prayer of longing"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "‘গৌরাঙ্গ’ বলিতে হবে পুলক-শরীর\n‘হরি হরি’ বলিতে নয়নে ব’বে নীর",
+      "roman": "'gaurāṅga' bolite habe pulaka-śarīra\n'hari hari' bolite nayane ba' be nīra",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "আর কবে নিতাই-চাঁদের করুণা হৈবে\nসংসার-বাসনা মোর কবে তুচ্ছ হ’বে",
+      "roman": "āra kabe nitāi-cānder koruṇā hoibe\nsaṁsāra-bāsanā mora kabe tuccha ha'be",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "বিষয় ছাড়িয়া কবে শুদ্ধ হ’বে মন\nকবে হাম হেরব শ্রী-বৃন্দাবন",
+      "roman": "viṣaya chāriyā kabe śuddha ha 'be mana\nkabe hāma herabo śrī-bṛndābana",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "রূপ-রঘুনাথ-পদে হৈবে আকুতি\nকবে হাম বুঝব সে যুগল-পীরিতি",
+      "roman": "rūpa-raghunātha-pade hoibe ākuti\nkabe hāma bujhabo se jugala-pīriti",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "রূপ-রঘুনাথ-পদে রহু মোর আশ\nপ্রার্থনা করয়ে সদা নরোত্তম-দাস",
+      "roman": "rūpa-raghunātha-pade rahu mora āśa\nprārthanā koroye sadā narottama-dāsa",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/g/gaurangabolite.html",
+    "bengali": "https://kksongs.org/unicode/g/gaurangabolitehabe_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Gauranga Bolite Habe",
+    "official name": "Lalasmayi Prarthana Song 1",
+    "author": "Narottama Dasa Thakura",
+    "book name": "Prarthana",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 5,
+      "bengali": 5
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.909Z"
+}

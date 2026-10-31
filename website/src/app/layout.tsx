@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Fraunces, Inter, Noto_Serif_Devanagari } from 'next/font/google';
 import { appStoreUrl, SITE_URL } from '@/lib/config';
 import { readingLanguage } from '@/lib/prefs/server';
 import { configScript } from '@/lib/runtime-config';
@@ -36,6 +37,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// The three faces, downloaded at build time and served from this site (no request to Google from the reader's browser).
+// Each sets a CSS variable that `--serif` / `--sans` / `--deva` in tokens.css start with. Fraunces keeps its optical-size
+// axis, which Google only gives with the full weight range (it is the same file either way). Devanagari is not preloaded:
+// most pages never draw it, and the browser fetches it the moment one does.
+const fraunces = Fraunces({ subsets: ['latin'], axes: ['opsz'], variable: '--font-fraunces' });
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-inter' });
+const devanagari = Noto_Serif_Devanagari({ subsets: ['devanagari'], weight: ['400', '500', '600'], preload: false, variable: '--font-deva' });
+
 // Sets the theme and the "scripts are running" class before the first paint, so there is no flash of the wrong colours
 // and the reveal animations only hide content that JavaScript can bring back.
 const BOOT = `try{var d=document.documentElement;d.classList.add('js');var p=JSON.parse(localStorage.getItem('hhb.prefs')||'null');if(p&&p.theme&&p.theme!=='system')d.setAttribute('data-theme',p.theme)}catch(e){document.documentElement.classList.add('js')}`;
@@ -44,15 +53,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const language = await readingLanguage();
   const appStoreId = appStoreUrl().match(/id(\d{6,})/)?.[1];
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${devanagari.variable}`} suppressHydrationWarning>
       <head>
         {appStoreId && <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap"
-        />
         <script dangerouslySetInnerHTML={{ __html: BOOT }} />
         <script dangerouslySetInnerHTML={{ __html: configScript() }} />
       </head>

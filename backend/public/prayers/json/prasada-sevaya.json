@@ -1,0 +1,63 @@
+{
+  "slug": "prasada-sevaya",
+  "title": "Prasāda-sevāya",
+  "titleOriginal": "প্রসাদ-সেবায়",
+  "category": "meals",
+  "sortOrder": 10,
+  "originalLanguage": "bn",
+  "summary": "Sung before eating food offered to Kṛṣṇa.",
+  "about": "Says the tongue is hard to control, and that Kṛṣṇa kindly gave His prasāda to conquer it; let us take it and sing His glories.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Gītāvalī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/s/sariraavidyajal.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "before honouring prasāda"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "ভাই-রে!\nশরীর অবিদ্যা-জাল, জডেন্দ্রিয় তাহে কাল,\nজীবে ফেলে বিষয়-সাগরে\nতা’র মধ্যে জিহ্বা অতি, লোভময় সুদুর্ম্মতি,\nতা’কে জেতা কঠিন সংসারে",
+      "roman": "bhāi-re!\nśarīra abidyā-jāl, joḍendriya tāhe kāl,\njīve phele viṣaya-sāgore\ntā'ra madhye jihwā ati, lobhamoy sudurmati,\ntā'ke jetā kaṭhina saṁsāre",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "কৃষ্ণ বড় দয়াময়, করিবারে জিহ্বা জয়,\nস্ব-প্রসাদন্ন দিল ভাই\nসেই অন্নামৃত পাও, রাধা-কৃষ্ণ-গুণ গাও,\nপ্রেমে ডাকো চৈতন্য-নিতাই",
+      "roman": "kṛṣṇa boro doyāmoy, koribāre jihwā jay,\nswa-prasād-anna dilo bhāi\nsei annāmṛta pāo, rādhā-kṛṣṇa-guṇa gāo,\npreme ḍāko caitanya-nitāi",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/s/sariraavidyajal.html",
+    "bengali": "https://kksongs.org/unicode/s/sariraavdiyajal_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Sarira Avidya Jala",
+    "official name": "Prasada Sevaya Song 1",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Gitavali",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 2,
+      "bengali": 2
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.863Z"
+}

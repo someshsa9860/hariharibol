@@ -1,0 +1,129 @@
+{
+  "slug": "dasavatara-stotra",
+  "title": "Śrī Daśāvatāra Stotra",
+  "titleOriginal": "श्रीदशावतारस्तोत्रम्",
+  "category": "deity",
+  "sortOrder": 90,
+  "originalLanguage": "sa",
+  "summary": "The ten avatāras of Kṛṣṇa, each verse ending “jaya jagadīśa hare”.",
+  "about": "From the Gīta-govinda: Matsya, Kūrma, Varāha, Nṛsiṁha, Vāmana, Paraśurāma, Rāma, Balarāma, Buddha and Kalki, all as forms of Keśava.",
+  "author": "Jayadeva Gosvāmī",
+  "reference": "Gīta-govinda",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/p/pralayapayodhijale.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "any time"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "प्रलयपयोधिजले धृतवानसि वेदं\nविहितवहित्रचरित्रमखेदम्\nकेशव धृतमीनशरीर जय जगदीश हरे",
+      "roman": "pralaya-payodhi-jale dhṛtavān asi vedaṁ\nvihita-vahitra-caritram akhedam\nkeśava dhṛta-mīna-śarīra jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "क्षितिरिह विपुलतरे तिष्ठति तव पृष्ठे\nधरणिधारणकिणचक्रगरिष्ठे\nकेशव धृतकूर्मशरीर जय जगदीश हरे",
+      "roman": "kṣitir iha vipulatare tiṣṭhati tava pṛṣṭhe\ndharaṇi-dhāraṇa-kiṇa-cakra-gariṣṭhe\nkeśava dhṛta-kūrma-śarīra jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "वसति दशनशिखरे धरणी तव लग्ना\nशशिनि कलङ्ककलेव निमग्ना\nकेशव धृतशूकररूप जय जगदीश हरे",
+      "roman": "vasati daśana-śikhare dharaṇī tava lagnā\nśaśini kalaṅka-kaleva nimagnā\nkeśava dhṛta-śūkara-rūpa jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "तव करकमलवरे नखमद्भुतशृङ्गं\nदलितहिरण्यकशिपुतनुभृङ्गम्\nकेशव धृतनरहरिरूप जय जगदीश हरे",
+      "roman": "tava kara-kamala-vare nakham adbhuta-śṛṅgaṁ\ndalita-hiraṇyakaśipu-tanu-bhṛṅgam\nkeśava dhṛta-narahari-rūpa jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "छलयसि विक्रमणे बलिमद्भुतवामन\nपदनखनीरजनितजनपावन\nकेशव धृतवामनरूप जय जगदीश हरे",
+      "roman": "chalayasi vikramaṇe balim adbhuta-vāmana\npada-nakha-nīra-janita-jana-pāvana\nkeśava dhṛta-vāmana-rūpa jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "क्षत्रियरुधिरमये जगदपगतपापम्\nस्नपयसि पयसि शमितभवतापम्\nकेशव धृतभृगुपतिरूप जय जगदिश हरे",
+      "roman": "kṣatriya-rudhira-maye jagad-apagata-pāpam\nsnapayasi payasi śamita-bhava-tāpam\nkeśava dhṛta-bhṛgupati-rūpa jaya jagadiśa hare",
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "वितरसि दिक्षु रणे दिक्पतिकमनीयं\nदशमुखमौलिबलिम् रमणीयम्\nकेशव धृतरामशरीर जय जगदिश हरे",
+      "roman": "vitarasi dikṣu raṇe dik-pati-kamanīyaṁ\ndaśa-mukha-mauli-balim ramaṇīyam\nkeśava dhṛta-rāma-śarīra jaya jagadiśa hare",
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "वहसि वपुषि विशदे वसनं जलदाभं\nहलहतिभीतिमिलितयमुनाभम्\nकेशव धृतहलधररूप जय जगदिश हरे",
+      "roman": "vahasi vapuṣi viśade vasanaṁ jaladābhaṁ\nhala-hati-bhīti-milita-yamunābham\nkeśava dhṛta-haladhara-rūpa jaya jagadiśa hare",
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "निन्दसि यज्ञविधेरहहश्रुतिजातं\nसदयहृदय दर्शितपशुघातम्\nकेशव धृतबुद्धशरीर जय जगदीश हरे",
+      "roman": "nindasi yajña-vidher ahaha śruti-jātaṁ\nsadaya-hṛdaya darśita-paśu-ghātam\nkeśava dhṛta-buddha-śarīra jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "म्लेच्छनिवहनिधने कलयसि करवालं\nधूमकेतुमिव किमपि करालम्\nकेशव धृतकल्किशरीर जय जगदीश हरे",
+      "roman": "mleccha-nivaha-nidhane kalayasi karavālaṁ\ndhūmaketum iva kim api karālam\nkeśava dhṛta-kalki-śarīra jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 11,
+      "text": "श्रीजयेदेवकवेरिदमुदितमुदारं\nशृणु सुखदं शुभदं भवसारम्\nकेशव धृतदशविधरूप जय जगदीश हरे",
+      "roman": "śrī-jayedeva-kaver idam uditam udāraṁ\nśṛṇu sukha-daṁ śubha-daṁ bhava-sāram\nkeśava dhṛta-daśa-vidha-rūpa jaya jagadīśa hare",
+      "meaning": null
+    },
+    {
+      "position": 12,
+      "text": "वेदानुद्धरते जगन्ति वहते भूगोलमुद्बिभ्रते\nदैत्यं दारयते बलिं छलयते क्षत्रक्षयं कुर्वते\nपौलस्त्यं जयते हलं कलयते कारुण्यमातन्वते\nम्लेच्छान्मूर्छयते दशकृतिकृते कृष्णाय तुभ्यं नमः",
+      "roman": "vedān uddharate jaganti vahate bhū-golam udbibhrate\ndaityaṁ dārayate baliṁ chalayate kṣatra-kṣayaṁ kurvate\npaulastyaṁ jayate halaṁ kalayate kāruṇyam ātanvate\nmlecchān mūrchayate daśakṛti-kṛte kṛṣṇāya tubhyaṁ namaḥ",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/p/pralayapayodhijale.html",
+    "devanagari": "https://kksongs.org/unicode/p/pralayapayodhijale_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Pralaya Payodhi Jale",
+    "official name": "Song 1; Sri Dasavatara Stotram",
+    "author": "Jayadeva Goswami",
+    "book name": "Gita Govinda",
+    "language": "Sanskrit"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "प्रलयपयोधिजाले",
+      "to": "प्रलयपयोधिजले",
+      "why": "Typo on the Devanagari page; payodhi-jale (in the waters of the ocean), as the Roman page has it."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "roman": 12,
+      "devanagari": 12
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.886Z"
+}

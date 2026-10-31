@@ -1,0 +1,479 @@
+{
+  "gurvastakam": {
+    "title": "Śrī Gurvaṣṭakam",
+    "category": "guru",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": false,
+    "warnings": 0,
+    "file": "gurvastakam.json"
+  },
+  "sri-guru-carana-padma": {
+    "title": "Śrī Guru-caraṇa-padma",
+    "category": "guru",
+    "originalLanguage": "bn",
+    "verses": 10,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "sri-guru-carana-padma.json"
+  },
+  "sad-gosvamy-astakam": {
+    "title": "Śrī Ṣaḍ-gosvāmy-aṣṭakam",
+    "category": "guru",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "sad-gosvamy-astakam.json"
+  },
+  "je-anilo-prema-dhana": {
+    "title": "Je Ānilo Prema-dhana",
+    "category": "guru",
+    "originalLanguage": "bn",
+    "verses": 5,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "je-anilo-prema-dhana.json"
+  },
+  "vibhavari-sesa": {
+    "title": "Vibhāvarī Śeṣa",
+    "category": "morning",
+    "originalLanguage": "bn",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "vibhavari-sesa.json"
+  },
+  "udilo-aruna": {
+    "title": "Udilo Aruṇa",
+    "category": "morning",
+    "originalLanguage": "bn",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "udilo-aruna.json"
+  },
+  "jiv-jago": {
+    "title": "Jīv Jāgo",
+    "category": "morning",
+    "originalLanguage": "bn",
+    "verses": 5,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "jiv-jago.json"
+  },
+  "gaura-arati": {
+    "title": "Śrī Gaura Ārati",
+    "category": "aarti",
+    "originalLanguage": "bn",
+    "verses": 7,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "gaura-arati.json"
+  },
+  "bhoga-arati": {
+    "title": "Śrī Bhoga Ārati",
+    "category": "aarti",
+    "originalLanguage": "bn",
+    "verses": 17,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "bhoga-arati.json"
+  },
+  "prasada-sevaya": {
+    "title": "Prasāda-sevāya",
+    "category": "meals",
+    "originalLanguage": "bn",
+    "verses": 2,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "prasada-sevaya.json"
+  },
+  "tulasi-kirtana": {
+    "title": "Śrī Tulasī Kīrtana",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 7,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "tulasi-kirtana.json"
+  },
+  "nrsimha-pranama": {
+    "title": "Śrī Nṛsiṁha Praṇāma",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 3,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "nrsimha-pranama.json"
+  },
+  "damodarastakam": {
+    "title": "Śrī Dāmodarāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "damodarastakam.json"
+  },
+  "hari-haraye-namah": {
+    "title": "Hari Haraye Namaḥ",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 10,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "hari-haraye-namah.json"
+  },
+  "doya-koro-more": {
+    "title": "Śrī Kṛṣṇa-caitanya Prabhu Doyā Koro More",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 7,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "doya-koro-more.json"
+  },
+  "gopinatha": {
+    "title": "Gopīnātha",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "gopinatha.json"
+  },
+  "dasavatara-stotra": {
+    "title": "Śrī Daśāvatāra Stotra",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 12,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "dasavatara-stotra.json"
+  },
+  "radha-krpa-kataksa": {
+    "title": "Śrī Rādhā-kṛpā-kaṭākṣa Stava-rāja",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 13,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "radha-krpa-kataksa.json"
+  },
+  "jagannathastakam": {
+    "title": "Śrī Jagannāthāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": false,
+    "warnings": 0,
+    "file": "jagannathastakam.json"
+  },
+  "acyutam-kesavam": {
+    "title": "Acyutam Keśavam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "acyutam-kesavam.json"
+  },
+  "govardhanastakam": {
+    "title": "Śrī Govardhanāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "govardhanastakam.json"
+  },
+  "gauranga-bolite-habe": {
+    "title": "Gaurāṅga Bolite Habe",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 5,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "gauranga-bolite-habe.json"
+  },
+  "jaya-radha-madhava": {
+    "title": "Jaya Rādhā-Mādhava",
+    "category": "deity",
+    "originalLanguage": "bn",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "jaya-radha-madhava.json"
+  },
+  "gita-dhyana": {
+    "title": "Gītā-dhyānam",
+    "category": "other",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "gita-dhyana.json"
+  },
+  "bhaja-govindam": {
+    "title": "Bhaja Govindam",
+    "category": "other",
+    "originalLanguage": "sa",
+    "verses": 34,
+    "copiesAgree": true,
+    "warnings": 1,
+    "file": "bhaja-govindam.json"
+  },
+  "purnam-adah": {
+    "title": "Pūrṇam Adaḥ",
+    "category": "peace",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "purnam-adah.json"
+  },
+  "tulasi-arati": {
+    "title": "Śrī Tulasī Ārati",
+    "category": "aarti",
+    "originalLanguage": "hi",
+    "verses": 5,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "tulasi-arati.json"
+  },
+  "maha-prasade-govinde": {
+    "title": "Mahā-prasāde Govinde",
+    "category": "meals",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "maha-prasade-govinde.json"
+  },
+  "siksastakam": {
+    "title": "Śrī Śikṣāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": false,
+    "warnings": 0,
+    "file": "siksastakam.json"
+  },
+  "madhurastakam": {
+    "title": "Madhurāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "madhurastakam.json"
+  },
+  "shiva-panchakshara-stotram": {
+    "title": "Śiva Pañcākṣara Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 6,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "shiva-panchakshara-stotram.json"
+  },
+  "lingashtakam": {
+    "title": "Liṅgāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "lingashtakam.json"
+  },
+  "shiva-tandava-stotram": {
+    "title": "Śiva Tāṇḍava Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 17,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "shiva-tandava-stotram.json"
+  },
+  "rudrashtakam": {
+    "title": "Śrī Rudrāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "rudrashtakam.json"
+  },
+  "shiva-manasa-puja": {
+    "title": "Śiva Mānasa Pūjā",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 4,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "shiva-manasa-puja.json"
+  },
+  "kara-carana-krtam": {
+    "title": "Kara-caraṇa-kṛtam (forgive my faults)",
+    "category": "evening",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "kara-carana-krtam.json"
+  },
+  "ganapati-atharvashirsha": {
+    "title": "Gaṇapati Atharvaśīrṣa",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 14,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "ganapati-atharvashirsha.json"
+  },
+  "ganesha-pancharatnam": {
+    "title": "Gaṇeśa Pañcaratnam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 6,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "ganesha-pancharatnam.json"
+  },
+  "devi-aparadha-kshamapana-stotram": {
+    "title": "Devī Aparādha-kṣamāpana Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 12,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "devi-aparadha-kshamapana-stotram.json"
+  },
+  "bhavanyashtakam": {
+    "title": "Bhavānyaṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "bhavanyashtakam.json"
+  },
+  "datta-stava-stotram": {
+    "title": "Śrī Datta-stava Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "datta-stava-stotram.json"
+  },
+  "rama-raksha-stotram": {
+    "title": "Śrī Rāma-rakṣā Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 39,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "rama-raksha-stotram.json"
+  },
+  "pandurangashtakam": {
+    "title": "Pāṇḍuraṅgāṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 9,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "pandurangashtakam.json"
+  },
+  "aditya-hridayam": {
+    "title": "Āditya-hṛdayam",
+    "category": "morning",
+    "originalLanguage": "sa",
+    "verses": 31,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "aditya-hridayam.json"
+  },
+  "sankatanashana-ganesha-stotram": {
+    "title": "Saṅkaṭa-nāśana Gaṇeśa Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "sankatanashana-ganesha-stotram.json"
+  },
+  "mahalakshmi-ashtakam": {
+    "title": "Mahālakṣmyaṣṭakam",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 11,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "mahalakshmi-ashtakam.json"
+  },
+  "dattatreya-stotram": {
+    "title": "Śrī Dattātreya Stotram",
+    "category": "deity",
+    "originalLanguage": "sa",
+    "verses": 19,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "dattatreya-stotram.json"
+  },
+  "kara-darshanam": {
+    "title": "Kara-darśanam (on waking)",
+    "category": "morning",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "kara-darshanam.json"
+  },
+  "bhumi-vandanam": {
+    "title": "Bhūmi-vandanam (before stepping on the earth)",
+    "category": "morning",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "bhumi-vandanam.json"
+  },
+  "pratah-smaranam": {
+    "title": "Prātaḥ-smaraṇam (morning verses)",
+    "category": "morning",
+    "originalLanguage": "sa",
+    "verses": 11,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "pratah-smaranam.json"
+  },
+  "gayatri-mantra": {
+    "title": "Gāyatrī Mantra",
+    "category": "morning",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "gayatri-mantra.json"
+  },
+  "saha-navavatu": {
+    "title": "Saha nāv avatu",
+    "category": "peace",
+    "originalLanguage": "sa",
+    "verses": 1,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "saha-navavatu.json"
+  },
+  "kshama-prarthana": {
+    "title": "Kṣamā-prārthanā",
+    "category": "other",
+    "originalLanguage": "sa",
+    "verses": 8,
+    "copiesAgree": true,
+    "warnings": 0,
+    "file": "kshama-prarthana.json"
+  }
+}

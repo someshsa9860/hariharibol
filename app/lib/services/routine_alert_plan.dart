@@ -51,11 +51,11 @@ class RoutineAlert {
 
 /// The alerts to set: one for each task of the next [RoutineConfig.alertDays]
 /// days that has a time range, is not done, and whose range has not opened yet.
-/// The nearest [RoutineConfig.alertMaxPending] are kept.
+/// The nearest [max] are kept.
 ///
 /// A task with no time range has no moment to be alerted at, so it gets none; a
 /// done task needs none. A daily item gets one alert for each day it applies on.
-List<RoutineAlert> planRoutineAlerts(RoutineData data, DateTime now) {
+List<RoutineAlert> planRoutineAlerts(RoutineData data, DateTime now, {int max = RoutineConfig.alertMaxPending}) {
   final alerts = <RoutineAlert>[];
   for (var ahead = 0; ahead < RoutineConfig.alertDays; ahead++) {
     // Built from its parts, not by adding 24 hours, so a clock change never
@@ -71,5 +71,5 @@ List<RoutineAlert> planRoutineAlerts(RoutineData data, DateTime now) {
     }
   }
   alerts.sort((a, b) => a.at.compareTo(b.at));
-  return alerts.take(RoutineConfig.alertMaxPending).toList();
+  return alerts.take(max).toList();
 }

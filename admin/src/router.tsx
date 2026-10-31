@@ -34,6 +34,7 @@ import { MaintenancePage } from '@/routes/maintenance';
 import { TranslationsPage } from '@/routes/translations';
 import { ScenesPage } from '@/routes/scenes';
 import { EtiquettePage } from '@/routes/etiquette';
+import { PrayersPage } from '@/routes/prayers';
 import { QuotesPage } from '@/routes/quotes';
 import { MarketingPage } from '@/routes/marketing';
 import { AnalyticsPage } from '@/routes/analytics';
@@ -325,6 +326,14 @@ export function Router() {
         element={
           <Protected permission="etiquette.manage">
             <EtiquettePage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/prayers"
+        element={
+          <Protected permission="prayer.manage">
+            <PrayersPage />
           </Protected>
         }
       />

@@ -10,6 +10,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/support.dart';
 import '../../providers/developer_chat_provider.dart';
+import '../../providers/support_live_provider.dart';
 import '../../providers/support_provider.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/app_loader.dart';
@@ -31,6 +32,8 @@ class SupportView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context);
+    // Replies and status changes arrive over the line while this screen is open.
+    ref.watch(supportLiveProvider);
     final tickets = ref.watch(supportTicketsProvider);
 
     return Scaffold(

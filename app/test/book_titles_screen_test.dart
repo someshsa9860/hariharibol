@@ -98,7 +98,7 @@ Widget _app(
     ProviderScope(
       overrides: [
         languageSettingsProvider.overrideWith(_LanguagesInMemory.new),
-        bookDetailProvider.overrideWith((ref, slug) async => slug == _gita.slug ? _gita : _bhagavatam),
+        bookDetailProvider.overrideWith((ref, slug) => Stream.value(slug == _gita.slug ? _gita : _bhagavatam)),
         bookCantosProvider.overrideWith((ref, slug) async {
           if (cantosError != null) throw cantosError;
           return cantos ?? _cantos;

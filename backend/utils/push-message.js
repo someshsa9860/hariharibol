@@ -35,10 +35,29 @@ function buildMessage({ title, body, image, data, importance = 'urgent', hasActi
   };
 
   // `imageUrl` is the big picture on Android. It must be a link a phone can
-  // open — one FCM refuses fails the whole send, and an invalid-argument
-  // failure reads as a dead token below, so callers pass only https links.
+  // open — one FCM refuses fails the whole send (`invalid-argument` for every
+  // device, logged as a malformed message), so callers pass only https links.
   if (!hasActions) message.notification = { title, body, ...(image ? { imageUrl: image } : {}) };
   return message;
 }
 
-export { buildMessage };
+// Firebase says the token is dead. Keeping it means retrying a delivery that
+// can never land, on every send, forever.
+const DEAD_TOKEN_CODES = new Set([
+  'messaging/registration-token-not-registered',
+  'messaging/invalid-registration-token',
+]);
+
+// `invalid-argument` is usually the message, not the device: a picture link FCM
+// will not fetch, a data value that is too long. Clearing tokens on it wiped the
+// devices of everyone a bad push went to. FCM also answers it for a token that is
+// not a token at all, and says so in the message — only that one is dead.
+const NOT_A_TOKEN = /registration token/i;
+
+/** Whether an FCM send error (`{ code, message }`) means the device's token can be dropped. */
+function isDeadToken(error) {
+  if (DEAD_TOKEN_CODES.has(error?.code)) return true;
+  return error?.code === 'messaging/invalid-argument' && NOT_A_TOKEN.test(error.message || '');
+}
+
+export { buildMessage, isDeadToken };

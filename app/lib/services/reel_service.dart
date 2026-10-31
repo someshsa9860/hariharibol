@@ -9,6 +9,7 @@ import '../models/paged.dart';
 import '../models/reel.dart';
 import '../models/reel_comment.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The result of a like, save or follow tap.
 ///
@@ -39,7 +40,7 @@ class ReelService {
   // ── The feed ───────────────────────────────────────────────────────────────
 
   Future<Paged<Reel>> feed({int page = 1, int? pageSize}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.reels,
       query: {'page': page, 'pageSize': ?pageSize},
     );
@@ -83,13 +84,13 @@ class ReelService {
       uploadMedia(audio: true, bytes: await File(path).readAsBytes(), contentType: contentType);
 
   Future<Reel> get(String id) async {
-    final response = await _api.get(ApiPaths.reel(id));
+    final response = await _api.getOrSaved(ApiPaths.reel(id));
     return Reel.fromJson(response.json);
   }
 
   /// Reels from the same chapter, canto or book as [id], nearest first.
   Future<Paged<Reel>> similar(String id, {int page = 1, int? pageSize}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.reelSimilar(id),
       query: {'page': page, 'pageSize': ?pageSize},
     );
@@ -98,13 +99,13 @@ class ReelService {
 
   /// How book reels look and which buttons they show.
   Future<BookReelStyle> bookStyle() async {
-    final response = await _api.get(ApiPaths.reelBookStyle);
+    final response = await _api.getOrSaved(ApiPaths.reelBookStyle);
     return BookReelStyle.fromJson(response.json);
   }
 
   /// The book reels of [verseId]'s book in reading order, starting at that verse.
   Future<Paged<Reel>> fromVerse(String verseId, {int page = 1, int? pageSize}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.reelsFromVerse(verseId),
       query: {'page': page, 'pageSize': ?pageSize},
     );
@@ -112,7 +113,7 @@ class ReelService {
   }
 
   Future<Paged<Reel>> saved({int page = 1}) async {
-    final response = await _api.get(ApiPaths.savedReels, query: {'page': page});
+    final response = await _api.getOrSaved(ApiPaths.savedReels, query: {'page': page});
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
   }
 
@@ -174,7 +175,7 @@ class ReelService {
   /// Without [parentId], the top of the thread. With one, that comment's
   /// replies — the same endpoint, which is why this is one method.
   Future<Paged<ReelComment>> comments(String reelId, {String? parentId, int page = 1}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.reelComments,
       query: {'reelId': reelId, 'parentId': ?parentId, 'page': page},
     );
@@ -212,17 +213,17 @@ class ReelService {
   // ── Creators ───────────────────────────────────────────────────────────────
 
   Future<Creator> creator(String id) async {
-    final response = await _api.get(ApiPaths.creator(id));
+    final response = await _api.getOrSaved(ApiPaths.creator(id));
     return Creator.fromJson(response.json);
   }
 
   Future<Paged<Reel>> creatorReels(String id, {int page = 1}) async {
-    final response = await _api.get(ApiPaths.creatorReels(id), query: {'page': page});
+    final response = await _api.getOrSaved(ApiPaths.creatorReels(id), query: {'page': page});
     return Paged.fromResponse(response.data, response.meta, Reel.fromJson);
   }
 
   Future<Paged<Creator>> following({int page = 1}) async {
-    final response = await _api.get(ApiPaths.creators, query: {'page': page});
+    final response = await _api.getOrSaved(ApiPaths.creators, query: {'page': page});
     return Paged.fromResponse(response.data, response.meta, Creator.fromJson);
   }
 

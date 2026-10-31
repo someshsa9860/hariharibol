@@ -47,6 +47,35 @@ export const list = async (req, res) => {
 };
 
 /**
+ * GET /api/app/progress/latest — the book the reader opened last, at the place they left it.
+ * The same shape as one list entry, or null when they have not read anything yet.
+ */
+export const latest = async (req, res) => {
+  const user = req.auth.user;
+
+  const row = await prisma.readingProgress.findFirst({
+    where: { userId: user.id },
+    orderBy: { lastReadAt: 'desc' },
+    include: { book: true, verse: { select: { verseId: true } } },
+  });
+  if (!row) return ok(res, null);
+
+  return ok(res, {
+    id: row.id,
+    book: await present.book(row.book, user),
+    verseId: row.verse?.verseId || null,
+    cantoNumber: row.cantoNumber,
+    chapterNumber: row.chapterNumber,
+    verseNumber: row.verseNumber,
+    versesRead: row.versesRead,
+    percent: row.book.totalVerses
+      ? Math.min(100, Math.round((row.versesRead / row.book.totalVerses) * 100))
+      : 0,
+    lastReadAt: row.lastReadAt,
+  });
+};
+
+/**
  * PUT /api/app/progress
  * Records the furthest point reached. `versesRead` only ever increases —
  * flipping back to re-read an earlier verse should not undo months of progress.

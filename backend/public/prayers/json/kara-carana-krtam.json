@@ -1,0 +1,84 @@
+{
+  "slug": "kara-carana-krtam",
+  "title": "Kara-caraṇa-kṛtam (forgive my faults)",
+  "titleOriginal": "करचरणकृतं वाक्कायजं",
+  "category": "evening",
+  "sortOrder": 200,
+  "originalLanguage": "sa",
+  "summary": "One verse asking forgiveness for every fault of hand, foot, speech, eye and mind.",
+  "about": "Whatever wrong I have done with hands or feet, by speech or body, by ear, eye or mind, known or unknown, forgive it all, O Mahādeva, ocean of compassion. Said at the close of worship and at night.",
+  "author": "Śaṅkarācārya",
+  "reference": "Śiva-aparādha-kṣamāpana-stotra",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE",
+  "tradition": "shaiva",
+  "deity": "shiva",
+  "occasions": [
+    "at the end of worship",
+    "before sleep"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "करचरणकृतं वाक्कायजं कर्मजं वा ।\nश्रवणनयनजं वा मानसं वापराधम् ।\nविदितमविदितं वा सर्वमेतत् क्षमस्व ।\nजय जय करुणाब्धे श्री महादेव शम्भो ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "शिवमानसपूजा"
+  },
+  "selected": {
+    "verses": [
+      6
+    ],
+    "why": "The verse stands at the end of the Śiva Mānasa Pūjā page."
+  },
+  "edits": [
+    {
+      "verse": null,
+      "field": "devanagari",
+      "from": "कैलासलोकं गता ॥",
+      "to": "कैलासलोकं गता ॥ ५ ॥",
+      "why": "The page does not number its last two verses; numbered here so this one can be taken out by itself."
+    },
+    {
+      "verse": null,
+      "field": "devanagari",
+      "from": "श्री महादेव शम्भो ॥",
+      "to": "श्री महादेव शम्भो ॥ ६ ॥",
+      "why": "As above."
+    },
+    {
+      "verse": 6,
+      "field": "devanagari",
+      "from": "वापराधम् ॥",
+      "to": "वापराधम् ।",
+      "why": "The page closes the second line with a double danda; the verse runs on to its fourth line."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 6
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥श्री शिवमानसपूजा ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.929Z"
+}

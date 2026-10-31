@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/verse_note.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// A reader's own notes against a verse. Always mine — there is no public
 /// listing, unlike [FavoriteService] or the verse itself.
@@ -12,7 +13,7 @@ class VerseNoteService {
   final ApiClient _api = ApiClient.instance;
 
   Future<List<VerseNote>> list(String verseId) async {
-    final response = await _api.get(ApiPaths.verseNotes, query: {'verseId': verseId});
+    final response = await _api.getOrSaved(ApiPaths.verseNotes, query: {'verseId': verseId});
     return response.list
         .whereType<Map>()
         .map((item) => VerseNote.fromJson(Map<String, dynamic>.from(item)))

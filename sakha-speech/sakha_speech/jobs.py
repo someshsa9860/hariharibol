@@ -443,3 +443,66 @@ def stop(force: bool = False) -> dict | None:
                 break
             time.sleep(0.1)
     return snapshot()
+
+
+def progress_line(status: dict) -> str:
+    """One terminal line: the state, the chapter in hand, how far it has got, the verse being spoken and the time left."""
+    state = status.get("state") or "?"
+    if state not in ACTIVE:
+        note = status.get("error") or status.get("message")
+        return f"job {state}" + (f": {note}" if note else "")
+    parts = []
+    chapters = status.get("chapters") or []
+    open_chapters = [c for c in chapters if c.get("done", 0) < c.get("wanted", 0)]
+    if open_chapters:
+        c = open_chapters[0]
+        parts.append(f"{c.get('language', '')} chapter {c.get('chapter', '')} {c.get('name') or ''}".rstrip())
+    if status.get("total"):
+        parts.append(f"{sum(c.get('done', 0) for c in chapters)} of {status['total']} verses")
+    current = status.get("current")
+    if current:
+        who = current.get("characterName") or current.get("character") or ""
+        parts.append(f"now {current.get('verseId', '')} {who} ({current.get('voice', '')})")
+    if status.get("eta"):
+        parts.append(f"about {human(status['eta'])} left")
+    if not parts and status.get("message"):
+        parts.append(status["message"])
+    return " · ".join([state, *parts])
+
+
+def follow(poll: float = 1.0, tail_lines: int = 10) -> None:
+    """`sakha-speech progress`: the newest job's last log lines, then its position and each new log line until it ends.
+    Ctrl-C only stops watching; the job goes on in its own process."""
+    status = current()
+    if not status:
+        print("No job has run yet. Start one in the studio or with `sakha-speech generate`.")
+        return
+    log = job_dir(status["id"]) / "log.txt"
+    data = log.read_bytes() if log.exists() else b""
+    offset = data.rfind(b"\n") + 1
+    for line in data[:offset].decode("utf-8", "replace").splitlines()[-tail_lines:]:
+        print(line)
+    last = None
+    ended = False
+    try:
+        while True:
+            status = current() or status
+            line = progress_line(status)
+            if line != last:
+                print(f"-- {line}", flush=True)
+                last = line
+            if log.exists():
+                with log.open("rb") as f:
+                    f.seek(offset)
+                    chunk = f.read()
+                end = chunk.rfind(b"\n") + 1
+                if end:
+                    print(chunk[:end].decode("utf-8", "replace"), end="", flush=True)
+                    offset += end
+            if ended:
+                return
+            # The worker writes its last log line just after its status, so read the log once more before stopping.
+            ended = status["state"] not in ACTIVE
+            time.sleep(poll)
+    except KeyboardInterrupt:
+        print("\nstopped watching; the job goes on in its own process", file=sys.stderr)

@@ -26,6 +26,7 @@
 // from the number is the bug nobody can explain afterwards.
 
 import { prisma } from '../../config/database.js';
+import { redis } from '../../config/redis.js';
 import * as present from '../../utils/present.js';
 import * as language from '../../utils/language.js';
 import * as notify from '../../services/notify.js';
@@ -58,6 +59,25 @@ const COMPLETED_PENALTY = 60;
 
 const ELIGIBLE_WHERE = { status: 'PUBLISHED', creator: { status: 'APPROVED' } };
 
+// One scroll through the feed is one ranking. Pages are cut by OFFSET, and a reel watched on page 1 used to take its
+// "seen" penalty before page 2 was asked for, so everything below it moved up: the next page skipped reels the reader
+// never saw and repeated ones they had. The time page 1 was served is kept per reader and phone, and every later page
+// ranks as of then — views made since do not count, the age decay is measured to then, and reels published since
+// wait for the next page 1. Without the key (expired, or Redis cannot answer) a page ranks as of now, as before.
+const FEED_START_TTL_S = 6 * 60 * 60;
+
+async function feedStartedAt(userId, deviceId, page) {
+  const now = new Date();
+  if (!userId) return now;
+  const key = `reels:feed:${userId}:${deviceId || '-'}`;
+  if (page > 1) {
+    const saved = Number(await redis.get(key).catch(() => null));
+    if (saved > 0 && saved <= now.getTime()) return new Date(saved);
+  }
+  await redis.set(key, String(now.getTime()), 'EX', FEED_START_TTL_S).catch(() => null);
+  return now;
+}
+
 /** GET /api/app/reels */
 export const feed = async (req, res) => {
   // Signed out is allowed (the website): nothing is "seen" there.
@@ -65,16 +85,26 @@ export const feed = async (req, res) => {
   const userId = user?.id ?? null;
   const { page, pageSize, skip } = readPage(req.valid.query, REEL_PAGE_SIZE_DEFAULT);
   const [lang0 = null, lang1 = null, lang2 = null] = language.readingChain(user);
+  const since = await feedStartedAt(userId, req.deviceId, page);
 
   const [total, ranked] = await Promise.all([
-    prisma.reel.count({ where: ELIGIBLE_WHERE }),
+    prisma.reel.count({
+      where: {
+        ...ELIGIBLE_WHERE,
+        OR: [{ publishedAt: { lte: since } }, { publishedAt: null, createdAt: { lte: since } }],
+      },
+    }),
+    // The columns are UTC timestamps without a zone and a Date goes in as a timestamptz, so `since` is turned back
+    // into UTC first; compared as it is, Postgres reads the column in the session's zone (IST on a laptop).
     prisma.$queryRaw`
       SELECT r.id
       FROM "Reel" r
       JOIN "CreatorProfile" cp ON cp.id = r."creatorId"
-      LEFT JOIN "ReelView" rv ON rv."reelId" = r.id AND rv."userId" = ${userId}
+      LEFT JOIN "ReelView" rv
+        ON rv."reelId" = r.id AND rv."userId" = ${userId} AND rv."firstViewedAt" <= (${since}::timestamptz AT TIME ZONE 'UTC')
       WHERE r.status = 'PUBLISHED'::"ReelStatus"
         AND cp.status = 'APPROVED'::"CreatorStatus"
+        AND COALESCE(r."publishedAt", r."createdAt") <= (${since}::timestamptz AT TIME ZONE 'UTC')
       ORDER BY
         (
           CASE
@@ -91,7 +121,7 @@ export const feed = async (req, res) => {
           -- fades over the following days rather than being permanent.
           (r."likeCount" + r."commentCount" * 2 + r."shareCount" * 3)::float
           / POWER(
-              EXTRACT(EPOCH FROM (NOW() - COALESCE(r."publishedAt", r."createdAt"))) / 3600.0 + 2,
+              EXTRACT(EPOCH FROM ((${since}::timestamptz AT TIME ZONE 'UTC') - COALESCE(r."publishedAt", r."createdAt"))) / 3600.0 + 2,
               1.5
             )
         ) - (

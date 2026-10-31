@@ -28,6 +28,9 @@ function build(name, { windowMs, max }) {
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     store: store(name),
+    // When Redis cannot answer (down, or full — it is capped and never evicts), the request goes through unlimited
+    // rather than failing with a 500: a missing limit for a few minutes is better than an app that answers nothing.
+    passOnStoreError: true,
     // A signed-in user is limited as a person; everyone else as an IP+device,
     // so one shared NAT does not lock out a whole office or campus.
     keyGenerator: (req) => req.auth?.user?.id || `${req.ip}:${req.deviceId || 'unknown'}`,

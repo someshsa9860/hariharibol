@@ -1,0 +1,122 @@
+{
+  "slug": "lingashtakam",
+  "title": "Liṅgāṣṭakam",
+  "titleOriginal": "लिङ्गाष्टकम्",
+  "category": "deity",
+  "sortOrder": 210,
+  "originalLanguage": "sa",
+  "summary": "Eight verses to the Śiva-liṅga, each ending “tat praṇamāmi sadāśiva-liṅgam”.",
+  "about": "Praises the liṅga worshipped by Brahmā, Viṣṇu and the gods, adorned with sandal, flowers and jewels; the last verse says that one who recites it near Śiva reaches his abode.",
+  "author": "",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B2%E0%A4%BF%E0%A4%99%E0%A5%8D%E0%A4%97%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+  "tradition": "shaiva",
+  "deity": "shiva",
+  "occasions": [
+    "Monday",
+    "Mahā-śivarātri",
+    "worship of the Śiva-liṅga"
+  ],
+  "festivals": [
+    "maha-shivaratri",
+    "pradosh"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "ब्रह्ममुरारि सुरार्चित लिङ्गम्\nनिर्मलभासितशोभितलिङ्गम् ।\nजन्मजदुःखविनाशकलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "देवमुनिप्रवरार्चितलिङ्गम्\nकामदहनकरुणाकरलिङ्गम् ।\nरावणदर्पविनाशनलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "सर्वसुगन्धसुलेपितलिङ्गम्\nबुद्धिविवर्धनकारणलिङ्गम् ।\nसिद्धसुरासुरवन्दितलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "कनकमहामणिभूषितलिङ्गम्\nफणिपतिवेष्टितशोभितलिङ्गम् ।\nदक्षसुयज्ञविनाशनलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "कुङ्कुमचन्दनलेपितलिङ्गम्\nपङ्कजहारसुशोभितलिङ्गम् ।\nसञ्चितपापविनाशनलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "देवगणार्चितसेवितलिङ्गम्\nभावैर्भक्तिभिरेव च लिङ्गम् ।\nदिनकरकोटिप्रभाकरलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "अष्टदलोपरिवेष्टितलिङ्गम्\nसर्वसमुद्भवकारणलिङ्गम् ।\nअष्टदरिद्रविनाशनलिङ्गम्\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "सुरगुरुसुरवरपूजितलिङ्गम्\nसुरवनपुष्पसदार्चितलिङ्गम् ।\nपरात्परं परमात्मकलिङ्गं\nतत्प्रणमामि सदाशिवलिङ्गम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "लिङ्गाष्टकमिदं पुण्यं यः पठेच्छिवसन्निधौ ।\nशिवलोकमवाप्नोति शिवेन सह मोदते ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B2%E0%A4%BF%E0%A4%99%E0%A5%8D%E0%A4%97%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B2%E0%A4%BF%E0%A4%99%E0%A5%8D%E0%A4%97%E0%A4%BE%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A4%95%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {},
+  "edits": [
+    {
+      "verse": 4,
+      "field": "devanagari",
+      "from": "दक्षसुयज्ञनिनाशनलिङ्गम्",
+      "to": "दक्षसुयज्ञविनाशनलिङ्गम्",
+      "why": "Typo on the page: vināśana, the destroyer of Dakṣa’s sacrifice."
+    },
+    {
+      "verse": 7,
+      "field": "devanagari",
+      "from": "अष्टदलोपरिरेष्टित",
+      "to": "अष्टदलोपरिवेष्टित",
+      "why": "Typo on the page: pari-veṣṭita, surrounded."
+    },
+    {
+      "verse": 9,
+      "field": "devanagari",
+      "from": "यः पठेश्शिव सन्निधौ",
+      "to": "यः पठेच्छिवसन्निधौ",
+      "why": "Typo on the page: paṭhet + śiva joins as paṭhec-chiva."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 9
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.926Z"
+}

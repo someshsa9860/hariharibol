@@ -204,8 +204,8 @@ async function cardUrl(verse) {
       await s3.putObject(key, jpeg, 'image/jpeg', { cacheControl: 'public, max-age=31536000, immutable' });
     }
     const url = await s3.presignGet(key);
-    // A laptop's link is http://localhost, which no phone can open — and a push
-    // FCM refuses over its link looks like a dead token (services/fcm.js).
+    // A laptop's link is http://localhost, which no phone can open — and FCM
+    // refuses the whole push over a link it cannot use (utils/push-message.js).
     return url?.startsWith('https://') ? url : null;
   } catch (err) {
     logger.warn({ err: err.message, verseId: verse.verseId }, 'sloka card failed — pushing without it');

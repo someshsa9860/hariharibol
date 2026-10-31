@@ -1,0 +1,98 @@
+{
+  "slug": "doya-koro-more",
+  "title": "Śrī Kṛṣṇa-caitanya Prabhu Doyā Koro More",
+  "titleOriginal": "শ্রীকৃষ্ণচৈতন্য প্রভু দয়া কর মোরে",
+  "category": "deity",
+  "sortOrder": 70,
+  "originalLanguage": "bn",
+  "summary": "A prayer to Śrī Caitanya and His associates for mercy.",
+  "about": "The singer, aware of his faults, begs Mahāprabhu, Nityānanda and the devotees to be kind to him.",
+  "author": "Narottama Dāsa Ṭhākura",
+  "reference": "Prārthanā",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/s/srikrsnacaitanyaprabhu.html",
+  "tradition": "vaishnava",
+  "deity": "gaura",
+  "occasions": [
+    "prayer for mercy"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "শ্রী-কৃষ্ণ-চৈতন্য প্রভু দয়া কর মোরে\nতোমা বিনা কে দয়ালু জগত-সংসারে",
+      "roman": "śrī-kṛṣṇa-caitanya prabhu doyā koro more\ntomā binā ke doyālu jagat-saṁsāre",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "পতিত-পাবন-হেতু তব অবতার\nমো সম পতিত প্রভু না পাইবে আর",
+      "roman": "patita-pāvana-hetu tava avatāra\nmo sama patita prabhu nā pāibe āra",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "হা হা প্রভু নিত্যানন্দ, প্রেমানন্দ সুখী\nকৃপাবলোকন কর আমি বড় দুঃখী",
+      "roman": "hā hā prabhu nityānanda, premānanda sukhī\nkṛpābalokana koro āmi boro duḥkhī",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "দয়া কর সীতা-পতি অদ্বৈত গোসাঞি\nতব কৃপা-বলে পাই চৈতন্য-নিতাই",
+      "roman": "doyā koro sītā-pati adwaita gosāi\ntava kṛpā-bale pāi caitanya-nitāi",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "গৌর প্রেমময়ী তনু পণ্ডিত গদাধর\nশ্রীনিবাস হরিদাস দয়ার সাগর",
+      "roman": "gaura premamaya tanu paṇḍita gadādhara\nsrīnivāsa haridāsa doyāra sāgara",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "হা হা স্বরূপ, সনাতন, রূপ, রঘুনাথ\nভট্ট-যুগ, শ্রী-জীব হা প্রভু লোকনাথ",
+      "roman": "hā hā swarūp, sanātana, rūpa, raghunātha\nbhaṭṭa-juga, śrī-jīva hā prabhu lokanātha",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "দয়া কর শ্রী-আচার্য়্য প্রভু শ্রীনিবাস\nরামচন্দ্র-সঙ্গ মাগে নরোত্তম-দাস",
+      "roman": "doyā koro śrī-ācārya prabhu śrīnivāsa\nrāmacandra-saṅga māge narottama-dāsa",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/s/srikrsnacaitanyaprabhu.html",
+    "bengali": "https://kksongs.org/unicode/s/srikrsnacaitanyaprabhudoyakoromore_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Sri Krsna Caitanya Prabhu Doya Koro More",
+    "official name": "Punah Prarthana Song 1; Savarana Sri Gaura Pada Padme Prarthana",
+    "author": "Narottama Dasa Thakura",
+    "book name": "Prarthana",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 7,
+      "bengali": 7
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.881Z"
+}

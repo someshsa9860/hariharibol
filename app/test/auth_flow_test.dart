@@ -31,7 +31,7 @@ import 'package:hariharibol/core/constants/intro_config.dart';
 import 'package:hariharibol/widgets/common/glass_nav_bar.dart';
 import 'package:hariharibol/widgets/common/side_nav.dart';
 import 'package:hariharibol/views/onboarding/intro_view.dart';
-import 'package:hariharibol/views/onboarding/language_view.dart';
+import 'package:hariharibol/views/onboarding/setup_view.dart';
 import 'package:hariharibol/views/splash/splash_view.dart';
 
 /// What the API actually returns from `/auth/social` and `/auth/refresh` —
@@ -323,14 +323,14 @@ void main() {
       expect(find.byType(DashboardView), findsOneWidget);
     });
 
-    testWidgets('a new account is held at the language picker', (tester) async {
+    testWidgets('a new account is held at the setup', (tester) async {
       await signIn(tester, chosenLanguages: false);
 
       await tester.pumpWidget(const ProviderScope(child: HariHariBolApp()));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.byType(LanguageView), findsOneWidget);
+      expect(find.byType(SetupView), findsOneWidget);
       expect(find.byType(DashboardView), findsNothing);
     });
 
@@ -435,10 +435,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      AppNavigator.instance.push(AppRoutes.languageSetup);
+      AppNavigator.instance.push(AppRoutes.setup);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
-      expect(find.byType(LanguageView), findsOneWidget);
+      expect(find.byType(SetupView), findsOneWidget);
 
       // What saving a language in settings does: the session takes the new
       // user, then the screen pops itself. The session notifies on the update,
@@ -451,7 +451,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byType(LanguageView), findsNothing);
+      expect(find.byType(SetupView), findsNothing);
       expect(find.byType(DashboardView), findsOneWidget);
     });
 

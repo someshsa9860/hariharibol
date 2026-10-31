@@ -70,6 +70,7 @@ sakha-speech generate --book bhagavad-gita --lang hi --chapter 2   # try one cha
 sakha-speech review                                    # http://localhost:8765: listen, Keep or Make again
 sakha-speech generate --book bhagavad-gita             # everything: both languages
 sakha-speech status
+sakha-speech progress                                  # the newest job here: its place, then each log line (Ctrl-C only stops watching)
 sakha-speech upload --book bhagavad-gita --dry-run     # what would go up
 sakha-speech upload --book bhagavad-gita
 ```

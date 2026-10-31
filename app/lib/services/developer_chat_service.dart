@@ -5,6 +5,7 @@ import '../core/constants/developer_chat_config.dart';
 import '../models/developer_chat.dart';
 import '../models/json.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The reader's chat with the developer: what the API says about the conversation, and writing to it.
 class DeveloperChatService {
@@ -19,7 +20,7 @@ class DeveloperChatService {
 
   /// The newest page of the conversation. Opening it marks the developer's replies read on the server.
   Future<DeveloperThread> thread({String? before}) async {
-    final response = await _api.get(ApiPaths.developerChat, query: {
+    final response = await _api.getOrSaved(ApiPaths.developerChat, query: {
       'limit': DeveloperChatConfig.pageSize,
       'before': ?before,
     });

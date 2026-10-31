@@ -1,0 +1,225 @@
+{
+  "slug": "dattatreya-stotram",
+  "title": "Śrī Dattātreya Stotram",
+  "titleOriginal": "श्रीदत्तात्रेयस्तोत्रम्",
+  "category": "deity",
+  "sortOrder": 500,
+  "originalLanguage": "sa",
+  "summary": "“Jaṭādharaṁ pāṇḍuraṅgam”: Nārada’s hymn to Dattātreya, Brahmā, Viṣṇu and Śiva in one.",
+  "about": "Opens with a meditation on Dattātreya with matted locks, then bows to him in each verse as Brahmā at the beginning, Viṣṇu in the middle and Śiva at the end, the friend of the devotee. The last verse gives its fruit.",
+  "author": "Nārada (by tradition)",
+  "reference": "Nārada Purāṇa",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%BE%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%87%E0%A4%AF%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D_(%E0%A4%A8%E0%A4%BE%E0%A4%B0%E0%A4%A6%E0%A4%AA%E0%A5%81%E0%A4%B0%E0%A4%BE%E0%A4%A3%E0%A4%AE%E0%A5%8D)",
+  "tradition": "dattatreya",
+  "deity": "dattatreya",
+  "occasions": [
+    "Thursday",
+    "Datta-jayantī"
+  ],
+  "festivals": [
+    "datta-jayanti",
+    "purnima"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "intro": true,
+      "text": "जटाधरं पांडुरंगं शूलहस्तं कृपानिधिम् ।\nसर्वरोगहरं देवं दत्तात्रेयमहं भजे ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "जगदुत्पत्तिकर्त्रे च स्थितिसंहार हेतवे ।\nभवपाशविमुक्ताय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "जराजन्मविनाशाय देहशुद्धिकराय च ।\nदिगम्बरदयामूर्ते दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "कर्पूरकान्तिदेहाय ब्रह्ममूर्तिधराय च ।\nवेदशास्त्रपरिज्ञाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "ह्रस्वदीर्घकृशस्थूल-नामगोत्र-विवर्जित ।\nपंचभूतैकदीप्ताय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "यज्ञभोक्ते च यज्ञाय यज्ञरूपधराय च ।\nयज्ञप्रियाय सिद्धाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "आदौ ब्रह्मा मध्ये विष्णुरन्ते देवः सदाशिवः ।\nमूर्तित्रयस्वरूपाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "भोगालयाय भोगाय योगयोग्याय धारिणे ।\nजितेन्द्रियजितज्ञाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "दिगम्बराय दिव्याय दिव्यरूपधराय च ।\nसदोदितपरब्रह्म दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "जम्बुद्वीपमहाक्षेत्रमातापुरनिवासिने ।\nजयमानसतां देव दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 11,
+      "text": "भिक्षाटनं गृहे ग्रामे पात्रं हेममयं करे ।\nनानास्वादमयी भिक्षा दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 12,
+      "text": "ब्रह्मज्ञानमयी मुद्रा वस्त्रे चाकाशभूतले ।\nप्रज्ञानघनबोधाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 13,
+      "text": "अवधूतसदानन्दपरब्रह्मस्वरूपिणे ।\nविदेहदेहरूपाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 14,
+      "text": "सत्यरूपसदाचारसत्यधर्मपरायण ।\nसत्याश्रयपरोक्षाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 15,
+      "text": "शूलहस्तगदापाणे वनमालासुकन्धर ।\nयज्ञसूत्रधरब्रह्मन् दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 16,
+      "text": "क्षराक्षरस्वरूपाय परात्परतराय च ।\nदत्तमुक्तिपरस्तोत्र दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 17,
+      "text": "दत्त विद्याढ्यलक्ष्मीश दत्त स्वात्मस्वरूपिणे ।\nगुणनिर्गुणरूपाय दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 18,
+      "text": "शत्रुनाशकरं स्तोत्रं ज्ञानविज्ञानदायकम् ।\nसर्वपापं शमं याति दत्तात्रेय नमोऽस्तुते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 19,
+      "text": "इदं स्तोत्रं महद्दिव्यं दत्तप्रत्यक्षकारकम् ।\nदत्तात्रेयप्रसादाच्च नारदेन प्रकीर्तितम् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%BE%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%87%E0%A4%AF%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D_(%E0%A4%A8%E0%A4%BE%E0%A4%B0%E0%A4%A6%E0%A4%AA%E0%A5%81%E0%A4%B0%E0%A4%BE%E0%A4%A3%E0%A4%AE%E0%A5%8D)",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%BE%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%87%E0%A4%AF%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D%20(%E0%A4%A8%E0%A4%BE%E0%A4%B0%E0%A4%A6%E0%A4%AA%E0%A5%81%E0%A4%B0%E0%A4%BE%E0%A4%A3%E0%A4%AE%E0%A5%8D)&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "दत्तात्रेयस्तोत्रम् (नारदपुराणम्)",
+    "section": "दत्तात्रेयस्तोत्राणि"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "पांडुरांगं",
+      "to": "पांडुरंगं",
+      "why": "Typo on the page: pāṇḍuraṅgam, pale-limbed (short a)."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "र्हस्वदीर्घ",
+      "to": "ह्रस्वदीर्घ",
+      "why": "Typo on the page: hrasva (short), the letters in the wrong order."
+    },
+    {
+      "verse": 7,
+      "field": "devanagari",
+      "from": "मध्य विष्णुरंते",
+      "to": "मध्ये विष्णुरन्ते",
+      "why": "Typo on the page: madhye, in the middle."
+    },
+    {
+      "verse": 9,
+      "field": "devanagari",
+      "from": "दिव्यरूपध्राय",
+      "to": "दिव्यरूपधराय",
+      "why": "Typo on the page: rūpa-dharāya."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "सत्यंरूप",
+      "to": "सत्यरूप",
+      "why": "Typo on the page: one compound, satya-rūpa."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 19
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "अस्य श्रीदत्तात्रेयस्तोत्रमंत्रस्य भगवान् नारदऋषिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "अनुष्टुप् छन्दः । श्रीदत्तपरमात्मा देवता ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "श्रीदत्तप्रीत्यर्थे जपे विनियोगः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ इति श्रीनारदपुराणे नारदविरचितं"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "दत्तात्रेयस्तोत्रं सुसंपूर्णम् ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.941Z"
+}

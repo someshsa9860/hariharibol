@@ -644,6 +644,34 @@ content (verses, meanings, names) was already, via `utils/language.js`.
 - **A new database takes the seed twice** (migrate → seed → importers → seed): stories
   point at chapters, and chapters come from `scripts/import-*.js`. See `scripts/README.md`.
 
+## Home recommendations ("For what you are working on")
+
+`GET /api/app/home/issue-verses` (`controllers/app/home.js`, `issueVerses`) answers the Home row of verses for the
+vikaras the reader has reported lately. Signed in only, no AI call, no wallet charge; `?languages=` works as on `/home`.
+
+- **What counts.** `UserIssue` rows of published `VIKARA` issues dated within `ISSUE_LOOKBACK_DAYS` (14) of the reader's
+  own local date. At most `ISSUE_VERSES_MAX_ISSUES` (3) issues, most reported first, then most recent (`rankIssues`).
+  At most `ISSUE_VERSES_PER_ISSUE` (2) verses per issue, so at most 6 items. Empty `items` when nothing qualifies.
+- **Which verses.** The same candidate query the sloka picker uses (`topVersesForIssue` in `controllers/app/sloka.js`),
+  so Home can never show a verse the sloka cannot pick: sloka-eligible, in a published book, in the eligible book numbers.
+  Verses the reader was given lately (`recentVerseIds`) are left out, and a verse already shown under an earlier issue is
+  skipped.
+- **Fixed for the day.** Within each issue's top band (`topBand`, weights ≥ 80% of the best) the start is
+  `dayNumber(date) mod length` (`rotate`). The same day gives the same order, so pull-to-refresh does not reshuffle the row;
+  the next day starts elsewhere. Nothing is stored and no `Math.random` is used.
+- **Pure helpers** live in `utils/home-issues.js` (`rankIssues`, `rotate`, `topBand`, `dayNumber`) with no I/O, so
+  `node --test test/home-issue-verses.test.js` can run without loading Prisma or Redis. Keep it that way: a test that imports
+  a module which opens the database hangs the process.
+- **Tuning** is in `config/home.js`, not in the controller.
+- **Tests.** `node --test test/home-issue-verses.test.js` (11 checks). `npm run test:home-issue-verses`
+  (`scripts/home-issue-verses-e2e.js`, 13 checks over HTTP with throwaway users, issues and links, all removed afterwards):
+  sign-in required, empty when nothing is reported, vikaras only, the ineligible-verse exclusion, the order by count, the
+  per-issue and total limits, the same answer twice in a day, the `languages` parameter (and a malformed one refused), and
+  a report older than the lookback ignored. **Not covered by the e2e:** the skipping of verses the reader was given lately
+  (`recentVerseIds` needs sloka rows to seed).
+- **Not done:** no admin control for the lookback or the counts, and no Home card in the app yet (the app side is outside
+  this change).
+
 ## The daily sloka push
 
 `deliver()` in `jobs/processors/sloka.js` pushes each user's sloka at **one time of day on their own clock —
@@ -1059,6 +1087,28 @@ the next sitting without the day counting it twice: the old sitting keeps its st
   for the plain counter; absent means all) and lists sessions with `rounds > 0`, so a sitting that was opened and left is not
   listed. The app always sends it.
 - `npm run test:chant` walks the session lifecycle, the summaries, and the filter.
+- **The phone sends its chanting in a batch: `PUT …/chant/sync`** (`controllers/app/chant-sync.js`). The app counts into its own
+  storage first and sends when it closes, opens, comes back online and every few minutes, so one request carries up to
+  `CHANT_SYNC_MAX_SITTINGS` (25) sittings, each under the `clientId` the phone made when the sitting began
+  (`ChantSession.clientId`, unique with `userId`; migration `20261113000000_chant_client_id`, nullable, so rows from the older
+  routes are untouched).
+  - **Sending a sitting twice is one sitting** — a lost answer, a retry or two sends racing all land on the same row (a unique
+    violation from the race is read back and updated, not failed). Rounds are upserted by `[sessionId, index]`.
+  - **A sitting belongs to the day it began**, in the user's timezone (`localDateString(timezone, startedAt)`), however late it
+    arrives; the older `start` route can only say "now". The start is held inside `[now − CHANT_SYNC_MAX_AGE_DAYS (400), now]`
+    so a wrong phone clock cannot write into the far past or future. Every day touched is recounted once (`recountDay`) and the
+    new totals come back in `days`.
+  - **Rounds only rise.** A copy with more rounds replaces rounds and beads; at equal rounds the larger beads win; fewer rounds
+    are ignored, so an older copy that arrives late cannot undo a newer one. `finish` closes the sitting once (the end is not
+    moved by a later finish), and an update after the end is accepted — the final sync has to land.
+  - **A mantra that cannot be opened** (unpublished since, someone else's private one, gone) does not fail the batch: the rounds
+    are kept under no mantra. The referral check and the tradition check run as for the older routes, and a failure of either
+    never changes the answer.
+  - The older `start` / `patch` / `detail` routes stay for builds from before this one.
+  - `npm run test:chant-sync` (`scripts/chant-sync-e2e.js`, 42 checks: replay, late arrival on its original day, rounds never
+    backwards, a late update after the end, two mantras keeping their own rounds, another account's identical client id, a
+    clamped start, refusals, a full batch). **Production needs `prisma migrate deploy` for `20261113000000_chant_client_id` and a
+    restart of the API; release the app with it, as an older app simply keeps using the old routes.**
 
 ## Sampradaya from chanting
 
@@ -1097,22 +1147,26 @@ owned by `services/sampradaya.js` — the same arrangement as `User.isPremium` �
 **Plans, lanes and Gemini (added later).** A run has a **plan**: for each part (`translation`, `transliteration`, `wordMeanings`, `purport`) a `{provider, model, effort}` — providers are `anthropic`, `openai` (the default), `gemini` (`GEMINI_API_KEY`, `TRANSLATION_GEMINI_MODEL`, REST client `scripts/lib/gemini-translate-client.js`, default `gemini-3.5-flash-lite`; tried live on ten verses, where Luna scored higher on every part, which is why it is not the default). Parts with the same provider|model|effort form a **lane**: one request per verse carrying only that lane's instructions, source text and answer schema. Lanes run in parallel (`Promise.allSettled` in `claude-translate-run.js`) and never wait for each other; each saves only its own parts into the chapter file (writes to one file are queued, conditional, verified). Each part is stamped under `aiTranslation.parts[part]` (provider, model, effort, version, sourceHash, score…); the verse-level `aiTranslation` is a summary (score = lowest part). If a lane fails the others finish their current verse and stop; resume asks only for the missing parts. `TranslationRun.plan` / `lanes` (migration `20261020000000_translation_run_plan`) hold the plan and per-lane progress; `GET /estimate?plan=<json>` and `POST /runs {plan}` take it (without one, every part uses `provider`/`model`). Progress counts verse×lane steps.
 
 The admin **Translations** page translates Prabhupāda's Gita with an AI model (GPT-6 Luna by default; Claude or Gemini can take any part) as a background job and shows it live,
-and imports what was saved into the database. The pipeline is the same one `npm run translate:claude` uses
+and imports what was saved into the database, which is also a background job (a second run model, `TranslationImportRun`, below). The pipeline is the same one `npm run translate:claude` uses
 (`scripts/lib/claude-translate-*.js`, described in
 [scripts/README.md](scripts/README.md#translating-the-gita-with-claude)); this section is the part that runs it
 inside the API, worker and websocket containers.
 
 | File | Job |
 |---|---|
-| `routes/admin/translation.js`, `controllers/admin/translation.js` | Twelve routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, and `imports` (`GET` what the database holds per language, `POST` import or preview). `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for the import |
+| `routes/admin/translation.js`, `controllers/admin/translation.js` | Seventeen routes under `/api/admin/translations`: `overview`, `coverage`, `estimate`, `runs` (list), `runs` (start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`, `output/:language/chapters/:chapter`, `output/:language/verses/:verseId`, `imports` (`GET` what the database holds per language, `POST` queue an import, or with `dryRun` preview one), and the import runs: `imports/runs` (list, `?kind=TRANSLATION|VIKARA`), `imports/runs/:id` (the run and its feed), `imports/runs/:id/cancel`, and the vikara import's pair `imports/vikaras` (`GET` what the database holds from the tags, `POST` queue it, or with `dryRun` preview it). `translation.read` for reads, `translation.run` for start / resume / cancel, `translation.import` for queueing and cancelling an import |
 | `services/translation.js` | Opens the S3 workspace, per-language coverage read from the `TranslationProgress` table (one row per book × chapter × language; `syncProgress` counts S3 into it — the worker for a run's chapters when it stops, `startRecount` in the background for the whole book when the table is empty, was counted under another version, or Recount is pressed; Redis lock `translation:coverage:recount:<book>` carries its progress; `npm run backfill:translation-progress`, also on the Maintenance page, is the resumable one-off; migration `20261030000000_translation_progress`), the estimate, the activity feed (Redis `translation:feed:{runId}`, 200 lines, 30 days), the start lock, `addRunJob` |
-| `services/translation-import.js` | `importLanguage`: reads a language's chapter files from storage and writes them to `VerseTranslation`, or with `dryRun` only says what it would do |
-| `utils/translation-import.js` | Pure functions, no I/O: how a file's verse becomes a row's columns (`rowFromEntry`), whether it is the verse the database holds (`placeProblem`), what differs (`changedColumns`), `reasonOf`. `test/translation-import.test.js` holds them |
+| `services/translation-import.js` | `importLanguage`: reads a language's chapter files from storage and writes them to `VerseTranslation`, or with `dryRun` only says what it would do. It calls `onChapter(line, done, total)` after each chapter and stops between chapters when `shouldStop()` says so, which is how the worker reports progress and honours Cancel. Also the import run's plumbing: `publishImportRun` (the websocket event), the activity feed in Redis (`pushImportFeed`, `readImportFeed`), `addImportRunJob` / `dropImportRunJob` and `reconcileImportRuns` |
+| `utils/translation-import.js` | Pure functions, no I/O: how a file's verse becomes a row's columns (`rowFromEntry`), whether it is the verse the database holds (`placeProblem`), what differs (`changedColumns`), `reasonOf`, and for the run row `presentImportRun`, `summaryOf` (the one-line result) and `LIVE_IMPORT_STATUSES`. `test/translation-import.test.js` holds them |
+| `services/vikara-import.js`, `utils/vikara-import.js` | The Bhagavatam's **vikara import**: `importVikaras` reads the tag files (`issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json`) and links verses to the six `Issue` rows (`VerseIssue`), or with `dryRun` only says what it would do; `vikaraStatus` is what the page shows (verses and links per vikara). The pure half is `slugsOf`, the per-chapter line and `vikaraSummaryOf`. `test/vikara-import.test.js` holds the pure half; sections 12–13 of `npm run test:translation-import` walk the rest |
 | `jobs/processors/translation.js` | The BullMQ processor: runs the pipeline verse by verse, heartbeats, and decides what a stop means |
+| `jobs/processors/translation-import.js` | The BullMQ processor for an import (`translation-import.run` with `{ runId }`, queue `translation-import`, `attempts: 1`): claims the `TranslationImportRun`, calls `importLanguage` (or `importVikaras` when the row's `kind` is `VIKARA`), writes progress, the heartbeat and an activity line after every chapter, notices a Cancel between chapters, and ends the run COMPLETED, FAILED or CANCELLED. `onJobFailed` marks a run whose job BullMQ gave up on |
 | `utils/translation-run.js` | Pure functions, no I/O: `classifyError`, `retryDelayMs`, `presentRun`, how a pipeline event reads in the feed. `test/translation-run.test.js` holds them |
 | `config/translation.js` | Every timing and limit, with a comment each. Change a number here, not in the processor |
 | `prisma/migrations/20261013000000_translation_runs` | `TranslationRun` and the two permissions |
 | `prisma/migrations/20261018000000_verse_translation_version` | `VerseTranslation.transliteration`, `wordMeanings`, `translatedBy`, `version`, and the `translation.import` permission. Idempotent (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`) |
+| `prisma/migrations/20261111000000_translation_import_runs` | `TranslationImportRun`. No permission change: the three above already cover it |
+| `prisma/migrations/20261112000000_vikara_import_runs` | `TranslationImportRun.kind` (`TRANSLATION` default, or `VIKARA`). No permission change |
 
 Things to know before changing it:
 
@@ -1147,16 +1201,19 @@ Things to know before changing it:
   whose BullMQ job is missing (a Redis flush, a crash between saving the row and queuing the job).
 - **Live progress is two websocket events**, published through Redis `ws:permission` by the API and the worker and
   delivered by the websocket container to sockets whose role has `translation.read`: `translation.run` (the whole
-  presented run) and `translation.activity` (`{ runId, at, kind, level, text, verseId? }`, one feed line). The page
-  still works without the socket by polling.
+  presented run) and `translation.activity` (`{ runId, at, kind, level, text, verseId? }`, one feed line). An import has
+  the same pair, `translation-import.run` and `translation-import.activity` (`{ runId, at, kind, level, text }`), to the
+  same audience. The page still works without the socket by polling.
 - **A language already translated under the current `TRANSLATION_VERSION` is not translated again.** A verse is
   *current* when Prabhupāda's translation exists and Claude's stamp on it (`aiTranslation.version`) is the running
   version, or there is no stamp (a person's text, which is never replaced). Any other version, newer or older, is
   *outdated* and is translated again. `start` with nothing but current verses in the chosen chapters creates no run and
   answers 409 `error.details = { upToDate: true, version }`; the estimate carries `version` and `outdated`, and
   coverage `upToDate` per language and chapter. To translate it all again, set a new `TRANSLATION_VERSION`.
-- **Import puts storage into the database; storage stays the truth.** `POST /imports` `{ language, chapters?, publish?,
-  dryRun? }` reads `json/bhagavat-gita/<language>/ch-<n>.json` and writes the Prabhupāda `TRANSLATION` row of each verse:
+- **Import puts storage into the database; storage stays the truth.** `POST /imports` `{ language, book?, chapters?,
+  publish?, dryRun? }` queues a `TranslationImportRun` and answers 201 at once; **the worker does the copying, not the API
+  process** (a Bhagavatam language is hundreds of chapters). It reads `json/bhagavat-gita/<language>/ch-<n>.json` and writes
+  the Prabhupāda `TRANSLATION` row of each verse:
   `meaning` (the translation), `purport`, `transliteration`, `wordMeanings`, and `translatedBy` / `version` from the
   verse's `aiTranslation`. `translatedBy` is the provider's brand — `claude`, `gpt` or `gemini` (`MADE_BY` in
   `scripts/lib/claude-translate-parts.js`) — so Tamil that GPT wrote says `gpt`; the model and effort are in the stamp. Until
@@ -1169,14 +1226,40 @@ Things to know before changing it:
     row keeps its `id` and `createdAt`. A part the file no longer has (a purport removed) is cleared, because storage is the
     truth. A row that already matches is counted `unchanged` and not written. Other translators, other languages and the
     English are never touched.
+  - **A language import never makes vikara links.** The vikara tags are not in the language files any more (below), and an
+    old-shaped entry that still carries an `issues` array is read for its translation only. The Bhagavatam's tags have their
+    own import.
   - **Hidden unless `publish`.** A new row has `isPublished: false`; an existing row's visibility is never lowered; `publish: true`
     raises it and needs `verse.publish` as well as `translation.import`. The readers' endpoints only serve published rows.
   - **One transaction per chapter.** A failed chapter is reported with its reason and rolled back (its counts are zeroed), the
     others carry on, and running it again is harmless. `dryRun` does the same work and writes nothing; it is what the page
-    shows before the button is pressed.
-  - **One import per language at a time** (Redis `translation:import:<language>`, `importLockSeconds`); a second gets 409. A
-    preview neither waits for the lock nor takes it. An audit row `translation.import` records who, what and the totals. The
-    page offers Import only while no run for that language is live; the API does not enforce that.
+    shows before the button is pressed, and **it is the one part that still runs inside the request** (it only reads, makes
+    no run and takes no lock, but for the Bhagavatam's 335 chapters it is slow).
+  - **An import is a run, like a translation.** The `TranslationImportRun` row is the truth and its `jobId` names the only
+    BullMQ job allowed to work it, as above, so a stale or duplicate job does nothing. Its states are QUEUED → RUNNING →
+    COMPLETED, FAILED or CANCELLED, never PAUSED: an import waits on nothing, and a chapter that cannot be written is a line
+    in the result, not a stop. FAILED is for something that broke outside any one chapter (the book or translator missing
+    from the database, storage unreachable). After every chapter the processor writes `doneChapters` of `totalChapters`, the
+    last chapter finished and the heartbeat, and adds a line to the activity feed (Redis `translation-import:feed:<runId>`,
+    newest first, 200 lines); when the run ends the row carries the same report `dryRun` gives. `reconcileImportRuns` (worker
+    boot and every 2 min, beside `reconcileRuns`) re-queues a QUEUED / RUNNING row whose job has gone missing.
+  - **A shutdown hands an import back, and it starts over.** The run goes back to QUEUED and its job is delayed 2 s; the next
+    worker runs `importLanguage` again from the first chapter, and the chapters already written come out `unchanged`, so the
+    finished report of a run that was handed over counts those as unchanged rather than created.
+  - **One live import per language and book.** A Redis lock (`translation:import:<book>:<language>`, `importLockSeconds`)
+    is held only while the row is being made, so two clicks a moment apart cannot both pass; a second that meets it gets 409
+    "being started". What actually refuses is the database: a QUEUED or RUNNING import of that language and book gives 409
+    with `error.details.runId`, which the page turns into "Open that import". A preview neither waits for the lock nor takes
+    it. The audit row `translation.import` is written when the run is queued (who, and what was asked: language, book,
+    publish, chapters or "all"); a preview, a refusal and a lost race write none. The page also offers Import only while no
+    translation run for that language is live; the API does not enforce that.
+  - **Cancel** (`POST /imports/runs/:id/cancel`, `translation.import`, audited as `translation.import.cancel`): a RUNNING
+    import is asked to stop and does so after the chapter in progress, keeping the report of what it did (the chapters written
+    stay written). A QUEUED one, or a RUNNING one with no heartbeat for 90 s (nobody is working it), goes to CANCELLED at once
+    and its job is taken off the queue. A finished import answers 409.
+  - **Reading them back:** `GET /imports/runs` (newest first; `status`, `language`, `book`), `GET /imports/runs/:id` (the run
+    and its feed) and `GET /overview`, which carries `activeImports` so the page can show the live ones. The admin page shows
+    only the live ones and the one its dialog is following; nothing there lists finished imports yet.
   - **A hand edit on the Verses page is overwritten** by the next import of that verse. Editing a translation there does not
     touch `translatedBy` / `version`, so a hand-edited row can still read as machine-made until it is imported again.
   - **The read side serves `transliteration` now, not yet `wordMeanings`.** The API verse (`present.verse`) and the offline book
@@ -1199,18 +1282,71 @@ Things to know before changing it:
 - **Do not run `npm run translate:claude` while the worker is working a run for the same language.** They write the
   same chapter files; each write is conditional on the object not having changed, so one of them stops, but neither
   knows about the other.
-- `npm run test:translation` (`scripts/translation-e2e.js`) walks it against the real database, Redis and a real
+- **Vikara tags: a separate file, and a separate import (Bhagavatam in Marathi only).** Which of the six vikaras (`kama`,
+  `krodha`, `lobha`, `moha`, `mada`, `matsarya`; `VIKARA_SLUGS`) a verse genuinely helps with is asked only for the
+  Śrīmad-Bhāgavatam when Marathi is among the languages (`issuesAsked` in `scripts/lib/claude-translate-run.js`), and is
+  saved **beside** the language files, never in them: `issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json` (for a test
+  folder, `issues/json/<folder>/ch-<n>.json`; `issuesChapterKey` in `claude-translate-store.js`). One file per chapter,
+  the language-file shape with a single language, `en`: `{ bookNumber, bookSlug, bookName, cantoNumber, chapterNumber,
+  chapterName, language: 'en', verses: [{ verseId, bookNumber, cantoNumber, chapterNumber, verseNumber, verseNumberEnd,
+  sanskrit, issues }] }`. **`issues: []` is the usual and correct answer** (most verses help with none), so the prompt
+  (`PROMPT_VERSION` 9, `ISSUES_INSTRUCTION`) names a vikara only when the verse itself speaks to it, and a name outside the
+  six is dropped on save. The tag file is written first within each verse's save, so a failed tag save leaves the verse
+  retryable. A translation run neither imports nor reads these files.
+- **The vikara import is a second kind of import run, not a second system.** `POST /imports/vikaras` `{ chapters?, dryRun? }`
+  (`translation.import`) queues a `TranslationImportRun` with `kind: 'VIKARA'` (`language` `en`, `book`
+  `srimad-bhagavatam`, never published) on the same `translation-import` queue, and the same processor works it
+  (`importVikaras`), with the same progress, heartbeat, activity feed, websocket events (`translation-import.run` /
+  `.activity`, now carrying `kind`), Cancel and reconcile. `GET /imports/runs?kind=` filters; `overview.activeImports` holds
+  both kinds. Only one vikara import may be live (409 with `error.details.runId`; Redis lock
+  `translation:import-vikara:srimad-bhagavatam`); a vikara import and a language import do not block each other. Audit
+  action `translation.vikara-import`. The rules:
+  - **A verse is found by its `verseId` and checked with the same `placeProblem`** as a translation import; a verse the
+    database lacks or that disagrees is reported and left alone. It never creates a `Verse`.
+  - **A verse that already has any `VerseIssue` link is left alone, and nothing is ever deleted**, so links put there by
+    the seed, by hand or by an earlier import are never replaced and a second import changes nothing. Re-tagging a verse that
+    is already linked is therefore not something this import does.
+  - **A verse with no tags writes nothing** (counted `noTags`); a name that is not one of the six is ignored and counted
+    (`ignored`). If any of the six has no `Issue` row the import is refused with 422 "Run the seed first" before anything
+    is written.
+  - **One transaction per chapter**, with the verses locked `FOR UPDATE` so two imports (or a seed) cannot both find a verse
+    unlinked and double its links. A chapter that fails is reported and rolled back, the others carry on; a chapter with
+    no tag file is `found: false`, not an error.
+  - The report is `{ dryRun, totals: { chapters, notFound, inStorage, tagged, noTags, verses, links, alreadyLinked, ignored,
+    missing, conflicts, failedChapters }, chapters: [{ chapter, found, inStorage, tagged, noTags, verses, links,
+    alreadyLinked, ignored, missing, conflicts, error }] }`. `GET /imports/vikaras` answers `{ book, verses, links, vikaras:
+    [{ slug, name, inDatabase, links }] }`.
+  - **Chapters translated before the tags were kept apart have no tag file.** The 13 verses of Bhagavatam 10.1 already in
+    `mr/c10-ch-1.json` carry old `issues` arrays that nothing reads; because a translation run skips a verse already done
+    under the current version, they get tags only if translated again (a new `TRANSLATION_VERSION`).
+- `npm run test:translation` (`scripts/translation-e2e.js`, 259 checks) walks it against the real database, Redis and a real
   BullMQ worker with Claude faked: start, progress, credit pause and Resume, a 529 retry, cancel, a killed
-  worker, a flushed queue, permissions, the version rule, the import's permissions and lock, and the output endpoints.
-  `npm run test:translation-import` (`scripts/translation-import-e2e.js`) walks `importLanguage` against the real database
+  worker, a flushed queue, permissions, the version rule, and the output endpoints. Its section 12 walks the queued import:
+  who may, what it refuses, a 201 with a run that names its job, the live events, a second import refused with the first's
+  id, the list / one / overview reads, a real `translation-import` worker taking a run (Malayalam has nothing in storage, so
+  every chapter reads "no file" and nothing is written), a failure explained and one not, cancel of a waiting, a working
+  and a stalled import, a superseded or finished job skipped, a shutdown handing the run back, `reconcileImportRuns`, the
+  preview and the audit rows, and a vikara import queued, worked by the real worker (with no tag file in storage, so it reads two chapters and links nothing), listed by `?kind=` and refused twice.
+  `npm run test:translation-import` (`scripts/translation-import-e2e.js`, 98 checks) walks `importLanguage` against the real database
   with a throwaway book and a local folder: new, replaced in place with the id kept, unchanged, a part cleared, refused
-  verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once. `npm test` needs Node ≥ 21 for its
+  verses, a rolled-back chapter, the visibility rules, dry runs and two imports at once (section 12: a language import never
+  makes vikara links; section 13: the vikara import — tagged, empty and unknown-name verses, a verse already linked, a verse
+  the database lacks, a chapter with no file, a rolled-back chapter, a second import changing nothing). `npm test` needs Node ≥ 21 for its
   test glob; under Node 20 run
   `node --test test/translation-run.test.js test/translation-import.test.js test/claude-translate.test.js`.
 - **Not exercised:** a real Claude call (the e2es fake the model). GPT-6 Luna and Gemini have been called live, and Luna has
   written Tamil chapters 1–4 and run a Malayalam job through the worker against the real bucket. Try one verse with
   `npm run translate:claude:test -- --provider anthropic` before relying on Claude. The import has not been run against the
-  Gita's real S3 files either; do a `dryRun` from the page first.
+  Gita's real S3 files either; do a `dryRun` from the page first. The queued import has been walked only by the two e2es
+  above (a throwaway book and language, a worker started inside the script); it has not run against a live API, the
+  production worker container, a browser or the real files.
+- **Production needs `prisma migrate deploy` for `20261111000000_translation_import_runs` and `20261112000000_vikara_import_runs`
+  (adds `TranslationImportRun.kind`), and a restart of the API and the worker** (the worker registers the `translation-import` queue and its reconcile timer at boot). No seed, no permission
+  change. Deploy the admin panel with the API: `POST /imports` now answers 201 with a queued run instead of 200 with the
+  result, and `GET /overview` carries `activeImports`, which an older panel does not read. **The vikara import also needs the
+  six `Issue` rows (`npm run seed`)** and, to have anything to import, a Marathi Bhagavatam translation run made after the tag
+  files were introduced. Neither the tag writing nor the vikara import has run against a real model, the real bucket, a
+  browser or a phone; both e2es use a throwaway book and a local folder.
 
 ## Sharing, deep links and refer and earn
 
@@ -1422,18 +1558,38 @@ still work; nothing rewrites them.
 ## Devotee etiquette
 
 - **What it is**: short English guidance for every devotee, one row per item in `Etiquette` (slug, category, title, summary, body, `reference`, `author`, `sourceName`, `sourceUrl`, `status`, `excludedReason`, `isEdited`), one row per language in `EtiquetteTranslation` (`isPublished`, `translatedBy`, `runId`, `isEdited`). `EtiquetteStatus` is `PUBLISHED` (readers see it and it can be the day's push), `DRAFT`, or `EXCLUDED` (kept with `excludedReason`, never shown or pushed — etiquette that would set one deity or faith above another). **A non-published item is a 404 in the app API**, whoever asks. The nine categories and the translation languages are in `config/etiquette.js`; the status list and pure helpers are `utils/etiquette.js`.
-- **Seed**: `prisma/seed/etiquette/` (nine category files, `sources.js`, `index.js`) — 95 items, 93 `PUBLISHED` and 2 `EXCLUDED`. The wording is original; each item cites a `reference`, whose teaching it is in `author` (the speaker of the verse, a teacher, a temple or a scripture — never the author of the books we cite, since the app does not show his name yet), and a `sourceName` / `sourceUrl`; the names in `author` and `sourceName` are centralised in `sources.js`. `checkItems` refuses text that names the hidden author (`AppConfig.showAuthorName` is false) and over-long fields (the `LIMITS` there match the columns, `author` included). It is idempotent and leaves an `isEdited` row's wording alone; the one thing it still fills on an edited row is a missing `author` (a row made before the column existed), so every row ends up with one without undoing a hand edit. `npm run seed:etiquette` (`scripts/seed-etiquette.js`), `npm run seed` runs it too, and the admin Maintenance page has a `seed-etiquette` entry. Purity rules were deliberately left out.
+- **Seed**: `prisma/seed/etiquette/` (nine category files, `sources.js`, `index.js`) — 95 items, 93 `PUBLISHED` and 2 `EXCLUDED`. The wording is original; each item cites a `reference`, whose teaching it is in `author` (the speaker of the verse, a teacher, a temple or a scripture — never the author of the books we cite, since the app does not show his name yet), and a `sourceName` / `sourceUrl`; the names in `author` and `sourceName` are centralised in `sources.js`. `checkItems` refuses text that names the hidden author (`AppConfig.showAuthorName` is false) and over-long fields (the `LIMITS` there match the columns, `author` included). It is idempotent: a missing item is added, and an item already there keeps its wording, `status` and `isEdited` exactly as they are. The only thing a run writes to an existing row is a blank field (a missing `author`, say: a row made before the column existed), filled from the seed. `npm run seed:etiquette` (`scripts/seed-etiquette.js`), `npm run seed` runs it too, and the admin Maintenance page has a `seed-etiquette` entry. Purity rules were deliberately left out.
 - **The daily push**: cron `etiquette.deliver` (`config/cron.js`, queue `notification`, every 15 minutes) → `jobs/processors/etiquette-deliver.js`. A reader gets it when their local time reaches the setting `etiquette.delivery.time` (default `ETIQUETTE_DEFAULT_DELIVERY_TIME`, `07:15`; **it must be a multiple of 15 minutes**, so each reader falls in exactly one run's window). `EtiquetteDay` holds one shared item per date (`dayFor` takes the least recently used, and replaces it if it was un-published since); `EtiquetteDelivery (userId, date)` is unique, so a repeated run cannot send twice. Recipients are users who are not banned and have a `Device` with `app: 'main'`, an `fcmToken` and `isBanned: false`, read in batches of 500. The title is "Hari Bol <first name>" in the reader's *reading* language (see "Server wording in the user's language"), the body is the item's title and summary clipped to 220 characters, the data is `{ deeplink: 'hariharibol://etiquette/<id>', etiquetteId, category }`, the type `NotificationType.ETIQUETTE`. The worker registers the repeatable job at boot (`jobs/schedules.js`), so **a deploy needs the worker restarted**.
 - **Translation runs** are built like Scenes and Translations — read those first. The `EtiquetteRun` row is the truth and the BullMQ `etiquette` queue (`attempts: 1`) only works it: `jobs/processors/etiquette.js` + `services/etiquette.js` (`itemsToTranslate`, `itemsForRun`, `saveTranslations`, `coverage`, the feed in Redis `etiquette:feed:<runId>`, `reconcileRuns`). A run translates one language's published items that have no translation (every one with `force`); **a translation an editor wrote by hand is never replaced, with or without `force`**. `batchSize` 8, `invalidTries` 2, `maxTokens` 16,000; a reply that comes back still in English is rejected by the script block of the language. One live run per language. Statuses are `TranslationRunStatus`; out-of-credit or a bad key pauses (Resume), a busy provider retries by itself. Websocket events `etiquette.run` and `etiquette.activity` go to `etiquette.translate`. Saved rows are `isPublished: true` with `translatedBy`. The default provider is `TRANSLATION_PROVIDER` (OpenAI), `provider` and `model` can be chosen when the run is started.
 - **API**: app `GET /api/app/etiquette/today`, `GET /api/app/etiquette?category=`, `GET /api/app/etiquette/:id` (all take `languages` for the reader's chain; `today` uses the reader-local date); admin `/api/admin/etiquette` — `overview`, `items` (list, add, get, edit, `status`), `items/:id/translations/:language` (PUT, DELETE), `estimate`, `runs` (list, start, get, `resume`, `cancel`). Permissions **`etiquette.manage`** (items, translations by hand) and **`etiquette.translate`** (estimate and runs). Migration `20261103000000_devotee_etiquette` creates both and grants them to `admin` and `super_admin` itself.
 - **Tests**: `node --test test/etiquette.test.js test/messages.test.js` (46 + 14, no database) and `npm run test:etiquette` (`scripts/etiquette-e2e.js`, 114 checks against a real Postgres and Redis, provider not called — it now also covers `author` round-tripping through the admin and app APIs, and the seed filling in a missing `author` on an edited row without touching its other edits). Run the e2e against a scratch database with the AWS and Firebase variables blanked — the dev `.env` points at real AWS.
 - **Not done**: no live provider call has been made by a run, no push has left a machine, and the translations (and the server wording in `locales/*.json` for the etiquette push) are AI-drafted.
 
+## Prayers
+
+Stotras, aartis and prayers a reader reads **in their own script**, each verse with a collapsible meaning. **"Prayer" here is not a mantra's opening prayer** (`Mantra.prayerMantraId`, "Opening prayers" above, `PRAYER` in `NotificationType`, the app's `fallback_prayer.dart`): that is a different feature and nothing here touches it.
+
+- **What it is**: `Prayer` (slug, `category`, `sortOrder`, `originalLanguage`, English `title` / `summary` / `about`, `author`, `reference`, `sourceName` / `sourceUrl`, `status`), `PrayerVerse` (`position`, the original `text` in its own script with a line break per line, the English `meaning`, `textChangedAt`) and, per language, `PrayerTranslation` (title, summary, about) and `PrayerVerseTranslation` (the verse's `text` in that language's script, and its `meaning`). Both translation tables carry `translatedBy`, `runId` and `isEdited`. `PrayerStatus` is `PUBLISHED` or `DRAFT`; **a draft is a 404 in the app API**, whoever asks, and is never translated. The eight categories (`morning`, `evening`, `meals`, `guru`, `deity`, `aarti`, `peace`, `other`), the twelve `ORIGINAL_LANGUAGES` and every number a run uses are in `config/prayer.js`; the pure rules are `utils/prayer.js`. **No seed**: no prayer ships with the code, an admin enters them (admin → Prayers).
+- **Which script a reader gets, and how it is made** (`howText(original, target)` in `config/prayer.js`; **the server decides and tells the app, the app never derives it**):
+  - `same` — the reader's script is the original's (`sa`, `hi`, `mr` are one script; `bn`, `as` another). Nothing is stored.
+  - `rule` — the original is Devanagari and the target is one of `RULE_TARGETS` (`bn as gu te kn or pa ml`): the phone converts it at read time with `fromDevanagari` (`utils/script.js`, and the app's copy of it). Nothing is stored.
+  - `model` — everything else: **English (Roman letters) and Tamil from Devanagari, and any non-Devanagari original into another script**. A run writes it and it is stored as the verse's `PrayerVerseTranslation.text` (`'en'` holds the Roman rendering only; English prose is the `Prayer` row itself, so `'en'` has no `PrayerTranslation` row and no meaning row). Tamil is left to the model because it has one letter for ka / kha / ga / gha, so the rule would merge them.
+  - **A rendering goes stale** when the verse's text changes: `textChangedAt` is bumped only then (a meaning-only edit does not, and changing `originalLanguage` stamps every verse), and a stored rendering whose `renderedAt` is older, and that no person wrote, is asked for again. A hand-written rendering or meaning (`isEdited`) is never replaced by a run.
+- **Translation runs** are built like Etiquette, Scenes and Translations — read those first. The `PrayerRun` row is the truth and the BullMQ `prayer` queue (`attempts: 1`, one run at a time) only works it: `jobs/processors/prayer.js` + `services/prayer.js` (`prayersToTranslate`, `prayersForRun`, `saveHeader`, `saveVerses`, `coverage`, `reconcileRuns`, the activity feed in Redis `prayer:feed:<runId>`). **`needsOf` in `utils/prayer.js` is the one place that decides what a prayer still needs in a language, and `coverage()` mirrors it in SQL — change both together** (the e2e checks that they agree).
+  - For each prayer (in `sortOrder`, `createdAt`, `id` order) a run makes a **header request** (title, plus summary and about when the English has them; never for `'en'`) and then **slices of 12 verses** (`sliceVerses`), asking for the rendering only where `howText` is `model` and for the meaning wherever the English one is filled. Each answer is checked before anything is saved (`checkHeader`, `checkAnswer`): the title or piece empty, a verse missing or repeated, a rendering with a different number of lines from its verse, text not written in the language's script (a Roman rendering must be Latin letters, not Indic). **Only the pieces that pass are kept**, a failed one is asked for again up to `invalidTries` (2) with what was wrong, and then the run stops on it (FAILED, Resume works). A prayer may have `maxVerses` (400) at most.
+  - **A run never writes over a person's words** and never touches a draft. One live run per language; a start with nothing to do is 409 `{ upToDate: true }`. Statuses are `TranslationRunStatus`; out-of-credit, a bad key or a missing one pauses for a person (Resume), a busy provider retries by itself, exactly as in "Translation runs". Cancel on a RUNNING run that is not stalled only sets `cancelRequested` (it stops after the request in progress); a queued, paused or stalled run is cancelled at once and its job dropped. Every request is counted in the token calculator (`services/ai/token-tally.js`). The default provider is `TRANSLATION_PROVIDER` (OpenAI); `provider` and `model` can be chosen when a run is started, and a provider with no key or a model that cannot run is a 422. **A run never uses OpenAI's free models**, like every book translation.
+  - Websocket events `prayer.run` (the whole presented run) and `prayer.activity` (one feed line) go to roles with `prayer.translate`.
+- **API**: app `GET /api/app/prayers` (the published prayers with their title and summary in the reader's chain, no verses, and only the categories that have any) and `GET /api/app/prayers/:id` (the prayer in full: `scripts` — first `original` with the languages that read it as written, then one entry per `rule` language, and one per `model` language **only when every verse has a rendering in it** (a half-written script is not offered) — and the verses, each with `text`, `meaning` and every stored rendering, a hand-written one for a `rule` language included: the phone shows it in place of the rule's output); both take `languages` and need a signed-in reader (a signed-out call is 403). Admin `/api/admin/prayers`, 17 routes: **`prayer.manage`** — `overview`, `items` (list, add), `items/:id` (get, edit, delete), `items/:id/verses` (PUT: the whole ordered list, with stable ids, so a translation never loses its verse), `items/:id/status`, `items/:id/translations/:language` (get, PUT, DELETE: by hand); **`prayer.translate`** — `estimate`, `runs` (list, start), `runs/:id`, `runs/:id/resume`, `runs/:id/cancel`. Audit actions `prayer.create`, `.update`, `.verses`, `.status`, `.delete`, `.translation.save`, `.translation.delete`, `.run.start`, `.run.resume`, `.run.cancel`. Migration `20261114000000_prayers` creates both permissions and grants them to `admin` and `super_admin` itself.
+- **Tests**: `node --test test/prayer.test.js` (68, no database; `test/strict-schemas.test.js` also holds the prayer schemas) and `npm run test:prayer` (`scripts/prayer-e2e.js`, 153 checks, passing; real local Postgres and Redis, **the provider faked**: what a run would do, a run into Hindi, Tamil, Roman English and Telugu, nothing asked twice, hand edits kept, a stale rendering, slicing, the page's counts against `needsOf`, the queue order, every way a run can stop, the admin API and the app API, and a run started through the API). Run it with `FIREBASE_PROJECT_ID= FIREBASE_CLIENT_EMAIL= FIREBASE_PRIVATE_KEY= GOOGLE_SERVICE_ACCOUNT_PATH= AWS_ACCESS_KEY_ID= AWS_SECRET_ACCESS_KEY=` in front (the dev `.env` points at real AWS) and **with no worker connected**, or the real worker would take its runs. It makes its own prayers (slug prefix `e2e-`) and removes them. Its "page's counts agree with what a run would do" section is what caught `coverage()` reading `'\S'` in a tagged SQL template as the letter S — keep that check when `needsOf` or `coverage()` changes.
+- **Production needs `prisma migrate deploy` for `20261114000000_prayers`, a restart of the API and the worker (the worker registers the `prayer` queue and its reconcile timer at boot), and the admin panel deployed with the API.** Release the API before the app: an app that asks for `/prayers` an older API does not have gets a 404 (it shows its ordinary "could not load" state). No seed.
+- **Texts to start from (not imported)**: `npm run fetch:prayers` (`scripts/fetch-prayers.js`, the list in `scripts/lib/prayer-catalogue.js`) fetches 53 originals — Vaiṣṇava songs from kksongs.org, the rest from Sanskrit Wikisource — into `public/prayers/json/<slug>.json` in the `Prayer` / `PrayerVerse` shape, and writes `public/prayers/PRAYERS.md` (the list, 10 still wanted with no free source, 1 excluded for copyright, every correction made to a page). Nothing reads them yet: there is no import, they are not in the database or on S3, every `meaning` is null, and no one who reads the scripts has checked them. A file's `roman` is kksongs' Roman (IAST but with ṁ for the anusvāra) and is null for the Wikisource ones; a Bengali song's `devanagari` copy has no column. See `scripts/README.md`.
+- **Not done / not checked**: no run has called a real provider and nothing has run on a phone, so the translations and transliterations are AI-drafted and not read by anyone who reads the script; **the Roman style (IAST) and the Tamil convention are the owner's to confirm** (the prompt names them: `utils/prayer.js`, `userPrompt`); the admin page has no tests of its own (it type-checks and builds).
+- See [admin/CLAUDE.md](../admin/CLAUDE.md) "Prayers page and its translations" and [app/CLAUDE.md](../app/CLAUDE.md) "Prayers".
 ## Quotes (the chanting page)
 
 - **What it is**: short quotations shown on the chanting page in place of the deity picture and the mala (the app's *Deity | Quotes* switch, see "The quotes on the chanting page" in [app/CLAUDE.md](../app/CLAUDE.md)). One row per quote in `Quote` (slug, `text` ≤ 1000, `author`, `reference`, `sourceName`, `sourceUrl`, `status` PUBLISHED / DRAFT / EXCLUDED — the etiquette enum —, `excludedReason`, `isEdited`, `sortOrder`), its translations in `QuoteTranslation` (one `text` per language, `translatedBy`, `runId`, `isEdited`, `isPublished`), and the translation runs in `QuoteRun` (the `EtiquetteRun` columns). Built as a copy of devotee etiquette without the days and pushes: read that section for the run model.
 - **The author is always stored.** Whether the app draws it is `AppConfig.showQuoteAuthor` (false), the quote twin of `showAuthorName`; the data never decides.
-- **Seed**: `prisma/seed/quotes/` (`quotes.js`, `index.js`) — 54 quotes, 30 of them purport sentences and 24 verse translations, all from vedabase.io. **Every `text` was checked by machine to be a verbatim stretch of the page `sourceUrl` names** when the file was made; add a quote only the same way, from its page and never from memory. A translation's `author` reads "Śrī Kṛṣṇa, as translated by …" (the speaker), a purport's is the teacher. `checkQuotes` refuses a missing field, an over-long field (text ≤ 400 for a chanting screen), a duplicate and a non-https link. Idempotent and leaves an `isEdited` row alone. `npm run seed:quotes` (`scripts/seed-quotes.js`); `npm run seed` runs it; the admin Maintenance page has `seed-quotes`. **Not included: lecture and letter quotes** (their exact wording could not be checked against a page).
+- **Seed**: `prisma/seed/quotes/` (`quotes.js`, `index.js`) — 54 quotes, 30 of them purport sentences and 24 verse translations, all from vedabase.io. **Every `text` was checked by machine to be a verbatim stretch of the page `sourceUrl` names** when the file was made; add a quote only the same way, from its page and never from memory. A translation's `author` reads "Śrī Kṛṣṇa, as translated by …" (the speaker), a purport's is the teacher. `checkQuotes` refuses a missing field, an over-long field (text ≤ 400 for a chanting screen), a duplicate and a non-https link. Idempotent: a missing quote is added, and a quote already there keeps its wording, `status` and `isEdited`; only a blank field is filled from the seed. `npm run seed:quotes` (`scripts/seed-quotes.js`); `npm run seed` runs it; the admin Maintenance page has `seed-quotes`. **Not included: lecture and letter quotes** (their exact wording could not be checked against a page).
 - **Translation runs**: `jobs/processors/quote.js` on the `quote` queue (`attempts: 1`, concurrency 1, `reconcileRuns` every 2 minutes in the worker), websocket `quote.run` / `quote.activity` to `quote.translate`, `services/quote.js`, pure rules in `utils/quote.js` (prompt, schema, `checkAnswer`: every quote returned, non-empty, in the language's script). Twenty quotes go in a request (`config/quote.js`). A translation an editor wrote is never replaced.
 - **API**: admin `/api/admin/quotes` (overview, items CRUD, status, hand translations, estimate, runs) behind `quote.manage` and `quote.translate` (both granted to admin and super_admin by the migration); app `GET /api/app/quotes?languages=` returns **every published quote** in the reader's reading chain plus a `version` (count, newest update, chain) so the app can keep its copy.
 - **Tests**: `node --test test/quote.test.js` (7, no database). **No e2e walk was written and nothing was run against a database or a live provider.**
@@ -1463,12 +1619,14 @@ The admin **Maintenance** page (`system.maintenance`, super admin only — `admi
 
 ## Support, feedback and the store-rating prompt
 
-`SupportTicket` (kind `TICKET` or `FEEDBACK`, category, status `OPEN`/`IN_PROGRESS`/`RESOLVED`, optional 1–5 `rating`, `screenshotKey`, `deviceInfo` JSON the app attaches, `userUnread`) with its conversation in `SupportMessage`, and `ReviewPrompt` (each time the app showed or declined the store's rating sheet). Reader side `routes/app/support.js` + `controllers/app/support.js` (`/api/app/support/...`: `tickets`, `tickets/:id`, `tickets/:id/messages`, `media`, `unread`, `review-check`, `review-prompts`); desk side `routes/admin/support.js` + `controllers/admin/support.js` under permission **`support.manage`** (migration `20261102000000_support_feedback` grants it to `admin` and `super_admin`; `config/constants.js` lists it for new databases).
+`SupportTicket` (kind `TICKET` or `FEEDBACK`, category from `CATEGORIES` in `services/support.js` (bug, payment, account, content, feature, translation, suggestion, other), status `OPEN`/`IN_PROGRESS`/`RESOLVED`, optional 1–5 `rating`, `screenshotKey`, `deviceInfo` JSON the app attaches, `details` JSON (below), `userUnread`) with its conversation in `SupportMessage`, and `ReviewPrompt` (each time the app showed or declined the store's rating sheet). Reader side `routes/app/support.js` + `controllers/app/support.js` (`/api/app/support/...`: `tickets`, `tickets/:id`, `tickets/:id/messages`, `media`, `unread`, `review-check`, `review-prompts`); desk side `routes/admin/support.js` + `controllers/admin/support.js` under permission **`support.manage`** (migration `20261102000000_support_feedback` grants it to `admin` and `super_admin`; `config/constants.js` lists it for new databases).
 
 - **A staff reply** saves the message, sets `userUnread`, moves OPEN to IN_PROGRESS, and pushes the reader through `notify.toUser` (`NotificationType.SUPPORT`, deeplink `hariharibol://ticket?id=…`). A reader's follow-up on a RESOLVED ticket reopens it. 10 tickets a day per reader.
+- **Feature and translation requests** are tickets with a topic. A `translation` ticket must carry `details: {bookSlug, languageCode}`; `translationDetails` (`controllers/app/support.js`) checks the book is in the library and the language is one the app reads, and stores both names (`bookTitle`, `languageName`) beside them so the desk needs no join. Anything else is a 400. Its note is optional. Every other ticket needs a message, and feedback needs its rating.
+- **Live replies** (`services/websocket.js` EVENTS): `support.reply` to the reader on a staff reply and `support.updated` to the reader on a status change (both `toUser`); `support.inbox` to every `support.manage` holder (`toPermission`) with `change` of `new` (reader opens a ticket), `reader` (follow-up), `staff` (reply) or `status`. The FCM push still goes out with each staff reply (`type: 'SUPPORT'`, deeplink), so a backgrounded reader is told; the socket is for an open screen.
 - **Screenshots** go up first (`POST /support/media`, body is the file, JPEG/PNG/WebP up to 5 MB, judged from bytes, S3 prefix `support/images`), then the ticket names the key.
 - **Asking for a store rating** (`services/support.js` `reviewCheck`): only after `STREAK_DAYS` (7) consecutive days with a round chanted (`trigger=streak`) or, for `session`, once the reader has five chanting days; never within `PROMPT_GAP_DAYS` (90) of a `SHOWN`/`LIKED`/`UNHAPPY` prompt, never within 60 days of writing in, never after feedback of 3 stars or less in the last 180 days. A `DISMISSED` pre-prompt is logged but does not start the quiet period. The app keeps its own 90-day local gate in front of this.
-- `npm run test:support` walks it (needs the API and a database). **Written without a database to run against: not executed.** Production needs `prisma migrate deploy` for `20261102000000_support_feedback`.
+- `npm run test:support` walks it (needs the API, a database and Redis): 44 checks, all passing, including the sockets (a Redis subscriber sees each `support.reply`, `support.updated` and `support.inbox` go to the right person or permission and to no one else). The provider is not involved. Production needs `prisma migrate deploy` for `20261102000000_support_feedback` (if not yet applied) and `20261120000000_support_requests` (adds `SupportTicket.details`; nullable, so existing tickets are unchanged).
 
 ## Developer companion (the owner's app: live feed, alerts, chat)
 

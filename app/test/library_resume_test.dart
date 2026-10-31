@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -24,7 +27,9 @@ import 'package:hariharibol/services/audio/reading_audio.dart';
 import 'package:hariharibol/services/audio/reading_memory.dart';
 import 'package:hariharibol/services/audio/reading_playback_controller.dart';
 import 'package:hariharibol/models/reading_mode.dart';
+import 'package:hariharibol/services/local_store.dart';
 import 'package:hariharibol/services/reading_place_store.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hariharibol/widgets/library/story_verse.dart';
 import 'package:hariharibol/views/dashboard/library_tab.dart';
 import 'package:hariharibol/views/library/chapter_read_view.dart';
@@ -111,7 +116,7 @@ Widget _app(Widget home, {List<Book> books = const [_gita, _bhagavatam], List<Ov
   return ProviderScope(
     overrides: [
       languageSettingsProvider.overrideWith(_LanguagesInMemory.new),
-      booksProvider.overrideWith((ref) async => books),
+      booksProvider.overrideWith((ref) => Stream.value(books)),
       ...overrides,
     ],
     child: MaterialApp.router(
@@ -149,7 +154,14 @@ Verse _verse(int n) => Verse(
 
 const _chapter = BookSection(id: 'ch2', number: 2, title: 'Contents of the Gita Summarized', totalVerses: 30);
 
-Widget _reader({int? targetVerse, int verses = 30, ReadingMode mode = ReadingMode.verses}) {
+const _chapterOne = BookSection(id: 'ch1', number: 1, title: 'Observing the Armies', totalVerses: 46);
+
+Widget _reader({
+  int? targetVerse,
+  int verses = 30,
+  ReadingMode mode = ReadingMode.verses,
+  List<BookSection> chapters = const [_chapter],
+}) {
   final log = <String>[];
   final controller = ReadingPlaybackController(
     player: FakePlayer(log),
@@ -174,7 +186,7 @@ Widget _reader({int? targetVerse, int verses = 30, ReadingMode mode = ReadingMod
       chapterReadingProvider.overrideWith(
         (ref, args) async => ChapterReading(chapter: _chapter, verses: [for (var n = 1; n <= verses; n++) _verse(n)]),
       ),
-      bookChaptersProvider.overrideWith((ref, args) async => [_chapter]),
+      bookChaptersProvider.overrideWith((ref, args) async => chapters),
       bookCantosProvider.overrideWith((ref, slug) async => const []),
     ],
   );
@@ -196,6 +208,20 @@ ReadingPlace? _placeIn(WidgetTester tester) =>
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // A reader asks the device's store whether to keep the screen awake, so the
+  // box must be open before any chapter is built.
+  setUpAll(() async {
+    final dir = await Directory.systemTemp.createTemp('hariharibol_resume');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    );
+    await LocalStore.instance.init();
+  });
+  tearDownAll(() async {
+    await Hive.close();
+  });
 
   setUp(ReadingPlaceStore.keepInMemory);
   tearDown(ReadingPlaceStore.keepInStore);
@@ -401,14 +427,21 @@ void main() {
       await _leave(tester);
     });
 
-    testWidgets('Contents opens the book page, so another chapter can still be chosen', (tester) async {
-      await tester.pumpWidget(_reader());
+    testWidgets('Contents lists the chapters over the reader, and the one picked replaces it', (tester) async {
+      await tester.pumpWidget(_reader(chapters: const [_chapterOne, _chapter]));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Contents'));
       await tester.pumpAndSettle();
+      expect(find.text('READING NOW'), findsOneWidget);
 
-      expect(_landed(tester), '/library/bhagavad-gita');
+      await tester.tap(find.text('Observing the Armies'));
+      await tester.pumpAndSettle();
+
+      expect(_landed(tester), '/library/bhagavad-gita/chapters/1');
+      // Replaced, not pushed: back leads where the reader came from, not to chapter 2.
+      expect(AppNavigator.instance.canPop, isFalse);
+      await _leave(tester);
     });
   });
 }

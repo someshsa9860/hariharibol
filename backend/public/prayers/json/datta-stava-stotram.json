@@ -1,0 +1,112 @@
+{
+  "slug": "datta-stava-stotram",
+  "title": "Śrī Datta-stava Stotram",
+  "titleOriginal": "श्रीदत्तस्तवस्तोत्रम्",
+  "category": "deity",
+  "sortOrder": 510,
+  "originalLanguage": "sa",
+  "summary": "“Bhūtapretapiśācādyā”: nine verses to Dattātreya, protector from fear and suffering.",
+  "about": "A short stotra of the Datta tradition of Maharashtra, asking Dattātreya to remove fear, illness and the troubles of the world, each verse ending with a bow to him.",
+  "author": "Vāsudevānanda Sarasvatī (Ṭembe Svāmī)",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A4%B5%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+  "tradition": "dattatreya",
+  "deity": "dattatreya",
+  "occasions": [
+    "Thursday",
+    "Datta-jayantī",
+    "in illness or trouble"
+  ],
+  "festivals": [
+    "datta-jayanti"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "भूतप्रेतपिशाचाद्या यस्य स्मरणमात्रतः ।\nदूरादेव पलायन्ते दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "यन्नामस्मरणाद्दैन्यं पापं तापश्च नश्यति ।\nभीतिग्रहार्तिदुःस्वप्नं दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "दद्रुस्फोटककुष्ठादि महामारी विषूचिका ।\nनश्यन्त्यन्येऽपि रोगाश्च दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "संगजा देशकालोत्था अपि सांक्रमिका गदाः ।\nशाम्यन्ति यत्स्मरणतो दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "सर्पवृश्चिकदष्टानां विषार्तानां शरीरिणाम् ।\nयन्नाम शांतिदं शीघ्रं दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "त्रिविधोत्पातशमनं विविधारिष्टनाशनम् ।\nयन्नाम क्रूरभीतिघ्नं दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "वैर्यादिकृतमंत्रादिप्रयोगा यस्य कीर्तनात् ।\nनश्यन्ति देवबाधाश्च दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "यच्छिष्यस्मरणात्सद्यो गतनष्टादि लभ्यते ।\nय ईशः सर्वतस्त्राता दत्तात्रेयं नमामि तम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "जयलाभयशःकामदातुर्दत्तस्य यः स्तवम् ।\nभोगमोक्षप्रदस्येमं पठेद्दत्तप्रियो भवेत् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A4%B5%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%A6%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A4%B5%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "author": "श्रीवासुदेवानन्दसरस्वती"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 9
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ श्रीदत्तस्तवस्तोत्रम् ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ इति श्री प. प. श्रीवासुदेवानन्दसरस्वतिविरचितं दत्तस्तवस्तोत्रं संपूर्णम् ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.942Z"
+}

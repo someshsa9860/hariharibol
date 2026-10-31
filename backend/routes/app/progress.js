@@ -20,6 +20,19 @@ router.get(
   controller.list
 );
 
+router.get(
+  '/latest',
+  {
+    summary: 'The book I opened last',
+    description:
+      'The most recently read book and the place left in it, so the routine’s reading alert ' +
+      'can open it. Null when nothing has been read yet.',
+    limit: 'read',
+    responds: { 200: 'The latest position, or null' },
+  },
+  controller.latest
+);
+
 router.put(
   '/',
   {

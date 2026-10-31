@@ -6,8 +6,14 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/constants/chant_audio_config.dart';
 import 'chant_mala_timing.dart';
+import 'connection_status.dart';
+import 'mala_audio_cache.dart';
 
-enum ChantMalaPhase { loading, ready, failed }
+/// [unavailable] is a recording that is not on the phone with no connection to
+/// fetch it over: nothing to try, so the card is left off the screen until a
+/// connection returns (unlike [failed], which is a try that did not work and
+/// offers another).
+enum ChantMalaPhase { loading, ready, failed, unavailable }
 
 /// What the player card draws.
 @immutable
@@ -48,6 +54,9 @@ class ChantMalaPlayer {
     required this._url,
     required this.timing,
     this.refreshUrl,
+    this.restAt,
+    this.cache,
+    this.connection,
     AudioPlayer? player,
     this.positionTick = ChantAudioConfig.positionTick,
     this.keepScreenOn = true,
@@ -73,6 +82,22 @@ class ChantMalaPlayer {
   /// recording that will not load is asked for once more under a fresh link.
   final Future<String?> Function()? refreshUrl;
 
+  /// Where play begins when the recording is at rest — at its top, or played to
+  /// its end — rather than paused part-way. The screen knows what has been
+  /// counted by hand, so the voice takes up from there and not from the top. Null
+  /// always begins at the top.
+  final Duration Function()? restAt;
+
+  /// Where the recording is kept to play with no connection: a kept file is
+  /// opened instead of the link, and one played from the link is saved. Null
+  /// keeps nothing.
+  final MalaAudioCache? cache;
+
+  /// Whether there is a connection, and when that changes. A recording that is
+  /// not kept is [ChantMalaPhase.unavailable] while there is none, and is loaded
+  /// by itself when one returns. Null takes the phone to be online always.
+  final ConnectionStatus? connection;
+
   String _url;
 
   final AudioPlayer _player;
@@ -82,6 +107,11 @@ class ChantMalaPlayer {
   final StreamController<int> _chants = StreamController<int>.broadcast();
 
   final List<StreamSubscription<Object?>> _subscriptions = [];
+  StreamSubscription<bool>? _connectionSub;
+
+  /// Bumped by every [load]: a load that finds it has moved on was replaced
+  /// (the connection went and came back) and says nothing.
+  int _loadId = 0;
 
   /// True while a seek is in flight — a reading taken then is from before it.
   bool _seeking = false;
@@ -92,20 +122,81 @@ class ChantMalaPlayer {
   bool get isPlaying => state.value.playing;
 
   Future<void> load() async {
+    final id = ++_loadId;
+    _watchConnection();
+    if (!await _canOpen()) {
+      if (id == _loadId) _emit(phase: ChantMalaPhase.unavailable);
+      return;
+    }
     _emit(phase: ChantMalaPhase.loading);
     try {
       final duration = await _open();
-      if (_disposed) return;
+      if (_disposed || id != _loadId) return;
       _listen();
       _emit(phase: ChantMalaPhase.ready, duration: duration ?? Duration.zero);
     } catch (_) {
-      // A dead link is a normal thing — no connection, a file still being
-      // processed. The card says so and offers another try.
-      if (!_disposed) _emit(phase: ChantMalaPhase.failed);
+      if (_disposed || id != _loadId) return;
+      // A dead link is a normal thing — a file still being processed, a signal
+      // that went. The card says so and offers another try; with no connection
+      // at all there is nothing to offer, and it steps aside.
+      final phase = await _canOpen() ? ChantMalaPhase.failed : ChantMalaPhase.unavailable;
+      if (id == _loadId) _emit(phase: phase);
     }
   }
 
+  /// Whether the recording can be opened at all: there is a connection, or it
+  /// is kept on the phone.
+  Future<bool> _canOpen() async {
+    final connection = this.connection;
+    if (connection == null || await connection.online()) return true;
+    return await cache?.file(_url) != null;
+  }
+
+  void _watchConnection() {
+    final connection = this.connection;
+    if (connection == null || _connectionSub != null) return;
+    _connectionSub = connection.changes.listen(_onConnection, onError: (Object _) {});
+  }
+
+  void _onConnection(bool online) {
+    if (_disposed) return;
+    final phase = state.value.phase;
+    if (online) {
+      // Hidden for want of a connection, or a try that did not work: the
+      // connection is back, so try again without being asked.
+      if (phase == ChantMalaPhase.unavailable || phase == ChantMalaPhase.failed) unawaited(load());
+    } else if (phase == ChantMalaPhase.loading || phase == ChantMalaPhase.failed) {
+      unawaited(_stepAsideIfNotKept());
+    }
+  }
+
+  /// A try over a connection that has gone is dropped, and the card with it —
+  /// unless the recording is on the phone, which needs no connection.
+  Future<void> _stepAsideIfNotKept() async {
+    if (await cache?.file(_url) != null || _disposed) return;
+    final phase = state.value.phase;
+    if (phase != ChantMalaPhase.loading && phase != ChantMalaPhase.failed) return;
+    _loadId++;
+    _emit(phase: ChantMalaPhase.unavailable);
+  }
+
   Future<Duration?> _open() async {
+    final kept = await cache?.file(_url);
+    if (kept != null) {
+      try {
+        return await _player.setFilePath(kept.path);
+      } catch (_) {
+        // A file that will not play is dropped, and the link tried instead.
+        await cache?.forget(_url);
+      }
+    }
+
+    final duration = await _openLink();
+    unawaited(cache?.save(_url));
+    return duration;
+  }
+
+  Future<Duration?> _openLink() async {
     try {
       return await _player.setUrl(_url);
     } catch (_) {
@@ -180,8 +271,13 @@ class ChantMalaPlayer {
     // Not awaited: the recording starts at once, and the media session comes
     // up beside it.
     unawaited(onStart?.call());
-    // From the end, play means from the top: another time through.
-    if (_player.processingState == ProcessingState.completed) await seek(Duration.zero);
+    // From rest, play begins where the count stands: the top for a count of
+    // nothing, further in for chants made by hand. A recording paused part-way is
+    // left where the listener put it.
+    final atRest =
+        _player.processingState == ProcessingState.completed ||
+        state.value.position == Duration.zero;
+    if (atRest) await seek(restAt?.call() ?? Duration.zero);
     // `play` completes when playback stops, so it is not awaited.
     unawaited(_player.play());
   }
@@ -229,6 +325,7 @@ class ChantMalaPlayer {
     for (final subscription in _subscriptions) {
       unawaited(subscription.cancel());
     }
+    unawaited(_connectionSub?.cancel());
     unawaited(_chants.close());
     await _player.dispose();
     state.dispose();

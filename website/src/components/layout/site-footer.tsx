@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div className="footer-brand">
           <Link href="/" className="brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/logo.png" alt="" width={34} height={34} />
+            <img src="/img/logo-128.png" alt="" width={34} height={34} />
             <span>HariHariBol</span>
           </Link>
           <p>Learn. Chant. Remember. A quiet place for verses, mantras and devotion.</p>

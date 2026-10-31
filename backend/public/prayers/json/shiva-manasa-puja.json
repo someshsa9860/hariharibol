@@ -1,0 +1,116 @@
+{
+  "slug": "shiva-manasa-puja",
+  "title": "Śiva Mānasa Pūjā",
+  "titleOriginal": "शिवमानसपूजा",
+  "category": "deity",
+  "sortOrder": 240,
+  "originalLanguage": "sa",
+  "summary": "Worship offered entirely in the mind: seat, bath, food, lamp and song.",
+  "about": "Offers Śiva a jewelled seat, a bath of Himālayan water, food in golden vessels, music and prostration, all made in the heart; the fourth verse makes every act of the day his worship.",
+  "author": "Śaṅkarācārya",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE",
+  "tradition": "shaiva",
+  "deity": "shiva",
+  "occasions": [
+    "daily worship",
+    "when no outer worship can be done"
+  ],
+  "festivals": [
+    "maha-shivaratri"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "रत्नैः कल्पितमासनं हिमजलैः स्नानं च दिव्याम्बरं\nनानारत्नविभूषितं मृगमदामोदाङ्कितं चन्दनम् ।\nजातीचम्पकबिल्वपत्ररचितं पुष्पं च धूपं तथा\nदीपं देव दयानिधे पशुपते हृत्कल्पितं गृह्यताम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "सौवर्णे नवरत्नखण्डरचिते पात्रे घृतं पायसं\nभक्ष्यं पञ्चविधं पयोदधियुतं रम्भाफलं पानकम् ।\nशाकानामयुतं जलं रुचिकरं कर्पूरखण्डोज्ज्वलम्\nताम्बूलं मनसा मया विरचितं भक्त्या प्रभो स्वीकुरु ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "छत्रं चामरयोर्युगं व्यजनकं चादर्शकं निर्मलं\nवीणाभेरिमृदङ्गकाहलकला गीतं च नृत्यं तथा ।\nसाष्टाङ्गं प्रणतिः स्तुतिर्बहुविधा ह्येतत्समस्तं मया\nसङ्कल्पेन समर्पितं तव विभो पूजां गृहाण प्रभो ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "आत्मा त्वं गिरिजा मतिः सहचराः प्राणाः शरीरं गृहं\nपूजा ते विषयोपभोगरचना निद्रा समाधिस्थितिः ।\nसञ्चारः पदयोः प्रदक्षिणविधिः स्तोत्राणि सर्वा गिरो\nयद्यत्कर्म करोमि तत्तदखिलं शम्भो तवाराधनम् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AE%E0%A4%BE%E0%A4%A8%E0%A4%B8%E0%A4%AA%E0%A5%82%E0%A4%9C%E0%A4%BE&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "शिवमानसपूजा"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 4
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥श्री शिवमानसपूजा ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "इत्येवं हरपूजने प्रतिदिनं यो वा त्रिसन्ध्यं स्मरेत्"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "सेवाश्लोकचतुष्टयं प्रतिदिनं पूजा हरेर्मानसि ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "सोऽयं सौख्यमवाप्नुयाद्द्युतिधरं साक्षद्धरेर्दर्शनं"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "वासस्तेन महावसानसमये कैलासलोकं गता ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "करचरणकृतं वाक्कायजं कर्मजं वा ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "श्रवणनयनजं वा मानसं वापराधम् ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "विदितमविदितं वा सर्वमेतत् क्षमस्व ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "जय जय करुणाब्धे श्री महादेव शम्भो ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.929Z"
+}

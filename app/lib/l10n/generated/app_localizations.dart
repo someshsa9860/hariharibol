@@ -406,17 +406,17 @@ abstract class AppLocalizations {
   /// **'You can change this anytime in settings.'**
   String get languageAppSubtitle;
 
-  /// No description provided for @languageMantraTitle.
+  /// No description provided for @languageReadingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Which script do you chant in?'**
-  String get languageMantraTitle;
+  /// **'Which language do you read the verses in?'**
+  String get languageReadingTitle;
 
-  /// No description provided for @languageMantraSubtitle.
+  /// No description provided for @languageReadingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Mantras appear in this script. Their meaning stays in your own language.'**
-  String get languageMantraSubtitle;
+  /// **'Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.'**
+  String get languageReadingSubtitle;
 
   /// No description provided for @actionBack.
   ///
@@ -603,6 +603,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mantras'**
   String get homeMantras;
+
+  /// No description provided for @homeForYourGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'For what you are working on'**
+  String get homeForYourGrowth;
+
+  /// No description provided for @homeThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get homeThisWeek;
 
   /// No description provided for @homeStartYourDay.
   ///
@@ -850,25 +862,25 @@ abstract class AppLocalizations {
   /// **'Full-screen picture'**
   String get chantFullPicture;
 
-  /// No description provided for @chantPrayerHintAlong.
+  /// Hint under the opening prayer on the chant counter when the mantra's recording begins with that prayer: the reader presses play and chants it with the recording, so there is no need to tap the ring for the prayer. The play button is an icon.
   ///
   /// In en, this message translates to:
-  /// **'The recording says this prayer with you. Press play to begin.'**
+  /// **'The recording begins with this prayer. Press play and chant it with the recording.'**
   String get chantPrayerHintAlong;
 
-  /// No description provided for @chantPrayerHintAlongNoPrayer.
+  /// Hint under the opening prayer on the chant counter when the mantra's recording starts at the mantra itself (start time 0): the reader says the prayer, then presses play. The play button is an icon.
   ///
   /// In en, this message translates to:
-  /// **'Chant this prayer first, then press play to begin the recording.'**
+  /// **'Chant this prayer, then press play — the recording starts with the mantra.'**
   String get chantPrayerHintAlongNoPrayer;
 
-  /// No description provided for @chantAutoCountResting.
+  /// Status line under the auto-count switch while the mantra's recording is playing. The switch is off and cannot be changed until the recording is paused.
   ///
   /// In en, this message translates to:
   /// **'Resting while the recording plays'**
   String get chantAutoCountResting;
 
-  /// No description provided for @chantFinishRound.
+  /// Button under the chant ring that appears once most of a round is counted (past 90 of 108 beads). It ends the round now, for a reader who chanted a little ahead of the ring, and starts a new one. A round is a Mala.
   ///
   /// In en, this message translates to:
   /// **'Finish round'**
@@ -1726,6 +1738,18 @@ abstract class AppLocalizations {
   /// **'Contents'**
   String get readingContents;
 
+  /// Marks the canto or chapter being read in the contents sheet over a chapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading now'**
+  String get readingContentsNow;
+
+  /// Tooltip of the button in the contents sheet that opens the book's own page.
+  ///
+  /// In en, this message translates to:
+  /// **'About this book'**
+  String get readingContentsAboutBook;
+
   /// No description provided for @readingFontSizeLabel.
   ///
   /// In en, this message translates to:
@@ -1813,8 +1837,14 @@ abstract class AppLocalizations {
   /// No description provided for @readingStoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Press and hold a verse to play it, bookmark it, highlight it or add a note.'**
+  /// **'Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.'**
   String get readingStoryHint;
+
+  /// No description provided for @readingStoryCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to story'**
+  String get readingStoryCollapse;
 
   /// No description provided for @readingStoryNothing.
   ///
@@ -2193,6 +2223,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed from your daily routine'**
   String get routineDailyRemoved;
+
+  /// No description provided for @routineEditTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit task'**
+  String get routineEditTask;
+
+  /// No description provided for @routineSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get routineSaveChanges;
+
+  /// No description provided for @routineDeleteTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete task'**
+  String get routineDeleteTask;
+
+  /// No description provided for @routineDeleteDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from this day on'**
+  String get routineDeleteDaily;
+
+  /// No description provided for @routineRepeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat every day'**
+  String get routineRepeatDaily;
+
+  /// No description provided for @routineRepeatFromDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows on every day from this day on.'**
+  String get routineRepeatFromDay;
+
+  /// No description provided for @routineRepeatStops.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays on this day only and stops repeating after it.'**
+  String get routineRepeatStops;
+
+  /// No description provided for @routineEditDailyFromDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes apply from this day on. Earlier days keep it as it was.'**
+  String get routineEditDailyFromDay;
+
+  /// No description provided for @routineEditDailyFromToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes apply from today on. Earlier days keep it as it was.'**
+  String get routineEditDailyFromToday;
+
+  /// No description provided for @routineExactAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts right on time'**
+  String get routineExactAlarmTitle;
+
+  /// No description provided for @routineExactAlarmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android can hold a task\'s alert back by a few minutes. Allow alarms and reminders for this app so each alert comes the minute its time begins.'**
+  String get routineExactAlarmBody;
+
+  /// No description provided for @routineExactAlarmAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get routineExactAlarmAllow;
+
+  /// No description provided for @routineExactAlarmLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get routineExactAlarmLater;
 
   /// No description provided for @reelsEmpty.
   ///
@@ -4384,6 +4492,48 @@ abstract class AppLocalizations {
   /// **'Something else'**
   String get supportCategoryOther;
 
+  /// No description provided for @supportCategoryFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'A new feature'**
+  String get supportCategoryFeature;
+
+  /// No description provided for @supportCategoryTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate a book into another language'**
+  String get supportCategoryTranslation;
+
+  /// No description provided for @supportBookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get supportBookLabel;
+
+  /// No description provided for @supportLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get supportLanguageLabel;
+
+  /// No description provided for @supportTranslationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the book and the language you would like it in. A note is optional.'**
+  String get supportTranslationIntro;
+
+  /// No description provided for @supportTranslationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything else we should know? (optional)'**
+  String get supportTranslationHint;
+
+  /// No description provided for @supportFeatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what you would like the app to do'**
+  String get supportFeatureHint;
+
   /// No description provided for @supportMessageHint.
   ///
   /// In en, this message translates to:
@@ -4972,6 +5122,168 @@ abstract class AppLocalizations {
   /// **'These suggestions have expired. Please search again.'**
   String get ownMantraErrorExpired;
 
+  /// No description provided for @prayersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers'**
+  String get prayersTitle;
+
+  /// No description provided for @prayersHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stotras, aartis and prayers in the script you read'**
+  String get prayersHomeSubtitle;
+
+  /// No description provided for @prayersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers are being added. Please come back soon.'**
+  String get prayersEmpty;
+
+  /// No description provided for @prayersAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get prayersAll;
+
+  /// No description provided for @prayersVerseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 verse} other{{count} verses}}'**
+  String prayersVerseCount(int count);
+
+  /// No description provided for @prayersMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get prayersMeaning;
+
+  /// No description provided for @prayersShowMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Show meaning'**
+  String get prayersShowMeaning;
+
+  /// No description provided for @prayersHideMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide meaning'**
+  String get prayersHideMeaning;
+
+  /// No description provided for @prayersExpandAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all meanings'**
+  String get prayersExpandAll;
+
+  /// No description provided for @prayersCollapseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all meanings'**
+  String get prayersCollapseAll;
+
+  /// No description provided for @prayersScriptOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get prayersScriptOriginal;
+
+  /// No description provided for @prayersScriptRoman.
+  ///
+  /// In en, this message translates to:
+  /// **'Roman letters'**
+  String get prayersScriptRoman;
+
+  /// No description provided for @prayersShowOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Also show the original'**
+  String get prayersShowOriginal;
+
+  /// No description provided for @prayersMeaningsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open meanings by default'**
+  String get prayersMeaningsOpen;
+
+  /// No description provided for @prayersAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About this prayer'**
+  String get prayersAbout;
+
+  /// No description provided for @prayersComposedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Composed by'**
+  String get prayersComposedBy;
+
+  /// No description provided for @prayersReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get prayersReference;
+
+  /// No description provided for @prayersSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get prayersSource;
+
+  /// No description provided for @prayersVerseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {number}'**
+  String prayersVerseNumber(int number);
+
+  /// No description provided for @prayersCategoryMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning prayers'**
+  String get prayersCategoryMorning;
+
+  /// No description provided for @prayersCategoryEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening prayers'**
+  String get prayersCategoryEvening;
+
+  /// No description provided for @prayersCategoryMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Before and after meals'**
+  String get prayersCategoryMeals;
+
+  /// No description provided for @prayersCategoryGuru.
+  ///
+  /// In en, this message translates to:
+  /// **'Guru and the lineage'**
+  String get prayersCategoryGuru;
+
+  /// No description provided for @prayersCategoryDeity.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers to a deity'**
+  String get prayersCategoryDeity;
+
+  /// No description provided for @prayersCategoryAarti.
+  ///
+  /// In en, this message translates to:
+  /// **'Aartis'**
+  String get prayersCategoryAarti;
+
+  /// No description provided for @prayersCategoryPeace.
+  ///
+  /// In en, this message translates to:
+  /// **'Peace and protection'**
+  String get prayersCategoryPeace;
+
+  /// No description provided for @prayersCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get prayersCategoryOther;
+
   /// No description provided for @readingLookLabel.
   ///
   /// In en, this message translates to:
@@ -5085,6 +5397,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep the screen on while reading'**
   String get readingKeepAwakeTitle;
+
+  /// No description provided for @setupMantraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favourite mantra'**
+  String get setupMantraTitle;
+
+  /// No description provided for @setupMantraSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The one you chant most. You can change it any time.'**
+  String get setupMantraSubtitle;
+
+  /// No description provided for @setupMantraNone.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no mantras to choose from yet. You can pick one later in the Jap tab.'**
+  String get setupMantraNone;
+
+  /// No description provided for @setupRoundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many rounds a day?'**
+  String get setupRoundsTitle;
+
+  /// No description provided for @setupRoundsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.'**
+  String get setupRoundsSubtitle;
+
+  /// No description provided for @setupRoundsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 round} other{{count} rounds}}'**
+  String setupRoundsCount(int count);
+
+  /// No description provided for @setupChantTime.
+  ///
+  /// In en, this message translates to:
+  /// **'About {time} of chanting a day'**
+  String setupChantTime(String time);
+
+  /// No description provided for @setupDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String setupDurationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @setupDurationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String setupDurationHours(int hours);
+
+  /// No description provided for @setupDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String setupDurationMinutes(int minutes);
+
+  /// No description provided for @setupRoundsFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer rounds'**
+  String get setupRoundsFewer;
+
+  /// No description provided for @setupRoundsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More rounds'**
+  String get setupRoundsMore;
+
+  /// No description provided for @setupRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily routine'**
+  String get setupRoutineTitle;
+
+  /// No description provided for @setupRoutineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned around {rounds} of {mantra}.'**
+  String setupRoutineSubtitle(String rounds, String mantra);
+
+  /// No description provided for @setupRoutineSubtitleNoMantra.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned around {rounds}.'**
+  String setupRoutineSubtitleNoMantra(String rounds);
+
+  /// No description provided for @setupRoutineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.'**
+  String get setupRoutineHint;
+
+  /// No description provided for @setupChantLate.
+  ///
+  /// In en, this message translates to:
+  /// **'At this wake-up time your rounds run past {time}. Wake earlier or choose fewer rounds.'**
+  String setupChantLate(String time);
+
+  /// No description provided for @setupFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Create my routine'**
+  String get setupFinish;
+
+  /// No description provided for @setupRoutineSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get setupRoutineSkip;
+
+  /// No description provided for @routineSleepNotBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Bedtime can\'t be before {time}.'**
+  String routineSleepNotBefore(String time);
 }
 
 class _AppLocalizationsDelegate

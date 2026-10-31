@@ -1,0 +1,101 @@
+{
+  "slug": "damodarastakam",
+  "title": "Śrī Dāmodarāṣṭakam",
+  "titleOriginal": "श्रीदामोदराष्टकम्",
+  "category": "deity",
+  "sortOrder": 30,
+  "originalLanguage": "sa",
+  "summary": "Eight verses to child Kṛṣṇa bound by Yaśodā’s rope, sung through the month of Kārtika.",
+  "about": "Remembers the pastime of Yaśodā tying the child Kṛṣṇa to a grinding mortar. Sung each evening of Kārtika while a ghee lamp is offered.",
+  "author": "Satyavrata Muni",
+  "authorNote": "The page names Vyāsadeva, compiler of the Padma Purāṇa; the aṣṭaka is spoken there by Satyavrata Muni.",
+  "reference": "Padma Purāṇa",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/n/namamisvaram.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "every evening of the month of Kārtika, with a lamp"
+  ],
+  "festivals": [
+    "sharad-purnima",
+    "kartika-purnima"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "नमामीश्वरं सच्चिदानन्दरूपं\nलसत्कुण्डलं गोकुले भ्राजमनम्\nयशोदाभियोलूखलाद्धावमानं\nपरामृष्टमत्यन्ततो द्रुत्य गोप्या",
+      "roman": "namāmīśvaraṁ sac-cid-ānanda-rūpaṁ\nlasat-kuṇḍalaṁ gokule bhrājamanam\nyaśodā-bhiyolūkhalād dhāvamānaṁ\nparāmṛṣṭam atyantato drutya gopyā",
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "रुदन्तं मुहुर्नेत्रयुग्मं मृजन्तम्\nकराम्भोजयुग्मेन सातङ्कनेत्रम्\nमुहुः श्वासकम्पत्रिरेखाङ्ककण्ठ\nस्थितग्रैवं दामोदरं भक्तिबद्धम्",
+      "roman": "rudantaṁ muhur netra-yugmaṁ mṛjantam\nkarāmbhoja-yugmena sātaṅka-netram\nmuhuḥ śvāsa-kampa-trirekhāṅka-kaṇṭha-\nsthita-graivaṁ dāmodaraṁ bhakti-baddham",
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "इतीदृक्स्वलीलाभिरानन्दकुण्डे\nस्वघोषं निमज्जन्तमाख्यापयन्तम्\nतदीयेषितज्ञेषु भक्तैर्जितत्वं\nपुनः प्रेमतस्तं शतावृत्ति वन्दे",
+      "roman": "itīdṛk sva-līlābhir ānanda-kuṇḍe\nsva-ghoṣaṁ nimajjantam ākhyāpayantam\ntadīyeṣita-jñeṣu bhaktair jitatvaṁ\npunaḥ prematas taṁ śatāvṛtti vande",
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "वरं देव मोक्षं न मोक्षावधिं वा\nन चन्यं वृणेऽहं वरेषादपीह\nइदं ते वपुर्नाथ गोपालबालं\nसदा मे मनस्याविरास्तां किमन्यैः",
+      "roman": "varaṁ deva mokṣaṁ na mokṣāvadhiṁ vā\nna canyaṁ vṛṇe 'haṁ vareṣād apīha\nidaṁ te vapur nātha gopāla-bālaṁ\nsadā me manasy āvirāstāṁ kim anyaiḥ",
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "इदं ते मुखाम्भोजमत्यन्तनीलैर्\nवृतं कुन्तलैः स्निग्धरक्तैश् च गोप्या\nमुहुश्चुम्बितं बिम्बरक्ताधरं मे\nमनस्याविरास्तामलं लक्षलाभैः",
+      "roman": "idaṁ te mukhāmbhojam atyanta-nīlair\nvṛtaṁ kuntalaiḥ snigdha-raktaiś ca gopyā\nmuhuś cumbitaṁ bimba-raktādharaṁ me\nmanasy āvirāstām alaṁ lakṣa-lābhaiḥ",
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "नमो देव दामोदरानन्त विष्णो\nप्रसीद प्रभो दुःखजालाब्धिमग्नम्\nकृपादृष्टिवृष्ट्यातिदीनं बतानु\nगृहाणेष मामज्ञमेध्यक्षिदृश्यः",
+      "roman": "namo deva dāmodarānanta viṣṇo\nprasīda prabho duḥkha-jālābdhi-magnam\nkṛpā-dṛṣṭi-vṛṣṭyāti-dīnaṁ batānu\ngṛhāṇeṣa mām ajñam edhy akṣi-dṛśyaḥ",
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "कुवेरात्मजौ बद्धमूर्त्यैव यद्वत्\nत्वया मोचितौ भक्तिभाजौ कृतौ च\nतथा प्रेमभक्तिं स्वकां मे प्रयच्छ\nन मोक्षे ग्रहो मेऽस्ति दामोदरेह",
+      "roman": "kuverātmajau baddha-mūrtyaiva yadvat\ntvayā mocitau bhakti-bhājau kṛtau ca\ntathā prema-bhaktiṁ svakāṁ me prayaccha\nna mokṣe graho me 'sti dāmodareha",
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "नमस्तेऽस्तु दाम्ने स्फुरद्दीप्तिधाम्ने\nत्वदीयोदरायाथ विश्वस्य धाम्ने\nनमो राधिकायै त्वदीयप्रियायै\nनमोऽनन्तलीलाय देवाय तुभ्यम्",
+      "roman": "namas te 'stu dāmne sphurad-dīpti-dhāmne\ntvadīyodarāyātha viśvasya dhāmne\nnamo rādhikāyai tvadīya-priyāyai\nnamo 'nanta-līlāya devāya tubhyam",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/n/namamisvaram.html",
+    "devanagari": "https://kksongs.org/unicode/n/namamisvaram_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Namamisvaram Saccidananda Rupam",
+    "official name": "Damodarastakam",
+    "author": "Vyasadeva",
+    "book name": "Padma Purana",
+    "language": "Sanskrit"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 8,
+      "devanagari": 8
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.871Z"
+}

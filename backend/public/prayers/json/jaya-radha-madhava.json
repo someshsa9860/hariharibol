@@ -1,0 +1,92 @@
+{
+  "slug": "jaya-radha-madhava",
+  "title": "Jaya Rādhā-Mādhava",
+  "titleOriginal": "জয় রাধা-মাধব",
+  "category": "deity",
+  "sortOrder": 160,
+  "originalLanguage": "bn",
+  "summary": "A short song to Rādhā-Mādhava, the lovers of Vraja.",
+  "about": "Glorifies Kṛṣṇa as the lover of the gopīs, the lifter of Govardhana and the wanderer of Vṛndāvana’s forests.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Gītāvalī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/j/jayaradhamadhava.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "before reading or class"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "জয় রাধা-মাধব কুঞ্জ-বিহারী\nগোপী-জন-বল্লভ গিরি-বর-ধারী\nযশোদা-নন্দন ব্রজ-জন-রঞ্জন\nযামুনা-তীর-বন-চারী",
+      "roman": "jaya rādhā-mādhava kuñja-bihārī\ngopī-jana-vallabha giri-vara-dhārī\nyaśodā-nandana braja-jana-rañjana\nyāmuna-tīra-vana-cārī",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/j/jayaradhamadhava.html",
+    "bengali": "https://kksongs.org/unicode/j/jayaradhamadhava_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Jaya Radha Madhava",
+    "official name": "Sri Krsnaer Vimsottara Sata Nama Song 4",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Gitavali",
+    "language": "Bengali"
+  },
+  "joined": {
+    "verses": [
+      1,
+      2
+    ],
+    "why": "The Roman page splits the one verse of the Bengali page in two."
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "(জয়) রাধা-মাধব (জয়) কুঞ্জ-বিহারী",
+      "to": "জয় রাধা-মাধব কুঞ্জ-বিহারী",
+      "why": "The bracketed “jaya” are added when it is sung; the song opens with one, as the Roman page has it."
+    },
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "(জয়) গোপী-জন-বল্লভ (জয়) গিরি-বর-ধারী",
+      "to": "গোপী-জন-বল্লভ গিরি-বর-ধারী",
+      "why": "The bracketed “jaya” are added when it is sung."
+    },
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "(জয়) যশোদা-নন্দন, (জয়) ব্রজ-জন-রঞ্জন,",
+      "to": "যশোদা-নন্দন ব্রজ-জন-রঞ্জন",
+      "why": "The bracketed “jaya” are added when it is sung."
+    },
+    {
+      "verse": 1,
+      "field": "bengali",
+      "from": "(জয়) যামুনা-তীর-বন-চারী",
+      "to": "যামুনা-তীর-বন-চারী",
+      "why": "The bracketed “jaya” is added when it is sung."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "roman": 1,
+      "bengali": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.911Z"
+}

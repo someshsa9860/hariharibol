@@ -22,6 +22,10 @@ abstract final class LegacyKeys {
 
 abstract final class BoxNames {
   static const String app = 'app';
+
+  /// The API's answers kept for when there is no connection (`ResponseCache`).
+  /// A box of its own so the small settings box stays small.
+  static const String responses = 'responses';
 }
 
 abstract final class BoxKeys {
@@ -72,6 +76,13 @@ abstract final class BoxKeys {
   /// Deleted when the round completes.
   static String chantProgress(String? mantraId) => 'chant.progress.${mantraId ?? 'any'}';
 
+  /// Every sitting counted on this phone that the server may not have yet, and
+  /// the id of the account it belongs to (`{owner, sittings}`). The chanting is
+  /// written here first and sent in a batch (see `ChantSyncer`). Not removed by
+  /// `AppSession.clear`: signing out must not lose rounds that were never sent,
+  /// and the owner stops them reaching anyone else's account.
+  static const String chantLedger = 'chant.ledger';
+
   static const String themeMode = 'settings.theme_mode';
   static const String locale = 'settings.locale';
 
@@ -108,6 +119,17 @@ abstract final class BoxKeys {
   static const String storyPart = 'settings.story_part';
   static const String storyNumbers = 'settings.story_numbers';
 
+  /// How prayers are written and read. The script is the one the reader last
+  /// picked (`original`, or a language code) and is null until they pick: a
+  /// prayer then opens in the first script of their reading languages it
+  /// offers. The other two are one answer for every prayer, like the font
+  /// size: whether each verse's meaning is left open, and whether the original
+  /// is shown above a script that is not it. About the device, so
+  /// `AppSession.clear` leaves them.
+  static const String prayerScript = 'settings.prayer_script';
+  static const String prayerMeaningsOpen = 'settings.prayer_meanings_open';
+  static const String prayerShowOriginal = 'settings.prayer_show_original';
+
   /// Chapter → the verse the audio last played there.
   static const String readingLastPlayed = 'reading.last_played';
 
@@ -132,6 +154,10 @@ abstract final class BoxKeys {
   /// The languages the saved Home payload was asked for in (`hi,en`), so a copy
   /// in a language the reader has since left is not shown in place of their own.
   static const String lastHomeLanguages = 'cache.home_languages';
+
+  /// When the app last fetched ahead what a reader might open offline
+  /// (`OfflineWarmer`), in milliseconds since the epoch.
+  static const String offlineWarmedAt = 'cache.offline_warmed_at';
 
   /// Everything the Jap tab keeps so it can draw with no connection: today's
   /// practice screen and the mantras, as the API last sent them. Personal (a
@@ -172,6 +198,11 @@ abstract final class BoxKeys {
   /// The routine as the server last answered it — what the next sync is
   /// measured against to find what this phone has changed since.
   static const String routineSynced = 'routine.synced';
+
+  /// When "Not now" was pressed on the card asking Android to let the routine's
+  /// alerts come right on time (milliseconds since the epoch). The phone's, not
+  /// the account's.
+  static const String routineOnTimeDismissed = 'routine.onTimeDismissed';
 
   /// Legacy. Before tasks carried their own day this held the one day the list
   /// belonged to; it is read once, to date tasks saved by that version.

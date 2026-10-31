@@ -45,7 +45,7 @@ const EVENTS = {
   // Admin panel, to `translation.read`: a run's whole state, and one line of its activity feed.
   TRANSLATION_RUN: 'translation.run',
   TRANSLATION_ACTIVITY: 'translation.activity',
-  // Admin panel, to `translation.import`: the same two for a translation import run.
+  // Admin panel, to `translation.read`: the same two for a translation import run.
   TRANSLATION_IMPORT_RUN: 'translation-import.run',
   TRANSLATION_IMPORT_ACTIVITY: 'translation-import.activity',
   // Admin panel, to `scenes.read`: the same two for the scene prompt runs.
@@ -65,9 +65,17 @@ const EVENTS = {
   // Admin panel, to `panchang.translate`: the same two for the Hindu calendar translation runs.
   CALENDAR_RUN: 'calendar.run',
   CALENDAR_ACTIVITY: 'calendar.activity',
+  // Admin panel, to `prayer.translate`: the same two for the prayer transliteration and translation runs.
+  PRAYER_RUN: 'prayer.run',
+  PRAYER_ACTIVITY: 'prayer.activity',
   // Admin panel, to `marketing.read`: a campaign's whole state, and one line of its activity feed.
   MARKETING_RUN: 'marketing.run',
   MARKETING_ACTIVITY: 'marketing.activity',
+  // The reader's own app, to that reader: a staff reply on one of their tickets, and a status change.
+  SUPPORT_REPLY: 'support.reply',
+  SUPPORT_UPDATED: 'support.updated',
+  // Admin panel, to `support.manage`: the desk's list changed (a ticket came in, a reader or staff wrote, a status moved).
+  SUPPORT_INBOX: 'support.inbox',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

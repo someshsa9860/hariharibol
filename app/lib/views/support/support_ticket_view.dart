@@ -9,9 +9,11 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/support.dart';
+import '../../providers/support_live_provider.dart';
 import '../../providers/support_provider.dart';
 import '../../services/support_service.dart';
 import '../../widgets/common/app_error_view.dart';
+import '../../widgets/common/app_image.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/support/support_labels.dart';
 
@@ -54,6 +56,8 @@ class _SupportTicketViewState extends ConsumerState<SupportTicketView> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    // A staff reply to this ticket arrives over the line while it is open.
+    ref.watch(supportLiveProvider);
     final ticket = ref.watch(supportTicketProvider(widget.id));
 
     return Scaffold(
@@ -75,11 +79,14 @@ class _SupportTicketViewState extends ConsumerState<SupportTicketView> {
                     style: context.texts.labelMedium,
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  if (data.details case final details?) ...[
+                    Text('${details.bookTitle} · ${details.languageName}', style: context.texts.titleSmall),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                   if (data.screenshotUrl != null) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Image.network(data.screenshotUrl!, height: 180, fit: BoxFit.cover),
-                    ),
+                    // A signed link, re-signed on every fetch: kept on disk by
+                    // its address without the query.
+                    AppImage(url: data.screenshotUrl, cacheKey: data.screenshotUrl!.split('?').first, height: 180),
                     const SizedBox(height: AppSpacing.md),
                   ],
                   for (final message in data.messages) _Bubble(message: message),

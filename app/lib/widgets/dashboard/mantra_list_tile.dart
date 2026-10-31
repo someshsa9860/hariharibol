@@ -23,6 +23,7 @@ class MantraListTile extends StatelessWidget {
     this.imageCacheKey,
     this.isPrivate = false,
     this.hasAudio = false,
+    this.selected,
     this.onTap,
   });
 
@@ -48,6 +49,11 @@ class MantraListTile extends StatelessWidget {
   /// one) can see.
   final bool isPrivate;
   final bool hasAudio;
+
+  /// Null for a tile that opens something (it ends in a chevron). Set, the tile
+  /// is one choice among several — the setup's favourite-mantra question — and
+  /// is outlined and ticked when it is the one chosen.
+  final bool? selected;
   final VoidCallback? onTap;
 
   /// Picked from the mantra's own name, so a given tile always gets the same
@@ -70,8 +76,16 @@ class MantraListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final picture = _picture;
     final isLight = context.theme.brightness == Brightness.light;
+    final chosen = selected ?? false;
 
     return Card(
+      color: chosen ? context.colors.primaryContainer : null,
+      shape: chosen
+          ? RoundedRectangleBorder(
+              borderRadius: AppRadius.lgAll,
+              side: BorderSide(color: context.colors.primary, width: 1.5),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.lgAll,
@@ -164,17 +178,29 @@ class MantraListTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              if (hasAudio)
+              if (selected case final isChosen?)
                 Icon(
-                  Icons.play_circle_outline_rounded,
+                  isChosen
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: AppSizes.iconMd,
+                  color: isChosen
+                      ? context.colors.primary
+                      : context.colors.onSurfaceVariant,
+                )
+              else ...[
+                if (hasAudio)
+                  Icon(
+                    Icons.play_circle_outline_rounded,
+                    size: AppSizes.iconMd,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                Icon(
+                  Icons.chevron_right_rounded,
                   size: AppSizes.iconMd,
                   color: context.colors.onSurfaceVariant,
                 ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: AppSizes.iconMd,
-                color: context.colors.onSurfaceVariant,
-              ),
+              ],
             ],
           ),
         ),

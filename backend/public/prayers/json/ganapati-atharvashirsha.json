@@ -1,0 +1,331 @@
+{
+  "slug": "ganapati-atharvashirsha",
+  "title": "Gaṇapati Atharvaśīrṣa",
+  "titleOriginal": "गणपत्यथर्वशीर्षम्",
+  "category": "deity",
+  "sortOrder": 300,
+  "originalLanguage": "sa",
+  "summary": "The Upaniṣad of Gaṇapati: “Thou art the visible Truth.”",
+  "about": "A late Upaniṣad of the Atharva-veda in prose and verse. It names Gaṇapati as Brahman itself, gives his mantra “gaṃ” and his Gāyatrī, describes his form, and ends with the fruit of reciting it.",
+  "author": "",
+  "reference": "Atharva-veda (Gaṇapati Upaniṣad)",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%97%E0%A4%A3%E0%A4%AA%E0%A4%A4%E0%A5%8D%E0%A4%AF%E0%A4%A5%E0%A4%B0%E0%A5%8D%E0%A4%B5%E0%A4%B6%E0%A5%80%E0%A4%B0%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A5%8D",
+  "tradition": "ganapatya",
+  "deity": "ganesha",
+  "occasions": [
+    "Saṅkaṣṭī and Vināyaka Caturthī",
+    "Gaṇeśa Caturthī",
+    "before beginning anything"
+  ],
+  "festivals": [
+    "ganesh-chaturthi",
+    "vinayaka-chaturthi",
+    "sankashti-chaturthi"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "हरिः ॐ नमस्ते गणपतये ।\nत्वमेव प्रत्यक्षं तत्त्वमसि ॥\nत्वमेव केवलं कर्ताऽसि ।\nत्वमेव केवलं धर्ताऽसि ॥\nत्वमेव केवलं हर्ताऽसि ।\nत्वमेव सर्वं खल्विदं ब्रह्मासि ॥\nत्वं साक्षादात्माऽसि नित्यम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "ऋतं वच्मि ॥\nसत्यं वच्मि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "अव त्वं माम् ।\nअव वक्तारम् ॥\nअव श्रोतारम् ।\nअव दातारम् ॥\nअव धातारम् ।\nअवानूचानमव शिष्यम् ॥\nअव पश्चात्तात् ।\nअव पुरस्तात् ॥\nअवोत्तरात्तात् ।\nअव दक्षिणात्तात् ॥\nअव चोर्ध्वात्तात् ।\nअवाधरात्तात् ॥\nसर्वतो मां पाहि पाहि समन्तात् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "त्वं वाङ्ग्मयस्त्वं चिन्मयः ।\nत्वमानन्दमयस्त्वं ब्रह्ममयः ॥\nत्वं सच्चिदानन्दाद्वितीयोऽसि ।\nत्वं प्रत्यक्षं ब्रह्मासि ॥\nत्वं ज्ञानमयो विज्ञानमयोऽसि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "सर्वं जगदिदं त्वत्तो जायते ।\nसर्वं जगदिदं त्वत्तस्तिष्ठति ॥\nसर्वं जगदिदं त्वयि लयमेष्यति ।\nसर्वं जगदिदं त्वयि प्रत्येति ॥\nत्वं भूमिरापोऽनलोऽनिलो नभः ॥\nत्वं चत्वारि वाक्पदानि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "त्वं गुणत्रयातीतः । त्वमवस्थात्रयातीतः ।\nत्वं देहत्रयातीतः ॥\nत्वं कालत्रयातीतः ।\nत्वं मूलाधारः स्थितोऽसि नित्यम् ॥\nत्वं शक्तित्रयात्मकः ।\nत्वां योगिनो ध्यायन्ति नित्यम् ॥\nत्वं ब्रह्मा त्वं विष्णुस्त्वं रुद्रस्त्वमिन्द्रस्त्वमग्निस्त्वं वायुस्त्वं सूर्यस्त्वं चन्द्रमास्त्वं ब्रह्मभूर्भुवःस्वरोम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "गणादिं पूर्वमुच्चार्य वर्णादींस्तदनन्तरम् ।\nअनुस्वारः परतरः ॥\nअर्धेन्दुलसितम् ।\nतारेण ऋद्धम् ॥\nएतत्तव मनुस्वरूपम् ।\nगकारः पूर्वरूपम् ॥\nअकारो मध्यमरूपम् ।\nअनुस्वारश्चान्त्यरूपम् ॥\nबिन्दुरुत्तररूपम् ।\nनादः सन्धानम् ॥\nसंहितासन्धिः ।\nसैषा गणेशविद्या ॥\nगणक ऋषिः ।\nनिचृद्गायत्रीच्छन्दः ॥\nगणपतिर्देवता ॥\nॐ गं गणपतये नमः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "एकदन्ताय विद्महे वक्रतुण्डाय धीमहि ।\nतन्नो दन्तिः प्रचोदयात् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "एकदन्तं चतुर्हस्तं पाशमङ्कुशधारिणम् ।\nरदं च वरदं हस्तैर्बिभ्राणं मूषकध्वजम् ॥\nरक्तं लम्बोदरं शूर्पकर्णकं रक्तवाससम् ।\nरक्तगन्धानुलिप्ताङ्गं रक्तपुष्पैः सुपूजितम् ॥\nभक्तानुकम्पिनं देवं जगत्कारणमच्युतम् ।\nआविर्भूतं च सृष्ट्यादौ प्रकृतेः पुरुषात्परम् ॥\nएवं ध्यायति यो नित्यं स योगी योगिनां वरः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "नमो व्रातपतये नमो गणपतये नमः प्रमथपतये\nनमस्तेऽस्तु लम्बोदरायैकदन्ताय विघ्ननाशिने शिवसुताय\nश्रीवरदमूर्तये नमो नमः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 11,
+      "text": "एतदथर्वशीर्षं योऽधीते ।\nस ब्रह्मभूयाय कल्पते ॥\nस सर्वतः सुखमेधते ।\nस सर्वविघ्नैर्न बाध्यते ॥\nस पञ्चमहापापात्प्रमुच्यते ।\nसायमधीयानो दिवसकृतं पापं नाशयति ॥\nप्रातरधीयानो रात्रिकृतं पापं नाशयति ।\nसायम्प्रातः प्रयुञ्जानो अपापो भवति ॥\nसर्वत्राधीयानोऽपविघ्नो भवति ।\nधर्मार्थकाममोक्षं च विन्दति ॥\nइदमथर्वशीर्षमशिष्याय न देयम् ।\nयो यदि मोहाद्दास्यति स पापीयान् भवति ॥\nसहस्रावर्तनाद्यं यं काममधीते तं तमनेन साधयेत् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 12,
+      "text": "अनेन गणपतिमभिषिञ्चति स वाग्मी भवति ॥\nचतुर्थ्यामनश्नन् जपति स विद्यावान् भवति ।\nस यशोवान् भवति ।\nइत्यथर्वणवाक्यम् ॥\nब्रह्माद्याचरणं विद्यात् न बिभेति कदाचनेति ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 13,
+      "text": "यो दूर्वाङ्कुरैर्यजति स वैश्रवणोपमो भवति ।\nयो लाजैर्यजति स यशोवान् भवति ॥\nस मेधावान् भवति ।\nयो मोदकसहस्रेण यजति ॥\nस वाञ्छितफलमवाप्नोति ।\nयः साज्यसमिद्भिर्यजति ॥\nस सर्वं लभते स सर्वं लभते ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 14,
+      "text": "अष्टौ ब्राह्मणान् सम्यग्ग्राहयित्वा सूर्यवर्चस्वी भवति ।\nसूर्यग्रहे महानद्यां प्रतिमासन्निधौ वा जप्त्वा सिद्धमन्त्रो भवति ॥\nमहाविघ्नात्प्रमुच्यते ।\nमहादोषात्प्रमुच्यते ॥\nमहापापात् प्रमुच्यते ।\nस सर्वविद्भवति स सर्वविद्भवति ॥\nय एवं वेद इत्युपनिषत् ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%97%E0%A4%A3%E0%A4%AA%E0%A4%A4%E0%A5%8D%E0%A4%AF%E0%A4%A5%E0%A4%B0%E0%A5%8D%E0%A4%B5%E0%A4%B6%E0%A5%80%E0%A4%B0%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%97%E0%A4%A3%E0%A4%AA%E0%A4%A4%E0%A5%8D%E0%A4%AF%E0%A4%A5%E0%A4%B0%E0%A5%8D%E0%A4%B5%E0%A4%B6%E0%A5%80%E0%A4%B0%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {},
+  "edits": [
+    {
+      "verse": 2,
+      "field": "devanagari",
+      "from": "ऋतं वच्मि (वदिष्यामि)",
+      "to": "ऋतं वच्मि",
+      "why": "The page gives another reading in brackets; the one recited is kept."
+    },
+    {
+      "verse": 2,
+      "field": "devanagari",
+      "from": "सत्यं वच्मि (वदिष्यामि)",
+      "to": "सत्यं वच्मि",
+      "why": "As above."
+    },
+    {
+      "verse": 6,
+      "field": "devanagari",
+      "from": "स्थिथोऽसि",
+      "to": "स्थितोऽसि",
+      "why": "Typo on the page: sthito ’si, you abide."
+    },
+    {
+      "verse": 11,
+      "field": "devanagari",
+      "from": "स सर्व विघ्नैर्नबाध्यते",
+      "to": "स सर्वविघ्नैर्न बाध्यते",
+      "why": "Typo on the page: the words are split in the wrong place."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 14
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ श्री गणपत्यथर्वशीर्ष ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ शान्ति पाठ ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ भद्रं कर्णेभिः शृणुयाम देवाः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "भद्रं पश्येमाक्षभिर्यजत्राः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्थिरैरङ्गैस्तुष्टुवांसस्तनूभिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "व्यशेम देवहितं यदायुः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ स्वस्ति न इन्द्रो वृद्धश्रवाः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्ति नः पूषा विश्ववेदाः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्तिनस्तार्क्ष्यो अरिष्टनेमिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्ति नो बृहस्पतिर्दधातु ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ तन्मामवतु तद् वक्तारमवतु अवतु माम् अवतु वक्तारम् ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ शान्तिः शान्तिः शान्तिः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ उपनिषत् ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ स्वरूप तत्त्व ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ गणेश मन्त्र ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ गणेश गायात्री ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ गणेश रूप ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ अष्ट नाम गणपति ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ फलश्रुति ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ शान्ति मन्त्र ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ सहनाववतु ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "सहनौभुनक्तु ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "सह वीर्यं करवावहै ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "तेजस्विनावधीतमस्तु मा विद्विषावहै ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ भद्रं कर्णेभिः शृणुयाम देवाः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "भद्रं पश्येमाक्षभिर्यजत्राः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्थिरैरङ्गैस्तुष्टुवांसस्तनूभिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "व्यशेम देवहितं यदायुः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ स्वस्ति न इन्द्रो वृद्धश्रवाः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्ति नः पूषा विश्ववेदाः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्तिनस्तार्क्ष्यो अरिष्टनेमिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "स्वस्ति नो बृहस्पतिर्दधातु ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ शान्तिः शान्तिः शान्तिः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ इति श्रीगणपत्यथर्वशीर्षं समाप्तम् ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.930Z"
+}

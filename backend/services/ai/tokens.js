@@ -23,10 +23,33 @@ const SAFETY_FACTOR = 1.1;
 // Per-message framing the chat formats add (role markers etc.).
 const MESSAGE_OVERHEAD = 4;
 
+// The encoder's merge step is quadratic in the length of one unbroken run: 4,000 Devanagari letters with no space
+// between them took ten seconds, all of it on the event loop, so one pasted message held up every other request. A
+// run longer than this many characters is cut into pieces of this size and each piece is encoded on its own. The
+// count comes out a few percent high, which is the safe side for an estimate, and the pieces' tokens still decode
+// back to the text, so truncation is unaffected.
+const MAX_RUN = 32;
+const LONG_RUN = new RegExp(`\\S{${MAX_RUN + 1},}|\\s{${MAX_RUN + 1},}`, 'gu');
+
 let encoder = null;
 function getEncoder() {
   if (!encoder) encoder = new Tiktoken(o200k_base);
   return encoder;
+}
+
+function encode(text) {
+  const enc = getEncoder();
+  const ids = [];
+  let from = 0;
+  for (const match of text.matchAll(LONG_RUN)) {
+    if (match.index > from) ids.push(...enc.encode(text.slice(from, match.index)));
+    const chars = Array.from(match[0]);
+    for (let i = 0; i < chars.length; i += MAX_RUN) ids.push(...enc.encode(chars.slice(i, i + MAX_RUN).join('')));
+    from = match.index + match[0].length;
+  }
+  if (from === 0) return enc.encode(text);
+  if (from < text.length) ids.push(...enc.encode(text.slice(from)));
+  return ids;
 }
 
 /**
@@ -40,7 +63,7 @@ export function warmUp() {
 /** Tokens in a string, as the encoder counts them (no safety factor). */
 export function countText(text) {
   if (!text) return 0;
-  return getEncoder().encode(String(text)).length;
+  return encode(String(text)).length;
 }
 
 /** Estimated tokens for a string, rounded up with the safety factor. */
@@ -62,10 +85,9 @@ export function estimateMessages(messages, imageTokens = IMAGE_TOKEN_ESTIMATE) {
 /** Cuts text to at most `maxTokens` tokens (encoder count), on a token boundary. */
 export function truncateToTokens(text, maxTokens) {
   if (!text) return '';
-  const enc = getEncoder();
-  const ids = enc.encode(String(text));
+  const ids = encode(String(text));
   if (ids.length <= maxTokens) return String(text);
-  return enc.decode(ids.slice(0, Math.max(0, maxTokens)));
+  return getEncoder().decode(ids.slice(0, Math.max(0, maxTokens)));
 }
 
 export { MESSAGE_OVERHEAD, SAFETY_FACTOR };

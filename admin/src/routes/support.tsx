@@ -7,6 +7,7 @@ import { FilterSelect } from '@/components/table-filters';
 import { useDataTable } from '@/lib/use-table';
 import { api, ApiRequestError } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
+import { useOnReconnect, useSocketEvent } from '@/lib/socket';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,8 @@ import { cn, formatDateOnly } from '@/lib/utils';
 
 type Status = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 type Kind = 'TICKET' | 'FEEDBACK';
+// A translation request: the book and the language as they were asked for, names copied in with the codes.
+type TranslationDetails = { bookSlug: string; languageCode: string; bookTitle: string; languageName: string };
 
 type Row = {
   id: string;
@@ -24,6 +27,7 @@ type Row = {
   status: Status;
   subject: string | null;
   rating: number | null;
+  details: TranslationDetails | null;
   lastMessageAt: string;
   createdAt: string;
   preview: string | null;
@@ -42,7 +46,7 @@ type Summary = { open: number; inProgress: number; resolved: number; tickets: nu
 
 const STATUS_LABEL: Record<Status, string> = { OPEN: 'Open', IN_PROGRESS: 'In progress', RESOLVED: 'Resolved' };
 const STATUS_VARIANT: Record<Status, 'warning' | 'default' | 'success'> = { OPEN: 'warning', IN_PROGRESS: 'default', RESOLVED: 'success' };
-const CATEGORIES = ['bug', 'payment', 'account', 'content', 'suggestion', 'other'];
+const CATEGORIES = ['bug', 'payment', 'account', 'content', 'feature', 'translation', 'suggestion', 'other'];
 
 function Stars({ value }: { value: number | null }) {
   if (!value) return <span className="text-muted-foreground">—</span>;
@@ -57,7 +61,14 @@ function Stars({ value }: { value: number | null }) {
 
 export function SupportPage() {
   const [openId, setOpenId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const summary = useResource<Summary>(['support-summary'], '/api/admin/support/summary');
+
+  // A ticket came in, a reader wrote or a status moved: the list, the counts and an open ticket are read again.
+  // The socket makes it immediate; the reconnect covers what was missed while it was down.
+  const refreshDesk = () => void queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('support') });
+  useSocketEvent('support.inbox', refreshDesk);
+  useOnReconnect(refreshDesk);
 
   const table = useDataTable<Row>({
     id: 'support',
@@ -110,7 +121,7 @@ export function SupportPage() {
 
   return (
     <div>
-      <PageHeader title="Support" description="Tickets and feedback from the app. Replying sends the reader a push." />
+      <PageHeader title="Support" description="Tickets, feature and translation requests, and feedback from the app. Replying sends the reader a push; with the app open they see it at once." />
 
       {summary.data && (
         <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -203,6 +214,16 @@ function TicketDialog({ id, onClose, onChanged }: { id: string | null; onClose: 
                 ))}
               </Select>
             </div>
+
+            {t.details && (
+              <p className="rounded-md bg-muted px-3 py-2">
+                Translation into <span className="font-medium">{t.details.languageName}</span> of{' '}
+                <span className="font-medium">{t.details.bookTitle}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {t.details.bookSlug} · {t.details.languageCode}
+                </span>
+              </p>
+            )}
 
             {t.deviceInfo && (
               <p className="text-xs text-muted-foreground">

@@ -1,6 +1,9 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hariharibol/l10n/generated/app_localizations.dart';
 import 'package:hariharibol/models/support.dart';
 import 'package:hariharibol/services/push_link.dart';
+import 'package:hariharibol/widgets/support/support_labels.dart';
 
 void main() {
   group('SupportTicket.fromJson', () {
@@ -32,6 +35,44 @@ void main() {
 
     test('an unknown status reads as open', () {
       expect(SupportTicket.fromJson({'id': 't3', 'status': 'SOMETHING_NEW'}).status, SupportStatus.open);
+    });
+  });
+
+  group('translation requests', () {
+    test('a translation ticket names the book and the reading language', () {
+      final ticket = SupportTicket.fromJson({
+        'id': 't4',
+        'kind': 'TICKET',
+        'category': 'translation',
+        'status': 'OPEN',
+        'details': {
+          'bookSlug': 'bhagavad-gita',
+          'languageCode': 'mr',
+          'bookTitle': 'Bhagavad-gita',
+          'languageName': 'मराठी',
+        },
+      });
+      expect(ticket.category, 'translation');
+      expect(ticket.details?.bookSlug, 'bhagavad-gita');
+      expect(ticket.details?.languageCode, 'mr');
+      expect(ticket.details?.languageName, 'मराठी');
+    });
+
+    test('an ordinary ticket has no details', () {
+      expect(SupportTicket.fromJson({'id': 't5', 'category': 'bug'}).details, isNull);
+    });
+  });
+
+  group('topic words', () {
+    final text = lookupAppLocalizations(const Locale('en'));
+
+    test('the new topics have their own words', () {
+      expect(supportCategoryLabel(text, 'feature'), 'A new feature');
+      expect(supportCategoryLabel(text, 'translation'), 'Translate a book into another language');
+    });
+
+    test('a topic the app does not know reads as something else', () {
+      expect(supportCategoryLabel(text, 'from-a-newer-server'), text.supportCategoryOther);
     });
   });
 

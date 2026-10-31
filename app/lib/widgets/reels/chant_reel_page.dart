@@ -7,12 +7,13 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/book_reel.dart';
+import '../../providers/chant_sync_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/mantra_provider.dart';
 import '../../providers/reel_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../services/chant_recorder.dart';
-import '../../services/sadhana_service.dart';
+import '../../services/chant_session_sync.dart';
 
 /// Chants a round has in the reels feed: one mala.
 const int chantReelBeads = 108;
@@ -46,10 +47,14 @@ class _ChantReelPageState extends ConsumerState<ChantReelPage> with SingleTicker
   late ChantRecorder _recorder = ChantRecorder(beadsPerRound: widget.beadsPerRound);
   late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
 
-  String? _sessionId;
   String? _mantraId;
   bool _done = false;
-  bool _syncing = false;
+
+  /// This visit's sitting, written to the phone's record at every chant and sent
+  /// in a batch by the app-wide syncer. Made at the first chant, so a reel passed
+  /// without a tap leaves nothing behind, and again for each visit (a new sitting,
+  /// a new id).
+  ChantSessionSync? _session;
 
   int get _count => _recorder.completedMalas > 0 ? widget.beadsPerRound : _recorder.beadsInMala;
 
@@ -68,10 +73,15 @@ class _ChantReelPageState extends ConsumerState<ChantReelPage> with SingleTicker
   }
 
   void _leave() {
-    // A finished round was saved when its 108th chant was counted.
-    if (_recorder.tapCount > 0 && !_done) unawaited(_sync(finish: true));
+    // A finished round was ended when its 108th chant was counted.
+    final session = _session;
+    if (session != null && _recorder.tapCount > 0 && !_done) {
+      // After this frame: writing to the phone's record changes a provider, which
+      // is not allowed while the tree is being built or torn down.
+      scheduleMicrotask(() => unawaited(session.send(finish: true)));
+    }
     _recorder = ChantRecorder(beadsPerRound: widget.beadsPerRound);
-    _sessionId = null;
+    _session = null;
     _done = false;
   }
 
@@ -81,43 +91,43 @@ class _ChantReelPageState extends ConsumerState<ChantReelPage> with SingleTicker
     _recorder.tap();
     _pulse.forward(from: 0);
 
+    final session = _session ??= ChantSessionSync(
+      recorder: _recorder,
+      mantraId: _mantraId,
+      syncer: ref.read(chantSyncerProvider),
+    );
+
     if (_recorder.completedMalas >= 1) {
       HapticFeedback.mediumImpact();
       setState(() => _done = true);
-      unawaited(_sync(finish: true).then((_) {
-        // The day on Home and the sadhana tab count a round the moment it lands.
-        ref.read(sadhanaTodayProvider.notifier).refresh();
-        ref.read(homeFeedProvider.notifier).refresh();
-      }));
+      // Read now: the page may be gone by the time the send is over.
+      final today = ref.read(sadhanaTodayProvider.notifier);
+      final home = ref.read(homeFeedProvider.notifier);
+      unawaited(_finishRound(session, today, home));
       // A beat to show the round is complete, then on.
       Future<void>.delayed(const Duration(milliseconds: 1100), () {
         if (mounted && widget.isActive) widget.onEnded?.call();
       });
     } else {
+      session.schedule();
       setState(() {});
     }
   }
 
-  Future<void> _sync({bool finish = false}) async {
-    if (_syncing && !finish) return;
-    final recorder = _recorder;
-    final malas = recorder.takeDirtyMalas();
+  /// Ends the sitting and sends it, then lets the Jap tab's day and Home catch up
+  /// with the server. A failure is not worth interrupting a reel for: the round
+  /// is on the phone and goes up with the next batch.
+  Future<void> _finishRound(
+    ChantSessionSync session,
+    SadhanaTodayNotifier today,
+    HomeFeedNotifier home,
+  ) async {
     try {
-      _syncing = true;
-      final id = _sessionId ?? (await SadhanaService.instance.startSession(mantraId: _mantraId)).id;
-      _sessionId = id;
-      await SadhanaService.instance.updateSession(
-        id,
-        rounds: recorder.completedMalas,
-        beads: recorder.beadsInMala,
-        finish: finish,
-      );
-      if (malas.isNotEmpty) await SadhanaService.instance.saveChantDetail(id, malas);
+      await session.send(finish: true);
+      await today.refresh();
+      await home.refresh();
     } catch (_) {
-      // A failed save is not worth interrupting a reel for; the beads stay on the recorder.
-      recorder.restoreUnsent(malas: malas);
-    } finally {
-      _syncing = false;
+      // Nothing to show; the screens already count the round from the phone.
     }
   }
 

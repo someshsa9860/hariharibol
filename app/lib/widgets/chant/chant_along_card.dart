@@ -54,6 +54,9 @@ class _ChantAlongCardState extends State<ChantAlongCard> {
                 ChantMalaPhase.loading => _Message(text.chantAlongLoading, busy: true),
                 ChantMalaPhase.failed => _Failed(onRetry: widget.player.load),
                 ChantMalaPhase.ready => _controls(context, text, state),
+                // The screen leaves the whole card out in this phase; this is
+                // only so the switch is complete.
+                ChantMalaPhase.unavailable => const SizedBox.shrink(),
               },
               const SizedBox(height: AppSpacing.sm),
               Text(

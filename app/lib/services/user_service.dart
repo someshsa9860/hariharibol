@@ -3,6 +3,7 @@ import '../core/session/app_session.dart';
 import '../models/app_user.dart';
 import '../models/user_summary.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The signed-in person's own profile and settings.
 ///
@@ -28,7 +29,7 @@ class UserService {
 
   /// The counts the profile screen shows.
   Future<UserSummary> summary() async {
-    final response = await _api.get(ApiPaths.meSummary);
+    final response = await _api.getOrSaved(ApiPaths.meSummary);
     return UserSummary.fromJson(response.json);
   }
 

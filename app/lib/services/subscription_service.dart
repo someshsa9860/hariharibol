@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/subscription.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// Plans, and what the signed-in person is entitled to.
 ///
@@ -18,7 +19,7 @@ class SubscriptionService {
   /// the prices to the store this device buys from — the other store's product
   /// ids would only be noise.
   Future<PlanCatalog> plans({String? provider}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.subscriptionPlans,
       query: {'provider': ?provider},
     );
@@ -26,7 +27,7 @@ class SubscriptionService {
   }
 
   Future<Entitlement> mine() async {
-    final response = await _api.get(ApiPaths.subscriptionMe);
+    final response = await _api.getOrSaved(ApiPaths.subscriptionMe);
     return Entitlement.fromJson(response.json);
   }
 

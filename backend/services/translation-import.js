@@ -15,6 +15,8 @@
 //     transliteration and the word-by-word meanings — the last two on the translation row, because in this
 //     language they are not the Roman text and English meanings that live on `Verse`. `translatedBy` and
 //     `version` record which run made the text.
+//   - **Vikara tags are not part of this.** A Marathi Bhagavatam run keeps them in a file of their own
+//     (issues/json/srimad-bhagavatam/…), and services/vikara-import.js puts them in the database.
 //   - **Importing twice is harmless.** A row that already matches the file is counted `unchanged` and not
 //     written. `dryRun` does the same work and writes nothing, so the page can say what an import would do.
 //   - **Visibility is a decision, not a side effect.** A new row is hidden (`isPublished: false`) unless
@@ -33,7 +35,7 @@ import { translation } from '../config/translation.js';
 import { JOBS, queues } from '../jobs/index.js';
 import { EVENTS, toPermission } from './websocket.js';
 import { unprocessable } from '../utils/errors.js';
-import { changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
+import { LIVE_IMPORT_STATUSES, changedColumns, emptyChapter, placeProblem, presentImportRun, reasonOf, rowFromEntry, totalsOf } from '../utils/translation-import.js';
 import { BOOK, BOOKS, CHAPTERS, TRANSLATOR, bookOf, chapterParts } from '../scripts/lib/claude-translate-source.js';
 import { MADE_BY_LABELS } from '../scripts/lib/claude-translate-parts.js';
 import { langChapterKey } from '../scripts/lib/claude-translate-store.js';
@@ -70,11 +72,11 @@ async function workspaceStore() {
  *
  * → { language, publish, dryRun, totals, chapters: [one `emptyChapter` line each] }
  */
-export async function importLanguage({ language, book: bookId = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null, onChapter = null, shouldStop = null }) {
+export async function importLanguage({ language, book: bookSlug = BOOK, chapters = null, publish = false, dryRun = false, folder = null, bookNumber = null, store = null, onChapter = null, shouldStop = null }) {
   // `folder` and `bookNumber` are for a test's throwaway book; a real one is named by `book`.
-  const named = folder == null && BOOKS[bookId] ? bookOf(bookId) : null;
+  const named = folder == null && BOOKS[bookSlug] ? bookOf(bookSlug) : null;
   chapters ??= named?.chapters ?? CHAPTERS;
-  folder ??= bookId;
+  folder ??= bookSlug;
   bookNumber ??= named?.bookNumber ?? GITA_BOOK_NUMBER;
   const [book, translator] = await Promise.all([
     prisma.book.findUnique({ where: { bookNumber }, select: { id: true } }),
@@ -92,7 +94,7 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
     if (shouldStop?.()) break;
     const line = emptyChapter(number);
     lines.push(line);
-    const key = langChapterKey(language, number, named ? bookId : folder);
+    const key = langChapterKey(language, number, named ? bookSlug : folder);
     try {
       const file = await files.getJson(key).catch((err) => {
         throw new Error(`Could not read ${key}: ${reasonOf(err)}`);
@@ -101,7 +103,17 @@ export async function importLanguage({ language, book: bookId = BOOK, chapters =
         line.found = false;
         continue;
       }
-      await importChapter({ file, line, versions, language, publish, dryRun, bookId: book.id, translatorId: translator.id, parts: chapterParts(number, named ? bookId : BOOK) });
+      await importChapter({
+        file,
+        line,
+        versions,
+        language,
+        publish,
+        dryRun,
+        bookId: book.id,
+        translatorId: translator.id,
+        parts: chapterParts(number, named ? bookSlug : BOOK),
+      });
     } catch (err) {
       line.error = reasonOf(err);
     } finally {
@@ -169,12 +181,15 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
   line.created = toCreate.length;
   if (dryRun || (!toCreate.length && !toUpdate.length)) return;
 
-  let results;
+  let created;
   try {
-    results = await prisma.$transaction([
-      ...toUpdate.map((u) => prisma.verseTranslation.update({ where: { id: u.id }, data: u.data })),
-      ...(toCreate.length ? [prisma.verseTranslation.createMany({ data: toCreate, skipDuplicates: true })] : []),
-    ]);
+    // Prisma ends an interactive transaction after 5 s by default, and a long chapter is one update per verse.
+    created = await prisma.$transaction(async (tx) => {
+      await Promise.all(toUpdate.map((u) => tx.verseTranslation.update({ where: { id: u.id }, data: u.data })));
+      if (!toCreate.length) return 0;
+      const result = await tx.verseTranslation.createMany({ data: toCreate, skipDuplicates: true });
+      return result.count;
+    }, { timeout: 60_000 });
   } catch (err) {
     // The transaction rolled back, so none of this chapter was written and its line must not say it was.
     line.created = 0;
@@ -183,7 +198,7 @@ async function importChapter({ file, line, versions, language, publish, dryRun, 
     throw err;
   }
   // createMany says how many it really made; a row that appeared since the lookup is skipped, not doubled.
-  if (toCreate.length) line.created = results[results.length - 1].count;
+  if (toCreate.length) line.created = created;
 }
 
 /**
@@ -221,7 +236,7 @@ const feedKey = (runId) => `translation-import:feed:${runId}`;
 
 /** Sends an import run's whole state to every admin who may watch translations. */
 export function publishImportRun(row) {
-  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_RUN, presentImportRun(row));
+  toPermission('translation.read', EVENTS.TRANSLATION_IMPORT_RUN, presentImportRun(row));
 }
 
 /**
@@ -230,7 +245,7 @@ export function publishImportRun(row) {
  */
 export async function pushImportFeed(runId, line) {
   const entry = { at: new Date().toISOString(), ...line };
-  toPermission('translation.import', EVENTS.TRANSLATION_IMPORT_ACTIVITY, { runId, ...entry });
+  toPermission('translation.read', EVENTS.TRANSLATION_IMPORT_ACTIVITY, { runId, ...entry });
   try {
     await redis.multi().lpush(feedKey(runId), JSON.stringify(entry)).ltrim(feedKey(runId), 0, translation.feedLines - 1).expire(feedKey(runId), translation.feedDays * 86400).exec();
   } catch (err) {
@@ -269,7 +284,7 @@ export async function dropImportRunJob(run) {
 export async function reconcileImportRuns() {
   const youngerThan = new Date(Date.now() - 30_000);
   const rows = await prisma.translationImportRun.findMany({
-    where: { updatedAt: { lt: youngerThan }, status: { in: ['QUEUED', 'RUNNING'] } },
+    where: { updatedAt: { lt: youngerThan }, status: { in: LIVE_IMPORT_STATUSES } },
   });
   const requeued = [];
   for (const row of rows) {

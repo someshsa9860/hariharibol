@@ -9,8 +9,12 @@ import '../../models/routine_task.dart';
 /// midnight and in the order of the day, which is the order the menu lists
 /// them in. The names are copy and live in the ARB files
 /// (`routinePreset…`, see `routinePresetLabel`).
+///
+/// **Sleep keeps a limit** (`RoutinePlanConfig`): it is never before noon. Its
+/// range sits inside it, and the add sheet refuses an earlier start for a task
+/// with that name (see `routine_limits.dart`).
 enum RoutinePreset {
-  wakeUp(RoutineCategory.home, start: 4 * 60 + 30, end: 6 * 60),
+  wakeUp(RoutineCategory.home, start: 4 * 60, end: 4 * 60 + 30),
   morningChant(RoutineCategory.devotion, start: 5 * 60, end: 8 * 60),
   exercise(RoutineCategory.home, start: 6 * 60, end: 8 * 60),
   breakfast(RoutineCategory.home, start: 7 * 60 + 30, end: 9 * 60 + 30),
@@ -18,7 +22,7 @@ enum RoutinePreset {
   eveningChant(RoutineCategory.devotion, start: 18 * 60, end: 19 * 60 + 30),
   dinner(RoutineCategory.home, start: 19 * 60, end: 21 * 60),
   scriptureReading(RoutineCategory.devotion, start: 20 * 60, end: 21 * 60 + 30),
-  sleep(RoutineCategory.home, start: 21 * 60, end: 23 * 60);
+  sleep(RoutineCategory.home, start: 22 * 60, end: 23 * 60);
 
   const RoutinePreset(this.category, {required this.start, required this.end});
 

@@ -55,7 +55,7 @@ void main() {
     });
 
     test('${look.name}: no pure white or pure black on the page or in the text', () {
-      const pure = {Color(0xFFFFFFFF), Color(0xFF000000)};
+      final pure = {const Color(0xFFFFFFFF), const Color(0xFF000000)};
       expect(pure.contains(p.page), isFalse);
       expect(pure.contains(p.card), isFalse);
       expect(pure.contains(p.text), isFalse);

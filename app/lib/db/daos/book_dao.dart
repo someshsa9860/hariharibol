@@ -96,6 +96,7 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
             meaning: Value(t.meaning),
             purport: Value(t.purport),
             transliteration: Value(t.transliteration),
+            wordMeanings: Value(t.wordMeaningsJson),
             sourceRef: Value(t.sourceRef),
             audioPath: Value(t.audioPath),
             displayOrder: Value(t.displayOrder),

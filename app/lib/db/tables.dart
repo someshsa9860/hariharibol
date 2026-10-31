@@ -121,6 +121,11 @@ class VerseTranslations extends Table {
   /// Tamil script), when there is one. The verse's own [Verses.transliteration]
   /// is the Roman text every language falls back to.
   TextColumn get transliteration => text().nullable()();
+
+  /// The word-for-word meanings in this language, as JSON `[{word, meaning}]`,
+  /// when it has them. Null means the verse's own English list
+  /// ([Verses.wordMeanings]) is what this language's reader sees.
+  TextColumn get wordMeanings => text().nullable()();
   TextColumn get sourceRef => text().nullable()();
   TextColumn get audioPath => text().nullable()();
   IntColumn get displayOrder => integer().withDefault(const Constant(0))();

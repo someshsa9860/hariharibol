@@ -323,12 +323,13 @@ nothing that matters itself.
 
 | File | Job |
 |---|---|
-| `lib/translation.ts` | Types, the queries and mutations, and `useTranslationLive()`, which patches the query cache from socket events |
+| `lib/translation.ts` | Types, the queries and mutations (the import's are `useImportPreview`, `useImportTranslations`, `useImportRun`, `useCancelImportRun`; the vikara import's are `useVikaraStatus`, `useVikaraPreview`, `useImportVikaras`, `useVikaraRuns`), and `useTranslationLive()`, which patches the query cache from socket events: `translation.run` / `.activity` and the import's `translation-import.run` / `.activity` |
 | `lib/socket.ts` | The one shared websocket: `useSocketEvent`, `useSocketStatus`, `useOnReconnect` |
 | `routes/translations.tsx` | The page: health strip, **Runs** / **Output** tabs, in-progress cards, the language grid, history |
 | `components/translation-run-panel.tsx` | One run in full: progress, spend, activity feed, Resume / Cancel (`PAUSE` maps a pause reason to what to tell the admin) |
 | `components/translation-start-dialog.tsx` | New translation: language, chapters, verse limit, spending limit, a live estimate, and what blocks a start |
-| `components/translation-import-dialog.tsx` | Import into the database: language, a live preview of what it would do (nothing is written until the button), chapters to tick, whether to make the result visible, then what was done |
+| `components/translation-import-dialog.tsx` | Import into the database: language, a live preview of what it would do (nothing is written until the button), chapters to tick, whether to make the result visible; then it follows the queued import live (status, progress bar, activity feed, **Cancel import**) and shows what was done |
+| `components/vikara-import-section.tsx` | **The Bhagavatam's vikara tags**, a separate module on the same page (Runs tab, Śrīmad-Bhāgavatam only, between Languages and History): what the database holds (verses and links, a chip per vikara), the last import, and **Import from S3** (`translation.import`) |
 | `components/translation-output.tsx` | The reader: language pills, an 18-chapter strip, a verse list with scores, and English beside the translation |
 | `components/translation-bits.tsx` | Small shared pieces: status and score badges, progress bar, durations, money |
 
@@ -336,8 +337,9 @@ nothing that matters itself.
   URL (`?tab=runs|output`, `?run=`, `?lang=`, `?chapter=`, `?verse=`), the rest on the server, so a refresh or a pasted
   link lands on the same view. The only local preference is side-by-side vs. translation only
   (`hhb_admin_translation_view`).
-- **The socket makes it live; polling makes it correct.** `translation.run` and `translation.activity` events patch the
-  query cache directly, and a reconnect invalidates it. Polling is every 30 s while the socket is live, otherwise every
+- **The socket makes it live; polling makes it correct.** `translation.run` and `translation.activity` events, and the
+  import's `translation-import.run` and `translation-import.activity`, patch the query cache directly, and a reconnect
+  invalidates it. Polling is every 30 s while the socket is live, otherwise every
   4 s with a run in progress and 15 s without — so a dead websocket (a proxy that does not forward `/ws`) costs
   latency, not correctness. The header says **Live**, **Connecting…** or **Updating every few seconds**.
 - **`lib/socket.ts` connects to `VITE_WS_URL`**, or when that is blank works the address out from `VITE_API_URL`:
@@ -354,15 +356,40 @@ nothing that matters itself.
   only those and the missing ones (the server decides — the page just shows `outdated` and `upToDate`). Everything current
   gives "already translated under version X. To translate it again, set a new TRANSLATION_VERSION", and Start is off.
 - **Import** (`translation.import`; the box to make translations visible also needs `verse.publish`) is on every card with
-  something saved, and not while a run for that language is live. The dialog is mounted only while open and starts from the
-  clicked language, so it never previews the wrong one. Changing the language or the visibility box previews again
-  (`POST /imports` with `dryRun`, never cached); chapters that have something to do arrive ticked. The button imports the ticked
-  chapters, the result replaces the preview, and the cards refresh to say what the database holds ("N in the database, M visible
-  to readers · K from an older version"). **A verse already there is replaced in place, its id kept**; new ones are hidden unless
-  the box is ticked. The dialog warns when the translations it replaces are visible to readers now, and that a verse edited
-  by hand on the Verses page is replaced by what is in storage.
-- Both were driven in a real headless Chrome against a copy of the API reading a fake Gita folder (cards, start dialog, preview,
-  import, import again, make visible, a read-only account). That script is not kept in the repo.
+  something saved, and not while a run or an import for that language is live. The dialog is mounted only while open and starts
+  from the clicked language, so it never previews the wrong one. Changing the language or the visibility box previews again
+  (`POST /imports` with `dryRun`, answered at once and never cached; it is the one part of an import that still runs in the
+  request); chapters that have something to do arrive ticked. **The button queues the import and the worker does it**: the
+  dialog switches to following that run (`useImportRun`: a status badge, a progress bar, the activity feed, the totals when it
+  ends), and **Cancel import** (after a `confirm()`) asks the worker to stop after the chapter in progress, so what was
+  imported stays. Closing the dialog does not stop it: the card shows "Importing into the database: n/m chapters" with a
+  progress bar and an **Open import** button, the Health strip and the book tab count it, and Import is not offered on that
+  card until it ends. A second import of the same language and book (another admin, another tab) gets a 409, and the dialog
+  offers "Open that import"; while another is live it also disables its own button with a note. When a run ends the cards
+  refresh to say what the database holds ("N in the database, M visible to readers · K from an older version"). **A verse
+  already there is replaced in place, its id kept**; new ones are hidden unless the box is ticked. The dialog warns when the
+  translations it replaces are visible to readers now, and that a verse edited by hand on the Verses page is replaced by what
+  is in storage.
+- **Vikara tags are a separate module, not part of a language's Import.** The Marathi translation run saves, apart from the
+  language files, which of the six vikaras each Bhagavatam verse helps with (usually none) in
+  `issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json`; a language's **Import** never touches them. On the Śrīmad-Bhāgavatam's
+  Runs tab a **Vikara tags** card shows the counts from the database (`GET /imports/vikaras`), the last import, and
+  **Import from S3** (**Open import** while one is live). The dialog is the same shape as the language import: a dry run
+  (`POST /imports/vikaras` with `dryRun`, answered at once, never cached, slow for 335 chapters) lists the chapters that have a
+  tag file with *In storage / Tagged / None / To add / Already linked*; chapters with links to add start ticked; the button
+  queues a run of `kind: 'VIKARA'` on the same worker queue, and the dialog follows it through the shared `ImportRunView`
+  (status, progress bar, activity feed, **Cancel import**), then shows what was linked. **A verse that already has vikara
+  links is left alone and nothing is ever removed**, so importing twice changes nothing; the six `Issue` rows must exist
+  (`npm run seed`) or the card says so and the server refuses. One vikara import may be live (409, "Open that import").
+  `AnyImportRun` (`kind: 'TRANSLATION' | 'VIKARA'`) is what the overview's `activeImports`, the run reads and the socket carry,
+  so the language cards and the language dialog filter to `kind === 'TRANSLATION'`, and the book tab's "n active" counts both.
+- **Only live imports are shown.** The page lists imports that are queued or running (`overview.activeImports`) and the one its
+  dialog is following; finished ones are not listed anywhere yet (`GET /imports/runs` is there for a history view).
+- The cards, the start dialog, the preview and the earlier, in-request import were driven in a real headless Chrome against a
+  copy of the API reading a fake Gita folder (preview, import, import again, make visible, a read-only account); that script
+  is not kept in the repo. **The queued import (following a run in the dialog, the progress block on the card, Cancel import,
+  "Open that import") and the vikara module both type-check (`tsc -b`) and build (`vite build`) but were not driven in a browser**, and the panel has not
+  run against a live worker. The API side is walked by `npm run test:translation` (section 12).
 
 Two shared changes were made for this page and apply everywhere:
 
@@ -461,7 +488,7 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 
 ## Support
 
-`routes/support.tsx` (**Users** group, permission `support.manage`): the list of tickets and feedback with filter chips (status, ticket or feedback, category, 2/3 stars or less) and search, a summary row (open, in progress, resolved, average rating), and a dialog per row with the sender, the device details the app attached, the screenshot, the conversation, a status select and a reply box. Replying pushes the reader (`/api/admin/support/...`, see "Support, feedback and the store-rating prompt" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The push composer's tap targets gained `support` and `ticket` (keep `lib/push-link.ts` in step with `backend/utils/push-rich.js`). Type-checks (`tsc --noEmit`); not driven in a browser.
+`routes/support.tsx` (**Users** group, permission `support.manage`): the list of tickets and feedback with filter chips (status, ticket or feedback, category, 2/3 stars or less) and search, a summary row (open, in progress, resolved, average rating), and a dialog per row with the sender, the device details the app attached, the screenshot, the conversation, a status select and a reply box. The category filter lists the topics **feature** and **translation**; a translation ticket's dialog shows the book and the language it names (with their slugs), from the saved `details`. The list refreshes on `support.inbox` (`useSocketEvent`, and again on reconnect through `useOnReconnect`), so a new ticket or a reader's follow-up appears without a reload. Replying pushes the reader (`/api/admin/support/...`, see "Support, feedback and the store-rating prompt" in [backend/CLAUDE.md](../backend/CLAUDE.md)). The push composer's tap targets gained `support` and `ticket` (keep `lib/push-link.ts` in step with `backend/utils/push-rich.js`). Type-checks (`tsc --noEmit`) and builds; **not driven in a browser**, so the live refresh and the translation block have not been seen on screen.
 
 ## Quotes page
 
@@ -470,6 +497,30 @@ The Notifications page (`routes/notifications.tsx`) sends a title and body and, 
 ## Devotee etiquette page
 
 `routes/etiquette.tsx` (**Content** group, `/etiquette`, permission `etiquette.manage`, icon `Flower2` in `lib/nav.ts`; `router.tsx` wraps it in `<Protected permission="etiquette.manage">`). Two tabs. **Etiquette**: overview cards (items by status, translated by language, the delivery time, today's item), filters (category, status, language, untranslated) and search over title, summary, body and slug, and a table; a dialog (`components/etiquette-item-dialog.tsx`) adds or edits an item (its limits mirror the columns: title 160, summary 300, body 4000, reference 200, author 200, source name 120; **every item needs an author** — the speaker of the verse, or the teacher or temple that published the page — so the dialog will not add an item, or save an old one that has none, until it is filled in; the table has an Author column), publishes, holds back or **excludes** it (an exclusion asks for a reason and the item stays in the database, never shown or pushed), and shows and edits each language's translation by hand (an edited translation is kept by every later run). **Translations** (`components/etiquette-run.tsx`, shown and used only with `etiquette.translate`): pick a language, see the estimate, optionally a provider and model, start a run, watch the live panel (progress, tokens, the activity feed over the websocket events `etiquette.run` / `etiquette.activity`), and Resume or Cancel. The client and types are `lib/etiquette.ts`. The API is `/api/admin/etiquette` — see "Devotee etiquette" in [backend/CLAUDE.md](../backend/CLAUDE.md). Type-checks (`tsc -b`) and builds (`vite build`); not driven in a browser. The push composer has no etiquette tap target (the daily push is the only one that sends it).
+
+## Prayers page and its translations
+
+`routes/prayers.tsx` (**Content** group, `/prayers`, permission `prayer.manage`, icon `HandHeart` in `lib/nav.ts`; `router.tsx` wraps it in `<Protected permission="prayer.manage">`) exports `PrayersPage`. A prayer is a devotional text of several verses that a reader says or sings (a guru vandana, an aarti, a morning prayer). **It is not a mantra's opening prayer** (`Mantra.prayerMantraId`, see "Mantra chanting time and opening prayer" above), so every new name is `Prayer*` / `prayers*`. The page is an overview row (shown to readers, drafts, verses, and a by-category line), a **New prayer** button and two tabs: **Prayers**, a table (category and status filters, search, the editors' own order by default; Open, Publish, Hold back and Delete in the row menu, and bulk Publish / Hold back), and, **only for someone who also has `prayer.translate`**, **Translations** (without the permission the tab bar is not drawn). What matters is in the URL: `?item=<id>` the open prayer, `?tab=translations`, `?run=<id>` the open run, and `?translate=<code>` a language to start (a prayer's language editor links there; the link is spent as soon as the dialog opens). The API is `/api/admin/prayers` — see "Prayers" in [backend/CLAUDE.md](../backend/CLAUDE.md). Built like the Devotee etiquette page (the items) and the Hindu calendar's Translations tab (the runs):
+
+| File | Job |
+|---|---|
+| `lib/prayers.ts` | Types, constants (the status and "how a language gets its script" labels, the eight starter categories, the twelve languages a prayer can be written in), every query and mutation, and `usePrayersLive`: the websocket events `prayer.run` / `prayer.activity` only make the queries current sooner, and polling (30 s with a socket, 4 s while a run is busy, 15 s otherwise) covers a missing socket |
+| `routes/prayers.tsx` | The page: overview, the two tabs, the table and its bulk actions |
+| `components/prayer-dialog.tsx` | One dialog for one prayer. `NewPrayer` sends the details and the pasted verses as one request, as a draft; `ExistingPrayer` holds the English details, the verses, the languages, and publish / hold back / delete. Its limits mirror the columns (title 200, summary 400, author, reference and source name 200, source link 500) |
+| `components/prayer-form-bits.tsx` | The small parts the dialog and its editors share (the dirty-key helper, the error line, the character counter, the verse font stack), kept apart so the files do not import each other in a circle |
+| `components/prayer-verses-editor.tsx` | The ordered list of verses, original and English meaning side by side: move up / down, remove, **Paste several** (split on blank lines), at most 400. Saved as one list; a row without an id is new |
+| `components/prayer-language-editor.tsx` | A prayer's languages: a chip per language with its state (translated, partly, missing, out of date, hand-written), then the heading (title, summary, about; not for English) and each verse's rendering and meaning |
+| `components/prayer-run.tsx` | One run in full (progress, tokens, why it stopped, the activity feed, Resume / Cancel) and **the start dialog: language, "Translate again", provider and model through the shared `components/model-picker.tsx`, a live estimate, and what blocks a start** |
+| `components/prayer-translation-section.tsx` | The Translations tab: runs in progress and the queue, a card per language (how many published prayers it holds, partly, missing, out of date, hand-written, and how it gets its script), and the history of runs |
+
+- **A verse is never translated, only spelled; only prose is translated.** A run writes each prayer's title, summary and about and each verse's meaning in the language, and writes the verse out in that language's script where a rule cannot. How a language gets its script is the server's answer (`how`): `same` (the original's own script; nothing is stored and the editor says the verse is shown as the original), `rule` (converted automatically when read; the editor shows the rule's output and an override per verse, and an empty override means "use the automatic one") or `model` (a stored rendering, written by a run or by hand). English as a run language gives only the Roman rendering, with no heading and no meaning.
+- **Words an editor wrote are never replaced by a run**, even with "Translate again" (kept per row, `isEdited`). A rendering whose original was changed after it was written shows **Out of date**; a run rewrites those, and the page counts them.
+- **Runs cover published prayers only**; a draft is skipped until it is published. A start is blocked in the dialog when the chosen provider has no key (the message names the setting), when the model cannot be used, when everything is already translated, or while a run into that language is live ("Open that run", from the 409's `details.runId`). "No worker is online" only warns: the run waits in the queue.
+- **Verses are saved as one ordered list with stable ids**, so a verse keeps its translations when it is moved or edited. Removing a verse deletes what was written for it in the other languages, so the editor asks first; changing the language a prayer is written in, when translations exist, asks first as well (every rendering was made from the old text and will show Out of date).
+- **Unsaved work is guarded.** Each editor reports whether it is dirty to the dialog (the same registry the other dialogs use); closing the dialog, leaving a language for another, or following the link to the Translations tab asks before throwing it away. The language editor takes the server's copy again only while it is clean, so a socket refetch (a run finishing) never overwrites an edit in progress.
+- **Known limitation:** the route is gated on `prayer.manage`, so someone with `prayer.translate` alone cannot reach the page. Both built-in roles (admin, super admin) have both; the migration `20261114000000_prayers` grants them.
+- **Written against the plan's contract before the backend routes existed**; the backend (`routes/admin/prayer.js`, `controllers/admin/prayer.js`) now exists and its overview field names (`counts`, `categories`, `publishedTotal`, `translation`, `active`) were checked against the page's reading of them, but the page itself has never been driven against it, so they are still the first place to look if a card shows nothing. No tests were written for it.
+- Type-checks and builds; not driven in a browser.
 
 ## Hindu calendar page and its translations
 

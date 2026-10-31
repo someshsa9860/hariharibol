@@ -1,0 +1,118 @@
+{
+  "slug": "tulasi-kirtana",
+  "title": "Śrī Tulasī Kīrtana",
+  "titleOriginal": "শ্রীতুলসী-কীর্তন",
+  "category": "deity",
+  "sortOrder": 10,
+  "originalLanguage": "bn",
+  "summary": "Sung while walking around the tulasī plant.",
+  "about": "Bows to Tulasī, the beloved of Kṛṣṇa, and asks her for the service of Rādhā and Kṛṣṇa in the groves of Vṛndāvana.",
+  "author": "Krsna Dasa",
+  "reference": "None",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/n/namonamahtulasikrsna.html",
+  "tradition": "vaishnava",
+  "deity": "tulasi",
+  "occasions": [
+    "circling the tulasī plant",
+    "tulasī-vivāha"
+  ],
+  "festivals": [
+    "tulsi-vivah"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "intro": true,
+      "text": "বৃন্দায়ৈ তুলসীদেব্যৈ\nপ্রিয়ায়ৈ কেশবস্য চ\nবিষ্ণু-ভক্তিপ্রদে দেবী\nসত্য বত্যৈ নমো নমঃ",
+      "roman": "vṛndāyai tulasī-devyai priyāyai keśavasya ca\nviṣṇu-bhakti-prade devī satya vatyai namo namaḥ",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "নমো নমঃ তুলসী কৃষ্ণ-প্রেয়সি নমো নমঃ\nরাধা-কৃষ্ণ-সেবা পাব এই অবিলাষী",
+      "roman": "namo namaḥ tulasī kṛṣṇa-preyasi namo namaḥ\nrādhā-kṛṣṇa-sevā pābo ei abilāṣī",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "যে তোমার শরণ লয়, তর বাঞ্ছা পূর্ণ্ণ হয়\nকৃপা করি’ কর তারে বৃন্দাবন-বাসি",
+      "roman": "ye tomāra śaraṇa loy, tara vāñchā pūrṇa hoy\nkṛpā kori' koro tāre vṛndāvana-vāsi",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "মোর এই অভিলাষ, বিলাস কুঞ্জে দিও বাস\nনয়ন হেরিব সদা যুগল-রূপ-রাশি",
+      "roman": "mora ei abhilāṣa, vilāsa kuñje dio vāsa\nnayana heribo sadā yugala-rūpa-rāśi",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "এই নিবেদন ধর, সখীর অনুগত কর\nসেবা-অধিকার দিয়ে কর নীজ দাসী",
+      "roman": "ei nivedana dhara, sakhīra anugata koro\nsevā-adhikāra diye koro nīja dāsī",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "দীন কৃষ্ণ-দাসে কয়, এই যেন মোর হয়\nশ্রী-রাধা-গোবিন্দ-প্রেমে সদা যেন ভাসি",
+      "roman": "dīna kṛṣṇa-dāse koy, ei yena mora hoy\nśrī-rādhā-govinda-preme sadā yena bhāsi",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "যানি কানি চ পাপানি\nব্রহ্মহত্যাদিকানি চ\nতানি তানি প্রণশ্যন্তি\nপ্রদক্ষিণঃ পদে পদে",
+      "roman": "yāni kāni ca pāpāni brahma-hatyādikāni ca\ntāni tāni praṇaśyanti pradakṣiṇaḥ pade pade",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/n/namonamahtulasikrsna.html",
+    "bengali": "https://kksongs.org/unicode/n/namonamahtulasikrsna1_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Namo Namah Tulasi Krsna Preyasi (I)",
+    "official name": "Tulasi Kirtana",
+    "author": "Krsna Dasa",
+    "book name": "None",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 7,
+      "bengali": 7
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": 0,
+        "copy": "roman",
+        "line": "(introductory verse)"
+      },
+      {
+        "pageVerse": 0,
+        "copy": "bengali",
+        "line": "(শ্রী তুলসী প্রণাম)"
+      },
+      {
+        "pageVerse": 6,
+        "copy": "bengali",
+        "line": "(শ্রী তুলসী প্রদক্ষিণ মন্ত্র)"
+      }
+    ],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.867Z"
+}

@@ -40,6 +40,7 @@ import shareRoutes from './share.js';
 import referralRoutes from './referral.js';
 import calendarRoutes from './calendar.js';
 import etiquetteRoutes from './etiquette.js';
+import prayerRoutes from './prayer.js';
 import quoteRoutes from './quote.js';
 import developerChatRoutes from './developer-chat.js';
 
@@ -77,6 +78,7 @@ const routers = [
   referralRoutes,
   calendarRoutes,
   etiquetteRoutes,
+  prayerRoutes,
   quoteRoutes,
 ];
 

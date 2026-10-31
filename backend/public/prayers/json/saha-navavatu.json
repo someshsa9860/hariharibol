@@ -1,0 +1,58 @@
+{
+  "slug": "saha-navavatu",
+  "title": "Saha nāv avatu",
+  "titleOriginal": "ॐ सह नाववतु",
+  "category": "peace",
+  "sortOrder": 100,
+  "originalLanguage": "sa",
+  "summary": "The peace chant teacher and student say together before study.",
+  "about": "May he protect us both, nourish us both; may we work together with vigour; may our study be bright; may we not dislike each other. From the Kaṭha and Taittirīya Upaniṣads.",
+  "author": "",
+  "reference": "Kṛṣṇa Yajur-veda, Taittirīya Upaniṣad",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A4%BF%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83",
+  "tradition": "smarta",
+  "deity": "brahman",
+  "occasions": [
+    "before study",
+    "teacher and student together"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "ॐ सह नाववतु । सह नौ भुनक्तु । सह वीर्यं करवावहै ।\nतेजस्विनावधीतमस्तु । मा विद्विषावहै ॥\nॐ शान्तिः शान्तिः शान्तिः ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A4%BF%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A4%BF%E0%A4%AE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%83&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "notes": "[[w:{{PAGENAME}}"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "सहवीर्यं",
+      "to": "सह वीर्यं",
+      "why": "Two words, saha vīryam."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.955Z"
+}

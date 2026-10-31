@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/sloka.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The personal sloka — today's, and the one asked for by naming a struggle.
 class SlokaService {
@@ -31,7 +32,7 @@ class SlokaService {
   /// what a mood already answered today reopens to, since only the latest of
   /// these still shows on the dashboard.
   Future<List<PersonalSloka>> moodToday() async {
-    final response = await _api.get(ApiPaths.slokaMoodToday);
+    final response = await _api.getOrSaved(ApiPaths.slokaMoodToday);
     return response.list
         .whereType<Map>()
         .map((item) => PersonalSloka.fromJson(Map<String, dynamic>.from(item)))

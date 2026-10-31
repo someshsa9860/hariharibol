@@ -4,8 +4,11 @@
 //
 //   npm run seed
 //
-// Every write is an upsert, so this is safe to run repeatedly — on a fresh
-// database, after a migration, or in a deploy step. It never touches user data.
+// Safe to run repeatedly — on a fresh database, after a migration, or in a deploy
+// step. It creates what is missing and never replaces a value already in the
+// database: a picture uploaded in the admin panel, an edited title, a role's
+// permissions set on the Roles page all survive it. Where it fills a blank field
+// it says so at the place it does it. It never touches user data.
 //
 // A brand-new database takes it twice, with the importers between:
 //   migrate → seed → import-bg → import-sb → seed
@@ -23,7 +26,7 @@ import { bookTitles, cantoTitles, chapterTitles, fillMissing } from './section-t
 import { bhagavatamChapterTitles } from './section-titles/bhagavatam/index.js';
 import { chantPhrases } from './chant-phrases.js';
 import { chantWords } from './chant-words.js';
-import { routineKinds } from './routine-nudges.js';
+import { opensByKind, routineKinds } from './routine-nudges.js';
 import { seedEtiquette } from './etiquette/index.js';
 import { seedQuotes } from './quotes/index.js';
 import { fromDevanagari, isDevanagari } from '../../utils/script.js';
@@ -33,78 +36,72 @@ const prisma = new PrismaClient();
 
 const log = (...args) => console.log('  ', ...args); // eslint-disable-line no-console
 
+// Created once. A permission already there keeps its name and group, so a label
+// changed by hand stays changed. Returns the slugs this run created.
 async function seedPermissions() {
-  for (const permission of data.permissions) {
-    await prisma.permission.upsert({
-      where: { slug: permission.slug },
-      update: { name: permission.name, group: permission.group },
-      create: permission,
-    });
-  }
-  log(`${data.permissions.length} permissions`);
+  const have = new Set((await prisma.permission.findMany({ select: { slug: true } })).map((p) => p.slug));
+  const fresh = data.permissions.filter((permission) => !have.has(permission.slug));
+  if (fresh.length) await prisma.permission.createMany({ data: fresh });
+  log(`${data.permissions.length} permissions, ${fresh.length} new`);
+  return fresh.map((permission) => permission.slug);
 }
 
-async function seedRoles() {
+// A role is created once, with the permissions config/constants.js gives it. After
+// that the Roles page owns it: its name, description and permissions are left as
+// they are, so a permission an admin removed stays removed. The one thing a later
+// run adds is a permission this run has just created, to each role the code lists
+// it for — so a new permission reaches super admin and admin without a migration.
+async function seedRoles(newPermissions) {
   for (const role of data.roles) {
     const { permissions: slugs, ...fields } = role;
 
-    const saved = await prisma.role.upsert({
-      where: { slug: role.slug },
-      update: { name: fields.name, description: fields.description, isSystem: fields.isSystem },
-      create: fields,
-    });
+    const existing = await prisma.role.findUnique({ where: { slug: role.slug }, select: { id: true } });
+    const roleId = existing?.id ?? (await prisma.role.create({ data: fields })).id;
 
-    const rows = await prisma.permission.findMany({ where: { slug: { in: slugs } } });
-
-    // Replaced rather than merged: a permission removed from
-    // config/constants.js must actually be removed from the role, or a role
-    // keeps a grant nobody can see in the code any more.
-    await prisma.rolePermission.deleteMany({ where: { roleId: saved.id } });
+    const granted = existing ? slugs.filter((slug) => newPermissions.includes(slug)) : slugs;
+    const rows = await prisma.permission.findMany({ where: { slug: { in: granted } } });
     if (rows.length) {
       await prisma.rolePermission.createMany({
-        data: rows.map((p) => ({ roleId: saved.id, permissionId: p.id })),
+        data: rows.map((p) => ({ roleId, permissionId: p.id })),
+        skipDuplicates: true,
       });
     }
 
-    log(`role ${role.slug} — ${rows.length} permissions`);
+    log(`role ${role.slug} — ${existing ? 'kept as it is' : 'created'}, ${rows.length} permissions granted`);
   }
 }
 
 async function seedLanguages() {
+  // Created once: a language's name, script and flags belong to the admin after that.
   for (const language of data.languages) {
-    await prisma.language.upsert({
-      where: { code: language.code },
-      update: language,
-      create: language,
-    });
+    await prisma.language.upsert({ where: { code: language.code }, update: {}, create: language });
   }
   log(`${data.languages.length} languages`);
 }
 
 async function seedIssues() {
   for (const issue of data.issues) {
-    await prisma.issue.upsert({ where: { slug: issue.slug }, update: issue, create: issue });
+    await prisma.issue.upsert({ where: { slug: issue.slug }, update: {}, create: issue });
   }
   log(`${data.issues.length} issues`);
 }
 
+// The deities, gurus and translators are created once. Their pictures in particular
+// are uploaded in the admin panel, and an admin who clears one on purpose must not
+// find the seed's placeholder back on the next run.
 async function seedReference() {
   for (const deity of data.deities) {
-    await prisma.deity.upsert({ where: { slug: deity.slug }, update: deity, create: deity });
+    await prisma.deity.upsert({ where: { slug: deity.slug }, update: {}, create: deity });
   }
   log(`${data.deities.length} deities`);
 
   for (const guru of data.gurus) {
-    await prisma.guru.upsert({ where: { slug: guru.slug }, update: guru, create: guru });
+    await prisma.guru.upsert({ where: { slug: guru.slug }, update: {}, create: guru });
   }
   log(`${data.gurus.length} gurus`);
 
   for (const translator of data.translators) {
-    await prisma.translator.upsert({
-      where: { slug: translator.slug },
-      update: translator,
-      create: translator,
-    });
+    await prisma.translator.upsert({ where: { slug: translator.slug }, update: {}, create: translator });
   }
   log(`${data.translators.length} translators`);
 }
@@ -158,14 +155,21 @@ async function seedMantras() {
     const deityRow = deity ? await prisma.deity.findUnique({ where: { slug: deity } }) : null;
     const guruRow = guru ? await prisma.guru.findUnique({ where: { slug: guru } }) : null;
 
-    // Always written from the seed, like the rest of a mantra's fields.
     const phrases = chantPhrases[mantra.slug] ?? [];
 
+    // Created once. The mantra's text, name and publishing are the admin's after that.
     const saved = await prisma.mantra.upsert({
       where: { slug: mantra.slug },
-      update: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null },
+      update: {},
       create: { ...fields, chantPhrases: phrases, deityId: deityRow?.id ?? null, guruId: guruRow?.id ?? null, isPublished: true },
     });
+
+    // The deity, the guru and the chant phrases only where the mantra has none yet.
+    const links = {};
+    if (deityRow && !saved.deityId) links.deityId = deityRow.id;
+    if (guruRow && !saved.guruId) links.guruId = guruRow.id;
+    if (phrases.length && !saved.chantPhrases?.length) links.chantPhrases = phrases;
+    if (Object.keys(links).length) await prisma.mantra.update({ where: { id: saved.id }, data: links });
 
     // A standard chanting time only for a mantra that has none yet.
     const standard = data.standardChantMs[mantra.slug];
@@ -181,7 +185,7 @@ async function seedMantras() {
     for (const translation of translations) {
       await prisma.mantraTranslation.upsert({
         where: { mantraId_languageCode: { mantraId: saved.id, languageCode: translation.languageCode } },
-        update: { ...translation, isPublished: true },
+        update: {},
         create: { ...translation, mantraId: saved.id, isPublished: true },
       });
     }
@@ -208,21 +212,19 @@ async function seedBooks() {
     const { deity, ...fields } = book;
     const deityRow = deity ? await prisma.deity.findUnique({ where: { slug: deity } }) : null;
 
-    // isPublished is never written on update — a book that has been published
-    // must not be quietly unpublished by re-running the seed.
-    await prisma.book.upsert({
+    // Created once. A book's text, its deity and whether it is published are the
+    // admin's after that, so re-running the seed never unpublishes a book.
+    const saved = await prisma.book.upsert({
       where: { bookNumber: book.bookNumber },
-      update: {
-        title: fields.title,
-        // titleI18n is not written here: seedSectionTitles fills only the languages a row
-        // lacks, so a title corrected in the admin panel is not put back by the next seed.
-        description: fields.description,
-        deityId: deityRow?.id ?? null,
-        // Only where the seed names a folder — an admin-set one on another book stays.
-        ...(fields.recitationParent ? { recitationParent: fields.recitationParent } : {}),
-      },
+      update: {},
       create: { ...fields, deityId: deityRow?.id ?? null, isPublished: false },
     });
+
+    // The deity and the recitation folder only where the book has none yet.
+    const links = {};
+    if (deityRow && !saved.deityId) links.deityId = deityRow.id;
+    if (fields.recitationParent && !saved.recitationParent) links.recitationParent = fields.recitationParent;
+    if (Object.keys(links).length) await prisma.book.update({ where: { id: saved.id }, data: links });
   }
   log(`${data.books.length} books`);
 
@@ -230,7 +232,7 @@ async function seedBooks() {
   for (const canto of data.cantos) {
     await prisma.canto.upsert({
       where: { bookId_number: { bookId: bhagavatam.id, number: canto.number } },
-      update: { title: canto.title },
+      update: {},
       create: { bookId: bhagavatam.id, number: canto.number, title: canto.title },
     });
   }
@@ -302,9 +304,11 @@ async function seedStories() {
       continue;
     }
 
+    // Created once: a story's wording and publishing are the admin's after that. A part
+    // the seed adds later is created; a part already there is left as it is.
     const saved = await prisma.story.upsert({
       where: { slug: story.slug },
-      update: { title: fields.title, description: fields.description },
+      update: {},
       create: { ...fields, bookId: book.id, cantoNumber: canto, isPublished: true },
     });
 
@@ -314,14 +318,7 @@ async function seedStories() {
 
       const savedPart = await prisma.storyPart.upsert({
         where: { storyId_number: { storyId: saved.id, number: part.number } },
-        update: {
-          title: partFields.title,
-          description: partFields.description,
-          chapterId: chapterRow.id,
-          verseNumberStart: verseStart,
-          verseNumberEnd: verseEnd,
-          isDailyEligible: !!dailyEligible,
-        },
+        update: {},
         create: {
           ...partFields,
           storyId: saved.id,
@@ -394,7 +391,7 @@ async function seedPlansAndTopics() {
   log(`${data.aiPlanConfigs.length} AI chat allowance(s)`);
 
   for (const topic of data.topics) {
-    await prisma.fcmTopic.upsert({ where: { key: topic.key }, update: topic, create: topic });
+    await prisma.fcmTopic.upsert({ where: { key: topic.key }, update: {}, create: topic });
   }
   log(`${data.topics.length} push topics`);
 }
@@ -413,19 +410,20 @@ async function seedSettings() {
 async function seedRoutineNudges() {
   let nudges = 0;
   for (const [index, { kind, voice, verses }] of routineKinds.entries()) {
-    // A script an admin has edited is theirs: only a kind with none yet gets ours.
-    const existing = await prisma.routineKind.findUnique({ where: { key: kind }, select: { voiceScript: true } });
-    await prisma.routineKind.upsert({
+    // Created once. A kind already there keeps its order, its opens and its wording;
+    // the one thing filled in is a script it has none of.
+    const row = await prisma.routineKind.upsert({
       where: { key: kind },
-      update: { sortOrder: index, ...(existing?.voiceScript ? {} : { voiceScript: voice }) },
-      create: { key: kind, sortOrder: index, voiceScript: voice },
+      update: {},
+      create: { key: kind, sortOrder: index, voiceScript: voice, ...opensByKind[kind] },
     });
+    if (!row.voiceScript) await prisma.routineKind.update({ where: { key: kind }, data: { voiceScript: voice } });
 
     for (const [position, verse] of verses.entries()) {
       const fields = { verseId: verse.verseId, reference: verse.reference, text: verse.text };
       await prisma.routineNudge.upsert({
         where: { kindKey_position: { kindKey: kind, position } },
-        update: fields,
+        update: {},
         create: { kindKey: kind, position, ...fields },
       });
       nudges += 1;
@@ -435,20 +433,20 @@ async function seedRoutineNudges() {
 }
 
 async function seedEtiquetteItems() {
-  const { created, updated, kept, unchanged } = await seedEtiquette(prisma);
-  log(`devotee etiquette: ${created} added, ${updated} brought up to date, ${unchanged} unchanged, ${kept} edited by an admin and left alone`);
+  const { created, filled, kept } = await seedEtiquette(prisma);
+  log(`devotee etiquette: ${created} added, ${filled} with a blank field filled in, ${kept} left as they are`);
 }
 
 async function seedQuoteItems() {
-  const { created, updated, kept, unchanged } = await seedQuotes(prisma);
-  log(`quotes: ${created} added, ${updated} brought up to date, ${unchanged} unchanged, ${kept} edited by an admin and left alone`);
+  const { created, filled, kept } = await seedQuotes(prisma);
+  log(`quotes: ${created} added, ${filled} with a blank field filled in, ${kept} left as they are`);
 }
 
 async function main() {
   console.log('Seeding HariHariBol...\n'); // eslint-disable-line no-console
 
-  await seedPermissions();
-  await seedRoles();
+  const newPermissions = await seedPermissions();
+  await seedRoles(newPermissions);
   await seedLanguages();
   await seedIssues();
   await seedReference();
