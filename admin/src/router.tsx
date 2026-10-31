@@ -33,6 +33,7 @@ import { JobsPage } from '@/routes/jobs';
 import { MaintenancePage } from '@/routes/maintenance';
 import { TranslationsPage } from '@/routes/translations';
 import { ScenesPage } from '@/routes/scenes';
+import { NarrationPage } from '@/routes/narration';
 import { EtiquettePage } from '@/routes/etiquette';
 import { QuotesPage } from '@/routes/quotes';
 import { MarketingPage } from '@/routes/marketing';
@@ -309,6 +310,14 @@ export function Router() {
         element={
           <Protected permission="scenes.read">
             <ScenesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/narration"
+        element={
+          <Protected permission="narration.read">
+            <NarrationPage />
           </Protected>
         }
       />
