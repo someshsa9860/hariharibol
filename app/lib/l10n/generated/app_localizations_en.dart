@@ -2568,6 +2568,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportCategoryOther => 'Something else';
 
   @override
+  String get supportCategoryFeature => 'A new feature';
+
+  @override
+  String get supportCategoryTranslation =>
+      'Translate a book into another language';
+
+  @override
+  String get supportBookLabel => 'Book';
+
+  @override
+  String get supportLanguageLabel => 'Language';
+
+  @override
+  String get supportTranslationIntro =>
+      'Choose the book and the language you would like it in. A note is optional.';
+
+  @override
+  String get supportTranslationHint =>
+      'Anything else we should know? (optional)';
+
+  @override
+  String get supportFeatureHint => 'Tell us what you would like the app to do';
+
+  @override
   String get supportMessageHint => 'Tell us what happened';
 
   @override

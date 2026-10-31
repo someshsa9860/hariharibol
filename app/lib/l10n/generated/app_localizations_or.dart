@@ -2576,6 +2576,30 @@ class AppLocalizationsOr extends AppLocalizations {
   String get supportCategoryOther => 'ଅନ୍ୟ କିଛି';
 
   @override
+  String get supportCategoryFeature => 'ଏକ ନୂଆ ସୁବିଧା';
+
+  @override
+  String get supportCategoryTranslation => 'ଏକ ପୁସ୍ତକକୁ ଅନ୍ୟ ଭାଷାରେ ଅନୁବାଦ';
+
+  @override
+  String get supportBookLabel => 'ପୁସ୍ତକ';
+
+  @override
+  String get supportLanguageLabel => 'ଭାଷା';
+
+  @override
+  String get supportTranslationIntro =>
+      'ପୁସ୍ତକ ଏବଂ କେଉଁ ଭାଷାରେ ଚାହୁଁଛନ୍ତି ବାଛନ୍ତୁ। ଟିପ୍ପଣୀ ଲେଖିବା ଐଚ୍ଛିକ।';
+
+  @override
+  String get supportTranslationHint =>
+      'ଆମେ ଜାଣିବା ଉଚିତ ଏପରି କିଛି ଅଛି କି? (ଐଚ୍ଛିକ)';
+
+  @override
+  String get supportFeatureHint =>
+      'ଆପ୍ କ\'ଣ କରିବା ଉଚିତ ବୋଲି ଆପଣ ଚାହାଁନ୍ତି, କୁହନ୍ତୁ';
+
+  @override
   String get supportMessageHint => 'କ\'ଣ ହେଲା ଆମକୁ କୁହନ୍ତୁ';
 
   @override

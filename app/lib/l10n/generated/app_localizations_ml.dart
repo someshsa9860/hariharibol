@@ -2593,6 +2593,30 @@ class AppLocalizationsMl extends AppLocalizations {
   String get supportCategoryOther => 'മറ്റെന്തോ';
 
   @override
+  String get supportCategoryFeature => 'ഒരു പുതിയ സൗകര്യം';
+
+  @override
+  String get supportCategoryTranslation =>
+      'ഒരു പുസ്തകം മറ്റൊരു ഭാഷയിലേക്ക് വിവർത്തനം ചെയ്യൽ';
+
+  @override
+  String get supportBookLabel => 'പുസ്തകം';
+
+  @override
+  String get supportLanguageLabel => 'ഭാഷ';
+
+  @override
+  String get supportTranslationIntro =>
+      'പുസ്തകവും ഏത് ഭാഷയിൽ വേണമെന്നും തിരഞ്ഞെടുക്കുക. കുറിപ്പ് ഐച്ഛികമാണ്.';
+
+  @override
+  String get supportTranslationHint =>
+      'ഞങ്ങൾ അറിയേണ്ട എന്തെങ്കിലുമുണ്ടോ? (ഐച്ഛികം)';
+
+  @override
+  String get supportFeatureHint => 'ആപ്പ് എന്താണ് ചെയ്യേണ്ടതെന്ന് പറയൂ';
+
+  @override
   String get supportMessageHint => 'എന്താണ് സംഭവിച്ചതെന്ന് ഞങ്ങളോട് പറയൂ';
 
   @override

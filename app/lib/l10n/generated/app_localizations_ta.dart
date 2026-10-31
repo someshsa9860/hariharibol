@@ -2597,6 +2597,31 @@ class AppLocalizationsTa extends AppLocalizations {
   String get supportCategoryOther => 'வேறு ஏதோ';
 
   @override
+  String get supportCategoryFeature => 'ஒரு புதிய வசதி';
+
+  @override
+  String get supportCategoryTranslation =>
+      'ஒரு நூலை வேறொரு மொழியில் மொழிபெயர்த்தல்';
+
+  @override
+  String get supportBookLabel => 'நூல்';
+
+  @override
+  String get supportLanguageLabel => 'மொழி';
+
+  @override
+  String get supportTranslationIntro =>
+      'நூலையும் எந்த மொழியில் வேண்டும் என்பதையும் தேர்ந்தெடுங்கள். குறிப்பு எழுதுவது விருப்பத்திற்குரியது.';
+
+  @override
+  String get supportTranslationHint =>
+      'எங்களுக்குத் தெரிய வேண்டியது ஏதேனும் உண்டா? (விருப்பத்திற்குரியது)';
+
+  @override
+  String get supportFeatureHint =>
+      'செயலி என்ன செய்ய வேண்டும் என்று சொல்லுங்கள்';
+
+  @override
   String get supportMessageHint =>
       'என்ன நடந்தது என்று எங்களுக்குச் சொல்லுங்கள்';
 

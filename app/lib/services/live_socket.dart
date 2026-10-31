@@ -33,6 +33,9 @@ class LiveSocket {
   int _attempts = 0;
   bool _open = false;
 
+  /// Whether the line is open right now. A screen can show it, or hold back what the socket already brings.
+  final ValueNotifier<bool> connected = ValueNotifier(false);
+
   Stream<LiveEvent> get events => _events.stream;
 
   void start() {
@@ -67,6 +70,7 @@ class LiveSocket {
       await channel.ready;
       if (_channel != channel) return;
       _attempts = 0;
+      connected.value = true;
       _subscription = channel.stream.listen(_onFrame, onError: (_) => _onClosed(channel), onDone: () => _onClosed(channel));
     } catch (error) {
       debugPrint('Live socket did not open: $error');
@@ -100,6 +104,7 @@ class LiveSocket {
   }
 
   void _close() {
+    connected.value = false;
     _subscription?.cancel();
     _subscription = null;
     final channel = _channel;
@@ -112,5 +117,6 @@ class LiveSocket {
   void dispose() {
     stop();
     _events.close();
+    connected.dispose();
   }
 }

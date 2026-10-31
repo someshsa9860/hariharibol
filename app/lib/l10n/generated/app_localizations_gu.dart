@@ -2566,6 +2566,29 @@ class AppLocalizationsGu extends AppLocalizations {
   String get supportCategoryOther => 'બીજું કંઈક';
 
   @override
+  String get supportCategoryFeature => 'કોઈ નવી સુવિધા';
+
+  @override
+  String get supportCategoryTranslation => 'કોઈ ગ્રંથનો બીજી ભાષામાં અનુવાદ';
+
+  @override
+  String get supportBookLabel => 'ગ્રંથ';
+
+  @override
+  String get supportLanguageLabel => 'ભાષા';
+
+  @override
+  String get supportTranslationIntro =>
+      'ગ્રંથ અને કઈ ભાષામાં જોઈએ છે તે પસંદ કરો. નોંધ લખવી વૈકલ્પિક છે.';
+
+  @override
+  String get supportTranslationHint =>
+      'અમારે બીજું કંઈ જાણવું જોઈએ? (વૈકલ્પિક)';
+
+  @override
+  String get supportFeatureHint => 'એપે શું કરવું જોઈએ તે જણાવો';
+
+  @override
   String get supportMessageHint => 'શું થયું તે અમને જણાવો';
 
   @override

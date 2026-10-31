@@ -54,16 +54,21 @@ class SupportService {
     return asString(response.json['key']);
   }
 
+  /// A ticket. A translation request names its book and reading language in [translation]; the server reads the
+  /// titles from them.
   Future<SupportTicket> create({
     required String category,
     required String message,
     String? screenshotKey,
+    ({String bookSlug, String languageCode})? translation,
   }) async {
     final response = await _api.post(ApiPaths.supportTickets, body: {
       'kind': 'TICKET',
       'category': category,
       'message': message,
       'screenshotKey': ?screenshotKey,
+      if (translation != null)
+        'details': {'bookSlug': translation.bookSlug, 'languageCode': translation.languageCode},
       'deviceInfo': deviceInfo,
     });
     return SupportTicket.fromJson(response.json);

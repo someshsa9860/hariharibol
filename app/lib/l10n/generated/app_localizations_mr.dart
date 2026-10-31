@@ -2570,6 +2570,29 @@ class AppLocalizationsMr extends AppLocalizations {
   String get supportCategoryOther => 'इतर काहीतरी';
 
   @override
+  String get supportCategoryFeature => 'एक नवीन सुविधा';
+
+  @override
+  String get supportCategoryTranslation =>
+      'एखादा ग्रंथ दुसऱ्या भाषेत अनुवादित करा';
+
+  @override
+  String get supportBookLabel => 'ग्रंथ';
+
+  @override
+  String get supportLanguageLabel => 'भाषा';
+
+  @override
+  String get supportTranslationIntro =>
+      'ग्रंथ आणि कोणत्या भाषेत हवा ते निवडा. टीप लिहिणे ऐच्छिक आहे.';
+
+  @override
+  String get supportTranslationHint => 'आणखी काही सांगायचे आहे का? (ऐच्छिक)';
+
+  @override
+  String get supportFeatureHint => 'ॲपने काय करावे असे तुम्हाला वाटते ते सांगा';
+
+  @override
   String get supportMessageHint => 'काय झाले ते आम्हाला सांगा';
 
   @override

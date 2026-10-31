@@ -52,6 +52,10 @@ const EVENTS = {
   SCENES_RUN: 'scenes.run',
   SCENES_ACTIVITY: 'scenes.activity',
   SCENES_USAGE: 'scenes.usage',
+  // Admin panel, to `narration.read`: the narration and compare runs, their activity lines, and each clip as it is made.
+  NARRATION_RUN: 'narration.run',
+  NARRATION_ACTIVITY: 'narration.activity',
+  NARRATION_CLIP: 'narration.clip',
   // Admin panel, to `etiquette.translate`: the same two for the devotee etiquette translation runs.
   ETIQUETTE_RUN: 'etiquette.run',
   ETIQUETTE_ACTIVITY: 'etiquette.activity',
@@ -67,6 +71,11 @@ const EVENTS = {
   // Admin panel, to `marketing.read`: a campaign's whole state, and one line of its activity feed.
   MARKETING_RUN: 'marketing.run',
   MARKETING_ACTIVITY: 'marketing.activity',
+  // The reader's own app, to that reader: a staff reply on one of their tickets, and a status change.
+  SUPPORT_REPLY: 'support.reply',
+  SUPPORT_UPDATED: 'support.updated',
+  // Admin panel, to `support.manage`: the desk's list changed (a ticket came in, a reader or staff wrote, a status moved).
+  SUPPORT_INBOX: 'support.inbox',
 };
 
 export { toUser, broadcast, toPermission, EVENTS };

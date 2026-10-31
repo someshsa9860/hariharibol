@@ -2577,6 +2577,31 @@ class AppLocalizationsKn extends AppLocalizations {
   String get supportCategoryOther => 'ಇನ್ನೇನೋ';
 
   @override
+  String get supportCategoryFeature => 'ಒಂದು ಹೊಸ ಸೌಲಭ್ಯ';
+
+  @override
+  String get supportCategoryTranslation =>
+      'ಒಂದು ಪುಸ್ತಕವನ್ನು ಇನ್ನೊಂದು ಭಾಷೆಗೆ ಅನುವಾದಿಸುವುದು';
+
+  @override
+  String get supportBookLabel => 'ಪುಸ್ತಕ';
+
+  @override
+  String get supportLanguageLabel => 'ಭಾಷೆ';
+
+  @override
+  String get supportTranslationIntro =>
+      'ಪುಸ್ತಕ ಮತ್ತು ಯಾವ ಭಾಷೆಯಲ್ಲಿ ಬೇಕು ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಟಿಪ್ಪಣಿ ಐಚ್ಛಿಕ.';
+
+  @override
+  String get supportTranslationHint =>
+      'ನಾವು ತಿಳಿದುಕೊಳ್ಳಬೇಕಾದ್ದೇನಾದರೂ ಇದೆಯೇ? (ಐಚ್ಛಿಕ)';
+
+  @override
+  String get supportFeatureHint =>
+      'ಆ್ಯಪ್ ಏನು ಮಾಡಬೇಕೆಂದು ನೀವು ಬಯಸುತ್ತೀರಿ ಎಂದು ತಿಳಿಸಿ';
+
+  @override
   String get supportMessageHint => 'ಏನಾಯಿತು ಎಂದು ನಮಗೆ ತಿಳಿಸಿ';
 
   @override

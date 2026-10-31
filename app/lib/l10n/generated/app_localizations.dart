@@ -4492,6 +4492,48 @@ abstract class AppLocalizations {
   /// **'Something else'**
   String get supportCategoryOther;
 
+  /// No description provided for @supportCategoryFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'A new feature'**
+  String get supportCategoryFeature;
+
+  /// No description provided for @supportCategoryTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate a book into another language'**
+  String get supportCategoryTranslation;
+
+  /// No description provided for @supportBookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get supportBookLabel;
+
+  /// No description provided for @supportLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get supportLanguageLabel;
+
+  /// No description provided for @supportTranslationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the book and the language you would like it in. A note is optional.'**
+  String get supportTranslationIntro;
+
+  /// No description provided for @supportTranslationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything else we should know? (optional)'**
+  String get supportTranslationHint;
+
+  /// No description provided for @supportFeatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what you would like the app to do'**
+  String get supportFeatureHint;
+
   /// No description provided for @supportMessageHint.
   ///
   /// In en, this message translates to:

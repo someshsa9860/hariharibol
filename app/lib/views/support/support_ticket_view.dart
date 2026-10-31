@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/support.dart';
+import '../../providers/support_live_provider.dart';
 import '../../providers/support_provider.dart';
 import '../../services/support_service.dart';
 import '../../widgets/common/app_error_view.dart';
@@ -55,6 +56,8 @@ class _SupportTicketViewState extends ConsumerState<SupportTicketView> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    // A staff reply to this ticket arrives over the line while it is open.
+    ref.watch(supportLiveProvider);
     final ticket = ref.watch(supportTicketProvider(widget.id));
 
     return Scaffold(
@@ -76,6 +79,10 @@ class _SupportTicketViewState extends ConsumerState<SupportTicketView> {
                     style: context.texts.labelMedium,
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  if (data.details case final details?) ...[
+                    Text('${details.bookTitle} · ${details.languageName}', style: context.texts.titleSmall),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                   if (data.screenshotUrl != null) ...[
                     // A signed link, re-signed on every fetch: kept on disk by
                     // its address without the query.

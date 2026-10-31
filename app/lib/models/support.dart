@@ -25,6 +25,33 @@ class SupportMessage {
       );
 }
 
+/// What a translation request asks for: a book in the library, and the reading language to put it in.
+class SupportTranslation {
+  const SupportTranslation({
+    required this.bookSlug,
+    required this.languageCode,
+    required this.bookTitle,
+    required this.languageName,
+  });
+
+  final String bookSlug;
+  final String languageCode;
+  final String bookTitle;
+  final String languageName;
+
+  factory SupportTranslation.fromJson(Json json) => SupportTranslation(
+        bookSlug: asString(json['bookSlug']),
+        languageCode: asString(json['languageCode']),
+        bookTitle: asString(json['bookTitle']),
+        languageName: asString(json['languageName']),
+      );
+}
+
+SupportTranslation? _translation(dynamic wire) {
+  final json = asJson(wire);
+  return json == null ? null : SupportTranslation.fromJson(json);
+}
+
 /// A ticket or a piece of feedback the reader sent.
 class SupportTicket {
   const SupportTicket({
@@ -39,6 +66,7 @@ class SupportTicket {
     this.screenshotUrl,
     this.firstLine,
     this.messages = const [],
+    this.details,
   });
 
   final String id;
@@ -52,6 +80,9 @@ class SupportTicket {
   final String? screenshotUrl;
   final String? firstLine;
   final List<SupportMessage> messages;
+
+  /// Set on a translation request: the book and the reading language it names.
+  final SupportTranslation? details;
 
   /// The first line of what the reader wrote, for the list.
   String get preview => subject ?? firstLine ?? (messages.isEmpty ? '' : messages.first.body);
@@ -68,5 +99,6 @@ class SupportTicket {
         screenshotUrl: asStringOrNull(json['screenshotUrl']),
         firstLine: asStringOrNull(json['preview']),
         messages: asList(json['messages'], SupportMessage.fromJson),
+        details: _translation(json['details']),
       );
 }

@@ -3,7 +3,9 @@
 import { prisma } from '../config/database.js';
 import { localDateString, shiftDays, toDateColumn } from '../utils/date.js';
 
-export const CATEGORIES = ['bug', 'payment', 'account', 'content', 'suggestion', 'other'];
+// `suggestion` is what quick feedback is filed under; `feature` and `translation` are asked for in a ticket
+// (`translation` carries a book and a language in `SupportTicket.details`).
+export const CATEGORIES = ['bug', 'payment', 'account', 'content', 'feature', 'translation', 'suggestion', 'other'];
 
 // A reader is asked for a store rating at most this often, and not at all for a while after they wrote in.
 export const PROMPT_GAP_DAYS = 90;

@@ -2582,6 +2582,30 @@ class AppLocalizationsTe extends AppLocalizations {
   String get supportCategoryOther => 'ఇంకేదో';
 
   @override
+  String get supportCategoryFeature => 'ఒక కొత్త ఫీచర్';
+
+  @override
+  String get supportCategoryTranslation =>
+      'ఒక పుస్తకాన్ని మరో భాషలోకి అనువదించడం';
+
+  @override
+  String get supportBookLabel => 'పుస్తకం';
+
+  @override
+  String get supportLanguageLabel => 'భాష';
+
+  @override
+  String get supportTranslationIntro =>
+      'పుస్తకాన్ని, ఏ భాషలో కావాలో ఎంచుకోండి. గమనిక రాయడం ఐచ్ఛికం.';
+
+  @override
+  String get supportTranslationHint =>
+      'మేము తెలుసుకోవాల్సినది ఏదైనా ఉందా? (ఐచ్ఛికం)';
+
+  @override
+  String get supportFeatureHint => 'యాప్ ఏం చేయాలని మీరు కోరుకుంటారో చెప్పండి';
+
+  @override
   String get supportMessageHint => 'ఏం జరిగిందో మాకు చెప్పండి';
 
   @override

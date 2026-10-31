@@ -3478,7 +3478,7 @@ model SupportTicket {
 
   userId   String
   kind     SupportKind   @default(TICKET)
-  // bug · payment · account · content · suggestion · other (validated in controllers/app/support.js)
+  // bug · payment · account · content · feature · translation · suggestion · other (validated in controllers/app/support.js)
   category String        @db.VarChar(30)
   status   SupportStatus @default(OPEN)
   subject  String?       @db.VarChar(120)
@@ -3489,6 +3489,9 @@ model SupportTicket {
   screenshotKey String? @db.VarChar(500)
   // Attached by the app without asking: platform, OS, device model, app version, locale.
   deviceInfo    Json?
+  // A translation request: { bookSlug, languageCode, bookTitle, languageName } — the names are kept as they
+  // were asked for, so the desk reads the same thing after a book or language is renamed. Null otherwise.
+  details       Json?
 
   // Staff member looking after it, if one took it.
   assigneeId String?

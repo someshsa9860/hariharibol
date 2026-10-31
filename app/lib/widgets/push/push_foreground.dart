@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/constants/push_config.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../providers/support_live_provider.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_push_service.dart';
 
@@ -59,6 +60,8 @@ class _PushForegroundState extends State<PushForeground> {
     final body = notification?.body ?? data[PushConfig.bodyKey]?.toString();
     // A message with nothing to say is data for the app, not for the tray.
     if (title == null && body == null) return;
+    // A staff reply reaches the open Help screens over the line and is already on screen; a banner would show it twice.
+    if (supportLiveConnected.value && data[PushConfig.typeKey] == PushConfig.typeSupport) return;
 
     unawaited(LocalPushService.instance.show(
       channelName: channelName,

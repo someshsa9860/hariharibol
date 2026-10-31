@@ -40,6 +40,11 @@ abstract final class PushConfig {
   // The developer replied to the reader's chat (`backend/jobs/processors/devops.js`).
   static const String deeplinkDeveloper = 'developer';
 
+  // ── The kind of notification (`backend/services/notify.js` sends it as `type`) ─
+  /// A staff reply to one of the reader's tickets (`backend/controllers/admin/support.js`).
+  static const String typeKey = 'type';
+  static const String typeSupport = 'SUPPORT';
+
   // ── What a rich push carries (all strings) ──────────────────────────────
   /// `picture` or `text` — how the expanded notification is drawn.
   static const String styleKey = 'style';

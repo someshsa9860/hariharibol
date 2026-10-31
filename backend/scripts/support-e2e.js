@@ -6,10 +6,13 @@
 // Checks the permission gate, raising a ticket and feedback, the reader seeing only their own, a staff reply
 // (status moves to IN_PROGRESS, the reader is flagged unread and gets a SUPPORT notification), opening it
 // clearing the flag, resolving, a follow-up reopening it, and the review check (streak, throttle, tickets,
-// unhappy feedback). Makes throw-away users (deleted at the end).
+// unhappy feedback). Feature and translation requests (a book and a language, checked against the database)
+// are kept with their names. The live events are read off the Redis channels the websocket container listens
+// to: the reader hears a reply and a status change, the open desk hears each change, nobody else hears them.
+// Makes throw-away users (deleted at the end).
 
 import { prisma } from '../config/database.js';
-import { redis } from '../config/redis.js';
+import { redis, channels } from '../config/redis.js';
 import * as authService from '../services/auth.js';
 import { localDateString, shiftDays, toDateColumn } from '../utils/date.js';
 
@@ -51,12 +54,21 @@ async function tokenFor(user) {
   return accessToken;
 }
 
+// Every websocket publish the API makes, as the websocket container would receive it.
+const published = [];
+// The publish is fire-and-forget on the API side; give Redis a moment to deliver it.
+const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+
 async function main() {
   console.log('\nSupport and feedback\n');
   const reader = await makeUser('user', 'reader');
   const other = await makeUser('user', 'other');
   const admin = await makeUser('admin', 'admin');
   const [r, o, a] = await Promise.all([tokenFor(reader), tokenFor(other), tokenFor(admin)]);
+
+  const subscriber = redis.duplicate();
+  subscriber.on('message', (channel, raw) => published.push({ channel, ...JSON.parse(raw) }));
+  await subscriber.subscribe(channels.userEvent, channels.permissionEvent);
 
   try {
     console.log('Gate');
@@ -82,6 +94,35 @@ async function main() {
     check('another reader sees none', (await call('GET', '/api/app/support/tickets', { token: o })).data?.length === 0);
     check('another reader cannot open it', (await call('GET', `/api/app/support/tickets/${ticketId}`, { token: o })).status === 404);
 
+    console.log('Feature and translation requests');
+    const book = await prisma.book.findFirst({ orderBy: { createdAt: 'asc' }, select: { slug: true, title: true } });
+    const lang = await prisma.language.findFirst({ where: { isActive: true, isReadingLanguage: true }, select: { code: true, englishName: true } });
+    if (!book || !lang) throw new Error('These checks need a book and a reading language in the database (npm run seed)');
+
+    const feature = await call('POST', '/api/app/support/tickets', { token: r, body: { kind: 'TICKET', category: 'feature', message: 'A reminder before Ekadashi' } });
+    check('a feature request is a ticket in its own category', feature.status === 201 && feature.data?.category === 'feature' && feature.data?.details === null);
+    check('a feature request with no words is refused', (await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'feature' } })).status === 400);
+    check('a translation request must name a book and a language', (await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'translation' } })).status === 400);
+    const noSuchBook = await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'translation', details: { bookSlug: 'no-such-book-e2e', languageCode: lang.code } } });
+    check('an unknown book is refused', noSuchBook.status === 400);
+    const noSuchLanguage = await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'translation', details: { bookSlug: book.slug, languageCode: 'zz-e2e' } } });
+    check('an unknown language is refused', noSuchLanguage.status === 400);
+    const notReading = await prisma.language.findFirst({ where: { isReadingLanguage: false }, select: { code: true } });
+    if (notReading) {
+      const refused = await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'translation', details: { bookSlug: book.slug, languageCode: notReading.code } } });
+      check('a language the app does not read in is refused', refused.status === 400);
+    } else {
+      console.log('  SKIP  a language the app does not read in — the database has none marked that way');
+    }
+
+    const tr = await call('POST', '/api/app/support/tickets', { token: r, body: { category: 'translation', details: { bookSlug: book.slug, languageCode: lang.code } } });
+    check('a translation request is kept with the book and the language, by name', tr.status === 201 && tr.data?.details?.bookSlug === book.slug && tr.data?.details?.languageCode === lang.code && tr.data?.details?.bookTitle === book.title && tr.data?.details?.languageName === lang.englishName, JSON.stringify(tr.data?.details));
+    check('and is titled by the book and the language', tr.data?.subject === `${book.title} · ${lang.englishName}`.slice(0, 120), tr.data?.subject);
+    const trList = await call('GET', '/api/admin/support/tickets?category=translation', { token: a });
+    check('the desk filters translation requests and sees their details', trList.data?.some((x) => x.id === tr.data?.id && x.details?.languageCode === lang.code));
+    await settle();
+    check('the open desk hears about the new request', published.some((e) => e.permission === 'support.manage' && e.event === 'support.inbox' && e.payload?.ticketId === tr.data?.id));
+
     console.log('Staff side');
     const list = await call('GET', '/api/admin/support/tickets?status=OPEN&kind=TICKET', { token: a });
     check('admin filters by status and kind', list.data?.some((x) => x.id === ticketId) && list.data.every((x) => x.kind === 'TICKET'));
@@ -95,6 +136,10 @@ async function main() {
     check('status moved to in progress', after.data?.status === 'IN_PROGRESS');
     const note = await prisma.notification.findFirst({ where: { userId: reader.id, type: 'SUPPORT' } });
     check('reader got a SUPPORT notification with the ticket link', note?.data?.deeplink === `hariharibol://ticket?id=${ticketId}`);
+    await settle();
+    check('the reader is told live of the reply', published.some((e) => e.channel === channels.userEvent && e.userId === reader.id && e.event === 'support.reply' && e.payload?.ticketId === ticketId));
+    check('the desk hears of the reply', published.some((e) => e.permission === 'support.manage' && e.event === 'support.inbox' && e.payload?.ticketId === ticketId && e.payload?.change === 'staff'));
+    check('the live reply goes to the reader and to no one else', !published.some((e) => e.event?.startsWith('support.') && e.userId === other.id));
     check('unread count is 1', (await call('GET', '/api/app/support/unread', { token: r })).data?.count === 1);
     const opened = await call('GET', `/api/app/support/tickets/${ticketId}`, { token: r });
     check('reader sees the reply, oldest first', opened.data?.messages?.length === 2 && opened.data.messages[1].fromStaff === true);
@@ -102,6 +147,8 @@ async function main() {
 
     const resolved = await call('PATCH', `/api/admin/support/tickets/${ticketId}`, { token: a, body: { status: 'RESOLVED' } });
     check('resolved with a time', resolved.data?.status === 'RESOLVED' && !!resolved.data?.resolvedAt);
+    await settle();
+    check('the reader is told live of the new status', published.some((e) => e.channel === channels.userEvent && e.userId === reader.id && e.event === 'support.updated' && e.payload?.status === 'RESOLVED'));
     const followUp = await call('POST', `/api/app/support/tickets/${ticketId}/messages`, { token: r, body: { body: 'Still happening' } });
     check('follow-up saved', followUp.status === 201);
     check('and reopens the ticket', (await call('GET', `/api/admin/support/tickets/${ticketId}`, { token: a })).data?.status === 'OPEN');
@@ -143,6 +190,7 @@ async function main() {
     await prisma.reviewPrompt.deleteMany({ where: { userId: fan.id } });
     check('old unhappy feedback still keeps the prompt away', (await call('GET', '/api/app/support/review-check?trigger=streak', { token: fanToken })).data?.reason === 'unhappy_feedback');
   } finally {
+    await subscriber.quit();
     await prisma.user.deleteMany({ where: { email: { startsWith: 'support-e2e-' } } });
     await prisma.$disconnect();
     redis.disconnect();

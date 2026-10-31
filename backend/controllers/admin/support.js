@@ -7,6 +7,7 @@ import { prisma } from '../../config/database.js';
 import * as audit from '../../services/audit.js';
 import * as notify from '../../services/notify.js';
 import * as s3 from '../../services/s3.js';
+import * as websocket from '../../services/websocket.js';
 import { ok, created, paginated } from '../../utils/respond.js';
 import { paginate, readSort } from '../../utils/pagination.js';
 import { notFound } from '../../utils/errors.js';
@@ -47,6 +48,7 @@ export const list = async (req, res) => {
       status: true,
       subject: true,
       rating: true,
+      details: true,
       lastMessageAt: true,
       createdAt: true,
       user: USER,
@@ -126,6 +128,10 @@ export const reply = async (req, res) => {
 
   await audit.record(req, { action: 'support.reply', entityType: 'SupportTicket', entityId: ticket.id });
 
+  // A reader with the app open sees the reply at once; the push below reaches one with it closed.
+  websocket.toUser(ticket.userId, websocket.EVENTS.SUPPORT_REPLY, { ticketId: ticket.id, messageId: message.id });
+  websocket.toPermission('support.manage', websocket.EVENTS.SUPPORT_INBOX, { ticketId: ticket.id, change: 'staff' });
+
   // The reply is saved either way; a push that fails must not turn it into an error.
   // The title greets the reader in their language; the body is the staff member's own words.
   await notify
@@ -166,5 +172,12 @@ export const update = async (req, res) => {
     before: { status: before.status, assigneeId: before.assigneeId },
     after: { status: ticket.status, assigneeId: ticket.assigneeId },
   });
+
+  if (ticket.status !== before.status) {
+    websocket.toUser(ticket.userId, websocket.EVENTS.SUPPORT_UPDATED, { ticketId: ticket.id, status: ticket.status });
+  }
+  if (Object.keys(data).length) {
+    websocket.toPermission('support.manage', websocket.EVENTS.SUPPORT_INBOX, { ticketId: ticket.id, change: 'status' });
+  }
   return ok(res, ticket);
 };

@@ -2573,6 +2573,28 @@ class AppLocalizationsBn extends AppLocalizations {
   String get supportCategoryOther => 'অন্য কিছু';
 
   @override
+  String get supportCategoryFeature => 'একটি নতুন সুবিধা';
+
+  @override
+  String get supportCategoryTranslation => 'একটি গ্রন্থ অন্য ভাষায় অনুবাদ করা';
+
+  @override
+  String get supportBookLabel => 'গ্রন্থ';
+
+  @override
+  String get supportLanguageLabel => 'ভাষা';
+
+  @override
+  String get supportTranslationIntro =>
+      'গ্রন্থ আর কোন ভাষায় চান, তা বেছে নিন। একটি নোট লেখা ঐচ্ছিক।';
+
+  @override
+  String get supportTranslationHint => 'আমাদের আর কিছু জানার আছে? (ঐচ্ছিক)';
+
+  @override
+  String get supportFeatureHint => 'অ্যাপটি কী করুক, তা জানান';
+
+  @override
   String get supportMessageHint => 'কী হয়েছে আমাদের জানান';
 
   @override
