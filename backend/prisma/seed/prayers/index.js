@@ -109,7 +109,6 @@ function verseData(verse, seededAt) {
     text: verse.text,
     meaning: null,
     textChangedAt: seededAt,
-    renderedAt: seededAt,
     translations: renderings.length > 0 ? { create: renderings } : undefined,
   };
 }
