@@ -36,6 +36,7 @@ import translationRoutes from './translation.js';
 import sceneRoutes from './scene.js';
 import narrationRoutes from './narration.js';
 import etiquetteRoutes from './etiquette.js';
+import prayerRoutes from './prayer.js';
 import quoteRoutes from './quote.js';
 import bookCacheRoutes from './book-cache.js';
 import systemRoutes from './system.js';
@@ -76,6 +77,7 @@ const routers = [
   sceneRoutes,
   narrationRoutes,
   etiquetteRoutes,
+  prayerRoutes,
   quoteRoutes,
   bookCacheRoutes,
   systemRoutes,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -56,8 +58,13 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
   bool _ready = false;
   bool _failed = false;
   bool _playing = false;
-  Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+
+  /// Where playback is. Only the progress bar listens: the position arrives
+  /// many times a second, and rebuilding the whole cover for it was the cost.
+  final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
+  late final StreamSubscription<Duration> _positionSub;
+  late final StreamSubscription<PlayerState> _stateSub;
 
   /// The furthest point reached, not the current position — see
   /// [ReelVideoPlayerState] for why a looping track must track this
@@ -67,8 +74,8 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
   @override
   void initState() {
     super.initState();
-    _player.positionStream.listen(_onPosition);
-    _player.playerStateStream.listen(_onState);
+    _positionSub = _player.positionStream.listen(_onPosition);
+    _stateSub = _player.playerStateStream.listen(_onState);
     _open();
   }
 
@@ -92,13 +99,13 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
 
   void _onPosition(Duration position) {
     if (position.inMilliseconds > _furthestMs) _furthestMs = position.inMilliseconds;
-    if (mounted) setState(() => _position = position);
+    _position.value = position;
   }
 
   bool _endedReported = false;
 
   void _onState(PlayerState state) {
-    if (mounted) setState(() => _playing = state.playing);
+    if (mounted && state.playing != _playing) setState(() => _playing = state.playing);
     if (state.processingState == ProcessingState.completed && widget.isActive && !_endedReported) {
       _endedReported = true;
       widget.onEnded?.call();
@@ -127,8 +134,10 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
     }
   }
 
+  /// Nothing is sent for a reel that never played — a neighbour built ahead
+  /// of a swipe, or one already reported and rewound.
   void _report() {
-    if (_duration == Duration.zero) return;
+    if (_duration == Duration.zero || _furthestMs <= 0) return;
     widget.onProgress?.call(_furthestMs, _duration.inMilliseconds);
   }
 
@@ -148,7 +157,10 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
   @override
   void dispose() {
     _report();
+    _positionSub.cancel();
+    _stateSub.cancel();
     _player.dispose();
+    _position.dispose();
     super.dispose();
   }
 
@@ -161,7 +173,6 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
     }
 
     final total = _duration.inMilliseconds;
-    final progress = total > 0 ? (_position.inMilliseconds / total).clamp(0.0, 1.0) : 0.0;
 
     return Semantics(
       button: true,
@@ -190,11 +201,14 @@ class ReelAudioPlayerState extends State<ReelAudioPlayer> {
                   bottom: false,
                   child: ClipRRect(
                     borderRadius: AppRadius.smAll,
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: AppSpacing.xs,
-                      backgroundColor: AppColors.reelControl,
-                      color: AppColors.reelInk,
+                    child: ValueListenableBuilder<Duration>(
+                      valueListenable: _position,
+                      builder: (context, position, _) => LinearProgressIndicator(
+                        value: total > 0 ? (position.inMilliseconds / total).clamp(0.0, 1.0) : 0.0,
+                        minHeight: AppSpacing.xs,
+                        backgroundColor: AppColors.reelControl,
+                        color: AppColors.reelInk,
+                      ),
                     ),
                   ),
                 ),

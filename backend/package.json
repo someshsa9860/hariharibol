@@ -21,6 +21,7 @@
     "seed": "node prisma/seed/index.js",
     "seed:panchang": "node scripts/seed-panchang.js",
     "seed:etiquette": "node scripts/seed-etiquette.js",
+    "seed:prayers": "node scripts/seed-prayers.js",
     "seed:quotes": "node scripts/seed-quotes.js",
     "seed:reels": "node scripts/seed-reels.js",
     "seed:verse-issues": "node scripts/seed-verse-issues.js",
@@ -28,6 +29,7 @@
     "backfill:sampradaya": "node scripts/backfill-sampradaya.js",
     "recount:books": "node scripts/recount-books.js",
     "cache:books": "node scripts/export-book-cache.js",
+    "fetch:prayers": "node scripts/fetch-prayers.js",
     "fill:prabhupada": "node scripts/fill-prabhupada-source.js",
     "backfill:translation-progress": "node scripts/backfill-translation-progress.js",
     "fill:status": "node scripts/fill-status.js",
@@ -55,6 +57,8 @@
     "test:store-subscriptions": "node scripts/store-subscriptions-e2e.js",
     "test:reel-recipes": "node scripts/reel-recipes-e2e.js",
     "test:chant": "node scripts/chant-e2e.js",
+    "test:chant-sync": "node scripts/chant-sync-e2e.js",
+    "test:home-issue-verses": "node scripts/home-issue-verses-e2e.js",
     "test:routine": "node scripts/routine-e2e.js",
     "test:mantra-mala": "node scripts/mantra-mala-e2e.js",
     "test:mantra-prayer": "node scripts/mantra-prayer-e2e.js",
@@ -70,6 +74,7 @@
     "test:admin-users": "node scripts/admin-users-e2e.js",
     "test:dev-companion": "node scripts/dev-companion-e2e.js",
     "test:etiquette": "node scripts/etiquette-e2e.js",
+    "test:prayer": "node scripts/prayer-e2e.js",
     "test:calendar-translation": "node scripts/calendar-translation-e2e.js"
   },
   "prisma": {

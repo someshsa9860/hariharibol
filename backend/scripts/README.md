@@ -165,6 +165,27 @@ table as `[{ id, title, subtitle, mantra }]`, plus `count`, `chanters` and
 `deleted` if you have them. Run it after adding mantras in the admin panel, and
 before putting an entry in `MANTRA_SLUGS` (`config/legacy.js`).
 
+## Prayer texts (stotras, songs, āratis)
+
+`fetch-prayers.js` fetches the original text of each prayer listed in
+`lib/prayer-catalogue.js` (Vaiṣṇava songs from kksongs.org, the rest from
+Sanskrit Wikisource) into `public/prayers/json/<slug>.json`, with
+`_index.json` beside them, and writes `public/prayers/PRAYERS.md` (the list,
+the status of each, what was not found and why, and what a file holds). It
+does not touch the database or S3.
+
+```
+npm run fetch:prayers                         # every prayer not yet written
+npm run fetch:prayers -- --only gurvastakam   # one or a few, written again
+npm run fetch:prayers -- --refresh --offline  # write every file again from the page cache
+```
+
+Pages are kept in a cache in the system temp folder, so a second run sends no
+requests; requests go one at a time, a little over a second apart. A
+correction in the catalogue (`edits`) that no longer matches the page stops
+the run, so a page that has changed is noticed. A prayer taken out of the
+catalogue, or marked a gap since, loses its file on the next run.
+
 ## Verse–mood links
 
 `seed-verse-issues.js` — hand-curated `VerseIssue` rows for the six mood

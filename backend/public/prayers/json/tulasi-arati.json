@@ -1,0 +1,82 @@
+{
+  "slug": "tulasi-arati",
+  "title": "Śrī Tulasī Ārati",
+  "titleOriginal": "श्री तुलसी आरती",
+  "category": "aarti",
+  "sortOrder": 20,
+  "originalLanguage": "hi",
+  "summary": "Ārati song to Tulasī Mahārāṇī, dear to Kṛṣṇa.",
+  "about": "Offered while worshipping and circling the tulasī plant, asking for service to Rādhā and Kṛṣṇa.",
+  "author": "Candraśekhara Kavi",
+  "reference": "None",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/n/namonamahtulasimaharani.html",
+  "tradition": "vaishnava",
+  "deity": "tulasi",
+  "occasions": [
+    "ārati to Tulasī devī",
+    "tulasī-vivāha"
+  ],
+  "festivals": [
+    "tulsi-vivah"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "नमो नमः तुलसि महाराणी,\nवृन्दे महाराणी नमो नमः\nनमो रे नमो रे मैया नमो नारायणी",
+      "roman": "namo namaḥ tulasī mahārāṇī,\nvṛnde mahārāṇī namo namaḥ\nnamo re namo re maiyā namo nārāyaṇi",
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "जाको दरशे, परशे अघ-नाश-इ\nमहिमा बेद-पुराणे बाखानि",
+      "roman": "jāko daraśe, paraśe agha-nāśai\nmahimā beda-purāṇe bākhāni",
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "जाको पत्र, मञ्जरी कोमल\nश्री-पति-चरण-कमले लपटानि\nधन्य तुलसी मैया, पुराण तप किये,\nश्री-शालग्राम-महा-पटराणी",
+      "roman": "jāko patra, mañjarī komala\nśrī-pati-caraṇa-kamale lapaṭāni\ndhanya tulasī maiyā, purāṇa tapa kiye,\nśrī-śālagrāma-mahā-paṭarāṇī",
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "धूप, दीप, नैवेद्य, आरती,\nफुलना किये वरखा वरखानि\nछप्पन्न भोग, छत्रिश ब्यञ्जन,\nबिना तुलसी प्रभु एक नाहि मानि",
+      "roman": "dhūpa, dīpa, naivedya, ārati,\nphulanā kiye varakhā varakhāni\nchappanna bhoga, chatriśa byañjana,\nbinā tulasī prabhu eka nāhi māni",
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "शिव-शुक-नारद, और ब्रह्मादिको,\nढूरत फिरत महा-मुनि ज्ञानी\nचन्द्रसेखर मैया, तेरा जश गावे\nभकति-दान दीजिये महाराणी",
+      "roman": "śiva-śuka-nārada, āur brahmādi ko,\nḍhūrata phirata mahā-muni jñānī\ncandraśekhara maiyā, terā jaśa gāwe\nbhakati-dāna dījiye mahārāṇī",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/n/namonamahtulasimaharani.html",
+    "devanagari": "https://kksongs.org/unicode/n/namonamahtulasimaharani_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Namo Namah Tulasi Maharani",
+    "official name": "Tulasi Arati",
+    "author": "Candrasekhara Kavi",
+    "book name": "None",
+    "language": "Hindi"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 5,
+      "devanagari": 5
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.859Z"
+}

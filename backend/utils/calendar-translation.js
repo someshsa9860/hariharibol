@@ -102,10 +102,12 @@ export const TRANSLATE_SCHEMA = {
           text: { type: 'string', description: 'The translation' },
         },
         required: ['ref', 'text'],
+        additionalProperties: false,
       },
     },
   },
   required: ['items'],
+  additionalProperties: false,
 };
 
 const MAX_LENGTH = { NAME: 240, TERM: 80 };

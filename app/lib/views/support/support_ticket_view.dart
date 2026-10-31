@@ -12,6 +12,7 @@ import '../../models/support.dart';
 import '../../providers/support_provider.dart';
 import '../../services/support_service.dart';
 import '../../widgets/common/app_error_view.dart';
+import '../../widgets/common/app_image.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/support/support_labels.dart';
 
@@ -76,10 +77,9 @@ class _SupportTicketViewState extends ConsumerState<SupportTicketView> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   if (data.screenshotUrl != null) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Image.network(data.screenshotUrl!, height: 180, fit: BoxFit.cover),
-                    ),
+                    // A signed link, re-signed on every fetch: kept on disk by
+                    // its address without the query.
+                    AppImage(url: data.screenshotUrl, cacheKey: data.screenshotUrl!.split('?').first, height: 180),
                     const SizedBox(height: AppSpacing.md),
                   ],
                   for (final message in data.messages) _Bubble(message: message),

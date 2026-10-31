@@ -134,9 +134,12 @@ class ReelVideoPlayerState extends State<ReelVideoPlayer> {
     }
   }
 
+  /// Nothing is sent for a reel that never played — a neighbour built ahead
+  /// of a swipe, or one already reported and rewound (the server ignores a
+  /// watch that short anyway).
   void _report() {
     final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
+    if (controller == null || !controller.value.isInitialized || _furthestMs <= 0) return;
     widget.onProgress?.call(_furthestMs, controller.value.duration.inMilliseconds);
   }
 

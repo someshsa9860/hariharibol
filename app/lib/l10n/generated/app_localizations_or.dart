@@ -170,11 +170,11 @@ class AppLocalizationsOr extends AppLocalizations {
       'ଆପଣ ଯେକୌଣସି ସମୟରେ ସେଟିଂସ୍‌ରେ ଏହା ବଦଳାଇପାରିବେ।';
 
   @override
-  String get languageMantraTitle => 'ଆପଣ କେଉଁ ଲିପିରେ ଜପ କରନ୍ତି?';
+  String get languageReadingTitle => 'ଆପଣ ଶ୍ଳୋକ କେଉଁ ଭାଷାରେ ପଢ଼ନ୍ତି?';
 
   @override
-  String get languageMantraSubtitle =>
-      'ମନ୍ତ୍ର ଏହି ଲିପିରେ ଦେଖାଯିବ। ଏହାର ଅର୍ଥ ଆପଣଙ୍କ ନିଜ ଭାଷାରେ ରହିବ।';
+  String get languageReadingSubtitle =>
+      'ଶ୍ଳୋକ, ଅର୍ଥ ଏବଂ ତାତ୍ପର୍ଯ୍ୟ ଏହି ଭାଷାରେ ଦେଖାଯିବ। ମନ୍ତ୍ର ମଧ୍ୟ ଏହି ଭାଷାକୁ ଅନୁସରଣ କରିବ। ସେଟିଂସରେ ଆପଣ ଯେକୌଣସି ସମୟରେ ଏହାକୁ ବଦଳାଇ ପାରିବେ।';
 
   @override
   String get actionBack => 'ପଛକୁ';
@@ -298,6 +298,12 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get homeMantras => 'ମନ୍ତ୍ର';
+
+  @override
+  String get homeForYourGrowth => 'ଆପଣ ଯାହା ଉପରେ କାମ କରୁଛନ୍ତି';
+
+  @override
+  String get homeThisWeek => 'ଏହି ସପ୍ତାହ';
 
   @override
   String get homeStartYourDay => 'ଆଜିର ଲକ୍ଷ୍ୟ ସ୍ଥିର କରନ୍ତୁ';
@@ -481,17 +487,17 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get chantPrayerHintAlong =>
-      'ରେକର୍ଡିଂ ଆପଣଙ୍କ ସହ ଏହି ପ୍ରାର୍ଥନା କହେ। ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+      'ରେକର୍ଡିଂ ଏହି ପ୍ରାର୍ଥନାରୁ ହିଁ ଆରମ୍ଭ ହୁଏ। ରେକର୍ଡିଂ ପ୍ଲେ କରନ୍ତୁ ଏବଂ ତାହା ସହିତ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ।';
 
   @override
   String get chantPrayerHintAlongNoPrayer =>
-      'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ରେକର୍ଡିଂ ଆରମ୍ଭ କରିବାକୁ ପ୍ଲେ ଦବାନ୍ତୁ।';
+      'ପ୍ରଥମେ ଏହି ପ୍ରାର୍ଥନା କରନ୍ତୁ, ତା’ପରେ ରେକର୍ଡିଂ ପ୍ଲେ କରନ୍ତୁ — ରେକର୍ଡିଂ ମନ୍ତ୍ରରୁ ଆରମ୍ଭ ହୁଏ।';
 
   @override
-  String get chantAutoCountResting => 'ରେକର୍ଡିଂ ଚାଲିବା ପର୍ଯ୍ୟନ୍ତ ବିଶ୍ରାମରେ';
+  String get chantAutoCountResting => 'ରେକର୍ଡିଂ ଚାଲିବା ସମୟରେ ବିଶ୍ରାମରେ';
 
   @override
-  String get chantFinishRound => 'ମାଳା ସମ୍ପୂର୍ଣ୍ଣ କରନ୍ତୁ';
+  String get chantFinishRound => 'ମାଳା ଶେଷ କରନ୍ତୁ';
 
   @override
   String get chantViewDeity => 'ଶ୍ରୀବିଗ୍ରହ';
@@ -980,6 +986,12 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingContents => 'ସୂଚୀପତ୍ର';
 
   @override
+  String get readingContentsNow => 'ବର୍ତ୍ତମାନ ପଢୁଛନ୍ତି';
+
+  @override
+  String get readingContentsAboutBook => 'ଏହି ପୁସ୍ତକ ବିଷୟରେ';
+
+  @override
   String get readingFontSizeLabel => 'ଅକ୍ଷର ଆକାର';
 
   @override
@@ -1023,7 +1035,10 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'ଏକ ଶ୍ଳୋକକୁ ଦବାଇ ଧରନ୍ତୁ — ଏହାକୁ ପ୍ଲେ କରିବାକୁ, ବୁକ୍‌ମାର୍କ କରିବାକୁ, ହାଇଲାଇଟ୍ କରିବାକୁ କିମ୍ବା ଟିପ୍ପଣୀ ଯୋଡ଼ିବାକୁ।';
+      'ଏକ ଶ୍ଳୋକକୁ ଟ୍ୟାପ୍ କରି ସମ୍ପୂର୍ଣ୍ଣ ଦେଖନ୍ତୁ — ସଂସ୍କୃତ, ଶବ୍ଦାର୍ଥ, ତାତ୍ପର୍ଯ୍ୟ। ଦବାଇ ଧରିଲେ ଏହାକୁ ପ୍ଲେ କରନ୍ତୁ, ବୁକ୍‌ମାର୍କ କରନ୍ତୁ, ହାଇଲାଇଟ୍ କରନ୍ତୁ କିମ୍ବା ଟିପ୍ପଣୀ ଯୋଡ଼ନ୍ତୁ।';
+
+  @override
+  String get readingStoryCollapse => 'କାହାଣୀକୁ ଫେରନ୍ତୁ';
 
   @override
   String get readingStoryNothing =>
@@ -1236,6 +1251,49 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'ଆପଣଙ୍କ ଦୈନିକ ଦିନଚର୍ଯ୍ୟାରୁ ହଟାଗଲା';
+
+  @override
+  String get routineEditTask => 'କାମ ସମ୍ପାଦନା କରନ୍ତୁ';
+
+  @override
+  String get routineSaveChanges => 'ପରିବର୍ତ୍ତନ ସଞ୍ଚୟ କରନ୍ତୁ';
+
+  @override
+  String get routineDeleteTask => 'କାମ ବିଲୋପ କରନ୍ତୁ';
+
+  @override
+  String get routineDeleteDaily => 'ଏହି ଦିନଠାରୁ ହଟାନ୍ତୁ';
+
+  @override
+  String get routineRepeatDaily => 'ପ୍ରତିଦିନ ଦୋହରାନ୍ତୁ';
+
+  @override
+  String get routineRepeatFromDay => 'ଏହି ଦିନଠାରୁ ପ୍ରତିଦିନ ଦେଖାଯିବ।';
+
+  @override
+  String get routineRepeatStops =>
+      'କେବଳ ଏହି ଦିନରେ ରହିବ ଏବଂ ଏହା ପରେ ଆଉ ଦୋହରାଯିବ ନାହିଁ।';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'ପରିବର୍ତ୍ତନ ଏହି ଦିନଠାରୁ ଲାଗୁ ହେବ। ପୂର୍ବ ଦିନଗୁଡ଼ିକରେ ଏହା ପୂର୍ବ ପରି ରହିବ।';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'ପରିବର୍ତ୍ତନ ଆଜିଠାରୁ ଲାଗୁ ହେବ। ପୂର୍ବ ଦିନଗୁଡ଼ିକରେ ଏହା ପୂର୍ବ ପରି ରହିବ।';
+
+  @override
+  String get routineExactAlarmTitle => 'ଠିକ୍ ସମୟରେ ସୂଚନା';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android କୌଣସି କାମର ସୂଚନାକୁ କିଛି ମିନିଟ୍ ଅଟକାଇ ରଖିପାରେ। ଏହି ଆପ୍‌କୁ ଆଲାର୍ମ ଓ ସ୍ମାରକର ଅନୁମତି ଦିଅନ୍ତୁ, ଯାହାଫଳରେ ପ୍ରତ୍ୟେକ ସୂଚନା ତାହାର ସମୟ ଆରମ୍ଭ ହେବା ମିନିଟରେ ହିଁ ଆସିବ।';
+
+  @override
+  String get routineExactAlarmAllow => 'ଅନୁମତି ଦିଅନ୍ତୁ';
+
+  @override
+  String get routineExactAlarmLater => 'ଏବେ ନୁହେଁ';
 
   @override
   String get reelsEmpty => 'ଏପର୍ଯ୍ୟନ୍ତ ରିଲ୍ସ ନାହିଁ';
@@ -2847,6 +2905,98 @@ class AppLocalizationsOr extends AppLocalizations {
       'ଏହି ପରାମର୍ଶଗୁଡ଼ିକର ମିଆଦ ଶେଷ ହୋଇଛି। ଦୟାକରି ପୁଣି ଖୋଜନ୍ତୁ।';
 
   @override
+  String get prayersTitle => 'ପ୍ରାର୍ଥନା';
+
+  @override
+  String get prayersHomeSubtitle =>
+      'ଆପଣ ଯେଉଁ ଲିପିରେ ପଢ଼ନ୍ତି, ସେଥିରେ ହିଁ ସ୍ତୋତ୍ର, ଆରତି ଓ ପ୍ରାର୍ଥନା';
+
+  @override
+  String get prayersEmpty => 'ପ୍ରାର୍ଥନା ଯୋଡ଼ାଯାଉଛି। ଦୟାକରି ଶୀଘ୍ର ପୁଣି ଆସନ୍ତୁ।';
+
+  @override
+  String get prayersAll => 'ସବୁ';
+
+  @override
+  String prayersVerseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ଶ୍ଳୋକ',
+      one: '1 ଶ୍ଳୋକ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prayersMeaning => 'ଅର୍ଥ';
+
+  @override
+  String get prayersShowMeaning => 'ଅର୍ଥ ଦେଖାନ୍ତୁ';
+
+  @override
+  String get prayersHideMeaning => 'ଅର୍ଥ ଲୁଚାନ୍ତୁ';
+
+  @override
+  String get prayersExpandAll => 'ସମସ୍ତ ଅର୍ଥ ଖୋଲନ୍ତୁ';
+
+  @override
+  String get prayersCollapseAll => 'ସମସ୍ତ ଅର୍ଥ ବନ୍ଦ କରନ୍ତୁ';
+
+  @override
+  String get prayersScriptOriginal => 'ମୂଳ ପାଠ';
+
+  @override
+  String get prayersScriptRoman => 'ରୋମାନ୍ ଅକ୍ଷର';
+
+  @override
+  String get prayersShowOriginal => 'ମୂଳ ପାଠ ମଧ୍ୟ ଦେଖାନ୍ତୁ';
+
+  @override
+  String get prayersMeaningsOpen => 'ଅର୍ଥ ଆଗରୁ ଖୋଲା ରଖନ୍ତୁ';
+
+  @override
+  String get prayersAbout => 'ଏହି ପ୍ରାର୍ଥନା ବିଷୟରେ';
+
+  @override
+  String get prayersComposedBy => 'ରଚୟିତା';
+
+  @override
+  String get prayersReference => 'ସନ୍ଦର୍ଭ';
+
+  @override
+  String get prayersSource => 'ଉତ୍ସ';
+
+  @override
+  String prayersVerseNumber(int number) {
+    return 'ଶ୍ଳୋକ $number';
+  }
+
+  @override
+  String get prayersCategoryMorning => 'ସକାଳର ପ୍ରାର୍ଥନା';
+
+  @override
+  String get prayersCategoryEvening => 'ସନ୍ଧ୍ୟାର ପ୍ରାର୍ଥନା';
+
+  @override
+  String get prayersCategoryMeals => 'ଭୋଜନ ପୂର୍ବରୁ ଓ ପରେ';
+
+  @override
+  String get prayersCategoryGuru => 'ଗୁରୁ ଓ ପରମ୍ପରା';
+
+  @override
+  String get prayersCategoryDeity => 'ଦେବତାଙ୍କ ପ୍ରତି ପ୍ରାର୍ଥନା';
+
+  @override
+  String get prayersCategoryAarti => 'ଆରତି';
+
+  @override
+  String get prayersCategoryPeace => 'ଶାନ୍ତି ଓ ରକ୍ଷା';
+
+  @override
+  String get prayersCategoryOther => 'ଅନ୍ୟାନ୍ୟ';
+
+  @override
   String get readingLookLabel => 'ରୂପ';
 
   @override
@@ -2898,8 +3048,96 @@ class AppLocalizationsOr extends AppLocalizations {
   String get readingDimLabel => 'ପୃଷ୍ଠା ମଳିନ କରନ୍ତୁ';
 
   @override
-  String get readingAutoNightTitle => 'ରାତି ୮ଟାରୁ ସକାଳ ୬ଟା ପର୍ଯ୍ୟନ୍ତ ରାତି ରୂପ';
+  String get readingAutoNightTitle => 'ରାତି 8ଟାରୁ ସକାଳ 6ଟା ପର୍ଯ୍ୟନ୍ତ ରାତି ରୂପ';
 
   @override
   String get readingKeepAwakeTitle => 'ପଢ଼ିବା ବେଳେ ସ୍କ୍ରିନ ଚାଲୁ ରଖନ୍ତୁ';
+
+  @override
+  String get setupMantraTitle => 'ଆପଣଙ୍କ ପ୍ରିୟ ମନ୍ତ୍ର';
+
+  @override
+  String get setupMantraSubtitle =>
+      'ଯେଉଁଟି ଆପଣ ସବୁଠାରୁ ଅଧିକ ଜପ କରନ୍ତି। ଏହାକୁ ଆପଣ ଯେକୌଣସି ସମୟରେ ବଦଳାଇ ପାରିବେ।';
+
+  @override
+  String get setupMantraNone =>
+      'ବାଛିବା ପାଇଁ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ମନ୍ତ୍ର ନାହିଁ। ଆପଣ ପରେ ଜପ ଟ୍ୟାବରେ ଗୋଟିଏ ବାଛିପାରିବେ।';
+
+  @override
+  String get setupRoundsTitle => 'ପ୍ରତିଦିନ କେତେ ମାଳା?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'ଗୋଟିଏ ମାଳାରେ 108 ଜପ ଅଛି। ପ୍ରତିଦିନ ଯେତିକି କରିପାରିବେ ସେତିକି ବାଛନ୍ତୁ — ପରେ ସେଟିଂସରେ ବଦଳାଇ ପାରିବେ।';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ମାଳା',
+      one: '1 ମାଳା',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'ପ୍ରତିଦିନ ପ୍ରାୟ $time ଜପ';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours ଘଣ୍ଟା $minutes ମିନିଟ୍';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours ଘଣ୍ଟା';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes ମିନିଟ୍';
+  }
+
+  @override
+  String get setupRoundsFewer => 'କମ୍ ମାଳା';
+
+  @override
+  String get setupRoundsMore => 'ଅଧିକ ମାଳା';
+
+  @override
+  String get setupRoutineTitle => 'ଆପଣଙ୍କ ଦୈନିକ ରୁଟିନ୍';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return '$mantra ର $rounds ଅନୁସାରେ ପ୍ରସ୍ତୁତ।';
+  }
+
+  @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return '$rounds ଅନୁସାରେ ପ୍ରସ୍ତୁତ।';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'ଉଠିବା କିମ୍ବା ଶୋଇବା ସମୟ ବଦଳାଇବାକୁ ତାହା ଉପରେ ଟାପ୍ କରନ୍ତୁ। ବାକି ସବୁ ପରେ ରୁଟିନ୍ ଟାବ୍‌ରେ ବଦଳାଇ ପାରିବେ।';
+
+  @override
+  String setupChantLate(String time) {
+    return 'ଉଠିବାର ଏହି ସମୟରେ ଆପଣଙ୍କ ମାଳା $time ପରେ ପର୍ଯ୍ୟନ୍ତ ଚାଲିବ। ଶୀଘ୍ର ଉଠନ୍ତୁ କିମ୍ବା କମ୍ ମାଳା ବାଛନ୍ତୁ।';
+  }
+
+  @override
+  String get setupFinish => 'ମୋ ରୁଟିନ୍ ତିଆରି କରନ୍ତୁ';
+
+  @override
+  String get setupRoutineSkip => 'ବର୍ତ୍ତମାନ ଛାଡ଼ନ୍ତୁ';
+
+  @override
+  String routineSleepNotBefore(String time) {
+    return 'ଶୋଇବା ସମୟ $time ପୂର୍ବରୁ ହୋଇପାରିବ ନାହିଁ।';
+  }
 }

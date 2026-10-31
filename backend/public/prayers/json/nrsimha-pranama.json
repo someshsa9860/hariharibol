@@ -1,0 +1,77 @@
+{
+  "slug": "nrsimha-pranama",
+  "title": "Śrī Nṛsiṁha Praṇāma",
+  "titleOriginal": "श्रीनृसिंहप्रणाम",
+  "category": "deity",
+  "sortOrder": 20,
+  "originalLanguage": "sa",
+  "summary": "Prayers to Lord Nṛsiṁha, protector of His devotees.",
+  "about": "Praises the Lord in His half-man, half-lion form, who appeared from a pillar to protect Prahlāda Mahārāja.",
+  "author": "Vyasadeva",
+  "reference": "Nrsimha Purana",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/n/namastenarasimha.html",
+  "tradition": "vaishnava",
+  "deity": "narasimha",
+  "occasions": [
+    "after the morning ārati",
+    "for protection",
+    "Nṛsiṁha caturdaśī"
+  ],
+  "festivals": [
+    "narasimha-chaturdashi"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "नमस्ते नरसिंहाय\nप्रह्लादाह्लाद-दायिने\nहिरण्यकशिपोर्वक्षः-\nशिला-टङ्क-नखालये",
+      "roman": "namas te narasiṁhāya\nprahlādāhlāda-dāyine\nhiraṇyakaśipor vakṣaḥ-\nśilā-ṭaṅka-nakhālaye",
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "इतो नृसिंहः परतो नृसिंहो\nयतो यतो यामि ततो नृसिंहः\nबहिर्नृसिंहो हृदये नृसिंहो\nनृसिंहमादिं शरणं प्रपद्ये",
+      "roman": "ito nṛsiṁhaḥ parato nṛsiṁho\nyato yato yāmi tato nṛsiṁhaḥ\nbahir nṛsiṁho hṛdaye nṛsiṁho\nnṛsiṁham ādiṁ śaraṇaṁ prapadye",
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "तव करकमलवरे नखमद्भुत-शृङ्गं\nदलितहिरण्यकशिपुतनुभृङ्गम्\nकेशव धृतनरहरिरूप जय जगदीश हरे",
+      "roman": "tava kara-kamala-vare nakham adbhuta-śṛṅgaṁ\ndalita-hiraṇyakaśipu-tanu-bhṛṅgam\nkeśava dhṛta-narahari-rūpa jaya jagadīśa hare",
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/n/namastenarasimha.html",
+    "devanagari": "https://kksongs.org/unicode/n/namastenarasimhaya_deva.html"
+  },
+  "sourceHeader": {
+    "song name": "Namaste Narasimhaya",
+    "official name": "Nrsimha Pranama",
+    "author": "Vyasadeva",
+    "book name": "Nrsimha Purana",
+    "language": "Sanskrit"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 3,
+      "devanagari": 3
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": 3,
+        "copy": "devanagari",
+        "line": "(श्री दशावतार-स्तोत्र श्लोक ४)"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.869Z"
+}

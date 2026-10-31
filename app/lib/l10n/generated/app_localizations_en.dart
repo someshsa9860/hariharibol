@@ -166,11 +166,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageAppSubtitle => 'You can change this anytime in settings.';
 
   @override
-  String get languageMantraTitle => 'Which script do you chant in?';
+  String get languageReadingTitle =>
+      'Which language do you read the verses in?';
 
   @override
-  String get languageMantraSubtitle =>
-      'Mantras appear in this script. Their meaning stays in your own language.';
+  String get languageReadingSubtitle =>
+      'Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.';
 
   @override
   String get actionBack => 'Back';
@@ -294,6 +295,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeMantras => 'Mantras';
+
+  @override
+  String get homeForYourGrowth => 'For what you are working on';
+
+  @override
+  String get homeThisWeek => 'This week';
 
   @override
   String get homeStartYourDay => 'Set today\'s target';
@@ -478,11 +485,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chantPrayerHintAlong =>
-      'The recording says this prayer with you. Press play to begin.';
+      'The recording begins with this prayer. Press play and chant it with the recording.';
 
   @override
   String get chantPrayerHintAlongNoPrayer =>
-      'Chant this prayer first, then press play to begin the recording.';
+      'Chant this prayer, then press play — the recording starts with the mantra.';
 
   @override
   String get chantAutoCountResting => 'Resting while the recording plays';
@@ -976,6 +983,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingContents => 'Contents';
 
   @override
+  String get readingContentsNow => 'Reading now';
+
+  @override
+  String get readingContentsAboutBook => 'About this book';
+
+  @override
   String get readingFontSizeLabel => 'Text size';
 
   @override
@@ -1019,7 +1032,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readingStoryHint =>
-      'Press and hold a verse to play it, bookmark it, highlight it or add a note.';
+      'Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.';
+
+  @override
+  String get readingStoryCollapse => 'Back to story';
 
   @override
   String get readingStoryNothing =>
@@ -1232,6 +1248,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routineDailyRemoved => 'Removed from your daily routine';
+
+  @override
+  String get routineEditTask => 'Edit task';
+
+  @override
+  String get routineSaveChanges => 'Save changes';
+
+  @override
+  String get routineDeleteTask => 'Delete task';
+
+  @override
+  String get routineDeleteDaily => 'Remove from this day on';
+
+  @override
+  String get routineRepeatDaily => 'Repeat every day';
+
+  @override
+  String get routineRepeatFromDay => 'Shows on every day from this day on.';
+
+  @override
+  String get routineRepeatStops =>
+      'Stays on this day only and stops repeating after it.';
+
+  @override
+  String get routineEditDailyFromDay =>
+      'Changes apply from this day on. Earlier days keep it as it was.';
+
+  @override
+  String get routineEditDailyFromToday =>
+      'Changes apply from today on. Earlier days keep it as it was.';
+
+  @override
+  String get routineExactAlarmTitle => 'Alerts right on time';
+
+  @override
+  String get routineExactAlarmBody =>
+      'Android can hold a task\'s alert back by a few minutes. Allow alarms and reminders for this app so each alert comes the minute its time begins.';
+
+  @override
+  String get routineExactAlarmAllow => 'Allow';
+
+  @override
+  String get routineExactAlarmLater => 'Not now';
 
   @override
   String get reelsEmpty => 'No reels yet';
@@ -2837,6 +2896,98 @@ class AppLocalizationsEn extends AppLocalizations {
       'These suggestions have expired. Please search again.';
 
   @override
+  String get prayersTitle => 'Prayers';
+
+  @override
+  String get prayersHomeSubtitle =>
+      'Stotras, aartis and prayers in the script you read';
+
+  @override
+  String get prayersEmpty => 'Prayers are being added. Please come back soon.';
+
+  @override
+  String get prayersAll => 'All';
+
+  @override
+  String prayersVerseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verses',
+      one: '1 verse',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prayersMeaning => 'Meaning';
+
+  @override
+  String get prayersShowMeaning => 'Show meaning';
+
+  @override
+  String get prayersHideMeaning => 'Hide meaning';
+
+  @override
+  String get prayersExpandAll => 'Expand all meanings';
+
+  @override
+  String get prayersCollapseAll => 'Collapse all meanings';
+
+  @override
+  String get prayersScriptOriginal => 'Original';
+
+  @override
+  String get prayersScriptRoman => 'Roman letters';
+
+  @override
+  String get prayersShowOriginal => 'Also show the original';
+
+  @override
+  String get prayersMeaningsOpen => 'Open meanings by default';
+
+  @override
+  String get prayersAbout => 'About this prayer';
+
+  @override
+  String get prayersComposedBy => 'Composed by';
+
+  @override
+  String get prayersReference => 'Reference';
+
+  @override
+  String get prayersSource => 'Source';
+
+  @override
+  String prayersVerseNumber(int number) {
+    return 'Verse $number';
+  }
+
+  @override
+  String get prayersCategoryMorning => 'Morning prayers';
+
+  @override
+  String get prayersCategoryEvening => 'Evening prayers';
+
+  @override
+  String get prayersCategoryMeals => 'Before and after meals';
+
+  @override
+  String get prayersCategoryGuru => 'Guru and the lineage';
+
+  @override
+  String get prayersCategoryDeity => 'Prayers to a deity';
+
+  @override
+  String get prayersCategoryAarti => 'Aartis';
+
+  @override
+  String get prayersCategoryPeace => 'Peace and protection';
+
+  @override
+  String get prayersCategoryOther => 'Other';
+
+  @override
   String get readingLookLabel => 'Look';
 
   @override
@@ -2892,4 +3043,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readingKeepAwakeTitle => 'Keep the screen on while reading';
+
+  @override
+  String get setupMantraTitle => 'Your favourite mantra';
+
+  @override
+  String get setupMantraSubtitle =>
+      'The one you chant most. You can change it any time.';
+
+  @override
+  String get setupMantraNone =>
+      'There are no mantras to choose from yet. You can pick one later in the Jap tab.';
+
+  @override
+  String get setupRoundsTitle => 'How many rounds a day?';
+
+  @override
+  String get setupRoundsSubtitle =>
+      'One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.';
+
+  @override
+  String setupRoundsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rounds',
+      one: '1 round',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String setupChantTime(String time) {
+    return 'About $time of chanting a day';
+  }
+
+  @override
+  String setupDurationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String setupDurationHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String setupDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get setupRoundsFewer => 'Fewer rounds';
+
+  @override
+  String get setupRoundsMore => 'More rounds';
+
+  @override
+  String get setupRoutineTitle => 'Your daily routine';
+
+  @override
+  String setupRoutineSubtitle(String rounds, String mantra) {
+    return 'Planned around $rounds of $mantra.';
+  }
+
+  @override
+  String setupRoutineSubtitleNoMantra(String rounds) {
+    return 'Planned around $rounds.';
+  }
+
+  @override
+  String get setupRoutineHint =>
+      'Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.';
+
+  @override
+  String setupChantLate(String time) {
+    return 'At this wake-up time your rounds run past $time. Wake earlier or choose fewer rounds.';
+  }
+
+  @override
+  String get setupFinish => 'Create my routine';
+
+  @override
+  String get setupRoutineSkip => 'Skip for now';
+
+  @override
+  String routineSleepNotBefore(String time) {
+    return 'Bedtime can\'t be before $time.';
+  }
 }

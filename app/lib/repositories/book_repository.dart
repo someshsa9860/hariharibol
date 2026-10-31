@@ -318,16 +318,43 @@ class BookRepository {
     return fallback;
   }
 
+  /// A verse's word-for-word meanings in the reader's own language — the same
+  /// rule as the server (`language.pickWordMeanings`). Walking the chain, the
+  /// first language with a list of its own wins; a chain that reaches English
+  /// stops there, because the verse's own list ([fallback], JSON text) is
+  /// English. A language with no list of its own therefore shows the English
+  /// words rather than nothing.
+  static List<WordMeaning> pickWordMeanings(
+    List<TranslationRecord> rows,
+    List<String> chain,
+    String? fallback,
+  ) {
+    for (final code in chain) {
+      if (code == _english) break;
+      for (final row in rows) {
+        if (row.languageCode != code) continue;
+        final words = _parseWords(row.wordMeanings);
+        if (words.isNotEmpty) return words;
+      }
+    }
+    return _parseWords(fallback);
+  }
+
+  static const _english = 'en';
+
+  static List<WordMeaning> _parseWords(String? json) {
+    if (json == null || json.isEmpty) return const [];
+    try {
+      return WordMeaning.parse(jsonDecode(json));
+    } catch (_) {
+      return const [];
+    }
+  }
+
   Verse _verse(VerseRecord row, BookRecord book, UnitRecord? chapter, List<TranslationRecord> rows, List<String> chain) {
     final picked = pickTranslation(rows, chain);
     final allowed = rows.where((t) => chain.contains(t.languageCode)).toList();
-
-    List<WordMeaning> words = const [];
-    if (row.wordMeanings != null) {
-      try {
-        words = WordMeaning.parse(jsonDecode(row.wordMeanings!));
-      } catch (_) {}
-    }
+    final words = pickWordMeanings(rows, chain, row.wordMeanings);
 
     VerseTranslation shape(TranslationRecord t, {bool withText = true}) => VerseTranslation(
           id: t.id,

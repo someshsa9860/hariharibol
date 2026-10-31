@@ -11,8 +11,10 @@ const router = createRouter({
     'language, watch it live (websocket events `translation.run` and `translation.activity`), read ' +
     'what it saved, and import the result from storage into the database. A run is a database row ' +
     'worked by the worker; it survives a page refresh, a restart and a failure, and pauses rather ' +
-    'than fails when credit runs out. Text is stamped with a version (`TRANSLATION_VERSION`): a ' +
-    'language already translated under the current version is not translated again.',
+    'than fails when credit runs out. An import is the same kind of row (`/imports/runs`, websocket events ' +
+    '`translation-import.run` and `translation-import.activity`), also worked by the worker. Text is stamped ' +
+    'with a version (`TRANSLATION_VERSION`): a language already translated under the current version is not ' +
+    'translated again.',
 });
 
 const language = z.enum(LANGUAGE_CODES);
@@ -45,6 +47,10 @@ const planText = z.string().max(2000).transform((text, ctx) => {
 });
 
 const statuses = z.enum(['QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED']);
+// An import never waits on a person, so it is never PAUSED.
+const importStatuses = z.enum(['QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED']);
+// An import copies either a language's translations or the Bhagavatam's vikara tags; both are runs on the same queue.
+const importKinds = z.enum(['TRANSLATION', 'VIKARA']);
 
 // Static paths first, so none of them is read as a run id.
 
@@ -223,8 +229,11 @@ router.post(
       'does not change) and one that does not is created. A verse the database lacks, or whose ' +
       'numbers disagree with the file, is reported and left alone. New rows are hidden from readers ' +
       'unless `publish` is true, which also needs `verse.publish`; an existing row’s visibility is ' +
-      'never lowered. `dryRun` returns the same report and writes nothing. Importing again changes ' +
-      'only what differs.',
+      'never lowered. Importing again changes only what differs. An import is queued, not done in the ' +
+      'request: the answer is the new run (201), which the worker works a chapter at a time while the ' +
+      'page follows it over the websocket or `GET /imports/runs/:id`. Only one import per language and ' +
+      'book may be live. `dryRun` is the exception: it only reads, so it is answered at once (200) with ' +
+      'the same report and writes nothing — for a book as long as the Bhagavatam it can take a while.',
     permission: 'translation.import',
     limit: 'write',
     body: z.object({
@@ -235,13 +244,105 @@ router.post(
       dryRun: z.boolean().default(false),
     }),
     responds: {
-      200: 'Counts per chapter and in total: created, updated, unchanged, missing, conflicts',
+      200: '`dryRun` only: counts per chapter and in total — created, updated, unchanged, missing, conflicts',
+      201: 'The queued import run',
+      400: 'A chapter that is not in the book',
       403: '`publish` without the `verse.publish` permission',
-      409: 'An import of this language is already running',
-      422: 'The book or translator is not in the database, or storage cannot be read',
+      409: 'An import of this language and book is already queued or running (`details.runId`), or one is being started',
+      422: 'The book or translator is not in the database or storage cannot be read (`dryRun`), or the queue is unreachable',
     },
   },
   controller.importTranslations
+);
+
+router.get(
+  '/imports/vikaras',
+  {
+    summary: 'What is in the database from the Bhagavatam’s vikara tags',
+    description:
+      'How many Śrīmad-Bhāgavatam verses have a link to one of the six vikaras, and how many links each vikara has. ' +
+      'Counts links from any source (the seed, an admin, an import); the tag files in storage are read only by an import.',
+    permission: 'translation.read',
+    limit: 'read',
+    responds: { 200: 'Verses and links, and a line per vikara' },
+  },
+  controller.vikaraStatus
+);
+
+router.post(
+  '/imports/vikaras',
+  {
+    summary: 'Import the Bhagavatam’s vikara tags into the database',
+    description:
+      'Links verses to the vikaras (`VerseIssue`) from the tag files a Marathi Bhagavatam translation run keeps apart from the ' +
+      'language files (`issues/json/srimad-bhagavatam/c<canto>-ch-<n>.json`). It is separate from importing a language and ' +
+      'never changes a translation. A verse is matched on its book, canto, chapter and verse number; one that is not in ' +
+      'the database, or whose numbers disagree with the file, is reported and left alone. A verse that already has vikara ' +
+      'links is left alone, and nothing is deleted, so importing again changes nothing already linked. A verse with no tag ' +
+      'is the usual case and writes nothing. Queued, not done in the request: the answer is the new run (201, `kind` ' +
+      '`VIKARA`), which the worker works a chapter at a time while the page follows it over the websocket or ' +
+      '`GET /imports/runs/:id`. Only one vikara import may be live. `dryRun` only reads, so it is answered at once (200) ' +
+      'with the same report and writes nothing — for all 335 chapters it can take a while.',
+    permission: 'translation.import',
+    limit: 'write',
+    body: z.object({
+      chapters: z.array(chapterNumber).min(1).max(335).optional(),
+      dryRun: z.boolean().default(false),
+    }),
+    responds: {
+      200: '`dryRun` only: counts per chapter and in total — links to make, verses already linked, verses with no tag, missing, conflicts',
+      201: 'The queued import run',
+      400: 'A chapter that is not in the Bhagavatam',
+      409: 'A vikara import is already queued or running (`details.runId`), or one is being started',
+      422: 'The book or a vikara is not in the database or storage cannot be read (`dryRun`), or the queue is unreachable',
+    },
+  },
+  controller.importVikaras
+);
+
+router.get(
+  '/imports/runs',
+  {
+    summary: 'List imports',
+    description: 'Newest first, filtered by status, language, book and kind (`TRANSLATION` or `VIKARA`).',
+    permission: 'translation.read',
+    limit: 'read',
+    query: schemas.page.extend({ status: importStatuses.optional(), language: language.optional(), book: book.optional(), kind: importKinds.optional() }),
+    responds: { 200: 'Import runs' },
+  },
+  controller.importRuns
+);
+
+router.get(
+  '/imports/runs/:id',
+  {
+    summary: 'Get one import with its activity feed',
+    description:
+      'Progress (`progress.done` of `progress.total` chapters; `currentChapter` is the last one finished), and ' +
+      'once it is over the report that `dryRun` gives, in `run.result`. A cancelled import keeps the report of ' +
+      'the chapters it did.',
+    permission: 'translation.read',
+    limit: 'read',
+    params: schemas.id,
+    responds: { 200: 'The import and the latest activity, newest first', 404: 'No such import' },
+  },
+  controller.importRun
+);
+
+router.post(
+  '/imports/runs/:id/cancel',
+  {
+    summary: 'Cancel an import',
+    description:
+      'An import that is working stops after the chapter in progress (within a few seconds); a waiting one is ' +
+      'cancelled at once. Chapters already imported stay imported — each one is written in one transaction.',
+    permission: 'translation.import',
+    limit: 'write',
+    params: schemas.id,
+    body: z.object({}).optional(),
+    responds: { 200: 'The import', 404: 'No such import', 409: 'The import has already finished' },
+  },
+  controller.cancelImportRun
 );
 
 router.get(

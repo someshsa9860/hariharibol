@@ -2,6 +2,7 @@ import '../core/constants/api_paths.dart';
 import '../models/language.dart';
 import '../models/reference_item.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The seeded lists the app offers as choices — languages, deities, gurus.
 ///
@@ -15,7 +16,7 @@ class ReferenceService {
   final ApiClient _api = ApiClient.instance;
 
   Future<List<Language>> languages() async {
-    final response = await _api.get(ApiPaths.languages);
+    final response = await _api.getOrSaved(ApiPaths.languages);
     return response.list
         .whereType<Map>()
         .map((item) => Language.fromJson(Map<String, dynamic>.from(item)))
@@ -27,7 +28,7 @@ class ReferenceService {
   Future<List<ReferenceItem>> translators() => _references(ApiPaths.translators);
 
   Future<List<ReferenceItem>> _references(String path) async {
-    final response = await _api.get(path);
+    final response = await _api.getOrSaved(path);
     return response.list
         .whereType<Map>()
         .map((item) => ReferenceItem.fromJson(Map<String, dynamic>.from(item)))

@@ -10,6 +10,7 @@ import { prisma } from '../../config/database.js';
 import { ok } from '../../utils/respond.js';
 import * as language from '../../utils/language.js';
 import { DEFAULT_LANGUAGE } from '../../config/constants.js';
+import { opensOf } from '../../utils/routine-open.js';
 
 /** A stored row in the shape the phone keeps it in. Absent beats null for an optional number. */
 function present(row, fields) {
@@ -145,6 +146,8 @@ export const nudges = async (req, res) => {
       key: kind.key,
       voiceScript: kind.voiceScript,
       voiceUrl: null,
+      // Where tapping the alert opens: a meal's prayer, the chant counter, or the last book read.
+      opens: opensOf(kind),
       nudges: kind.nudges.map((nudge) => {
         const translation = nudge.verseId ? translationOf.get(nudge.verseId) : null;
         const own = translation?.meaning?.trim();

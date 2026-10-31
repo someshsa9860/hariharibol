@@ -19,6 +19,23 @@ test('messages cost their text plus framing', () => {
   assert.equal(one, tokens.estimate('hare krishna') + tokens.MESSAGE_OVERHEAD);
 });
 
+test('a long unbroken run is counted quickly and a little high, never low', () => {
+  const run = 'कृष्णायवासुदेवायहरयेपरमात्मने'.repeat(140).slice(0, 4000);
+  const started = performance.now();
+  const count = tokens.countText(run);
+  assert.ok(performance.now() - started < 1000, 'counting 4,000 letters without a space must not block for seconds');
+  assert.ok(count > 1700 && count < 2100, `count ${count}`);
+  // Text around a long run is counted as before.
+  assert.equal(tokens.countText(`hare krishna ${'!'.repeat(100)} hare rama`) > tokens.countText('hare krishna hare rama'), true);
+});
+
+test('truncation decodes back to the text across a cut run', () => {
+  const run = `om ${'नमो'.repeat(60)} namah`;
+  assert.equal(tokens.truncateToTokens(run, 10_000), run);
+  const cut = tokens.truncateToTokens(run, 20);
+  assert.ok(run.startsWith(cut.replace(/�+$/, '')));
+});
+
 test('truncation lands on a token boundary and keeps short text whole', () => {
   assert.equal(tokens.truncateToTokens('short', 100), 'short');
   const cut = tokens.truncateToTokens('word '.repeat(200), 10);

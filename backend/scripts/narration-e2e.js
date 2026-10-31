@@ -24,6 +24,7 @@ import { DelayedError } from 'bullmq';
 import { prisma } from '../config/database.js';
 import { redis } from '../config/redis.js';
 import { narration } from '../config/narration.js';
+import { translation } from '../config/translation.js';
 import env from '../config/env.js';
 import * as authService from '../services/auth.js';
 import * as service from '../services/narration.js';
@@ -201,8 +202,10 @@ async function main() {
   dir = mkdtempSync(join(tmpdir(), 'narration-e2e-'));
   process.env.SOURCE_LOCAL_DIR = dir;
   writeGita(dir);
-  const saved = { heartbeatMs: narration.heartbeatMs };
+  // The English chapter files are remembered for a while; the corrected-translation case below needs them read afresh.
+  const saved = { heartbeatMs: narration.heartbeatMs, cache: translation.sourceCacheSeconds };
   narration.heartbeatMs = 100;
+  translation.sourceCacheSeconds = 0;
   let api = null;
   const apiLog = [];
   const exists = (key) => existsSync(join(dir, key));
@@ -239,7 +242,7 @@ async function main() {
       row = await newRun({ chapters: [1] });
       await work(row, engine);
       after = await fresh(row);
-      check('a corrected translation is made again, and only that verse', engine.asked.length === 1 && engine.asked[0].text === 'A corrected sentence.' && after.doneVerses === 1 && after.skippedVerses === 5);
+      check('a corrected translation is made again, and only that verse', engine.asked.length === 1 && engine.asked[0].text === 'A corrected sentence.' && after.doneVerses === 1 && after.skippedVerses === 5, `${engine.asked.length} asked, ${after.doneVerses} done, ${after.skippedVerses} skipped`);
 
       engine = fakeEngine();
       row = await newRun({ chapters: [1], force: true });
@@ -355,7 +358,7 @@ async function main() {
       check('voices and languages are listed', (await call('GET', `${api_}/voices`, { token: reader })).data.length === 2 && (await call('GET', `${api_}/languages`, { token: reader })).data.map((l) => l.id).join() === 'en,hi');
 
       const est = await call('GET', `${api_}/estimate?chapters=1,2`, { token: reader });
-      check('the estimate counts verses and characters from the texts and leaves out clips made', est.status === 200 && est.data.chapters === 2 && est.data.verses >= 2 && est.data.priced === true && est.data.priceVerified === false, JSON.stringify(est.data));
+      check('the estimate counts verses and characters from the texts and leaves out clips made', est.status === 200 && est.data.chapters === 2 && est.data.verses + est.data.alreadyMade === 8 && est.data.alreadyMade >= 6 && est.data.versesWithoutText === 1 && est.data.priced === true && est.data.priceVerified === false, JSON.stringify(est.data));
       const gemEst = await call('GET', `${api_}/estimate?chapters=1&engine=gemini-tts&model=gemini-2.5-flash-preview-tts&voice=Puck`, { token: reader });
       check('an engine with no known price gives no cost', gemEst.status === 200 && gemEst.data.priced === false && gemEst.data.costUsd === null);
       check('the estimate refuses a chapter the book lacks and a voice the engine lacks', (await call('GET', `${api_}/estimate?chapters=99`, { token: reader })).status === 400 && (await call('GET', `${api_}/estimate?voice=Nobody`, { token: reader })).status === 422);
@@ -400,6 +403,7 @@ async function main() {
     }
   } finally {
     narration.heartbeatMs = saved.heartbeatMs;
+    translation.sourceCacheSeconds = saved.cache;
     api?.kill('SIGTERM');
     const ids = [...made.runs];
     for (const id of ids) {

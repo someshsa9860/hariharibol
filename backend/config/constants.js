@@ -53,6 +53,8 @@ const PERMISSIONS = {
   'translation.import': { group: 'content', name: 'Import Claude translations from storage into the database' },
   'etiquette.manage': { group: 'content', name: 'View and edit devotee etiquette, and set one aside' },
   'etiquette.translate': { group: 'content', name: 'Start, resume and cancel devotee etiquette translation runs' },
+  'prayer.manage': { group: 'content', name: 'View and edit prayers, and publish or hold them back' },
+  'prayer.translate': { group: 'content', name: 'Start, resume and cancel prayer transliteration and translation runs' },
   'quote.manage': { group: 'content', name: 'View and edit the quotes shown while chanting, and set one aside' },
   'quote.translate': { group: 'content', name: 'Start, resume and cancel quote translation runs' },
 
@@ -145,6 +147,15 @@ const DEFAULT_ROUND_TARGET = 16;
 // swept nightly (see jobs/processors/maintenance.js).
 const CHANT_TRANSCRIPT_TTL_DAYS = 7;
 
+// A phone keeps its chanting and sends it when it can, so a sitting may arrive
+// long after it happened. Older than this, or stamped in the future by a wrong
+// clock, and it is placed at the nearest day inside the window rather than
+// refused: refusing would leave it on the phone to be refused again every time.
+const CHANT_SYNC_MAX_AGE_DAYS = 400;
+
+// Sittings in one sync request. The phone sends a longer backlog in pieces.
+const CHANT_SYNC_MAX_SITTINGS = 25;
+
 // How many separate days someone must chant a tradition's mantras before we
 // call them a follower of it — and before a different tradition takes over from
 // the one they had. Days, not rounds: one long sitting is not a habit.
@@ -231,6 +242,11 @@ const SLOKA_DEFAULT_DELIVERY_TIME = '04:30';
 // worship has begun and before the day's work.
 const ETIQUETTE_DEFAULT_DELIVERY_TIME = '07:15';
 
+// ── Payments ───────────────────────────────────────────────────────────────
+// How long Google Play or Apple may take to answer one verification call. The person is waiting on the purchase
+// screen; past this the call fails as a lookup failure and the app's retry (or the store's notification) settles it.
+const STORE_TIMEOUT_MS = 15_000;
+
 // ── Cache keys and TTLs ────────────────────────────────────────────────────
 const CACHE = {
   userAuth: (userId) => `auth:user:${userId}`,
@@ -242,6 +258,7 @@ const CACHE = {
 };
 
 export {
+  STORE_TIMEOUT_MS,
   ROLES,
   PERMISSIONS,
   ALL_PERMISSIONS,
@@ -255,6 +272,8 @@ export {
   BEADS_PER_ROUND,
   DEFAULT_ROUND_TARGET,
   CHANT_TRANSCRIPT_TTL_DAYS,
+  CHANT_SYNC_MAX_AGE_DAYS,
+  CHANT_SYNC_MAX_SITTINGS,
   SAMPRADAYA_MIN_DAYS,
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,

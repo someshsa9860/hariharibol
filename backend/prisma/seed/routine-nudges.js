@@ -179,3 +179,16 @@ export const routineKinds = [
     ],
   },
 ];
+
+// What tapping each kind's alert opens (`RoutineKind.opensKind` / `prayerSlug`). The migration
+// 20261115000000_routine_open_target sets the same for the seeded kinds, so this is for a fresh database
+// and for a change made here. A kind not listed opens nothing.
+export const opensByKind = {
+  breakfast: { opensKind: 'prayer', prayerSlug: 'prasada-sevaya' },
+  lunch: { opensKind: 'prayer', prayerSlug: 'prasada-sevaya' },
+  dinner: { opensKind: 'prayer', prayerSlug: 'prasada-sevaya' },
+  morningChant: { opensKind: 'chant', prayerSlug: null },
+  breakChant: { opensKind: 'chant', prayerSlug: null },
+  eveningChant: { opensKind: 'chant', prayerSlug: null },
+  scriptureReading: { opensKind: 'read', prayerSlug: null },
+};

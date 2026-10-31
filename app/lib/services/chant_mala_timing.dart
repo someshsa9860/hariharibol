@@ -30,6 +30,19 @@ class ChantMalaTiming {
     // Multiplied before dividing, so a chant is never rounded short of its end.
     return (position - start).inMicroseconds * chants ~/ _span.inMicroseconds;
   }
+
+  /// Where [done] chants have just finished — the earliest position at which
+  /// [chantsDoneAt] says [done]. The way to put the recording where a count
+  /// stands: 0 is the start of the chanting (after any prayer), [chants] or more
+  /// its end.
+  Duration positionAfter(int done) {
+    if (done <= 0) return start;
+    if (done >= chants) return end;
+    // Rounded up: a chant is counted at the moment it ends, so a position even
+    // a microsecond short of it would count one chant fewer than [done].
+    final micros = (_span.inMicroseconds * done + chants - 1) ~/ chants;
+    return start + Duration(microseconds: micros);
+  }
 }
 
 /// Turns a stream of playback positions into counts, one per chant that

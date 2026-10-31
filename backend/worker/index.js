@@ -36,6 +36,8 @@ import quoteProcessor, { abortActiveRuns as abortQuoteRuns, onJobFailed as onQuo
 import { reconcileRuns as reconcileQuoteRuns } from '../services/quote.js';
 import calendarProcessor, { abortActiveRuns as abortCalendarRuns, onJobFailed as onCalendarJobFailed } from '../jobs/processors/calendar.js';
 import { reconcileRuns as reconcileCalendarRuns } from '../services/calendar-translation.js';
+import prayerProcessor, { abortActiveRuns as abortPrayerRuns, onJobFailed as onPrayerJobFailed } from '../jobs/processors/prayer.js';
+import { reconcileRuns as reconcilePrayerRuns } from '../services/prayer.js';
 import marketingProcessor, { abortActiveRuns as abortMarketingRuns, onJobFailed as onMarketingJobFailed } from '../jobs/processors/marketing.js';
 import { reconcileRuns as reconcileMarketingRuns } from '../services/marketing-run.js';
 import translationImportProcessor, { abortActiveRuns as abortTranslationImportRuns, onJobFailed as onTranslationImportJobFailed } from '../jobs/processors/translation-import.js';
@@ -59,6 +61,7 @@ const processors = {
   etiquette: etiquetteProcessor,
   quote: quoteProcessor,
   calendar: calendarProcessor,
+  prayer: prayerProcessor,
   marketing: marketingProcessor,
   'translation-import': translationImportProcessor,
   devops: devopsProcessor,
@@ -91,6 +94,8 @@ const CONCURRENCY = {
   quote: 1,
   // One calendar translation run at a time, for the same reason.
   calendar: 1,
+  // One prayer translation run at a time, for the same reason.
+  prayer: 1,
   // One campaign at a time: they share one sender, one rate and one daily cap.
   marketing: 1,
   // Not a provider call, just per-chapter database writes — no shared rate limit the way the AI
@@ -107,6 +112,7 @@ let reconcileNarrationTimer = null;
 let reconcileEtiquetteTimer = null;
 let reconcileQuoteTimer = null;
 let reconcileCalendarTimer = null;
+let reconcilePrayerTimer = null;
 let reconcileMarketingTimer = null;
 let reconcileImportRunsTimer = null;
 
@@ -118,7 +124,7 @@ async function start() {
       connection: bullConnection,
       concurrency: CONCURRENCY[name] || 1,
       // A translation run whose worker died is handed to another many times over; the others, once.
-      ...((name === 'translation' || name === 'scenes' || name === 'narration' || name === 'etiquette' || name === 'quote' || name === 'calendar' || name === 'marketing' || name === 'translation-import') && { maxStalledCount: translation.maxStalledCount }),
+      ...((name === 'translation' || name === 'scenes' || name === 'narration' || name === 'etiquette' || name === 'quote' || name === 'calendar' || name === 'prayer' || name === 'marketing' || name === 'translation-import') && { maxStalledCount: translation.maxStalledCount }),
     });
 
     worker.on('completed', (job, result) => {
@@ -147,6 +153,9 @@ async function start() {
       }
       if (name === 'calendar') {
         onCalendarJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed calendar job'));
+      }
+      if (name === 'prayer') {
+        onPrayerJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed prayer job'));
       }
       if (name === 'marketing') {
         onMarketingJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed marketing job'));
@@ -187,6 +196,9 @@ async function start() {
   const reconcileCalendar = () => reconcileCalendarRuns().catch((err) => logger.error({ err: err.message }, 'calendar reconcile failed'));
   await reconcileCalendar();
   reconcileCalendarTimer = setInterval(reconcileCalendar, translation.reconcileEveryMs);
+  const reconcilePrayers = () => reconcilePrayerRuns().catch((err) => logger.error({ err: err.message }, 'prayer reconcile failed'));
+  await reconcilePrayers();
+  reconcilePrayerTimer = setInterval(reconcilePrayers, translation.reconcileEveryMs);
   const reconcileMarketing = () => reconcileMarketingRuns().catch((err) => logger.error({ err: err.message }, 'marketing reconcile failed'));
   await reconcileMarketing();
   reconcileMarketingTimer = setInterval(reconcileMarketing, translation.reconcileEveryMs);
@@ -208,6 +220,7 @@ async function shutdown(signal) {
   clearInterval(reconcileEtiquetteTimer);
   clearInterval(reconcileQuoteTimer);
   clearInterval(reconcileCalendarTimer);
+  clearInterval(reconcilePrayerTimer);
   clearInterval(reconcileMarketingTimer);
   clearInterval(reconcileImportRunsTimer);
   // A translation run is hours long, so it is not waited out: it stops after its current call, puts
@@ -218,10 +231,11 @@ async function shutdown(signal) {
   const stoppedEtiquette = abortEtiquetteRuns('shutdown');
   const stoppedQuotes = abortQuoteRuns('shutdown');
   const stoppedCalendar = abortCalendarRuns('shutdown');
+  const stoppedPrayers = abortPrayerRuns('shutdown');
   const stoppedMarketing = abortMarketingRuns('shutdown');
   const stoppedImports = abortTranslationImportRuns('shutdown');
-  if (stopped || stoppedScenes || stoppedNarration || stoppedEtiquette || stoppedQuotes || stoppedCalendar || stoppedMarketing || stoppedImports) {
-    logger.info({ stopped, stoppedScenes, stoppedNarration, stoppedEtiquette, stoppedQuotes, stoppedCalendar, stoppedMarketing, stoppedImports }, 'translation, scene, narration, etiquette, calendar and import runs handed back to the queue');
+  if (stopped || stoppedScenes || stoppedNarration || stoppedEtiquette || stoppedQuotes || stoppedCalendar || stoppedPrayers || stoppedMarketing || stoppedImports) {
+    logger.info({ stopped, stoppedScenes, stoppedNarration, stoppedEtiquette, stoppedQuotes, stoppedCalendar, stoppedPrayers, stoppedMarketing, stoppedImports }, 'translation, scene, narration, etiquette, quote, calendar, prayer, marketing and import runs handed back to the queue');
   }
   await Promise.all(workers.map((worker) => worker.close()));
   await disconnectDatabase();

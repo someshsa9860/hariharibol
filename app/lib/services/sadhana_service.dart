@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import '../core/constants/api_paths.dart';
 import '../core/constants/storage_keys.dart';
 import '../models/chant_log.dart';
+import '../models/json.dart';
 import '../models/paged.dart';
 import '../models/routine_task.dart';
 import '../models/sadhana.dart';
 import 'api_client.dart';
 import 'local_store.dart';
+import 'response_cache.dart';
 
 /// Daily practice: the round target, chanting, and the day it all rolls up
 /// into. Everything here is the signed-in reader's own — there is no public
@@ -84,6 +86,24 @@ class SadhanaService {
     return SadhanaProfile.fromJson(response.json);
   }
 
+  /// The standing daily goal and the mantra "Chant now" opens with, in one
+  /// request — the setup flow asks both together and should not leave one set
+  /// and the other not. A null [preferredMantraId] is sent as a literal JSON
+  /// null, which unsets the choice, as [setPreferredMantra] does.
+  Future<SadhanaProfile> updateProfile({
+    required int dailyRoundTarget,
+    required String? preferredMantraId,
+  }) async {
+    final response = await _api.patch(
+      ApiPaths.meSadhanaProfile,
+      body: {
+        'dailyRoundTarget': dailyRoundTarget,
+        'preferredMantraId': preferredMantraId,
+      },
+    );
+    return SadhanaProfile.fromJson(response.json);
+  }
+
   /// Rounds chanted away from the phone, entered afterwards. Lands in the same
   /// table as an in-app session, so a day's total is never split across two
   /// places.
@@ -92,6 +112,16 @@ class SadhanaService {
       ApiPaths.chantManual,
       body: {'rounds': rounds, 'mantraId': ?mantraId},
     );
+  }
+
+  /// Sends sittings counted on the phone in one request (`ChantSitting.toRequest`
+  /// writes each). The server keeps each by its `clientId`, so sending one again
+  /// is harmless. Answers the `clientId`s it took, which is not always all of them.
+  Future<List<String>> syncChant(List<Json> sittings) async {
+    final response = await _api.put(ApiPaths.chantSync, body: {'sittings': sittings});
+    return [
+      for (final row in asList(response.json['sittings'], (json) => json)) asString(row['clientId']),
+    ].where((id) => id.isNotEmpty).toList();
   }
 
   /// Opens a session for bead-by-bead counting. [mantraId] is optional — a
@@ -142,7 +172,7 @@ class SadhanaService {
   /// Past sittings of one mantra, newest first — or, with no [mantraId], of
   /// sittings that had none.
   Future<Paged<ChantSessionSummary>> chantSessions({String? mantraId, int page = 1}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.chantSessions,
       query: {'page': page, 'mantraId': mantraId ?? 'none'},
     );
@@ -151,7 +181,7 @@ class SadhanaService {
 
   /// One past sitting with its rounds.
   Future<ChantSessionDetail> chantSession(String id) async {
-    final response = await _api.get(ApiPaths.chantSessionById(id));
+    final response = await _api.getOrSaved(ApiPaths.chantSessionById(id));
     return ChantSessionDetail.fromJson(response.json);
   }
 }

@@ -33,6 +33,10 @@ abstract final class ApiPaths {
   static const String etiquetteToday = '$_app/etiquette/today';
   static String etiquetteItem(String id) => '$_app/etiquette/$id';
 
+  // Prayers
+  static const String prayers = '$_app/prayers';
+  static String prayer(String id) => '$_app/prayers/$id';
+
   // Support, feedback and the store-rating prompt
   static const String supportTickets = '$_app/support/tickets';
   static String supportTicket(String id) => '$_app/support/tickets/$id';
@@ -55,6 +59,7 @@ abstract final class ApiPaths {
 
   // Dashboard
   static const String home = '$_app/home';
+  static const String homeIssueVerses = '$home/issue-verses';
 
   // Plans and entitlement
   static const String subscriptionPlans = '$_app/subscription/plans';
@@ -139,6 +144,7 @@ abstract final class ApiPaths {
   static const String sadhanaToday = '$_app/sadhana/today';
   static const String chantManual = '$_app/sadhana/chant/manual';
   static const String chantSession = '$_app/sadhana/chant/session';
+  static const String chantSync = '$_app/sadhana/chant/sync';
   static String chantSessionById(String id) => '$_app/sadhana/chant/session/$id';
   static String chantSessionDetail(String id) => '$_app/sadhana/chant/session/$id/detail';
   static String chantSessionTranscripts(String id) =>

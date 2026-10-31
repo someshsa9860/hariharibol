@@ -18,6 +18,7 @@ import '../../widgets/reels/reel_comments_sheet.dart';
 import '../../widgets/reels/reel_page.dart';
 import '../../widgets/reels/reel_report_sheet.dart';
 import 'reel_actions.dart';
+import 'reels_on_screen.dart';
 
 /// The book's reels in reading order, from one verse on — what the peacock
 /// feather on the reading page opens. Each verse is a reel the app draws
@@ -34,7 +35,7 @@ class BookReelsView extends ConsumerStatefulWidget {
 }
 
 class _BookReelsViewState extends ConsumerState<BookReelsView>
-    with WidgetsBindingObserver, ReelActions<BookReelsView> {
+    with WidgetsBindingObserver, ReelActions<BookReelsView>, ReelsOnScreen<BookReelsView> {
   static const int _prefetch = 3;
 
   final PageController _pages = PageController();
@@ -44,12 +45,10 @@ class _BookReelsViewState extends ConsumerState<BookReelsView>
   Object? _error;
   int _index = 0;
   bool _muted = true;
-  bool _suspended = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     TrackingService.instance.log('reels_book_open', parameters: {'verse_id': widget.verseId});
     _load();
   }
@@ -65,15 +64,7 @@ class _BookReelsViewState extends ConsumerState<BookReelsView>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final suspended = state != AppLifecycleState.resumed;
-    if (suspended == _suspended) return;
-    setState(() => _suspended = suspended);
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _pages.dispose();
     super.dispose();
   }
@@ -140,6 +131,7 @@ class _BookReelsViewState extends ConsumerState<BookReelsView>
       body = PageView.builder(
         controller: _pages,
         scrollDirection: Axis.vertical,
+        allowImplicitScrolling: true,
         onPageChanged: _onPageChanged,
         itemCount: reels.length,
         itemBuilder: (context, index) {
@@ -147,7 +139,7 @@ class _BookReelsViewState extends ConsumerState<BookReelsView>
           return ReelPage(
             key: ValueKey(reel.id),
             reel: reel,
-            isActive: index == _index && !_suspended,
+            isActive: index == _index && reelsOnScreen,
             isMuted: _muted,
             onProgress: (watched, duration) => reportWatch(reel, watched, duration),
             onEnded: () => _advance(index),

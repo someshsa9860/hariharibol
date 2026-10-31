@@ -45,6 +45,19 @@ class AutoChantStatus {
   final AutoChantError? error;
 
   static const off = AutoChantStatus(enabled: false, phase: AutoChantPhase.idle);
+
+  /// By value: the session sends a status on every voice event, mostly the
+  /// same one, and a screen redraws only for one that differs.
+  @override
+  bool operator ==(Object other) =>
+      other is AutoChantStatus &&
+      other.enabled == enabled &&
+      other.phase == phase &&
+      other.source == source &&
+      other.error == error;
+
+  @override
+  int get hashCode => Object.hash(enabled, phase, source, error);
 }
 
 /// One chanting sitting's worth of "count the chants".

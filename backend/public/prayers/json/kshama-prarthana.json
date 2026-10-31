@@ -1,0 +1,155 @@
+{
+  "slug": "kshama-prarthana",
+  "title": "Kṣamā-prārthanā",
+  "titleOriginal": "क्षमाप्रार्थना",
+  "category": "other",
+  "sortOrder": 400,
+  "originalLanguage": "sa",
+  "summary": "“Aparādha-sahasrāṇi”: asking forgiveness for the thousand faults of one’s worship.",
+  "about": "Said at the close of the Devī’s worship and after reading the Durgā-saptaśatī: I do not know how to invoke you, worship you or send you off; whatever I have done without mantra, rite or devotion, accept it as complete.",
+  "author": "",
+  "reference": "Durgā-saptaśatī (closing prayers)",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A4%BE%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A5%E0%A4%A8%E0%A4%BE",
+  "tradition": "shakta",
+  "deity": "durga",
+  "occasions": [
+    "at the end of any worship",
+    "after the Durgā-saptaśatī"
+  ],
+  "festivals": [
+    "navaratri-begins"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "अपराधसहस्राणि क्रियन्तेऽहर्निशं मया ।\nदासोऽयमिति मां मत्वा क्षमस्व परमेश्वरि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "आवाहनं न जानामि न जानामि विसर्जनम् ।\nपूजां चैव न जानामि क्षम्यतां परमेश्वरि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "मन्त्रहीनं क्रियाहीनं भक्तिहीनं सुरेश्वरि ।\nयत्पूजितं मया देवि परिपूर्णं तदस्तु मे ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "अपराधशतं कृत्वा जगदम्बेति चोच्चरेत् ।\nयां गतिं समवाप्नोति न तां ब्रह्मादयः सुराः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "सापराधोऽस्मि शरणं प्राप्तस्त्वां जगदम्बिके ।\nइदानीमनुकम्प्योऽहं यथेच्छसि तथा कुरु ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "अज्ञानाद्विस्मृतेर्भ्रान्त्या यन्न्यूनमधिकं कृतम् ।\nतत्सर्वं क्षम्यतां देवि प्रसीद परमेश्वरि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "कामेश्वरि जगन्मातः सच्चिदानन्दविग्रहे ।\nगृहाणार्चामिमां प्रीत्या प्रसीद परमेश्वरि ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "गुह्यातिगुह्यगोप्त्री त्वं गृहाणास्मत्कृतं जपम् ।\nसिद्धिर्भवतु मे देवि त्वत्प्रसादात्सुरेश्वरि ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A4%BE%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A5%E0%A4%A8%E0%A4%BE",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%AE%E0%A4%BE%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A5%E0%A4%A8%E0%A4%BE&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "title": "क्षमाप्रार्थना"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "अपराधसहस्त्राणि",
+      "to": "अपराधसहस्राणि",
+      "why": "Typo on the page: sahasra has no t."
+    },
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "दासोऽयमति",
+      "to": "दासोऽयमिति",
+      "why": "Typo on the page: dāso ’yam iti, “this is your servant”."
+    },
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "परमेश्वरी",
+      "to": "परमेश्वरि",
+      "why": "Typo on the page: the vocative has a short i."
+    },
+    {
+      "verse": 3,
+      "field": "devanagari",
+      "from": "सुरेश्वरी",
+      "to": "सुरेश्वरि",
+      "why": "Typo on the page: the vocative has a short i."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "मनुकमप्योऽहं",
+      "to": "मनुकम्प्योऽहं",
+      "why": "Typo on the page: anukampyo ’ham."
+    },
+    {
+      "verse": 6,
+      "field": "devanagari",
+      "from": "अज्ञानाद्विस्मृतेभ्रान्त्या",
+      "to": "अज्ञानाद्विस्मृतेर्भ्रान्त्या",
+      "why": "Typo on the page: vismṛter bhrāntyā keeps its r."
+    },
+    {
+      "verse": 8,
+      "field": "devanagari",
+      "from": "गृह्यातिगुह्यगोप्त्री",
+      "to": "गुह्यातिगुह्यगोप्त्री",
+      "why": "Typo on the page: guhyāti-guhya-goptrī, keeper of the most secret."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 8
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "क्षमाप्रार्थना"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ श्रीदुर्गार्पणमस्तु ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.938Z"
+}

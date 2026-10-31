@@ -22,7 +22,14 @@ Verse _verse({int related = 2}) => Verse(
       relatedCount: related,
     );
 
-Widget _app(double width, {bool everything = true, VoidCallback? onAskSakha, int related = 2}) => ProviderScope(
+Widget _app(
+  double width, {
+  bool everything = true,
+  VoidCallback? onAskSakha,
+  VoidCallback? onCollapse,
+  int related = 2,
+}) =>
+    ProviderScope(
       child: MaterialApp(
         theme: AppTheme.light,
         localizationsDelegates: const [
@@ -51,6 +58,7 @@ Widget _app(double width, {bool everything = true, VoidCallback? onAskSakha, int
                 onStartReels: everything ? () {} : null,
                 onCompareTranslations: everything ? () {} : null,
                 onPlay: everything ? () {} : null,
+                onCollapse: onCollapse,
               ),
             ),
           ),
@@ -125,6 +133,27 @@ void main() {
     ]) {
       expect(find.byTooltip(tooltip), findsOneWidget, reason: tooltip);
     }
+  });
+
+  testWidgets('a verse opened out of a story leads with a button that folds it back', (tester) async {
+    screen(tester);
+    var folded = 0;
+    await tester.pumpWidget(_app(320, onCollapse: () => folded++));
+    await tester.pumpAndSettle();
+
+    final text = words(tester);
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip(text.readingStoryCollapse), findsOneWidget, reason: 'first in the row, so the last to go into the menu');
+    await tester.tap(find.byTooltip(text.readingStoryCollapse));
+    expect(folded, 1);
+  });
+
+  testWidgets('without onCollapse there is no such button', (tester) async {
+    screen(tester);
+    await tester.pumpWidget(_app(900));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip(words(tester).readingStoryCollapse), findsNothing);
   });
 
   testWidgets('a verse with only the basic actions needs no menu on a phone', (tester) async {

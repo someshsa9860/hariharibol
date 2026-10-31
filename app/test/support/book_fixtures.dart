@@ -84,6 +84,9 @@ Map<String, dynamic> unitJson({
                 'meaning': 'हिंदी अर्थ ${ch['number']}.$v',
                 'purport': null,
                 'transliteration': 'श्लोकः ${ch['number']}.$v',
+                'wordMeanings': [
+                  {'word': 'om', 'meaning': 'हे मेरे प्रभु'},
+                ],
                 'displayOrder': 0,
               },
             ],

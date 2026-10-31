@@ -65,6 +65,10 @@ abstract final class RoutineConfig {
   /// The most alerts set at once. The nearest ones win.
   static const int alertMaxPending = 100;
 
+  /// The same on iOS, which keeps no more than 64 waiting notifications for an
+  /// app and quietly drops the rest; a few are left for anything else.
+  static const int alertMaxPendingIos = 60;
+
   /// An alert's notification id is [alertIdBase] plus a number below
   /// [alertIdSpan], worked out from its task and day, so the same alert always
   /// has the same id: setting it again replaces it, and a task ticked in the app
@@ -79,6 +83,12 @@ abstract final class RoutineConfig {
 
   /// The notification's one button, and what its payload carries.
   static const String alertDoneActionId = 'routine_done';
+
+  /// iOS: the category that puts the button on an alert, and the channel
+  /// `AppDelegate` answers on — it registers the category beside the push
+  /// buttons' own, and writes a press itself (see `routine_alert_ticks.dart`).
+  static const String alertCategoryId = 'routine_alert';
+  static const String alertChannel = 'hariharibol/routine_alerts';
   static const String alertTaskKey = 'routineTask';
   static const String alertDayKey = 'routineDay';
 
@@ -97,4 +107,8 @@ abstract final class RoutineConfig {
   /// The app's own isolate listens on this port name for "a press was written",
   /// so a press made with the app open lands at once.
   static const String alertPortName = 'hariharibol/routine_alert_tick';
+
+  /// After "Not now" on the card asking Android for alarms right on time, how
+  /// long before it is shown again.
+  static const Duration onTimeAskAgain = Duration(days: 30);
 }

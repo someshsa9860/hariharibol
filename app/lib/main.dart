@@ -17,6 +17,7 @@ import 'services/firebase_service.dart';
 import 'services/legacy_sign_in.dart';
 import 'services/local_store.dart';
 import 'services/purchase_service.dart';
+import 'services/response_cache.dart';
 import 'services/tracking_service.dart';
 
 /// Boot.
@@ -77,6 +78,8 @@ Future<void> _openStore() async {
   await Future.wait([
     DeviceService.instance.init(),
     AppSession.instance.restore(),
+    // Before the first frame, so a screen opened offline finds its saved copy.
+    ResponseCache.instance.init(),
   ]);
 }
 

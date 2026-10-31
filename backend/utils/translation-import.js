@@ -126,6 +126,27 @@ export function totalsOf(chapters, versions = {}) {
   };
 }
 
+/** What a `TranslationImportRun` imports: a language's translations, or the Bhagavatam's vikara tags. Both run through the same queue. */
+export const IMPORT_KINDS = { TRANSLATION: 'TRANSLATION', VIKARA: 'VIKARA' };
+
+/**
+ * The states in which an import still has work to do. An import is never PAUSED (nothing in it waits on a
+ * person), so this is shorter than the translation runs' ACTIVE_STATUSES.
+ */
+export const LIVE_IMPORT_STATUSES = ['QUEUED', 'RUNNING'];
+
+/** One line for a finished import's totals — what the run's `statusMessage` and the page both say. */
+export function summaryOf(totals) {
+  const extra = [
+    totals.missing && `${totals.missing} missing`,
+    totals.conflicts && `${totals.conflicts} conflicting`,
+    totals.failedChapters && `${totals.failedChapters} chapter(s) failed`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  return `${totals.chapters} chapter(s): ${totals.created} created, ${totals.updated} updated, ${totals.unchanged} unchanged${extra ? `, ${extra}` : ''}.`;
+}
+
 /** A TranslationImportRun, as the admin panel receives it. */
 export function presentImportRun(row, now = new Date()) {
   const total = row.totalChapters;
@@ -133,6 +154,7 @@ export function presentImportRun(row, now = new Date()) {
   const beat = row.heartbeatAt ? new Date(row.heartbeatAt).getTime() : null;
   return {
     id: row.id,
+    kind: row.kind ?? IMPORT_KINDS.TRANSLATION,
     language: row.language,
     book: row.book,
     publish: row.publish,

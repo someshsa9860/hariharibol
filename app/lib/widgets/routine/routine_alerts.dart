@@ -11,12 +11,13 @@ import '../../providers/session_provider.dart';
 import '../../services/routine_alert_service.dart';
 import '../../services/routine_alert_ticks.dart';
 
-/// Keeps the routine's task alerts in step with the routine (Android).
+/// Keeps the routine's task alerts in step with the routine (Android and iOS).
 ///
 /// Each task with a time range gets one notification when the range opens, with
 /// a "Mark as done" button ([RoutineAlertService]). This sets them again whenever
 /// the routine, the signed-in account or the app's language changes and when the
-/// app comes to the front (which also rolls the days ahead forward), and writes
+/// app comes to the front (which also rolls the days ahead forward, and turns the
+/// alerts into exact ones when the reader has just allowed that), and writes
 /// into the routine whatever was ticked from a button ([RoutineAlertTicks]). It
 /// sits above the router, with `PushForeground`, so it is there on every screen,
 /// and it is a widget because the words on an alert come from the locale.

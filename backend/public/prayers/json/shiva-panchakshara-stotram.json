@@ -1,0 +1,118 @@
+{
+  "slug": "shiva-panchakshara-stotram",
+  "title": "Śiva Pañcākṣara Stotram",
+  "titleOriginal": "शिवपञ्चाक्षरस्तोत्रम्",
+  "category": "deity",
+  "sortOrder": 200,
+  "originalLanguage": "sa",
+  "summary": "Five verses on the five syllables na-maḥ-śi-vā-ya.",
+  "about": "Each verse begins with one syllable of the mantra “namaḥ śivāya” and praises Śiva through it; a sixth verse gives the fruit of reciting it near Śiva.",
+  "author": "Śaṅkarācārya",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AA%E0%A4%9E%E0%A5%8D%E0%A4%9A%E0%A4%BE%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%B0%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+  "tradition": "shaiva",
+  "deity": "shiva",
+  "occasions": [
+    "Monday",
+    "Pradoṣa",
+    "Mahā-śivarātri"
+  ],
+  "festivals": [
+    "maha-shivaratri",
+    "pradosh"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "text": "नागेन्द्रहाराय त्रिलोचनाय\nभस्माङ्गरागाय महेश्वराय ।\nनित्याय शुद्धाय दिगम्बराय\nतस्मै नकाराय नमःशिवाय ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "मन्दाकिनीसलिलचन्दनचर्चिताय\nनन्दीश्वरप्रमथनाथमहेश्वराय ।\nमन्दारपुष्पबहुपुष्पसुपूजिताय\nतस्मै मकाराय नमःशिवाय ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "शिवाय गौरीवदनाब्जवृन्द\nसूर्याय दक्षाध्वरनाशकाय ।\nश्रीनीलकण्ठाय वृषध्वजाय\nतस्मै शिकाराय नमःशिवाय ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "वसिष्ठकुम्भोद्भवगौतमार्य\nमुनीन्द्रदेवार्चितशेखराय ।\nचन्द्रार्कवैश्वानरलोचनाय\nतस्मै वकाराय नमःशिवाय ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "यक्षस्वरूपाय जटाधराय\nपिनाकहस्ताय सनातनाय ।\nदिव्याय देवाय दिगम्बराय\nतस्मै यकाराय नमःशिवाय ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "पञ्चाक्षरमिदं पुण्यं यः पठेत् शिवसन्निधौ ।\nशिवलोकमवाप्नोति शिवेन सह मोदते ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AA%E0%A4%9E%E0%A5%8D%E0%A4%9A%E0%A4%BE%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%B0%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A4%AA%E0%A4%9E%E0%A5%8D%E0%A4%9A%E0%A4%BE%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%B0%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {
+    "author": "शन्कराचार्य",
+    "notes": "[[w:{{PAGENAME}}"
+  },
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "भस्माङरागाय",
+      "to": "भस्माङ्गरागाय",
+      "why": "Typo on the page: aṅga-rāga needs the ṅg conjunct."
+    },
+    {
+      "verse": 2,
+      "field": "devanagari",
+      "from": "मन्दारपुष्प्बहु",
+      "to": "मन्दारपुष्पबहु",
+      "why": "Typo on the page: a stray virāma in the compound."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "यक्षस्वरुपाय",
+      "to": "यक्षस्वरूपाय",
+      "why": "Typo on the page: svarūpa has a long ū."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 6
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "ॐ"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "इति श्रीमद् शन्कराचार्यविरचितं शिवपञ्चाक्षरस्तोत्रं सम्पुर्णम् ।"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.925Z"
+}

@@ -7,28 +7,44 @@
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Building an Intl.DateTimeFormat costs far more than using one (it loads the zone's rules
+// and the locale's patterns), and the delivery jobs ask the same few questions of the same
+// few zones once per reader — a hundred thousand times a run. So each (locale, zone, kind)
+// gets one formatter, kept for the life of the process. A zone that does not exist throws
+// before anything is stored. The cap is only a guard: there are about 600 zone names, and a
+// map that ever passes it is simply started again.
+const FORMATTER_CAP = 2000;
+const formatters = new Map();
+
+function formatter(locale, timeZone, kind, options) {
+  const key = `${kind}|${locale}|${timeZone}`;
+  let found = formatters.get(key);
+  if (!found) {
+    found = new Intl.DateTimeFormat(locale, { ...options, timeZone });
+    if (formatters.size >= FORMATTER_CAP) formatters.clear();
+    formatters.set(key, found);
+  }
+  return found;
+}
+
+const DATE_PARTS = { year: 'numeric', month: '2-digit', day: '2-digit' };
+const HOUR_PART = { hour: '2-digit', hour12: false };
+const CLOCK_PARTS = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' };
+
 // "2026-09-08" for the given instant in the given zone.
 function localDateString(timezone, at = new Date()) {
   try {
     // en-CA formats as YYYY-MM-DD, which is exactly the key we want.
-    return new Intl.DateTimeFormat('en-CA', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(at);
+    return formatter('en-CA', timezone, 'date', DATE_PARTS).format(at);
   } catch {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC' }).format(at);
+    return formatter('en-CA', 'UTC', 'date', DATE_PARTS).format(at);
   }
 }
 
 // 0–23 in the user's zone — what the delivery cron compares against.
 function localHour(timezone, at = new Date()) {
   try {
-    return Number.parseInt(
-      new Intl.DateTimeFormat('en-GB', { timeZone: timezone, hour: '2-digit', hour12: false }).format(at),
-      10
-    );
+    return Number.parseInt(formatter('en-GB', timezone, 'hour', HOUR_PART).format(at), 10);
   } catch {
     return at.getUTCHours();
   }
@@ -38,12 +54,7 @@ function localHour(timezone, at = new Date()) {
 // not on the hour (04:30). `h23` so midnight is 0, where `hour12: false` can say 24.
 function localMinutes(timezone, at = new Date()) {
   try {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    }).formatToParts(at);
+    const parts = formatter('en-GB', timezone, 'clock', CLOCK_PARTS).formatToParts(at);
     const part = (type) => Number.parseInt(parts.find((p) => p.type === type).value, 10);
     return (part('hour') % 24) * 60 + part('minute');
   } catch {
@@ -71,7 +82,7 @@ function isValidDateString(value) {
 
 function isValidTimezone(value) {
   try {
-    new Intl.DateTimeFormat('en', { timeZone: value });
+    formatter('en-CA', value, 'date', DATE_PARTS);
     return true;
   } catch {
     return false;

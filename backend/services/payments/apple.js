@@ -17,8 +17,14 @@ import env from '../../config/env.js';
 import logger from '../../config/logger.js';
 import { AppError, badRequest } from '../../utils/errors.js';
 import { unitsToMinor } from './money.js';
+import { STORE_TIMEOUT_MS } from '../../config/constants.js';
 
-let fetcher = (...args) => fetch(...args);
+// Every call is given STORE_TIMEOUT_MS; one that runs out is a failed lookup, like any other error from Apple.
+let fetcher = (url, options = {}) =>
+  fetch(url, { ...options, signal: AbortSignal.timeout(STORE_TIMEOUT_MS) }).catch((error) => {
+    if (error.name !== 'TimeoutError') throw error;
+    throw new AppError(502, 'PAYMENT_LOOKUP_FAILED', 'Apple did not answer in time');
+  });
 const setFetch = (fn) => {
   fetcher = fn;
 };
@@ -38,20 +44,29 @@ const isConfigured = () => Boolean(env.APPLE_ISSUER_ID && env.APPLE_KEY_ID && pr
 const PRODUCTION = 'https://api.storekit.itunes.apple.com/inApps/v1';
 const SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com/inApps/v1';
 
+// A token is good for 30 minutes and is reused for 20 of them, so a busy hour of purchases does not read the key file
+// and sign a new one for every call.
+const TOKEN_REUSE_MS = 20 * 60 * 1000;
+let signed = null;
+
 async function signToken() {
   if (!isConfigured()) {
     throw new AppError(503, 'PAYMENTS_UNAVAILABLE', 'Apple verification is not configured');
   }
+  if (signed && Date.now() - signed.at < TOKEN_REUSE_MS) return signed.token;
+
   const key = crypto.createPrivateKey(privateKey());
   const bundleId = env.appleBundleIds[0];
 
-  return new SignJWT({ bid: bundleId })
+  const token = await new SignJWT({ bid: bundleId })
     .setProtectedHeader({ alg: 'ES256', kid: env.APPLE_KEY_ID, typ: 'JWT' })
     .setIssuer(env.APPLE_ISSUER_ID)
     .setAudience('appstoreconnect-v1')
     .setIssuedAt()
     .setExpirationTime('30m')
     .sign(key);
+  signed = { token, at: Date.now() };
+  return token;
 }
 
 // Sandbox receipts fail against production with a 404. Rather than configuring

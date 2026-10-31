@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cache } from 'react';
 import { ChapterList } from '@/components/read/chapter-list';
 import { ShortWorkReader } from '@/components/read/short-work';
 import { Icon } from '@/components/ui/icon';
@@ -18,12 +19,14 @@ interface WebBook extends Book {
 
 type Props = { params: Promise<{ slug: string }> };
 
-const load = (slug: string, lang: string) =>
-  serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 });
+// `cache` (per request) so the metadata and the page share one fetch.
+const load = cache((slug: string, lang: string) =>
+  serverGetOrNull<WebBook>(`/api/web/content/books/${slug}`, { query: { lang }, revalidate: 0 }));
 
+// In the reader's language like the page (a crawler has no cookie, so it still gets English).
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const book = await load(slug, 'en').catch(() => null);
+  const book = await load(slug, await readingLanguage()).catch(() => null);
   if (!book) return { title: 'Book not found' };
   return {
     title: book.title,

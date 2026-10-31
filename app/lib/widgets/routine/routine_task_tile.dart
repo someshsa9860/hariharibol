@@ -7,24 +7,27 @@ import '../../models/routine_task.dart';
 import 'routine_style.dart';
 
 /// One row on a day's routine: a status mark, the title, its standard time
-/// range and — once ticked — how on time it was and when. Swiping it away
-/// removes it; the tab shows an undo after, so the gesture never has to be
-/// second-guessed with a confirmation dialog.
+/// range and — once ticked — how on time it was and when. Swiping a task of
+/// the day away removes it; the tab shows an undo after, so the gesture never
+/// has to be second-guessed with a confirmation dialog.
 ///
 /// The row is tapped to tick or untick it. The pill with the time it was done
-/// at is a button of its own that changes that time.
+/// at is a button of its own that changes that time. The edit button (or a
+/// long press on the row) opens the task to change, repeat or delete it.
 class RoutineTaskTile extends StatelessWidget {
   const RoutineTaskTile({
     super.key,
     required this.task,
     required this.onToggle,
     required this.onEditTime,
+    required this.onEdit,
     required this.onDismissed,
   });
 
   final RoutineTask task;
   final VoidCallback onToggle;
   final VoidCallback onEditTime;
+  final VoidCallback onEdit;
   final VoidCallback onDismissed;
 
   @override
@@ -39,6 +42,7 @@ class RoutineTaskTile extends StatelessWidget {
         child: InkWell(
           borderRadius: AppRadius.lgAll,
           onTap: onToggle,
+          onLongPress: onEdit,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -105,6 +109,14 @@ class RoutineTaskTile extends StatelessWidget {
                   size: AppSizes.iconSm,
                   color: context.colors.onSurfaceVariant,
                 ),
+                IconButton(
+                  tooltip: text.routineEditTask,
+                  onPressed: onEdit,
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -112,7 +124,8 @@ class RoutineTaskTile extends StatelessWidget {
       ),
     );
 
-    // The daily routine is taken apart in its own sheet, not swiped off a day.
+    // A daily item is not swiped off: stopping it is done from its edit sheet,
+    // which says it goes from this day on.
     if (task.isDaily) return card;
 
     return Dismissible(

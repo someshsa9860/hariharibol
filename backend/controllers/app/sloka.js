@@ -27,6 +27,7 @@ import { notFound } from '../../utils/errors.js';
 import { localDateString, toDateColumn, shiftDays } from '../../utils/date.js';
 import { SLOKA_ELIGIBLE_BOOK_NUMBERS, CACHE, DEFAULT_LANGUAGE } from '../../config/constants.js';
 import { redis } from '../../config/redis.js';
+import { topBand } from '../../utils/home-issues.js';
 
 // How far back to look when avoiding repeats. Long enough that a sloka does not
 // come round again while it is still familiar, short enough that a small
@@ -44,15 +45,11 @@ async function recentVerseIds(userId) {
 }
 
 /**
- * Picks a verse for an issue.
- *
- * `VerseIssue.weight` says how directly a verse speaks to a struggle. Taking
- * the single highest-weighted verse every time would hand the same person the
- * same sloka whenever they report the same thing, so the top band is taken and
- * one is chosen from it at random — varied, but never off-topic.
+ * The eligible verses mapped to an issue, best first — the candidates a pick
+ * is made from. Shared with the home screen's "for what you are working on".
  */
-async function pickVerseForIssue(issueId, excludeVerseIds) {
-  const candidates = await prisma.verseIssue.findMany({
+async function topVersesForIssue(issueId, excludeVerseIds, take = 25) {
+  return prisma.verseIssue.findMany({
     where: {
       issueId,
       verseId: { notIn: excludeVerseIds },
@@ -63,15 +60,25 @@ async function pickVerseForIssue(issueId, excludeVerseIds) {
       },
     },
     orderBy: { weight: 'desc' },
-    take: 25,
+    take,
     select: { verseId: true, weight: true },
   });
+}
+
+/**
+ * Picks a verse for an issue.
+ *
+ * `VerseIssue.weight` says how directly a verse speaks to a struggle. Taking
+ * the single highest-weighted verse every time would hand the same person the
+ * same sloka whenever they report the same thing, so the top band is taken and
+ * one is chosen from it at random — varied, but never off-topic.
+ */
+async function pickVerseForIssue(issueId, excludeVerseIds) {
+  const candidates = await topVersesForIssue(issueId, excludeVerseIds);
 
   if (!candidates.length) return null;
 
-  // Only the top band competes: everything within 20% of the best weight.
-  const best = candidates[0].weight;
-  const band = candidates.filter((row) => row.weight >= best * 0.8);
+  const band = topBand(candidates);
   return band[Math.floor(Math.random() * band.length)].verseId;
 }
 
@@ -391,4 +398,11 @@ export const history = async (req, res) => {
 };
 
 // Shared with the nightly sloka job, which picks the same way this does.
-export { pickVerseForIssue, pickAnyEligibleVerse, recentVerseIds, reasonFor, presentIssue };
+export {
+  pickVerseForIssue,
+  pickAnyEligibleVerse,
+  recentVerseIds,
+  reasonFor,
+  presentIssue,
+  topVersesForIssue,
+};

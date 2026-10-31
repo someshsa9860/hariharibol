@@ -1,0 +1,119 @@
+{
+  "slug": "hari-haraye-namah",
+  "title": "Hari Haraye Namaḥ",
+  "titleOriginal": "হরি হরয়ে নমঃ",
+  "category": "deity",
+  "sortOrder": 60,
+  "originalLanguage": "bn",
+  "summary": "A kīrtana of the names of Kṛṣṇa, Gaura and the Gosvāmīs.",
+  "about": "A chain of bows to Kṛṣṇa by His names, then to Śrī Caitanya and the six Gosvāmīs.",
+  "author": "Narottama Dāsa Ṭhākura",
+  "reference": "None",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/h/hariharayenamah.html",
+  "tradition": "vaishnava",
+  "deity": "krishna",
+  "occasions": [
+    "kīrtana"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "হরি হরয়ে নমঃ কৃষ্ণ যাদবায় নমঃ\nযাদবায় মাধবায় কেশবায় নমঃ",
+      "roman": "hari haraye namaḥ kṛṣṇa yādavāya namaḥ\nyādavāya mādhavāya keśavāya namaḥ",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "গোপাল গোবিন্দ রাম শ্রী-মধুসূদন\nগিরিধারী গোপীনাথ মদন-মোহন",
+      "roman": "gopāla govinda rāma śrī-madhusūdana\ngiridhārī gopīnātha madana-mohana",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "শ্রী-চৈতন্য-নিত্যানন্দ শ্রী-অদ্বৈত-সীতা\nহরি গুরু বৈষ্ণব ভাগবত গীতা",
+      "roman": "śrī-caitanya-nityānanda śrī-advaita-sītā\nhari guru vaiṣṇaba bhāgavata gītā",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "শ্রী-রূপ সনাতন ভট্ট-রঘুনাথ\nশ্রী-জীব গোপাল-ভট্ট দাস-রঘুনাথ",
+      "roman": "śrī-rūpa sanātana bhaṭṭa-raghunātha\nśrī-jīva gopāla-bhaṭṭa dāsa-raghunātha",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "এই ছয় গোসাইর করি চরণ বন্দন\nযাহা হৈতে বিঘ্ন-নাশ অভীষ্ট-পূরণ",
+      "roman": "ei chay gosāir kori caraṇa vandan\njāhā hoite bighna-nāś abhīṣṭa-pūraṇ",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "এই ছয় গোসাই যার-মুই তার দাস\nতা-সবার পদ-রেণু মোর পঞ্চ-গ্রাস",
+      "roman": "ei chay gosāi jār—mui tār dās\ntā-sabāra pada-reṇu mora pañca-grās",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "তাদের চরণ-সেবি-ভক্ত-সঙে বাস\nজনমে জনমে হয় এই অভিলাষ",
+      "roman": "tādera caraṇa-sebi-bhakta-saṅe bās\njaname janame hoy ei abhilāṣ",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "এই ছয় গোসাই জবে ব্রজে কৈলা বাস\nরাধা-কৃষ্ণ-নিত্য-লীলা করিলা প্রকাশ",
+      "roman": "ei chay gosāi jabe braje koilā bās\nrādhā-kṛṣṇa-nitya-līlā korilā prakāś",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "আনন্দে বল হরি ভজ বৃন্দাবন\nশ্রী-গুরু-বৈষ্ণব-পদে মজাইয়া মন",
+      "roman": "ānande bolo hari bhaja bṛndāban\nśrī-guru-vaiṣṇaba-pade majāiyā man",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "শ্রী-গুরু-বৈষ্ণব-পদ-পদ্ম করি আশ\nনাম-সঙ্কীর্ত্তন কহে নরোত্তম দাস",
+      "roman": "śrī-guru-vaiṣṇaba-pada-padma kori āś\nnāma-saṅkīrtana kohe narottama dāsa",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/h/hariharayenamah.html",
+    "bengali": "https://kksongs.org/unicode/h/hariharayenamahkrsna_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Hari Haraye Namah Krsna Yadavaya Namah",
+    "official name": "Sri Nama Sankirtana",
+    "author": "Narottama Dasa Thakura",
+    "book name": "None",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 10,
+      "bengali": 10
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.879Z"
+}

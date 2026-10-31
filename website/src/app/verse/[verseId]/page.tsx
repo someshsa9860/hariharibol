@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cache } from 'react';
 import { VerseCard } from '@/components/read/verse-card';
 import { Icon } from '@/components/ui/icon';
 import { serverGetOrNull } from '@/lib/api/server';
@@ -12,11 +13,13 @@ import type { Verse, WebVerse } from '@/lib/types';
 
 type Props = { params: Promise<{ verseId: string }> };
 
-const load = (verseId: string, lang: string) => serverGetOrNull<WebVerse>(`/api/web/content/verses/${verseId}`, { query: { lang }, revalidate: 600 });
+// `cache` (per request) so the metadata and the page share one fetch.
+const load = cache((verseId: string, lang: string) => serverGetOrNull<WebVerse>(`/api/web/content/verses/${verseId}`, { query: { lang }, revalidate: 600 }));
 
+// In the reader's language like the page (a crawler has no cookie, so it still gets English).
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { verseId } = await params;
-  const verse = await load(verseId, 'en').catch(() => null);
+  const verse = await load(verseId, await readingLanguage()).catch(() => null);
   if (!verse) return { title: 'Verse not found' };
   const title = verseCitation(verse);
   const meaning = verse.translation?.meaning ?? verse.translations.find((t) => t.languageCode === 'en')?.meaning;
@@ -27,10 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function VersePage({ params }: Props) {
   const { verseId } = await params;
   const lang = await readingLanguage();
-  const verse = await load(verseId, lang);
+  // The related list needs only the id, so it is fetched alongside the verse rather than after it.
+  const [verse, related] = await Promise.all([
+    load(verseId, lang),
+    serverGetOrNull<{ relation: string; note: string | null; verse: Verse }[]>(`/api/app/verses/${verseId}/related`, { revalidate: 600 }).catch(() => null).then((list) => list ?? []),
+  ]);
   if (!verse) notFound();
   const citation = verseCitation(verse);
-  const related = (await serverGetOrNull<{ relation: string; note: string | null; verse: Verse }[]>(`/api/app/verses/${verseId}/related`, { revalidate: 600 }).catch(() => null)) ?? [];
 
   const jsonLd = {
     '@context': 'https://schema.org',

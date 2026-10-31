@@ -5,9 +5,14 @@ import '../models/book.dart';
 import '../models/verse.dart';
 import 'api_client.dart';
 import 'languages_query.dart';
+import 'response_cache.dart';
 
 /// The library's books, and reading into one. Listing and reading are both
 /// public — signed out, the library still browses, the same as mantras.
+///
+/// The library's shape (the books, their cantos and chapters) is kept for
+/// offline use as the API sent it; the text itself is in the offline library
+/// (`BookRepository`), not here.
 class BookService {
   BookService._() : _api = ApiClient.instance;
 
@@ -20,29 +25,39 @@ class BookService {
 
   final ApiClient _api;
 
-  Future<List<Book>> list() async {
-    final response = await _api.get(ApiPaths.books);
-    return response.list
-        .whereType<Map>()
-        .map((item) => Book.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+  Future<List<Book>> list() async => _books(await _api.getOrSaved(ApiPaths.books));
+
+  List<Book>? savedList() {
+    final copy = _api.saved(ApiPaths.books);
+    return copy == null ? null : _books(copy);
   }
 
   Future<Book> get(String slug) async {
-    final response = await _api.get(ApiPaths.book(slug));
+    final response = await _api.getOrSaved(ApiPaths.book(slug));
     return Book.fromJson(response.json);
+  }
+
+  /// One book as last saved, or its row in the saved list (the same book
+  /// without its translators).
+  Book? savedBook(String slug) {
+    final copy = _api.saved(ApiPaths.book(slug));
+    if (copy != null) return Book.fromJson(copy.json);
+    for (final book in savedList() ?? const <Book>[]) {
+      if (book.slug == slug) return book;
+    }
+    return null;
   }
 
   /// Codes of the reading languages the book has text in.
   Future<Set<String>> languages(String slug) async {
-    final response = await _api.get(ApiPaths.bookLanguages(slug));
+    final response = await _api.getOrSaved(ApiPaths.bookLanguages(slug));
     return response.list.whereType<String>().toSet();
   }
 
   /// Empty for a book with no canto level — the caller does not have to
   /// branch on [Book.hasCantos] before calling this.
   Future<List<BookSection>> cantos(String slug) async {
-    final response = await _api.get(ApiPaths.bookCantos(slug));
+    final response = await _api.getOrSaved(ApiPaths.bookCantos(slug));
     return response.list
         .whereType<Map>()
         .map((item) => BookSection.fromJson(Map<String, dynamic>.from(item)))
@@ -52,7 +67,7 @@ class BookService {
   /// [canto] narrows to one canto for a book organised by them; omitted for
   /// the Gita, which has none.
   Future<List<BookSection>> chapters(String slug, {int? canto}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.bookChapters(slug),
       query: canto == null ? null : {'canto': canto},
     );
@@ -113,4 +128,9 @@ class BookService {
         .map((item) => Verse.fromJson(Map<String, dynamic>.from(item)))
         .toList();
   }
+
+  static List<Book> _books(ApiResponse response) => response.list
+      .whereType<Map>()
+      .map((item) => Book.fromJson(Map<String, dynamic>.from(item)))
+      .toList();
 }

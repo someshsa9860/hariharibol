@@ -49,16 +49,30 @@ class LocalPushService {
   /// Only Android needs this (see above).
   bool get isSupported => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+  /// Where the plugin starts at all: on Android for the pushes above, and on
+  /// both for the routine's alerts, which the phone sets itself.
+  bool get canSchedule =>
+      !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+
   /// Starts the plugin once. False when it could not start; every call after
   /// that gets the same answer.
   Future<bool> _init() => _ready ??= _start();
 
   Future<bool> _start() async {
-    if (!isSupported) return false;
+    if (!canSchedule) return false;
     try {
       await _plugin.initialize(
         settings: const InitializationSettings(
           android: AndroidInitializationSettings(PushConfig.androidSmallIcon),
+          // iOS asks for nothing here (the push prompt in `FcmService` does) and
+          // registers no categories: the plugin's would replace the push
+          // buttons' own, so the routine alert's button is registered by
+          // `AppDelegate` instead.
+          iOS: DarwinInitializationSettings(
+            requestAlertPermission: false,
+            requestSoundPermission: false,
+            requestBadgePermission: false,
+          ),
         ),
         onDidReceiveNotificationResponse: (response) => _tapped(response.payload, response.actionId),
         // A button that does not open the app — a routine alert's "Mark as done" —
@@ -81,7 +95,7 @@ class LocalPushService {
 
   /// The plugin, started, for the routine alerts to schedule on — there is one
   /// plugin per app and a second `initialize` would replace this one's callbacks.
-  /// Null where notifications are not drawn by the app, or could not start.
+  /// Null where it does not start ([canSchedule]), or could not.
   Future<FlutterLocalNotificationsPlugin?> started() async => await _init() ? _plugin : null;
 
   /// Makes sure both push channels exist, so a push drawn by the system — app
@@ -91,7 +105,7 @@ class LocalPushService {
   /// whatever the reader has set on them.
   Future<void> ensureChannels(String name, String quietName) async {
     if (name == _channelName && quietName == _quietChannelName) return;
-    if (!await _init()) return;
+    if (!isSupported || !await _init()) return;
     try {
       final android =
           _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -123,7 +137,7 @@ class LocalPushService {
     String? body,
     String? imageUrl,
   }) async {
-    if (!await _init()) return;
+    if (!isSupported || !await _init()) return;
     if (quietChannelName != null) await ensureChannels(channelName, quietChannelName);
 
     final quiet = data[PushConfig.importanceKey]?.toString() == PushConfig.importanceQuiet;

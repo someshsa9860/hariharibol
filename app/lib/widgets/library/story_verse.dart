@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/verse_text_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/reading_mode.dart';
 import '../../models/verse.dart';
+import 'sanskrit_text.dart';
 
 /// What story mode shows for [verse]: the one [part] the reader chose, or null
 /// when the verse has none of it, in which case the verse is simply left out.
@@ -43,8 +45,9 @@ double storyGapAfter(int index, int count) => index == 0
 /// number in front, and almost nothing between it and the next verse, so the
 /// chapter reads as one flowing text.
 ///
-/// Every action the verse-by-verse layout has sits behind a press and hold
-/// ([onLongPress]), so the page stays quiet while it is being read.
+/// A tap ([onTap]) opens the verse in full, in the verse-by-verse layout, and
+/// every action that layout has sits behind a press and hold ([onLongPress]),
+/// so the page stays quiet while it is being read.
 class StoryVerse extends StatelessWidget {
   const StoryVerse({
     super.key,
@@ -56,6 +59,7 @@ class StoryVerse extends StatelessWidget {
     required this.isHighlighted,
     required this.playing,
     this.translation,
+    this.onTap,
     this.onLongPress,
   });
 
@@ -67,6 +71,7 @@ class StoryVerse extends StatelessWidget {
   final bool isHighlighted;
   final bool playing;
   final VerseTranslation? translation;
+  final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
   TextStyle _style(BuildContext context) => switch (part) {
@@ -89,6 +94,46 @@ class StoryVerse extends StatelessWidget {
     );
   }
 
+  /// Lines of verse — the Sanskrit and its transliteration — keep their number
+  /// in a column of its own, so every line of the verse starts at the same edge
+  /// and the verses are told apart by a clear gap. Running text (meaning,
+  /// purport) keeps the number in front of its first words.
+  bool get _isVerseForm => part == StoryPart.sanskrit || part == StoryPart.transliteration;
+
+  Widget _bookmark(Color color) => Icon(Icons.bookmark_rounded, size: AppSizes.iconSm, color: color);
+
+  Widget _text(TextStyle style, String body, List<InlineSpan> leading) => part == StoryPart.sanskrit
+      ? SanskritText(body, scale: fontScale, leading: leading)
+      : Text.rich(TextSpan(children: [...leading, TextSpan(text: body)], style: style));
+
+  /// [text] beside its number: the number, and the bookmark under it, in a
+  /// column of the same width for every verse; their first baseline is the
+  /// text's first baseline.
+  Widget _numbered(BuildContext context, int number, TextStyle numberStyle, Widget text) {
+    final gutter = MediaQuery.textScalerOf(context).scale(VerseTextConfig.numberGutter * fontScale);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        SizedBox(
+          width: gutter,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$number', style: numberStyle),
+              if (isFavorite)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xxs),
+                  child: _bookmark(context.colors.primary),
+                ),
+            ],
+          ),
+        ),
+        Expanded(child: text),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final body = storyTextOf(verse, part, translation: translation);
@@ -105,6 +150,23 @@ class StoryVerse extends StatelessWidget {
       color: primary,
     );
 
+    final Widget content;
+    if (_isVerseForm && showNumber && number != null) {
+      content = _numbered(context, number, numberStyle, _text(style, body, const []));
+    } else {
+      content = _text(style, body, [
+        if (showNumber && number != null) TextSpan(text: '$number ', style: numberStyle),
+        if (isFavorite)
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xs),
+              child: _bookmark(primary),
+            ),
+          ),
+      ]);
+    }
+
     return Material(
       color: isHighlighted
           ? context.colors.primaryContainer
@@ -119,37 +181,14 @@ class StoryVerse extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        onTap: onTap,
         onLongPress: onLongPress,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
+            vertical: _isVerseForm ? AppSpacing.sm : AppSpacing.xs,
           ),
-          child: SizedBox(
-            width: double.infinity,
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  if (showNumber && number != null)
-                    TextSpan(text: '$number ', style: numberStyle),
-                  if (isFavorite)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.xs),
-                        child: Icon(
-                          Icons.bookmark_rounded,
-                          size: AppSizes.iconSm,
-                          color: primary,
-                        ),
-                      ),
-                    ),
-                  TextSpan(text: body),
-                ],
-                style: style,
-              ),
-            ),
-          ),
+          child: SizedBox(width: double.infinity, child: content),
         ),
       ),
     );

@@ -1,0 +1,62 @@
+{
+  "slug": "bhumi-vandanam",
+  "title": "Bhūmi-vandanam (before stepping on the earth)",
+  "titleOriginal": "भूमिवन्दनम्",
+  "category": "morning",
+  "sortOrder": 110,
+  "originalLanguage": "sa",
+  "summary": "Asking Mother Earth’s pardon for touching her with one’s feet.",
+  "about": "O Devī clothed in the ocean, whose breasts are the mountains, consort of Viṣṇu, I bow to you: forgive the touch of my feet.",
+  "author": "",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A5%82%E0%A4%AE%E0%A4%BF%E0%A4%B5%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%A8%E0%A4%AE%E0%A5%8D",
+  "tradition": "smarta",
+  "deity": "bhudevi",
+  "occasions": [
+    "on rising, before the feet touch the ground"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "समुद्रवसने देवि पर्वतस्तनमण्डले ।\nविष्णुपत्नि नमस्तुभ्यं पादस्पर्शं क्षमस्व मे ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%AD%E0%A5%82%E0%A4%AE%E0%A4%BF%E0%A4%B5%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%A8%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%AD%E0%A5%82%E0%A4%AE%E0%A4%BF%E0%A4%B5%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A4%A8%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {},
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "पादस्पर्श क्षमस्व",
+      "to": "पादस्पर्शं क्षमस्व",
+      "why": "Typo on the page: pāda-sparśaṁ, the accusative."
+    },
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "क्षमस्व मे ।",
+      "to": "क्षमस्व मे ॥",
+      "why": "The page closes the verse with a single danda."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 1
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.947Z"
+}

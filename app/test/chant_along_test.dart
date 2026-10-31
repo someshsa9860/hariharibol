@@ -1,7 +1,9 @@
 // The "Chant along" card on its own, and the counter screen around it: that the
 // card plays, seeks and recovers from a dead link; that it fits a narrow phone at
 // a large text size in both themes; and that a recording on the screen counts
-// the ring, rests the microphone features, and stops with the app.
+// the ring, rests the microphone features, and stops with the app. What playing
+// does to the prayer, and the early finish of a round, are in
+// chant_along_prayer_test.dart.
 
 import 'dart:async';
 
@@ -20,12 +22,14 @@ import 'package:hariharibol/providers/language_chain_provider.dart';
 import 'package:hariharibol/providers/sadhana_provider.dart';
 import 'package:hariharibol/services/chant_mala_player.dart';
 import 'package:hariharibol/services/chant_mala_timing.dart';
+import 'package:hariharibol/services/connection_status.dart';
 import 'package:hariharibol/views/chant/chant_view.dart';
 import 'package:hariharibol/widgets/chant/chant_along_card.dart';
 import 'package:hariharibol/widgets/chant/chant_disc.dart';
 import 'package:hariharibol/widgets/chant/chant_tap_row.dart';
 
 import 'fake_audio_player.dart';
+import 'fake_connection_status.dart';
 
 const String link = 'https://media.test/mala.mp3';
 
@@ -133,6 +137,7 @@ Future<void> pumpView(
   required Mantra mantra,
   required FakeAudioPlayer fake,
   void Function()? onPlayerMade,
+  ConnectionStatus? connection,
 }) async {
   narrowPhone(tester);
   // The counter reads the day as it already is — it is opened from a tab that
@@ -147,6 +152,8 @@ Future<void> pumpView(
         onPlayerMade?.call();
         return fake;
       }),
+      malaAudioCacheProvider.overrideWithValue(null),
+      malaConnectionProvider.overrideWithValue(connection),
     ],
   );
   addTearDown(container.dispose);
@@ -171,6 +178,12 @@ Future<void> leave(WidgetTester tester) async {
 Future<void> tapPlay(WidgetTester tester) async {
   await tester.ensureVisible(find.byTooltip('Play recording'));
   await tester.tap(find.byTooltip('Play recording'));
+  await tester.pump();
+}
+
+Future<void> tapRing(WidgetTester tester) async {
+  await tester.ensureVisible(find.byType(ChantDisc));
+  await tester.tap(find.byType(ChantDisc));
   await tester.pump();
 }
 
@@ -360,37 +373,86 @@ void main() {
       expect(find.byIcon(Icons.insights_rounded), findsOneWidget);
 
       // That was the round's last chant, and the mantra has no prayer of its own: the
-      // prayer that ends every round takes the card's place, and the recording is
-      // paused so that it does not count the prayer.
+      // prayer that ends every round takes the mantra's place. The recording stays on
+      // the screen, paused and back at 0:00, so that it does not count the prayer and
+      // playing it again is the next round.
       expect(find.text('Offering to Krishna'), findsOneWidget);
-      expect(find.byType(ChantAlongCard), findsNothing);
+      expect(find.byType(ChantAlongCard), findsOneWidget);
       expect(fake.pauses, greaterThan(0));
+      expect(fake.seeks.last, Duration.zero);
+      expect(tester.widget<Slider>(find.byType(Slider)).value, 0);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
       expect(wakelock.held, isFalse);
 
-      // The rest of the recording is silence: it plays on unheard and counts nothing.
-      fake.playTo(const Duration(seconds: 59, milliseconds: 900));
+      // Playing it again hands the prayer to the recording: it says it itself, up to
+      // 0:10, where the chanting starts, so no tap is needed and none is waited for.
+      await tapPlay(tester);
+      expect(fake.plays, 2);
+      expect(find.text('Offering to Krishna'), findsOneWidget);
+      fake.playTo(const Duration(seconds: 9, milliseconds: 900));
       await tester.pump();
-      expect(find.text('#5'), findsNothing);
+      expect(find.text('Offering to Krishna'), findsOneWidget);
+
+      fake.playTo(const Duration(seconds: 10));
+      await tester.pump();
+      expect(find.text('Offering to Krishna'), findsNothing);
+      expect(find.text('0/4'), findsOneWidget);
+
+      // And the next round is counted from there, the same way.
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      expect(find.text('1/4'), findsOneWidget);
+      expect(find.text('#5'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await leave(tester);
     });
 
-    testWidgets('a tap on the ring still counts while the recording plays', (tester) async {
+    testWidgets('a tap on the ring counts nothing while the recording plays', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
       await pumpView(tester, mantra: withRecording, fake: fake);
       await tapPlay(tester);
 
-      await tester.ensureVisible(find.byType(ChantDisc));
-      await tester.tap(find.byType(ChantDisc));
-      await tester.pump();
-
-      expect(find.text('1/4'), findsOneWidget);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsNothing);
       expect(fake.pauses, 0);
       expect(find.byTooltip('Pause recording'), findsOneWidget);
 
+      // The recording alone is the count: the same chants as without the taps.
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+
       await leave(tester);
     });
+
+    testWidgets('and not when it is paused part-way, either', (tester) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      await pumpView(tester, mantra: withRecording, fake: fake);
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 20));
+      await tester.pump();
+      expect(find.text('1/4'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Pause recording'));
+      await tester.pump();
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+
+      await tapRing(tester);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+      expect(find.text('2/4'), findsNothing);
+
+      // Played on, the recording is still the only count.
+      await tapPlay(tester);
+      fake.playTo(const Duration(seconds: 30));
+      await tester.pump();
+      expect(find.text('2/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+
 
     testWidgets('the recording pauses when the app leaves the foreground', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
@@ -412,9 +474,7 @@ void main() {
       await leave(tester);
     });
 
-    testWidgets('closing the screen stops the recording before the sitting is sent', (
-      tester,
-    ) async {
+    testWidgets('closing the screen stops the recording and goes back at once', (tester) async {
       final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
       await pumpView(tester, mantra: withRecording, fake: fake);
       await tapPlay(tester);
@@ -423,12 +483,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pump();
 
-      // Stopped at once: nothing is counted after the sitting's last sync, which
-      // is still waiting on the network.
+      // Stopped at once: nothing is counted after the sitting's last sync.
       expect(fake.pauses, 1);
       expect(find.byTooltip('Play recording'), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 3));
+      // The screen does not wait for that sync, which with no connection can
+      // take as long as the network likes: a request never finishes in a test
+      // that only pumps frames, and the screen is gone all the same.
+      // The route's exit takes a few frames; nothing else is waited for.
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byType(ChantView), findsNothing);
       expect(tester.takeException(), isNull);
 
       await leave(tester);
@@ -446,6 +512,47 @@ void main() {
       expect(wakelock.held, isFalse);
     });
 
+    testWidgets('with no connection and the recording not kept the card is left off, until the connection returns', (
+      tester,
+    ) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      final connection = FakeConnectionStatus(isOnline: false);
+      await pumpView(tester, mantra: withRecording, fake: fake, connection: connection);
+
+      expect(find.byType(ChantAlongCard), findsNothing);
+      expect(find.text('Chant along'), findsNothing);
+      expect(find.text('Loading the recording…'), findsNothing);
+      expect(fake.opened, isEmpty);
+      expect(tester.takeException(), isNull);
+
+      connection.turn(on: true);
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+      expect(fake.opened, [link]);
+
+      // Open and on screen, it stays when the connection goes again.
+      connection.turn(on: false);
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+
+      await leave(tester);
+    });
+
+    testWidgets('with a connection the card is on the screen from the start', (tester) async {
+      final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
+      await pumpView(tester, mantra: withRecording, fake: fake, connection: FakeConnectionStatus());
+
+      expect(find.byType(ChantAlongCard), findsOneWidget);
+      expect(find.byTooltip('Play recording'), findsOneWidget);
+
+      await leave(tester);
+    });
+
     testWidgets('the screen fits a narrow phone with the card in both themes', (tester) async {
       for (final brightness in Brightness.values) {
         final fake = FakeAudioPlayer(length: const Duration(minutes: 1));
@@ -454,6 +561,8 @@ void main() {
           overrides: [
             sadhanaTodayProvider.overrideWith(_FakeToday.new),
             malaAudioPlayerProvider.overrideWithValue(() => fake),
+            malaAudioCacheProvider.overrideWithValue(null),
+            malaConnectionProvider.overrideWithValue(null),
           ],
         );
         addTearDown(container.dispose);

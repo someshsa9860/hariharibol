@@ -87,8 +87,8 @@
   },
   "languageAppTitle": "Which language feels like home?",
   "languageAppSubtitle": "You can change this anytime in settings.",
-  "languageMantraTitle": "Which script do you chant in?",
-  "languageMantraSubtitle": "Mantras appear in this script. Their meaning stays in your own language.",
+  "languageReadingTitle": "Which language do you read the verses in?",
+  "languageReadingSubtitle": "Verses, meanings and purports appear in this language. Mantras follow it too. You can change it anytime in settings.",
   "actionBack": "Back",
   "tabHome": "Home",
   "tabSadhana": "Jap",
@@ -160,6 +160,8 @@
   "homeContinueReading": "Continue reading",
   "homeBooks": "Books",
   "homeMantras": "Mantras",
+  "homeForYourGrowth": "For what you are working on",
+  "homeThisWeek": "This week",
   "homeStartYourDay": "Set today's target",
   "homeChantMantra": "Chant {mantra}",
   "@homeChantMantra": {
@@ -353,6 +355,22 @@
   "chantQuoteTapHint": "Tap the card to count a chant.",
   "chantQuoteNone": "No quotes are available right now. You can keep counting.",
   "chantPrayerHint": "Chant this prayer first, then tap the ring to begin counting.",
+  "chantPrayerHintAlong": "The recording begins with this prayer. Press play and chant it with the recording.",
+  "@chantPrayerHintAlong": {
+    "description": "Hint under the opening prayer on the chant counter when the mantra's recording begins with that prayer: the reader presses play and chants it with the recording, so there is no need to tap the ring for the prayer. The play button is an icon."
+  },
+  "chantPrayerHintAlongNoPrayer": "Chant this prayer, then press play — the recording starts with the mantra.",
+  "@chantPrayerHintAlongNoPrayer": {
+    "description": "Hint under the opening prayer on the chant counter when the mantra's recording starts at the mantra itself (start time 0): the reader says the prayer, then presses play. The play button is an icon."
+  },
+  "chantAutoCountResting": "Resting while the recording plays",
+  "@chantAutoCountResting": {
+    "description": "Status line under the auto-count switch while the mantra's recording is playing. The switch is off and cannot be changed until the recording is paused."
+  },
+  "chantFinishRound": "Finish round",
+  "@chantFinishRound": {
+    "description": "Button under the chant ring that appears once most of a round is counted (past 90 of 108 beads). It ends the round now, for a reader who chanted a little ahead of the ring, and starts a new one. A round is a Mala."
+  },
   "sadhanaAutoCountListening": "Listening…",
   "sadhanaAutoCountCounted": "Counted — listening for the next one",
   "sadhanaAutoCountPermissionDenied": "Microphone access is needed for auto count",
@@ -648,6 +666,14 @@
   "verseNoteDeleteConfirm": "Delete this note?",
   "readingSettingsTitle": "Reading settings",
   "readingContents": "Contents",
+  "readingContentsNow": "Reading now",
+  "@readingContentsNow": {
+    "description": "Marks the canto or chapter being read in the contents sheet over a chapter."
+  },
+  "readingContentsAboutBook": "About this book",
+  "@readingContentsAboutBook": {
+    "description": "Tooltip of the button in the contents sheet that opens the book's own page."
+  },
   "readingFontSizeLabel": "Text size",
   "readingFontSizeSmall": "Small",
   "readingFontSizeMedium": "Medium",
@@ -662,7 +688,8 @@
   "readingModeStory": "Story",
   "readingStoryShowLabel": "Story shows",
   "readingStoryNumbers": "Verse numbers",
-  "readingStoryHint": "Press and hold a verse to play it, bookmark it, highlight it or add a note.",
+  "readingStoryHint": "Tap a verse to see all of it — Sanskrit, word meanings, purport. Press and hold to play it, bookmark it, highlight it or add a note.",
+  "readingStoryCollapse": "Back to story",
   "readingStoryNothing": "This chapter has nothing for the part you chose. Try another one above.",
   "readingPartMeaning": "Meaning",
   "routineSubtitle": "Devotion, work and the ordinary in between.",
@@ -772,6 +799,19 @@
   "routineAlertDone": "Mark as done",
   "routineDailyRemove": "Remove from daily routine",
   "routineDailyRemoved": "Removed from your daily routine",
+  "routineEditTask": "Edit task",
+  "routineSaveChanges": "Save changes",
+  "routineDeleteTask": "Delete task",
+  "routineDeleteDaily": "Remove from this day on",
+  "routineRepeatDaily": "Repeat every day",
+  "routineRepeatFromDay": "Shows on every day from this day on.",
+  "routineRepeatStops": "Stays on this day only and stops repeating after it.",
+  "routineEditDailyFromDay": "Changes apply from this day on. Earlier days keep it as it was.",
+  "routineEditDailyFromToday": "Changes apply from today on. Earlier days keep it as it was.",
+  "routineExactAlarmTitle": "Alerts right on time",
+  "routineExactAlarmBody": "Android can hold a task's alert back by a few minutes. Allow alarms and reminders for this app so each alert comes the minute its time begins.",
+  "routineExactAlarmAllow": "Allow",
+  "routineExactAlarmLater": "Not now",
   "reelsEmpty": "No reels yet",
   "reelsEmptyBody": "When creators start posting, their reels will appear here.",
   "reelsFailed": "Could not load reels",
@@ -1955,6 +1995,47 @@
   "ownMantraErrorUnavailable": "Adding mantras is not available right now. Please try again later.",
   "ownMantraErrorLimit": "Your list of own mantras is full. Remove one to add another.",
   "ownMantraErrorExpired": "These suggestions have expired. Please search again.",
+  "prayersTitle": "Prayers",
+  "prayersHomeSubtitle": "Stotras, aartis and prayers in the script you read",
+  "prayersEmpty": "Prayers are being added. Please come back soon.",
+  "prayersAll": "All",
+  "prayersVerseCount": "{count, plural, =1{1 verse} other{{count} verses}}",
+  "@prayersVerseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prayersMeaning": "Meaning",
+  "prayersShowMeaning": "Show meaning",
+  "prayersHideMeaning": "Hide meaning",
+  "prayersExpandAll": "Expand all meanings",
+  "prayersCollapseAll": "Collapse all meanings",
+  "prayersScriptOriginal": "Original",
+  "prayersScriptRoman": "Roman letters",
+  "prayersShowOriginal": "Also show the original",
+  "prayersMeaningsOpen": "Open meanings by default",
+  "prayersAbout": "About this prayer",
+  "prayersComposedBy": "Composed by",
+  "prayersReference": "Reference",
+  "prayersSource": "Source",
+  "prayersVerseNumber": "Verse {number}",
+  "@prayersVerseNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "prayersCategoryMorning": "Morning prayers",
+  "prayersCategoryEvening": "Evening prayers",
+  "prayersCategoryMeals": "Before and after meals",
+  "prayersCategoryGuru": "Guru and the lineage",
+  "prayersCategoryDeity": "Prayers to a deity",
+  "prayersCategoryAarti": "Aartis",
+  "prayersCategoryPeace": "Peace and protection",
+  "prayersCategoryOther": "Other",
   "readingLookLabel": "Look",
   "readingLookMatchApp": "Match app",
   "readingLookWarmPaper": "Warm paper",
@@ -1973,5 +2054,94 @@
   "readingTintLabel": "Warm tint",
   "readingDimLabel": "Dim the page",
   "readingAutoNightTitle": "Night look from 8 pm to 6 am",
-  "readingKeepAwakeTitle": "Keep the screen on while reading"
+  "readingKeepAwakeTitle": "Keep the screen on while reading",
+  "setupMantraTitle": "Your favourite mantra",
+  "setupMantraSubtitle": "The one you chant most. You can change it any time.",
+  "setupMantraNone": "There are no mantras to choose from yet. You can pick one later in the Jap tab.",
+  "setupRoundsTitle": "How many rounds a day?",
+  "setupRoundsSubtitle": "One round is 108 chants. Choose what you can keep every day — you can change it later in Settings.",
+  "setupRoundsCount": "{count, plural, =1{1 round} other{{count} rounds}}",
+  "@setupRoundsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setupChantTime": "About {time} of chanting a day",
+  "@setupChantTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "setupDurationHoursMinutes": "{hours} h {minutes} min",
+  "@setupDurationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "setupDurationHours": "{hours} h",
+  "@setupDurationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "setupDurationMinutes": "{minutes} min",
+  "@setupDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "setupRoundsFewer": "Fewer rounds",
+  "setupRoundsMore": "More rounds",
+  "setupRoutineTitle": "Your daily routine",
+  "setupRoutineSubtitle": "Planned around {rounds} of {mantra}.",
+  "@setupRoutineSubtitle": {
+    "placeholders": {
+      "rounds": {
+        "type": "String"
+      },
+      "mantra": {
+        "type": "String"
+      }
+    }
+  },
+  "setupRoutineSubtitleNoMantra": "Planned around {rounds}.",
+  "@setupRoutineSubtitleNoMantra": {
+    "placeholders": {
+      "rounds": {
+        "type": "String"
+      }
+    }
+  },
+  "setupRoutineHint": "Tap the wake-up or sleep time to change it. You can edit everything else later in the Routine tab.",
+  "setupChantLate": "At this wake-up time your rounds run past {time}. Wake earlier or choose fewer rounds.",
+  "@setupChantLate": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "setupFinish": "Create my routine",
+  "setupRoutineSkip": "Skip for now",
+  "routineSleepNotBefore": "Bedtime can't be before {time}.",
+  "@routineSleepNotBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

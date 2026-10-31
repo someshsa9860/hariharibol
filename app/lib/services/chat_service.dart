@@ -4,6 +4,7 @@ import '../core/constants/api_paths.dart';
 import '../models/chat.dart';
 import '../models/sakha_profile.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// Ask Sakha's API. Everything but sending is an ordinary call;
 /// sending and regenerating answer with a stream of events.
@@ -23,13 +24,13 @@ class ChatService {
   final ApiClient _api = ApiClient.instance;
 
   Future<ChatStatus> status() async {
-    final response = await _api.get(ApiPaths.chatStatus);
+    final response = await _api.getOrSaved(ApiPaths.chatStatus);
     return ChatStatus.fromJson(response.json);
   }
 
   /// The conversation to open, or null when nothing has been said yet.
   Future<ChatConversationDetail?> current() async {
-    final response = await _api.get(ApiPaths.chatCurrent);
+    final response = await _api.getOrSaved(ApiPaths.chatCurrent);
     if (response.data == null) return null;
     return ChatConversationDetail.fromJson(response.json);
   }
@@ -48,7 +49,7 @@ class ChatService {
   /// What Sakha has noted about the reader from their chats. The keywords in
   /// the answer are for the reader to see; the server never puts them in a prompt.
   Future<SakhaProfile> profile() async {
-    final response = await _api.get(ApiPaths.chatProfile);
+    final response = await _api.getOrSaved(ApiPaths.chatProfile);
     return SakhaProfile.fromJson(response.json);
   }
 

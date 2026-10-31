@@ -1,0 +1,84 @@
+{
+  "slug": "jiv-jago",
+  "title": "Jīv Jāgo",
+  "titleOriginal": "জীব জাগ",
+  "category": "morning",
+  "sortOrder": 30,
+  "originalLanguage": "bn",
+  "summary": "“Wake up, sleeping souls”: Śrī Caitanya’s call to take the holy name.",
+  "about": "Sung in Mahāprabhu’s voice: how long will you sleep in the lap of Māyā? I have come to give you the medicine of the holy name.",
+  "author": "Bhaktivinoda Ṭhākura",
+  "reference": "Gītāvalī",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/j/jivjago.html",
+  "tradition": "vaishnava",
+  "deity": "gaura",
+  "occasions": [
+    "dawn"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "জীব জাগ, জীব জাগ, গৌরচান্দ বলে\nকত নিদ্রা যাও মায়া-পিশাচীর কোলে",
+      "roman": "jīv jāgo, jīv jāgo, gauracānda bole\nkota nidrā jāo māyā-piśācīra kole",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "ভজিব বলিয়া এসে সংসার-ভিতরে\nভুলিয়া রহিলে তুমি অবিদ্যার ভরে",
+      "roman": "bhajibo boliyā ese saṁsāra-bhitare\nbhuliyā rohile tumi avidyāra bhare",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "তোমারে লইতে আমি হৈনু অবতার\nআমি বিনা বন্ধু আর কে আছে তোমার",
+      "roman": "tomāre loite āmi hoinu avatāra\nāmi binā bandhu āra ke āche tomāra",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "এনেছি ঔষধি মায়া নাশিবার লাগি’\nহরি-নাম মহা-মন্ত্র লও তুমি মাগি’",
+      "roman": "enechi auṣadhi māyā nāśibāro lāgi'\nhari-nāma mahā-mantra lao tumi māgi'",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "ভকতিবিনোদ প্রভু-চরণে পড়িয়া\nসেই হরি-নাম-মন্ত্র লৈল মাগিয়া",
+      "roman": "bhakativinoda prabhu-caraṇe pariyā\nsei hari-nāma-mantra loilo māgiyā",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/j/jivjago.html",
+    "bengali": "https://kksongs.org/unicode/j/jivjago_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Jiv Jago Jiv Jago",
+    "official name": "Arunodaya Kirtana Song 2",
+    "author": "Bhaktivinoda Thakura",
+    "book name": "Gitavali",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 5,
+      "bengali": 5
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.855Z"
+}

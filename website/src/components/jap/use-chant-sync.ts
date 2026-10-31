@@ -48,7 +48,8 @@ export function useChantSync(mantraId: string) {
     }
     if (roundJustFinished) {
       sentRounds.current = rounds;
-      if (timer.current) clearTimeout(timer.current);
+      // Cleared *and* emptied: a stale id left here would stop the `??=` below from ever scheduling again.
+      if (timer.current) { clearTimeout(timer.current); timer.current = null; }
       void push();
       return;
     }

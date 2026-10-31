@@ -7,6 +7,7 @@ import '../models/paged.dart';
 import '../models/support.dart';
 import 'api_client.dart';
 import 'device_service.dart';
+import 'response_cache.dart';
 
 /// Everything the Help and feedback screens ask the API for.
 class SupportService {
@@ -31,13 +32,13 @@ class SupportService {
   }
 
   Future<Paged<SupportTicket>> tickets({int page = 1}) async {
-    final response = await _api.get(ApiPaths.supportTickets, query: {'page': page});
+    final response = await _api.getOrSaved(ApiPaths.supportTickets, query: {'page': page});
     return Paged.fromResponse(response.data, response.meta, SupportTicket.fromJson);
   }
 
   /// The conversation. Opening it marks the staff reply read on the server.
   Future<SupportTicket> ticket(String id) async {
-    final response = await _api.get(ApiPaths.supportTicket(id));
+    final response = await _api.getOrSaved(ApiPaths.supportTicket(id));
     return SupportTicket.fromJson(response.json);
   }
 

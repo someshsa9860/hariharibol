@@ -18,7 +18,7 @@ export function SiteHeader() {
       <div className="site-header-inner">
         <Link href="/" className="brand" aria-label="HariHariBol home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/logo.png" alt="" width={38} height={38} />
+          <img src="/img/logo-128.png" alt="" width={38} height={38} />
           <span>HariHariBol</span>
         </Link>
 

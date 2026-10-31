@@ -136,8 +136,8 @@ function LiveIndicator() {
 
 /** The checklist: can a run work at all? Each engine says whether its key is set, and its price says how far to trust it. */
 function Health({ settings }: { settings: NarrationOverview['settings'] }) {
-  const row = (ok: boolean | null, label: string, detail?: string) => (
-    <li className="flex items-start gap-2 text-sm">
+  const row = (key: string, ok: boolean | null, label: string, detail?: string) => (
+    <li key={key} className="flex items-start gap-2 text-sm">
       {ok === null ? <AlertTriangle className="mt-0.5 h-4 w-4 text-muted-foreground" /> : ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" /> : <XCircle className="mt-0.5 h-4 w-4 text-destructive" />}
       <span>
         {label}
@@ -149,10 +149,10 @@ function Health({ settings }: { settings: NarrationOverview['settings'] }) {
     <Card>
       <CardContent className="space-y-3 py-4">
         <ul className="grid gap-2 md:grid-cols-2">
-          {row(settings.storage.ok, settings.storage.ok ? `Verse texts and clips: ${settings.storage.describe ?? 'storage'}` : 'Storage is not set up', settings.storage.error)}
-          {row(settings.workerOnline, settings.workerOnline === null ? 'Worker: unknown' : settings.workerOnline ? 'The worker is online' : 'No worker is online — runs wait until one starts')}
+          {row('storage', settings.storage.ok, settings.storage.ok ? `Verse texts and clips: ${settings.storage.describe ?? 'storage'}` : 'Storage is not set up', settings.storage.error)}
+          {row('worker', settings.workerOnline, settings.workerOnline === null ? 'Worker: unknown' : settings.workerOnline ? 'The worker is online' : 'No worker is online — runs wait until one starts')}
           {settings.engines.map((engine) =>
-            row(engine.configured, `${engine.label}: ${engine.configured ? 'key set' : `${engine.keyEnv} is not set`}`, engine.price.usdPerMillionChars === null ? 'No price known, so no cost is shown.' : `About $${engine.price.usdPerMillionChars} per million characters${engine.price.verified ? '' : ' — not verified against the price list'}.`)
+            row(engine.id, engine.configured, `${engine.label}: ${engine.configured ? 'key set' : `${engine.keyEnv} is not set`}`, engine.price.usdPerMillionChars === null ? 'No price known, so no cost is shown.' : `About $${engine.price.usdPerMillionChars} per million characters${engine.price.verified ? '' : ' — not verified against the price list'}.`)
           )}
         </ul>
         <p className="text-xs text-muted-foreground">

@@ -13,15 +13,7 @@
 import { prisma } from '../config/database.js';
 import logger from '../config/logger.js';
 import * as firebase from './firebase.js';
-import { buildMessage } from '../utils/push-message.js';
-
-// Firebase says the token is dead. Keeping it means retrying a delivery that
-// can never land, on every send, forever.
-const DEAD_TOKEN_CODES = new Set([
-  'messaging/registration-token-not-registered',
-  'messaging/invalid-registration-token',
-  'messaging/invalid-argument',
-]);
+import { buildMessage, isDeadToken } from '../utils/push-message.js';
 
 async function dropDeadTokens(tokens) {
   if (!tokens.length) return;
@@ -41,12 +33,16 @@ async function sendToTokens(tokens, payload) {
   const response = await messaging.sendEachForMulticast({ ...message, tokens });
 
   const dead = [];
+  let refused = null;
   response.responses.forEach((result, index) => {
     if (result.success) return;
-    if (DEAD_TOKEN_CODES.has(result.error?.code)) dead.push(tokens[index]);
-    else logger.warn({ err: result.error?.message }, 'push failed');
+    if (isDeadToken(result.error)) dead.push(tokens[index]);
+    else if (result.error?.code === 'messaging/invalid-argument') refused ??= result.error.message;
+    else logger.warn({ err: result.error?.message, code: result.error?.code }, 'push failed');
   });
   await dropDeadTokens(dead);
+  // Once per send, not per device: it is the same message that every one refused.
+  if (refused) logger.error({ err: refused, title: payload.title }, 'push refused by FCM — the message is malformed, tokens kept');
 
   return { sent: response.successCount, failed: response.failureCount, skipped: 0 };
 }

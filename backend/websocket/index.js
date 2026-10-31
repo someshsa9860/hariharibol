@@ -93,7 +93,9 @@ async function start() {
     res.end();
   });
 
-  const wss = new WebSocketServer({ server, path: '/ws' });
+  // Clients only ever send a small ping frame. Without a cap, `ws` buffers up to 100 MB per message, so one
+  // client could fill this container's memory.
+  const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 16 * 1024 });
 
   wss.on('connection', async (socket, request) => {
     // The token arrives on the URL rather than in a header: browsers give no

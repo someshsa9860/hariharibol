@@ -11,8 +11,10 @@ import 'core/navigation/app_navigator.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'providers/chant_sync_provider.dart';
 import 'providers/language_settings_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/offline_warmer_provider.dart';
 import 'providers/routine_sync_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/api_client.dart';
@@ -49,6 +51,10 @@ class _HariHariBolAppState extends ConsumerState<HariHariBolApp> with WidgetsBin
     // Starts the routine's sync with the account (nothing, until someone is
     // signed in).
     ref.read(routineSyncerProvider);
+    // The same for the chanting kept on the phone, which goes up in batches.
+    ref.read(chantSyncerProvider);
+    // And fetching ahead what the reader may open offline (the same).
+    ref.read(offlineWarmerProvider);
 
     WidgetsBinding.instance.addObserver(this);
     unawaited(ApiClient.instance.renewAccessTokenIfDue());

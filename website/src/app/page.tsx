@@ -19,11 +19,13 @@ import { SITE_URL } from '@/lib/config';
 import type { HomeData, Verse, WebVerse } from '@/lib/types';
 
 export default async function HomePage() {
-  const home = await serverGetOrNull<HomeData>('/api/app/home', { revalidate: 0 }).catch(() => null);
-
-  // A verse is always shown: today's if one is set, else the day's pick from a short list of well-loved verses.
-  let verse: Verse | WebVerse | null = home?.slokaOfTheDay?.verse ?? null;
-  if (home && !verse) verse = await serverGetOrNull<WebVerse>(`/api/web/content/verses/${fallbackVerseId()}`, { revalidate: 3600 }).catch(() => null);
+  // A verse is always shown: today's if one is set, else the day's pick from a short list of well-loved verses. The
+  // pick is fetched alongside the home answer rather than after it (it is cached for the hour, so usually no request).
+  const [home, fallback] = await Promise.all([
+    serverGetOrNull<HomeData>('/api/app/home', { revalidate: 0 }).catch(() => null),
+    serverGetOrNull<WebVerse>(`/api/web/content/verses/${fallbackVerseId()}`, { revalidate: 3600 }).catch(() => null),
+  ]);
+  const verse: Verse | WebVerse | null = home?.slokaOfTheDay?.verse ?? (home ? fallback : null);
 
   const jsonLd = {
     '@context': 'https://schema.org',

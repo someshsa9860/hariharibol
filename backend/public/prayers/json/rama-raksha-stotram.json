@@ -1,0 +1,459 @@
+{
+  "slug": "rama-raksha-stotram",
+  "title": "Śrī Rāma-rakṣā Stotram",
+  "titleOriginal": "श्रीरामरक्षास्तोत्रम्",
+  "category": "deity",
+  "sortOrder": 600,
+  "originalLanguage": "sa",
+  "summary": "Budha-kauśika’s armour of Rāma’s names, guarding the body limb by limb.",
+  "about": "After a meditation on Rāma with Sītā on his lap, each name of Rāma is asked to guard one part of the body; then come the well-known verses “rāma rāmeti rāmeti”, “śrī-rāma rāma raghunandana” and Hanumān’s “manojavaṁ māruta-tulya-vegam”.",
+  "author": "Budha-kauśika Ṛṣi",
+  "reference": "",
+  "sourceName": "Wikisource (Sanskrit), CC BY-SA 4.0",
+  "sourceUrl": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B0%E0%A4%BE%E0%A4%AE%E0%A4%B0%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%BE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+  "tradition": "vaishnava",
+  "deity": "rama",
+  "occasions": [
+    "evening",
+    "Rāma-navamī",
+    "for protection"
+  ],
+  "festivals": [
+    "rama-navami"
+  ],
+  "verses": [
+    {
+      "position": 1,
+      "intro": true,
+      "text": "ध्यायेदाजानुबाहुं धृतशरधनुषं बद्धपद्मासनस्थं ।\nपीतं वासो वसानं नवकमलदलस्पर्धिनेत्रं प्रसन्नम् ।\nवामाङ्कारूढसीतामुखकमलमिलल्लोचनं नीरदाभम् ।\nनानालङ्कारदीप्तं दधतमुरुजटामण्डनं रामचन्द्रम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "चरितं रघुनाथस्य शतकोटिप्रविस्तरम् ।\nएकैकमक्षरं पुंसां महापातकनाशनम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "ध्यात्वा नीलोत्पलश्यामं रामं राजीवलोचनम् ।\nजानकीलक्ष्मणोपेतं जटामुकुटमण्डितम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "सासितूणधनुर्बाणपाणिं नक्तंचरान्तकम् ।\nस्वलीलया जगत्त्रातुमाविर्भूतमजं विभुम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "रामरक्षां पठेत् प्राज्ञः पापघ्नीं सर्वकामदाम् ।\nशिरो मे राघवः पातु भालं दशरथात्मजः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 6,
+      "text": "कौसल्येयो दृशौ पातु विश्वामित्रप्रियः श्रुती ।\nघ्राणं पातु मखत्राता मुखं सौमित्रिवत्सलः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 7,
+      "text": "जिह्वां विद्यानिधिः पातु कण्ठं भरतवन्दितः ।\nस्कन्धौ दिव्यायुधः पातु भुजौ भग्नेशकार्मुकः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 8,
+      "text": "करौ सीतापतिः पातु हृदयं जामदग्न्यजित् ।\nमध्यं पातु खरध्वंसी नाभिं जाम्बवदाश्रयः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 9,
+      "text": "सुग्रीवेशः कटी पातु सक्थिनी हनुमत्प्रभुः ।\nऊरू रघूत्तमः पातु रक्षःकुलविनाशकृत् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 10,
+      "text": "जानुनी सेतुकृत् पातु जङ्घे दशमुखान्तकः ।\nपादौ विभीषणश्रीदः पातु रामोऽखिलं वपुः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 11,
+      "text": "एतां रामबलोपेतां रक्षां यः सुकृती पठेत् ।\nस चिरायुः सुखी पुत्री विजयी विनयी भवेत् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 12,
+      "text": "पातालभूतलव्योमचारिणश्छद्मचारिणः ।\nन द्रष्टुमपि शक्तास्ते रक्षितं रामनामभिः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 13,
+      "text": "रामेति रामभद्रेति रामचन्द्रेति वा स्मरन् ।\nनरो न लिप्यते पापैर्भुक्तिं मुक्तिं च विन्दति ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 14,
+      "text": "जगज्जैत्रैकमन्त्रेण रामनाम्नाभिरक्षितम् ।\nयः कण्ठे धारयेत्तस्य करस्थाः सर्वसिद्धयः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 15,
+      "text": "वज्रपञ्जरनामेदं यो रामकवचं स्मरेत् ।\nअव्याहताज्ञः सर्वत्र लभते जयमङ्गलम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 16,
+      "text": "आदिष्टवान् यथा स्वप्ने रामरक्षामिमां हरः ।\nतथा लिखितवान् प्रातः प्रबुद्धो बुधकौशिकः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 17,
+      "text": "आरामः कल्पवृक्षाणां विरामः सकलापदाम् ।\nअभिरामस्त्रिलोकानां रामः श्रीमान् स नः प्रभुः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 18,
+      "text": "तरुणौ रूपसंपन्नौ सुकुमारौ महाबलौ ।\nपुण्डरीकविशालाक्षौ चीरकृष्णाजिनाम्बरौ ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 19,
+      "text": "फलमूलाशिनौ दान्तौ तापसौ ब्रह्मचारिणौ ।\nपुत्रौ दशरथस्यैतौ भ्रातरौ रामलक्ष्मणौ ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 20,
+      "text": "शरण्यौ सर्वसत्त्वानां श्रेष्ठौ सर्वधनुष्मताम् ।\nरक्षःकुलनिहन्तारौ त्रायेतां नो रघूत्तमौ ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 21,
+      "text": "आत्तसज्जधनुषाविषुस्पृशावक्षयाशुगनिषङ्गसङ्गिनौ ।\nरक्षणाय मम रामलक्ष्मणावग्रतः पथि सदैव गच्छताम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 22,
+      "text": "संनद्धः कवची खड्गी चापबाणधरो युवा ।\nगच्छन् मनोरथोऽस्माकं रामः पातु सलक्ष्मणः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 23,
+      "text": "रामो दाशरथिः शूरो लक्ष्मणानुचरो बली ।\nकाकुत्स्थः पुरुषः पूर्णः कौसल्येयो रघूत्तमः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 24,
+      "text": "वेदान्तवेद्यो यज्ञेशः पुराणपुरुषोत्तमः ।\nजानकीवल्लभः श्रीमानप्रमेयपराक्रमः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 25,
+      "text": "इत्येतानि जपेन्नित्यं मद्भक्तः श्रद्धयान्वितः ।\nअश्वमेधाधिकं पुण्यं सम्प्राप्नोति न संशयः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 26,
+      "text": "रामं दूर्वादलश्यामं पद्माक्षं पीतवाससम् ।\nस्तुवन्ति नामभिर्दिव्यैर्न ते संसारिणो नराः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 27,
+      "text": "रामं लक्ष्मणपूर्वजं रघुवरं सीतापतिं सुन्दरम् ।\nकाकुत्स्थं करुणार्णवं गुणनिधिं विप्रप्रियं धार्मिकम् ।\nराजेन्द्रं सत्यसन्धं दशरथतनयं श्यामलं शान्तमूर्तिम् ।\nवन्दे लोकाभिरामं रघुकुलतिलकं राघवं रावणारिम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 28,
+      "text": "रामाय रामभद्राय रामचन्द्राय वेधसे ।\nरघुनाथाय नाथाय सीतायाः पतये नमः ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 29,
+      "text": "श्रीराम राम रघुनन्दन राम राम ।\nश्रीराम राम भरताग्रज राम राम ।\nश्रीराम राम रणकर्कश राम राम ।\nश्रीराम राम शरणं भव राम राम ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 30,
+      "text": "श्रीरामचन्द्रचरणौ मनसा स्मरामि ।\nश्रीरामचन्द्रचरणौ वचसा गृणामि ।\nश्रीरामचन्द्रचरणौ शिरसा नमामि ।\nश्रीरामचन्द्रचरणौ शरणं प्रपद्ये ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 31,
+      "text": "माता रामो मत्पिता रामचन्द्रः ।\nस्वामी रामो मत्सखा रामचन्द्रः ।\nसर्वस्वं मे रामचन्द्रो दयालुः ।\nनान्यं जाने नैव जाने न जाने ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 32,
+      "text": "दक्षिणे लक्ष्मणो यस्य वामे तु जनकात्मजा ।\nपुरतो मारुतिर्यस्य तं वन्दे रघुनन्दनम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 33,
+      "text": "लोकाभिरामं रणरङ्गधीरं राजीवनेत्रं रघुवंशनाथम् ।\nकारुण्यरूपं करुणाकरं तं श्रीरामचन्द्रं शरणं प्रपद्ये ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 34,
+      "text": "मनोजवं मारुततुल्यवेगं जितेन्द्रियं बुद्धिमतां वरिष्ठम् ।\nवातात्मजं वानरयूथमुख्यं श्रीरामदूतं शरणं प्रपद्ये ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 35,
+      "text": "कूजन्तं रामरामेति मधुरं मधुराक्षरम् ।\nआरुह्य कविताशाखां वन्दे वाल्मीकिकोकिलम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 36,
+      "text": "आपदामपहर्तारं दातारं सर्वसंपदाम् ।\nलोकाभिरामं श्रीरामं भूयो भूयो नमाम्यहम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 37,
+      "text": "भर्जनं भवबीजानामर्जनं सुखसंपदाम् ।\nतर्जनं यमदूतानां रामरामेति गर्जनम् ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 38,
+      "text": "रामो राजमणिः सदा विजयते रामं रमेशं भजे ।\nरामेणाभिहता निशाचरचमू रामाय तस्मै नमः ।\nरामान्नास्ति परायणं परतरं रामस्य दासोऽस्म्यहम् ।\nरामे चित्तलयः सदा भवतु मे भो राम मामुद्धर ॥",
+      "roman": null,
+      "meaning": null
+    },
+    {
+      "position": 39,
+      "text": "रामरामेति रामेति रमे रामे मनोरमे ।\nसहस्रनामतत्तुल्यं रामनाम वरानने ॥",
+      "roman": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "devanagari": "https://sa.wikisource.org/wiki/%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B0%E0%A4%BE%E0%A4%AE%E0%A4%B0%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%BE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D",
+    "api": "https://sa.wikisource.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%E0%A4%B0%E0%A4%BE%E0%A4%AE%E0%A4%B0%E0%A4%95%E0%A5%8D%E0%A4%B7%E0%A4%BE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%8B%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D&redirects=1&format=json&formatversion=2"
+  },
+  "sourceHeader": {},
+  "edits": [
+    {
+      "verse": 1,
+      "field": "devanagari",
+      "from": "धृतशरधनुषं ।\nबद्धपद्मासनस्थम् ।",
+      "to": "धृतशरधनुषं बद्धपद्मासनस्थं ।",
+      "why": "The page breaks the first line of the dhyāna in two; joined into one line."
+    },
+    {
+      "verse": 5,
+      "field": "devanagari",
+      "from": "रामरक्षाम् पठेत्",
+      "to": "रामरक्षां पठेत्",
+      "why": "The page writes m before a consonant; anusvāra as everywhere else in the text."
+    },
+    {
+      "verse": 12,
+      "field": "devanagari",
+      "from": "पातालभूतलव्योम चारिणश्छद्मचारिणः",
+      "to": "पातालभूतलव्योमचारिणश्छद्मचारिणः",
+      "why": "Typo on the page: one compound, pātāla-bhūtala-vyoma-cāriṇaḥ."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "जगज्जैत्रेकमन्त्रेण",
+      "to": "जगज्जैत्रैकमन्त्रेण",
+      "why": "Typo on the page: jagaj-jaitra + eka is jaitraika."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "कन्ठे",
+      "to": "कण्ठे",
+      "why": "Typo on the page: kaṇṭhe, at the throat."
+    },
+    {
+      "verse": 14,
+      "field": "devanagari",
+      "from": "सर्वसिध्दयः",
+      "to": "सर्वसिद्धयः",
+      "why": "Typo on the page: the conjunct is ddh."
+    },
+    {
+      "verse": 15,
+      "field": "devanagari",
+      "from": "वज्रपञ्जरनामेदमं",
+      "to": "वज्रपञ्जरनामेदं",
+      "why": "Typo on the page: idam, this."
+    },
+    {
+      "verse": 18,
+      "field": "devanagari",
+      "from": "पुण्डरीक विशालाक्षौ",
+      "to": "पुण्डरीकविशालाक्षौ",
+      "why": "Typo on the page: one compound, puṇḍarīka-viśālākṣau."
+    },
+    {
+      "verse": 20,
+      "field": "devanagari",
+      "from": "सर्वसत्वानां",
+      "to": "सर्वसत्त्वानां",
+      "why": "Typo on the page: sattva has a double t."
+    },
+    {
+      "verse": 20,
+      "field": "devanagari",
+      "from": "रक्षः कुलनिहन्तारौ",
+      "to": "रक्षःकुलनिहन्तारौ",
+      "why": "Typo on the page: one compound, rakṣaḥ-kula-nihantārau."
+    },
+    {
+      "verse": 21,
+      "field": "devanagari",
+      "from": "मम् रामलक्ष्मणा",
+      "to": "मम रामलक्ष्मणा",
+      "why": "Typo on the page: mama, my."
+    },
+    {
+      "verse": 26,
+      "field": "devanagari",
+      "from": "रामंदूर्वादलश्यामं",
+      "to": "रामं दूर्वादलश्यामं",
+      "why": "Typo on the page: two words run together."
+    },
+    {
+      "verse": 26,
+      "field": "devanagari",
+      "from": "संसारिणो नरः",
+      "to": "संसारिणो नराः",
+      "why": "Typo on the page: narāḥ, plural like saṁsāriṇaḥ."
+    },
+    {
+      "verse": 27,
+      "field": "devanagari",
+      "from": "लक्ष्मणपूर्वजम् रघुवरं",
+      "to": "लक्ष्मणपूर्वजं रघुवरं",
+      "why": "The page writes m before a consonant; anusvāra as everywhere else in the text."
+    },
+    {
+      "verse": 27,
+      "field": "devanagari",
+      "from": "रघुकुलतिलकम् राघवं",
+      "to": "रघुकुलतिलकं राघवं",
+      "why": "As above."
+    },
+    {
+      "verse": 39,
+      "field": "devanagari",
+      "from": "सहस्त्रनाम",
+      "to": "सहस्रनाम",
+      "why": "Typo on the page: sahasra has no t."
+    }
+  ],
+  "checks": {
+    "verseCounts": {
+      "devanagari": 39
+    },
+    "linesRemoved": [
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ श्री गणेशाय नमः ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "अस्य श्रीरामरक्षास्तोत्रमन्त्रस्य ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "बुधकौशिकऋषिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "श्रीसीतारामचन्द्रो देवता ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "अनुष्टुप् छ्न्दः । सीता शक्तिः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "श्रीमद् हनुमान् कीलकम् ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "श्रीरामचन्द्रप्रीत्यर्थे जपे विनियोगः ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "अथ ध्यानम् ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "इति ध्यानम् ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "इति श्रीबुधकौशिकविरचितं श्रीरामरक्षास्त्रोत्रं सम्पूर्णम् ।"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ श्रीसीतारामचन्द्रार्पणमस्तु ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ शुभं भवतु ॥"
+      },
+      {
+        "pageVerse": null,
+        "copy": "devanagari",
+        "line": "॥ ॐ शान्तिः शान्तिः शान्तिः ॥"
+      }
+    ],
+    "scriptShares": {
+      "devanagari": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.943Z"
+}

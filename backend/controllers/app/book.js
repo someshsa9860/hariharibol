@@ -67,21 +67,35 @@ export const get = async (req, res) => {
  * The reading languages this book actually has published text in, so the reading
  * filter offers only those. English is always listed: the verses themselves are
  * the fallback every other language stops at.
+ *
+ * Asked every time a book opens, and the answer changes only when a language is imported and published. Prisma's
+ * `distinct` reads every matching row and drops the repeats itself — every published translation of the Bhagavatam,
+ * for one short list — so the database does the `DISTINCT` here, and the list is kept in this process for a while.
+ * A newly published language shows within LANGUAGES_TTL_MS.
  */
+const LANGUAGES_TTL_MS = 10 * 60 * 1000;
+const languagesBySlug = new Map();
+
 export const languages = async (req, res) => {
+  const { slug } = req.valid.params;
+  const cached = languagesBySlug.get(slug);
+  if (cached && Date.now() - cached.at < LANGUAGES_TTL_MS) return ok(res, cached.languages);
+
   const book = await prisma.book.findFirst({
-    where: { slug: req.valid.params.slug, isPublished: true },
+    where: { slug, isPublished: true },
     select: { id: true },
   });
   if (!book) throw notFound('Book');
 
-  const rows = await prisma.verseTranslation.findMany({
-    where: { isPublished: true, verse: { bookId: book.id } },
-    distinct: ['languageCode'],
-    select: { languageCode: true },
-  });
+  const rows = await prisma.$queryRaw`
+    SELECT DISTINCT t."languageCode"
+    FROM "VerseTranslation" t
+    JOIN "Verse" v ON v."id" = t."verseId"
+    WHERE v."bookId" = ${book.id} AND t."isPublished"`;
 
-  return ok(res, [...new Set(['en', ...rows.map((row) => row.languageCode)])]);
+  const found = [...new Set(['en', ...rows.map((row) => row.languageCode).sort()])];
+  languagesBySlug.set(slug, { at: Date.now(), languages: found });
+  return ok(res, found);
 };
 
 /** GET /api/app/books/:slug/cantos — Srimad Bhagavatam only. */

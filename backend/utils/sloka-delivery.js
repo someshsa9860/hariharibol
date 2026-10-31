@@ -3,6 +3,7 @@
 //   npm test
 
 import { SLOKA_DEFAULT_DELIVERY_TIME } from '../config/constants.js';
+import { localDateString, localMinutes } from './date.js';
 
 const DAY_MINUTES = 24 * 60;
 
@@ -30,4 +31,21 @@ function isDeliveryDue({ localMinutes, targetMinutes, windowMinutes }) {
   return (localMinutes - targetMinutes + DAY_MINUTES) % DAY_MINUTES < windowMinutes;
 }
 
-export { parseTimeOfDay, deliveryMinutes, isDeliveryDue };
+/**
+ * Of the [zones] readers are in, the ones due in a run at [at], each with the date
+ * it is there: Map zone → "YYYY-MM-DD". A delivery job asks this once per run and
+ * then reads only those readers, instead of loading everyone to ask each one.
+ * A zone the runtime does not know is judged on UTC, as `localMinutes` does.
+ */
+function dueZones({ zones, at, targetMinutes, windowMinutes }) {
+  const due = new Map();
+  for (const zone of zones) {
+    if (due.has(zone)) continue;
+    if (isDeliveryDue({ localMinutes: localMinutes(zone, at), targetMinutes, windowMinutes })) {
+      due.set(zone, localDateString(zone, at));
+    }
+  }
+  return due;
+}
+
+export { parseTimeOfDay, deliveryMinutes, isDeliveryDue, dueZones };

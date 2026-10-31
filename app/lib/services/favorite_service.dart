@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/favorite.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// Bookmarks — verses, mantras and books, in one list.
 class FavoriteService {
@@ -12,7 +13,7 @@ class FavoriteService {
 
   /// [type] narrows to `verse`, `mantra` or `book`.
   Future<List<Favorite>> list({String? type}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.favorites,
       query: type == null ? null : {'type': type},
     );

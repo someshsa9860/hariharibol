@@ -517,4 +517,39 @@ void main() {
       await leave(tester);
     });
   });
+
+  group('auto count and the hand', () {
+    testWidgets('a tap on the ring counts nothing while auto count runs, and counts once it is off', (
+      tester,
+    ) async {
+      await pumpView(tester, plain, clock);
+      await tester.ensureVisible(find.text('Use the microphone'));
+
+      // Counting by time, so no microphone is needed.
+      await tester.tap(find.byType(Switch).at(1));
+      await tester.pump();
+      await tester.ensureVisible(find.byType(Switch).at(0));
+      await tester.tap(find.byType(Switch).at(0));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Counting by time — no microphone', skipOffstage: false), findsOneWidget);
+
+      clock.advance(3000);
+      await tapRing(tester);
+      await tapRing(tester);
+      expect(find.text('0/4'), findsOneWidget);
+
+      await tester.ensureVisible(find.byType(Switch).at(0));
+      await tester.tap(find.byType(Switch).at(0));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Off — tap a bead yourself', skipOffstage: false), findsOneWidget);
+
+      clock.advance(3000);
+      await tapRing(tester);
+      expect(find.text('1/4'), findsOneWidget);
+
+      await leave(tester);
+    });
+  });
 }

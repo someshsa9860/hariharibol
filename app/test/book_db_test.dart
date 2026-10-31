@@ -3,6 +3,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hariharibol/db/app_database.dart';
 import 'package:hariharibol/db/tables.dart';
+import 'package:hariharibol/models/book_cache.dart';
+import 'package:hariharibol/services/book_sync_planner.dart';
 
 import 'support/book_fixtures.dart';
 
@@ -13,6 +15,15 @@ const _booksBeforeContentVersion = '''
     id TEXT NOT NULL PRIMARY KEY, slug TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
     title_i18n TEXT, book_number INTEGER NOT NULL, unit_type TEXT,
     total_units INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)
+''';
+
+/// `verse_translations` as versions 4 and 5 made it (no `word_meanings`).
+const _verseTranslationsBeforeWordMeanings = '''
+  CREATE TABLE verse_translations (
+    id TEXT NOT NULL PRIMARY KEY, verse_row_id TEXT NOT NULL, language_code TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'TRANSLATION', translator_id TEXT, translator_slug TEXT,
+    translator_name TEXT, meaning TEXT, purport TEXT, transliteration TEXT, source_ref TEXT,
+    audio_path TEXT, display_order INTEGER NOT NULL DEFAULT 0)
 ''';
 
 void main() {
@@ -316,7 +327,9 @@ void main() {
       addTearDown(upgraded.close);
 
       final state = await upgraded.downloadStateDao.stateOf('b', 'u');
-      expect((state!.version, state.hash, state.cacheVersion), (7, 'abc', 1));
+      // The hash is forgotten on the way up to version 6 (see below), the rest is kept.
+      expect((state!.version, state.cacheVersion), (7, 1));
+      expect(state.hash, isNull);
       // So a server still on version 1 does not make every phone download again.
       expect(await upgraded.bookDao.dropOutdatedUnits('b', 1), 0);
       expect(await upgraded.downloadStateDao.stateOf('b', 'u'), isNotNull);
@@ -363,6 +376,7 @@ void main() {
           downloaded_at INTEGER, retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
           PRIMARY KEY (book_id, unit_id))
       ''');
+      sqlite.execute(_verseTranslationsBeforeWordMeanings);
       sqlite.execute("INSERT INTO books VALUES ('b', 'srimad-bhagavatam', 'Srimad Bhagavatam', NULL, 2, 'canto', 12, 0)");
       sqlite.execute('PRAGMA user_version = 4');
     });
@@ -373,6 +387,35 @@ void main() {
     expect((book!.totalUnits, book.contentVersion), (12, 0), reason: '0 = not known; the next sync fills it in');
     await upgraded.bookDao.setContentVersion('b', 3);
     expect(await upgraded.bookDao.contentVersionOf('b'), 3);
+  });
+
+  test('upgrading a version 5 database adds the word meanings column and has every unit fetched again', () async {
+    final raw = NativeDatabase.memory(setup: (sqlite) {
+      sqlite.execute(_verseTranslationsBeforeWordMeanings);
+      sqlite.execute('''
+        CREATE TABLE download_state (
+          book_id TEXT NOT NULL, unit_id TEXT NOT NULL, unit_type TEXT NOT NULL,
+          unit_number INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending',
+          version INTEGER NOT NULL DEFAULT 0, hash TEXT, cache_version INTEGER NOT NULL DEFAULT 1,
+          downloaded_at INTEGER, retry_count INTEGER NOT NULL DEFAULT 0, last_error TEXT,
+          PRIMARY KEY (book_id, unit_id))
+      ''');
+      sqlite.execute("INSERT INTO verse_translations (id, verse_row_id, language_code, meaning) VALUES ('t', 'v', 'hi', 'अर्थ')");
+      sqlite.execute("INSERT INTO download_state (book_id, unit_id, unit_type, unit_number, status, version, hash) VALUES ('b', 'u', 'canto', 4, 'done', 7, 'abc')");
+      sqlite.execute('PRAGMA user_version = 5');
+    });
+    final upgraded = AppDatabase(raw);
+    addTearDown(upgraded.close);
+
+    final rows = await upgraded.customSelect('SELECT meaning, word_meanings FROM verse_translations').get();
+    expect(rows.single.read<String>('meaning'), 'अर्थ', reason: 'what is on the phone stays readable');
+    expect(rows.single.read<String?>('word_meanings'), isNull);
+
+    final state = await upgraded.downloadStateDao.stateOf('b', 'u');
+    expect((state!.status, state.version), ('done', 7));
+    expect(state.hash, isNull);
+    final remote = ManifestUnit(unitId: 'u', unitType: 'canto', number: 4, version: 7, hash: 'abc', schemaVersion: 1);
+    expect(BookSyncPlanner.needsDownload(remote, state), isTrue, reason: 'the unit is fetched again, with its word meanings');
   });
 
   group('content version', () {

@@ -1,6 +1,7 @@
 import '../core/constants/api_paths.dart';
 import '../models/issue.dart';
 import 'api_client.dart';
+import 'response_cache.dart';
 
 /// The seeded list of things a person can say is wrong.
 class IssueService {
@@ -12,7 +13,7 @@ class IssueService {
 
   /// [category] filters to `VIKARA` or `PRACTICE`; omitted, it returns both.
   Future<List<Issue>> list({String? category}) async {
-    final response = await _api.get(
+    final response = await _api.getOrSaved(
       ApiPaths.issues,
       query: category == null ? null : {'category': category},
     );

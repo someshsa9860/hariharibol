@@ -11,6 +11,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/api_failure.dart';
 import '../../models/mantra_category.dart';
 import '../../models/sadhana.dart';
+import '../../providers/chant_ledger_provider.dart';
 import '../../providers/mantra_provider.dart';
 import '../../providers/sadhana_provider.dart';
 import '../../services/sadhana_service.dart';
@@ -104,10 +105,13 @@ class _SadhanaContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // What was chanted on this phone is the latest record; the server's day can be
+    // a batch behind it.
+    final shown = today.plusRounds(ref.watch(chantExtraProvider));
     final sections = <Widget>[
       _RoundsHero(
-        day: today.day,
-        streak: today.streak,
+        day: shown.day,
+        streak: shown.streak,
         onChant: () => _chantNow(ref),
         onLogRounds: () => _logRounds(context, ref),
       ),

@@ -9,6 +9,8 @@ import '../../views/auth/sign_in_view.dart';
 import '../../views/calendar/calendar_view.dart';
 import '../../views/etiquette/etiquette_item_view.dart';
 import '../../views/etiquette/etiquette_view.dart';
+import '../../views/prayers/prayer_view.dart';
+import '../../views/prayers/prayers_view.dart';
 import '../../views/support/support_ticket_view.dart';
 import '../../views/support/developer_chat_view.dart';
 import '../../views/support/support_view.dart';
@@ -27,7 +29,7 @@ import '../../views/library/chapter_read_view.dart';
 import '../../views/mantra/add_mantra_view.dart';
 import '../../views/mantra/mantra_detail_view.dart';
 import '../../views/onboarding/intro_view.dart';
-import '../../views/onboarding/language_view.dart';
+import '../../views/onboarding/setup_view.dart';
 import '../../views/reels/creator_view.dart';
 import '../../views/reels/reel_detail_view.dart';
 import '../../views/reels/book_reels_view.dart';
@@ -111,21 +113,19 @@ GoRouter createRouter() {
           return location == AppRoutes.signIn ? null : AppRoutes.signIn;
 
         case SessionStatus.signedIn:
-          // A new account has the default languages rather than chosen ones,
-          // and is held at the picker until it does. The flag is written by
-          // sign-in and cleared only when the API has accepted a choice, so a
-          // failed save cannot let anyone through with nothing set.
-          final chosenLanguages =
+          // A new account has the default settings rather than chosen ones, and
+          // is held at the setup until it is finished. Sign-in writes the flag
+          // for an account that already exists; the setup writes it only after
+          // its last save has worked, so a failed save cannot let anyone
+          // through with nothing set.
+          final setupDone =
               LocalStore.instance.read<bool>(BoxKeys.onboardingSeen) ?? false;
-          if (!chosenLanguages) {
-            return location == AppRoutes.languageSetup
-                ? null
-                : AppRoutes.languageSetup;
+          if (!setupDone) {
+            return location == AppRoutes.setup ? null : AppRoutes.setup;
           }
 
-          // The language screen is deliberately not bounced once the choice is
-          // made — settings pushes the same screen to change it later, and the
-          // onboarding exit is an explicit navigation rather than a redirect.
+          // Once the flag is set the setup is not bounced. It is left by an
+          // explicit navigation, not a redirect.
           final atDoor =
               location == AppRoutes.splash || location == AppRoutes.signIn;
           return atDoor ? AppRoutes.home : null;
@@ -160,11 +160,11 @@ GoRouter createRouter() {
         ),
       ),
       GoRoute(
-        path: AppRoutes.languageSetup,
-        name: RouteNames.languageSetup,
+        path: AppRoutes.setup,
+        name: RouteNames.setup,
         builder: (context, state) => ContentWidth(
           maxWidth: ContentWidths.reading,
-          child: const LanguageView(),
+          child: const SetupView(),
         ),
       ),
       GoRoute(
@@ -391,6 +391,24 @@ GoRouter createRouter() {
         builder: (context, state) => ContentWidth(
           maxWidth: ContentWidths.regular,
           child: EtiquetteItemView(id: state.pathParameters['id']!),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.prayers,
+        name: RouteNames.prayers,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.regular,
+          child: const PrayersView(),
+        ),
+      ),
+
+      GoRoute(
+        path: AppRoutes.prayerPattern,
+        name: RouteNames.prayer,
+        builder: (context, state) => ContentWidth(
+          maxWidth: ContentWidths.reading,
+          child: PrayerView(id: state.pathParameters['id']!),
         ),
       ),
 

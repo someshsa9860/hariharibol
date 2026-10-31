@@ -1,0 +1,84 @@
+{
+  "slug": "je-anilo-prema-dhana",
+  "title": "Je Ānilo Prema-dhana",
+  "titleOriginal": "যে আনিল প্রেমধন",
+  "category": "guru",
+  "sortOrder": 40,
+  "originalLanguage": "bn",
+  "summary": "A lament for the great devotees who brought the treasure of love of God.",
+  "about": "The singer cries for Rūpa, Sanātana, Jīva, Raghunātha and the other associates of Śrī Caitanya, asking where they have gone.",
+  "author": "Narottama Dāsa Ṭhākura",
+  "reference": "Prārthanā",
+  "sourceName": "Kṛṣṇa Kīrtana Songs (kksongs.org)",
+  "sourceUrl": "https://kksongs.org/songs/j/jeanilopremadhana.html",
+  "tradition": "vaishnava",
+  "deity": "vaiṣṇavas",
+  "occasions": [
+    "remembering departed devotees"
+  ],
+  "festivals": [],
+  "verses": [
+    {
+      "position": 1,
+      "text": "যে আনিল প্রেম-ধন করুণা প্রচুর\nহেন প্রভু কথা গেলা আচার্য-ঠাকুর",
+      "roman": "je ānilo prema-dhana koruṇā pracur\nheno prabhu kothā gelā ācārya-ṭhākur",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 2,
+      "text": "কাহা মোর স্বরূপ রূপ কাহা সনাতন\nকাহা দাস রঘুনাথ পতিত-পাবন",
+      "roman": "kāhā mora swarūp rūpa kāhā sanātan\nkāhā dāsa raghunātha patita-pāvan",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 3,
+      "text": "কাহা মোর ভট্ট-যুগ কাহা কবিরাজ\nএক-কালে কথা গেলা গৌরা নট-রাজ",
+      "roman": "kāhā mora bhaṭṭa-juga kāhā kavirāj\neka-kāle kothā gelā gorā naṭa-rāj",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 4,
+      "text": "পাষাণে কুটিব মাথা অনলে পশিব\nগৌরাঙ্গ গুণের নিধি কথা গেলে পাব",
+      "roman": "pāṣāṇe kuṭibo māthā anale paśibo\ngaurāṅga guṇera nidhi kothā gele pābo",
+      "devanagari": null,
+      "meaning": null
+    },
+    {
+      "position": 5,
+      "text": "সে-সব সঙ্গীর সঙ্গে যে কৈল বিলাস\nসে-সঙ্গ না পাইয়া কান্দে নরোত্তম দাস",
+      "roman": "se-saba saṅgīra saṅge je koilo bilās\nse-saṅga nā pāiyā kānde narottama dās",
+      "devanagari": null,
+      "meaning": null
+    }
+  ],
+  "sourcePages": {
+    "roman": "https://kksongs.org/songs/j/jeanilopremadhana.html",
+    "bengali": "https://kksongs.org/unicode/j/jeanilopremadhana_beng.html"
+  },
+  "sourceHeader": {
+    "song name": "Je Anilo Prema Dhana Koruna Pracura",
+    "official name": "Swa Parsada Bhagavad Viraha Janita Vilapa Song 1",
+    "author": "Narottama Dasa Thakura",
+    "book name": "Prarthana",
+    "language": "Bengali"
+  },
+  "edits": [],
+  "checks": {
+    "verseCounts": {
+      "roman": 5,
+      "bengali": 5
+    },
+    "linesRemoved": [],
+    "scriptShares": {
+      "bengali": 1,
+      "roman": 1
+    },
+    "copiesAgree": true,
+    "differences": [],
+    "warnings": []
+  },
+  "fetchedAt": "2026-10-28T07:44:49.849Z"
+}
