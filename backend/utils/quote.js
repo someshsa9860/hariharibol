@@ -77,10 +77,12 @@ export const TRANSLATE_SCHEMA = {
           text: { type: 'string' },
         },
         required: ['slug', 'text'],
+        additionalProperties: false,
       },
     },
   },
   required: ['items'],
+  additionalProperties: false,
 };
 
 export const estimateTokens = (...texts) => Math.ceil(texts.reduce((n, t) => n + String(t).length, 0) / 2);

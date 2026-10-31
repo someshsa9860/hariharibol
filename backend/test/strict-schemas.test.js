@@ -7,6 +7,7 @@ import { answerSchema } from '../scripts/lib/claude-translate-prompt.js';
 import { TRANSLATE_SCHEMA as CALENDAR } from '../utils/calendar-translation.js';
 import { TRANSLATE_SCHEMA as ETIQUETTE } from '../utils/etiquette.js';
 import { HEADER_SCHEMA as PRAYER_HEADER, VERSES_SCHEMA as PRAYER_VERSES } from '../utils/prayer.js';
+import { TRANSLATE_SCHEMA as QUOTE } from '../utils/quote.js';
 import { SCENES_SCHEMA } from '../utils/scenes.js';
 
 const REFUSED_KEYWORDS = ['uniqueItems'];
@@ -37,6 +38,7 @@ describe('structured-output schemas follow strict mode', () => {
     'book translation (Marathi Bhagavatam, with vikara tags)': answerSchema(['mr', 'hi'], undefined, 'srimad-bhagavatam'),
     'calendar translation': CALENDAR,
     'etiquette translation': ETIQUETTE,
+    'quote translation': QUOTE,
     'prayer heading': PRAYER_HEADER,
     'prayer verses': PRAYER_VERSES,
     'scene storyboard': SCENES_SCHEMA,
