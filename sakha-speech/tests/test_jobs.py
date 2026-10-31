@@ -108,6 +108,30 @@ def test_human_times():
     assert [jobs.human(s) for s in (45, 720, 12000)] == ["45s", "12m", "3h 20m"]
 
 
+def test_the_progress_line_says_where_the_run_is_and_what_is_spoken():
+    line = jobs.progress_line({
+        "state": "running", "total": 72, "eta": 2220,
+        "chapters": [{"language": "hi", "chapter": "2", "name": "सांख्ययोग", "wanted": 72, "done": 53}],
+        "current": {"verseId": "1.2.54", "characterName": "अर्जुन", "voice": "hi-parler-rohit"}})
+    assert line == "running · hi chapter 2 सांख्ययोग · 53 of 72 verses · now 1.2.54 अर्जुन (hi-parler-rohit) · about 37m left"
+    assert jobs.progress_line({"state": "done", "message": "Made 72 verses."}) == "job done: Made 72 verses."
+
+
+def test_progress_prints_the_newest_jobs_log_and_stops_when_the_job_ends(work, capsys):
+    folder = jobs.job_dir("20261030-191521")
+    folder.mkdir(parents=True)
+    (folder / "status.json").write_text(json.dumps({"id": "20261030-191521", "state": "done", "total": 2, "chapters": []}))
+    (folder / "log.txt").write_text("19:15:30 [1/2] first verse\n19:16:10 [2/2] second verse\njob done\n", encoding="utf-8")
+    jobs.follow(poll=0)
+    out = capsys.readouterr().out
+    assert "[2/2] second verse" in out and "job done" in out and "-- job done" in out
+
+
+def test_progress_says_so_when_no_job_has_run(work, capsys):
+    jobs.follow(poll=0)
+    assert "No job has run yet" in capsys.readouterr().out
+
+
 # ---- the job, in a process of its own -------------------------------------------------------------------
 
 def finished(status_of=jobs.current):

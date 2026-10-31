@@ -115,6 +115,11 @@ def cmd_status(args, voices, books):
                       f"redo {count('redo'):3}  uploaded {uploaded:4}")
 
 
+def cmd_progress(args, voices, books):
+    from .jobs import follow
+    follow()
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="sakha-speech", description="Makes HariHariBol's narration audio and uploads it to S3.")
     sub = p.add_subparsers(dest="command", required=True)
@@ -171,6 +176,8 @@ def parser() -> argparse.ArgumentParser:
     s = sub.add_parser("status", help="what is fetched, made, to check and uploaded")
     s.add_argument("--book")
     s.set_defaults(run=cmd_status)
+    s = sub.add_parser("progress", help="follow the newest job here: its position, then each new log line")
+    s.set_defaults(run=cmd_progress)
     return p
 
 
