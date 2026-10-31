@@ -3257,6 +3257,89 @@ model SceneRun {
   @@index([status, createdAt])
 }
 
+// One admin run that reads verses aloud with a text-to-speech engine (admin → Narration). kind NARRATION reads a list
+// of chapters in one engine, model and voice and makes one NarrationClip per verse. kind COMPARE reads one verse with
+// each target in `targets` and records each answer in `results`, so the admin can hear them side by side. The row is
+// the truth; the BullMQ job only works it. Same shape as SceneRun.
+model NarrationRun {
+  id String @id @default(cuid())
+
+  kind     String  @default("NARRATION") @db.VarChar(10) // NARRATION | COMPARE
+  book     String  @default("srimad-bhagavatam") @db.VarChar(40)
+  language String  @default("en") @db.VarChar(10)
+  engine   String? @db.VarChar(30) // NARRATION: the engine of the whole run
+  model    String? @db.VarChar(100)
+  voice    String? @db.VarChar(100)
+
+  targets  Json? // COMPARE: [{engine, model, voice}, ...] as asked
+  results  Json? // COMPARE: one cell per target, written as each one finishes
+  chapters Int[] // NARRATION: the chapter ids asked for
+  verseIds String[] // COMPARE: the one verse
+  force    Boolean @default(false) // make again clips that are already made
+
+  status          TranslationRunStatus @default(QUEUED)
+  pauseReason     String?              @db.VarChar(30) // credit | auth | config | storage | rate_limit | unavailable | source | error
+  statusMessage   String?
+  stopReason      String?              @db.VarChar(30) // finished | error | cancelled
+  currentVerse    String?              @db.VarChar(40)
+  errorVerse      String?              @db.VarChar(40) // the verse a FAILED run stopped on
+  resumeAt        DateTime?
+  cancelRequested Boolean              @default(false)
+  jobId           String?
+  attempts        Int                  @default(0)
+  retriesInARow   Int                  @default(0)
+
+  totalVerses   Int @default(0)
+  doneVerses    Int @default(0)
+  skippedVerses Int @default(0) // clips already made from the same text
+  failedVerses  Int @default(0) // verses an engine refused; the run goes on
+
+  characters    Int   @default(0) // characters of text sent to the engine
+  audioSeconds  Float @default(0) // seconds of audio made
+  calls         Int   @default(0)
+  activeSeconds Int   @default(0)
+
+  requestedById   String?
+  requestedByName String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  heartbeatAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+// One narrated verse in one engine, model and voice (admin → Narration). The audio is in S3 at s3Key. textHash is the
+// hash of the text it was made from, plus the target and the pipeline version, so a verse whose text has not changed is
+// not made again. There is one clip per target and verse: making it again replaces the row.
+model NarrationClip {
+  id String @id @default(cuid())
+
+  book     String @db.VarChar(40)
+  language String @db.VarChar(10)
+  engine   String @db.VarChar(30)
+  model    String @db.VarChar(100)
+  voice    String @db.VarChar(100)
+  verseId  String @db.VarChar(40)
+
+  textHash    String @db.VarChar(64)
+  s3Key       String @db.VarChar(512)
+  contentType String @db.VarChar(60)
+  bytes       Int
+  seconds     Float @default(0)
+  characters  Int   @default(0)
+
+  runId String? // the run that made it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([book, language, engine, model, voice, verseId], map: "NarrationClip_target_verse_key")
+  @@index([verseId])
+}
+
 // ============================================================================
 // Hindu calendar (panchang)
 // ============================================================================

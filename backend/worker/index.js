@@ -42,6 +42,8 @@ import marketingProcessor, { abortActiveRuns as abortMarketingRuns, onJobFailed 
 import { reconcileRuns as reconcileMarketingRuns } from '../services/marketing-run.js';
 import translationImportProcessor, { abortActiveRuns as abortTranslationImportRuns, onJobFailed as onTranslationImportJobFailed } from '../jobs/processors/translation-import.js';
 import { reconcileImportRuns } from '../services/translation-import.js';
+import narrationProcessor, { abortActiveRuns as abortNarrationRuns, onJobFailed as onNarrationJobFailed } from '../jobs/processors/narration.js';
+import { reconcileRuns as reconcileNarrationRuns } from '../services/narration.js';
 
 // One processor per queue. The queue name is the key, so worker/ and jobs/
 // cannot disagree about which processor runs what.
@@ -55,6 +57,7 @@ const processors = {
   content: contentProcessor,
   translation: translationProcessor,
   scenes: scenesProcessor,
+  narration: narrationProcessor,
   etiquette: etiquetteProcessor,
   quote: quoteProcessor,
   calendar: calendarProcessor,
@@ -84,6 +87,8 @@ const CONCURRENCY = {
   translation: 1,
   // One run at a time: the free tier's limits are per project, so two runs would only meet them sooner.
   scenes: 1,
+  // One narration run at a time: each verse is billed by the call, and one book's runs share one engine rate limit.
+  narration: 1,
   // One translation run at a time: they are billed by the call.
   etiquette: 1,
   quote: 1,
@@ -103,6 +108,7 @@ const CONCURRENCY = {
 const workers = [];
 let reconcileTimer = null;
 let reconcileScenesTimer = null;
+let reconcileNarrationTimer = null;
 let reconcileEtiquetteTimer = null;
 let reconcileQuoteTimer = null;
 let reconcileCalendarTimer = null;
@@ -118,7 +124,7 @@ async function start() {
       connection: bullConnection,
       concurrency: CONCURRENCY[name] || 1,
       // A translation run whose worker died is handed to another many times over; the others, once.
-      ...((name === 'translation' || name === 'scenes' || name === 'etiquette' || name === 'quote' || name === 'calendar' || name === 'prayer' || name === 'marketing' || name === 'translation-import') && { maxStalledCount: translation.maxStalledCount }),
+      ...((name === 'translation' || name === 'scenes' || name === 'narration' || name === 'etiquette' || name === 'quote' || name === 'calendar' || name === 'prayer' || name === 'marketing' || name === 'translation-import') && { maxStalledCount: translation.maxStalledCount }),
     });
 
     worker.on('completed', (job, result) => {
@@ -135,6 +141,9 @@ async function start() {
       }
       if (name === 'scenes') {
         onSceneJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed scenes job'));
+      }
+      if (name === 'narration') {
+        onNarrationJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed narration job'));
       }
       if (name === 'etiquette') {
         onEtiquetteJobFailed(job, err).catch((e) => logger.error({ err: e.message }, 'could not record a failed etiquette job'));
@@ -175,6 +184,9 @@ async function start() {
   const reconcileScenes = () => reconcileSceneRuns().catch((err) => logger.error({ err: err.message }, 'scenes reconcile failed'));
   await reconcileScenes();
   reconcileScenesTimer = setInterval(reconcileScenes, translation.reconcileEveryMs);
+  const reconcileNarration = () => reconcileNarrationRuns().catch((err) => logger.error({ err: err.message }, 'narration reconcile failed'));
+  await reconcileNarration();
+  reconcileNarrationTimer = setInterval(reconcileNarration, translation.reconcileEveryMs);
   const reconcileEtiquette = () => reconcileEtiquetteRuns().catch((err) => logger.error({ err: err.message }, 'etiquette reconcile failed'));
   await reconcileEtiquette();
   reconcileEtiquetteTimer = setInterval(reconcileEtiquette, translation.reconcileEveryMs);
@@ -204,6 +216,7 @@ async function shutdown(signal) {
   logger.info({ signal }, 'worker shutting down');
   clearInterval(reconcileTimer);
   clearInterval(reconcileScenesTimer);
+  clearInterval(reconcileNarrationTimer);
   clearInterval(reconcileEtiquetteTimer);
   clearInterval(reconcileQuoteTimer);
   clearInterval(reconcileCalendarTimer);
@@ -214,14 +227,15 @@ async function shutdown(signal) {
   // itself back in the queue, and the next worker carries on from the verse after the last one saved.
   const stopped = abortActiveRuns('shutdown');
   const stoppedScenes = abortSceneRuns('shutdown');
+  const stoppedNarration = abortNarrationRuns('shutdown');
   const stoppedEtiquette = abortEtiquetteRuns('shutdown');
   const stoppedQuotes = abortQuoteRuns('shutdown');
   const stoppedCalendar = abortCalendarRuns('shutdown');
   const stoppedPrayers = abortPrayerRuns('shutdown');
   const stoppedMarketing = abortMarketingRuns('shutdown');
   const stoppedImports = abortTranslationImportRuns('shutdown');
-  if (stopped || stoppedScenes || stoppedEtiquette || stoppedQuotes || stoppedCalendar || stoppedPrayers || stoppedMarketing || stoppedImports) {
-    logger.info({ stopped, stoppedScenes, stoppedEtiquette, stoppedQuotes, stoppedCalendar, stoppedPrayers, stoppedMarketing, stoppedImports }, 'translation, scene, etiquette, quote, calendar, prayer, marketing and import runs handed back to the queue');
+  if (stopped || stoppedScenes || stoppedNarration || stoppedEtiquette || stoppedQuotes || stoppedCalendar || stoppedPrayers || stoppedMarketing || stoppedImports) {
+    logger.info({ stopped, stoppedScenes, stoppedNarration, stoppedEtiquette, stoppedQuotes, stoppedCalendar, stoppedPrayers, stoppedMarketing, stoppedImports }, 'translation, scene, narration, etiquette, quote, calendar, prayer, marketing and import runs handed back to the queue');
   }
   await Promise.all(workers.map((worker) => worker.close()));
   await disconnectDatabase();
